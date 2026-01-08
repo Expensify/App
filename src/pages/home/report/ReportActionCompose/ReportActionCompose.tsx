@@ -124,16 +124,14 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 /**
- * Returns an array of AI-aware placeholders for expense threads
+ * List of AI-aware placeholder translation keys for expense threads
  */
-function getAIPlaceholders(translate: LocalizedTranslate): string[] {
-    return [
-        translate('reportActionCompose.askConciergeToCreate'),
-        translate('reportActionCompose.askConciergeToUpdate'),
-        translate('reportActionCompose.askConciergeToCorrect'),
-        translate('reportActionCompose.addColleagueWithMention'),
-    ];
-}
+const AI_PLACEHOLDER_KEYS = [
+    'reportActionCompose.askConciergeToCreate',
+    'reportActionCompose.askConciergeToUpdate',
+    'reportActionCompose.askConciergeToCorrect',
+    'reportActionCompose.addColleagueWithMention',
+] as const;
 
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
@@ -190,7 +188,7 @@ function ReportActionCompose({
         return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     });
 
-    const [randomPlaceholderIndex] = useState(() => Math.floor(Math.random() * 4));
+    const [randomPlaceholderIndex] = useState(() => Math.floor(Math.random() * AI_PLACEHOLDER_KEYS.length));
 
     /**
      * Updates the visibility state of the menu
@@ -275,8 +273,7 @@ function ReportActionCompose({
         // Show AI-aware placeholder for expense-related reports where user can write
         // to encourage using Concierge AI for expense management
         if (isExpenseRelatedReport && canUserPerformWriteAction) {
-            const placeholders = getAIPlaceholders(translate);
-            return placeholders.at(randomPlaceholderIndex) ?? placeholders.at(0) ?? '';
+            return translate(AI_PLACEHOLDER_KEYS[randomPlaceholderIndex]);
         }
 
         return translate('reportActionCompose.writeSomething');
