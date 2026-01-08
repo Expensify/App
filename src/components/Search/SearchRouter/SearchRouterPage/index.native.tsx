@@ -1,7 +1,7 @@
 import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchRouter from './SearchRouter';
-import {useSearchRouterContext} from './SearchRouterContext';
+import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 
 function SearchRouterPage() {
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();

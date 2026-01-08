@@ -818,7 +818,7 @@ const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePay
 });
 
 const SearchRouterModalStackNavigator = createModalStackNavigator({
-    [SCREENS.ENABLE_PAYMENTS_ROOT]: () => require<ReactComponentModule>('../../../../components/Search/SearchRouter/SearchRouterPage').default,
+    [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: () => require<ReactComponentModule>('../../../../components/Search/SearchRouter/SearchRouterPage').default,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
