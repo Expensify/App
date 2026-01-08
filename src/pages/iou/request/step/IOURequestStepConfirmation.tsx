@@ -235,7 +235,6 @@ function IOURequestStepConfirmation({
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
     const requestType = getRequestType(transaction);
@@ -1295,18 +1294,13 @@ function IOURequestStepConfirmation({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields =
-        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
+    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID="IOURequestStepConfirmation"
-            headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
-            <DragAndDropProvider
-                setIsDraggingOver={setIsDraggingOver}
-                isDisabled={!showReceiptEmptyState}
-            >
+            <DragAndDropProvider isDisabled={!showReceiptEmptyState}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
