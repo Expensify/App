@@ -555,8 +555,11 @@ function SearchPage({route}: SearchPageProps) {
                     const selectedPolicyIDList = selectedReports.length
                         ? selectedReports.map((report) => report.policyID)
                         : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
-                    const dewPolicy = selectedPolicyIDList.map((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]).find((policy) => hasDynamicExternalWorkflow(policy));
-
+                    const dewPolicyID = selectedPolicyIDList.find((policyID) => {
+                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+                        return hasDynamicExternalWorkflow(policy);
+                    });
+                    const dewPolicy = dewPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${dewPolicyID}`] : undefined;
                     if (dewPolicy && !isDEWBetaEnabled) {
                         setIsDEWModalVisible(true);
                         return;
