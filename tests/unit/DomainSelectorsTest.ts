@@ -140,7 +140,6 @@ describe('domainSelectors', () => {
     });
 
     describe('adminPendingActionSelector', () => {
-
         it.each([
             ['undefined', undefined, {}],
             ['empty object', {} as OnyxEntry<DomainPendingActions>, {}],
