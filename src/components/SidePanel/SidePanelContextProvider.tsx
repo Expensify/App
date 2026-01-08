@@ -3,6 +3,7 @@ import React, {createContext, useCallback, useEffect, useMemo, useRef, useState}
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -11,6 +12,7 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SidePanel} from '@src/types/onyx';
 
 type SidePanelContextProps = {
@@ -25,6 +27,7 @@ type SidePanelContextProps = {
     openSidePanel: () => void;
     closeSidePanel: () => void;
     sidePanelNVP?: SidePanel;
+    reportID?: string;
 };
 
 const SidePanelContext = createContext<SidePanelContextProps>({
@@ -55,6 +58,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
     const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sidePanelWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
+
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const reportID = sidePanelNVP?.reportID ?? conciergeReportID;
 
     useEffect(() => {
         setIsSidePanelTransitionEnded(false);
@@ -103,6 +109,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             openSidePanel: () => SidePanelActions.openSidePanel(!isExtraLargeScreenWidth),
             closeSidePanel,
             sidePanelNVP,
+            reportID,
         }),
         [
             closeSidePanel,
@@ -114,6 +121,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             shouldHideSidePanelBackdrop,
             shouldHideToolTip,
             sidePanelNVP,
+            reportID,
         ],
     );
 
