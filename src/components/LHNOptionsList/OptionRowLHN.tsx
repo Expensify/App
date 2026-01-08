@@ -331,7 +331,11 @@ function OptionRowLHN({
                                             </View>
                                         ) : null}
                                         {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                            <View
+                                                style={[styles.alignItemsCenter, styles.justifyContentCenter]}
+                                                accessibilityLabel={translate('accessibilityHints.hasItemsToReview')}
+                                                role="img"
+                                            >
                                                 <Icon
                                                     testID="RBR Icon"
                                                     src={Expensicons.DotIndicator}
@@ -346,7 +350,11 @@ function OptionRowLHN({
                                     accessible={false}
                                 >
                                     {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
-                                        <View style={styles.ml2}>
+                                        <View
+                                            style={styles.ml2}
+                                            accessibilityLabel={translate('accessibilityHints.hasActionToTake')}
+                                            role="img"
+                                        >
                                             <Icon
                                                 testID="GBR Icon"
                                                 src={Expensicons.DotIndicator}
@@ -358,6 +366,7 @@ function OptionRowLHN({
                                         <View
                                             style={styles.ml2}
                                             accessibilityLabel={translate('sidebarScreen.draftedMessage')}
+                                            role="img"
                                         >
                                             <Icon
                                                 testID="Pencil Icon"
@@ -370,6 +379,7 @@ function OptionRowLHN({
                                         <View
                                             style={styles.ml2}
                                             accessibilityLabel={translate('sidebarScreen.chatPinned')}
+                                            role="img"
                                         >
                                             <Icon
                                                 testID="Pin Icon"
