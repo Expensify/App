@@ -266,7 +266,7 @@ function getReportsToDisplayInLHN(
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
     for (const [reportID, report] of Object.entries(allReportsDictValues)) {
-        if (!report?.reportID && report?.pendingFields?.reportID !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!report) {
             continue;
         }
 
@@ -320,7 +320,7 @@ function updateReportsToDisplayInLHN({
     const displayedReportsCopy = {...displayedReports};
     for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
-        if (!report?.reportID && report?.pendingFields?.reportID !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!report) {
             delete displayedReportsCopy[reportID];
             continue;
         }
@@ -819,7 +819,7 @@ function getOptionData({
         if (isRenamedAction(lastAction)) {
             result.alternateText = getRenamedAction(translate, lastAction, isExpense, lastActorDisplayName);
         } else if (isTaskAction(lastAction)) {
-            result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(lastAction).text);
+            result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(translate, lastAction).text);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
             const actionMessage = getReportActionMessageText(lastAction);
             result.alternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';

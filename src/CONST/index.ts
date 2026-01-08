@@ -448,7 +448,6 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
-        DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
         OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
         OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
     },
@@ -730,6 +729,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
     },
@@ -773,7 +773,6 @@ const CONST = {
         IOS: 'ios',
         ANDROID: 'android',
         WEB: 'web',
-        DESKTOP: 'desktop',
         MOBILE_WEB: 'mobileweb',
     },
     PLATFORM_SPECIFIC_KEYS: {
@@ -1097,8 +1096,6 @@ const CONST = {
     SIGN_IN_FORM_WIDTH: 300,
 
     REQUEST_CODE_DELAY: 30,
-
-    DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME, SCREENS.SIGN_IN_WITH_APPLE_DESKTOP, SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP],
 
     SIGN_IN_METHOD: {
         APPLE: 'Apple',
@@ -1553,6 +1550,7 @@ const CONST = {
     NEXT_STEP: {
         MESSAGE_KEY: {
             WAITING_TO_ADD_TRANSACTIONS: 'waitingToAddTransactions',
+            WAITING_TO_SUBMIT: 'waitingToSubmit',
             NO_FURTHER_ACTION: 'noFurtherAction',
             WAITING_FOR_SUBMITTER_ACCOUNT: 'waitingForSubmitterAccount',
             WAITING_FOR_AUTOMATIC_SUBMIT: 'waitingForAutomaticSubmit',
@@ -1562,6 +1560,7 @@ const CONST = {
             WAITING_FOR_POLICY_BANK_ACCOUNT: 'waitingForPolicyBankAccount',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_TO_EXPORT: 'waitingToExport',
+            SUBMITTING_TO_SELF: 'submittingToSelf',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
@@ -1851,7 +1850,6 @@ const CONST = {
         UPDATE_REQUIRED: 'Upgrade Required',
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
 
-        DESKTOP_APP_RETIRED: 'Desktop app retired',
         BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
     },
     ERROR_TYPE: {
@@ -2155,7 +2153,6 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    DESKTOP_HEADER_PADDING: 12,
     SEARCH_ITEM_LIMIT: 15,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
@@ -6714,6 +6711,7 @@ const CONST = {
             CARD: 'card',
             DISTANCE: 'distance',
             PER_DIEM: 'perDiem',
+            TIME: 'time',
         },
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',

@@ -86,8 +86,7 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
 
-let currentUserAccountID: number | undefined;
-let currentEmail = '';
+let deprecatedCurrentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -96,8 +95,7 @@ Onyx.connect({
             return;
         }
 
-        currentUserAccountID = value.accountID;
-        currentEmail = value?.email ?? '';
+        deprecatedCurrentUserAccountID = value.accountID;
     },
 });
 
@@ -443,7 +441,7 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAc
     if (!isWhisperAction(reportAction)) {
         return false;
     }
-    return !getWhisperedTo(reportAction).includes(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    return !getWhisperedTo(reportAction).includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED> {
@@ -2216,18 +2214,18 @@ function getMentionedEmailsFromMessage(message: string) {
     return matches.map((match) => Str.removeSMSDomain(match[1].substring(1)));
 }
 
-function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>) {
+function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string) {
     const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
     const message = getReportActionMessage(reportAction)?.html ?? '';
     const emailsFromMessage = getMentionedEmailsFromMessage(message);
-    return accountIDsFromMessage.includes(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) || emailsFromMessage.includes(currentEmail) || message.includes('<mention-here>');
+    return accountIDsFromMessage.includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) || emailsFromMessage.includes(currentUserEmail) || message.includes('<mention-here>');
 }
 
 /**
  * Check if the current user is the requestor of the action
  */
 function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return currentUserAccountID === reportAction?.actorAccountID;
+    return deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
 }
 
 /**
@@ -2790,15 +2788,6 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
         });
     }
 
-    if (customUnitName && customUnitRateName && updatedField === 'index' && typeof newValue === 'number') {
-        return translate('workspaceActions.updatedCustomUnitRateIndex', {
-            customUnitName,
-            customUnitRateName,
-            oldValue: oldValue ? Number(oldValue) : undefined,
-            newValue,
-        });
-    }
-
     if (customUnitName && customUnitRateName && updatedField === 'enabled' && typeof oldValue === 'boolean' && typeof newValue === 'boolean') {
         return translate('workspaceActions.updatedCustomUnitRateEnabled', {
             customUnitName,
@@ -3227,7 +3216,7 @@ function getRemovedFromApprovalChainMessage(translate: LocalizedTranslate, repor
     const originalMessage = getOriginalMessage(reportAction);
     const submittersNames = getPersonalDetailsByIDs({
         accountIDs: originalMessage?.submittersAccountIDs ?? [],
-        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        currentUserAccountID: deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
     }).map(({displayName, login}) => displayName ?? login ?? 'Unknown Submitter');
     return translate('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
 }
@@ -3393,7 +3382,7 @@ function getCardIssuedMessage({
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink = (expensifyCardLinkText: string) =>
         shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
-    const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
+    const isAssigneeCurrentUser = deprecatedCurrentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
             ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('workspace.companyCards.companyCard')}</a>`
