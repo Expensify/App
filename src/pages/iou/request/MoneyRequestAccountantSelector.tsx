@@ -65,6 +65,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
     useEffect(() => {
@@ -83,6 +84,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             },
             draftComments,
             nvpDismissedProductTraining,
+            policyTags,
+            translate,
             loginList,
             {
                 betas,
@@ -98,7 +101,20 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             ...optionList,
             ...orderedOptions,
         };
-    }, [areOptionsInitialized, didScreenTransitionEnd, options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, betas, action, countryCode]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        options.reports,
+        options.personalDetails,
+        draftComments,
+        nvpDismissedProductTraining,
+        policyTags,
+        translate,
+        loginList,
+        betas,
+        action,
+        countryCode,
+    ]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -110,12 +126,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, translate, countryCode, loginList, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, translate, countryCode, loginList]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -134,6 +150,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             [],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            policyTags,
+            translate,
             personalDetails,
             true,
             undefined,
@@ -164,7 +182,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat
+                        ? getPolicyExpenseReportOption(participant, policyTags, translate, reportAttributesDerived)
+                        : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -186,9 +206,10 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         chatOptions.personalDetails,
         chatOptions.userToInvite,
         debouncedSearchTerm,
+        policyTags,
+        translate,
         personalDetails,
         reportAttributesDerived,
-        translate,
         loginList,
         countryCode,
     ]);
