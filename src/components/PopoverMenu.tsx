@@ -45,6 +45,9 @@ type PopoverMenuItem = MenuItemProps & {
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
 
+    /** Header text to be shown if sub menu items are opened */
+    subMenuHeaderText?: string;
+
     /** Back button text to be shown if sub menu items are opened */
     backButtonText?: string;
 
@@ -173,12 +176,6 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
 
     /** Whether to put the header text after the back button */
     shouldPutHeaderTextAfterBackButton?: boolean;
-
-    /** Callback when back button is pressed */
-    onBackButtonPress?: () => void;
-
-    /** Whether to always show the header text, even when navigating submenus */
-    shouldAlwaysShowHeaderText?: boolean;
 };
 
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
@@ -258,6 +255,28 @@ function PopoverMenu(props: PopoverMenuProps) {
     return <BasePopoverMenu {...props} />;
 }
 
+function useHeaderState(initialHeaderText: string): [string, boolean, (newHeaderText: string, alwaysShow: boolean) => void, () => void] {
+    const [headerTexts, setHeaderTexts] = useState<string[]>([initialHeaderText]);
+    const [shouldAlwaysShowHeaderTexts, setShouldAlwaysShowHeaderTexts] = useState<boolean[]>([true]);
+    const [headerIndex, setHeaderIndex] = useState(0);
+    const currentHeaderText = headerTexts.at(headerIndex) ?? '';
+    const shouldAlwaysShowHeaderText = shouldAlwaysShowHeaderTexts.at(headerIndex) ?? false;
+
+    const pushHeaderText = (newHeaderText: string, alwaysShow: boolean) => {
+        setHeaderTexts((prev) => [...prev, newHeaderText]);
+        setShouldAlwaysShowHeaderTexts((prev) => [...prev, alwaysShow]);
+        setHeaderIndex((index) => index + 1);
+    };
+
+    const popHeaderText = () => {
+        setHeaderTexts((prev) => prev.slice(0, -1));
+        setShouldAlwaysShowHeaderTexts((prev) => prev.slice(0, -1));
+        setHeaderIndex((index) => index - 1);
+    };
+
+    return [currentHeaderText, shouldAlwaysShowHeaderText, pushHeaderText, popHeaderText];
+}
+
 function BasePopoverMenu({
     menuItems,
     onItemSelected,
@@ -296,8 +315,6 @@ function BasePopoverMenu({
     shouldAvoidSafariException = false,
     testID,
     shouldPutHeaderTextAfterBackButton = false,
-    onBackButtonPress = () => {},
-    shouldAlwaysShowHeaderText = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -313,6 +330,7 @@ function BasePopoverMenu({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
+    const [currentHeaderText, shouldAlwaysShowHeaderText, pushHeaderText, popHeaderText] = useHeaderState(headerText ?? '');
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -325,6 +343,7 @@ function BasePopoverMenu({
             }
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
+            pushHeaderText(selectedItem.subMenuHeaderText ?? '', !!selectedItem.subMenuHeaderText);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCloseModalOnSelect === false) {
@@ -376,7 +395,7 @@ function BasePopoverMenu({
                 shouldCheckActionAllowedOnPress={false}
                 description={previouslySelectedItem?.description}
                 onPress={() => {
-                    onBackButtonPress();
+                    popHeaderText();
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
                     setEnteredSubMenuIndexes((prevState) => prevState.slice(0, -1));
@@ -428,15 +447,15 @@ function BasePopoverMenu({
     });
 
     const renderHeaderText = () => {
-        if (!headerText || (enteredSubMenuIndexes.length !== 0 && !shouldAlwaysShowHeaderText)) {
+        if (!currentHeaderText || (enteredSubMenuIndexes.length !== 0 && !shouldAlwaysShowHeaderText)) {
             return;
         }
         return (
             <Text
-                key={`${headerText}_${shouldPutHeaderTextAfterBackButton}`}
+                key={`${currentHeaderText}_${shouldPutHeaderTextAfterBackButton}`}
                 style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
             >
-                {headerText}
+                {currentHeaderText}
             </Text>
         );
     };

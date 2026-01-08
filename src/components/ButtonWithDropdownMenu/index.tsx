@@ -63,8 +63,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldStayNormalOnDisable = false,
         sentryLabel,
         shouldPutHeaderTextAfterBackButton = false,
-        shouldAlwaysShowHeaderText = false,
-        onSubmenuBackButtonPress,
     } = props;
 
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
@@ -310,8 +308,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         subMenuItems: item.subMenuItems?.map((subItem) => ({...subItem, shouldCallAfterModalHide: true})),
                     }))}
                     shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
-                    shouldAlwaysShowHeaderText={shouldAlwaysShowHeaderText}
-                    onBackButtonPress={onSubmenuBackButtonPress}
                 />
             )}
         </View>

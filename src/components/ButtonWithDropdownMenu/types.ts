@@ -164,12 +164,6 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
 
     /** Whether to put the header text after the back button */
     shouldPutHeaderTextAfterBackButton?: boolean;
-
-    /** Whether to always show the header text, even when navigating submenus */
-    shouldAlwaysShowHeaderText?: boolean;
-
-    /** Callback when the back button in the header is pressed */
-    onSubmenuBackButtonPress?: () => void;
 };
 
 type ButtonWithDropdownMenuRef = {

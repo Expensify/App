@@ -24,10 +24,6 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
     headerText?: string;
 
     shouldPutHeaderTextAfterBackButton?: boolean;
-
-    shouldAlwaysShowHeaderText?: boolean;
-
-    onSubmenuBackButtonPress?: () => void;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -40,8 +36,6 @@ function MoneyReportHeaderKYCDropdown({
     ref,
     headerText = '',
     shouldPutHeaderTextAfterBackButton = false,
-    shouldAlwaysShowHeaderText = false,
-    onSubmenuBackButtonPress,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
@@ -88,8 +82,6 @@ function MoneyReportHeaderKYCDropdown({
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                     menuHeaderText={headerText}
                     shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
-                    shouldAlwaysShowHeaderText={shouldAlwaysShowHeaderText}
-                    onSubmenuBackButtonPress={onSubmenuBackButtonPress}
                 />
             )}
         </KYCWall>
