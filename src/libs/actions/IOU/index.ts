@@ -14116,7 +14116,7 @@ function updateSplitTransactions({
     }
 
     if (!isReverseSplitOperation) {
-        // Use SET method to update originalTransaction quickly in the Onyx
+        // Use SET to update originalTransaction more quickly in Onyx as compared to MERGE to prevent UI inconsistency
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
