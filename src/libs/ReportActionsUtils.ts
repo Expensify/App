@@ -3487,7 +3487,6 @@ function getCompanyCardConnectionBrokenMessage(translate: LocalizedTranslate, ac
     const workspaceCompanyCardRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}`;
     return translate('report.actions.type.companyCardConnectionBroken', {
         feedName,
-        policyID,
         workspaceCompanyCardRoute,
     });
 }
