@@ -65,7 +65,7 @@ function openPolicyTagsPage(policyID: string) {
 
 type BuildOptimisticPolicyRecentlyUsedTagsProps = {
     policyTags: PolicyTagLists;
-    policyRecentlyUsedTags: RecentlyUsedTags;
+    policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     transactionTags?: string;
 };
 
@@ -83,7 +83,7 @@ function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTa
         }
 
         const tagListKey = policyTagKeys.at(index) ?? '';
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags?.[tagListKey] ?? [])])];
     }
 
     return newOptimisticPolicyRecentlyUsedTags;
@@ -100,9 +100,7 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                     importFinalModal: {
                         titleKey: 'spreadsheet.importSuccessfulTitle',
                         promptKey: 'spreadsheet.importTagsSuccessfulDescription',
-                        promptKeyParams: {
-                            tags: tagsLength,
-                        },
+                        promptKeyParams: [tagsLength],
                     },
                 },
             },

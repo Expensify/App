@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
@@ -61,7 +60,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                         width={variables.iconSizeNormal}
                         fill={theme.icon}
                     />
-                    <RenderHTML html={translate('travel.flightDetails.layover', {layover})} />
+                    <RenderHTML html={translate('travel.flightDetails.layover', layover)} />
                 </View>
             )}
             <MenuItemWithTopDescription
@@ -139,7 +138,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                 <MenuItem
                     label={translate('travel.flightDetails.passenger')}
                     title={displayName}
-                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    icon={personalDetails?.avatar ?? expensifyIcons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}
