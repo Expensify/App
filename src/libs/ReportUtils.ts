@@ -3954,6 +3954,7 @@ function getReimbursementQueuedActionMessage({
 function getReimbursementDeQueuedOrCanceledActionMessage(
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
     reportOrID: OnyxEntry<Report> | string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
     const originalMessage = getOriginalMessage(reportAction);
@@ -3964,7 +3965,7 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.adminCanceledRequest');
     }
-    const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+    const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber}) ?? '';
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('iou.canceledRequest', formattedAmount, submitterDisplayName);
 }
@@ -5549,7 +5550,7 @@ function getReportActionMessage({
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
-        return getReimbursementDeQueuedOrCanceledActionMessage(reportAction, getReportOrDraftReport(reportID, reports));
+        return getReimbursementDeQueuedOrCanceledActionMessage(reportAction, getReportOrDraftReport(reportID, reports), formatPhoneNumber);
     }
 
     return parseReportActionHtmlToText(reportAction, reportID, childReportID);

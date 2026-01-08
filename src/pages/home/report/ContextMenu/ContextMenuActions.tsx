@@ -674,7 +674,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
                     const {expenseReportID} = getOriginalMessage(reportAction) ?? {};
-                    const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(reportAction, expenseReportID);
+                    const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(reportAction, expenseReportID, formatPhoneNumberPhoneUtils);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
                     const displayMessage = getIOUReportActionDisplayMessage(reportAction, transaction, report);
