@@ -59,8 +59,10 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseModalPaddingStyle = true,
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
+        headerTextStyles,
         shouldStayNormalOnDisable = false,
         sentryLabel,
+        shouldPutHeaderTextAfterBackButton = false,
     } = props;
 
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
@@ -274,6 +276,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             setIsMenuVisible(false);
                         }
                     }}
+                    headerStyles={headerTextStyles}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     // eslint-disable-next-line react-compiler/react-compiler
@@ -304,6 +307,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         shouldCallAfterModalHide: true,
                         subMenuItems: item.subMenuItems?.map((subItem) => ({...subItem, shouldCallAfterModalHide: true})),
                     }))}
+                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </View>
