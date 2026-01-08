@@ -286,11 +286,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const navigateBack = () => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-        } else {
-            Navigation.goBack();
-        }
+        Navigation.goBack(backTo);
     };
 
     // Navigate to next page following Manual tab pattern
@@ -335,7 +331,7 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        if (backToReport && backTo) {
+        if (backToReport) {
             Navigation.goBack(backTo);
             return;
         }
