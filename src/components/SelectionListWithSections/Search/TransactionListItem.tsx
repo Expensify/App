@@ -63,11 +63,23 @@ function TransactionListItem<TItem extends ListItem>({
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
+    // Use active policy (user's current workspace) as fallback for self DM tracking expenses
+    // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    // Use report's policyID as fallback when transaction doesn't have policyID directly
+    // Use active policy as final fallback for SelfDM (tracking expenses)
+    // NOTE: Using || instead of ?? to treat empty string "" as falsy
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyID;
+    const [onyxPolicy] = originalUseOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: (policy) => policy?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+    });
     const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
-    }, [snapshot, transactionItem.policyID]);
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {}) as Policy;
+    }, [snapshot, policyID]);
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
-    const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionItem.policyID)}`, {canBeMissing: true});
+    const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {canBeMissing: true});
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
@@ -124,25 +136,38 @@ function TransactionListItem<TItem extends ListItem>({
     ]);
 
     const transactionViolations = useMemo(() => {
+        const policy = onyxPolicy ?? snapshotPolicy;
         const onyxViolations = (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
-                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, snapshotReport, snapshotPolicy) &&
-                shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false, transactionItem),
+                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, snapshotReport, policy) &&
+                shouldShowViolation(snapshotReport, policy, violation.name, currentUserDetails.email ?? '', false, transactionItem),
         );
 
         // Sync missingAttendees violation with current policy category settings (can be removed later when BE handles this)
+        // Use live transaction data (attendees, category) to ensure we check against current state, not stale snapshot
         const attendeeOnyxViolations = syncMissingAttendeesViolation(
             onyxViolations,
             policyCategories,
-            transactionItem.category ?? '',
-            transactionItem.attendees,
+            transaction?.category ?? transactionItem.category ?? '',
+            transaction?.comment?.attendees ?? transactionItem.attendees,
             currentUserDetails,
-            snapshotPolicy?.isAttendeeTrackingEnabled ?? false,
-            snapshotPolicy?.type === CONST.POLICY.TYPE.CORPORATE,
+            policy?.isAttendeeTrackingEnabled ?? false,
+            policy?.type === CONST.POLICY.TYPE.CORPORATE,
         );
-
         return attendeeOnyxViolations;
-    }, [snapshotPolicy, policyCategories, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID, currentUserDetails]);
+    }, [
+        onyxPolicy,
+        snapshotPolicy,
+        policyCategories,
+        snapshotReport,
+        transactionItem,
+        violations,
+        currentUserDetails.email,
+        currentUserDetails.accountID,
+        currentUserDetails,
+        transaction?.category,
+        transaction?.comment?.attendees,
+    ]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 

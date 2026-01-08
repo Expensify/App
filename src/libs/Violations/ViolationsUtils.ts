@@ -415,7 +415,7 @@ const ViolationsUtils = {
         const shouldShowMissingAttendees =
             !isInvoiceTransaction &&
             isAttendeeTrackingEnabled &&
-            policyCategories?.[categoryName ?? '']?.areAttendeesRequired &&
+            !!policyCategories?.[categoryName ?? '']?.areAttendeesRequired &&
             isControlPolicy &&
             (attendees.length === 0 || attendeesMinusOwnerCount === 0);
 

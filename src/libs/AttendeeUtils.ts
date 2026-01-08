@@ -42,8 +42,13 @@ function getIsMissingAttendeesViolation(
     }
 
     const creatorLogin = userPersonalDetails.login ?? '';
+    const creatorEmail = userPersonalDetails.email ?? '';
     const attendees = Array.isArray(iouAttendees) ? iouAttendees : [];
-    const attendeesMinusCreatorCount = attendees.filter((a) => a?.login !== creatorLogin).length;
+    // Check both login and email since attendee objects may have identifier in either property
+    const attendeesMinusCreatorCount = attendees.filter((a) => {
+        const attendeeIdentifier = a?.login ?? a?.email;
+        return attendeeIdentifier !== creatorLogin && attendeeIdentifier !== creatorEmail;
+    }).length;
 
     if (attendees.length === 0 || attendeesMinusCreatorCount === 0) {
         return true;

@@ -435,11 +435,11 @@ function MoneyRequestConfirmationList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if formError or setFormError changes
     }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
-    // Clear the missingAttendees violation when attendees change (user fixed the issue)
+    // Clear the missingAttendees violation when category or attendees change (user fixed the issue)
     useEffect(() => {
         clearFormErrors(['violations.missingAttendees']);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want to run this when iouAttendees changes
-    }, [iouAttendees]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want to run this when iouCategory or iouAttendees changes
+    }, [iouCategory, iouAttendees]);
 
     useEffect(() => {
         // We want this effect to run only when the transaction is moving from Self DM to a expense chat

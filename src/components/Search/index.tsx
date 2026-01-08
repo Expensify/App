@@ -244,6 +244,7 @@ function Search({
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
@@ -268,7 +269,9 @@ function Search({
             }
 
             const report = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-            const policy = searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+            const snapshotPolicy = searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+            const onyxPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+            const policy = onyxPolicy ?? snapshotPolicy;
 
             if (report && policy) {
                 const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
@@ -283,9 +286,8 @@ function Search({
                 }
             }
         }
-
         return filtered;
-    }, [violations, searchResults, email]);
+    }, [violations, searchResults, email, policies]);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -420,6 +422,7 @@ function Search({
         const [filteredData1, allLength] = getSections({
             type,
             data: searchResults.data,
+            policies,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
             translate,
@@ -448,6 +451,7 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        policies,
     ]);
 
     useEffect(() => {

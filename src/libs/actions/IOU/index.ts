@@ -5277,6 +5277,7 @@ type AddTrackedExpenseToPolicyParam = {
     moneyRequestCreatedReportActionID: string | undefined;
     moneyRequestPreviewReportActionID: string;
     distance: number | undefined;
+    attendees: string | undefined;
 } & ConvertTrackedWorkspaceParams;
 
 type ConvertTrackedExpenseToRequestParams = {
@@ -5360,6 +5361,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             comment,
             created,
             merchant,
+            attendees: attendees ? JSON.stringify(attendees) : undefined,
             reimbursable: true,
             transactionID,
             actionableWhisperReportActionID,
