@@ -276,7 +276,7 @@ function WalletPage() {
         !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm &&
         paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
-    // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
+    // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
     const headerWithBackButton = (
