@@ -14730,6 +14730,7 @@ export {
     getReceiptError,
     getSearchOnyxUpdate,
     getCleanUpTransactionThreadReportOnyxData,
+    getDeleteTrackExpenseInformation,
 };
 export type {
     GPSPoint as GpsPoint,
