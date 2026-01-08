@@ -56,6 +56,33 @@ When adding or modifying rules in AI reviewer agent files, the corresponding doc
 
 ### When to Use Each Reviewer
 
+```mermaid
+flowchart TD
+    subgraph trigger [Reviewer pipeline]
+        A{Contribution Type}
+    end
+
+    A -->|Code PR| B[Smart Linter]
+    A -->|Code PR| C[Holistic Reviewer]
+    A -->|HelpDot PR| D[helpdot-inline-reviewer]
+    A -->|HelpDot PR| E[helpdot-summary-reviewer]
+    A -->|Deploy Blocker Issue| F[deploy-blocker-investigator]
+
+    subgraph code [Code Review]
+        B -->|Rule-based| G[Inline comments for violations]
+        C -->|General| H[Quality feedback]
+    end
+
+    subgraph docs [Documentation Review]
+        D -->|Inline| I[Line-specific feedback]
+        E -->|Summary| J[Scores and recommendations]
+    end
+
+    subgraph deploy [Issue Investigation]
+        F --> K[Identify causing PR]
+    end
+```
+
 #### Code PRs
 Code PRs benefit from the **two-reviewer approach**:
 
