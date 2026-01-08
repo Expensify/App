@@ -1,6 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Card, CardFeed} from '.';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -70,5 +71,69 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
  */
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
+/**
+ * The errors of a card.
+ */
+type CardErrors = {
+    /**
+     *
+     */
+    errors?: Card['errors'];
+    /**
+     *
+     */
+    errorFields?: Card['errorFields'];
+    /**
+     *
+     */
+    pendingAction?: Card['pendingAction'];
+};
+
+/**
+ * The errors of a card feed.
+ */
+type CardFeedErrors = {
+    /**
+     *
+     */
+    shouldShowRBR: boolean;
+    /**
+     *
+     */
+    hasFailedCardAssignments: boolean;
+    /**
+     *
+     */
+    hasFeedError: boolean;
+    /**
+     *
+     */
+    isFeedConnectionBroken: boolean;
+    /**
+     *
+     */
+    cardErrors: Map<string, CardErrors>;
+};
+
+/**
+ * The errors of all card feeds.
+ */
+type AllCardFeedErrors = Map<number, Map<CardFeed, CardFeedErrors>>;
+
+/**
+ * The derived value for card feed errors.
+ */
+type CardFeedErrorsDerivedValue = AllCardFeedErrors;
+
 export default ReportAttributesDerivedValue;
-export type {ReportAttributes, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue, ReportTransactionsAndViolations, OutstandingReportsByPolicyIDDerivedValue};
+export type {
+    ReportAttributes,
+    ReportAttributesDerivedValue,
+    ReportTransactionsAndViolationsDerivedValue,
+    ReportTransactionsAndViolations,
+    OutstandingReportsByPolicyIDDerivedValue,
+    CardFeedErrorsDerivedValue,
+    AllCardFeedErrors,
+    CardFeedErrors,
+    CardErrors,
+};

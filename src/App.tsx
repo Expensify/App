@@ -8,7 +8,6 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
-import {CardFeedErrorsContextProvider} from './components/CardFeedErrorsContext';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from './components/CurrentUserPersonalDetailsProvider';
@@ -133,7 +132,6 @@ function App() {
                                         ExpensifyCardContextProvider,
                                         KYCWallContextProvider,
                                         WideRHPContextProvider,
-                                        CardFeedErrorsContextProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
