@@ -73,11 +73,11 @@ function getIconTitleAndTestID(
             return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
         case CONST.TAB_REQUEST.DISTANCE_GPS:
             return {icon: icons.Crosshair, title: translate('tabSelector.gps'), testID: 'distanceGPS'};
-        case CONST.IOU.SPLIT_TYPE.AMOUNT:
+        case CONST.TAB.SPLIT.AMOUNT:
             return {icon: icons.MoneyCircle, title: translate('iou.amount'), testID: 'split-amount'};
-        case CONST.IOU.SPLIT_TYPE.PERCENTAGE:
+        case CONST.TAB.SPLIT.PERCENTAGE:
             return {icon: icons.Percent, title: translate('iou.percent'), testID: 'split-percentage'};
-        case CONST.IOU.SPLIT_TYPE.DATE:
+        case CONST.TAB.SPLIT.DATE:
             return {icon: icons.CalendarSolid, title: translate('iou.date'), testID: 'split-date'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);

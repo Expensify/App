@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React, {useState} from 'react';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputProps} from '@components/MagicCodeInput';

@@ -14,8 +14,15 @@ import {WideRHPContext} from '..';
 function useShowSuperWideRHPVersion(condition: boolean) {
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
-    const {showWideRHPVersion, showSuperWideRHPVersion, removeWideRHPRouteKey, removeSuperWideRHPRouteKey, isReportIDMarkedAsExpense, isReportIDMarkedAsMultiTransactionExpense} =
-        useContext(WideRHPContext);
+    const {
+        showWideRHPVersion,
+        showSuperWideRHPVersion,
+        removeWideRHPRouteKey,
+        unmarkReportIDAsMultiTransactionExpense,
+        removeSuperWideRHPRouteKey,
+        isReportIDMarkedAsExpense,
+        isReportIDMarkedAsMultiTransactionExpense,
+    } = useContext(WideRHPContext);
 
     const onSuperWideRHPClose = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -33,12 +40,28 @@ function useShowSuperWideRHPVersion(condition: boolean) {
      */
     useEffect(() => {
         // Check if we should show wide RHP based on condition OR if reportID is in optimistic set
-        if (condition || (reportID && isReportIDMarkedAsMultiTransactionExpense(reportID))) {
+        const isReportMultiTransactionExpense = reportID && isReportIDMarkedAsMultiTransactionExpense(reportID);
+
+        if (condition || isReportMultiTransactionExpense) {
+            if (condition && isReportMultiTransactionExpense) {
+                unmarkReportIDAsMultiTransactionExpense(reportID);
+            }
+
             showSuperWideRHPVersion(route);
             return;
         }
+
         showWideRHPVersion(route);
-    }, [condition, reportID, isReportIDMarkedAsExpense, route, showWideRHPVersion, showSuperWideRHPVersion, isReportIDMarkedAsMultiTransactionExpense]);
+    }, [
+        condition,
+        reportID,
+        isReportIDMarkedAsExpense,
+        route,
+        showWideRHPVersion,
+        showSuperWideRHPVersion,
+        isReportIDMarkedAsMultiTransactionExpense,
+        unmarkReportIDAsMultiTransactionExpense,
+    ]);
 }
 
 export default useShowSuperWideRHPVersion;

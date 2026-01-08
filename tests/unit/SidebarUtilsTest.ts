@@ -26,7 +26,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import {createSidebarReportsCollection, createSidebarTestData} from '../utils/collections/sidebarReports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {localeCompare} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -351,6 +351,7 @@ describe('SidebarUtils', () => {
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
@@ -365,6 +366,7 @@ describe('SidebarUtils', () => {
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
@@ -966,7 +968,7 @@ describe('SidebarUtils', () => {
                         }),
                     )
                     .then(() => {
-                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare);
                         expect(result.messageHtml).toContain('This chat is with');
                         expect(result.messageHtml).toContain('<user-details accountid="1">');
                         expect(result.messageHtml).toContain('<user-details accountid="2">');
@@ -992,7 +994,7 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare);
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageHtml).toContain('<user-details accountid="1">Email One</user-details>');
         });
@@ -1015,7 +1017,7 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare);
             expect(result.messageText).toMatch(/^This chat is with .+ and .+\.$/);
             expect(result.messageText).toContain(' and ');
             expect(result.messageText).not.toContain('<user-details');
@@ -1040,7 +1042,7 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare);
             expect(result.messageText).toMatch(/^This chat is with .+, .+, and .+\.$/);
             expect(result.messageText).toContain(', and ');
             expect(result.messageText).not.toContain('<user-details');
@@ -1075,7 +1077,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should indicate the report is archived
@@ -1105,7 +1107,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should explain the purpose of the room
@@ -1165,6 +1167,7 @@ describe('SidebarUtils', () => {
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -1225,6 +1228,7 @@ describe('SidebarUtils', () => {
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -1288,6 +1292,7 @@ describe('SidebarUtils', () => {
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -1337,6 +1342,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -1376,6 +1382,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     isReportArchived: true,
                     lastActionReport: undefined,
@@ -1412,6 +1419,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -1537,6 +1545,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -1578,6 +1587,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -1647,6 +1657,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -1706,6 +1717,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -1777,6 +1789,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -1894,6 +1907,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -1943,6 +1957,7 @@ describe('SidebarUtils', () => {
                         currency: 'USD',
                         message: '',
                         to: 'email1@test.com',
+                        workflow: CONST.POLICY.APPROVAL_MODE.BASIC,
                     },
                     previousMessage: undefined,
                     automatic: false,
@@ -1977,6 +1992,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -2074,6 +2090,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: lastReportPreviewAction,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -2171,6 +2188,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: lastReportPreviewAction,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
