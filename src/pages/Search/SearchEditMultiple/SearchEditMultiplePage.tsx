@@ -87,14 +87,18 @@ function SearchEditMultiplePage() {
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     useEffect(() => {
-        if (!draftTransaction) {
-            initBulkEditDraftTransaction(currency);
+        if (draftTransaction?.currency === currency) {
+            return;
         }
 
+        initBulkEditDraftTransaction(currency);
+    }, [currency, draftTransaction?.currency]);
+
+    useEffect(() => {
         return () => {
             clearBulkEditDraftTransaction();
         };
-    }, [currency, draftTransaction]);
+    }, []);
 
     const save = () => {
         if (!draftTransaction) {
