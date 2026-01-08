@@ -72,7 +72,6 @@ import type {
     LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
-    LoggedInAsParams,
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
@@ -191,7 +190,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -760,14 +758,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
         signIn: '请重新登录。',
-        redirectedToDesktopApp: '我们已将你重定向到桌面应用程序。',
-        youCanAlso: '你也可以',
-        openLinkInBrowser: '在浏览器中打开此链接',
-        loggedInAs: ({email}: LoggedInAsParams) => `您当前以 ${email} 身份登录。请在提示中点击“打开链接”，以使用此账户登录桌面应用。`,
-        doNotSeePrompt: '看不到提示？',
-        tryAgain: '重试',
-        or: '，或',
-        continueInWeb: '继续前往网页版应用',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -839,12 +829,6 @@ const translations: TranslationDeepObject<typeof en> = {
             header: '以聊天速度处理差旅和报销',
             body: '欢迎使用新一代 Expensify，在这里，借助具备上下文的实时聊天功能，您的差旅和报销处理将更加快速高效。',
         },
-    },
-    thirdPartySignIn: {
-        alreadySignedIn: (email: string) => `您已经以 ${email} 的身份登录。`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `不想使用 ${provider} 登录？`,
-        continueWithMyCurrentSession: '继续当前会话',
-        redirectToDesktopMessage: '完成登录后，我们会将您重定向到桌面应用程序。',
     },
     samlSignIn: {
         welcomeSAMLEnabled: '继续使用单点登录登录：',
@@ -1541,7 +1525,6 @@ const translations: TranslationDeepObject<typeof en> = {
     nextStep: {
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1552,10 +1535,20 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员添加报销。`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `正在等待<strong>你</strong>提交报销。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `正在等待 <strong>${actor}</strong> 提交报销。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `正在等待管理员提交报销。`;
+                }
+            },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `无需进一步操作！`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1571,73 +1564,67 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在 ${eta}` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>您的</strong>报销单自动提交${formattedETA}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 的报销在${formattedETA}自动提交。`;
+                        return `正在等待<strong>${actor}</strong>的报销在${formattedETA}自动提交。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员的报销在${formattedETA}自动提交。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>解决这些问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 解决问题。`;
+                        return `正在等待<strong>${actor}</strong>解决问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员修复这些问题。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>批准报销。`;
+                        return `正在等待<strong>您</strong>批准报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 批准报销。`;
+                        return `正在等待<strong>${actor}</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员审批报销。`;
+                        return `正在等待管理员批准报销。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>您</strong>导出此报告。`;
+                        return `正在等待<strong>你</strong>导出此报告。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `正在等待 <strong>${actor}</strong> 导出此报告。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员导出此报告。`;
+                        return `正在等待管理员导出此报表。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>支付报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 支付报销费用。`;
+                        return `正在等待 <strong>${actor}</strong> 支付报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员报销费用。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>您</strong>完成设置企业银行账户。`;
+                        return `正在等待<strong>你</strong>完成企业银行账户的设置。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 完成企业银行账户的设置。`;
+                        return `正在等待<strong>${actor}</strong>完成企业银行账户的设置。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员完成企业银行账户的设置。`;
                 }
@@ -1645,10 +1632,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在 ${eta} 前` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在 ${eta} 之前` : ` ${eta}`;
                 }
                 return `正在等待付款完成${formattedETA}。`;
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
+                `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，<strong>禁止</strong>自行审批报销单。请将此报销单提交给其他人，或联系你的管理员更改你的提交对象。`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: '很快',
@@ -1761,7 +1751,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updateRequired: '需要更新',
         pleaseInstall: '请更新到最新版 New Expensify',
         pleaseInstallExpensifyClassic: '请安装最新版本的 Expensify',
-        toGetLatestChanges: '对于移动端或桌面端，请下载并安装最新版本。对于网页端，请刷新浏览器。',
+        toGetLatestChanges: '对于移动端，请下载并安装最新版本。对于网页端，请刷新浏览器。',
         newAppNotAvailable: '新版 Expensify 应用已不再提供。',
     },
     initialSettingsPage: {
@@ -1781,9 +1771,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             ios: {
                 label: 'iOS',
-            },
-            desktop: {
-                label: 'macOS',
             },
         },
         troubleshoot: {
@@ -6283,11 +6270,8 @@ ${reportName}
             }
             return `在距离费率“${customUnitRateName}”中添加了可退税部分“${newValue}”`;
         },
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `将 ${customUnitName} 费率 "${customUnitRateName}" 的索引更改为 "${newValue}" ${oldValue ? `(之前为 "${oldValue}")` : ''}`;
-        },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `${newValue ? '已启用' : '已禁用'} ${customUnitName} 费率 "${customUnitRateName}"`;
+            return `${newValue ? '已启用' : '已禁用'} ${customUnitName} 费率“${customUnitRateName}”`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `已移除“${customUnitName}”费率“${rateName}”`,
         addedReportField: (fieldType: string, fieldName?: string) => `已添加 ${fieldType} 报告字段 “${fieldName}”`,
@@ -6708,73 +6692,6 @@ ${reportName}
         permissionError: {
             title: '存储访问',
             message: 'Expensify 在没有存储访问权限的情况下无法保存附件。点击“设置”来更新权限。',
-        },
-    },
-    desktopApplicationMenu: {
-        mainMenu: '全新 Expensify',
-        about: '关于 New Expensify',
-        update: '更新 New Expensify',
-        checkForUpdates: '检查更新',
-        toggleDevTools: '切换开发者工具',
-        viewShortcuts: '查看键盘快捷键',
-        services: '服务',
-        hide: '隐藏 New Expensify',
-        hideOthers: '隐藏其他',
-        showAll: '显示全部',
-        quit: '退出 New Expensify',
-        fileMenu: '文件',
-        closeWindow: '关闭窗口',
-        editMenu: '编辑',
-        undo: '撤销',
-        redo: '重做',
-        cut: '剪切',
-        copy: '复制',
-        paste: '粘贴',
-        pasteAndMatchStyle: '粘贴并匹配样式',
-        pasteAsPlainText: '粘贴为纯文本',
-        delete: '删除',
-        selectAll: '全选',
-        speechSubmenu: '语音',
-        startSpeaking: '开始语音输入',
-        stopSpeaking: '停止说话',
-        viewMenu: '查看',
-        reload: '重新加载',
-        forceReload: '强制重新加载',
-        resetZoom: '实际大小',
-        zoomIn: '放大',
-        zoomOut: '缩小',
-        togglefullscreen: '切换全屏',
-        historyMenu: '历史记录',
-        back: '返回',
-        forward: '转发',
-        windowMenu: '窗口',
-        minimize: '最小化',
-        zoom: 'Zoom',
-        front: '全部置于最前端',
-        helpMenu: '帮助',
-        learnMore: '了解更多',
-        documentation: '文档',
-        communityDiscussions: '社区讨论',
-        searchIssues: '搜索问题',
-    },
-    historyMenu: {
-        forward: '转发',
-        back: '返回',
-    },
-    checkForUpdatesModal: {
-        available: {
-            title: '有可用更新',
-            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) => `新版本将很快可用。${!isSilentUpdating ? '我们准备好更新时会通知您。' : ''}`,
-            soundsGood: '听起来不错',
-        },
-        notAvailable: {
-            title: '更新不可用',
-            message: '现在没有可用的更新。请稍后再来查看！',
-            okay: '好的',
-        },
-        error: {
-            title: '更新检查失败',
-            message: '我们无法检查更新。请稍后再试。',
         },
     },
     settlement: {
@@ -7813,7 +7730,6 @@ ${reportName}
         zeroDistanceTripModal: {title: '无法创建报销', prompt: '你不能创建起点和终点相同的报销。'},
         desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
     },
-    desktopAppRetiredPage: {title: '桌面应用程序已停用', body: '新的 Expensify Mac 桌面应用已停用。今后，请使用网页版应用访问您的账户。', goToWeb: '前往网页'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
