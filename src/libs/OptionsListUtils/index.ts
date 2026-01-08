@@ -244,7 +244,7 @@ Onyx.connect({
 });
 
 let reportAttributesDerivedGlobal: ReportAttributesDerivedValue['reports'];
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         reportAttributesDerivedGlobal = value?.reports ?? {};
