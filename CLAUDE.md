@@ -7,7 +7,7 @@
 - **Language**: TypeScript
 - **State Management**: React Native Onyx
 - **Navigation**: React Navigation
-- **Platforms**: iOS, Android, Web, Desktop (Electron)
+- **Platforms**: iOS, Android, Web
 
 ## HybridApp Architecture (Critical Context)
 
@@ -22,7 +22,7 @@
 - Mobile builds **must** be initiated from the Mobile-Expensify directory
 
 ### Build Modes
-- **Standalone**: Pure NewDot application (web/desktop)
+- **Standalone**: Pure NewDot application (web)
 - **HybridApp**: Combined OldDot + NewDot (mobile apps)
 - Controlled via `STANDALONE_NEW_DOT` environment variable
 
@@ -235,9 +235,6 @@ npm run ios
 
 # Android build
 npm run android
-
-# Desktop build
-npm run desktop
 
 # Web build
 npm run web
