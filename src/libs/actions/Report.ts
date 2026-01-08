@@ -318,14 +318,6 @@ Onyx.connect({
     },
 });
 
-let allBankAccountList: OnyxEntry<BankAccountList> = {};
-Onyx.connect({
-    key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    callback: (value) => {
-        allBankAccountList = value;
-    },
-});
-
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,

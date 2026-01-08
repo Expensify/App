@@ -1218,8 +1218,8 @@ function getTransactionsSections(
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isActionLoadingSet: ReadonlySet<string> | undefined,
-    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
+    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
@@ -1284,7 +1284,7 @@ function getTransactionsSections(
                 report,
             );
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions, bankAccountList);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
@@ -1384,8 +1384,8 @@ function getActions(
     key: string,
     currentSearch: SearchKey,
     currentUserEmail: string,
-    reportActions: OnyxTypes.ReportAction[] = [],
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
+    reportActions: OnyxTypes.ReportAction[] = [],
 ): SearchTransactionAction[] {
     const isTransaction = isTransactionEntry(key);
     const report = getReportFromKey(data, key);
@@ -1676,8 +1676,8 @@ function getReportSections(
     translate: LocalizedTranslate,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isActionLoadingSet: ReadonlySet<string> | undefined,
-    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
+    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -1752,7 +1752,7 @@ function getReportSections(
             if (shouldShow) {
                 const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
-                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions, bankAccountList);
+                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions);
 
                 const fromDetails =
                     data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
@@ -1828,7 +1828,7 @@ function getReportSections(
                 report,
             );
 
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions, bankAccountList);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions);
             const transaction = {
                 ...transactionItem,
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -2060,7 +2060,7 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, translate, formatPhoneNumber, isActionLoadingSet, reportActions, bankAccountList);
+        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, translate, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions);
     }
 
     if (groupBy) {
@@ -2076,7 +2076,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions, bankAccountList);
+    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions);
 }
 
 /**
