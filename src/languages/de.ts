@@ -6855,11 +6855,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         },
         refresh: 'Aktualisieren',
     },
-    desktopAppRetiredPage: {
-        title: 'Desktop-App wurde eingestellt',
-        body: 'Die neue Expensify Desktop-App für Mac wurde eingestellt. Bitte verwenden Sie künftig die Web-App, um auf Ihr Konto zuzugreifen.',
-        goToWeb: 'Zur Web-App gehen',
-    },
     fileDownload: {
         success: {
             title: 'Heruntergeladen!',

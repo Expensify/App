@@ -6819,11 +6819,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         },
         refresh: 'Atualizar',
     },
-    desktopAppRetiredPage: {
-        title: 'O app para desktop foi descontinuado',
-        body: 'O novo aplicativo desktop Expensify para Mac foi descontinuado. De agora em diante, use o aplicativo web para acessar sua conta.',
-        goToWeb: 'Ir para a web',
-    },
     fileDownload: {
         success: {
             title: 'Baixado!',

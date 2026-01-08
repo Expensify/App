@@ -6865,11 +6865,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         },
         refresh: 'Rafraîchir',
     },
-    desktopAppRetiredPage: {
-        title: 'L’application de bureau a été retirée',
-        body: 'La nouvelle application de bureau Expensify pour Mac a été retirée. À l’avenir, veuillez utiliser l’application web pour accéder à votre compte.',
-        goToWeb: 'Aller sur le web',
-    },
     fileDownload: {
         success: {
             title: 'Téléchargé !',

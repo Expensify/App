@@ -6840,11 +6840,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         },
         refresh: 'Aggiorna',
     },
-    desktopAppRetiredPage: {
-        title: "L'app desktop è stata dismessa",
-        body: 'La nuova app desktop Expensify per Mac è stata ritirata. D’ora in avanti, usa l’app web per accedere al tuo account.',
-        goToWeb: 'Vai al sito web',
-    },
     fileDownload: {
         success: {
             title: 'Scaricato!',

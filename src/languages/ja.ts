@@ -6785,11 +6785,6 @@ ${reportName}
         },
         refresh: '更新',
     },
-    desktopAppRetiredPage: {
-        title: 'デスクトップアプリは廃止されました',
-        body: 'New Expensify の Mac デスクトップアプリは廃止されました。今後は、アカウントへアクセスする際に Web アプリをご利用ください。',
-        goToWeb: 'Web を開く',
-    },
     fileDownload: {
         success: {
             title: 'ダウンロード完了！',

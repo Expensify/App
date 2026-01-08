@@ -6815,11 +6815,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         refresh: 'Odśwież',
     },
-    desktopAppRetiredPage: {
-        title: 'Aplikacja desktopowa została wycofana',
-        body: 'Nowa aplikacja desktopowa Expensify na Maca została wycofana. Od teraz korzystaj z aplikacji webowej, aby uzyskać dostęp do swojego konta.',
-        goToWeb: 'Przejdź do sieci',
-    },
     fileDownload: {
         success: {
             title: 'Pobrano!',
