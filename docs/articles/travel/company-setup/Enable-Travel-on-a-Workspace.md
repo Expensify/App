@@ -6,15 +6,11 @@ keywords: Expensify Travel, enable travel, workspace admin, business travel, tra
 
 # Enable Expensify Travel on a workspace
 
-Expensify Travel is an all-in-one corporate travel booking and management tool. Your team can book flights, hotels, cars, and more — all within Expensify. Once enabled, your company can centralize booking, expenses, approvals, and chat in one place.
-
----
+With Expensify Travel your team can book flights, hotels, cars, and more — all within Expensify. Once enabled, your company can centralize booking, expenses, approvals, and chat in one place.
 
 ## Who can enable Expensify Travel
 
 Only **Workspace Admins** can enable Expensify Travel for a workspace.
-
----
 
 ## How to enable Expensify Travel 
 
@@ -22,7 +18,6 @@ Only **Workspace Admins** can enable Expensify Travel for a workspace.
 2. Click your workspace name to access the settings for that workspace.
 3. In the left menu, click **More Features**. 
 4. Toggle on **Travel**.
----
 
 ## What happens after enabling Expensify Travel
 
@@ -36,14 +31,10 @@ Once Expensify Travel is enabled:
 
 Expensify Travel is available globally and included with every Expensify plan.
 
----
-
 ## Learn more about setting up your travel policy
 
 To customize your company’s travel rules — like flight class, hotel limits, or approval routing — visit the  
 [Expensify Travel policy setup hub](https://help.expensify.com/travel/hubs/company-setup/).
-
----
 
 # FAQ
 
@@ -51,12 +42,10 @@ To customize your company’s travel rules — like flight class, hotel limits, 
 
 Yes! You can define rules for your travel policy after enabling Travel. Rules apply automatically to all bookings once Travel is active. You can learn more about setting restrictions [here](https://help.expensify.com/articles/travel/company-setup/Configuring-Booking-Restrictions).
 
-## Can workspace admins book travel for others?
+## Can a Workspace Admins book travel for others?
 
-Yes, Workspace Admins can book on behalf of team members and retain full visibility.
+Yes, a Workspace Admin can book on behalf of team members and retain full visibility.
 
 ## Is Expensify Travel only available for Expensify Card users?
 
 No. Any workspace can use Expensify Travel, regardless of whether the Expensify Card is enabled.
-
-</div>
