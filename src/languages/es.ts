@@ -7079,6 +7079,7 @@ ${amount} para ${merchant} - ${date}`,
         viewAttachment: 'Ver archivo adjunto',
         error: 'Error',
         success: 'Éxito',
+        opensInNewTab: 'Se abre en una nueva pestaña',
     },
     parentReportAction: {
         deletedReport: 'Informe eliminado',

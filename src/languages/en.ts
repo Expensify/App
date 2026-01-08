@@ -6906,6 +6906,7 @@ const translations = {
         viewAttachment: 'View attachment',
         error: 'Error',
         success: 'Success',
+        opensInNewTab: 'Opens in a new tab',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',

@@ -5,6 +5,7 @@ import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -155,6 +156,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Overrides the icon for shouldShowRightIcon */
         iconRight?: IconAsset;
+
+        /** Whether to announce that the link opens in a new tab for accessibility */
+        shouldAnnounceOpensNewTab?: boolean;
 
         /** Should render component on the right */
         shouldShowRightComponent?: boolean;
@@ -444,6 +448,7 @@ function MenuItem({
     iconAccountID,
     shouldShowRightIcon = false,
     iconRight,
+    shouldAnnounceOpensNewTab = false,
     furtherDetailsIcon,
     furtherDetails,
     furtherDetailsNumberOfLines = 2,
@@ -528,6 +533,7 @@ function MenuItem({
     sentryLabel,
 }: MenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -724,7 +730,7 @@ function MenuItem({
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={CONST.ROLE.MENUITEM}
-                                accessibilityLabel={title ? title.toString() : ''}
+                                accessibilityLabel={`${title ? title.toString() : ''}${shouldAnnounceOpensNewTab ? `. ${translate('accessibilityHints.opensInNewTab')}` : ''}`}
                                 accessible
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
