@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@src/selectors/Domain';
+import {adminAccessReverseMapSelector, adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@src/selectors/Domain';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
@@ -53,6 +53,13 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
     });
 
+    const [adminAccountIDKeysMap] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminAccessReverseMapSelector,
+    });
+
+    const currentAdminPermissionKey = adminAccountIDKeysMap?.[route.params.accountID];
+
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(adminPersonalDetails));
     const memberLogin = adminPersonalDetails?.login ?? '';
     const isCurrentUserPrimaryContact = primaryContact === memberLogin;
@@ -64,6 +71,9 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {showConfirmModal} = useConfirmModal();
 
     const handleRevokeAdminAccess = async () => {
+        if (!currentAdminPermissionKey) {
+            return;
+        }
         const confirmResult = await showConfirmModal({
             title: translate('domain.admins.revokeAdminAccess'),
             prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
@@ -73,7 +83,9 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         if (confirmResult.action !== ModalActions.CONFIRM) {
             return;
         }
-        revokeDomainAdminAccess(route.params.domainAccountID, route.params.accountID);
+        const permissionKey = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${adminAccountIDKeysMap[route.params.accountID]}`;
+
+        revokeDomainAdminAccess(route.params.domainAccountID, permissionKey, route.params.accountID);
         Navigation.dismissModal();
     };
 
@@ -117,7 +129,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                             />
                             {!domainHasOnlyOneAdmin && (
                                 <MenuItem
-                                    disabled={isCurrentUserPrimaryContact}
+                                    disabled={isCurrentUserPrimaryContact || !currentAdminPermissionKey}
                                     hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
                                     style={styles.mb5}
                                     title={translate('domain.admins.revokeAdminAccess')}

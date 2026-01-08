@@ -1,9 +1,18 @@
-import {adminAccountIDsSelector, adminPendingActionSelector, domainEmailSelector, domainSettingsPrimaryContactSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {
+    adminAccessReverseMapSelector,
+    adminAccountIDsSelector,
+    adminPendingActionSelector,
+    domainEmailSelector,
+    domainSettingsPrimaryContactSelector,
+    technicalContactSettingsSelector,
+} from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSettings} from '@src/types/onyx';
 
 describe('domainSelectors', () => {
+    const userID1 = 123;
+    const userID2 = 456;
     describe('adminAccountIDsSelector', () => {
         it('Should return an empty array if the domain object is undefined', () => {
             expect(adminAccountIDsSelector(undefined)).toEqual([]);
@@ -148,8 +157,6 @@ describe('domainSelectors', () => {
         });
 
         it('Should return the admin pending actions when they exist', () => {
-            const userID1 = 123;
-            const userID2 = 456;
             const pendingAction: OnyxEntry<DomainPendingActions> = {
                 admin: {
                     [userID1]: {pendingAction: 'update'},
@@ -161,6 +168,70 @@ describe('domainSelectors', () => {
                 [userID1]: {pendingAction: 'update'},
                 [userID2]: {pendingAction: 'delete'},
             });
+        });
+    });
+
+    describe('adminAccessReverseMapSelector', () => {
+        it.each([
+            ['undefined', undefined, {}],
+            ['empty object', {} as OnyxEntry<Domain>, {}],
+        ])('Should return empty object when domain is %s', (_description, domain, expected) => {
+            expect(adminAccessReverseMapSelector(domain)).toEqual(expected);
+        });
+
+        it('Should return a reverse map with accountID as key and suffix as value', () => {
+            const domain = {
+                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}user123`]: userID1,
+                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}admin456`]: userID2,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(adminAccessReverseMapSelector(domain)).toEqual({
+                [userID1]: 'user123',
+                [userID2]: 'admin456',
+            });
+        });
+
+        it('Should ignore keys that do not start with the admin access prefix', () => {
+            const domain = {
+                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}user123`]: userID1,
+                someOtherProperty: 'value',
+                anotherKey: 999,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(adminAccessReverseMapSelector(domain)).toEqual({
+                [userID1]: 'user123',
+            });
+        });
+
+        it.each([
+            [
+                'undefined values',
+                {
+                    [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}user123`]: userID1,
+                    [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}user0`]: undefined,
+                } as unknown as OnyxEntry<Domain>,
+                {[userID1]: 'user123'},
+            ],
+            [
+                'null values',
+                {
+                    [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}user123`]: userID1,
+                    [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}user999`]: null,
+                } as unknown as OnyxEntry<Domain>,
+                {[userID1]: 'user123'},
+            ],
+            [
+                'mixed undefined and null values',
+                {
+                    [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}user123`]: userID1,
+                    [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}user0`]: undefined,
+                    [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}user999`]: null,
+                    [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}user456`]: userID2,
+                } as unknown as OnyxEntry<Domain>,
+                {[userID1]: 'user123', [userID2]: 'user456'},
+            ],
+        ])('Should ignore keys with falsy values - %s', (_description, domain, expected) => {
+            expect(adminAccessReverseMapSelector(domain)).toEqual(expected);
         });
     });
 });
