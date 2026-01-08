@@ -6784,7 +6784,6 @@ ${reportName}
                     `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>`,
             },
             error: {
-            error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',
             },
         },
