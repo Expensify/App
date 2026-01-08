@@ -31,11 +31,12 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCardFeedErrors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -179,18 +180,7 @@ function PaymentMethodList({
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
-    const getCardBrickRoadIndicator = useCallback(
-        (card: Card) => {
-            if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors) {
-                return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-            }
-            if (isExpensifyCardPendingAction(card, privatePersonalDetails)) {
-                return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-            }
-            return undefined;
-        },
-        [privatePersonalDetails],
-    );
+    const {getCardFeedErrors} = useCompanyCardFeedErrors({policyID});
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -204,6 +194,17 @@ function PaymentMethodList({
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+
+                let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+
+                const cardFeedErrors = getCardFeedErrors(card.bank as CompanyCardFeedWithDomainID);
+                if (cardFeedErrors.shouldShowRBR) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                } else if (isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+                }
 
                 if (!isExpensifyCard(card)) {
                     const pressHandler = onPress as CardPressHandler;
@@ -222,10 +223,7 @@ function PaymentMethodList({
                         shouldShowRightIcon,
                         errors: card.errors,
                         pendingAction: card.pendingAction,
-                        brickRoadIndicator:
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : undefined,
+                        brickRoadIndicator,
                         icon,
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
@@ -270,6 +268,12 @@ function PaymentMethodList({
 
                 const pressHandler = onPress as CardPressHandler;
 
+                if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                } else if (isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+                }
+
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
                 const cardDescription =
                     card?.nameValuePairs?.issuedBy && card?.lastFourPAN
@@ -301,7 +305,7 @@ function PaymentMethodList({
                     canDismissError: true,
                     errors: card.errors,
                     pendingAction: card.pendingAction,
-                    brickRoadIndicator: getCardBrickRoadIndicator(card),
+                    brickRoadIndicator,
                     icon,
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
@@ -386,8 +390,9 @@ function PaymentMethodList({
         cardList,
         illustrations,
         companyCardFeedIcons,
+        getCardFeedErrors,
+        privatePersonalDetails,
         onPress,
-        getCardBrickRoadIndicator,
         shouldShowRightIcon,
         itemIconRight,
         expensifyIcons.ThreeDots,
