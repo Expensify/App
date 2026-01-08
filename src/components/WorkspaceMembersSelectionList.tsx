@@ -51,7 +51,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
                 .map((employee): SelectionListApprover | null => {
                     const email = employee.email;
 
-                    if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    if (!email) {
                         return null;
                     }
 
@@ -110,7 +110,6 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             disableMaintainingScrollPosition
             addBottomSafeAreaPadding
             showScrollIndicator
-            isRowMultilineSupported
         />
     );
 }
