@@ -31,7 +31,7 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
-import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCardFeedErrors';
+import useCardFeedErrors from '@pages/workspace/companyCards/hooks/useCardFeedErrors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -180,7 +180,7 @@ function PaymentMethodList({
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
-    const {getCardFeedErrors} = useCompanyCardFeedErrors({policyID});
+    const {getCardFeedErrors} = useCardFeedErrors({policyID});
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {

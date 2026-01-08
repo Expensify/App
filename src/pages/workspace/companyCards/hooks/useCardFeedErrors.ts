@@ -2,34 +2,38 @@ import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {checkIfFeedConnectionIsBroken, flatAllCardsList, getCompanyCardFeed, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {checkIfFeedConnectionIsBroken, filterAllInactiveCards, filterCardsByNonExpensify, getCompanyCardFeed, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type UseCompanyCardFeedErrorsProps = {
+type UseCardFeedErrorsProps = {
     policyID: string | undefined;
     feedName?: CompanyCardFeedWithDomainID;
+    shouldExcludeExpensifyCards?: boolean;
 };
 
-type CompanyCardFeedErrors = {
+type CardFeedErrors = {
     shouldShowRBR: boolean;
     hasFailedCardAssignments: boolean;
     hasFeedError: boolean;
     isFeedConnectionBroken: boolean;
 };
 
-type UseCompanyCardFeedErrorsResult = CompanyCardFeedErrors & {
-    getCardFeedErrors: (feedName: CompanyCardFeedWithDomainID) => CompanyCardFeedErrors;
+type UseCompanyCardFeedErrorsResult = CardFeedErrors & {
+    getCardFeedErrors: (feedName: CompanyCardFeedWithDomainID) => CardFeedErrors;
 };
 
-function useCompanyCardFeedErrors({policyID, feedName}: UseCompanyCardFeedErrorsProps): UseCompanyCardFeedErrorsResult {
+function useCardFeedErrors({policyID, feedName, shouldExcludeExpensifyCards = false}: UseCardFeedErrorsProps): UseCompanyCardFeedErrorsResult {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {companyCardFeeds} = useCompanyCards({policyID, feedName});
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
+    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const filteredCards = filterAllInactiveCards(shouldExcludeExpensifyCards ? filterCardsByNonExpensify(allCards) : allCards);
+
     const [failedCompanyCardAssignmentsPerFeed] = useOnyx(ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS, {canBeMissing: true});
 
-    const getCardFeedErrors = (feedNameFn: CompanyCardFeedWithDomainID | undefined): CompanyCardFeedErrors => {
+    const getCardFeedErrors = (feedNameFn: CompanyCardFeedWithDomainID | undefined): CardFeedErrors => {
         const bankName = getCompanyCardFeed(feedNameFn);
         const selectedFeed = bankName && companyCardFeeds?.[bankName];
         const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
@@ -38,7 +42,9 @@ function useCompanyCardFeedErrors({policyID, feedName}: UseCompanyCardFeedErrors
             failedCompanyCardAssignmentsPerFeed?.[`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feedNameFn ?? ''}`],
         );
         const hasFeedError = feedNameFn ? !!selectedFeed?.errors : false;
-        const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), feedNameFn);
+
+        const feedToExclude = shouldExcludeExpensifyCards ? CONST.EXPENSIFY_CARD.BANK : undefined;
+        const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredCards, feedToExclude);
 
         const shouldShowRBR = hasFailedCardAssignments || hasFeedError || isFeedConnectionBroken;
 
@@ -56,4 +62,4 @@ function useCompanyCardFeedErrors({policyID, feedName}: UseCompanyCardFeedErrors
     };
 }
 
-export default useCompanyCardFeedErrors;
+export default useCardFeedErrors;

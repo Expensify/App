@@ -9,7 +9,7 @@ import IntlStore from '@src/languages/IntlStore';
 import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,
-    flatAllCardsList,
+    flatCompanyCards,
     formatCardExpiration,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
@@ -872,7 +872,7 @@ describe('CardUtils', () => {
     describe('flatAllCardsList', () => {
         it('should return the flattened list of non-Expensify cards related to the provided workspaceAccountID', () => {
             const workspaceAccountID = 11111111;
-            const flattenedCardsList = flatAllCardsList(allCardsList, workspaceAccountID);
+            const flattenedCardsList = flatCompanyCards(allCardsList, workspaceAccountID);
             const {cardList, ...customCards} = customFeedCardsList;
             expect(flattenedCardsList).toStrictEqual({
                 ...directFeedCardsMultipleList,
@@ -882,7 +882,7 @@ describe('CardUtils', () => {
 
         it('should return undefined if not defined cards list was provided', () => {
             const workspaceAccountID = 11111111;
-            const flattenedCardsList = flatAllCardsList(undefined, workspaceAccountID);
+            const flattenedCardsList = flatCompanyCards(undefined, workspaceAccountID);
             expect(flattenedCardsList).toBeUndefined();
         });
     });

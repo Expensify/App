@@ -642,11 +642,20 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
-function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
-    const {cardList, ...assignedCards} = cardsList ?? {};
+function filterInactiveCards(cards: CardList | undefined) {
+    if (!cards) {
+        return {};
+    }
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
-    const filteredAssignedCards = filterObject(assignedCards, (_key, card) => !closedStates.has(card.state));
+    const filteredCards = filterObject(cards, (_key, card) => !closedStates.has(card.state));
+
+    return filteredCards;
+}
+
+function filterInactiveWorkspaceCards(cardsList: WorkspaceCardsList | undefined) {
+    const {cardList, ...assignedCards} = cardsList ?? {};
+    const filteredAssignedCards = filterInactiveCards(assignedCards);
 
     return {
         ...(cardList ? {cardList} : {}),
@@ -671,7 +680,7 @@ function getAllCardsForWorkspace(
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
         if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
             const {cardList: assignableCards, ...assignedCards} = values ?? {};
-            const filteredCards = filterInactiveCards(assignedCards);
+            const filteredCards = filterInactiveWorkspaceCards(assignedCards);
             Object.assign(cards, filteredCards);
         }
     }
@@ -709,30 +718,49 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCard
 }
 
 /**
+ * Filter out the Expensify cards from the list of cards
+ *
+ * @param cards the list of cards to filter
+ * @returns the list of cards without Expensify cards
+ */
+function filterCardsByNonExpensify(cards: CardList | undefined): CardList {
+    if (!cards) {
+        return {};
+    }
+
+    return Object.fromEntries(Object.entries(cards).filter(([key]) => !key.includes(CONST.EXPENSIFY_CARD.BANK)));
+}
+
+/**
  * Takes the list of cards divided by workspaces and feeds and returns the flattened non-Expensify cards related to the provided workspace
  *
  * @param allCardsList the list where cards split by workspaces and feeds and stored under `card_${workspaceAccountID}_${feedName}` keys
  * @param workspaceAccountID the workspace account id we want to get cards for
  * @param domainIDs the domain ids we want to get cards for
  */
-function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number, domainIDs?: number[]): Record<string, Card> | undefined {
+function flatCompanyCards(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
     if (!allCardsList) {
-        return;
+        return {} as CardList;
     }
 
     return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
-        const isWorkspaceAccountCards = key.includes(workspaceAccountID.toString());
-        const isDomainCards = domainIDs?.some((domainID) => key.includes(domainID.toString()));
-        if ((!isWorkspaceAccountCards && !isDomainCards) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+        const isWorkspaceAccountCard = key.includes(workspaceAccountID.toString());
+        if (!isWorkspaceAccountCard || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
             return acc;
         }
         const {cardList, ...feedCards} = cards ?? {};
-        const filteredCards = filterInactiveCards(feedCards);
+        const filteredCards = filterInactiveWorkspaceCards(feedCards);
         Object.assign(acc, filteredCards);
         return acc;
     }, {});
 }
 
+/**
+ * Check if the card has a broken connection
+ *
+ * @param card the card to check
+ * @returns true if the card has a broken connection, false otherwise
+ */
 function isCardWithBrokenConnection(card: Card): boolean {
     return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
 }
@@ -743,7 +771,7 @@ function isCardWithBrokenConnection(card: Card): boolean {
  * @param feedCards the list of the cards, related to one or several feeds
  * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
  */
-function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefined, feedToExclude?: string): boolean {
+function checkIfFeedConnectionIsBroken(feedCards: CardList | undefined, feedToExclude?: string): boolean {
     if (!feedCards || isEmptyObject(feedCards)) {
         return false;
     }
@@ -820,7 +848,7 @@ function getFundIdFromSettingsKey(key: string) {
  * @param feedCards the list of the cards, related to one or several feeds
  * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
  */
-function getFeedConnectionBrokenCard(feedCards: Record<string, Card> | undefined, feedToExclude?: string): Card | undefined {
+function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExclude?: string): Card | undefined {
     if (!feedCards || isEmptyObject(feedCards)) {
         return undefined;
     }
@@ -933,17 +961,19 @@ export {
     getDomainOrWorkspaceAccountID,
     mergeCardListWithWorkspaceFeeds,
     isCard,
+    filterCardsByNonExpensify,
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
     getFeedType,
-    flatAllCardsList,
+    flatCompanyCards,
     isCardWithBrokenConnection,
     checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
-    filterInactiveCards,
+    filterInactiveCards as filterAllInactiveCards,
+    filterInactiveWorkspaceCards as filterInactiveCards,
     isCardPendingIssue,
     isCardPendingActivate,
     hasPendingExpensifyCardAction,
