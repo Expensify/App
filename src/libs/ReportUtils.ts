@@ -11107,7 +11107,12 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         .find((action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID === transactionID);
 
     const {created, amount, currency, merchant, mccGroup} = getTransactionDetails(transaction) ?? {};
-    const comment = getTransactionCommentObject(transaction);
+    const baseComment = getTransactionCommentObject(transaction);
+    // Use modifiedAttendees if present (for edited transactions), otherwise use the attendees from comment
+    const comment = {
+        ...baseComment,
+        attendees: transaction?.modifiedAttendees ?? baseComment.attendees,
+    };
 
     removeDraftTransactions();
 
@@ -11125,6 +11130,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         comment,
         merchant,
         modifiedMerchant: '',
+        modifiedAttendees: undefined,
         mccGroup,
     } as Transaction);
 
