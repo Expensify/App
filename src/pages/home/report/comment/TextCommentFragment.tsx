@@ -91,6 +91,11 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                 htmlContent = Parser.replace(htmlContent, {filterRules: ['emoji'], shouldEscapeText: false});
             }
             htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji ismedium>');
+            const BLOCK_BOUNDARY = '(?:^|$|<br\\s*\\/?>|<\\/(?:div|p|blockquote|comment|h[1-6]|li|ul|ol|section|article)>)';
+
+            htmlContent = htmlContent.replace(new RegExp(`${BLOCK_BOUNDARY}\\s*<emoji\\b[^>]*>.*?<\\/emoji>\\s*(?=${BLOCK_BOUNDARY})`, 'gis'), (match) =>
+                match.replace(/<emoji\b(?![^>]*\bisoneline\b)/i, '<emoji isoneline'),
+            );
         }
 
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
