@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -22,7 +22,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getPersonalPolicy} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import {setDraftSplitTransaction, setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -69,9 +68,7 @@ function IOURequestStepDescription({
         return isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
     }, [isTransactionDraft, iouType, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
 
-    const [currentDescription, setCurrentDescription] = useState(currentDescriptionInMarkdown);
-    const [isSaved, setIsSaved] = useState(false);
-    const shouldNavigateAfterSaveRef = useRef(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -117,35 +114,31 @@ function IOURequestStepDescription({
         Navigation.goBack(backTo);
     }, [backTo]);
 
-    useEffect(() => {
-        if (!isSaved || !shouldNavigateAfterSaveRef.current) {
-            return;
-        }
-        shouldNavigateAfterSaveRef.current = false;
-        navigateBack();
-    }, [isSaved, navigateBack]);
-
-    const updateDescriptionRef = (value: string) => {
-        setCurrentDescription(value);
-    };
+    const updateHasUnsavedChanges = useCallback(
+        (value: string) => {
+            if (value === currentDescriptionInMarkdown) {
+                setHasUnsavedChanges(false);
+                return;
+            }
+            setHasUnsavedChanges(true);
+        },
+        [currentDescriptionInMarkdown],
+    );
 
     const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
         if (!transaction?.transactionID) {
             return;
         }
 
+        setHasUnsavedChanges(false);
         const newComment = value.moneyRequestComment.trim();
 
         if (newComment === currentDescriptionInMarkdown) {
-            setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
             return;
         }
 
         if (isEditingSplit) {
             setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
-            setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
             return;
         }
 
@@ -164,15 +157,13 @@ function IOURequestStepDescription({
                 isASAPSubmitBetaEnabled,
             );
         }
-
-        setIsSaved(true);
-        shouldNavigateAfterSaveRef.current = true;
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
-    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
     const getDescriptionHint = () => {
         return transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
     };
@@ -201,7 +192,7 @@ function IOURequestStepDescription({
                         inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         name={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         defaultValue={currentDescriptionInMarkdown}
-                        onValueChange={updateDescriptionRef}
+                        onValueChange={updateHasUnsavedChanges}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ROLE.PRESENTATION}
@@ -222,12 +213,7 @@ function IOURequestStepDescription({
                         inputRef.current?.focus();
                     });
                 }}
-                getHasUnsavedChanges={() => {
-                    if (isSaved) {
-                        return false;
-                    }
-                    return currentDescription !== currentDescriptionInMarkdown;
-                }}
+                hasUnsavedChanges={hasUnsavedChanges}
             />
         </StepScreenWrapper>
     );
