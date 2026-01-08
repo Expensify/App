@@ -115,6 +115,7 @@ function TabSelectorItem({
     const children = (
         <AnimatedPressableWithFeedback
             accessibilityLabel={title}
+            accessibilityState={{selected: isActive}}
             style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
             wrapperStyle={[equalWidth ? styles.flex1 : styles.flexGrow1]}
             onPress={onPress}
