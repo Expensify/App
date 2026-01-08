@@ -3531,9 +3531,9 @@ ${amount} para ${merchant} - ${date}`,
             topLevel: 'Nivel superior',
             authenticationError: (connectionName) => `No se puede conectar a ${connectionName} debido a un error de autenticación.`,
             learnMore: 'Más información',
-            memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
-            adminAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
-            auditorAlternateText: 'Los auditores pueden ver y comentar los informes.',
+            memberAlternateText: 'Presentar y aprobar informes.',
+            adminAlternateText: 'Gestionar informes y configuración del área de trabajo.',
+            auditorAlternateText: 'Ver y comentar los informes.',
             roleName: ({role} = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
