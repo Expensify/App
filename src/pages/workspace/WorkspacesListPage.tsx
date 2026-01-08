@@ -462,7 +462,7 @@ function WorkspacesListPage() {
                 >
                     <PressableWithoutFeedback
                         role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={`${item.title}${isDefault ? `, ${translate('common.default')}` : ''}`}
+                        accessibilityLabel={`${translate('workspace.common.workspace')}: ${item.title}${isDefault ? `, ${translate('common.default')}` : ''}, ${translate('workspace.common.workspaceOwner')}: ${personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? ''}, ${translate('workspace.common.workspaceType')}: ${item.type}`}
                         style={[styles.mh5]}
                         disabled={item.disabled}
                         onPress={item.action}
@@ -515,6 +515,7 @@ function WorkspacesListPage() {
             icons,
             expensifyIcons.Building,
             expensifyIcons.Exit,
+            personalDetails,
         ],
     );
 
