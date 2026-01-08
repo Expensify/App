@@ -426,11 +426,20 @@ function MoneyRequestConfirmationList({
             setFormError('iou.receiptScanningFailed');
             return;
         }
-        // reset the form error whenever the screen gains or loses focus
-        setFormError('');
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
+        // Reset the form error whenever the screen gains or loses focus
+        // but preserve violation-related errors since those represent real validation issues
+        // that can only be fixed by changing the underlying data
+        if (!formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
+            setFormError('');
+        }
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if formError or setFormError changes
     }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+
+    // Clear the missingAttendees violation when attendees change (user fixed the issue)
+    useEffect(() => {
+        clearFormErrors(['violations.missingAttendees']);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want to run this when iouAttendees changes
+    }, [iouAttendees]);
 
     useEffect(() => {
         // We want this effect to run only when the transaction is moving from Self DM to a expense chat

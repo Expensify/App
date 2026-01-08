@@ -5712,6 +5712,11 @@ const CONST = {
     },
 
     /**
+     * Constant for prefix of violations.
+     */
+    VIOLATIONS_PREFIX: 'violations.',
+
+    /**
      * Constants with different types for the modifiedAmount violation
      */
     MODIFIED_AMOUNT_VIOLATION_DATA: {
