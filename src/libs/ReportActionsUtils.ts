@@ -2951,14 +2951,13 @@ function getWorkspaceAttendeeTrackingUpdateMessage(translate: LocalizedTranslate
     return translate('workspaceActions.updatedAttendeeTracking', {enabled: !!enabled});
 }
 
-function getAutoPayApprovedReportsEnabledMessage(action: ReportAction): string {
+function getAutoPayApprovedReportsEnabledMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED>) ?? {};
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('workspaceActions.updatedAutoPayApprovedReports', {enabled: !!enabled});
+    return translate('workspaceActions.updatedAutoPayApprovedReports', {enabled: !!enabled});
 }
 
-function getAutoPayApprovedReportsLimitMessage(action: ReportAction): string {
+function getAutoPayApprovedReportsLimitMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {oldLimit, newLimit, currency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_LIMIT>) ?? {};
 
     const oldLimitValue = oldLimit ?? 0;
@@ -2966,20 +2965,17 @@ function getAutoPayApprovedReportsLimitMessage(action: ReportAction): string {
 
     if (oldLimitValue === 0) {
         const newLimitFormatted = convertToDisplayString(newLimitValue, currency);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.setAutoPayApprovedReportsLimit', {newLimit: newLimitFormatted});
+        return translate('workspaceActions.setAutoPayApprovedReportsLimit', {newLimit: newLimitFormatted});
     }
 
     if (newLimitValue === 0) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.removedAutoPayApprovedReportsLimit');
+        return translate('workspaceActions.removedAutoPayApprovedReportsLimit');
     }
 
     const oldLimitFormatted = convertToDisplayString(oldLimitValue, currency);
     const newLimitFormatted = convertToDisplayString(newLimitValue, currency);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('workspaceActions.updatedAutoPayApprovedReportsLimit', {oldLimit: oldLimitFormatted, newLimit: newLimitFormatted});
+    return translate('workspaceActions.updatedAutoPayApprovedReportsLimit', {oldLimit: oldLimitFormatted, newLimit: newLimitFormatted});
 }
 
 type DefaultApproverOriginalMessage = {
