@@ -687,6 +687,12 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
 
                 break;
             }
+
+            if ((report?.total ?? 0) > 0) {
+                optimisticNextStep = noActionRequired;
+                break;
+            }
+
             // Self review
             let payerMessage: Message;
             if (isPayer(currentUserAccountIDParam, currentUserEmailParam, report)) {
