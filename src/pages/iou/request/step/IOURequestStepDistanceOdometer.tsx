@@ -527,7 +527,6 @@ function IOURequestStepDistanceOdometer({
             testID={IOURequestStepDistanceOdometer.displayName}
             shouldShowNotFoundPage={false}
             shouldShowWrapper={!isCreatingNewRequest}
-            includeSafeAreaPaddingBottom
         >
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.mb5]}>
                 <View>
