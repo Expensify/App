@@ -430,6 +430,7 @@ describe('TransactionUtils', () => {
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     },
                 },
+                merchant: '(none)',
             });
 
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.DISTANCE);
@@ -467,6 +468,21 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+        });
+
+        it('returns time when the transaction has a comment with time type', () => {
+            const transaction = generateTransaction({
+                comment: {
+                    type: 'time',
+                    units: {
+                        count: 2,
+                        unit: 'h',
+                        rate: 50,
+                    },
+                },
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.TIME);
         });
     });
 
@@ -591,7 +607,7 @@ describe('TransactionUtils', () => {
         it('should return (none) if transaction has no merchant', () => {
             const transaction = generateTransaction();
             const merchant = TransactionUtils.getMerchant(transaction);
-            expect(merchant).toBe('(none)');
+            expect(merchant).toBe('Expense');
         });
 
         it('should return modified merchant if transaction has modified merchant', () => {
