@@ -7,18 +7,21 @@ import {cancelSpan, endSpan, getSpan} from './activeSpans';
  * Mark all 'open_report*' performance events as finished using both Performance (local) and Timing (remote) tracking.
  */
 function markOpenReportEnd(reportId: string, isTransactionThread?: boolean, isOneTransactionThread?: boolean) {
-    if (isTransactionThread || isOneTransactionThread) {
-        cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportId}`);
-        const span = getSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${reportId}`);
-        if (span) {
-            span.setAttributes({
-                [CONST.TELEMETRY.ATTRIBUTE_ONE_TRANSACTION_THREAD]: isOneTransactionThread,
-            });
-        }
-        endSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${reportId}`);
+    const transactionThreadSpanId = `${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${reportId}`;
+    const reportSpanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportId}`;
+
+    if (!isTransactionThread && !isOneTransactionThread) {
+        cancelSpan(transactionThreadSpanId);
+        endSpan(reportSpanId);
     } else {
-        cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${reportId}`);
-        endSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportId}`);
+        cancelSpan(reportSpanId);
+
+        const span = getSpan(transactionThreadSpanId);
+        span?.setAttributes({
+            [CONST.TELEMETRY.ATTRIBUTE_ONE_TRANSACTION_THREAD]: isOneTransactionThread,
+        });
+
+        endSpan(transactionThreadSpanId);
     }
 
     Performance.markEnd(CONST.TIMING.OPEN_REPORT);
