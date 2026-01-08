@@ -728,17 +728,13 @@ function isReportLayoutAction(report: Report, reportTransactions: Transaction[])
     return reportTransactions.length >= 2;
 }
 
-function isDuplicateAction(report: Report, reportTransactions: Transaction[], violations?: OnyxCollection<TransactionViolation[]>, transactionViolations?: TransactionViolations): boolean {
+function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
     // Only single transactions are supported for now
     if (reportTransactions.length !== 1) {
         return false;
     }
 
     const reportTransaction = reportTransactions.at(0);
-
-    if (!reportTransaction) {
-        return false;
-    }
 
     // Per diem and distance requests will be handled separately in a follow-up
     if (isPerDiemRequestTransactionUtils(reportTransaction)) {
@@ -879,7 +875,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
-    if (isDuplicateAction(report, reportTransactions, violations)) {
+    if (isDuplicateAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
     }
 
@@ -943,7 +939,6 @@ function getSecondaryTransactionThreadActions(
     originalTransaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
-    violations?: TransactionViolations,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -967,7 +962,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
     }
 
-    if (isDuplicateAction(parentReport, [reportTransaction], undefined, violations)) {
+    if (isDuplicateAction(parentReport, [reportTransaction])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
