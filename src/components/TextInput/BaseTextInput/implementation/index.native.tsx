@@ -371,6 +371,8 @@ function BaseTextInput({
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
+                                accessibilityLabel={label}
+                                accessibilityValue={{text: inputProps.secureTextEntry ? undefined : value}}
                                 style={[
                                     styles.flex1,
                                     styles.w100,
