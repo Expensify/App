@@ -145,10 +145,7 @@ function BaseListItem<TItem extends ListItem>({
                     {typeof children === 'function' ? children(hovered) : children}
 
                     {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark && (
-                        <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
-                            accessible={false}
-                        >
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}>
                             <View>
                                 <Icon
                                     src={Expensicons.Checkmark}
