@@ -1,7 +1,10 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTodos from '@hooks/useTodos';
+import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import {createTypeMenuSections} from '@src/libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -224,6 +227,113 @@ describe('useTodos', () => {
                 expect(result.current.reportsToPay.map((r) => r.reportID)).toContain(id);
             }
             expect(result.current.reportsToExport.map((r) => r.reportID)).toContain(EXPORT_REPORT_ID);
+        });
+    });
+
+    describe('badgeText for todo menu items', () => {
+        const mockPolicies = {
+            policy1: {
+                id: 'policy1',
+                name: 'Test Policy',
+                owner: CURRENT_USER_EMAIL,
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: CURRENT_USER_EMAIL,
+                exporter: CURRENT_USER_EMAIL,
+                achAccount: {
+                    bankAccountID: 1,
+                    reimburser: CURRENT_USER_EMAIL,
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    accountNumber: '1234567890',
+                    routingNumber: '1234567890',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            },
+        };
+
+        const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+            policy1: [
+                {
+                    id: 'card1',
+                    feed: 'Expensify Card' as const,
+                    fundID: 'fund1',
+                    name: 'Test Card Feed',
+                },
+            ],
+        };
+
+        it('should show correct badgeText for todo reports based on report counts', () => {
+            const todoReports = {
+                reportsToSubmit: [createMockReport('1'), createMockReport('2'), createMockReport('3')],
+                reportsToApprove: [createMockReport('4'), createMockReport('5')],
+                reportsToPay: [createMockReport('6')],
+                reportsToExport: [createMockReport('7'), createMockReport('8'), createMockReport('9'), createMockReport('10'), createMockReport('11')],
+            };
+
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const sections = createTypeMenuSections(
+                icons.current,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                {},
+                false,
+                undefined,
+                false,
+                {},
+                todoReports,
+            );
+
+            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
+            expect(todoSection).toBeDefined();
+
+            const submitItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            const approveItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            const payItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.PAY);
+            const exportItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.EXPORT);
+
+            expect(submitItem?.badgeText).toBe('3');
+            expect(approveItem?.badgeText).toBe('2');
+            expect(payItem?.badgeText).toBe('1');
+            expect(exportItem?.badgeText).toBe('5');
+        });
+
+        it('should show 50+ when todo report count exceeds max limit', () => {
+            const reportsOverMax = Array.from({length: 55}, (_, i) => createMockReport(String(i + 1)));
+            const todoReports = {
+                reportsToSubmit: reportsOverMax,
+                reportsToApprove: [],
+                reportsToPay: [],
+                reportsToExport: [],
+            };
+
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const sections = createTypeMenuSections(
+                icons.current,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                {},
+                false,
+                undefined,
+                false,
+                {},
+                todoReports,
+            );
+
+            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
+            expect(todoSection).toBeDefined();
+
+            const submitItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            expect(submitItem?.badgeText).toBe('50+');
         });
     });
 });
