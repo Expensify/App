@@ -1,5 +1,4 @@
-import React, {useEffect, useState} from 'react';
-import type {TextInputSelectionChangeEvent} from 'react-native';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isValidEmail} from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import {addMemberToDomain} from '@userActions/Domain';
 import CONST from '@src/CONST';
@@ -25,56 +25,10 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const {translate} = useLocalize();
 
     const domainAccountID = route.params.domainAccountID;
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
+    const [email, setEmail] = useState<string | undefined>();
 
-    const domainSuffix = domainName ? `@${domainName}` : '';
-
-    const [email, setEmail] = useState(domainSuffix);
-    const [selection, setSelection] = useState({start: 0, end: 0});
-
-    useEffect(() => {
-        setEmail(domainSuffix);
-        setSelection({start: 0, end: 0});
-    }, [domainSuffix]);
-
-    const maxCursorPosition = Math.max(0, email.length - domainSuffix.length);
-
-    const handleInputChange = (value: string) => {
-        if (!domainName) {
-            setEmail(value);
-            return;
-        }
-
-        const loginPart = value.replace(domainSuffix, '').split('@').at(0) ?? '';
-
-        if (loginPart === '') {
-            setEmail(domainSuffix);
-            setSelection({start: 0, end: 0});
-        } else {
-            setEmail(`${loginPart}${domainSuffix}`);
-        }
-    };
-
-    const handleSelectionChange = (event: TextInputSelectionChangeEvent) => {
-        const {start, end} = event.nativeEvent.selection;
-
-        if (start > maxCursorPosition || end > maxCursorPosition) {
-            const constrainedPosition = Math.min(start, end, maxCursorPosition);
-            setSelection({
-                start: constrainedPosition,
-                end: constrainedPosition,
-            });
-        } else {
-            setSelection({start, end});
-        }
-    };
-
-    const inviteUser = () => {
-        addMemberToDomain(domainAccountID, email);
-        Navigation.dismissModal();
-    };
-
-    const isButtonDisabled = !email || email === domainSuffix || !email.includes('@');
+    const isEmailInvalid = !!domainName && !!email && !isValidEmail(`${email}@${domainName}`);
 
     return (
         <ScreenWrapper
@@ -90,25 +44,33 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
 
             <View style={[styles.flex1, styles.p5]}>
                 <TextInput
-                    accessibilityLabel={`${translate('domain.members.email')} at domain ${domainName}`}
-                    label={`${translate('domain.members.email')} at domain ${domainName}`}
+                    accessibilityLabel={`${translate('common.email')}`}
+                    label={`${translate('common.email')}`}
                     value={email}
-                    onChangeText={handleInputChange}
-                    selection={selection}
-                    onSelectionChange={handleSelectionChange}
-                    placeholder={domainSuffix}
+                    onChangeText={setEmail}
                     autoCapitalize="none"
                     spellCheck={false}
                     inputMode={CONST.INPUT_MODE.EMAIL}
                     autoFocus
+                    suffixCharacter={domainName ? `@${domainName}` : undefined}
+                    suffixStyle={styles.colorMuted}
+                    hasError={isEmailInvalid}
+                    errorText={isEmailInvalid ? translate('messages.errorMessageInvalidEmail') : undefined}
                 />
             </View>
 
             <FormAlertWithSubmitButton
-                isDisabled={isButtonDisabled}
+                isDisabled={!email || isEmailInvalid}
                 isAlertVisible={false}
                 buttonText={translate('common.invite')}
-                onSubmit={inviteUser}
+                onSubmit={() => {
+                    if (!domainName || !email) {
+                        return;
+                    }
+
+                    addMemberToDomain(domainAccountID, `${email}@${domainName}`);
+                    Navigation.dismissModal();
+                }}
                 containerStyles={styles.p5}
                 enabledWhenOffline
             />
