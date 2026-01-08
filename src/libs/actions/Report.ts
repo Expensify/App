@@ -1046,7 +1046,7 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
         transactionID: transaction?.transactionID,
-        includePartiallySetupBankAccounts: isConciergeChatReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
+        includePartiallySetupBankAccounts: true,
     };
 
     if (optimisticSelfDMReport) {
@@ -2045,7 +2045,7 @@ function deleteReportComment(
     }
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -2089,6 +2089,30 @@ function deleteReportComment(
     const childVisibleActionCount = reportAction.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
         optimisticData.push(...getOptimisticDataForAncestors(ancestors, optimisticReport?.lastVisibleActionCreated ?? '', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
+    }
+
+    // Force LHN re-evaluation for empty child thread by triggering an Onyx update
+    if (reportAction.childReportID && childVisibleActionCount === 0) {
+        const childReportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`;
+        const childReport = allReports?.[childReportKey];
+
+        if (childReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: childReportKey,
+                value: {
+                    lastMessageText: '',
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: childReportKey,
+                value: {
+                    lastMessageText: childReport.lastMessageText ?? '',
+                },
+            });
+        }
     }
 
     const parameters: DeleteCommentParams = {

@@ -34,6 +34,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {Route} from '@libs/Navigation/types';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -286,7 +287,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backTo as Route);
     };
 
     // Navigate to next page following Manual tab pattern
@@ -332,7 +333,7 @@ function IOURequestStepDistanceOdometer({
         }
 
         if (backToReport) {
-            Navigation.goBack(backTo);
+            Navigation.goBack(backTo as Route);
             return;
         }
 

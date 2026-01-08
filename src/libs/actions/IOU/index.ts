@@ -193,7 +193,6 @@ import {
     isSettled,
     isTestTransactionReport,
     isTrackExpenseReport,
-    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     shouldEnableNegative,
@@ -439,6 +438,18 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     pendingFields?: PendingFields<string>;
     distance?: number;
     isLinkedTrackedExpenseReportArchived?: boolean;
+
+    /** Transaction type (e.g., 'time' for time tracking expenses) */
+    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
+
+    /** Number of hours for time tracking expenses */
+    count?: number;
+
+    /** Hourly rate in cents. Use convertToBackendAmount() to convert from policy rate (which is stored as a float) */
+    rate?: number;
+
+    /** Unit for time tracking (e.g., 'h' for hours) */
+    unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -1550,7 +1561,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
     });
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''});
+    const text = Localize.translateLocal('testDrive.employeeInviteMessage', personalDetailsList?.[userAccountID]?.firstName ?? '');
     const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID, undefined, undefined, undefined, testDriveIOUParams.testDriveCommentReportActionID);
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 
@@ -2924,22 +2935,6 @@ function getDeleteTrackExpenseInformation(
 }
 
 /**
- * Recalculates the report name using the policy's custom title formula.
- * This is needed when report totals change (e.g., adding expenses or changing reimbursable status)
- * to ensure the report title reflects the updated values like {report:reimbursable}.
- */
-function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): string | undefined {
-    if (!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]) {
-        return undefined;
-    }
-    const titleFormula = policy.fieldList[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue ?? '';
-    if (!titleFormula) {
-        return undefined;
-    }
-    return populateOptimisticReportFormula(titleFormula, iouReport as Parameters<typeof populateOptimisticReportFormula>[1], policy);
-}
-
-/**
  * Gathers all the data needed to submit an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  */
@@ -3059,12 +3054,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     } else {
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
-                }
-
-                // Recalculate reportName to reflect updated totals
-                const updatedReportName = recalculateOptimisticReportName(iouReport, policy);
-                if (updatedReportName) {
-                    iouReport.reportName = updatedReportName;
                 }
             }
             if (typeof iouReport.unheldTotal === 'number') {
@@ -4151,12 +4140,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
             }
         }
-
-        // Recalculate reportName after all totals are updated
-        const updatedReportName = recalculateOptimisticReportName(updatedMoneyRequestReport, policy);
-        if (updatedReportName) {
-            updatedMoneyRequestReport.reportName = updatedReportName;
-        }
     } else {
         updatedMoneyRequestReport = updateIOUOwnerAndTotal(
             iouReport,
@@ -5066,7 +5049,6 @@ function updateMoneyRequestDistance({
     }
     const {params, onyxData} = data;
 
-    // Add odometer readings to params if provided
     if (odometerStart !== undefined) {
         params.odometerStart = odometerStart;
     }
@@ -5875,6 +5857,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         customUnitRateID,
         isTestDrive,
         isLinkedTrackedExpenseReportArchived,
+        type: transactionType,
+        count,
+        rate,
+        unit,
     } = transactionParams;
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
@@ -6052,6 +6038,14 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 isTestDrive,
                 guidedSetupData: guidedSetupData ? JSON.stringify(guidedSetupData) : undefined,
                 testDriveCommentReportActionID,
+                ...(transactionType === CONST.TRANSACTION.TYPE.TIME
+                    ? {
+                          type: transactionType,
+                          count,
+                          rate,
+                          unit,
+                      }
+                    : {}),
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
@@ -14219,8 +14213,9 @@ function updateSplitTransactions({
     }
 
     if (!isReverseSplitOperation) {
+        // Use SET to update originalTransaction more quickly in Onyx as compared to MERGE to prevent UI inconsistency
         optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: {
                 ...originalTransaction,
