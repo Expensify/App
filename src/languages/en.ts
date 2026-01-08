@@ -254,7 +254,8 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
-        // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
+        expensifyLogo: 'Expensify logo',
+        // @context Used as a noun meaning a numerical total or quantity, not the verb "to count."
         count: 'Count',
         cancel: 'Cancel',
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.

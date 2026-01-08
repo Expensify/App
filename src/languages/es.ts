@@ -8,6 +8,7 @@ import type {TranslationDeepObject} from './types';
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Logotipo de Expensify',
         count: 'Contar',
         cancel: 'Cancelar',
         dismiss: 'Descartar',
