@@ -7,7 +7,7 @@ model: inherit
 
 # Deploy Blocker Investigator
 
-Investigate deploy blocker issue #$ISSUE_NUMBER to identify the causing PR and post a recommendation.
+Investigate the deploy blocker issue to identify the causing PR and post a recommendation.
 
 ## ⛔ SECURITY: Output is PUBLIC
 

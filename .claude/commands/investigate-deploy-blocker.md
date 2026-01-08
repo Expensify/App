@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Glob,Grep,Read
+allowed-tools: Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Bash(git -C App log:*),Bash(git -C App show:*),Bash(git -C App blame:*),Glob,Grep,Read
 description: Investigate a deploy blocker issue to find the causing PR and recommend resolution
 ---
 
