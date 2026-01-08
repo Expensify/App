@@ -217,16 +217,16 @@ function RoomInvitePage({
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         }
-        if (reportID) {
-            inviteToRoomAction(reportID, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
+        if (report?.reportID) {
+            inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
             clearUserSearchPhrase();
             if (backTo) {
                 Navigation.goBack(backTo);
             } else {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             }
         }
-    }, [validate, selectedOptions, ancestors, reportID, currentUserPersonalDetails.timezone, backTo]);
+    }, [validate, selectedOptions, ancestors, report, currentUserPersonalDetails.timezone, backTo]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
