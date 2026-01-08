@@ -8,7 +8,7 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {setLocale} from '@userActions/App';
-import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
+import {LOCALE_TO_ENGLISH_NAME, LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import type Locale from '@src/types/onyx/Locale';
 
 type LanguageEntry = ListItem & {
@@ -23,6 +23,7 @@ function LanguagePage() {
         return SORTED_LOCALES.map((locale) => ({
             value: locale,
             text: LOCALE_TO_LANGUAGE_STRING[locale],
+            accessibilityLabel: LOCALE_TO_ENGLISH_NAME[locale],
             keyForList: locale,
             isSelected: preferredLocale === locale,
         }));

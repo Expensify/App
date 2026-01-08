@@ -18,6 +18,9 @@ type ListItem<K extends string | number = string> = {
     /** Text to display */
     text?: string;
 
+    /** Custom accessibility label for screen readers */
+    accessibilityLabel?: string;
+
     /** Alternate text to display */
     alternateText?: string | null;
 
