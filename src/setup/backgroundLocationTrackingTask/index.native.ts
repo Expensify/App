@@ -11,7 +11,7 @@ type BackgroundLocationTrackingTaskData = {locations: LocationObject[]};
 
 defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK_NAME, async ({data, error}) => {
     if (error) {
-        console.error('[GPS distance request] Long-runnging task error: ', {error, data});
+        console.error('[GPS distance request] Long-running task error: ', {error, data});
         return;
     }
 
