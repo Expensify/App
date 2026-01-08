@@ -730,7 +730,7 @@ function MenuItem({
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={CONST.ROLE.MENUITEM}
-                                accessibilityLabel={`${title ? title.toString() : ''}${shouldAnnounceOpensNewTab ? `. ${translate('accessibilityHints.opensInNewTab')}` : ''}`}
+                                accessibilityLabel={`${title ? title.toString() : ''}${brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? `. ${translate('accessibilityHints.hasItemsToReview')}` : ''}${brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? `. ${translate('accessibilityHints.hasActionToTake')}` : ''}${shouldAnnounceOpensNewTab ? `. ${translate('accessibilityHints.opensInNewTab')}` : ''}`}
                                 accessible
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
