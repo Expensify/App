@@ -226,6 +226,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Expensifyロゴ',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: '件数',
         cancel: 'キャンセル',
@@ -4996,6 +4997,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     title: '自分のカードを持ち込む（BYOC）',
                     features: {support: '10,000以上の銀行のカードを連携', assignCards: 'チームの既存のカードをリンクする', automaticImport: '取引を自動的に取り込みます'},
                     subtitle: 'すでにお持ちのカードをリンクして、自動取引の取り込み、レシート照合、および消込を行いましょう。',
+                    cardIllustration: '法人カードのイラスト',
                 },
                 bankConnectionError: '銀行接続の問題',
                 connectWithPlaid: 'Plaid で接続',

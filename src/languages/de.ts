@@ -226,6 +226,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Expensify-Logo',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Anzahl',
         cancel: 'Abbrechen',
@@ -5042,6 +5043,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         automaticImport: 'Wir werden Transaktionen automatisch abrufen',
                     },
                     subtitle: 'Verknüpfe die Karten, die du bereits hast, um Transaktionen automatisch zu importieren, Belege abzugleichen und Abstimmungen durchzuführen.',
+                    cardIllustration: 'Firmenkarten-Illustration',
                 },
                 bankConnectionError: 'Problem mit Bankverbindung',
                 connectWithPlaid: 'Über Plaid verbinden',

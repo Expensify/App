@@ -226,6 +226,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Expensify 标志',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: '数量',
         cancel: '取消',
@@ -4918,6 +4919,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     title: '自带卡片（BYOC）',
                     features: {support: '连接来自 10,000 多家银行的卡片', assignCards: '关联你团队的现有卡片', automaticImport: '我们会自动导入交易记录'},
                     subtitle: '关联你已有的卡片，以自动导入交易、匹配收据并进行对账。',
+                    cardIllustration: '公司卡插图',
                 },
                 bankConnectionError: '银行连接问题',
                 connectWithPlaid: '通过 Plaid 连接',
