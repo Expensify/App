@@ -381,6 +381,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Acción requerida',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
+        duplicateExpense: 'Duplicar gasto',
         exchangeRate: 'Tipo de cambio',
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
@@ -1177,6 +1178,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         chooseWorkspace: 'Elige un espacio de trabajo',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `informe enviado a ${to} debido a un flujo de aprobación personalizado`,
+        correctDistanceRateError: 'Corrige el error de la tasa de distancia y vuelve a intentarlo.',
     },
     transactionMerge: {
         listPage: {
