@@ -45,46 +45,70 @@ When analyzing, look at the App code to understand:
 ## What To Do
 
 1. **Investigate** the issue and find the causing PR. Check the issue description to see if the bug is reproducible on production. If it's staging-only, the cause is likely a PR in the StagingDeployCash checklist. If it's also on production, the bug may predate the current staging deploy.
-2. **Comment** on the issue with your findings
-3. **Update labels** based on classification:
+2. **Comment** on the issue with your findings (see Comment Structure below)
+3. **Update labels** if needed - first check which labels are actually on the issue:
 
 | Classification | Label Action |
 |----------------|--------------|
-| Backend bug | Remove `DeployBlockerCash` (doesn't block App deploy) |
+| Backend bug | Remove `DeployBlockerCash` if present (doesn't block App deploy) |
 | Frontend bug | Remove `DeployBlocker` if present (doesn't block Web deploy) |
+
+**Important**: Only remove a label if it actually exists on the issue. Do not mention removing labels that aren't there.
 
 ---
 
 ## Comment Structure
 
-Post ONE comment with:
+Post ONE comment using this format:
 
-1. **Causing PR** (or candidates if uncertain)
-   - PR number, title, author, link
-   - Confidence level (high/medium/low)
-   - Evidence (why you think this PR caused it)
+```markdown
+## 🔍 Investigation Summary
 
-2. **Related issues** - any other deploy blockers that might be caused by the same PR
+**Classification**: Frontend bug / Backend bug
+**Causing PR**: [#NUMBER](link) - "title" by @author (High/Medium/Low confidence)
+**Related Issues**: #NUMBER (if any)
 
-3. **Recommendation** - one of:
-   - **REVERT** - Default choice. Preferred when the causing PR is clear and can be cleanly reverted. Especially important if the PR caused multiple linked issues.
-   - **ROLL FORWARD** - Use when reverting is problematic: fix is simpler than revert, revert would cause merge conflicts, or many dependent PRs have merged on top.
-   - **NEEDS INVESTIGATION** - Use when you cannot determine the root cause with reasonable confidence. List candidate PRs for human review, and tag PR author and reviewers.
-   - **DEMOTE** - Use when the bug is pretty minor (cosmetic and uncommon, pretty edge case, affects very few users) and not worth blocking the deploy.
+### Recommendation: REVERT / ROLL FORWARD / NEEDS INVESTIGATION / DEMOTE
 
-State which label you're removing (if any) and why.
+Brief explanation of why this recommendation (1-2 sentences).
+
+<details>
+<summary>📋 Detailed Analysis</summary>
+
+### Evidence
+- Why you believe this PR caused the issue
+- What changed in the PR that relates to the bug
+- Whether it reproduces on production vs staging only
+
+### Root Cause
+Technical explanation of what went wrong in the code.
+
+</details>
+```
+
+**Recommendations** (choose one):
+- **REVERT** - Default choice. Preferred when the causing PR is clear and can be cleanly reverted.
+- **ROLL FORWARD** - Use when reverting is problematic: fix is simpler than revert, many dependent PRs have merged, or the PR fixed a worse bug than it introduced (reverting would bring back a more severe issue).
+- **NEEDS INVESTIGATION** - Cannot determine root cause with confidence. Tag PR author and reviewers.
+- **DEMOTE** - Bug is minor (cosmetic, edge case, affects few users) and not worth blocking deploy.
+
+**Label removal**: Only remove a label if it's actually present on the issue. Check the issue's labels first before mentioning any label changes in your comment.
 
 ---
 
 ## Commands
 
 ```bash
+# Check which labels are on the issue first:
+gh issue view "$ISSUE_URL" --json labels --jq '.labels[].name'
+
 # Post your findings as a comment:
 gh issue comment "$ISSUE_URL" --body "YOUR_COMMENT_HERE"
 
-# Remove label (backend bugs only):
+# Remove label ONLY if it exists on the issue:
+# For backend bugs - remove DeployBlockerCash (if present)
 removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlockerCash
 
-# Remove label if confirmed to be frontend bug and label exists
+# For frontend bugs - remove DeployBlocker (if present)
 removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlocker
 ```
