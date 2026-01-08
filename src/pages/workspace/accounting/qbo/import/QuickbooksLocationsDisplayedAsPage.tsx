@@ -21,7 +21,7 @@ type CardListItem = ListItem & {
 function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const data: CardListItem[] = useMemo(() => {

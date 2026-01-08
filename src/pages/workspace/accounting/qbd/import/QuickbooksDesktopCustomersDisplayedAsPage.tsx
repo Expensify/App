@@ -21,7 +21,7 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
 
     const data: CardListItem[] = [

@@ -25,7 +25,7 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
 
     const mappingName: SageIntacctMappingName = route.params.mapping;
     const policy = usePolicy(route.params.policyID);
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const {config} = policy?.connections?.intacct ?? {};
     const {mappings, pendingFields, export: exportConfig} = config ?? {};
