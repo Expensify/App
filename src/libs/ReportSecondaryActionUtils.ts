@@ -757,15 +757,6 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[], vi
         return false;
     }
 
-    const reportTransactionViolations: TransactionViolation[] =
-        (violations ? violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reportTransaction.transactionID}`] : transactionViolations) ?? [];
-
-    const hasCustomUnitOutOfPolicyViolation = reportTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
-
-    if (hasCustomUnitOutOfPolicyViolation) {
-        return false;
-    }
-
     return true;
 }
 

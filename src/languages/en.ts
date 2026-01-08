@@ -658,6 +658,7 @@ const translations = {
         actionRequired: 'Action required',
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
+        duplicateExpense: 'Duplicate expense',
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
@@ -1469,6 +1470,7 @@ const translations = {
         },
         chooseWorkspace: 'Choose a workspace',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `report routed to ${to} due to custom approval workflow`,
+        correctDistanceRateError: 'Fix the distance rate error and try again.',
     },
     transactionMerge: {
         listPage: {
