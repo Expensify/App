@@ -7075,6 +7075,8 @@ ${amount} para ${merchant} - ${date}`,
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
         preStyledText: 'texto preestilizado',
         viewAttachment: 'Ver archivo adjunto',
+        error: 'Error',
+        success: 'Éxito',
     },
     parentReportAction: {
         deletedReport: 'Informe eliminado',

@@ -6902,6 +6902,8 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
+        error: 'Error',
+        success: 'Success',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',
