@@ -103,6 +103,7 @@ type BaseTextInputWithSymbolProps = {
     | 'onBlur'
     | 'disabled'
     | 'ref'
+    | 'accessibilityLabel'
 >;
 
 type TextInputWithSymbolProps = Omit<BaseTextInputWithSymbolProps, 'onSelectionChange'> & {
