@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import type {AccessibilityState} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
@@ -25,6 +26,9 @@ type SwitchProps = {
 
     /** Callback to fire when the switch is toggled in disabled state */
     disabledAction?: () => void;
+
+    /** Additional accessibility state for the switch */
+    accessibilityState?: AccessibilityState;
 };
 
 const OFFSET_X = {
@@ -32,7 +36,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction, accessibilityState}: SwitchProps) {
     const styles = useThemeStyles();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
     const theme = useTheme();
@@ -68,6 +72,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
             accessibilityLabel={accessibilityLabel}
+            accessibilityState={accessibilityState}
             // disable hover dim for switch
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
