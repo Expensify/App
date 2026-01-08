@@ -245,7 +245,7 @@ function isValidActionFilter(action: unknown): action is ValueOf<typeof CONST.SE
 }
 
 function formatBadgeText(count: number): string {
-    return count > 50 ? '50+' : count.toString();
+    return count > CONST.SEARCH.TODO_BADGE_MAX_COUNT ? `${CONST.SEARCH.TODO_BADGE_MAX_COUNT}+` : count.toString();
 }
 
 function getExpenseStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {

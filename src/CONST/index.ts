@@ -7126,6 +7126,7 @@ const CONST = {
         ANIMATION: {
             FADE_DURATION: 200,
         },
+        TODO_BADGE_MAX_COUNT: 50,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
