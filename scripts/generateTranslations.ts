@@ -12,10 +12,13 @@ import ts from 'typescript';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
+import baseTranslationPrompt from '@prompts/translation/base';
+import contextPrompt from '@prompts/translation/context';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
+import ChatGPTCostEstimator from './chatGPTCostEstimator';
 import CLI from './utils/CLI';
 import COLORS from './utils/COLORS';
 import Git from './utils/Git';
@@ -50,6 +53,11 @@ const GENERATED_FILE_PREFIX = dedent(`
 `);
 
 const tsPrinter = ts.createPrinter();
+
+/**
+ * If the estimated cost of translation exceeds this threshold (in USD), prompt the user for confirmation before proceeding.
+ */
+const COST_CONFIRMATION_THRESHOLD = 1;
 
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.
@@ -119,6 +127,11 @@ class TranslationGenerator {
     private readonly isIncremental: boolean;
 
     /**
+     * If true, skip prompting the user for cost confirmation.
+     */
+    private readonly approveCosts: boolean;
+
+    /**
      * If a complex template expression comes from an existing translation file rather than ChatGPT, then the hashes of its spans will be serialized from the translated version of those spans.
      * This map provides us a way to look up the English hash for each translated span hash, so that when we're transforming the English file and we encounter a translated expression hash,
      * we can look up English hash and use it to look up the translation for that hash (since the translation map is keyed by English string hashes).
@@ -139,6 +152,7 @@ class TranslationGenerator {
         compareRef: string;
         paths?: Set<TranslationPaths>;
         verbose: boolean;
+        approveCosts: boolean;
     }) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
@@ -151,6 +165,7 @@ class TranslationGenerator {
         this.pathsToRemove = new Set<TranslationPaths>();
         this.verbose = config.verbose;
         this.isIncremental = this.pathsToModify.size > 0 || !!this.compareRef;
+        this.approveCosts = config.approveCosts;
     }
 
     public async generateTranslations(): Promise<void> {
@@ -171,13 +186,18 @@ class TranslationGenerator {
             console.log(`   pathsToRemove: ${Array.from(this.pathsToRemove).join(', ')}`);
         }
 
+        // Extract strings to translate once (locale-independent)
+        const stringsToTranslate = new Map<number, StringWithContext>();
+        this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
+
+        // Estimate cost and prompt user if needed
+        if (!this.approveCosts) {
+            await this.promptForCostApproval(stringsToTranslate);
+        }
+
         for (const targetLanguage of this.targetLanguages) {
             // Map of translations
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
-
-            // Extract strings to translate
-            const stringsToTranslate = new Map<number, StringWithContext>();
-            this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
 
             // Translate all the strings in parallel (up to 8 at a time)
             const translationPromises = [];
@@ -284,6 +304,57 @@ class TranslationGenerator {
             await Prettier.format(outputPath);
 
             console.log(`✅ Translated file created: ${outputPath}`);
+        }
+    }
+
+    /**
+     * Estimates the cost of translating the given strings and prompts the user for confirmation if the cost exceeds the threshold.
+     * If the user declines, the process exits.
+     */
+    private async promptForCostApproval(stringsToTranslate: Map<number, StringWithContext>): Promise<void> {
+        const numStrings = stringsToTranslate.size;
+        const numLocales = this.targetLanguages.length;
+
+        // Calculate base prompt tokens (use first target language as sample since length is similar across locales)
+        const basePromptTokens = Math.ceil(baseTranslationPrompt(this.targetLanguages.at(0)).length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+
+        // Calculate total input tokens for all strings
+        let totalInputTokens = 0;
+        let totalStringCharacters = 0;
+        for (const {text, context} of stringsToTranslate.values()) {
+            totalStringCharacters += text.length;
+            // Add context prompt tokens if context exists
+            if (context) {
+                totalInputTokens += Math.ceil(contextPrompt(context).length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+            }
+        }
+
+        const stringTokens = Math.ceil(totalStringCharacters * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+
+        // Input tokens: (base prompt + string + context) per request, multiplied by number of locales
+        totalInputTokens = (totalInputTokens + basePromptTokens * numStrings + stringTokens) * numLocales;
+        // Output tokens: roughly the same as input string tokens (translations are similar length)
+        const totalOutputTokens = stringTokens * numLocales;
+
+        const estimatedCost = ChatGPTCostEstimator.getTotalEstimatedCost(totalInputTokens, totalOutputTokens);
+
+        if (estimatedCost > COST_CONFIRMATION_THRESHOLD) {
+            console.warn(
+                `${COLORS.YELLOW}${dedent(`
+                    ⚠️  Warning: This translation will cost approximately $${estimatedCost.toFixed(2)} USD.
+                       Strings to translate: ${stringsToTranslate.size.toLocaleString()}
+                       Target locales: ${numLocales}
+                `)}${COLORS.RESET}`,
+            );
+
+            const userConfirmed = await CLI.promptUserConfirmation(`Do you want to proceed? ${COLORS.BOLD}Estimated cost: $${estimatedCost.toFixed(2)} USD.${COLORS.RESET} (y/n) `);
+
+            if (!userConfirmed) {
+                console.log('\n❌ Translation cancelled by user.');
+                process.exit(0);
+            }
+
+            console.log('\n✅ Proceeding with translation...\n');
         }
     }
 
@@ -1142,6 +1213,9 @@ async function main(): Promise<void> {
             verbose: {
                 description: 'Should we print verbose logs?',
             },
+            'approve-costs': {
+                description: 'Skip prompting for cost confirmation. Use this flag in CI environments.',
+            },
         },
         namedArgs: {
             // By default, generate translations for all supported languages. Can be overridden with the --locales flag
@@ -1221,45 +1295,8 @@ async function main(): Promise<void> {
         translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
     }
 
-    // Check if we're running in full translation mode (no dry-run, no compare-ref, no paths)
-    const isFullTranslationMode = !cli.flags['dry-run'] && !cli.namedArgs['compare-ref'] && (!cli.namedArgs.paths || cli.namedArgs.paths.size === 0);
-    if (isFullTranslationMode) {
-        /*
-         * Warning people of the cost to run a full translation. Here is the napkin math used.
-         *
-         * ASSUMPTIONS:
-         * - Rule of thumb: ~4 characters per token for English-ish text.
-         * - Estimated average input tokens per request: ~775 (~25 for the string, plus ~750 for the base prompt)
-         *     - Note: Depending on the result of https://expensify.slack.com/archives/C05LX9D6E07/p1765868797108589 we could potentially reduce this so the base prompt is sent once per locale per script run and then cached with prompt caching, rather than with every string to translate.
-         * - Estimated average output tokens per request: ~25
-         * - 8 requests/string (for 8 locales),
-         * - ~6000 strings to translate in `en.ts` as of now.
-         *
-         * ESTIMATED COST:
-         * - GPT 5.1 costs $1.25/MM input tokens and $10/MM output tokens.
-         * - ((775 inputTokens / 1,000,000) * $1.25/inputToken) + ((25 outputTokens / 1,000,000) * $10/outputToken) = $0.00121875/request
-         * - $0.00121875/request * 8 requests/string (for each locale) = $0.00975/string
-         * - $0.00975/string * 6000 strings in en.ts = $58.50 estimated
-         */
-        console.warn(
-            `${COLORS.YELLOW}${dedent(`
-                ⚠️  Warning: you are running this script without the \`--dry-run\`, \`--compare-ref\`, or \`--paths\` param.
-                   This will retranslate all strings in \`src/languages/en.ts\`.
-                   In order to retranslate only the strings you changed on your branch, use \`--compare-ref main\` instead. The cost for incremental translations is generally low - estimated to be less than a penny per string on average.
-            `)}${COLORS.RESET}`,
-        );
-
-        const userConfirmed = await CLI.promptUserConfirmation(
-            `Do you want to proceed with a full translation? ${COLORS.BOLD}Choosing yes will cost more than $50 USD.${COLORS.RESET} (y/n) `,
-        );
-
-        if (!userConfirmed) {
-            console.log('\n❌ Translation cancelled by user.');
-            process.exit(0);
-        }
-
-        console.log('\n✅ Proceeding with full translation...\n');
-    }
+    // Skip cost confirmation if dry-run (cost is $0) or if explicitly approved
+    const approveCosts = cli.flags['dry-run'] || cli.flags['approve-costs'];
 
     const generator = new TranslationGenerator({
         targetLanguages: cli.namedArgs.locales,
@@ -1269,6 +1306,7 @@ async function main(): Promise<void> {
         compareRef: cli.namedArgs['compare-ref'],
         paths: cli.namedArgs.paths,
         verbose: cli.flags.verbose,
+        approveCosts,
     });
 
     await generator.generateTranslations();
