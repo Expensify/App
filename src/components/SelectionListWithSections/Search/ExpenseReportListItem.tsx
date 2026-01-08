@@ -57,6 +57,11 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return (snapshotData?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshotData, reportItem.policyID]);
 
+    const reportActions = useMemo(() => {
+        const actionsData = snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`];
+        return actionsData ? Object.values(actionsData) : [];
+    }, [snapshotData, reportItem.reportID]);
+
     const isDisabledCheckbox = useMemo(() => {
         const isEmpty = reportItem.transactions.length === 0;
         return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
@@ -182,10 +187,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
             {(hovered) => (
                 <View style={[styles.flex1]}>
                     <ExpenseReportListItemRow
-                        hash={currentSearchHash}
                         item={reportItem}
                         columns={columns}
                         policy={snapshotPolicy}
+                        reportActions={reportActions}
                         isActionLoading={isActionLoading ?? isLoading}
                         showTooltip={showTooltip}
                         canSelectMultiple={canSelectMultiple}
