@@ -474,7 +474,7 @@ function SearchPage({route}: SearchPageProps) {
                                 if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
                                     return;
                                 }
-                                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                                const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
                                 queueExportSearchItemsToCSV({
                                     query: status,
                                     jsonQuery: JSON.stringify(queryJSON),
