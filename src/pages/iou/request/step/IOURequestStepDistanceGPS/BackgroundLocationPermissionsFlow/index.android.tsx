@@ -49,9 +49,8 @@ async function checkPermissions({
     onGrant,
     onDeny,
     onAskForPermissions,
-    onPreciseLocationNotGranted,
     onError,
-}: Pick<BackgroundLocationPermissionsFlowProps, 'onDeny' | 'onGrant'> & {onAskForPermissions: () => void; onPreciseLocationNotGranted: () => void; onError: () => void}) {
+}: Pick<BackgroundLocationPermissionsFlowProps, 'onDeny' | 'onGrant'> & {onAskForPermissions: () => void; onError: () => void}) {
     try {
         const {granted, canAskAgain, android} = await getForegroundPermissionsAsync();
 
@@ -72,9 +71,6 @@ async function checkPermissions({
                 onGrant();
                 return;
             }
-
-            onPreciseLocationNotGranted();
-            return;
         }
 
         onAskForPermissions();
@@ -109,7 +105,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
             return;
         }
 
-        checkPermissions({onGrant, onDeny, onError, onAskForPermissions: () => setShowFirstAskModal(true), onPreciseLocationNotGranted: () => setShowPreciseLocationModal(true)});
+        checkPermissions({onGrant, onDeny, onError, onAskForPermissions: () => setShowFirstAskModal(true)});
         setStartPermissionsFlow(false);
     }, [startPermissionsFlow, onGrant, onDeny, setStartPermissionsFlow, onError]);
 

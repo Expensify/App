@@ -70,10 +70,8 @@ async function checkPermissions({
                 return;
             }
 
-            if (!canAskAgain) {
-                onPreciseLocationNotGranted();
-                return;
-            }
+            onPreciseLocationNotGranted();
+            return;
         }
 
         onAskForPermissions();
