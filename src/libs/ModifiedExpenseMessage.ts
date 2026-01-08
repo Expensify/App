@@ -171,10 +171,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     if (isEmpty(policyName) && !reportName) {
         return translate('iou.changedTheExpense');
     }
-    return translate('iou.movedFromPersonalSpace', {
-        reportName,
-        workspaceName: !isEmpty(policyName) ? policyName : undefined,
-    });
+    return translate('iou.movedFromPersonalSpace', reportName, !isEmpty(policyName) ? policyName : undefined);
 }
 
 function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {
@@ -194,7 +191,7 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
     if (movedFromReport) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const originReportName = getReportName(movedFromReport);
-        return translate('iou.movedFromReport', {reportName: originReportName ?? ''});
+        return translate('iou.movedFromReport', originReportName ?? '');
     }
 }
 

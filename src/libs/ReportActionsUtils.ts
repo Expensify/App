@@ -1797,9 +1797,9 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             if (errorMessage.includes(CONST.ERROR.INTEGRATION_MESSAGE_INVALID_CREDENTIALS)) {
                 const translateErrorMessage = translate('report.actions.error.invalidCredentials');
                 const translateLinkText = translate('report.connectionSettings');
-                return translate('report.actions.type.integrationsMessage', {errorMessage: translateErrorMessage, label, linkText: translateLinkText, linkURL});
+                return translate('report.actions.type.integrationsMessage', translateErrorMessage, label, translateLinkText, linkURL);
             }
-            return translate('report.actions.type.integrationsMessage', {errorMessage, label, linkText, linkURL});
+            return translate('report.actions.type.integrationsMessage', errorMessage, label, linkText, linkURL);
         }
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
             return translate('report.actions.type.managerAttachReceipt');
@@ -1807,7 +1807,7 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             return translate('report.actions.type.managerDetachReceipt');
         case CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION: {
             const {amount, currency} = originalMessage;
-            return translate('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
+            return translate('report.actions.type.markedReimbursedFromIntegration', amount, currency);
         }
         case CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT:
             return translate('report.actions.type.outdatedBankAccount');
@@ -2476,7 +2476,7 @@ function getPolicyChangeLogEmployeeLeftMessage(translate: LocalizedTranslate, re
     }
     const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : (originalMessage?.email ?? '');
     const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
-    return translate('report.actions.type.leftWorkspace', {nameOrEmail: formattedNameOrEmail});
+    return translate('report.actions.type.leftWorkspace', formattedNameOrEmail);
 }
 
 function isPolicyChangeLogDeleteMemberMessage(
@@ -3395,13 +3395,13 @@ function getCardIssuedMessage({
             return translate('workspace.expensifyCard.issuedCard', assignee);
         }
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
-            return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.card'))});
+            return translate('workspace.expensifyCard.issuedCardVirtual', assignee, expensifyCardLink(translate('workspace.expensifyCard.card')));
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
             return translate('workspace.companyCards.assignedCard', assignee, companyCardLink);
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
             return translate('workspace.expensifyCard.issuedCardNoShippingDetails', assignee);
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
-            return translate('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.replacementCard'))});
+            return translate('workspace.expensifyCard.replacedVirtualCard', assignee, expensifyCardLink(translate('workspace.expensifyCard.replacementCard')));
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED:
             return translate('workspace.expensifyCard.replacedCard', assignee);
         default:
@@ -3475,11 +3475,7 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
 
     const param = encodeURIComponent(`{"policyID": "${policyID}"}`);
     const workspaceAccountingLink = shouldShowOldDotLink ? `${oldDotEnvironmentURL}/policy?param=${param}#connections` : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
-    return translate('report.actions.type.integrationSyncFailed', {
-        label,
-        errorMessage,
-        workspaceAccountingLink,
-    });
+    return translate('report.actions.type.integrationSyncFailed', label, errorMessage, workspaceAccountingLink);
 }
 
 function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {

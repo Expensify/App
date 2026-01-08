@@ -5149,10 +5149,7 @@ function getReportPreviewMessage(
 
     if (isReportApproved({report}) && isPaidGroupPolicy(report)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.managerApprovedAmount', {
-            manager: payerName ?? '',
-            amount: formattedAmount,
-        });
+        return translateLocal('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
     }
 
     const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -6882,23 +6879,15 @@ function getMovedTransactionMessage(action: ReportAction) {
     let reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.movedTransactionTo', {
-            reportUrl,
-            reportName,
-        });
+        return translateLocal('iou.movedTransactionTo', reportUrl, reportName);
     }
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.movedUnreportedTransaction', {
-            reportUrl,
-        });
+        return translateLocal('iou.movedUnreportedTransaction', reportUrl);
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.movedTransactionFrom', {
-        reportUrl,
-        reportName,
-    });
+    return translateLocal('iou.movedTransactionFrom', reportUrl, reportName);
 }
 
 function getUnreportedTransactionMessage(action: ReportAction) {
@@ -6916,16 +6905,11 @@ function getUnreportedTransactionMessage(action: ReportAction) {
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.unreportedTransaction', {
-            reportUrl,
-        });
+        return translateLocal('iou.unreportedTransaction', reportUrl);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.movedTransactionFrom', {
-        reportUrl,
-        reportName,
-    });
+    return translateLocal('iou.movedTransactionFrom', reportUrl, reportName);
 }
 
 function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) {
@@ -6940,12 +6924,7 @@ function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) 
     const {toPolicyID, newParentReportID, movedReportID} = movedActionOriginalMessage;
     const toPolicyName = getPolicyNameByID(toPolicyID);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.movedAction', {
-        shouldHideMovedReportUrl: !isDM(report),
-        movedReportUrl: getReportURLForCurrentContext(movedReportID),
-        newParentReportUrl: getReportURLForCurrentContext(newParentReportID),
-        toPolicyName,
-    });
+    return translateLocal('iou.movedAction', !isDM(report), getReportURLForCurrentContext(movedReportID), getReportURLForCurrentContext(newParentReportID), toPolicyName);
 }
 
 function getPolicyChangeMessage(action: ReportAction) {
