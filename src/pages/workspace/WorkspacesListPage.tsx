@@ -462,7 +462,7 @@ function WorkspacesListPage() {
                 >
                     <PressableWithoutFeedback
                         role={CONST.ROLE.BUTTON}
-                        accessibilityLabel="row"
+                        accessibilityLabel={`${item.title}${isDefault ? `, ${translate('common.default')}` : ''}`}
                         style={[styles.mh5]}
                         disabled={item.disabled}
                         onPress={item.action}
