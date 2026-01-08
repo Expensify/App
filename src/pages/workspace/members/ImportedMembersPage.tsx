@@ -56,11 +56,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         let errors: Record<string, string | null> = {};
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
+            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicate});
             } else {
                 errors = {};
             }
