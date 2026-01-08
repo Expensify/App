@@ -35,7 +35,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'InvoiceBlue', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard', 'Luggage']);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard', 'Luggage']);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -114,18 +114,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 icon: illustrations.PerDiem,
                 requiresUpdate: true,
             },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
-                title: translate('workspace.moreFeatures.invoices.title'),
-                icon: illustrations.InvoiceBlue,
-            },
         ];
     }, [
         illustrations.FolderOpen,
         illustrations.Accounting,
         illustrations.CompanyCard,
         illustrations.Workflows,
-        illustrations.InvoiceBlue,
         illustrations.Rules,
         illustrations.Car,
         illustrations.HandCard,
