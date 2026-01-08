@@ -772,13 +772,13 @@ function getSecondaryReportActions({
     reportTransactions,
     originalTransaction,
     violations,
+    bankAccountList,
     policy,
     reportNameValuePairs,
     reportActions,
     reportMetadata,
     policies,
     isChatReportArchived = false,
-    bankAccountList,
 }: {
     currentUserEmail: string;
     currentUserAccountID: number;
@@ -787,6 +787,7 @@ function getSecondaryReportActions({
     reportTransactions: Transaction[];
     originalTransaction: OnyxEntry<Transaction>;
     violations: OnyxCollection<TransactionViolation[]>;
+    bankAccountList: OnyxEntry<BankAccountList>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
@@ -794,7 +795,6 @@ function getSecondaryReportActions({
     policies?: OnyxCollection<Policy>;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
-    bankAccountList?: OnyxEntry<BankAccountList>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 

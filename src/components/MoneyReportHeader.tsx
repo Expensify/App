@@ -1078,13 +1078,13 @@ function MoneyReportHeader({
             reportTransactions: transactions,
             originalTransaction: originalIOUTransaction,
             violations,
+            bankAccountList,
             policy,
             reportNameValuePairs,
             reportActions,
             reportMetadata,
             policies,
             isChatReportArchived,
-            bankAccountList,
         });
     }, [
         moneyRequestReport,

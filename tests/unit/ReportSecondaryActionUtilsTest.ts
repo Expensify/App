@@ -69,6 +69,7 @@ describe('getSecondaryAction', () => {
                 reportTransactions: [],
                 originalTransaction: {} as Transaction,
                 violations: {},
+                bankAccountList: {},
                 policy,
             }),
         ).toEqual(result);
@@ -90,6 +91,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const TRANSACTION_ID = 'TRANSACTION_ID';
+
         const transaction = {
             transactionID: TRANSACTION_ID,
         } as unknown as Transaction;
@@ -102,6 +104,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
@@ -132,6 +135,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
@@ -162,6 +166,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
@@ -206,6 +211,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction1, transaction2],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
@@ -236,6 +242,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
@@ -282,6 +289,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
@@ -314,6 +322,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
@@ -352,6 +361,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
@@ -396,6 +406,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
@@ -436,6 +447,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
@@ -473,6 +485,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
@@ -512,6 +525,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
@@ -551,6 +565,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
@@ -587,6 +602,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
@@ -623,6 +639,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
@@ -656,6 +673,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
@@ -680,6 +698,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
@@ -707,6 +726,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
@@ -733,6 +753,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
@@ -759,6 +780,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
@@ -786,6 +808,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
@@ -813,6 +836,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
@@ -841,6 +865,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
@@ -869,6 +894,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -916,6 +942,7 @@ describe('getSecondaryAction', () => {
             ],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -963,6 +990,7 @@ describe('getSecondaryAction', () => {
             ],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -1010,6 +1038,7 @@ describe('getSecondaryAction', () => {
             ],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -1057,6 +1086,7 @@ describe('getSecondaryAction', () => {
             ],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -1087,6 +1117,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             reportActions: [actionR14932],
         });
@@ -1130,6 +1161,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             policies,
         });
@@ -1174,6 +1206,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             policies,
         });
@@ -1233,6 +1266,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy: oldPolicy,
             policies,
         });
@@ -1292,6 +1326,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             policies,
         });
@@ -1351,6 +1386,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             policies,
         });
@@ -1376,6 +1412,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [{} as Transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -1439,6 +1476,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             reportActions,
         });
@@ -1483,6 +1521,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             reportActions,
         });
@@ -1542,6 +1581,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction1, transaction2],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             reportActions,
         });
@@ -1586,6 +1626,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -1635,6 +1676,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction1, transaction2],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -1675,6 +1717,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
@@ -1711,6 +1754,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
@@ -1762,6 +1806,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             reportActions,
         });
@@ -1804,6 +1849,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -1833,6 +1879,7 @@ describe('getSecondaryAction', () => {
             reportTransactions,
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -1866,6 +1913,7 @@ describe('getSecondaryAction', () => {
             reportTransactions,
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -1909,6 +1957,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction1],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             reportActions,
         });
@@ -1938,6 +1987,7 @@ describe('getSecondaryAction', () => {
             chatReport,
             reportTransactions: [],
             violations: {},
+            bankAccountList: {},
             originalTransaction: {} as Transaction,
             policy,
         });
@@ -1997,6 +2047,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction1, transaction2],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             reportActions,
         });
@@ -2037,6 +2088,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
@@ -2080,6 +2132,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction1],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             reportActions,
         });
@@ -2345,6 +2398,7 @@ describe('getSecondaryExportReportActions', () => {
             reportTransactions,
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -2475,6 +2529,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportTransactions: [],
             originalTransaction: {} as Transaction,
             violations: {},
+            bankAccountList: {},
             policy,
             policies,
             reportActions,
@@ -2643,6 +2698,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportTransactions: [transaction],
                 originalTransaction: {} as Transaction,
                 violations: {},
+                bankAccountList: {},
                 policy,
             });
 
@@ -2695,6 +2751,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportTransactions: [transaction],
                 originalTransaction: {} as Transaction,
                 violations: {},
+                bankAccountList: {},
                 policy,
             });
 
@@ -2718,6 +2775,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportTransactions: transactions,
                 originalTransaction: {} as Transaction,
                 violations: {},
+                bankAccountList: {},
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
@@ -2738,6 +2796,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportTransactions: transactions,
                 originalTransaction: {} as Transaction,
                 violations: {},
+                bankAccountList: {},
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
@@ -2758,6 +2817,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportTransactions: transactions,
                 originalTransaction: {} as Transaction,
                 violations: {},
+                bankAccountList: {},
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
@@ -2777,6 +2837,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportTransactions: [],
                 originalTransaction: {} as Transaction,
                 violations: {},
+                bankAccountList: {},
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
@@ -2797,6 +2858,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportTransactions: transactions,
                 originalTransaction: {} as Transaction,
                 violations: {},
+                bankAccountList: {},
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(true);
@@ -2817,6 +2879,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportTransactions: transactions,
                 originalTransaction: {} as Transaction,
                 violations: {},
+                bankAccountList: {},
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(true);
