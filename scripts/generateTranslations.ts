@@ -404,23 +404,25 @@ class TranslationGenerator {
         // Calculate base prompt tokens (use first target language as sample since length is similar across locales)
         const basePromptTokens = Math.ceil(baseTranslationPrompt(TRANSLATION_TARGET_LOCALES.DE).length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
 
-        // Calculate total input tokens for all strings
-        let totalInputTokens = 0;
-        let totalStringCharacters = 0;
+        // Calculate total input and output tokens for all strings
+        let totalInputTokens = numStrings * basePromptTokens;
+        let totalOutputTokens = 0;
         for (const {text, context} of stringsToTranslate.values()) {
-            totalStringCharacters += text.length;
+            const tokensForString = Math.ceil(text.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+
+            // The inputs and outputs for the string are assumed to be about the same length.
+            totalInputTokens += tokensForString;
+            totalOutputTokens += tokensForString;
+
             // Add context prompt tokens if context exists
             if (context) {
                 totalInputTokens += Math.ceil(contextPrompt(context).length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
             }
         }
 
-        const stringTokens = Math.ceil(totalStringCharacters * ChatGPTCostEstimator.TOKENS_PER_CHAR);
-
-        // Input tokens: (base prompt + string + context) per request, multiplied by number of locales
-        totalInputTokens = (totalInputTokens + basePromptTokens * numStrings + stringTokens) * numLocales;
-        // Output tokens: roughly the same as input string tokens (translations are similar length)
-        const totalOutputTokens = stringTokens * numLocales;
+        // Multiply total input and output tokens by the number of locales
+        totalInputTokens *= numLocales;
+        totalOutputTokens *= numLocales;
 
         const estimatedCost = ChatGPTCostEstimator.getTotalEstimatedCost(totalInputTokens, totalOutputTokens);
 
