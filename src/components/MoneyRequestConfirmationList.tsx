@@ -153,6 +153,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is a manual distance expense */
     isManualDistanceRequest: boolean;
 
+    /** Whether the expense is an odometer distance expense */
+    isOdometerDistanceRequest?: boolean;
+
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
@@ -214,6 +217,7 @@ function MoneyRequestConfirmationList({
     iouAmount,
     isDistanceRequest,
     isManualDistanceRequest,
+    isOdometerDistanceRequest = false,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
@@ -554,12 +558,9 @@ function MoneyRequestConfirmationList({
             if (iouAmount !== 0) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
-        } else if (isTypeSplit) {
-            text = translate('iou.splitAmount', {amount: formattedAmount});
-        } else if (iouAmount === 0) {
-            text = translate('iou.createExpense');
         } else {
-            text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
+            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
+            text = translate(translationKey, {amount: formattedAmount});
         }
         return [
             {
@@ -1169,6 +1170,7 @@ function MoneyRequestConfirmationList({
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
             isManualDistanceRequest={isManualDistanceRequest}
+            isOdometerDistanceRequest={isOdometerDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}

@@ -86,6 +86,7 @@ const missingTagViolation = {
 const tagOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
 };
 
 const smartScanFailedViolation = {
@@ -561,6 +562,7 @@ describe('getViolationsOnyxData', () => {
             const someTagLevelsRequiredViolation = {
                 name: 'someTagLevelsRequired',
                 type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
                 data: {
                     errorIndexes: [0, 1, 2],
                 },
