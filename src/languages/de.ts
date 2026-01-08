@@ -6965,9 +6965,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 removedConnection: ({connectionName}: ConnectionNameParams) => `Verbindung zu ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} entfernt`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `verbunden mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'hat den Chat verlassen',
-                companyCardConnectionBroken: ({feedName, policyID, workspaceCompanyCardRoute}: {feedName: string; policyID: string; workspaceCompanyCardRoute?: string}) => {
-                    const url = workspaceCompanyCardRoute ?? `https://new.expensify.com/workspaces/${policyID}/company-cards`;
-                    return `Die ${feedName}-Verbindung ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${url}'>melden Sie sich bei Ihrer Bank an</a>`;
+                companyCardConnectionBroken: ({feedName, policyID, workspaceCompanyCardRoute}: {feedName: string; policyID: string; workspaceCompanyCardRoute: string}) => {
+                    return `Die ${feedName}-Verbindung ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>`;
                 },
             },
             error: {
