@@ -60,7 +60,7 @@ When analyzing, look at the App code to understand:
 Post ONE comment with:
 
 1. **Causing PR** (or candidates if uncertain)
-   - PR number, title, author
+   - PR number, title, author, link
    - Confidence level (high/medium/low)
    - Evidence (why you think this PR caused it)
 
