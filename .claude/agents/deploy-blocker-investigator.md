@@ -80,11 +80,11 @@ State which label you're removing (if any) and why.
 
 ```bash
 # Post your findings as a comment:
-gh issue comment $ISSUE_NUMBER --body "YOUR_COMMENT_HERE"
+gh issue comment "$ISSUE_URL" --body "YOUR_COMMENT_HERE"
 
 # Remove label (backend bugs only):
-gh issue edit $ISSUE_NUMBER --remove-label DeployBlockerCash
+gh issue edit "$ISSUE_URL" --remove-label DeployBlockerCash
 
 # Remove label if confirmed to be frontend bug and label exists
-gh issue edit $ISSUE_NUMBER --remove-label DeployBlocker
+gh issue edit "$ISSUE_URL" --remove-label DeployBlocker
 ```
