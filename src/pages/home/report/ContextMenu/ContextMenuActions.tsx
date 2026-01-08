@@ -151,7 +151,19 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {
+    Beta,
+    Card,
+    Download as DownloadOnyx,
+    OnyxInputOrEntry,
+    Policy,
+    PolicyTagLists,
+    ReportAction,
+    ReportActionReactions,
+    ReportActionsDrafts,
+    Report as ReportType,
+    Transaction,
+} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -210,6 +222,8 @@ type ContextMenuActionPayload = {
     reportID: string | undefined;
     report: OnyxEntry<ReportType>;
     draftMessage: string;
+    allDraftMessages?: ReportActionsDrafts;
+    shouldUseNarrowLayout: boolean;
     selection: string;
     close: () => void;
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
@@ -409,7 +423,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: 'Pencil',
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, moneyRequestAction}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (canEditReportAction(reportAction) || canEditReportAction(moneyRequestAction)) && !isArchivedRoom && !isChronosReport,
-        onPress: (closePopover, {reportID, reportAction, draftMessage, moneyRequestAction}) => {
+        onPress: (closePopover, {reportID, reportAction, allDraftMessages, shouldUseNarrowLayout, draftMessage, moneyRequestAction}) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
@@ -425,6 +439,15 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             const editAction = () => {
                 if (!draftMessage) {
+                    if (shouldUseNarrowLayout && allDraftMessages) {
+                        for (const actionID of Object.keys(allDraftMessages)) {
+                            if (actionID === reportAction.reportActionID) {
+                                continue;
+                            }
+                            deleteReportActionDraft(reportID, reportAction);
+                        }
+                    }
+
                     saveReportActionDraft(reportID, reportAction, Parser.htmlToMarkdown(getActionHtml(reportAction)));
                 } else {
                     deleteReportActionDraft(reportID, reportAction);
