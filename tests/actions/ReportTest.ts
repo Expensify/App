@@ -1002,7 +1002,6 @@ describe('actions/Report', () => {
     it('should remove AddComment and UpdateComment without sending any request when DeleteComment is set', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
-        const TEST_USER_LOGIN = 'test@gmail.com';
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
@@ -1118,7 +1117,6 @@ describe('actions/Report', () => {
     it('should send DeleteComment request and remove UpdateComment accordingly', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
-        const TEST_USER_LOGIN = 'test@gmail.com';
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
@@ -1697,7 +1695,6 @@ describe('actions/Report', () => {
     it('should update AddComment text with the UpdateComment text, sending just an AddComment request', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
-        const TEST_USER_LOGIN = 'test@gmail.com';
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
@@ -1736,7 +1733,6 @@ describe('actions/Report', () => {
     it('it should only send the last sequential UpdateComment request to BE', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         const reportID = '123';
-        const TEST_USER_LOGIN = 'test@gmail.com';
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
