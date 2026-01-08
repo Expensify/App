@@ -89,8 +89,6 @@ function TransactionDuplicateReview() {
 
     useFocusEffect(
         useCallback(() => {
-            getDuplicateTransactionDetails(transactionID);
-
             if (!originalTransactionIDsListRef.current) {
                 return;
             }
@@ -111,6 +109,13 @@ function TransactionDuplicateReview() {
         }
         openReport(route.params.threadReportID);
     }, [report?.reportID, route.params.threadReportID]);
+
+    useEffect(() => {
+        if (!transactionID) {
+            return;
+        }
+        getDuplicateTransactionDetails(transactionID);
+    }, [transactionID]);
 
     const isLoadingPage = (!report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false) || !reportAction?.reportActionID;
 
