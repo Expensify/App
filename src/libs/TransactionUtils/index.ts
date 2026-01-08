@@ -114,8 +114,10 @@ type TransactionParams = {
     splitsStartDate?: string;
     splitsEndDate?: string;
     distance?: number;
+    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
     count?: number;
     rate?: number;
+    unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -384,8 +386,10 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         splitExpensesTotal,
         participants,
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        type,
         count,
         rate,
+        unit,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -430,14 +434,13 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
 
     const isManualTransaction = !isPerDiemTransaction && !isMapDistanceTransaction && !isManualDistanceTransaction && !splitExpenses && !receipt?.source;
 
-    const isTimeTransaction = count !== undefined && rate !== undefined;
-    if (isTimeTransaction) {
+    if (type === CONST.TRANSACTION.TYPE.TIME) {
         commentJSON.units = {
             count,
             rate,
-            unit: 'h',
+            unit,
         };
-        commentJSON.type = 'time';
+        commentJSON.type = type;
     }
 
     return {

@@ -2967,8 +2967,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         linkedTrackedExpenseReportAction,
         pendingAction,
         pendingFields = {},
+        type,
         count,
         rate,
+        unit,
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -3082,8 +3084,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             pendingAction,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, ...pendingFields} : pendingFields,
             reimbursable: isPolicyExpenseChat ? reimbursable : true,
+            type,
             count,
             rate,
+            unit,
         },
         isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
     });
