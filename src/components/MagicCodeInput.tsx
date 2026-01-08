@@ -100,6 +100,9 @@ type MagicCodeInputProps = {
     /** TestID for test */
     testID?: string;
 
+    /** Accessibility label for the input */
+    accessibilityLabel?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<MagicCodeInputHandle>;
 };
@@ -150,6 +153,7 @@ function MagicCodeInput({
     autoComplete,
     hasError = false,
     testID = '',
+    accessibilityLabel,
     ref,
 }: MagicCodeInputProps) {
     const styles = useThemeStyles();
@@ -487,7 +491,7 @@ function MagicCodeInput({
                             }}
                             selectionColor="transparent"
                             inputStyle={[styles.inputTransparent]}
-                            role={CONST.ROLE.PRESENTATION}
+                            accessibilityLabel={accessibilityLabel}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}
