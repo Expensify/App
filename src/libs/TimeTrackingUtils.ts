@@ -2,10 +2,10 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {convertToDisplayString} from './CurrencyUtils';
 
 /**
- * Computes the transaction amount for given hourly rate (as a formatted number in currency units) and hour count.
+ * Computes the transaction amount for given hourly rate (in cents) and hour count.
  */
-function computeTimeAmount(rate: number, count: number): number {
-    return Math.round(rate * 100 * count);
+function computeTimeAmount(rateInCents: number, count: number): number {
+    return Math.round(rateInCents * count);
 }
 
 /**
