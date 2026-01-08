@@ -129,6 +129,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         report,
         policy,
         participantPersonalDetailListExcludeCurrentUser,
+        translate,
         localeCompare,
         isReportArchived,
         reportDetailsLink,

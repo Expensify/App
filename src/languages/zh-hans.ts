@@ -19,14 +19,7 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    CanceledRequestParams,
-    CardInfoParams,
     ChangeFieldParams,
-    ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerSubscriptionParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
-    CharacterLengthLimitParams,
     ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
@@ -79,7 +72,6 @@ import type {
     LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
-    LoggedInAsParams,
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
@@ -131,7 +123,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -167,6 +158,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -198,7 +190,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -343,6 +334,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: '名',
         lastName: '姓',
         scanning: '扫描中',
+        analyzing: '正在分析...',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
         phone: '电话',
@@ -417,6 +409,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '到',
         genericErrorMessage: '哎呀……出现了一些问题，无法完成您的请求。请稍后再试。',
         percentage: '百分比',
+        converted: '已转换',
         error: {
             invalidAmount: '金额无效',
             acceptTerms: '您必须接受服务条款才能继续',
@@ -424,7 +417,7 @@ const translations: TranslationDeepObject<typeof en> = {
 （例如：${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: '此字段为必填项',
             requestModified: '此请求正在被另一位成员修改中',
-            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `超出字符限制（${length}/${limit}）`,
+            characterLimitExceedCounter: (length: number, limit: number) => `超出字符限制（${length}/${limit}）`,
             dateInvalid: '请选择一个有效日期',
             invalidDateShouldBeFuture: '请选择今天或将来的日期',
             invalidTimeShouldBeFuture: '请选择一个至少比当前时间晚一分钟的时间',
@@ -507,6 +500,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: '显示更多',
         showLess: '收起',
         merchant: '商户',
+        change: '更改',
         category: '类别',
         report: '报告',
         billable: '可计费',
@@ -764,14 +758,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
         signIn: '请重新登录。',
-        redirectedToDesktopApp: '我们已将你重定向到桌面应用程序。',
-        youCanAlso: '你也可以',
-        openLinkInBrowser: '在浏览器中打开此链接',
-        loggedInAs: ({email}: LoggedInAsParams) => `您当前以 ${email} 身份登录。请在提示中点击“打开链接”，以使用此账户登录桌面应用。`,
-        doNotSeePrompt: '看不到提示？',
-        tryAgain: '重试',
-        or: '，或',
-        continueInWeb: '继续前往网页版应用',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -843,12 +829,6 @@ const translations: TranslationDeepObject<typeof en> = {
             header: '以聊天速度处理差旅和报销',
             body: '欢迎使用新一代 Expensify，在这里，借助具备上下文的实时聊天功能，您的差旅和报销处理将更加快速高效。',
         },
-    },
-    thirdPartySignIn: {
-        alreadySignedIn: (email: string) => `您已经以 ${email} 的身份登录。`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `不想使用 ${provider} 登录？`,
-        continueWithMyCurrentSession: '继续当前会话',
-        redirectToDesktopMessage: '完成登录后，我们会将您重定向到桌面应用程序。',
     },
     samlSignIn: {
         welcomeSAMLEnabled: '继续使用单点登录登录：',
@@ -1197,20 +1177,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: '如果你没有网站，可以改为提供你公司的 LinkedIn 或社交媒体主页。',
         invalidDomainError: '您输入的域名无效。若要继续，请输入有效的域名。',
         publicDomainError: '您输入的是公共域名。若要继续，请输入一个私有域名。',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} 正在扫描`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} 个待处理`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 笔报销（${statusText.join(', ')}）` : `1 笔报销`,
-                other: (count: number) => (statusText.length > 0 ? `${count} 笔报销（${statusText.join(', ')}）` : `${count} 笔报销`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 笔报销',
@@ -1258,6 +1224,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `为 ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `已提交${memo ? `，备注为 ${memo}` : ''}`,
         automaticallySubmitted: `通过 <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a> 提交`,
+        queuedToSubmitViaDEW: '已排队等待通过自定义审批工作流提交',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `正在跟踪 ${formattedAmount}${comment ? `为 ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `拆分 ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `拆分 ${formattedAmount}${comment ? `为 ${comment}` : ''}`,
@@ -1281,7 +1248,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: '拒绝了此报表',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已发起付款，但正在等待 ${submitterDisplayName} 添加银行账户。`,
         adminCanceledRequest: '已取消付款',
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify Wallet`,
+        canceledRequest: (amount: string, submitterDisplayName: string) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify Wallet`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
         paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}标记为已支付`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}使用钱包支付`,
@@ -1558,7 +1525,6 @@ const translations: TranslationDeepObject<typeof en> = {
     nextStep: {
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1569,10 +1535,20 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员添加报销。`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `正在等待<strong>你</strong>提交报销。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `正在等待 <strong>${actor}</strong> 提交报销。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `正在等待管理员提交报销。`;
+                }
+            },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `无需进一步操作！`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1588,73 +1564,67 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在 ${eta}` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>您的</strong>报销单自动提交${formattedETA}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 的报销在${formattedETA}自动提交。`;
+                        return `正在等待<strong>${actor}</strong>的报销在${formattedETA}自动提交。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员的报销在${formattedETA}自动提交。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>解决这些问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 解决问题。`;
+                        return `正在等待<strong>${actor}</strong>解决问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员修复这些问题。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>批准报销。`;
+                        return `正在等待<strong>您</strong>批准报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 批准报销。`;
+                        return `正在等待<strong>${actor}</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员审批报销。`;
+                        return `正在等待管理员批准报销。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>您</strong>导出此报告。`;
+                        return `正在等待<strong>你</strong>导出此报告。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `正在等待 <strong>${actor}</strong> 导出此报告。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员导出此报告。`;
+                        return `正在等待管理员导出此报表。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>支付报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 支付报销费用。`;
+                        return `正在等待 <strong>${actor}</strong> 支付报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员报销费用。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>您</strong>完成设置企业银行账户。`;
+                        return `正在等待<strong>你</strong>完成企业银行账户的设置。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 完成企业银行账户的设置。`;
+                        return `正在等待<strong>${actor}</strong>完成企业银行账户的设置。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员完成企业银行账户的设置。`;
                 }
@@ -1662,10 +1632,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在 ${eta} 前` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在 ${eta} 之前` : ` ${eta}`;
                 }
                 return `正在等待付款完成${formattedETA}。`;
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
+                `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，<strong>禁止</strong>自行审批报销单。请将此报销单提交给其他人，或联系你的管理员更改你的提交对象。`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: '很快',
@@ -1778,7 +1751,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updateRequired: '需要更新',
         pleaseInstall: '请更新到最新版 New Expensify',
         pleaseInstallExpensifyClassic: '请安装最新版本的 Expensify',
-        toGetLatestChanges: '对于移动端或桌面端，请下载并安装最新版本。对于网页端，请刷新浏览器。',
+        toGetLatestChanges: '对于移动端，请下载并安装最新版本。对于网页端，请刷新浏览器。',
         newAppNotAvailable: '新版 Expensify 应用已不再提供。',
     },
     initialSettingsPage: {
@@ -1798,9 +1771,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             ios: {
                 label: 'iOS',
-            },
-            desktop: {
-                label: 'macOS',
             },
         },
         troubleshoot: {
@@ -1991,8 +1961,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: '出于安全原因，Xero 要求使用双重身份验证才能连接此集成。',
         twoFactorAuthIsRequiredForAdminsHeader: '需要双重身份验证',
         twoFactorAuthIsRequiredForAdminsTitle: '请启用双重身份验证',
-        twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要使用双重身份验证。要继续使用 Expensify，请启用该功能。',
-        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。要继续使用 Expensify，请启用此功能。',
+        twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要启用双重身份验证。',
+        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证 (2FA)，且无法将其禁用。',
     },
@@ -2271,7 +2241,23 @@ ${amount}，商户：${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',
-        header: '发送给该成员以供审批：',
+        title: '发送给该成员以供审批：',
+        description: '此人将审批费用。',
+    },
+    workflowsApprovalLimitPage: {
+        title: '审批人',
+        header: '（可选）是否添加审批限额？',
+        description: ({approverName}: {approverName: string}) =>
+            approverName ? `当<strong>${approverName}</strong>为审批人且报告超过以下金额时，添加另一位审批人：` : '当报告超过以下金额时，添加另一位审批人：',
+        reportAmountLabel: '报告金额',
+        additionalApproverLabel: '额外审批人',
+        skip: '跳过',
+        next: '下一步',
+        removeLimit: '移除限额',
+        enterAmountError: '请输入有效金额',
+        enterApproverError: '设置报告限额时需要审批人',
+        enterBothError: '请输入报告金额和额外审批人',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `超过${approvalLimit}的报告将转发给${approverName}`,
     },
     workflowsPayerPage: {
         title: '授权付款人',
@@ -2348,6 +2334,21 @@ ${amount}，商户：${merchant} - ${date}`,
         addFirstPaymentMethod: '在应用中添加支付方式，以便直接发送和接收付款。',
         defaultPaymentMethod: '默认',
         bankAccountLastFour: (lastFour: string) => `银行账户 • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: '报销规则',
+        subtitle: '这些规则将适用于你的报销。如果你提交到工作区，则该工作区的规则可能会覆盖这些规则。',
+        emptyRules: {title: '你还没有创建任何规则', subtitle: '添加一条规则以自动化报销报告。'},
+        changes: {
+            billable: (value: boolean) => `更新报销 ${value ? '可计费' : '不可计费'}`,
+            category: (value: string) => `将类别更新为“${value}”`,
+            comment: (value: string) => `将描述更改为 “${value}”`,
+            merchant: (value: string) => `将商户更新为“${value}”`,
+            reimbursable: (value: boolean) => `更新报销 ${value ? '可报销' : '不予报销'}`,
+            report: (value: string) => `添加一个名为“${value}”的报告`,
+            tag: (value: string) => `将标签更新为“${value}”`,
+            tax: (value: string) => `将税率更新为 ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -3815,9 +3816,9 @@ ${
             viewTransactions: '查看交易',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName} 的报销`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card 交易将通过<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>自动导出到使用其创建的“Expensify Card Liability Account”。</muted-text-label>`,
+            youCantDowngradeInvoicing: '发票结算的订阅无法降级方案。若要讨论或更改订阅，请联系您的客户经理或 Concierge 获取帮助。',
         },
         receiptPartners: {
-            connect: '立即连接',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) => (organizationName ? `已连接到 ${organizationName}` : '在整个组织内自动处理出行和餐饮配送报销。'),
                 sendInvites: '发送邀请',
@@ -3843,8 +3844,6 @@ ${
                 invitationFailure: '无法邀请成员加入 Uber for Business',
                 autoInvite: '邀请新的工作区成员加入 Uber for Business',
                 autoRemove: '在 Uber for Business 中停用已移除的工作区成员',
-                bannerTitle: 'Expensify + Uber 企业版',
-                bannerDescription: '连接 Uber for Business，在整个组织内自动化处理差旅和餐饮配送报销费用。',
                 emptyContent: {
                     title: '没有未处理的邀请',
                     subtitle: '万岁！我们到处都找过了，也没发现任何未处理的邀请。',
@@ -4749,7 +4748,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             customCloseDate: '自定义结束日期',
             letsDoubleCheck: '让我们再仔细检查一下，确保一切都正确。',
             confirmationDescription: '我们会立即开始导入交易。',
-            cardholder: '持卡人',
             card: '卡片',
             cardName: '卡片名称',
             brokenConnectionError: '<rbr>银行卡信息连接已中断。请<a href="#">登录您的银行账户</a>以便我们重新建立连接。</rbr>',
@@ -4760,6 +4758,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 'Expensify Limited 是 Plaid Financial Ltd. 的代理机构，Plaid Financial Ltd. 是一家在《2017 年支付服务条例》下受金融行为监管局（Financial Conduct Authority）监管并获授权的支付机构（公司参考编号：804718）。Plaid 通过其代理 Expensify Limited 向您提供受监管的账户信息服务。',
             assign: '分配',
             assignCardFailedError: '卡片分配失败。',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',
@@ -5161,7 +5160,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '你尚未创建任何标签',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: '添加标签以跟踪项目、地点、部门等。',
-                subtitleHTML: `<muted-text><centered-text>导入电子表格以添加标签，用于跟踪项目、地点、部门等。<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">了解详情</a>，以获取有关标记文件格式的更多信息。</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>添加标签以跟踪项目、地点、部门等。<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">了解更多</a>关于用于导入的标签文件格式。</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>您的标签当前正从会计连接中导入。请前往<a href="${accountingPageURL}">会计</a>页面进行任何更改。</centered-text></muted-text>`,
             },
@@ -5772,14 +5771,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 您是否要转移这笔金额（${amount}），以便接管此工作区的账单？您的支付卡将立即被扣款。`,
             subscriptionTitle: '接管年度订阅',
             subscriptionButtonText: '转移订阅',
-            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+            subscriptionText: (usersCount: number, finalCount: number) =>
                 `接管此工作区将把其年度订阅与您当前的订阅合并。这样会将您的订阅人数增加 ${usersCount} 名成员，使您的新订阅人数达到 ${finalCount}。您想要继续吗？`,
             duplicateSubscriptionTitle: '重复订阅警报',
             duplicateSubscriptionButtonText: '继续',
-            duplicateSubscriptionText: ({
-                email,
-                workspaceName,
-            }: ChangeOwnerDuplicateSubscriptionParams) => `看起来你正在尝试接管 ${email} 的工作区的账单，但要做到这一点，你需要先成为他们所有工作区的管理员。
+            duplicateSubscriptionText: (email: string, workspaceName: string) => `看起来你正在尝试接管 ${email} 的工作区的账单，但要做到这一点，你需要先成为他们所有工作区的管理员。
 
 如果你只想接管工作区 ${workspaceName} 的账单，请点击“继续”。
 
@@ -6272,11 +6268,8 @@ ${reportName}
             }
             return `在距离费率“${customUnitRateName}”中添加了可退税部分“${newValue}”`;
         },
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `将 ${customUnitName} 费率 "${customUnitRateName}" 的索引更改为 "${newValue}" ${oldValue ? `(之前为 "${oldValue}")` : ''}`;
-        },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `${newValue ? '已启用' : '已禁用'} ${customUnitName} 费率 "${customUnitRateName}"`;
+            return `${newValue ? '已启用' : '已禁用'} ${customUnitName} 费率“${customUnitRateName}”`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `已移除“${customUnitName}”费率“${rateName}”`,
         addedReportField: (fieldType: string, fieldName?: string) => `已添加 ${fieldType} 报告字段 “${fieldName}”`,
@@ -6441,6 +6434,7 @@ ${reportName}
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将自定义报表名称公式更改为“${newValue}”（之前为“${oldValue}”）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -6698,73 +6692,6 @@ ${reportName}
             message: 'Expensify 在没有存储访问权限的情况下无法保存附件。点击“设置”来更新权限。',
         },
     },
-    desktopApplicationMenu: {
-        mainMenu: '全新 Expensify',
-        about: '关于 New Expensify',
-        update: '更新 New Expensify',
-        checkForUpdates: '检查更新',
-        toggleDevTools: '切换开发者工具',
-        viewShortcuts: '查看键盘快捷键',
-        services: '服务',
-        hide: '隐藏 New Expensify',
-        hideOthers: '隐藏其他',
-        showAll: '显示全部',
-        quit: '退出 New Expensify',
-        fileMenu: '文件',
-        closeWindow: '关闭窗口',
-        editMenu: '编辑',
-        undo: '撤销',
-        redo: '重做',
-        cut: '剪切',
-        copy: '复制',
-        paste: '粘贴',
-        pasteAndMatchStyle: '粘贴并匹配样式',
-        pasteAsPlainText: '粘贴为纯文本',
-        delete: '删除',
-        selectAll: '全选',
-        speechSubmenu: '语音',
-        startSpeaking: '开始语音输入',
-        stopSpeaking: '停止说话',
-        viewMenu: '查看',
-        reload: '重新加载',
-        forceReload: '强制重新加载',
-        resetZoom: '实际大小',
-        zoomIn: '放大',
-        zoomOut: '缩小',
-        togglefullscreen: '切换全屏',
-        historyMenu: '历史记录',
-        back: '返回',
-        forward: '转发',
-        windowMenu: '窗口',
-        minimize: '最小化',
-        zoom: 'Zoom',
-        front: '全部置于最前端',
-        helpMenu: '帮助',
-        learnMore: '了解更多',
-        documentation: '文档',
-        communityDiscussions: '社区讨论',
-        searchIssues: '搜索问题',
-    },
-    historyMenu: {
-        forward: '转发',
-        back: '返回',
-    },
-    checkForUpdatesModal: {
-        available: {
-            title: '有可用更新',
-            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) => `新版本将很快可用。${!isSilentUpdating ? '我们准备好更新时会通知您。' : ''}`,
-            soundsGood: '听起来不错',
-        },
-        notAvailable: {
-            title: '更新不可用',
-            message: '现在没有可用的更新。请稍后再来查看！',
-            okay: '好的',
-        },
-        error: {
-            title: '更新检查失败',
-            message: '我们无法检查更新。请稍后再试。',
-        },
-    },
     settlement: {
         status: {
             pending: '待处理',
@@ -6807,13 +6734,13 @@ ${reportName}
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `将 ${fieldName} 更改为 “${newValue}”（之前为 “${oldValue}”）`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `将 ${fieldName} 设置为 “${newValue}”`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `更改了工作区${fromPolicyName ? `（先前为 ${fromPolicyName}）` : ''}`;
                     }
                     return `将工作区更改为 ${toPolicyName}${fromPolicyName ? `（先前为 ${fromPolicyName}）` : ''}`;
                 },
-                changeType: ({oldType, newType}: ChangeTypeParams) => `将类型从 ${oldType} 更改为 ${newType}`,
+                changeType: (oldType: string, newType: string) => `将类型从 ${oldType} 更改为 ${newType}`,
                 exportedToCSV: `已导出为 CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
@@ -7336,9 +7263,9 @@ ${reportName}
             title: '付款',
             subtitle: '添加一张银行卡来支付你的 Expensify 订阅费用。',
             addCardButton: '添加付款卡',
+            cardInfo: (name: string, expiration: string, currency: string) => `名称：${name}，到期日：${expiration}，货币：${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `您的下一个付款日期是 ${nextPaymentDate}。`,
             cardEnding: (cardNumber: string) => `以 ${cardNumber} 结尾的卡片`,
-            cardInfo: ({name, expiration, currency}: CardInfoParams) => `名称：${name}，到期日：${expiration}，货币：${currency}`,
             changeCard: '更改付款卡',
             changeCurrency: '更改付款货币',
             cardNotFound: '未添加付款卡',
@@ -7451,12 +7378,8 @@ ${reportName}
             whatsMainReason: '你取消自动续费的主要原因是什么？',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `将在 ${date} 续订。`,
             pricingConfiguration: '价格取决于配置。要获得最低价格，请选择年度订阅并申请 Expensify Card。',
-            learnMore: {
-                part1: '在我们的…上了解更多',
-                pricingPage: '定价页面',
-                part2: '或使用您的语言与我们的团队聊天',
-                adminsRoom: '#admins 房间',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>在我们的<a href="${CONST.PRICING}">定价页面</a>了解更多，或在您的 ${hasAdminsRoom ? `<a href="adminsRoom">#admins 聊天室。</a>` : '#admins 房间。'} 中与我们的团队聊天</muted-text>`,
             estimatedPrice: '预估价格',
             changesBasedOn: '这将根据你使用 Expensify Card 的情况以及下面的订阅选项而变化。',
         },
@@ -7791,7 +7714,20 @@ ${reportName}
             addAdminError: '无法将此成员添加为管理员。请重试。',
         },
     },
-    desktopAppRetiredPage: {title: '桌面应用程序已停用', body: '新的 Expensify Mac 桌面应用已停用。今后，请使用网页版应用访问您的账户。', goToWeb: '前往网页'},
+    gps: {
+        tooltip: 'GPS 跟踪进行中！完成后，请在下方停止跟踪。',
+        disclaimer: '使用 GPS 根据您的行程创建报销。点击下方的“开始”以开始跟踪。',
+        error: {failedToStart: '启动位置跟踪失败。', failedToGetPermissions: '获取必需的位置权限失败。'},
+        trackingDistance: '正在跟踪距离…',
+        stopped: '已停止',
+        start: '开始',
+        stop: '停止',
+        discard: '丢弃',
+        stopGpsTrackingModal: {title: '停止 GPS 追踪', prompt: '你确定吗？这将结束你当前的旅程。', cancel: '恢复追踪', confirm: '停止 GPS 追踪'},
+        discardDistanceTrackingModal: {title: '丢弃距离跟踪', prompt: '您确定吗？这将放弃您当前的流程，且无法撤销。', confirm: '丢弃距离跟踪'},
+        zeroDistanceTripModal: {title: '无法创建报销', prompt: '你不能创建起点和终点相同的报销。'},
+        desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
