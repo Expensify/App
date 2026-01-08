@@ -8715,12 +8715,12 @@ function getCleanUpTransactionThreadReportOnyxData({
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-                value: transactionThread,
+                value: transactionThread ?? null,
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
-                value: transactionThreadReportActions,
+                value: transactionThreadReportActions ?? null,
             },
         );
     }
