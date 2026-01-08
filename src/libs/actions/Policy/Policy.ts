@@ -91,7 +91,6 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {getSession} from '@libs/SessionUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
@@ -799,9 +798,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         ...value,
     } as OnyxEntry<Policy>;
 
-    const session = getSession();
-    const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    const currentUserEmail = session?.email ?? '';
+    const currentUserAccountID = deprecatedSessionAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const currentUserEmail = deprecatedSessionEmail ?? '';
 
     const nextStepOptimisticData: OnyxUpdate[] = [];
     const nextStepFailureData: OnyxUpdate[] = [];
