@@ -327,7 +327,6 @@ type DeleteWorkspaceActionParams = {
     policyID: string;
     personalPolicyID: string | undefined;
     activePolicyID: string | undefined;
-    personalPolicyID: string | undefined;
     policyName: string;
     lastAccessedWorkspacePolicyID: string | undefined;
     policyCardFeeds: CardFeeds | undefined;
@@ -350,7 +349,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     const {
         policyID,
         activePolicyID,
-        personalPolicyID,
         policyName,
         lastAccessedWorkspacePolicyID,
         policyCardFeeds,
