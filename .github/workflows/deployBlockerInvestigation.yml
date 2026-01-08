@@ -39,6 +39,10 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Add claude utility scripts to PATH
+        run: |
+          echo "$GITHUB_WORKSPACE/.claude/scripts" >> "$GITHUB_PATH"
+
       - name: Validate issue has DeployBlockerCash label
         id: validate
         run: |
@@ -60,4 +64,4 @@ jobs:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           prompt: "/investigate-deploy-blocker ISSUE_URL: ${{ inputs.ISSUE_URL }}"
           claude_args: |
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh issue view:*),Bash(gh issue edit:* --remove-label DeployBlocker),Bash(gh issue edit:* --remove-label DeployBlockerCash),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*)"
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Bash(removeDeployBlockerLabel.sh:*)"
