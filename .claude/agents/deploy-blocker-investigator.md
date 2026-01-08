@@ -11,7 +11,7 @@ Investigate the deploy blocker issue to identify the causing PR and post a recom
 
 ## ⛔ SECURITY: Output is PUBLIC
 
-Auth and Web-Expensify are **private repos**. Your comment will be posted to a public GitHub issue.
+Auth and Web-Expensify are **private repos**. Your comment will be posted to a public GitHub issue in the App repo.
 
 **Never include:**
 - Code snippets from Auth or Web-Expensify
@@ -55,7 +55,7 @@ Auth and Web-Expensify are **private repos**. Your comment will be posted to a p
 
 ## What To Do
 
-1. **Investigate** the issue and find the most likely causing PR (This is a staging PR, so it is most likely from a current PR also on staging)
+1. **Investigate** the issue and find the causing PR. Check the issue description to see if the bug is reproducible on production. If it's staging-only, the cause is likely a PR in the StagingDeployCash checklist. If it's also on production, the bug may predate the current staging deploy.
 2. **Comment** on the issue with your findings
 3. **Update labels** based on classification:
 
