@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -26,6 +26,8 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
 
     const domainAccountID = route.params.domainAccountID;
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
+    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
+    const domainSecurityGroupID = domainName ? myDomainSecurityGroups?.[domainName] : null;
 
     const domainSuffix = domainName ? `@${domainName}` : '';
 
@@ -55,7 +57,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
         }
     };
 
-    const handleSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+    const handleSelectionChange = (event: TextInputSelectionChangeEvent) => {
         const {start, end} = event.nativeEvent.selection;
 
         if (start > maxCursorPosition || end > maxCursorPosition) {
@@ -70,7 +72,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     };
 
     const inviteUser = () => {
-        addMemberToDomain(domainAccountID, email);
+        addMemberToDomain(domainAccountID, email, domainSecurityGroupID);
         Navigation.dismissModal();
     };
 

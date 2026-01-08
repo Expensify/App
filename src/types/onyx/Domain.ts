@@ -99,7 +99,7 @@ type DomainSecurityGroup = SecurityGroup & {
      * Key: The accountID of the member.
      * Value: The permission level (e.g. "read").
      */
-    shared: Record<string, string>;
+    shared: Record<string, string | null>;
 };
 
 export {type SamlMetadata, type DomainSecurityGroup};

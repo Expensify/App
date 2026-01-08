@@ -8,6 +8,7 @@ import {getAuthToken} from '@libs/Network/NetworkStore';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {DomainSecurityGroup} from '@src/types/onyx/Domain';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
@@ -649,8 +650,8 @@ function clearAddAdminError(domainAccountID: number, accountID: number) {
     });
 }
 
-function addMemberToDomain(domainAccountID: number, targetEmail: string) {
-    const DOMAIN_SECURITY_GROUP = `${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
+function addMemberToDomain(domainAccountID: number, targetEmail: string, defaultSecurityGroupID?: string) {
+    const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID ?? ''}`;
     const optimisticAccountID = generateAccountID(targetEmail);
 
     const optimisticData: OnyxUpdate[] = [
@@ -663,7 +664,7 @@ function addMemberToDomain(domainAccountID: number, targetEmail: string) {
                         [optimisticAccountID]: 'read',
                     },
                 },
-            },
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -738,7 +739,7 @@ function addMemberToDomain(domainAccountID: number, targetEmail: string) {
                         [optimisticAccountID]: null,
                     },
                 },
-            },
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         },
     ];
 
@@ -781,14 +782,16 @@ function addMemberToDomain(domainAccountID: number, targetEmail: string) {
                         [optimisticAccountID]: null,
                     },
                 },
-            },
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         },
     ];
 
     const authToken = getAuthToken();
     const params: AddMemberToDomainParams = {
         authToken,
-        targetEmail,
+        emailList: [targetEmail],
+        domainAccountID,
+        defaultSecurityGroupID,
     };
     API.write(WRITE_COMMANDS.ADD_DOMAIN_MEMBER, params, {optimisticData, successData, failureData});
 }

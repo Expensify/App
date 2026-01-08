@@ -1,6 +1,8 @@
 type AddMemberToDomainParams = {
     authToken?: string | null;
-    targetEmail: string;
+    emailList: string[];
+    domainAccountID: number;
+    defaultSecurityGroupID?: string;
 };
 
 export default AddMemberToDomainParams;

@@ -36,9 +36,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const renderHeaderButtons = (
         <Button
             success
-            onPress={() => {
-                Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID));
-            }}
+            onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
             text={translate('domain.members.addMember')}
             icon={icons.Plus}
             innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
@@ -48,7 +46,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const getCustomRowProps = (accountID: number) => ({
         errors: getLatestError(domainErrors?.memberErrors?.[accountID]?.errors),
-        pendingAction: domainPendingActions?.member?.[accountID]?.pendingAction,
+        pendingAction: domainPendingActions?.member?.[accountID]?.pendingAction ?? null,
     });
 
     return (
