@@ -9,13 +9,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -109,9 +109,9 @@ function NetSuiteImportMappingPage({
             title={titleKey}
             listFooterContent={listFooterContent}
             pendingAction={settingsPendingAction([importField], netsuiteConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, importField)}
+            errors={getLatestErrorField(netsuiteConfig ?? {}, importField)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
+            onClose={() => clearNetSuiteErrorField(policyID, importField)}
         />
     );
 }
