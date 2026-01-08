@@ -345,14 +345,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.SearchReportActionsModalStackNavigator}
                         />
                         <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
-                            getComponent={loadRHPReportScreen}
-                            options={(props) => {
-                                const options = modalStackScreenOptions(props);
-                                return {...options, animation: animationEnabledOnSearchReport ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
-                            }}
-                        />
-                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
                             component={ModalStackNavigators.RestrictedActionModalStackNavigator}
                         />
@@ -377,14 +369,28 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
+                            getComponent={loadRHPReportScreen}
+                            options={(props) => {
+                                const options = modalStackScreenOptions(props);
+                                return {...options, animation: animationEnabledOnSearchReport ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                            }}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.EXPENSE_REPORT}
                             getComponent={loadSearchMoneyRequestReportPage}
-                            options={modalStackScreenOptions}
+                            options={(props) => {
+                                const options = modalStackScreenOptions(props);
+                                return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                            }}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}
                             getComponent={loadSearchMoneyRequestReportPage}
-                            options={modalStackScreenOptions}
+                            options={(props) => {
+                                const options = modalStackScreenOptions(props);
+                                return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                            }}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.DOMAIN}
