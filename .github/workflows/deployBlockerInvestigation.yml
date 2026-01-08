@@ -1,0 +1,86 @@
+name: Investigate Deploy Blocker
+
+permissions:
+  contents: read
+  issues: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      ISSUE_NUMBER:
+        description: 'The issue number to investigate'
+        required: true
+        type: string
+
+concurrency:
+  group: deploy-blocker-investigation-${{ inputs.ISSUE_NUMBER }}
+  cancel-in-progress: true
+
+jobs:
+  investigate:
+    runs-on: ubuntu-latest
+    env:
+      ISSUE_NUMBER: ${{ inputs.ISSUE_NUMBER }}
+    steps:
+      # Checkout App first so we can use composite actions
+      - name: Checkout App repository
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          fetch-depth: 1
+          path: App
+
+      # Validate that the user has write access to the repository
+      # workflow_dispatch already requires write access, but this makes it explicit
+      # and ensures the token works for team membership checks
+      - name: Validate actor has write access
+        uses: ./App/.github/actions/composite/validateActor
+        with:
+          REQUIRE_APP_DEPLOYER: false
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Checkout Auth repository
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          repository: Expensify/Auth
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          fetch-depth: 1
+          path: Auth
+
+      - name: Checkout Web-Expensify repository
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          repository: Expensify/Web-Expensify
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          fetch-depth: 1
+          path: Web-Expensify
+
+      - name: Setup Node
+        uses: ./App/.github/actions/composite/setupNode
+
+      - name: Validate issue has DeployBlockerCash label
+        id: validate
+        run: |
+          LABELS=$(gh issue view ${{ inputs.ISSUE_NUMBER }} --json labels --jq '.labels[].name')
+          if echo "$LABELS" | grep -q "DeployBlockerCash"; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Issue #${{ inputs.ISSUE_NUMBER }} does not have DeployBlockerCash label"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run Claude to investigate deploy blocker
+        if: steps.validate.outputs.valid == 'true'
+        # v1.0.21
+        uses: anthropics/claude-code-action@a7e4c51380c42dd89b127f5e5f9be7b54020bc6b
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          prompt: "/investigate-deploy-blocker REPO: ${{ github.repository }} ISSUE_NUMBER: ${{ inputs.ISSUE_NUMBER }}"
+          claude_args: |
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Bash(git log:*),Bash(git blame:*)"
+          working_directory: ${{ github.workspace }}
