@@ -595,7 +595,7 @@ type OriginalMessagePolicyChangeLog = {
     featureName?: string;
 
     /** The new reimburser details */
-    reimburser: {
+    reimburser?: {
         /** The email of the new reimburser */
         email: string;
         /** The name of the new reimburser */
