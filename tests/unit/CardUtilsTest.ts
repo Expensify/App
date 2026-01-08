@@ -32,12 +32,15 @@ import {
     getSelectedFeed,
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
+    isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
+    isMaskedCardNumberEqual,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
+    splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
@@ -238,6 +241,13 @@ const combinedCardFeeds: CombinedCardFeeds = {
         customFeedName: 'Custom feed name',
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
     },
+    [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`]: {
+        liabilityType: 'personal',
+        pending: false,
+        domainID: 12345,
+        customFeedName: 'Custom feed name 2',
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+    },
     [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}#11111111`]: {
         pending: true,
         domainID: 11111111,
@@ -251,6 +261,15 @@ const combinedCardFeeds: CombinedCardFeeds = {
         expiration: 1730998958,
         pending: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+    },
+    [`${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#12345`]: {
+        liabilityType: 'personal',
+        domainID: 12345,
+        accountList: ['CREDIT CARD...6607', 'CREDIT CARD...5501'],
+        credentials: 'xxxxx',
+        expiration: 1730998958,
+        pending: false,
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
     },
     [`${CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE}#11111111`]: {
@@ -478,6 +497,63 @@ describe('CardUtils', () => {
         test.each(directFeedBanks)('Should return false for the direct feed %s', (directFeed) => {
             const isCustomFeed = isCustomFeedCardUtils(directFeed);
             expect(isCustomFeed).toBe(false);
+        });
+    });
+
+    describe('isCSVFeedOrExpensifyCard', () => {
+        it('Should return true for feed key starting with "csv" (lowercase)', () => {
+            expect(isCSVFeedOrExpensifyCard('csv123')).toBe(true);
+        });
+
+        it('Should return true for feed key starting with "CSV" (uppercase)', () => {
+            expect(isCSVFeedOrExpensifyCard('CSV123')).toBe(true);
+        });
+
+        it('Should return true for feed key starting with "Csv" (mixed case)', () => {
+            expect(isCSVFeedOrExpensifyCard('Csv123')).toBe(true);
+        });
+
+        it('Should return true for feed key starting with "ccupload" (lowercase)', () => {
+            expect(isCSVFeedOrExpensifyCard('ccupload123')).toBe(true);
+        });
+
+        it('Should return true for feed key starting with "CCUPLOAD" (uppercase)', () => {
+            expect(isCSVFeedOrExpensifyCard('CCUPLOAD123')).toBe(true);
+        });
+
+        it('Should return true for feed key starting with "Ccupload" (mixed case)', () => {
+            expect(isCSVFeedOrExpensifyCard('Ccupload123')).toBe(true);
+        });
+
+        it('Should return true for feed key containing "ccupload"', () => {
+            expect(isCSVFeedOrExpensifyCard('prefix-ccupload-suffix')).toBe(true);
+        });
+
+        it('Should return true for feed key containing CONST.COMPANY_CARD.FEED_BANK_NAME.CSV', () => {
+            expect(isCSVFeedOrExpensifyCard(`prefix-${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}-suffix`)).toBe(true);
+        });
+
+        it('Should return true for "Expensify Card" feed key', () => {
+            expect(isCSVFeedOrExpensifyCard('Expensify Card')).toBe(true);
+        });
+
+        it('Should return false for regular feed keys', () => {
+            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA)).toBe(false);
+            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)).toBe(false);
+            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX)).toBe(false);
+            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE)).toBe(false);
+        });
+
+        it('Should return false for feed keys that contain "csv" but do not start with it', () => {
+            expect(isCSVFeedOrExpensifyCard('vcf-csv-feed')).toBe(false);
+        });
+
+        it('Should return true for feed keys that contain "ccupload" anywhere (not just at start)', () => {
+            expect(isCSVFeedOrExpensifyCard('prefix-ccupload-suffix')).toBe(true);
+        });
+
+        it('Should return false for empty string', () => {
+            expect(isCSVFeedOrExpensifyCard('')).toBe(false);
         });
     });
 
@@ -1374,6 +1450,78 @@ describe('CardUtils', () => {
             const feedName = 'plaid.ins_129663#12345';
             const iconUrl = getPlaidInstitutionIconUrl(feedName);
             expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_129663.png`);
+        });
+    });
+
+    describe('splitMaskedCardNumber', () => {
+        it('should split a masked card number correctly', () => {
+            const result = splitMaskedCardNumber('1234XXXX5678');
+            expect(result.firstDigits).toBe('1234');
+            expect(result.lastDigits).toBe('5678');
+        });
+
+        it('should handle card numbers with custom mask character', () => {
+            const result = splitMaskedCardNumber('1234****5678', '*');
+            expect(result.firstDigits).toBe('1234');
+            expect(result.lastDigits).toBe('5678');
+        });
+
+        it('should handle undefined card number', () => {
+            const result = splitMaskedCardNumber(undefined);
+            expect(result.firstDigits).toBeUndefined();
+            expect(result.lastDigits).toBeUndefined();
+        });
+
+        it('should handle card number with only first digits', () => {
+            const result = splitMaskedCardNumber('1234XXXX');
+            expect(result.firstDigits).toBe('1234');
+            expect(result.lastDigits).toBe('');
+        });
+
+        it('should handle card number with only last digits', () => {
+            const result = splitMaskedCardNumber('XXXX5678');
+            expect(result.firstDigits).toBe('');
+            expect(result.lastDigits).toBe('5678');
+        });
+    });
+
+    describe('isMaskedCardNumberEqual', () => {
+        it('should return true for identical masked card numbers', () => {
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXX5678')).toBe(true);
+        });
+
+        it('should return true for card numbers with matching first and last digits', () => {
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXXXX5678')).toBe(true);
+        });
+
+        it('should return false for card numbers with different first digits', () => {
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '5678XXXX5678')).toBe(false);
+        });
+
+        it('should return false for card numbers with different last digits', () => {
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXX1234')).toBe(false);
+        });
+
+        it('should handle undefined card numbers', () => {
+            expect(isMaskedCardNumberEqual(undefined, '1234XXXX5678')).toBe(false);
+            expect(isMaskedCardNumberEqual('1234XXXX5678', undefined)).toBe(false);
+            expect(isMaskedCardNumberEqual(undefined, undefined)).toBe(false);
+        });
+
+        it('should handle custom mask character', () => {
+            expect(isMaskedCardNumberEqual('1234****5678', '1234****5678', '*')).toBe(true);
+        });
+
+        it('should return false when compareIfPatternDoesNotMatch is false and patterns differ', () => {
+            // '1234XXXX5678' has 4 first digits and 4 last digits
+            // '123XXXX5678' has 3 first digits and 4 last digits
+            // When compareIfPatternDoesNotMatch is false, it should return false because the patterns differ
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '123XXXX5678', CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR, false)).toBe(false);
+        });
+
+        it('should return true when compareIfPatternDoesNotMatch is false and patterns match', () => {
+            // Both have 4 first digits and 4 last digits, so patterns match
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXXXX5678', CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR, false)).toBe(true);
         });
     });
 });

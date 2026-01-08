@@ -7,12 +7,13 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
@@ -52,7 +53,9 @@ import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@li
 import {
     generateReportID,
     getDisplayNameForParticipant,
-    getIcons, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getIcons,
+    // Will be fixed in https://github.com/Expensify/App/issues/76852
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getWorkspaceChats,
     hasEmptyReportsForPolicy,
@@ -166,8 +169,26 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const [modalVisible, setModalVisible] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
+    const {showConfirmModal} = useConfirmModal();
+
+    const showRedirectToExpensifyClassicModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
+            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+            confirmText: translate('exitSurvey.goToExpensifyClassic'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        if (CONFIG.IS_HYBRID_APP) {
+            closeReactNativeApp({shouldSetNVP: true});
+            return;
+        }
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+    }, [showConfirmModal, translate]);
+
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -224,7 +245,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!defaultChatEnabledPolicyID) {
+            if (!defaultChatEnabledPolicy?.id) {
                 return;
             }
 
@@ -236,7 +257,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 currentUserPersonalDetails,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicyID,
+                defaultChatEnabledPolicy,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -249,7 +270,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled, isReportInSearch],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isReportInSearch],
     );
 
     const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
@@ -263,11 +284,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const quickActionAvatars = useMemo(() => {
         if (isValidReport) {
-            const avatars = getIcons(quickActionReport, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
+            const avatars = getIcons(quickActionReport, formatPhoneNumber, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
             return avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
         }
         if (!isEmptyObject(policyChatForActivePolicy)) {
-            return getIcons(policyChatForActivePolicy, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
+            return getIcons(policyChatForActivePolicy, formatPhoneNumber, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
         }
         return [];
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
@@ -319,14 +340,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const startScan = useCallback(() => {
         interceptAnonymousUser(() => {
             if (shouldRedirectToExpensifyClassic) {
-                setModalVisible(true);
+                showRedirectToExpensifyClassicModal();
                 return;
             }
 
             // Start the scan flow directly
             startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
         });
-    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID]);
+    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID, showRedirectToExpensifyClassicModal]);
 
     const startQuickScan = useCallback(() => {
         interceptAnonymousUser(() => {
@@ -417,7 +438,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 onSelected: () =>
                     interceptAnonymousUser(() => {
                         if (shouldRedirectToExpensifyClassic) {
-                            setModalVisible(true);
+                            showRedirectToExpensifyClassicModal();
                             return;
                         }
                         startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, allTransactionDrafts);
@@ -425,7 +446,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE,
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID, icons]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID, icons, showRedirectToExpensifyClassicModal]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -550,7 +571,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             openTravelDotLink(activePolicy?.id);
             return;
         }
-        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
     }, [activePolicy?.id, isTravelEnabled]);
 
     const menuItems = [
@@ -562,7 +583,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             onSelected: () => {
                 interceptAnonymousUser(() => {
                     if (shouldRedirectToExpensifyClassic) {
-                        setModalVisible(true);
+                        showRedirectToExpensifyClassicModal();
                         return;
                     }
                     // Start the flow to start tracking a distance request
@@ -580,7 +601,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       onSelected: () => {
                           interceptAnonymousUser(() => {
                               if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
+                                  showRedirectToExpensifyClassicModal();
                                   return;
                               }
 
@@ -625,7 +646,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       onSelected: () =>
                           interceptAnonymousUser(() => {
                               if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
+                                  showRedirectToExpensifyClassicModal();
                                   return;
                               }
 
@@ -635,15 +656,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                   },
               ]
             : []),
-        ...[
-            {
-                icon: icons.Suitcase,
-                text: translate('travel.bookTravel'),
-                rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined,
-                onSelected: () => interceptAnonymousUser(() => openTravel()),
-                sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL,
-            },
-        ],
+        ...(activePolicy?.isTravelEnabled
+            ? [
+                  {
+                      icon: icons.Suitcase,
+                      text: translate('travel.bookTravel'),
+                      rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined,
+                      onSelected: () => interceptAnonymousUser(() => openTravel()),
+                      sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL,
+                  },
+              ]
+            : []),
         ...(!hasSeenTour
             ? [
                   {
@@ -699,22 +722,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     };
                 })}
                 anchorRef={fabRef}
-            />
-            <ConfirmModal
-                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
-                isVisible={modalVisible}
-                onConfirm={() => {
-                    setModalVisible(false);
-                    if (CONFIG.IS_HYBRID_APP) {
-                        closeReactNativeApp({shouldSetNVP: true});
-                        return;
-                    }
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setModalVisible(false)}
-                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
-                confirmText={translate('exitSurvey.goToExpensifyClassic')}
-                cancelText={translate('common.cancel')}
             />
             {!shouldUseNarrowLayout && (
                 <FloatingReceiptButton

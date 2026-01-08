@@ -6,6 +6,7 @@ import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
@@ -23,7 +24,7 @@ import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType} from '@libs/PaymentUtils';
-import {getActiveAdminWorkspaces, getPersonalPolicy, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -112,14 +113,15 @@ function SettlementButton({
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
     const [lastPaymentMethods, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     const lastPaymentMethod = useMemo(() => {
         if (!iouReport?.type) {
             return;
         }
 
-        return getLastPolicyPaymentMethod(policyIDKey, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType, isIOUReport(iouReport));
-    }, [policyIDKey, iouReport, lastPaymentMethods]);
+        return getLastPolicyPaymentMethod(policyIDKey, personalPolicyID, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType, isIOUReport(iouReport));
+    }, [policyIDKey, iouReport, lastPaymentMethods, personalPolicyID]);
 
     const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -130,7 +132,7 @@ function SettlementButton({
     const activePolicy = usePolicy(activePolicyID);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const reportID = iouReport?.reportID;
-    const personalPolicy = usePolicy(getPersonalPolicy()?.id);
+    const personalPolicy = usePolicy(personalPolicyID);
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
@@ -154,6 +156,7 @@ function SettlementButton({
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const kycWallRef = useContext(KYCWallContext);
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
@@ -185,6 +188,11 @@ function SettlementButton({
     }
 
     const checkForNecessaryAction = useCallback(() => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return true;
+        }
+
         if (isAccountLocked) {
             showLockedAccountModal();
             return true;
@@ -201,7 +209,7 @@ function SettlementButton({
         }
 
         return false;
-    }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID, showLockedAccountModal]);
+    }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID, showLockedAccountModal, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
@@ -346,8 +354,8 @@ function SettlementButton({
                     }
 
                     return createWorkspace({
-                        introSelectedParam: introSelected,
-                        activePolicyIDParam: activePolicyID,
+                        introSelected,
+                        activePolicyID,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                         currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                     }).policyID;

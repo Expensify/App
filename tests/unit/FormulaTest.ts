@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
-import {compute, extract, hasCircularReferences, parse, requiresBackendComputation} from '@libs/Formula';
+import {compute, hasCircularReferences, parse} from '@libs/Formula';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
@@ -28,28 +28,6 @@ const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 const mockCurrencyUtils = CurrencyUtils as jest.Mocked<typeof CurrencyUtils>;
 
 describe('CustomFormula', () => {
-    describe('extract()', () => {
-        test('should extract formula parts with default braces', () => {
-            expect(extract('{report:type} - {report:total}')).toEqual(['{report:type}', '{report:total}']);
-        });
-
-        test('should handle nested braces', () => {
-            expect(extract('{report:{report:submit:from:firstName|substr:2}}')).toEqual(['{report:{report:submit:from:firstName|substr:2}}']);
-        });
-
-        test('should handle escaped braces', () => {
-            expect(extract('\\{not-formula} {report:type}')).toEqual(['{report:type}']);
-        });
-
-        test('should handle empty formula', () => {
-            expect(extract('')).toEqual([]);
-        });
-
-        test('should handle formula without braces', () => {
-            expect(extract('no braces here')).toEqual([]);
-        });
-    });
-
     describe('parse()', () => {
         test('should parse report formula parts', () => {
             const parts = parse('{report:type} {report:startdate}');
@@ -486,30 +464,17 @@ describe('CustomFormula', () => {
                 test('nosymbol - should format without currency symbol', () => {
                     const result = compute('{report:total:nosymbol}', currencyContext);
                     expect(result).toBe('100.00');
-
-                    // Should not require backend computation
-                    const parts = parse('{report:total:nosymbol}');
-                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
                 });
-
                 test('same currency - should format normally (case insensitive)', () => {
                     currencyContext.report.currency = 'EUR';
                     expect(compute('{report:total:EUR}', currencyContext)).toBe('€100.00');
                     expect(compute('{report:total:eur}', currencyContext)).toBe('€100.00');
-
-                    // Should not require backend computation when currencies match
-                    const parts = parse('{report:total:EUR}');
-                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
                 });
 
                 test('default (no format) - should use report currency', () => {
                     currencyContext.report.currency = 'NPR';
                     const result = compute('{report:total}', currencyContext);
                     expect(result).toBe('NPR\u00A0100.00');
-
-                    // Should not require backend computation
-                    const parts = parse('{report:total}');
-                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
                 });
             });
 
@@ -520,10 +485,6 @@ describe('CustomFormula', () => {
                     // Various currencies requiring conversion
                     expect(compute('{report:total:EUR}', currencyContext)).toBe('{report:total:EUR}');
                     expect(compute('{report:total:JPY}', currencyContext)).toBe('{report:total:JPY}');
-
-                    // Should require backend computation
-                    const parts = parse('{report:total:EUR}');
-                    expect(requiresBackendComputation(parts, currencyContext)).toBe(true);
                 });
 
                 test('case and whitespace handling - should normalize and detect conversion', () => {
@@ -533,18 +494,6 @@ describe('CustomFormula', () => {
                     expect(compute('{report:total:EuR}', currencyContext)).toBe('{report:total:EuR}');
                     expect(compute('{report:total: EUR }', currencyContext)).toBe('{report:total: EUR }');
                     expect(compute('{report:total:eur }', currencyContext)).toBe('{report:total:eur }');
-                });
-
-                test('in complex formulas - should detect conversion need', () => {
-                    currencyContext.report.currency = 'USD';
-
-                    // Multiple parts where one needs conversion
-                    const parts = parse('Report: {report:type} Total: {report:total:EUR}');
-                    expect(requiresBackendComputation(parts, currencyContext)).toBe(true);
-
-                    // Non-total fields don't need backend
-                    const simpleParts = parse('{report:type} {report:policyname}');
-                    expect(requiresBackendComputation(simpleParts, currencyContext)).toBe(false);
                 });
             });
 

@@ -12,9 +12,12 @@ type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovere
 
     /** The reportID related to the attachment */
     reportID?: string;
+
+    /** Callback function to call when the video is tap */
+    onTap?: (shouldShowArrows?: boolean) => void;
 };
 
-function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID}: AttachmentViewVideoProps) {
+function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID, onTap}: AttachmentViewVideoProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
@@ -26,8 +29,11 @@ function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoEle
             videoDuration={duration}
             style={[styles.w100, styles.h100, styles.pb5]}
             reportID={reportID}
+            onTap={onTap}
         />
     );
 }
+
+AttachmentViewVideo.displayName = 'AttachmentViewVideo';
 
 export default React.memo(AttachmentViewVideo);

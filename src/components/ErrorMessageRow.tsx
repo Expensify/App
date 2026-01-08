@@ -16,17 +16,14 @@ type ErrorMessageRowProps = {
     /** Additional style object for the error row text */
     errorRowTextStyles?: StyleProp<TextStyle>;
 
-    /** A function to run when the X button next to the error is clicked */
-    onClose?: () => void;
-
-    /** Whether we can dismiss the error message */
-    canDismissError?: boolean;
+    /** If passed, an X button next to the error will be shown and which triggers this callback */
+    onDismiss?: () => void;
 
     /** A function to dismiss error */
     dismissError?: () => void;
 };
 
-function ErrorMessageRow({errors, errorRowStyles, onClose, canDismissError = true, dismissError, errorRowTextStyles}: ErrorMessageRowProps) {
+function ErrorMessageRow({errors, errorRowStyles, onDismiss, dismissError, errorRowTextStyles}: ErrorMessageRowProps) {
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
     const errorEntries = Object.entries(errors ?? {});
     const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError | OnyxCommon.TranslationKeyError] => errorEntry[1] !== null);
@@ -37,10 +34,9 @@ function ErrorMessageRow({errors, errorRowStyles, onClose, canDismissError = tru
         <MessagesRow
             messages={errorMessages}
             type="error"
-            onClose={onClose}
+            onDismiss={onDismiss}
             containerStyles={errorRowStyles}
             errorTextStyles={errorRowTextStyles}
-            canDismiss={canDismissError}
             dismissError={dismissError}
         />
     ) : null;

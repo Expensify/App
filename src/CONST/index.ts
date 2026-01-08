@@ -211,6 +211,7 @@ const CONST = {
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
+    SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATED_PROGRESS_BAR_DELAY: 300,
     ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
@@ -447,7 +448,6 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
-        DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
         OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
         OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
     },
@@ -716,8 +716,6 @@ const CONST = {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
-        P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
-        SPOTNANA_TRAVEL: 'spotnanaTravel',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
@@ -725,13 +723,14 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        PLAID_COMPANY_CARDS: 'plaidCompanyCards',
+        TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
-        TIME_TRACKING: 'timeTracking',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        ZERO_EXPENSES: 'zeroExpenses',
+        NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
     },
     BUTTON_STATES: {
@@ -774,7 +773,6 @@ const CONST = {
         IOS: 'ios',
         ANDROID: 'android',
         WEB: 'web',
-        DESKTOP: 'desktop',
         MOBILE_WEB: 'mobileweb',
     },
     PLATFORM_SPECIFIC_KEYS: {
@@ -1099,8 +1097,6 @@ const CONST = {
 
     REQUEST_CODE_DELAY: 30,
 
-    DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME, SCREENS.SIGN_IN_WITH_APPLE_DESKTOP, SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP],
-
     SIGN_IN_METHOD: {
         APPLE: 'Apple',
         GOOGLE: 'Google',
@@ -1236,8 +1232,10 @@ const CONST = {
                 CREATED: 'CREATED',
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
+                DEW_SUBMIT_FAILED: 'DEWSUBMITFAILED',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
+                DYNAMIC_EXTERNAL_WORKFLOW_ROUTED: 'DYNAMICEXTERNALWORKFLOWROUTED',
                 EXPENSIFY_CARD_SYSTEM_MESSAGE: 'EXPENSIFYCARDSYSTEMMESSAGE',
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
@@ -1552,6 +1550,7 @@ const CONST = {
     NEXT_STEP: {
         MESSAGE_KEY: {
             WAITING_TO_ADD_TRANSACTIONS: 'waitingToAddTransactions',
+            WAITING_TO_SUBMIT: 'waitingToSubmit',
             NO_FURTHER_ACTION: 'noFurtherAction',
             WAITING_FOR_SUBMITTER_ACCOUNT: 'waitingForSubmitterAccount',
             WAITING_FOR_AUTOMATIC_SUBMIT: 'waitingForAutomaticSubmit',
@@ -1561,11 +1560,13 @@ const CONST = {
             WAITING_FOR_POLICY_BANK_ACCOUNT: 'waitingForPolicyBankAccount',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_TO_EXPORT: 'waitingToExport',
+            SUBMITTING_TO_SELF: 'submittingToSelf',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
+            DOT_INDICATOR: 'dotIndicator',
         },
         ETA_KEY: {
             SHORTLY: 'shortly',
@@ -1656,8 +1657,6 @@ const CONST = {
         APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
         APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
-        COMPUTE_REPORT_NAME: 'compute_report_name',
-        COMPUTE_REPORT_NAME_FOR_NEW_REPORT: 'compute_report_name_for_new_report',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -1851,7 +1850,6 @@ const CONST = {
         UPDATE_REQUIRED: 'Upgrade Required',
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
 
-        DESKTOP_APP_RETIRED: 'Desktop app retired',
         BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
     },
     ERROR_TYPE: {
@@ -2155,7 +2153,6 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    DESKTOP_HEADER_PADDING: 12,
     SEARCH_ITEM_LIMIT: 15,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
@@ -2430,7 +2427,7 @@ const CONST = {
         AUTO_CREATE_ENTITIES: 'autoCreateEntities',
         APPROVAL_ACCOUNT: 'approvalAccount',
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
-        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5'],
+        TOKEN_INPUT_STEP_NAMES: ['1', '2', '3', '4', '5'],
         TOKEN_INPUT_STEP_KEYS: {
             0: 'installBundle',
             1: 'enableTokenAuthentication',
@@ -2747,10 +2744,10 @@ const CONST = {
             KBA_NEEDED: 'KBA needed',
             NO_ACCOUNT_TO_LINK: '405 No account to link to wallet',
             INVALID_WALLET: '405 Invalid wallet account',
-            NOT_OWNER_OF_BANK_ACCOUNT: '401 Wallet owner does not own linked bank account',
-            INVALID_BANK_ACCOUNT: '405 Attempting to link an invalid bank account to a wallet',
-            NOT_OWNER_OF_FUND: '401 Wallet owner does not own linked fund',
-            INVALID_FUND: '405 Attempting to link an invalid fund to a wallet',
+            NOT_OWNER_OF_BANK_ACCOUNT: '401 User does not own bank account',
+            INVALID_BANK_ACCOUNT: '405 Bank account is not eligible for wallet transfers',
+            NOT_OWNER_OF_FUND: '401 User does not own fund',
+            INVALID_FUND: '405 Fund is not eligible for wallet transfers',
         },
         STEP: {
             // In the order they appear in the Wallet flow
@@ -2937,11 +2934,6 @@ const CONST = {
             DELETE: 'delete',
             APPROVE: 'approve',
             TRACK: 'track',
-        },
-        SPLIT_TYPE: {
-            AMOUNT: 'amount',
-            PERCENTAGE: 'percentage',
-            DATE: 'date',
         },
         AMOUNT_MAX_LENGTH: 8,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
@@ -3139,6 +3131,7 @@ const CONST = {
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
+            IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
         },
         DEFAULT_CATEGORIES: {
@@ -3440,6 +3433,7 @@ const CONST = {
             CSV: 'ccupload',
         },
         FEED_KEY_SEPARATOR: '#',
+        CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',
@@ -3576,6 +3570,9 @@ const CONST = {
         },
         CARD_NAME: {
             CASH: '__CASH__',
+        },
+        BANK_NAME: {
+            UPLOAD: 'upload',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
@@ -3784,6 +3781,9 @@ const CONST = {
 
         ONLY_PRIVATE_USER_AREA: /^[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]+$/u,
 
+        // Regex pattern to match a digit followed by an emoji (used for Safari ZWNJ insertion)
+        DIGIT_FOLLOWED_BY_EMOJI: /(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu,
+
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
         ANY_SPACE: /\s/g,
@@ -3976,6 +3976,10 @@ const CONST = {
         ADD: 'add',
         DELETE: 'delete',
         UPDATE: 'update',
+    },
+    EXPENSE_PENDING_ACTION: {
+        SUBMIT: 'SUBMIT',
+        APPROVE: 'APPROVE',
     },
     BRICK_ROAD_INDICATOR_STATUS: {
         ERROR: 'error',
@@ -5476,6 +5480,11 @@ const CONST = {
         IOU_REQUEST_TYPE: 'iouRequestType',
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
+        SPLIT: {
+            AMOUNT: 'amount',
+            PERCENTAGE: 'percentage',
+            DATE: 'date',
+        },
         SHARE: {
             NAVIGATOR_ID: 'ShareNavigatorID',
             SHARE: 'ShareTab',
@@ -5755,7 +5764,6 @@ const CONST = {
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
-        MISSING_ATTENDEES: 'missingAttendees',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
     },
     RTER_VIOLATION_TYPES: {
@@ -6691,6 +6699,7 @@ const CONST = {
             PAY: 'pay',
             SUBMIT: 'submit',
             HOLD: 'hold',
+            MERGE: 'merge',
             UNHOLD: 'unhold',
             DELETE: 'delete',
             REJECT: 'reject',
@@ -6702,6 +6711,7 @@ const CONST = {
             CARD: 'card',
             DISTANCE: 'distance',
             PER_DIEM: 'perDiem',
+            TIME: 'time',
         },
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
@@ -6726,7 +6736,7 @@ const CONST = {
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
         },
-        get CUSTOM_COLUMNS() {
+        get TYPE_CUSTOM_COLUMNS() {
             return {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
@@ -6781,7 +6791,29 @@ const CONST = {
                 CHAT: {},
             };
         },
-        get DEFAULT_COLUMNS() {
+        get GROUP_CUSTOM_COLUMNS() {
+            return {
+                FROM: {
+                    FROM: this.TABLE_COLUMNS.GROUP_FROM,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                CARD: {
+                    CARD: this.TABLE_COLUMNS.GROUP_CARD,
+                    FEED: this.TABLE_COLUMNS.GROUP_FEED,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                WITHDRAWAL_ID: {
+                    BANK_ACCOUNT: this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+                    WITHDRAWN: this.TABLE_COLUMNS.GROUP_WITHDRAWN,
+                    WITHDRAWAL_ID: this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+            };
+        },
+        get TYPE_DEFAULT_COLUMNS() {
             return {
                 EXPENSE: [
                     this.TABLE_COLUMNS.RECEIPT,
@@ -6807,6 +6839,19 @@ const CONST = {
                 TASK: [],
                 TRIP: [],
                 CHAT: [],
+            };
+        },
+        get GROUP_DEFAULT_COLUMNS() {
+            return {
+                FROM: [this.TABLE_COLUMNS.GROUP_FROM, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                CARD: [this.TABLE_COLUMNS.GROUP_CARD, this.TABLE_COLUMNS.GROUP_FEED, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WITHDRAWAL_ID: [
+                    this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+                    this.TABLE_COLUMNS.GROUP_WITHDRAWN,
+                    this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+                    this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    this.TABLE_COLUMNS.GROUP_TOTAL,
+                ],
             };
         },
         BOOLEAN: {
@@ -6852,6 +6897,7 @@ const CONST = {
                 COMPLETED: 'completed',
             },
         },
+        GROUP_COLUMN_PREFIX: 'group',
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -6894,6 +6940,14 @@ const CONST = {
             EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
             NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',
+            GROUP_FROM: 'groupFrom',
+            GROUP_EXPENSES: 'groupExpenses',
+            GROUP_TOTAL: 'groupTotal',
+            GROUP_CARD: 'groupCard',
+            GROUP_FEED: 'groupFeed',
+            GROUP_BANK_ACCOUNT: 'groupBankAccount',
+            GROUP_WITHDRAWN: 'groupWithdrawn',
+            GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7561,6 +7615,11 @@ const CONST = {
 
     TRAVEL: {
         DEFAULT_DOMAIN: 'domain',
+        STEPS: {
+            GET_STARTED_TRAVEL: 'GetStartedTravel',
+            BOOK_OR_MANAGE_YOUR_TRIP: 'BookOrManageYourTrip',
+            REVIEWING_REQUEST: 'ReviewingRequest',
+        },
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',

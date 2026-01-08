@@ -97,6 +97,8 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
     );
 }
 
+ImageCropView.displayName = 'ImageCropView';
+
 // React.memo is needed here to prevent styles recompilation
 // which sometimes may cause glitches during rerender of the modal
 export default React.memo(ImageCropView);
