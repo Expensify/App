@@ -13518,6 +13518,8 @@ function initSplitExpenseItemData(
         statusNum: currentReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         reimbursable: transactionDetails?.reimbursable,
+        customUnit: transaction?.comment?.customUnit ?? undefined,
+        waypoints: transaction?.comment?.waypoints ?? undefined,
     };
 }
 
@@ -13610,6 +13612,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
     const editDraftTransaction = buildOptimisticTransaction({
         existingTransactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
         originalTransactionID,
+        existingTransaction: originalTransaction,
         transactionParams: {
             amount: Number(splitTransactionData?.amount),
             currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
@@ -13621,6 +13624,9 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
             reportID,
             created: splitTransactionData?.created ?? '',
             category: splitTransactionData?.category ?? '',
+            distance: splitTransactionData?.customUnit?.quantity ?? undefined,
+            customUnitRateID: splitTransactionData?.customUnit?.customUnitRateID,
+            waypoints: splitTransactionData?.waypoints ?? undefined,
         },
     });
 

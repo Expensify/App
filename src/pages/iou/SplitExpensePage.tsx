@@ -48,7 +48,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getChildTransactions, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -107,6 +107,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
+    const isDistance = isDistanceRequest(transaction);
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
@@ -175,7 +176,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
         }
-        if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard)) {
+        if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard) && !isDistance) {
             const difference = transactionDetailsAmount - sumOfSplitExpenses;
             setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
@@ -224,6 +225,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionDetailsAmount,
         isPerDiem,
         isCard,
+        isDistance,
         splitFieldDataFromChildTransactions,
         allTransactions,
         allReports,
@@ -234,14 +236,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         policyRecentlyUsedCategories,
         iouReport,
         iouActions,
+        isBetaEnabled,
         currentUserPersonalDetails,
+        transactionViolations,
+        policyRecentlyUsedCurrencies,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
         transactionDetails?.currency,
-        isBetaEnabled,
-        transactionViolations,
-        policyRecentlyUsedCurrencies,
     ]);
 
     const onSplitExpenseValueChange = useCallback(
@@ -366,17 +368,23 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     ]);
 
     const footerContent = useMemo(() => {
-        const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
-        const warningMessage = shouldShowWarningMessage
-            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
-            : '';
+        const shouldShowLessThanOriginalWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
+        const shouldShouwGreaterThanOriginalErrorMessage = sumOfSplitExpenses > transactionDetailsAmount;
+        let warningMessage = '';
+        if (shouldShouwGreaterThanOriginalErrorMessage && isDistance) {
+            const difference = sumOfSplitExpenses - transactionDetailsAmount;
+            warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
+        } else if (shouldShowLessThanOriginalWarningMessage) {
+            const difference = transactionDetailsAmount - sumOfSplitExpenses;
+            warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
+        }
         return (
             <View style={[styles.ph5, styles.pb5]}>
                 {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError={!!errorMessage}
-                        isInfo={!errorMessage && shouldShowWarningMessage}
+                        isInfo={!errorMessage && (shouldShowLessThanOriginalWarningMessage || shouldShouwGreaterThanOriginalErrorMessage)}
                         message={errorMessage || warningMessage}
                     />
                 )}
