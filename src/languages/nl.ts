@@ -6938,9 +6938,9 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 removedConnection: ({connectionName}: ConnectionNameParams) => `verbinding met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} verwijderd`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'heeft de chat verlaten',
-                companyCardConnectionBroken: ({feedName, policyID, workspaceCompanyCardRoute}: {feedName: string; policyID: string; workspaceCompanyCardRoute?: string}) => {
-                    const url = workspaceCompanyCardRoute ?? `https://new.expensify.com/workspaces/${policyID}/company-cards`;
-                    return `De ${feedName}-verbinding is verbroken. Om kaartimporten te herstellen, <a href='${url}'>log in bij uw bank</a>`;
+                companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) => {
+                    return `De ${feedName}-verbinding is verbroken. Om kaartimporten te herstellen, <a href='${workspaceCompanyCardRoute}'>log in bij uw bank</a>`;
+                },
                 },
             },
             error: {
