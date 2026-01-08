@@ -148,10 +148,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         if (hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
-        if (hasPartiallySetupBankAccount(bankAccountList)) {
-            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-        }
-        if (hasPendingCardAction) {
+        if (hasPartiallySetupBankAccount(bankAccountList) || hasPendingCardAction) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
         return undefined;
