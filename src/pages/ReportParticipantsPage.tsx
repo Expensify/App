@@ -251,8 +251,8 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         });
     }, [selectedMembers, currentUserAccountID, report.reportID, setSelectedMembers]);
 
-    const showRemoveMembersModal = useCallback(() => {
-        showConfirmModal({
+    const showRemoveMembersModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
             title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
             prompt: translate('workspace.people.removeMembersPrompt', {
                 count: selectedMembers.length,
@@ -261,20 +261,20 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
             danger: true,
-        }).then(({action}) => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                if (!textInputRef.current) {
-                    return;
-                }
-                textInputRef.current.focus();
-            });
+        });
 
-            if (action !== ModalActions.CONFIRM) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            if (!textInputRef.current) {
                 return;
             }
-            removeUsers();
+            textInputRef.current.focus();
         });
+
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        removeUsers();
     }, [showConfirmModal, translate, selectedMembers, formatPhoneNumber, currentUserAccountID, removeUsers]);
 
     const changeUserRole = useCallback(
