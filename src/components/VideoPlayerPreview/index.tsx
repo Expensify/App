@@ -66,10 +66,10 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
 
     useEffect(() => {
         const platform = getPlatform();
-        // On web and desktop platforms, we can use the DOM video element to get accurate video dimensions
+        // On web platform, we can use the DOM video element to get accurate video dimensions
         // by loading the video metadata. On mobile platforms, we rely on the provided videoDimensions
         // since document.createElement is not available in React Native environments.
-        if (videoUrl && (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP)) {
+        if (videoUrl && platform === CONST.PLATFORM.WEB) {
             const video = document.createElement('video');
             video.onloadedmetadata = () => {
                 if (video.videoWidth === measuredDimensions.width && video.videoHeight === measuredDimensions.height) {

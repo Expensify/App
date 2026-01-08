@@ -2396,14 +2396,22 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
         approverIndex: number;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE]: {
+        policyID: string;
+        approverIndex: number;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT]: {
+        policyID: string;
+        approverIndex: number;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: {
+        policyID: string;
+        approverIndex: number;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
@@ -2609,8 +2617,6 @@ type PublicScreensParamList = SharedScreensParamList & {
         accountID?: string;
         validateCode?: string;
     };
-    [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
-    [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
     [SCREENS.SAML_SIGN_IN]: undefined;
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
@@ -2717,7 +2723,6 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
         [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
-        [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
         [SCREENS.CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
         [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
