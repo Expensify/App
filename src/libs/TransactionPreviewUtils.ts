@@ -33,7 +33,6 @@ import {
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
-    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -43,6 +42,7 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
+    isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 
@@ -258,12 +258,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (hasFieldErrors && RBRMessage === undefined) {
         const merchantMissing = isMerchantMissing(transaction);
-        const amountMissing = isAmountMissing(transaction);
-        if (amountMissing && merchantMissing) {
-            RBRMessage = {translationPath: 'violations.reviewRequired'};
-        } else if (amountMissing) {
-            RBRMessage = {translationPath: 'iou.missingAmount'};
-        } else if (merchantMissing) {
+        if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
@@ -292,6 +287,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     } else if (isPerDiemRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.perDiem'}];
+    } else if (isTimeRequest(transaction)) {
+        previewHeaderText = [{translationPath: 'iou.time'}];
     } else if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
