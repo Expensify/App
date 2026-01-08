@@ -84,6 +84,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
                 onCtaPress={handleCtaPress}
                 illustrationBackgroundColor={colors.blue700}
                 illustration={illustrations.CompanyCardsEmptyState}
+                illustrationAccessibilityLabel={translate('workspace.moreFeatures.companyCards.feed.cardIllustration')}
                 illustrationStyle={styles.emptyStateCardIllustration}
                 illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
                 titleStyles={styles.textHeadlineH1}
