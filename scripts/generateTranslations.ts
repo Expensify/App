@@ -17,6 +17,7 @@ import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
 import CLI from './utils/CLI';
+import COLORS from './utils/COLORS';
 import Git from './utils/Git';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
@@ -1218,6 +1219,30 @@ async function main(): Promise<void> {
             }
         }
         translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
+    }
+
+    // Check if we're running in full translation mode (no dry-run, no compare-ref, no paths)
+    const isFullTranslationMode = !cli.flags['dry-run'] && !cli.namedArgs['compare-ref'] && (!cli.namedArgs.paths || cli.namedArgs.paths.size === 0);
+
+    if (isFullTranslationMode) {
+        console.warn(
+            `${COLORS.YELLOW}${dedent(`
+                ⚠️  Warning: you are running this script without the \`--dry-run\`, \`--compare-ref\`, or \`--paths\` param.
+                   This will retranslate all strings in \`src/languages/en.ts\`.
+                   In order to retranslate only the strings you changed on your branch, use \`--compare-ref main\` instead.
+            `)}${COLORS.RESET}`,
+        );
+
+        const userConfirmed = await CLI.promptUserConfirmation(
+            `Do you want to proceed with a full translation? ${COLORS.BOLD}Choosing yes will cost more than $10 USD.${COLORS.RESET} (y/n) `,
+        );
+
+        if (!userConfirmed) {
+            console.log('\n❌ Translation cancelled by user.');
+            process.exit(0);
+        }
+
+        console.log('\n✅ Proceeding with full translation...\n');
     }
 
     const generator = new TranslationGenerator({

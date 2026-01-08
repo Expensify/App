@@ -2,6 +2,7 @@
  * This file contains a CLI utility class which can be used to declaratively implement a strongly-typed CLI.
  * You provide a CLIConfig defining your arguments, then the class will handle parsing argv, type validation, error handling, and help messages.
  */
+import * as readline from 'readline';
 import type {NonEmptyObject, NonEmptyTuple, ValueOf, Writable} from 'type-fest';
 import SafeString from '@src/utils/SafeString';
 
@@ -325,6 +326,24 @@ class CLI<TConfig extends CLIConfig> {
         } else {
             return rawString as InferStringArgParsedValue<T>;
         }
+    }
+
+    /**
+     * Prompts the user for confirmation and returns true if they confirm (y/yes), false otherwise.
+     */
+    static async promptUserConfirmation(message: string): Promise<boolean> {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+
+        return new Promise((resolve) => {
+            rl.question(message, (answer) => {
+                rl.close();
+                const normalizedAnswer = answer.trim().toLowerCase();
+                resolve(normalizedAnswer === 'y' || normalizedAnswer === 'yes');
+            });
+        });
     }
 }
 
