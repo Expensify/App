@@ -3,6 +3,7 @@
  * This should be updated when the original implementation updates
  * Taken from: https://github.com/software-mansion/react-native-reanimated/blob/main/packages/react-native-reanimated/src/component/FlatList.tsx
  */
+// eslint-disable-next-line no-restricted-imports
 import React, {forwardRef, useRef} from 'react';
 import type {FlatListProps, CellRendererProps as RNCellRendererProps} from 'react-native';
 import {FlatList} from 'react-native';

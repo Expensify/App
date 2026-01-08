@@ -32,7 +32,7 @@ type WideRHPContextType = {
     removeSuperWideRHPRouteKey: (route: NavigationRoute) => void;
 
     // Mark reportID as expense before condition check
-    markReportIDAsExpense: (reportID: string) => void;
+    markReportIDAsExpense: (reportID?: string) => void;
 
     // Mark reportID as multi-transaction expense before condition check
     markReportIDAsMultiTransactionExpense: (reportID: string) => void;

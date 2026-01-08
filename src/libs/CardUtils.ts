@@ -397,6 +397,21 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
+/**
+ * Checks if a feed key represents a CSV feed or Expensify Card.
+ * CSV feeds include feeds starting with "csv" or "ccupload", or containing "ccupload".
+ * Expensify Cards also don't count toward feed limits.
+ *
+ * @param feedKey - The feed key to check
+ * @returns true if the feed is a CSV feed or Expensify Card, false otherwise
+ */
+function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
+    const lowerFeedKey = feedKey.toLowerCase();
+    // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
+    // Also exclude Expensify Cards which don't count toward the limit
+    return lowerFeedKey.startsWith('csv') || lowerFeedKey.startsWith('ccupload') || feedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === 'Expensify Card';
+}
+
 function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
@@ -532,39 +547,6 @@ function getPlaidCountry(outputCurrency?: string, currencyList?: CurrencyList, c
     return country ?? '';
 }
 
-// We will simplify the logic below once we have #50450 #50451 implemented
-const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
-    const banksWithFeedType = [
-        CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
-        CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE,
-        CONST.COMPANY_CARDS.BANKS.CHASE,
-        CONST.COMPANY_CARDS.BANKS.CITI_BANK,
-        CONST.COMPANY_CARDS.BANKS.WELLS_FARGO,
-    ];
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
-        return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
-    }
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.AMEX) {
-        return CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED;
-    }
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.BREX) {
-        return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
-    }
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER) {
-        return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
-    }
-
-    if (banksWithFeedType.includes(selectedBank)) {
-        return CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE;
-    }
-
-    return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
-};
-
 function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) {
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
         return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
@@ -578,11 +560,11 @@ function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.C
 }
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID>, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithDomainID | undefined {
-    const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeedWithDomainID | undefined;
-    if (!lastSelectedFeed?.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR)) {
-        return defaultFeed;
-    }
-    return lastSelectedFeed;
+    const availableFeeds = getCompanyFeeds(cardFeeds, true);
+    const defaultFeed = Object.keys(availableFeeds).at(0) as CompanyCardFeedWithDomainID | undefined;
+    const isValidLastFeed = !!lastSelectedFeed && lastSelectedFeed.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR) && availableFeeds[lastSelectedFeed];
+
+    return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
 function getCompanyCardFeedWithDomainID(feedName: CompanyCardFeed, domainID: number | string): CompanyCardFeedWithDomainID {
@@ -835,6 +817,23 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
     return feed as CompanyCardFeed;
 }
 
+/**
+ * Check if the given card is a personal card.
+ *
+ * @param card the card which needs to be checked
+ * @returns true if the card is a personal card, false otherwise
+ */
+function isPersonalCard(card?: Card) {
+    return !!card?.fundID && card.fundID !== '0';
+}
+
+/**
+ * Filter out personal (including cash) cards from the card list.
+ */
+function filterPersonalCards(cards: CardList | undefined): CardList {
+    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
+}
+
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;
@@ -938,9 +937,9 @@ export {
     isSelectedFeedExpired,
     getCompanyFeeds,
     isCustomFeed,
+    isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
     getSelectedFeed,
-    getCorrectStepForSelectedBank,
     getPlaidCountry,
     getCustomOrFormattedFeedName,
     isCardClosed,
@@ -979,6 +978,8 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    filterPersonalCards,
+    isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     isMaskedCardNumberEqual,

@@ -20,7 +20,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getFilteredReportActionsForReportView,
+    getIOUActionForTransactionID,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportAction,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
@@ -140,6 +147,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
+        // Because when switching between reports, reportActions may contain data from the previous report.
+        // So we need to check that reportActions belongs to the current report.
+        const isFirstActionBelongsToCurrentReport = !!getReportAction(reportIDFromRoute, reportActions.at(0)?.reportActionID);
+        if (report?.reportID && reportActions.length === 1 && !isFirstActionBelongsToCurrentReport) {
+            return;
+        }
+
         // Use main collection transaction or fallback to snapshot
         const transaction = Object.values(allReportTransactions).at(0) ?? snapshotTransaction;
         if (!transaction || (transaction && transaction.reportID !== reportIDFromRoute)) {
@@ -206,7 +220,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         testID="SearchMoneyRequestReportPage"
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
-                        headerGapStyles={styles.searchHeaderGap}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
@@ -240,7 +253,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     testID="SearchMoneyRequestReportPage"
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
-                    headerGapStyles={[styles.searchHeaderGap, styles.h0]}
                 >
                     <View style={[styles.searchSplitContainer, styles.flexColumn, styles.flex1]}>
                         <FullPageNotFoundView
