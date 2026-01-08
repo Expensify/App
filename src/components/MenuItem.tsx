@@ -397,6 +397,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
+
+        /** The accessibility role to use for this menu item */
+        role?: string;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -526,6 +529,7 @@ function MenuItem({
     ref,
     isFocused,
     sentryLabel,
+    role = CONST.ROLE.MENUITEM,
 }: MenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
     const theme = useTheme();
@@ -723,7 +727,7 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={CONST.ROLE.MENUITEM}
+                                role={role}
                                 accessibilityLabel={title ? title.toString() : ''}
                                 accessibilityState={{selected: isSelected}}
                                 accessible
