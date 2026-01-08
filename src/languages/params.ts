@@ -9,10 +9,6 @@ type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
 
-type LoggedInAsParams = {
-    email: string;
-};
-
 type SignUpNewFaceCodeParams = {
     login: string;
 };
@@ -303,8 +299,6 @@ type UpdatedPolicyCustomUnitRateParams = {customUnitName: string; customUnitRate
 type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: string; newValue: string; newTaxPercentage: string; oldValue?: string; oldTaxPercentage?: string};
 
 type UpdatedPolicyCustomUnitTaxClaimablePercentageParams = {customUnitRateName: string; newValue: number; oldValue?: number};
-
-type UpdatedPolicyCustomUnitRateIndexParams = {customUnitName: string; customUnitRateName: string; oldValue?: number; newValue: number};
 
 type UpdatedPolicyCustomUnitRateEnabledParams = {customUnitName: string; customUnitRateName: string; oldValue: boolean; newValue: boolean};
 
@@ -821,7 +815,6 @@ export type {
     IssueVirtualCardParams,
     LocalTimeParams,
     LogSizeParams,
-    LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MovedFromPersonalSpaceParams,
@@ -1000,6 +993,5 @@ export type {
     ReportFieldParams,
     FocusModeUpdateParams,
     RoutedDueToDEWParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
 };
