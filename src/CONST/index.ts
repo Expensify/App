@@ -5925,31 +5925,31 @@ const CONST = {
     /* If we update these values, let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge. */
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
         "AED": {
-            "rate": 414,
+            "rate": 425,
             "unit": "km"
         },
         "AFN": {
-            "rate": 8851,
+            "rate": 7725,
             "unit": "km"
         },
         "ALL": {
-            "rate": 10783,
+            "rate": 9495,
             "unit": "km"
         },
         "AMD": {
-            "rate": 45116,
+            "rate": 44197,
             "unit": "km"
         },
         "ANG": {
-            "rate": 203,
+            "rate": 208,
             "unit": "km"
         },
         "AOA": {
-            "rate": 102929,
+            "rate": 106025,
             "unit": "km"
         },
         "ARS": {
-            "rate": 118428,
+            "rate": 169993,
             "unit": "km"
         },
         "AUD": {
@@ -5957,75 +5957,75 @@ const CONST = {
             "unit": "km"
         },
         "AWG": {
-            "rate": 203,
+            "rate": 209,
             "unit": "km"
         },
         "AZN": {
-            "rate": 192,
+            "rate": 196,
             "unit": "km"
         },
         "BAM": {
-            "rate": 212,
+            "rate": 193,
             "unit": "km"
         },
         "BBD": {
-            "rate": 225,
+            "rate": 232,
             "unit": "km"
         },
         "BDT": {
-            "rate": 13697,
+            "rate": 14154,
             "unit": "km"
         },
         "BGN": {
-            "rate": 211,
+            "rate": 193,
             "unit": "km"
         },
         "BHD": {
-            "rate": 42,
+            "rate": 43,
             "unit": "km"
         },
         "BIF": {
-            "rate": 331847,
+            "rate": 343112,
             "unit": "km"
         },
         "BMD": {
-            "rate": 113,
+            "rate": 116,
             "unit": "km"
         },
         "BND": {
-            "rate": 153,
+            "rate": 148,
             "unit": "km"
         },
         "BOB": {
-            "rate": 779,
+            "rate": 801,
             "unit": "km"
         },
         "BRL": {
-            "rate": 660,
+            "rate": 623,
             "unit": "km"
         },
         "BSD": {
-            "rate": 113,
+            "rate": 116,
             "unit": "km"
         },
         "BTN": {
-            "rate": 9761,
+            "rate": 10445,
             "unit": "km"
         },
         "BWP": {
-            "rate": 1569,
+            "rate": 1609,
             "unit": "km"
         },
         "BYN": {
-            "rate": 369,
+            "rate": 341,
             "unit": "km"
         },
         "BYR": {
-            "rate": 2255979,
+            "rate": 2320514,
             "unit": "km"
         },
         "BZD": {
-            "rate": 227,
+            "rate": 233,
             "unit": "km"
         },
         "CAD": {
@@ -6033,7 +6033,7 @@ const CONST = {
             "unit": "km"
         },
         "CDF": {
-            "rate": 321167,
+            "rate": 263043,
             "unit": "km"
         },
         "CHF": {
@@ -6041,39 +6041,39 @@ const CONST = {
             "unit": "km"
         },
         "CLP": {
-            "rate": 111689,
+            "rate": 103642,
             "unit": "km"
         },
         "CNY": {
-            "rate": 808,
+            "rate": 810,
             "unit": "km"
         },
         "COP": {
-            "rate": 473791,
+            "rate": 436937,
             "unit": "km"
         },
         "CRC": {
-            "rate": 57190,
+            "rate": 57573,
             "unit": "km"
         },
         "CUC": {
-            "rate": 113,
+            "rate": 116,
             "unit": "km"
         },
         "CUP": {
-            "rate": 2902,
+            "rate": 2984,
             "unit": "km"
         },
         "CVE": {
-            "rate": 11961,
+            "rate": 10927,
             "unit": "km"
         },
         "CZK": {
-            "rate": 2715,
+            "rate": 2396,
             "unit": "km"
         },
         "DJF": {
-            "rate": 19956,
+            "rate": 20600,
             "unit": "km"
         },
         "DKK": {
@@ -6081,27 +6081,27 @@ const CONST = {
             "unit": "km"
         },
         "DOP": {
-            "rate": 6948,
+            "rate": 7348,
             "unit": "km"
         },
         "DZD": {
-            "rate": 15226,
+            "rate": 15049,
             "unit": "km"
         },
         "EEK": {
-            "rate": 1646,
+            "rate": 1693,
             "unit": "km"
         },
         "EGP": {
-            "rate": 5657,
+            "rate": 5475,
             "unit": "km"
         },
         "ERN": {
-            "rate": 1690,
+            "rate": 1738,
             "unit": "km"
         },
         "ETB": {
-            "rate": 14326,
+            "rate": 17952,
             "unit": "km"
         },
         "EUR": {
@@ -6113,7 +6113,7 @@ const CONST = {
             "unit": "km"
         },
         "FKP": {
-            "rate": 90,
+            "rate": 85,
             "unit": "km"
         },
         "GBP": {
@@ -6121,55 +6121,55 @@ const CONST = {
             "unit": "mi"
         },
         "GEL": {
-            "rate": 323,
+            "rate": 312,
             "unit": "km"
         },
         "GHS": {
-            "rate": 1724,
+            "rate": 1238,
             "unit": "km"
         },
         "GIP": {
-            "rate": 90,
+            "rate": 85,
             "unit": "km"
         },
         "GMD": {
-            "rate": 8111,
+            "rate": 8517,
             "unit": "km"
         },
         "GNF": {
-            "rate": 974619,
+            "rate": 1012760,
             "unit": "km"
         },
         "GTQ": {
-            "rate": 872,
+            "rate": 888,
             "unit": "km"
         },
         "GYD": {
-            "rate": 23585,
+            "rate": 24232,
             "unit": "km"
         },
         "HKD": {
-            "rate": 877,
+            "rate": 903,
             "unit": "km"
         },
         "HNL": {
-            "rate": 2881,
+            "rate": 3059,
             "unit": "km"
         },
         "HRK": {
-            "rate": 814,
+            "rate": 747,
             "unit": "km"
         },
         "HTG": {
-            "rate": 14734,
+            "rate": 15162,
             "unit": "km"
         },
         "HUF": {
-            "rate": 44127,
+            "rate": 38143,
             "unit": "km"
         },
         "IDR": {
-            "rate": 1830066,
+            "rate": 1940755,
             "unit": "km"
         },
         "ILS": {
@@ -6177,55 +6177,55 @@ const CONST = {
             "unit": "km"
         },
         "INR": {
-            "rate": 9761,
+            "rate": 10446,
             "unit": "km"
         },
         "IQD": {
-            "rate": 147577,
+            "rate": 151761,
             "unit": "km"
         },
         "IRR": {
-            "rate": 4741290,
+            "rate": 4876636,
             "unit": "km"
         },
         "ISK": {
-            "rate": 15772,
+            "rate": 14645,
             "unit": "km"
         },
         "JMD": {
-            "rate": 17738,
+            "rate": 18388,
             "unit": "km"
         },
         "JOD": {
-            "rate": 80,
+            "rate": 82,
             "unit": "km"
         },
         "JPY": {
-            "rate": 17542,
+            "rate": 18186,
             "unit": "km"
         },
         "KES": {
-            "rate": 14589,
+            "rate": 14954,
             "unit": "km"
         },
         "KGS": {
-            "rate": 9852,
+            "rate": 10132,
             "unit": "km"
         },
         "KHR": {
-            "rate": 453066,
+            "rate": 465327,
             "unit": "km"
         },
         "KMF": {
-            "rate": 53269,
+            "rate": 48924,
             "unit": "km"
         },
         "KPW": {
-            "rate": 101389,
+            "rate": 104286,
             "unit": "km"
         },
         "KRW": {
-            "rate": 162705,
+            "rate": 167533,
             "unit": "km"
         },
         "KWD": {
@@ -6233,91 +6233,91 @@ const CONST = {
             "unit": "km"
         },
         "KYD": {
-            "rate": 93,
+            "rate": 97,
             "unit": "km"
         },
         "KZT": {
-            "rate": 58319,
+            "rate": 59031,
             "unit": "km"
         },
         "LAK": {
-            "rate": 2452802,
+            "rate": 2503013,
             "unit": "km"
         },
         "LBP": {
-            "rate": 10093809,
+            "rate": 10372547,
             "unit": "km"
         },
         "LKR": {
-            "rate": 33423,
+            "rate": 35913,
             "unit": "km"
         },
         "LRD": {
-            "rate": 22185,
+            "rate": 20772,
             "unit": "km"
         },
         "LSL": {
-            "rate": 2099,
+            "rate": 1897,
             "unit": "km"
         },
         "LTL": {
-            "rate": 364,
+            "rate": 373,
             "unit": "km"
         },
         "LVL": {
-            "rate": 74,
+            "rate": 76,
             "unit": "km"
         },
         "LYD": {
-            "rate": 554,
+            "rate": 628,
             "unit": "km"
         },
         "MAD": {
-            "rate": 1127,
+            "rate": 1064,
             "unit": "km"
         },
         "MDL": {
-            "rate": 2084,
+            "rate": 1938,
             "unit": "km"
         },
         "MGA": {
-            "rate": 529635,
+            "rate": 533659,
             "unit": "km"
         },
         "MKD": {
-            "rate": 6650,
+            "rate": 6101,
             "unit": "km"
         },
         "MMK": {
-            "rate": 236413,
+            "rate": 243333,
             "unit": "km"
         },
         "MNT": {
-            "rate": 382799,
+            "rate": 412507,
             "unit": "km"
         },
         "MOP": {
-            "rate": 904,
+            "rate": 929,
             "unit": "km"
         },
         "MRO": {
-            "rate": 40234,
+            "rate": 41360,
             "unit": "km"
         },
         "MRU": {
-            "rate": 4506,
+            "rate": 4667,
             "unit": "km"
         },
         "MUR": {
-            "rate": 5226,
+            "rate": 5366,
             "unit": "km"
         },
         "MVR": {
-            "rate": 1735,
+            "rate": 1791,
             "unit": "km"
         },
         "MWK": {
-            "rate": 195485,
+            "rate": 201014,
             "unit": "km"
         },
         "MXN": {
@@ -6325,23 +6325,23 @@ const CONST = {
             "unit": "km"
         },
         "MYR": {
-            "rate": 494,
+            "rate": 470,
             "unit": "km"
         },
         "MZN": {
-            "rate": 7199,
+            "rate": 7406,
             "unit": "km"
         },
         "NAD": {
-            "rate": 2099,
+            "rate": 1897,
             "unit": "km"
         },
         "NGN": {
-            "rate": 174979,
+            "rate": 165101,
             "unit": "km"
         },
         "NIO": {
-            "rate": 4147,
+            "rate": 4262,
             "unit": "km"
         },
         "NOK": {
@@ -6349,35 +6349,35 @@ const CONST = {
             "unit": "km"
         },
         "NPR": {
-            "rate": 15617,
+            "rate": 16711,
             "unit": "km"
         },
         "NZD": {
-            "rate": 104,
+            "rate": 117,
             "unit": "km"
         },
         "OMR": {
-            "rate": 43,
+            "rate": 45,
             "unit": "km"
         },
         "PAB": {
-            "rate": 113,
+            "rate": 116,
             "unit": "km"
         },
         "PEN": {
-            "rate": 420,
+            "rate": 389,
             "unit": "km"
         },
         "PGK": {
-            "rate": 455,
+            "rate": 497,
             "unit": "km"
         },
         "PHP": {
-            "rate": 6582,
+            "rate": 6870,
             "unit": "km"
         },
         "PKR": {
-            "rate": 31411,
+            "rate": 32428,
             "unit": "km"
         },
         "PLN": {
@@ -6385,43 +6385,43 @@ const CONST = {
             "unit": "km"
         },
         "PYG": {
-            "rate": 890772,
+            "rate": 782141,
             "unit": "km"
         },
         "QAR": {
-            "rate": 410,
+            "rate": 422,
             "unit": "km"
         },
         "RON": {
-            "rate": 538,
+            "rate": 505,
             "unit": "km"
         },
         "RSD": {
-            "rate": 12656,
+            "rate": 11632,
             "unit": "km"
         },
         "RUB": {
-            "rate": 11182,
+            "rate": 9328,
             "unit": "km"
         },
         "RWF": {
-            "rate": 156589,
+            "rate": 168659,
             "unit": "km"
         },
         "SAR": {
-            "rate": 423,
+            "rate": 435,
             "unit": "km"
         },
         "SBD": {
-            "rate": 951,
+            "rate": 941,
             "unit": "km"
         },
         "SCR": {
-            "rate": 1611,
+            "rate": 1605,
             "unit": "km"
         },
         "SDG": {
-            "rate": 67705,
+            "rate": 69640,
             "unit": "km"
         },
         "SEK": {
@@ -6429,159 +6429,167 @@ const CONST = {
             "unit": "km"
         },
         "SGD": {
-            "rate": 151,
+            "rate": 148,
             "unit": "km"
         },
         "SHP": {
-            "rate": 90,
+            "rate": 85,
             "unit": "km"
         },
         "SLL": {
-            "rate": 2362357,
+            "rate": 2429788,
             "unit": "km"
         },
         "SLE": {
-            "rate": 2363,
+            "rate": 2781,
             "unit": "km"
         },
         "SOS": {
-            "rate": 64374,
+            "rate": 66144,
             "unit": "km"
         },
         "SRD": {
-            "rate": 3954,
+            "rate": 4439,
             "unit": "km"
         },
         "STD": {
-            "rate": 2510095,
+            "rate": 2581871,
             "unit": "km"
         },
         "STN": {
-            "rate": 2683,
+            "rate": 2424,
             "unit": "km"
         },
         "SVC": {
-            "rate": 987,
+            "rate": 1014,
             "unit": "km"
         },
         "SYP": {
-            "rate": 1464664,
+            "rate": 1506507,
             "unit": "km"
         },
         "SZL": {
-            "rate": 2099,
+            "rate": 1897,
             "unit": "km"
         },
         "THB": {
-            "rate": 3801,
+            "rate": 3616,
             "unit": "km"
         },
         "TJS": {
-            "rate": 1228,
+            "rate": 1070,
             "unit": "km"
         },
         "TMT": {
-            "rate": 394,
+            "rate": 406,
             "unit": "km"
         },
         "TND": {
-            "rate": 360,
+            "rate": 335,
             "unit": "km"
         },
         "TOP": {
-            "rate": 274,
+            "rate": 278,
             "unit": "km"
         },
         "TRY": {
-            "rate": 4035,
+            "rate": 4987,
             "unit": "km"
         },
         "TTD": {
-            "rate": 763,
+            "rate": 787,
             "unit": "km"
         },
         "TWD": {
-            "rate": 3703,
+            "rate": 3652,
             "unit": "km"
         },
         "TZS": {
-            "rate": 286235,
+            "rate": 286726,
             "unit": "km"
         },
         "UAH": {
-            "rate": 4725,
+            "rate": 4933,
             "unit": "km"
         },
         "UGX": {
-            "rate": 416016,
+            "rate": 419556,
             "unit": "km"
         },
         "USD": {
-            "rate": 70,
+            "rate": 72,
             "unit": "mi"
         },
         "UYU": {
-            "rate": 4888,
+            "rate": 4513,
             "unit": "km"
         },
         "UZS": {
-            "rate": 1462038,
+            "rate": 1385890,
             "unit": "km"
         },
         "VEB": {
-            "rate": 709737,
+            "rate": 730044,
             "unit": "km"
         },
         "VEF": {
-            "rate": 27993155,
+            "rate": 28792959,
             "unit": "km"
         },
         "VES": {
-            "rate": 6457,
+            "rate": 35661,
             "unit": "km"
         },
         "VND": {
-            "rate": 2825526,
+            "rate": 3044397,
             "unit": "km"
         },
         "VUV": {
-            "rate": 13358,
+            "rate": 14001,
             "unit": "km"
         },
         "WST": {
-            "rate": 315,
+            "rate": 320,
             "unit": "km"
         },
         "XAF": {
-            "rate": 70811,
+            "rate": 65018,
             "unit": "km"
         },
         "XCD": {
-            "rate": 304,
+            "rate": 314,
+            "unit": "km"
+        },
+        "XCG": {
+            "rate": 209,
             "unit": "km"
         },
         "XOF": {
-            "rate": 70811,
+            "rate": 65018,
             "unit": "km"
         },
         "XPF": {
-            "rate": 12875,
+            "rate": 11909,
             "unit": "km"
         },
         "YER": {
-            "rate": 28003,
+            "rate": 27681,
             "unit": "km"
         },
         "ZAR": {
-            "rate": 484,
+            "rate": 476,
             "unit": "km"
         },
         "ZMK": {
-            "rate": 591756,
+            "rate": 608654,
             "unit": "km"
         },
         "ZMW": {
-            "rate": 3148,
+            "rate": 2424,
+            "unit": "km"
+        },
+        "ZWG": {
+            "rate": 3003,
             "unit": "km"
         }
     }`) as Record<string, MileageRate>,
