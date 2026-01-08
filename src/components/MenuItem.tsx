@@ -725,6 +725,7 @@ function MenuItem({
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={CONST.ROLE.MENUITEM}
                                 accessibilityLabel={title ? title.toString() : ''}
+                                accessibilityState={{selected: isSelected}}
                                 accessible
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
