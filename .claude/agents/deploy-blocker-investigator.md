@@ -78,10 +78,10 @@ Post ONE comment with:
 2. **Related issues** - any other deploy blockers that might be caused by the same PR
 
 3. **Recommendation** - one of:
-   - **REVERT** - usually for most cases we will try to revert especially if there are many linked PRs
-   - **ROLL FORWARD** - fix is simpler than revert / would involve bad merge resolution / 
-   - **NEEDS INVESTIGATION** - couldn't determine cause
-   - **DEMOTE** - The bug is so minimal in it's effect that it is not worth blocking the deploy over
+   - **REVERT** - Default choice. Preferred when the causing PR is clear and can be cleanly reverted. Especially important if the PR caused multiple linked issues.
+   - **ROLL FORWARD** - Use when reverting is problematic: fix is simpler than revert, revert would cause merge conflicts, or many dependent PRs have merged on top.
+   - **NEEDS INVESTIGATION** - Use when you cannot determine the root cause with reasonable confidence. List candidate PRs for human review.
+   - **DEMOTE** - Use when the bug is pretty minor (cosmetic and uncommon, pretty edge case, affects very few users) and not worth blocking the deploy.
 
 State which label you're removing (if any) and why.
 
