@@ -1559,10 +1559,7 @@ describe('ReportActionsUtils', () => {
         it('should return the correct message with a valid report ID and report name', () => {
             const reportID = '12345';
             const reportName = 'Test Expense Report';
-            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
-                reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
-                reportName,
-            });
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, reportName);
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
 
@@ -2257,6 +2254,114 @@ describe('ReportActionsUtils', () => {
             // Then it should return the routed due to DEW message with the correct "to" value
             const expected = translateLocal('iou.routedDueToDEW', {to});
             expect(actual).toBe(expected);
+        });
+    });
+
+    describe('getWorkspaceCustomUnitRateUpdatedMessage', () => {
+        it('should return the correct message when a rate is enabled', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'enabled',
+                    oldValue: false,
+                    newValue: true,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('enabled the Distance rate "Default Rate"');
+        });
+
+        it('should return the correct message when a rate is disabled', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'enabled',
+                    oldValue: true,
+                    newValue: false,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('disabled the Distance rate "Default Rate"');
+        });
+    });
+
+    describe('didMessageMentionCurrentUser', () => {
+        const currentUserEmail = 'currentuser@example.com';
+        const otherUserEmail = 'otheruser@example.com';
+        const otherUserAccountID = 456;
+
+        it('should return true when email matches', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                        type: 'COMMENT',
+                        text: `@${currentUserEmail}`,
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when message includes mention-here', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: 'Hello <mention-here>',
+                        type: 'COMMENT',
+                        text: 'Hello @here',
+                    },
+                ],
+                originalMessage: {
+                    html: 'Hello <mention-here>',
+                    whisperedTo: [],
+                    mentionedAccountIDs: [],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when user is not mentioned', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: `<mention-user>@${otherUserEmail}</mention-user>`,
+                        type: 'COMMENT',
+                        text: `@${otherUserEmail}`,
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user>@${otherUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [otherUserAccountID],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(false);
         });
     });
 
