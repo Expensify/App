@@ -391,6 +391,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         email,
         reportTransactions,
         violations,
+        bankAccountList,
     ]);
 
     const hideDeleteModal = () => {

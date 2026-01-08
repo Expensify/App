@@ -99,7 +99,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -132,6 +132,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         selectedTransactionIDsSet,
         currentUserDetails.email,
         isActionLoadingSet,
+        bankAccountList,
     ]);
 
     const selectedItemsLength = useMemo(() => {

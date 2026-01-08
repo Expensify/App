@@ -387,7 +387,7 @@ function MoneyReportHeader({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
-        [moneyRequestReport, chatReport, policy, transaction],
+        [moneyRequestReport, chatReport, policy, bankAccountList, transaction],
     );
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
