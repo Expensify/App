@@ -44,7 +44,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
-    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy);
+    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -192,7 +192,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     isRequired={!isReportFieldDeletable}
                     onSubmit={handleReportFieldChange}
                     fieldList={policy?.fieldList}
-                    disabled={reportField.deletable}
+                    disabled
                 />
             )}
         </ScreenWrapper>
