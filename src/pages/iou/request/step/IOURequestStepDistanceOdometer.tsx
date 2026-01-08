@@ -309,7 +309,7 @@ function IOURequestStepDistanceOdometer({
             return;
         }
         Navigation.goBack();
-    }, backToReport && isFocused);
+    }, !!backToReport && isFocused);
 
     const navigateBack = () => {
         if (backToReport) {
@@ -350,6 +350,8 @@ function IOURequestStepDistanceOdometer({
                     transactionID: transaction?.transactionID,
                     transactionThreadReportID: reportID,
                     distance: calculatedDistance,
+                    odometerStart: start,
+                    odometerEnd: end,
                     // Not required for odometer distance request
                     transactionBackup: undefined,
                     policy,
@@ -358,23 +360,12 @@ function IOURequestStepDistanceOdometer({
                     isASAPSubmitBetaEnabled: false,
                 });
             }
-            // Allow navigation after saving changes to prevent discard modal
-            allowNavigation();
-            if (confirmationRoute) {
-                Navigation.goBack(confirmationRoute);
-                return;
-            }
             Navigation.goBack();
             return;
         }
 
         if (backToReport) {
-            allowNavigation();
-            if (confirmationRoute) {
-                Navigation.goBack(confirmationRoute);
-                return;
-            }
-            Navigation.goBack();
+            Navigation.goBack(confirmationRoute);
             return;
         }
 

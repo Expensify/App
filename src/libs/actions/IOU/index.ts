@@ -5017,6 +5017,8 @@ type UpdateMoneyRequestDistanceParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -5033,11 +5035,15 @@ function updateMoneyRequestDistance({
     currentUserAccountIDParam,
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
+    odometerStart,
+    odometerEnd,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         ...(waypoints && {waypoints: sanitizeRecentWaypoints(waypoints)}),
         routes,
         ...(distance && {distance}),
+        ...(odometerStart !== undefined && {odometerStart}),
+        ...(odometerEnd !== undefined && {odometerEnd}),
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
@@ -5059,6 +5065,14 @@ function updateMoneyRequestDistance({
         });
     }
     const {params, onyxData} = data;
+
+    // Add odometer readings to params if provided
+    if (odometerStart !== undefined) {
+        params.odometerStart = odometerStart;
+    }
+    if (odometerEnd !== undefined) {
+        params.odometerEnd = odometerEnd;
+    }
 
     if (!distance) {
         const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
