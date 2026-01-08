@@ -127,9 +127,21 @@ class TranslationGenerator {
     private readonly isIncremental: boolean;
 
     /**
-     * If true, skip prompting the user for cost confirmation.
+     * CLI instance for user prompts.
      */
-    private readonly approveCosts: boolean;
+    /* eslint-disable @typescript-eslint/naming-convention */
+    private readonly cli: CLI<{
+        flags: {
+            'dry-run': {description: string};
+            verbose: {description: string};
+        };
+        namedArgs: {
+            locales: {description: string; default: TranslationTargetLocale[]; parse: (val: string) => TranslationTargetLocale[]};
+            'compare-ref': {description: string; default: string; parse: (val: string) => string};
+            paths: {description: string; parse: (val: string) => Set<TranslationPaths>; supersedes: string[]; required: false};
+        };
+    }>;
+    /* eslint-enable @typescript-eslint/naming-convention */
 
     /**
      * If a complex template expression comes from an existing translation file rather than ChatGPT, then the hashes of its spans will be serialized from the translated version of those spans.
@@ -144,28 +156,98 @@ class TranslationGenerator {
      */
     private readonly dedentStringKeys = new Set<number>();
 
-    constructor(config: {
-        targetLanguages: TranslationTargetLocale[];
-        languagesDir: string;
-        sourceFile: string;
-        translator: Translator;
-        compareRef: string;
-        paths?: Set<TranslationPaths>;
-        verbose: boolean;
-        approveCosts: boolean;
-    }) {
-        this.targetLanguages = config.targetLanguages;
-        this.languagesDir = config.languagesDir;
-        const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
-        this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
-        this.translator = config.translator;
-        this.compareRef = config.compareRef;
+    constructor() {
+        this.languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
+        const enSourceFile = path.join(this.languagesDir, 'en.ts');
+
+        /* eslint-disable @typescript-eslint/naming-convention */
+        this.cli = new CLI({
+            flags: {
+                'dry-run': {
+                    description: 'If true, just do local mocked translations rather than making real requests to an AI translator.',
+                },
+                verbose: {
+                    description: 'Should we print verbose logs?',
+                },
+            },
+            namedArgs: {
+                locales: {
+                    description: 'Locales to generate translations for.',
+                    default: Object.values(TRANSLATION_TARGET_LOCALES).filter((locale) => locale !== LOCALES.ES),
+                    parse: (val: string): TranslationTargetLocale[] => {
+                        const rawLocales = val.split(',');
+                        const validatedLocales: TranslationTargetLocale[] = [];
+                        for (const locale of rawLocales) {
+                            if (!isTranslationTargetLocale(locale)) {
+                                throw new Error(`Invalid locale ${String(locale)}`);
+                            }
+                            validatedLocales.push(locale);
+                        }
+                        return validatedLocales;
+                    },
+                },
+                'compare-ref': {
+                    description:
+                        'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
+                    default: '',
+                    parse: (val: string): string => {
+                        if (!val.trim()) {
+                            return val;
+                        }
+                        if (!Git.isValidRef(val)) {
+                            throw new Error(`Invalid git reference: "${val}". Please provide a valid branch, tag, or commit hash.`);
+                        }
+                        return val;
+                    },
+                },
+                paths: {
+                    description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
+                    parse: (val: string): Set<TranslationPaths> => {
+                        const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
+                        const validatedPaths = new Set<TranslationPaths>();
+                        const invalidPaths: string[] = [];
+                        for (const rawPath of rawPaths) {
+                            if (get(en, rawPath)) {
+                                validatedPaths.add(rawPath as TranslationPaths);
+                            } else {
+                                invalidPaths.push(rawPath);
+                            }
+                        }
+                        if (invalidPaths.length > 0) {
+                            throw new Error(`found the following invalid paths: ${JSON.stringify(invalidPaths)}`);
+                        }
+                        return validatedPaths;
+                    },
+                    supersedes: ['compare-ref'],
+                    required: false,
+                },
+            },
+        } as const);
+        /* eslint-enable @typescript-eslint/naming-convention */
+
+        this.targetLanguages = this.cli.namedArgs.locales;
+        this.compareRef = this.cli.namedArgs['compare-ref'];
         this.pathsToAdd = new Set<TranslationPaths>();
-        this.pathsToModify = config.paths ?? new Set<TranslationPaths>();
+        this.pathsToModify = this.cli.namedArgs.paths ?? new Set<TranslationPaths>();
         this.pathsToRemove = new Set<TranslationPaths>();
-        this.verbose = config.verbose;
+        this.verbose = this.cli.flags.verbose;
         this.isIncremental = this.pathsToModify.size > 0 || !!this.compareRef;
-        this.approveCosts = config.approveCosts;
+
+        const sourceCode = fs.readFileSync(enSourceFile, 'utf8');
+        this.sourceFile = ts.createSourceFile(enSourceFile, sourceCode, ts.ScriptTarget.Latest, true);
+
+        if (this.cli.flags['dry-run']) {
+            console.log('🍸 Dry run enabled');
+            this.translator = new DummyTranslator();
+        } else {
+            if (!process.env.OPENAI_API_KEY) {
+                dotenv.config({path: path.resolve(__dirname, '../.env')});
+                if (!process.env.OPENAI_API_KEY) {
+                    throw new Error('❌ OPENAI_API_KEY not found in environment.');
+                }
+            }
+            this.translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
+        }
     }
 
     public async generateTranslations(): Promise<void> {
@@ -190,10 +272,8 @@ class TranslationGenerator {
         const stringsToTranslate = new Map<number, StringWithContext>();
         this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
 
-        // Estimate cost and prompt user if needed
-        if (!this.approveCosts) {
-            await this.promptForCostApproval(stringsToTranslate);
-        }
+        // Estimate cost and prompt user if needed (respects --yes/--no flags)
+        await this.promptForCostApproval(stringsToTranslate);
 
         for (const targetLanguage of this.targetLanguages) {
             // Map of translations
@@ -310,13 +390,19 @@ class TranslationGenerator {
     /**
      * Estimates the cost of translating the given strings and prompts the user for confirmation if the cost exceeds the threshold.
      * If the user declines, the process exits.
+     * Skips prompting in dry-run mode since no real API calls are made.
      */
     private async promptForCostApproval(stringsToTranslate: Map<number, StringWithContext>): Promise<void> {
+        // Skip cost check in dry-run mode since no real API calls are made (cost is $0)
+        if (this.cli.flags['dry-run']) {
+            return;
+        }
+
         const numStrings = stringsToTranslate.size;
         const numLocales = this.targetLanguages.length;
 
         // Calculate base prompt tokens (use first target language as sample since length is similar across locales)
-        const basePromptTokens = Math.ceil(baseTranslationPrompt(this.targetLanguages.at(0)).length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+        const basePromptTokens = Math.ceil(baseTranslationPrompt(TRANSLATION_TARGET_LOCALES.DE).length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
 
         // Calculate total input tokens for all strings
         let totalInputTokens = 0;
@@ -347,7 +433,7 @@ class TranslationGenerator {
                 `)}${COLORS.RESET}`,
             );
 
-            const userConfirmed = await CLI.promptUserConfirmation(`Do you want to proceed? ${COLORS.BOLD}Estimated cost: $${estimatedCost.toFixed(2)} USD.${COLORS.RESET} (y/n) `);
+            const userConfirmed = await this.cli.promptUserConfirmation(`Do you want to proceed? ${COLORS.BOLD}Estimated cost: $${estimatedCost.toFixed(2)} USD.${COLORS.RESET} (y/n) `);
 
             if (!userConfirmed) {
                 console.log('\n❌ Translation cancelled by user.');
@@ -1197,118 +1283,8 @@ class TranslationGenerator {
     }
 }
 
-/**
- * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
- */
 async function main(): Promise<void> {
-    const languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
-    const enSourceFile = path.join(languagesDir, 'en.ts');
-
-    /* eslint-disable @typescript-eslint/naming-convention */
-    const cli = new CLI({
-        flags: {
-            'dry-run': {
-                description: 'If true, just do local mocked translations rather than making real requests to an AI translator.',
-            },
-            verbose: {
-                description: 'Should we print verbose logs?',
-            },
-            'approve-costs': {
-                description: 'Skip prompting for cost confirmation. Use this flag in CI environments.',
-            },
-        },
-        namedArgs: {
-            // By default, generate translations for all supported languages. Can be overridden with the --locales flag
-            locales: {
-                description: 'Locales to generate translations for.',
-                default: Object.values(TRANSLATION_TARGET_LOCALES).filter((locale) => locale !== LOCALES.ES),
-                parse: (val: string): TranslationTargetLocale[] => {
-                    const rawLocales = val.split(',');
-                    const validatedLocales: TranslationTargetLocale[] = [];
-                    for (const locale of rawLocales) {
-                        if (!isTranslationTargetLocale(locale)) {
-                            throw new Error(`Invalid locale ${String(locale)}`);
-                        }
-                        validatedLocales.push(locale);
-                    }
-                    return validatedLocales;
-                },
-            },
-            'compare-ref': {
-                description:
-                    'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
-                default: '',
-                parse: (val: string): string => {
-                    if (!val.trim()) {
-                        return val; // Empty string is valid (means no comparison)
-                    }
-
-                    // Validate that the ref exists using our Git utility
-                    if (!Git.isValidRef(val)) {
-                        throw new Error(`Invalid git reference: "${val}". Please provide a valid branch, tag, or commit hash.`);
-                    }
-
-                    return val;
-                },
-            },
-            paths: {
-                description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
-                parse: (val: string): Set<TranslationPaths> => {
-                    const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
-                    const validatedPaths = new Set<TranslationPaths>();
-                    const invalidPaths: string[] = [];
-
-                    for (const rawPath of rawPaths) {
-                        if (get(en, rawPath)) {
-                            validatedPaths.add(rawPath as TranslationPaths);
-                        } else {
-                            invalidPaths.push(rawPath);
-                        }
-                    }
-
-                    if (invalidPaths.length > 0) {
-                        throw new Error(`found the following invalid paths: ${JSON.stringify(invalidPaths)}`);
-                    }
-
-                    return validatedPaths;
-                },
-                supersedes: ['compare-ref'],
-                required: false,
-            },
-        },
-    } as const);
-    /* eslint-enable @typescript-eslint/naming-convention */
-
-    let translator: Translator;
-    if (cli.flags['dry-run']) {
-        console.log('🍸 Dry run enabled');
-        translator = new DummyTranslator();
-    } else {
-        // Ensure OPEN_AI_KEY is set in environment
-        if (!process.env.OPENAI_API_KEY) {
-            // If not, try to load it from .env
-            dotenv.config({path: path.resolve(__dirname, '../.env')});
-            if (!process.env.OPENAI_API_KEY) {
-                throw new Error('❌ OPENAI_API_KEY not found in environment.');
-            }
-        }
-        translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
-    }
-
-    // Skip cost confirmation if dry-run (cost is $0) or if explicitly approved
-    const approveCosts = cli.flags['dry-run'] || cli.flags['approve-costs'];
-
-    const generator = new TranslationGenerator({
-        targetLanguages: cli.namedArgs.locales,
-        languagesDir,
-        sourceFile: enSourceFile,
-        translator,
-        compareRef: cli.namedArgs['compare-ref'],
-        paths: cli.namedArgs.paths,
-        verbose: cli.flags.verbose,
-        approveCosts,
-    });
-
+    const generator = new TranslationGenerator();
     await generator.generateTranslations();
 }
 
