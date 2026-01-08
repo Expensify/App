@@ -7120,6 +7120,7 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
             RECONCILIATION: 'reconciliation',
+            TOP_SPENDERS: 'topSpenders',
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {

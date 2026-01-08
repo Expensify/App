@@ -10,10 +10,10 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import ListItemRightCaretWithLabel from '@components/SelectionListWithSections/ListItemRightCaretWithLabel';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import ListItemRightCaretWithLabel from '@components/SelectionListWithModal/ListItemRightCaretWithLabel';
 import Switch from '@components/Switch';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -64,13 +64,13 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Checkmark', 'Trashcan']);
     const {translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const dropdownButtonRef = useRef<View>(null);
     const isFocused = useIsFocused();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Close', 'Checkmark'] as const);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, orderWeight), [policyTags, orderWeight]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
@@ -237,7 +237,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
         if (!isThereAnyAccountingConnection && !isMultiLevelTags && selectedTags.length > 0) {
             options.push({
-                icon: expensifyIcons.Trashcan,
+                icon: icons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
@@ -284,7 +284,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         if (enabledTagCount > 0) {
             const selectedTagsObject = selectedTags.map((key) => currentPolicyTag?.tags[key]);
             options.push({
-                icon: expensifyIcons.Close,
+                icon: icons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
@@ -306,7 +306,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
         if (disabledTagCount > 0) {
             options.push({
-                icon: expensifyIcons.Checkmark,
+                icon: icons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
@@ -426,27 +426,25 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 )}
                 {tagList.length > 0 && !isLoading && (
                     <SelectionListWithModal
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={!hasDependentTags}
-                        onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={[{data: filteredTagList, isDisabled: false}]}
-                        selectedItems={selectedTags}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        onCheckboxPress={toggleTag}
-                        onSelectRow={navigateToTagSettings}
-                        onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
-                        showScrollIndicator
+                        data={filteredTagList}
                         ListItem={TableListItem}
+                        selectedItems={selectedTags}
                         customListHeader={getCustomListHeader()}
-                        listHeaderContent={listHeaderContent}
-                        shouldShowListEmptyContent={false}
+                        onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
+                        onDismissError={(item) => clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: orderWeight, policyTags})}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        addBottomSafeAreaPadding
-                        onDismissError={(item) => {
-                            clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: orderWeight, policyTags});
-                        }}
+                        onTurnOnSelectionMode={(item) => item && toggleTag(item)}
+                        turnOnSelectionModeOnLongPress={!hasDependentTags}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        customListHeaderContent={listHeaderContent}
+                        canSelectMultiple={canSelectMultiple}
+                        onSelectRow={navigateToTagSettings}
+                        showListEmptyContent={false}
+                        onCheckboxPress={toggleTag}
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
+                        showScrollIndicator
                     />
                 )}
             </ScreenWrapper>
