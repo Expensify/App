@@ -668,7 +668,7 @@ function MoneyRequestView({
                 }
             }
         } else {
-            shouldShow = !!tagForDisplay || hasEnabledOptions(tags);
+            shouldShow = !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
         }
 
         if (!shouldShow) {
