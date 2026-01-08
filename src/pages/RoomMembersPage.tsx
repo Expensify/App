@@ -147,8 +147,8 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         });
     }, [report, selectedMembers, setSelectedMembers]);
 
-    const showRemoveMembersModal = useCallback(() => {
-        showConfirmModal({
+    const showRemoveMembersModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
             title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
             prompt: translate('roomMembersPage.removeMembersPrompt', {
                 count: selectedMembers.length,
@@ -157,12 +157,11 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
             danger: true,
-        }).then(({action}) => {
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            removeUsers();
         });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        removeUsers();
     }, [showConfirmModal, translate, selectedMembers, formatPhoneNumber, currentUserAccountID, removeUsers]);
 
     /**

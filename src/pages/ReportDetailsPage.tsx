@@ -1,6 +1,6 @@
 import reportsSelector from '@selectors/Attributes';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -328,39 +328,20 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         });
     }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report]);
 
-    const showLastMemberLeavingModal = useCallback(() => {
-        showConfirmModal({
+    const showLastMemberLeavingModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
             title: translate('groupChat.lastMemberTitle'),
             prompt: translate('groupChat.lastMemberWarning'),
             confirmText: translate('common.leave'),
             cancelText: translate('common.cancel'),
             danger: true,
-        }).then(({action}) => {
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            leaveChat();
         });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        // leaveChat already handles Navigation.isNavigationReady()
+        leaveChat();
     }, [showConfirmModal, translate, leaveChat]);
-
-    // A flag to indicate whether the user chose to delete the transaction or not
-    const isTransactionDeleted = useRef<boolean>(false);
-
-    const showDeleteModal = useCallback(() => {
-        showConfirmModal({
-            title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1}),
-            prompt: caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1}),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-            shouldEnableNewFocusManagement: true,
-        }).then(({action}) => {
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            isTransactionDeleted.current = true;
-        });
-    }, [showConfirmModal, translate, caseID]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
@@ -945,17 +926,23 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
     }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
 
-    useEffect(() => {
-        return () => {
-            // Perform the actual deletion after the details page is unmounted. This prevents the [Deleted ...] text from briefly appearing when dismissing the modal.
-            if (!isTransactionDeleted.current) {
-                return;
-            }
-            isTransactionDeleted.current = false;
-            navigateToTargetUrl();
-            deleteTransaction();
-        };
-    }, [deleteTransaction, navigateToTargetUrl]);
+    const showDeleteModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
+            title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1}),
+            prompt: caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1}),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+            shouldEnableNewFocusManagement: true,
+        });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        // Wait for navigation to be ready before navigating
+        await Navigation.isNavigationReady();
+        navigateToTargetUrl();
+        deleteTransaction();
+    }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
