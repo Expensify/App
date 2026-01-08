@@ -89,6 +89,8 @@ function IOURequestStepAmount({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
@@ -238,6 +240,10 @@ function IOURequestStepAmount({
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         },
                         isASAPSubmitBetaEnabled,
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
+                        introSelected,
+                        activePolicyID,
                         quickAction,
                     });
                     return;
@@ -363,6 +369,7 @@ function IOURequestStepAmount({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
+            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
         });
         navigateBack();
     };
@@ -414,6 +421,7 @@ function IOURequestStepAmount({
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
+                isP2P={isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))}
                 isCurrencyPressable={!isUnreportedDistanceExpense}
             />
         </StepScreenWrapper>
