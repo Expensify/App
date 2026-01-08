@@ -194,10 +194,13 @@ describe('CLI', () => {
         const scriptName = 'script.ts'; // Adjust if your tests override process.argv[1]
         const expectedOutput = StringUtils.dedent(
             `
-            Usage: npx ts-node ${scriptName} [--verbose] [--time <value>] <firstName> [lastName]
+            Usage: npx ts-node ${scriptName} [--verbose] [--yes] [--no] [--help] [--time <value>] <firstName> [lastName]
 
             Flags:
               --verbose              Enable verbose logging
+              --yes                  Automatically answer "yes" to all confirmation prompts.
+              --no                   Automatically answer "no" to all confirmation prompts.
+              --help                 Show this help message.
 
             Named Arguments:
               --time                 Time of day to greet (morning or evening) (default: morning)

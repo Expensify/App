@@ -164,15 +164,15 @@ class CLI<TConfig extends CLIConfig> {
     constructor(private readonly config: TConfig) {
         const rawArgs = process.argv.slice(2);
 
-        try {
-            // Initialize all flags to false by default (including built-in flags)
-            this.flags = {
-                ...Object.fromEntries(Object.keys(config.flags ?? {}).map((key) => [key, false])),
-                yes: false,
-                no: false,
-                help: false,
-            } as typeof this.flags;
+        // Initialize all flags to false by default (including built-in flags)
+        this.flags = {
+            ...Object.fromEntries(Object.keys(config.flags ?? {}).map((key) => [key, false])),
+            yes: false,
+            no: false,
+            help: false,
+        } as typeof this.flags;
 
+        try {
             const parsedNamedArgs: Partial<Writable<typeof this.namedArgs>> = {};
             const parsedPositionalArgs: Partial<Writable<typeof this.positionalArgs>> = {};
             const providedNamedArgs = new Set<string>();
@@ -274,6 +274,10 @@ class CLI<TConfig extends CLIConfig> {
             this.namedArgs = parsedNamedArgs as typeof this.namedArgs;
             this.positionalArgs = parsedPositionalArgs as unknown as typeof this.positionalArgs;
         } catch (err) {
+            // If help flag was set, the error is from process.exit(0) in tests (where it's mocked to throw) - just rethrow it
+            if (this.flags.help) {
+                throw err;
+            }
             if (err instanceof Error) {
                 console.error(err.message);
                 this.printHelp();
