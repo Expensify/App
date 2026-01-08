@@ -244,6 +244,10 @@ function isValidActionFilter(action: unknown): action is ValueOf<typeof CONST.SE
     return typeof action === 'string' && action in actionFilterMapping;
 }
 
+function formatBadgeText(count: number): string {
+    return count > 50 ? '50+' : count.toString();
+}
+
 function getExpenseStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
         {text: translate('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
@@ -2762,7 +2766,7 @@ function createTypeMenuSections(
             const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
-                badgeText: todoReports.reportsToSubmit.length > 50 ? '50+' : todoReports.reportsToSubmit.length.toString(),
+                badgeText: formatBadgeText(todoReports.reportsToSubmit.length),
                 emptyState: {
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
@@ -2791,7 +2795,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.APPROVE]) {
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
-                badgeText: todoReports.reportsToApprove.length > 50 ? '50+' : todoReports.reportsToApprove.length.toString(),
+                badgeText: formatBadgeText(todoReports.reportsToApprove.length),
                 emptyState: {
                     title: 'search.searchResults.emptyApproveResults.title',
                     subtitle: 'search.searchResults.emptyApproveResults.subtitle',
@@ -2801,7 +2805,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
-                badgeText: todoReports.reportsToPay.length > 50 ? '50+' : todoReports.reportsToPay.length.toString(),
+                badgeText: formatBadgeText(todoReports.reportsToPay.length),
                 emptyState: {
                     title: 'search.searchResults.emptyPayResults.title',
                     subtitle: 'search.searchResults.emptyPayResults.subtitle',
@@ -2811,7 +2815,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
-                badgeText: todoReports.reportsToExport.length > 50 ? '50+' : todoReports.reportsToExport.length.toString(),
+                badgeText: formatBadgeText(todoReports.reportsToExport.length),
                 emptyState: {
                     title: 'search.searchResults.emptyExportResults.title',
                     subtitle: 'search.searchResults.emptyExportResults.subtitle',
