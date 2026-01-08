@@ -12840,7 +12840,6 @@ async function run() {
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', { required: true });
     const version = core.getInput('DEPLOY_VERSION', { required: true });
     const androidResult = getDeployTableMessage(core.getInput('ANDROID', { required: true }));
-    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', { required: true }));
     const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: true }));
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     const date = core.getInput('DATE');
@@ -12852,7 +12851,7 @@ async function run() {
             message += `on ${date}`;
         }
         message += `🚀`;
-        message += `\n\nplatform | result\n---|---\n🖥 desktop 🖥|${desktopResult}`;
+        message += `\n\nplatform | result\n---|---`;
         message += `\n🕸 web 🕸|${webResult}`;
         message += `\n🤖 android 🤖|${androidResult}\n🍎 iOS 🍎|${iOSResult}`;
         if (note) {

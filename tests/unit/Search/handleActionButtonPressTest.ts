@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
@@ -110,7 +110,7 @@ const mockReportItemWithHold = {
             hasEReceipt: false,
             managerID: 1206,
             merchant: 'Qatar',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -208,7 +208,7 @@ const mockReportItemWithHold = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Forbes',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -305,15 +305,29 @@ describe('handleActionButtonPress', () => {
 
     test('Should navigate to item when report has one transaction on hold', () => {
         const goToItem = jest.fn(() => {});
-        // @ts-expect-error: Allow partial record in snapshot update for testing
-        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
+        handleActionButtonPress({
+            hash: searchHash,
+            item: mockReportItemWithHold,
+            goToItem,
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+        });
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
-        // @ts-expect-error: Allow partial record in snapshot update for testing
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
+        handleActionButtonPress({
+            hash: searchHash,
+            item: updatedMockReportItem,
+            goToItem,
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+        });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
 });
