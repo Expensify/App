@@ -530,6 +530,7 @@ function getCustomFeedNameFromFeeds(cardFeeds: OnyxCollection<CardFeeds> | undef
  * Returns "Deleted Feed" if the feed doesn't exist, otherwise returns the formatted feed name.
  */
 function getFeedNameForDisplay(
+    translate: LocaleContextProps['translate'],
     feed: CompanyCardFeed | undefined,
     cardFeeds: OnyxCollection<CardFeeds> | undefined,
     customFeedName?: string,
@@ -542,7 +543,7 @@ function getFeedNameForDisplay(
     const feedExists = doesCardFeedExist(feed, cardFeeds);
 
     if (!feedExists) {
-        return translateLocal('workspace.companyCards.deletedFeed');
+        return translate('workspace.companyCards.deletedFeed');
     }
 
     const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
