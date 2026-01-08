@@ -2630,19 +2630,15 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
             const formatAmount = () => convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD);
             const getTranslation = (value?: number | string) => {
                 if (value === CONST.DISABLED_MAX_EXPENSE_VALUE) {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    return translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never');
+                    return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never');
                 }
                 if (value === 0) {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    return translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.always');
+                    return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.always');
                 }
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.default', formatAmount());
+                return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.default', formatAmount());
             };
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('workspaceActions.updateCategoryMaxAmountNoItemizedReceipt', {
-                categoryName,
+            return translate('workspaceActions.updateCategoryMaxAmountNoItemizedReceipt', {
+                categoryName: decodedOptionName,
                 oldValue: getTranslation(oldValue),
                 newValue: getTranslation(newValue),
             });

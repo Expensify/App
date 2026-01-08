@@ -6101,12 +6101,11 @@ describe('actions/IOU', () => {
                         if (chatReport) {
                             reportToArchive.push(chatReport);
                         }
-                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+
                         deleteWorkspace({
                             policyID: policy.id,
                             personalPolicyID: undefined,
                             activePolicyID: undefined,
-                            personalPolicyID: undefined,
                             policyName: policy.name,
                             lastAccessedWorkspacePolicyID: undefined,
                             policyCardFeeds: undefined,
