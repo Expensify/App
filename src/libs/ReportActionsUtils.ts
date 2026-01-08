@@ -1842,23 +1842,37 @@ function getTravelUpdateMessage(
 
     switch (details?.operation) {
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED:
-            return translate(
-                'travel.updates.bookingTicketed',
-                details.route?.airlineCode ?? '',
-                details.start.shortName ?? '',
-                details.end?.shortName ?? '',
-                formattedStartDate,
-                details.confirmations?.at(0)?.value,
-            );
+            return translate('travel.updates.bookingTicketed', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+                confirmationID: details.confirmations?.at(0)?.value,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TICKET_VOIDED:
-            return translate('travel.updates.ticketVoided', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
+            return translate('travel.updates.ticketVoided', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TICKET_REFUNDED:
-            return translate('travel.updates.ticketRefunded', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
+            return translate('travel.updates.ticketRefunded', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CANCELLED:
-            return translate('travel.updates.flightCancelled', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
+            return translate('travel.updates.flightCancelled', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SCHEDULE_CHANGE_PENDING:
             return translate('travel.updates.flightScheduleChangePending', details.route?.airlineCode ?? '');
@@ -1867,7 +1881,12 @@ function getTravelUpdateMessage(
             return translate('travel.updates.flightScheduleChangeClosed', details.route?.airlineCode ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CHANGED:
-            return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
+            return translate('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CABIN_CHANGED:
             return translate('travel.updates.flightCabinChanged', details.route?.airlineCode ?? '', details.route?.class ?? '');
@@ -1920,8 +1939,12 @@ function getTravelUpdateMessage(
                     startDate: formattedStartDate,
                 });
             }
-            return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
-
+            return translate('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_OTHER_UPDATE:
             if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
                 return translate('travel.updates.defaultUpdate', {
@@ -1935,7 +1958,12 @@ function getTravelUpdateMessage(
                     startDate: formattedStartDate,
                 });
             }
-            return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
+            return translate('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.REFUND:
             return translate('travel.updates.railTicketRefund', {
@@ -3271,7 +3299,7 @@ function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.T
 
 function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate) {
     const reportUrl = getReportURLForCurrentContext(reportID);
-    return translate('reportAction.harvestCreatedExpenseReport', reportUrl, reportName);
+    return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportName});
 }
 
 function getDynamicExternalWorkflowRoutedMessage(
