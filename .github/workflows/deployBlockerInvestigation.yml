@@ -64,4 +64,4 @@ jobs:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           prompt: "/investigate-deploy-blocker ISSUE_URL: ${{ inputs.ISSUE_URL }}"
           claude_args: |
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Bash(removeDeployBlockerLabel.sh:*),Bash(*/removeDeployBlockerLabel.sh:*)"
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Bash(removeDeployBlockerLabel.sh:*)"
