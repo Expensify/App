@@ -1198,7 +1198,7 @@ describe('actions/IOU', () => {
                             attendees: [],
                             currency: CONST.CURRENCY.USD,
                             created: '',
-                            merchant: '(none)',
+                            merchant: '',
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
@@ -1517,7 +1517,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction?.reportID).toBe(iouReportID);
                                     expect(newTransaction?.amount).toBe(amount);
                                     expect(newTransaction?.comment?.comment).toBe(comment);
-                                    expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                    expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
                                     expect(newTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
@@ -1696,7 +1696,7 @@ describe('actions/IOU', () => {
                                         expect(transaction?.reportID).toBe(iouReportID);
                                         expect(transaction?.amount).toBe(amount);
                                         expect(transaction?.comment?.comment).toBe(comment);
-                                        expect(transaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                        expect(transaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                         // The transactionID on the iou action should match the one from the transactions collection
@@ -7451,7 +7451,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(0),
                 reportID,
                 amount: 0,
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -7463,7 +7463,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -7513,7 +7513,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -7808,7 +7808,7 @@ describe('actions/IOU', () => {
             reportID: fakeReport.reportID,
             transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             isFromGlobalCreate: true,
-            merchant: 'Expense',
+            merchant: '(none)',
         };
 
         const currentDate = '2025-04-01';
@@ -7861,7 +7861,6 @@ describe('actions/IOU', () => {
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
                         ...transactionResult,
-                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     });
                 });
@@ -8021,7 +8020,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            expect(updatedTransaction?.modifiedAmount).toBe('');
+            expect(updatedTransaction?.modifiedAmount).toBe(0);
         });
     });
 
@@ -10887,6 +10886,58 @@ describe('actions/IOU', () => {
                     }),
                 ]),
             );
+        });
+
+        it('should the createdIOUReportActionID parameter not be undefined when rejecting an expense to an open report', async () => {
+            // Mock API.write for this test
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            const openingReport = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                total: 0,
+                currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: policy?.id,
+                chatReportID: chatReport?.reportID,
+            };
+
+            const secondTransaction = {
+                ...createRandomTransaction(2),
+                reportID: iouReport?.reportID,
+                amount,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Test Merchant',
+                transactionID: '2',
+            };
+
+            // Given: An expense report (not IOU)
+            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE, total: amount * 2};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openingReport.reportID}`, openingReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
+            await waitForBatchedUpdates();
+
+            // When: Reject the money request
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy);
+            await waitForBatchedUpdates();
+
+            // Then: createdIOUReportActionID shouldn't be undefined
+            expect(writeSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.not.objectContaining({
+                    createdIOUReportActionID: undefined,
+                }),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
         });
     });
 
