@@ -2740,8 +2740,13 @@ function filterUserToInvite(
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
     config?: FilterUserToInviteConfig,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}} = config ?? {};
+    const {canInviteUser = true, excludeLogins = {}, shouldAcceptName = false} = config ?? {};
     if (!canInviteUser) {
+        return null;
+    }
+
+    // Angle brackets are not valid characters for users names
+    if (shouldAcceptName && (searchValue.includes('<') || searchValue.includes('>'))) {
         return null;
     }
 
