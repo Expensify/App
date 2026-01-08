@@ -1144,15 +1144,6 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
-        headerGap: {
-            height: CONST.DESKTOP_HEADER_PADDING,
-        },
-
-        searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 2,
-            backgroundColor: theme.appBG,
-        },
-
         reportOptions: {
             marginLeft: 8,
         },
@@ -4117,11 +4108,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 10,
         },
 
-        desktopSignInButtonContainer: {
-            width: 40,
-            height: 40,
-        },
-
         signInIconButton: {
             paddingVertical: 2,
         },
@@ -5062,15 +5048,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
-        desktopAppRetiredIllustration: {
-            width: variables.desktopAppRetiredIllustrationW,
-            height: variables.desktopAppRetiredIllustrationH,
-        },
-
-        desktopAppRetiredViewTextContainer: {
-            width: variables.desktopAppRetiredViewContainerWidth,
-        },
-
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -5090,6 +5067,11 @@ const staticStyles = (theme: ThemeColors) =>
         uberConfirmationIllustrationContainer: {
             width: 260,
             height: 172,
+        },
+
+        gpsWebIllustrationContainer: {
+            width: 286,
+            height: 188,
         },
 
         emptyStateCardIllustrationContainer: {
@@ -5410,10 +5392,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
-        },
-
-        testDriveBannerGap: {
-            height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
 
         twoColumnLayoutCol: {

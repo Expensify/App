@@ -76,7 +76,7 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
 }
 
 /**
- * Get a production grade config for web or desktop
+ * Get a production grade config for web
  */
 const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): Configuration => {
     const isDevelopment = file === '.env' || file === '.env.development';
@@ -84,7 +84,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     if (!isDevelopment) {
         const releaseName = `${process.env.npm_package_name}@${process.env.npm_package_version}`;
         console.debug(`[SENTRY ${platform.toUpperCase()}] Release: ${releaseName}`);
-        console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${platform === 'desktop' ? './desktop/dist/www/**/*.{js,map}' : './dist/**/*.{js,map}'}`);
+        console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${'./dist/**/*.{js,map}'}`);
     }
 
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -173,7 +173,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 : []),
             ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
             new webpack.DefinePlugin({
-                ...(platform === 'desktop' ? {} : {process: {env: {}}}),
+                process: {env: {}},
                 // Define EXPO_OS for web platform to fix expo-modules-core warning
                 'process.env.EXPO_OS': JSON.stringify('web'),
                 __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
@@ -202,9 +202,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                               },
                           },
                           sourcemaps: {
-                              // Use relative path from project root - works for both web (dist/) and desktop (desktop/dist/www/)
-                              assets: platform === 'desktop' ? './desktop/dist/www/**/*.{js,map}' : './dist/**/*.{js,map}',
-                              filesToDeleteAfterUpload: platform === 'desktop' ? './desktop/dist/www/**/*.map' : './dist/**/*.map',
+                              // Use relative path from project root - works for web (dist/)
+                              assets: './dist/**/*.{js,map}',
+                              filesToDeleteAfterUpload: './dist/**/*.map',
                           },
                           debug: false,
                           telemetry: false,
@@ -306,7 +306,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 lodash: 'lodash-es',
                 'react-native-config': 'react-web-config',
                 'react-native$': 'react-native-web',
-                // Module alias for web & desktop
+                // Module alias for web
                 // https://webpack.js.org/configuration/resolve/#resolvealias
                 '@assets': path.resolve(dirname, '../../assets'),
                 '@components': path.resolve(dirname, '../../src/components/'),
@@ -319,30 +319,13 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                 '@src': path.resolve(dirname, '../../src/'),
                 '@userActions': path.resolve(dirname, '../../src/libs/actions/'),
-                '@desktop': path.resolve(dirname, '../../desktop'),
                 '@selectors': path.resolve(dirname, '../../src/selectors/'),
             },
 
             // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
             // without this, web will try to use native implementations and break in not very obvious ways.
             // This is also why we have to use .website.js for our own web-specific files...
-            // Because desktop also relies on "web-specific" module implementations
-            // This also skips packing web only dependencies to desktop and vice versa
-            extensions: [
-                '.web.js',
-                ...(platform === 'desktop' ? ['.desktop.js'] : []),
-                '.website.js',
-                '.js',
-                '.jsx',
-                '.web.ts',
-                ...(platform === 'desktop' ? ['.desktop.ts'] : []),
-                '.website.ts',
-                ...(platform === 'desktop' ? ['.desktop.tsx'] : []),
-                '.website.tsx',
-                '.ts',
-                '.web.tsx',
-                '.tsx',
-            ],
+            extensions: ['.web.js', '.website.js', '.js', '.jsx', '.web.ts', '.website.ts', '.website.tsx', '.ts', '.web.tsx', '.tsx'],
             fallback: {
                 'process/browser': require.resolve('process/browser'),
                 crypto: false,
