@@ -269,13 +269,14 @@ function CalendarPicker({
                                 onDayPressed(day);
                             };
                             const key = `${index}_day-${day}`;
+                            const dateAccessibilityLabel = day ? format(currentDate, 'EEEE, MMMM d') : '';
                             return (
                                 <PressableWithoutFeedback
                                     key={key}
                                     disabled={isDisabled}
                                     onPress={handleOnPress}
                                     style={themeStyles.calendarDayRoot}
-                                    accessibilityLabel={day?.toString() ?? ''}
+                                    accessibilityLabel={dateAccessibilityLabel}
                                     tabIndex={day ? 0 : -1}
                                     accessible={!!day}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
