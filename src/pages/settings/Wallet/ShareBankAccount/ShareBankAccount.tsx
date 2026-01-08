@@ -118,7 +118,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         // Apply search filter if there's a search term
         if (debouncedSearchTerm) {
             const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-            adminsToDisplay = tokenizedSearch(admins, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
+            adminsToDisplay = tokenizedSearch(adminsToDisplay, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
         }
 
         return adminsToDisplay;
@@ -127,17 +127,17 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const adminsList = getAdminList();
 
     const toggleSelectAll = () => {
-        const hasSelectedOptions = selectedOptions.length > 0;
         setIsAlertVisible(false);
 
-        if (hasSelectedOptions) {
-            setSelectedOptions([]);
+        const areAllFilteredOptionsSelected = adminsList.length > 0 && adminsList.every((admin) => selectedOptions.some((selected) => selected.login === admin.login));
+
+        if (areAllFilteredOptionsSelected) {
+            const filteredLogins = new Set(adminsList.map((admin) => admin.login));
+            setSelectedOptions(selectedOptions.filter((option) => !filteredLogins.has(option.login)));
         } else {
-            const selectedAllOptions = adminsList?.map((member) => ({
-                ...member,
-                isSelected: true,
-            }));
-            setSelectedOptions(selectedAllOptions);
+            const existingLogins = new Set(selectedOptions.map((option) => option.login));
+            const newSelections = adminsList.filter((admin) => !existingLogins.has(admin.login)).map((admin) => ({...admin, isSelected: true}));
+            setSelectedOptions([...selectedOptions, ...newSelections]);
         }
     };
 
@@ -198,6 +198,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                         }
                         ListItem={UserListItem}
                         shouldUseDefaultRightHandSideCheckmark
+                        onCheckboxPress={toggleOption}
                         onSelectRow={toggleOption}
                         footerContent={
                             <FormAlertWithSubmitButton

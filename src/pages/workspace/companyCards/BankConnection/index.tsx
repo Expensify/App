@@ -13,7 +13,6 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
@@ -66,8 +65,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
-    const {isBetaEnabled} = usePermissions();
-    const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!plaidToken;
+    const isPlaid = !!plaidToken;
 
     const url = getCompanyCardBankConnection(policyID, bankName);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
@@ -86,13 +84,16 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     }, [url]);
 
     useEffect(() => {
-        if (!policyID || !isBlockedToAddNewFeeds) {
+        // Only redirect if blocked AND we're not in the middle of adding a feed (i.e., no feed selected and not a new feed)
+        // If feed is defined, user is assigning cards to an existing feed, so don't redirect
+        // If isNewFeedConnected is true, user just successfully added a feed, so don't redirect
+        if (!policyID || !isBlockedToAddNewFeeds || feed || isNewFeedConnected) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             forceReplace: true,
         });
-    }, [isBlockedToAddNewFeeds, policyID]);
+    }, [isBlockedToAddNewFeeds, policyID, feed, isNewFeedConnected]);
 
     const handleBackButtonPress = () => {
         customWindow?.close();
@@ -108,15 +109,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             Navigation.goBack(backTo);
             return;
         }
-        if (bankName === CONST.COMPANY_CARDS.BANKS.BREX || isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
-            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
-            return;
-        }
-        if (bankName === CONST.COMPANY_CARDS.BANKS.AMEX) {
-            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED});
-            return;
-        }
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const CustomSubtitle = (

@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import {
     initMoneyRequest,
     setMoneyRequestAmount,
@@ -46,6 +47,7 @@ function EmployeeTestDriveModal() {
     const [isLoading, setIsLoading] = useState(false);
     const {testDrive} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
@@ -75,6 +77,7 @@ function EmployeeTestDriveModal() {
 
                         initMoneyRequest({
                             reportID,
+                            personalPolicy,
                             isFromGlobalCreate: false,
                             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                             report,

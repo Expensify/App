@@ -128,26 +128,29 @@ function MoneyRequestReportTransactionItem({
                 ref={viewRef}
                 wrapperStyle={[animatedHighlightStyle, styles.userSelectNone]}
             >
-                <TransactionItemRow
-                    transactionItem={transaction}
-                    violations={violations}
-                    report={report}
-                    isSelected={isSelected}
-                    dateColumnSize={dateColumnSize}
-                    amountColumnSize={amountColumnSize}
-                    taxAmountColumnSize={taxAmountColumnSize}
-                    shouldShowTooltip
-                    shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
-                    shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
-                    onCheckboxPress={toggleTransaction}
-                    columns={columns}
-                    isDisabled={isPendingDelete}
-                    style={[styles.p3]}
-                    onButtonPress={() => {
-                        handleOnPress(transaction.transactionID);
-                    }}
-                    onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
-                />
+                {({hovered}) => (
+                    <TransactionItemRow
+                        transactionItem={transaction}
+                        violations={violations}
+                        report={report}
+                        isSelected={isSelected}
+                        dateColumnSize={dateColumnSize}
+                        amountColumnSize={amountColumnSize}
+                        taxAmountColumnSize={taxAmountColumnSize}
+                        shouldShowTooltip
+                        shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
+                        shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
+                        onCheckboxPress={toggleTransaction}
+                        columns={columns}
+                        isDisabled={isPendingDelete}
+                        style={[styles.p3]}
+                        onButtonPress={() => {
+                            handleOnPress(transaction.transactionID);
+                        }}
+                        onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
+                        isHover={hovered}
+                    />
+                )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
