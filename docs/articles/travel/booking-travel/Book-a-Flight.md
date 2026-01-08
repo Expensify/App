@@ -1,11 +1,12 @@
 ---
 title: Book a Flight in New Expensify
 description: Learn how to book flights using Expensify’s integrated travel tool, from trip search to payment and confirmation.
-keywords: [New Expensify, book flight, flight search, travel booking, out of policy flight, travel approval, Expensify travel, create trip, travel receipt]
+keywords: [New Expensify, book flight, flight search, travel booking, out of policy flight, travel approval, Expensify travel, create trip, travel receipt, travel tool, itinerary]
 ---
 
 <div id="new-expensify" markdown="1">
 # Book a flight in New Expensify
+
 Book flights easily with Expensify Travel. This guide walks you through finding flights, booking them, and accessing your travel details in New Expensify.
 
 ## Where to find Expensify Travel
@@ -50,7 +51,7 @@ Yes, you can book flights for others if you’re an authorized arranger or guest
 
 ## Do I need to upload the flight receipt?
 
-Nope! Expensify automatically attaches the receipt to your report.
+No. Expensify attaches the receipt to your report automatically.
 
 ## Can I book international flights?
 
