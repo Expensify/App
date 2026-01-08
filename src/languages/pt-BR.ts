@@ -6929,10 +6929,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removeu a conexão com ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `conectado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'saiu do chat',
-                companyCardConnectionBroken: ({feedName, policyID, workspaceCompanyCardRoute}: {feedName: string; policyID: string; workspaceCompanyCardRoute?: string}) => {
-                    const url = workspaceCompanyCardRoute ?? `https://new.expensify.com/workspaces/${policyID}/company-cards`;
-                    return `A conexão ${feedName} está quebrada. Para restaurar as importações do cartão, <a href='${url}'>faça login no seu banco</a>`;
-                },
+                companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
+                    `A conexão ${feedName} está quebrada. Para restaurar as importações do cartão, <a href='${workspaceCompanyCardRoute}'>faça login no seu banco</a>`,
             },
             error: {
                 invalidCredentials: 'Credenciais inválidas, verifique a configuração da sua conexão.',
