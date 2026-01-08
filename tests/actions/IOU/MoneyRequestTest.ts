@@ -39,6 +39,7 @@ describe('MoneyRequest', () => {
     const currentUserLogin = 'test@example.com';
     const TEST_USER_ACCOUNT_ID = 123;
     const TEST_USER_EMAIL = 'test@test.com';
+    const SELF_DM_REPORT_ID = '2';
 
     beforeAll(() => {
         Onyx.init({
@@ -276,8 +277,6 @@ describe('MoneyRequest', () => {
             isASAPSubmitBetaEnabled: false,
             quickAction: fakeQuickAction,
             files: [fakeReceiptFile],
-            isTestTransaction: false,
-            locationPermissionGranted: false,
             shouldGenerateTransactionThreadReport: false,
         };
 
@@ -379,6 +378,25 @@ describe('MoneyRequest', () => {
             });
         });
 
+        it('should return if no participants found for non-SPLIT iouType when not from global create menu and skipping confirmation', async () => {
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                report: {
+                    ...fakeReport,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                },
+                shouldSkipConfirmation: true,
+                initialTransaction: {
+                    ...baseParams.initialTransaction,
+                    isFromGlobalCreate: false,
+                },
+            });
+
+            await waitForBatchedUpdates();
+            expect(IOU.trackExpense).not.toHaveBeenCalled();
+        });
+
         it('should trackExpense for TRACK iouType when not from global create menu and skipping confirmation', async () => {
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
@@ -422,6 +440,85 @@ describe('MoneyRequest', () => {
             });
             // Should not call request money inside createTransaction function
             expect(IOU.requestMoney).not.toHaveBeenCalled();
+        });
+
+        it("should set initial transaction's participants if it is different from policyExpenseChat participants", async () => {
+            const defaultExpensePolicy = {
+                ...fakePolicy,
+                autoReporting: false,
+                type: CONST.POLICY.TYPE.TEAM,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                initialTransaction: {
+                    ...baseParams.initialTransaction,
+                    participants: [
+                        {
+                            accountID: TEST_USER_ACCOUNT_ID,
+                            reportID: '123',
+                        },
+                    ],
+                },
+                defaultExpensePolicy,
+            });
+
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeReceiptFile.transactionID}`);
+            expect(updatedTransaction).toMatchObject({
+                participants: [
+                    expect.objectContaining({
+                        accountID: TEST_USER_ACCOUNT_ID,
+                        reportID: '123',
+                    }),
+                ],
+            });
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    CONST.IOU.TYPE.SUBMIT,
+                    baseParams.initialTransaction.transactionID,
+                    baseParams.reportID,
+                    baseParams.backToReport,
+                ),
+            );
+        });
+
+        it('should navigate to confirmation page of track expense for self DM', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_REPORT_ID}`, {
+                ...fakeReport,
+                reportID: SELF_DM_REPORT_ID,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            });
+
+            const defaultExpensePolicy = {
+                ...fakePolicy,
+                autoReporting: false,
+                type: CONST.POLICY.TYPE.TEAM,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                initialTransaction: {
+                    ...baseParams.initialTransaction,
+                    participants: [
+                        {
+                            accountID: TEST_USER_ACCOUNT_ID,
+                            reportID: SELF_DM_REPORT_ID,
+                        },
+                    ],
+                },
+                defaultExpensePolicy,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, baseParams.initialTransaction.transactionID, SELF_DM_REPORT_ID),
+            );
         });
 
         it('should set participants and navigate to confirmation page when from global create menu', async () => {

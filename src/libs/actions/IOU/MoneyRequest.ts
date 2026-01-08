@@ -92,8 +92,8 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     introSelected?: IntroSelected;
     activePolicyID?: string;
     files: ReceiptFile[];
-    isTestTransaction: boolean;
-    locationPermissionGranted: boolean;
+    isTestTransaction?: boolean;
+    locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
 };
 
