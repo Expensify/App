@@ -9,31 +9,9 @@ model: inherit
 
 Investigate the deploy blocker issue to identify the causing PR and post a recommendation.
 
-## ⛔ SECURITY: Output is PUBLIC
-
-Auth and Web-Expensify are **private repos**. Your comment will be posted to a public GitHub issue in the App repo.
-
-**Never include:**
-- Code snippets from Auth or Web-Expensify
-- File paths from private repos (e.g., `Auth/auth/lib/Account.cpp`)
-- Function signatures or implementations from private repos
-
-**Safe to include:**
-- PR numbers, titles, authors
-- High-level descriptions ("the login API", "transaction validation")
-- App repo code (it's open source)
-
 ---
 
 ## Domain Knowledge
-
-### Repositories Available
-
-| Repo | Path | Private? |
-|------|------|----------|
-| App | `App/` | No (open source) |
-| Auth | `Auth/` | Yes |
-| Web-Expensify | `Web-Expensify/` | Yes |
 
 ### Labels
 
@@ -43,13 +21,24 @@ Auth and Web-Expensify are **private repos**. Your comment will be posted to a p
 
 ### Backend vs Frontend
 
-**Backend bug** = issue is in Auth (C++) or Web-Expensify (PHP), not the App:
-- Server errors (500, 502, 503)
-- API response errors
-- Auth/authentication failures from server side
-- Data missing or wrong from API
+Determine from the issue description and App code whether this is a frontend or backend bug:
 
-**Frontend bug** = issue is in the App (React Native/TypeScript)
+**Backend bug** = issue originates from the API / backend code, not this App repo:
+- Server error codes (500, 502, 503)
+- API response errors or malformed data
+- Authentication/authorization failures from server
+- Data missing or incorrect from API responses
+- Error messages mentioning Auth, PHP, or API
+
+**Frontend bug** = issue is in the App (React Native/TypeScript):
+- UI rendering issues, navigation bugs
+- Onyx state problems
+- Client-side validation errors
+- Issues that occur before any API call
+
+When analyzing, look at the App code to understand:
+- Does the bug occur in UI logic, or when processing an API response?
+- Is the App code handling the response correctly, or is the response itself wrong?
 
 ---
 
