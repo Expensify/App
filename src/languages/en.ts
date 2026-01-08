@@ -7832,6 +7832,7 @@ const translations = {
             cantRevokeAdminAccess: "Can't revoke admin access from the technical contact",
             error: {
                 removeAdmin: 'Unable to remove this user as an Admin. Please try again.',
+                removeDomain: 'Unable to remove this domain. Please try again.',
             },
             resetDomain: 'Reset domain',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Please type <strong>${domainName}</strong> to confirm the domain reset.`,
