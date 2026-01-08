@@ -276,6 +276,7 @@ function CalendarPicker({
                                     onPress={handleOnPress}
                                     style={themeStyles.calendarDayRoot}
                                     accessibilityLabel={day?.toString() ?? ''}
+                                    accessibilityState={{selected: isSelected}}
                                     tabIndex={day ? 0 : -1}
                                     accessible={!!day}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
