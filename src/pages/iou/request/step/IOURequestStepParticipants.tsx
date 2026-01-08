@@ -418,8 +418,7 @@ function IOURequestStepParticipants({
             if (!hasRoute(initialTransaction, true)) {
                 return false;
             }
-            const distanceInMeters = getDistanceInMeters(initialTransaction, undefined);
-            return distanceInMeters === 0;
+            return initialTransaction?.comment?.customUnit?.quantity === 0;
         }
         return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
     }, [initialTransaction]);
