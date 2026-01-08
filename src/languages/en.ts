@@ -4970,8 +4970,8 @@ const translations = {
                     subtitle: 'Link the cards you already have for automatic transaction import, receipt matching, and reconciliation.',
                     features: {
                         support: 'Connect cards from 10,000+ banks',
-                        assignCards: 'Link your team's existing cards',
-                        automaticImport: 'We'll pull in transactions automatically',
+                        assignCards: 'Link your team’s existing cards',
+                        automaticImport: 'We’ll pull in transactions automatically',
                     },
                     cardIllustration: 'Company cards illustration',
                 },
@@ -6907,6 +6907,8 @@ const translations = {
         error: 'Error',
         success: 'Success',
         opensInNewTab: 'Opens in a new tab',
+        hasItemsToReview: 'Has items to review',
+        hasActionToTake: 'Has action to take',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',

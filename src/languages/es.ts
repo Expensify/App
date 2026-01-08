@@ -7080,6 +7080,8 @@ ${amount} para ${merchant} - ${date}`,
         error: 'Error',
         success: 'Éxito',
         opensInNewTab: 'Se abre en una nueva pestaña',
+        hasItemsToReview: 'Tiene elementos para revisar',
+        hasActionToTake: 'Tiene acciones pendientes',
     },
     parentReportAction: {
         deletedReport: 'Informe eliminado',
