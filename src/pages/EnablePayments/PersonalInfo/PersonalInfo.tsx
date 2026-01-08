@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,6 +12,9 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import ROUTES from '@src/ROUTES';
+import Navigation from '@libs/Navigation/Navigation';
+import { clearPersonalBankAccount } from '@libs/actions/BankAccounts';
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
 import DateOfBirth from './substeps/DateOfBirthStep';
@@ -27,6 +30,11 @@ function PersonalInfoPage() {
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+
+    useEffect(() => {
+        // if we're at this step, then we have already added a bank account so we need to clear ONYX keys for the bank account
+        clearPersonalBankAccount();
+      }, []);
 
     const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
@@ -69,7 +77,8 @@ function PersonalInfoPage() {
             return;
         }
         if (screenIndex === 0) {
-            Wallet.updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
+            // Wallet.updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
         if (showIdologyQuestions) {
