@@ -766,6 +766,7 @@ function MoneyReportHeader({
             chatReport,
             reportTransactions: transactions,
             violations,
+            bankAccountList,
             policy,
             reportNameValuePairs,
             reportActions,
@@ -775,7 +776,6 @@ function MoneyReportHeader({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
-            bankAccountList,
         });
     }, [
         isPaidAnimationRunning,

@@ -57,6 +57,7 @@ type GetReportPrimaryActionParams = {
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
     violations: OnyxCollection<TransactionViolation[]>;
+    bankAccountList: OnyxEntry<BankAccountList>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
@@ -66,7 +67,6 @@ type GetReportPrimaryActionParams = {
     isPaidAnimationRunning?: boolean;
     isApprovedAnimationRunning?: boolean;
     isSubmittingAnimationRunning?: boolean;
-    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
@@ -405,6 +405,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         report,
         reportTransactions,
         violations,
+        bankAccountList,
         policy,
         reportNameValuePairs,
         reportActions,
@@ -415,7 +416,6 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         isPaidAnimationRunning,
         isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
-        bankAccountList,
     } = params;
 
     // We want to have action displayed for either paid or approved animations

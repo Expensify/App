@@ -820,12 +820,12 @@ function getSecondaryReportActions({
         chatReport,
         reportTransactions,
         violations,
+        bankAccountList,
         policy,
         reportNameValuePairs,
         reportActions,
         reportMetadata,
         isChatReportArchived,
-        bankAccountList,
     });
 
     if (
