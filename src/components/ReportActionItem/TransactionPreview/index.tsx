@@ -41,7 +41,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
         iouReportID,
         transactionID: transactionIDFromProps,
         onPreviewPressed,
-        shouldHighlight,
         reportPreviewAction,
         contextAction,
     } = props;
@@ -94,7 +93,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     // See description of `transactionRawAmount` prop for more context
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionRawAmount = (transaction?.modifiedAmount || transaction?.amount) ?? 0;
+    const transactionRawAmount = (Number(transaction?.modifiedAmount) || transaction?.amount) ?? 0;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
@@ -131,7 +130,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     walletTermsErrors={walletTerms?.errors}
                     routeName={route.name}
                     isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
-                    shouldHighlight={shouldHighlight}
                 />
             </PressableWithoutFeedback>
         );
@@ -156,7 +154,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
             reportPreviewAction={reportPreviewAction}
-            shouldHighlight={shouldHighlight}
             isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
         />
     );

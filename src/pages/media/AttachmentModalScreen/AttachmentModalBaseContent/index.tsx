@@ -10,7 +10,6 @@ import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -293,7 +292,6 @@ function AttachmentModalBaseContent({
 
     return (
         <GestureHandlerRootView style={styles.flex1}>
-            {shouldUseNarrowLayout && <HeaderGap />}
             <HeaderWithBackButton
                 shouldMinimizeMenuButton={shouldMinimizeMenuButton}
                 title={headerTitle ?? translate('common.attachment')}

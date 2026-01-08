@@ -5,7 +5,6 @@
  */
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import {isOpeningRouteInDesktop, resetIsOpeningRouteInDesktop} from '@libs/Browser/index.website';
 import {setActiveClients} from '@userActions/ActiveClients';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Init, IsClientTheLeader, IsReady} from './types';
@@ -96,12 +95,6 @@ const init: Init = () => {
 
     beforeunloadListenerAdded = true;
     window.addEventListener('beforeunload', () => {
-        // When we open route in desktop, beforeunload is fired unexpectedly here.
-        // So we should return early in this case to prevent cleaning the clientID
-        if (isOpeningRouteInDesktop()) {
-            resetIsOpeningRouteInDesktop();
-            return;
-        }
         cleanUpClientId();
     });
 };
