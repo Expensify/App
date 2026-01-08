@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {
     areTransactionsEligibleForMerge,
     buildMergedTransactionData,
@@ -14,6 +15,7 @@ import {
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
+import {calculateTaxAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
@@ -346,6 +348,12 @@ describe('MergeTransactionUtils', () => {
                 tag: 'Same Tag',
                 billable: false,
                 attendees: [],
+                selectedTransactionByField: {
+                    merchant: targetTransaction.transactionID,
+                    category: targetTransaction.transactionID,
+                    tag: sourceTransaction.transactionID,
+                    billable: targetTransaction.transactionID,
+                },
             });
         });
 
@@ -596,6 +604,9 @@ describe('MergeTransactionUtils', () => {
                 reportName: 'Test Report',
                 waypoints: {waypoint0: {name: 'Selected waypoint'}},
                 customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'distance1', quantity: 100},
+                taxValue: '9%',
+                taxAmount: convertToBackendAmount(calculateTaxAmount('9%', 2000, 'USD')),
+                taxCode: 'id_TAX_RATE_1',
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -623,6 +634,9 @@ describe('MergeTransactionUtils', () => {
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
                 reportName: 'Test Report',
+                taxValue: '9%',
+                taxAmount: convertToBackendAmount(calculateTaxAmount('9%', 2000, 'USD')),
+                taxCode: 'id_TAX_RATE_1',
             });
         });
     });
@@ -761,7 +775,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for merchant
-            const result = getDisplayValue('merchant', transaction, translateLocal);
+            const result = getDisplayValue('merchant', transaction, undefined, translateLocal);
 
             // Then it should return empty string
             expect(result).toBe('');
@@ -776,8 +790,8 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for boolean fields
-            const reimbursableResult = getDisplayValue('reimbursable', transaction, translateLocal);
-            const billableResult = getDisplayValue('billable', transaction, translateLocal);
+            const reimbursableResult = getDisplayValue('reimbursable', transaction, undefined, translateLocal);
+            const billableResult = getDisplayValue('billable', transaction, undefined, translateLocal);
 
             // Then it should return translated Yes/No values
             expect(reimbursableResult).toBe('common.yes');
@@ -793,7 +807,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for amount
-            const result = getDisplayValue('amount', transaction, translateLocal);
+            const result = getDisplayValue('amount', transaction, undefined, translateLocal);
 
             // Then it should return formatted currency string
             expect(result).toBe('$10.00');
@@ -809,7 +823,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for description
-            const result = getDisplayValue('description', transaction, translateLocal);
+            const result = getDisplayValue('description', transaction, undefined, translateLocal);
 
             // Then it should return cleaned text without HTML and with spaces instead of line breaks
             expect(result).toBe('This is a test description with line breaks and more text');
@@ -823,7 +837,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for tag
-            const result = getDisplayValue('tag', transaction, translateLocal);
+            const result = getDisplayValue('tag', transaction, undefined, translateLocal);
 
             // Then it should return sanitized tag names separated by commas
             expect(result).toBe('Department, Engineering, Frontend');
@@ -840,7 +854,7 @@ describe('MergeTransactionUtils', () => {
                     ],
                 },
             };
-            const result = getDisplayValue('attendees', transaction, translateLocal);
+            const result = getDisplayValue('attendees', transaction, undefined, translateLocal);
 
             expect(result).toBe('Test User 2, Test User 1');
         });
@@ -855,8 +869,8 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for string fields
-            const merchantResult = getDisplayValue('merchant', transaction, translateLocal);
-            const categoryResult = getDisplayValue('category', transaction, translateLocal);
+            const merchantResult = getDisplayValue('merchant', transaction, undefined, translateLocal);
+            const categoryResult = getDisplayValue('category', transaction, undefined, translateLocal);
 
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
@@ -871,7 +885,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, translateLocal);
+            const result = getDisplayValue('reportID', transaction, undefined, translateLocal);
 
             // Then it should return translated "None"
             expect(result).toBe('common.none');
@@ -886,7 +900,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, translateLocal);
+            const result = getDisplayValue('reportID', transaction, undefined, translateLocal);
 
             // Then it should return the reportName
             expect(result).toBe('Test Report Name');
@@ -912,7 +926,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, translateLocal);
+            const result = getDisplayValue('reportID', transaction, undefined, translateLocal);
 
             // Then it should return the report's name from Onyx
             expect(result).toBe(report.reportName);
@@ -928,7 +942,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 'New Merchant Name';
 
             // When we get updated values for merchant field
-            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, mergeTransaction: undefined});
 
             // Then it should return an object with the field value
             expect(result).toEqual({
@@ -945,7 +959,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 2500;
 
             // When we get updated values for amount field
-            const result = getMergeFieldUpdatedValues(transaction, 'amount', fieldValue);
+            const result = getMergeFieldUpdatedValues({transaction, field: 'amount', fieldValue, mergeTransaction: undefined});
 
             // Then it should include both amount and currency
             expect(result).toEqual({
@@ -964,7 +978,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = '456';
 
             // When we get updated values for reportID field
-            const result = getMergeFieldUpdatedValues(transaction, 'reportID', fieldValue);
+            const result = getMergeFieldUpdatedValues({transaction, field: 'reportID', fieldValue});
 
             // Then it should include both reportID and reportName
             expect(result).toEqual({
@@ -995,7 +1009,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 'New Distance Merchant';
 
             // When we get updated values for merchant field
-            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, mergeTransaction: undefined});
 
             // Then it should include merchant plus all distance-specific fields
             expect(result).toEqual({
