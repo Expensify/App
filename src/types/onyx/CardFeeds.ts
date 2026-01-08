@@ -13,6 +13,16 @@ type CompanyCardFeedWithDomainID = `${CompanyCardFeed}${typeof CONST.COMPANY_CAR
 /** Custom card feed with a number */
 type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}` | CompanyCardFeedWithDomainID;
 
+/**
+ *
+ */
+type CardFeed = CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+
+/**
+ *
+ */
+type CardFeedWithDomainID = `${CardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
+
 /** Statement period end */
 type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
 
@@ -238,12 +248,27 @@ type AddNewCompanyCardFeed = {
 /** Card fund ID */
 type FundID = number;
 
+/** Combined card feed type */
+type CombinedCardFeed = CustomCardFeedData &
+    Partial<DirectCardFeedData> & {
+        /** Custom feed name, originally coming from settings.companyCardNicknames */
+        customFeedName?: string;
+
+        /** Feed name */
+        feed: CompanyCardFeed;
+    };
+
+/** Card feeds combined by domain ID into one object */
+type CombinedCardFeeds = Record<CompanyCardFeedWithDomainID, CombinedCardFeed>;
+
 export default CardFeeds;
 export type {
     AddNewCardFeedStep,
     AddNewCompanyCardFeed,
     AddNewCardFeedData,
     CompanyCardFeed,
+    CardFeed,
+    CardFeedWithDomainID,
     CardFeedDetails,
     DirectCardFeedData,
     CardFeedProvider,
@@ -257,4 +282,6 @@ export type {
     StatementPeriodEnd,
     StatementPeriodEndDay,
     DomainSettings,
+    CombinedCardFeed,
+    CombinedCardFeeds,
 };

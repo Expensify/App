@@ -589,6 +589,16 @@ function getCompanyCardFeedWithDomainID(feedName: CompanyCardFeed, domainID: num
     return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
 }
 
+function splitCompanyCardFeedWithDomainID(feedName: CompanyCardFeedWithDomainID): {feedName: CompanyCardFeed; domainID: number | undefined} {
+    const feedNameParts = feedName.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
+
+    if (feedNameParts.length !== 2) {
+        return {feedName: feedName as CompanyCardFeed, domainID: undefined};
+    }
+
+    return {feedName: feedNameParts.at(0) as CompanyCardFeed, domainID: Number(feedNameParts.at(1))};
+}
+
 function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean {
     return cardFeed?.expiration ? isBefore(fromUnixTime(cardFeed.expiration), new Date()) : false;
 }
@@ -671,9 +681,10 @@ function getAllCardsForWorkspace(
 ): CardList {
     const cards: CardList = {};
     const companyCardsDomainFeeds = Object.entries(cardFeeds ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
-    const expensifyCardsDomainIDs = Object.keys(expensifyCardSettings ?? {})
-        .map((key) => key.split('_').at(-1))
-        .filter((id): id is string => !!id);
+    const expensifyCardFeedNames = Object.keys(expensifyCardSettings ?? {}) as CompanyCardFeedWithDomainID[];
+
+    const expensifyCardsDomainIDs = expensifyCardFeedNames.map((key) => splitCompanyCardFeedWithDomainID(key).domainID).filter((id) => !!id) as number[];
+
     for (const [key, values] of Object.entries(allCardList ?? {})) {
         const isWorkspaceAccountCards = workspaceAccountID !== CONST.DEFAULT_NUMBER_ID && key.includes(workspaceAccountID.toString());
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
@@ -761,7 +772,7 @@ function flatCompanyCards(allCardsList: OnyxCollection<WorkspaceCardsList>, work
  * @param card the card to check
  * @returns true if the card has a broken connection, false otherwise
  */
-function isCardWithBrokenConnection(card: Card): boolean {
+function isCardConnectionBroken(card: Card): boolean {
     return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
 }
 
@@ -776,7 +787,7 @@ function checkIfFeedConnectionIsBroken(feedCards: CardList | undefined, feedToEx
         return false;
     }
 
-    return Object.values(feedCards).some((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardWithBrokenConnection(card));
+    return Object.values(feedCards).some((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardConnectionBroken(card));
 }
 
 /**
@@ -861,8 +872,8 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
     if (!feedWithDomainID) {
         return '' as CompanyCardFeed;
     }
-    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
-    return feed as CompanyCardFeed;
+
+    return splitCompanyCardFeedWithDomainID(feedWithDomainID as CompanyCardFeedWithDomainID).feedName;
 }
 
 type SplitMaskedCardNumberResult = {
@@ -966,7 +977,7 @@ export {
     isCardHiddenFromSearch,
     getFeedType,
     flatCompanyCards,
-    isCardWithBrokenConnection,
+    isCardConnectionBroken,
     checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
@@ -990,6 +1001,7 @@ export {
     getOriginalCompanyFeeds,
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
+    splitCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
