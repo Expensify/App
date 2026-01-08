@@ -6538,10 +6538,8 @@ ${amount} para ${merchant} - ${date}`,
                 takeControl: `tomó el control`,
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}) =>
                     `hubo un problema al sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Por favor, soluciona el problema en la <a href="${workspaceAccountingLink}">configuración del espacio de trabajo</a>.`,
-                companyCardConnectionBroken: ({feedName, policyID, workspaceCompanyCardRoute}: {feedName: string; policyID: string; workspaceCompanyCardRoute?: string}) => {
-                    const url = workspaceCompanyCardRoute ?? `https://new.expensify.com/workspaces/${policyID}/company-cards`;
-                    return `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${url}'>inicia sesión en tu banco</a>`;
-                },
+                companyCardConnectionBroken: ({feedName, policyID, workspaceCompanyCardRoute}: {feedName: string; policyID: string; workspaceCompanyCardRoute?: string}) =>
+                    `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>`,
                 addEmployee: (email, role) => `agregó a ${email} como ${role}`,
                 updateRole: ({email, currentRole, newRole}) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 updatedCustomField1: ({email, previousValue, newValue}) => {
