@@ -984,18 +984,32 @@ function openReport(
         return;
     }
 
-    const optimisticReport = reportActionsExist(reportID)
-        ? {}
-        : {
-              reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
-          };
+    const isOffline = NetworkStore.isOffline();
+    const hasReportActions = reportActionsExist(reportID);
+    const reportExists = !!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    if (isOffline && hasReportActions && reportExists) {
+        return;
+    }
+
+    let optimisticReport: Partial<Report> = {};
+    if (!reportActionsExist(reportID)) {
+        optimisticReport = {
+            reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+        };
+    } else if (isOffline && !reportExists) {
+        optimisticReport = {
+            reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+            reportID,
+        };
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingInitialReportActions: true,
+                isLoadingInitialReportActions: isOffline ? false : true,
                 isLoadingOlderReportActions: false,
                 hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,
@@ -1004,7 +1018,6 @@ function openReport(
         },
     ];
 
-    // Only add the report update if optimisticReport has data
     if (Object.keys(optimisticReport).length > 0) {
         optimisticData.unshift({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1363,6 +1376,11 @@ function openReport(
     }
 
     parameters.clientLastReadTime = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.lastReadTime ?? '';
+
+    if (isOffline) {
+        Onyx.update(optimisticData);
+        return;
+    }
 
     const paginationConfig = {
         resourceID: reportID,

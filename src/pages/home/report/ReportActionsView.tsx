@@ -117,10 +117,11 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
-    const reportTransactionIDs = useMemo(
-        () => getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID),
-        [reportTransactions, allReportActions],
-    );
+    const reportTransactionIDs = useMemo(() => {
+        const allTransactions = getAllNonDeletedTransactions(reportTransactions, allReportActions ?? [], isOffline, true);
+        const transactionIDs = allTransactions.map((transaction) => transaction.transactionID);
+        return transactionIDs;
+    }, [reportTransactions, allReportActions, isOffline]);
 
     const lastAction = allReportActions?.at(-1);
     const isInitiallyLoadingTransactionThread = isReportTransactionThread && (!!isLoadingInitialReportActions || (allReportActions ?? [])?.length <= 1);
@@ -205,9 +206,10 @@ function ReportActionsView({
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
     const reportActions = useMemo(() => {
-        return reportActionsToDisplay
+        const combined = reportActionsToDisplay
             ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? [])
             : [];
+        return combined;
     }, [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID]);
 
     const parentReportActionForTransactionThread = useMemo(
@@ -263,16 +265,16 @@ function ReportActionsView({
     });
 
     const visibleReportActions = useMemo(() => {
-        return reportActions.filter((reportAction) => {
+        const filtered = reportActions.filter((reportAction) => {
             const passesBasicFilters =
-                (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                (isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
                 shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction);
 
             if (!passesBasicFilters) {
                 return false;
             }
 
-            if (isOffline && isMoneyRequestAction(reportAction)) {
+            if (isOffline && isMoneyRequestAction(reportAction) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return true;
             }
 
@@ -282,13 +284,16 @@ function ReportActionsView({
 
             if (isOffline && !transactionsForReport && iouReportID) {
                 const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, reportTransactionIDs, undefined, isOffline);
-                return isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
+                const matches = isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
+                return matches;
             }
 
             const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, reportTransactionIDs, transactionsForReport, isOffline);
-
-            return isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
+            const matches = isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
+            return matches;
         });
+
+        return filtered;
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, expenseReportTransactions]);
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);

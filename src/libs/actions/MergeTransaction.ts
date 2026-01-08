@@ -507,7 +507,8 @@ function mergeTransactionRequest({
 
         const targetReport = getReportOrDraftReport(mergeTransaction.reportID);
         const isTargetExpenseReport = isExpenseReport(targetReport);
-        const reportIDForIOUAction = isTargetExpenseReport && targetReport?.parentReportID ? targetReport.parentReportID : mergeTransaction.reportID;
+        // For expense reports, IOU actions are stored in the expense report itself, not in the parent report
+        const reportIDForIOUAction = mergeTransaction.reportID;
 
         if (oldIOUAction) {
             const originalMessage = getOriginalMessage(oldIOUAction) as OriginalMessageIOU;
@@ -517,6 +518,7 @@ function mergeTransactionRequest({
                 originalMessage: {
                     ...originalMessage,
                     IOUReportID: mergeTransaction.reportID,
+                    IOUTransactionID: targetTransaction.transactionID,
                     type: isUnreportedExpense ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
                 reportActionID: optimisticMoneyRequestReportActionID,
