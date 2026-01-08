@@ -1229,7 +1229,7 @@ async function main(): Promise<void> {
             `${COLORS.YELLOW}${dedent(`
                 ⚠️  Warning: you are running this script without the \`--dry-run\`, \`--compare-ref\`, or \`--paths\` param.
                    This will retranslate all strings in \`src/languages/en.ts\`.
-                   In order to retranslate only the strings you changed on your branch, use \`--compare-ref main\` instead.
+                   In order to retranslate only the strings you changed on your branch, use \`--compare-ref main\` instead. The cost for incremental translations is generally low - estimated at about $0.0025 USD per string.
             `)}${COLORS.RESET}`,
         );
 
