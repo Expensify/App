@@ -3,8 +3,8 @@ import {Keyboard} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -31,11 +31,11 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
-    const {sections, headerMessage} = useMemo(() => {
+    const {data, headerMessage} = useMemo(() => {
         const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
         return {
             headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
-            sections: [{data: yearsList.sort((a, b) => b.value - a.value), indexOffset: 0}],
+            data: yearsList.sort((a, b) => b.value - a.value),
         };
     }, [years, searchText, translate]);
 
@@ -45,6 +45,18 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
         }
         setSearchText('');
     }, [isVisible]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('yearPickerPage.selectYear'),
+            value: searchText,
+            onChangeText: (text: string) => setSearchText(text.replaceAll(CONST.REGEX.NON_NUMERIC, '').trim()),
+            headerMessage,
+            maxLength: 4,
+            inputMode: CONST.INPUT_MODE.NUMERIC,
+        }),
+        [headerMessage, searchText, translate],
+    );
 
     return (
         <Modal
@@ -61,36 +73,29 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={YearPickerModal.displayName}
+                testID="YearPickerModal"
             >
                 <HeaderWithBackButton
                     title={translate('yearPickerPage.year')}
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    textInputLabel={translate('yearPickerPage.selectYear')}
-                    textInputValue={searchText}
-                    textInputMaxLength={4}
-                    onChangeText={(text) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
-                    inputMode={CONST.INPUT_MODE.NUMERIC}
-                    headerMessage={headerMessage}
-                    sections={sections}
+                    data={data}
+                    ListItem={RadioListItem}
                     onSelectRow={(option) => {
                         Keyboard.dismiss();
                         onYearChange?.(option.value);
                     }}
-                    initiallyFocusedOptionKey={currentYear.toString()}
-                    showScrollIndicator
-                    shouldStopPropagation
-                    shouldUseDynamicMaxToRenderPerBatch
-                    ListItem={RadioListItem}
+                    textInputOptions={textInputOptions}
+                    initiallyFocusedItemKey={currentYear.toString()}
+                    disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
+                    shouldStopPropagation
+                    showScrollIndicator
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-YearPickerModal.displayName = 'YearPickerModal';
 
 export default YearPickerModal;

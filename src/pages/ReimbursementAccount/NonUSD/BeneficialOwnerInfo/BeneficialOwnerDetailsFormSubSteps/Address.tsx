@@ -12,14 +12,17 @@ import SafeString from '@src/utils/SafeString';
 
 type NameProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
-const {STREET, CITY, STATE, ZIP_CODE, COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {STREET, CITY, STATE, ZIP_CODE, COUNTRY, NATIONALITY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: NameProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const nationalityInputKey = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
+    const nationality = reimbursementAccountDraft?.[nationalityInputKey] ?? '';
 
     const countryInputKey = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
+
     const inputKeys = {
         street: `${PREFIX}_${ownerBeingModifiedID}_${STREET}`,
         city: `${PREFIX}_${ownerBeingModifiedID}_${CITY}`,
@@ -62,15 +65,15 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
     };
 
     const handleNextStep = () => {
-        // owner is US based we need to gather last four digits of his SSN
-        if (reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.US) {
+        // owner is US citizen so we need to gather last four digits of his SSN
+        if (nationality === CONST.COUNTRY.US) {
             onNext();
-            // currency is set to GBP and owner is UK based, so we skip SSN and Documents step
-        } else if (countryStepCountryValue === CONST.COUNTRY.GB && reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.GB) {
-            onMove(6, false);
-            // owner is not US based so we skip SSN step
+            // currency is set to GBP and owner is UK citizen, so we skip SSN and Documents step
+        } else if (countryStepCountryValue === CONST.COUNTRY.GB && nationality === CONST.COUNTRY.GB) {
+            onMove(7, false);
+            // owner is not US citizen so we skip SSN step
         } else {
-            onMove(5, false);
+            onMove(6, false);
         }
     };
 
@@ -99,7 +102,5 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
         />
     );
 }
-
-Address.displayName = 'Address';
 
 export default Address;

@@ -11,6 +11,4 @@ function DesktopRedirectPage() {
     return <DeeplinkRedirectLoadingIndicator openLinkInBrowser={App.beginDeepLinkRedirect} />;
 }
 
-DesktopRedirectPage.displayName = 'DesktopRedirectPage';
-
 export default DesktopRedirectPage;

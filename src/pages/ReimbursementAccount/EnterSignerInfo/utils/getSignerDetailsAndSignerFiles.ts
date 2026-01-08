@@ -21,37 +21,37 @@ function getSignerDetailsAndSignerFilesForSignerInfo(enterSignerInfoFormDraft: O
     const signerDetails: Record<string, string | boolean | FileObject[]> = {};
     const signerFiles: Record<string, string | FileObject | boolean> = {};
 
-    signerDetailsFields.forEach((fieldName: keyof EnterSignerInfoForm) => {
+    for (const fieldName of signerDetailsFields as Array<keyof EnterSignerInfoForm>) {
         if (fieldName === INPUT_IDS.SIGNER_EMAIL) {
             signerDetails[fieldName] = signerEmail;
-            return;
+            continue;
         }
 
         if (!enterSignerInfoFormDraft?.[fieldName]) {
-            return;
+            continue;
         }
 
         if (fieldName === INPUT_IDS.SIGNER_STREET || fieldName === INPUT_IDS.SIGNER_CITY || fieldName === INPUT_IDS.SIGNER_STATE || fieldName === INPUT_IDS.SIGNER_ZIP_CODE) {
             signerDetails[INPUT_IDS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS] = signerDetails[INPUT_IDS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]
                 ? `${SafeString(signerDetails[INPUT_IDS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS])}, ${String(enterSignerInfoFormDraft?.[fieldName])}`
                 : enterSignerInfoFormDraft?.[fieldName];
-            return;
+            continue;
         }
 
         const value = enterSignerInfoFormDraft?.[fieldName];
         if (typeof value === 'string' || typeof value === 'boolean' || Array.isArray(value)) {
             signerDetails[fieldName] = value;
         }
-    });
+    }
 
-    signerFilesFields.forEach((fieldName) => {
+    for (const fieldName of signerFilesFields) {
         if (!enterSignerInfoFormDraft?.[fieldName]) {
-            return;
+            continue;
         }
 
         // eslint-disable-next-line rulesdir/prefer-at
         signerFiles[fieldName] = enterSignerInfoFormDraft?.[fieldName][0];
-    });
+    }
 
     return {signerDetails, signerFiles};
 }

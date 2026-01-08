@@ -50,11 +50,11 @@ describe('useLetterAvatars', () => {
 
             const {result} = renderHook(() => useLetterAvatars('Charlie'));
 
-            result.current.avatarList.forEach((item) => {
+            for (const item of result.current.avatarList) {
                 expect(item).toHaveProperty('id');
                 expect(item).toHaveProperty('StyledLetterAvatar');
                 expect(typeof item.StyledLetterAvatar).toBe('function');
-            });
+            }
         });
     });
 

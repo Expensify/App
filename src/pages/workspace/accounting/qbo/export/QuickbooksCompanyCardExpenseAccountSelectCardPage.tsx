@@ -100,7 +100,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksCompanyCardExpenseAccountSelectCardPage.displayName}
+            displayName="QuickbooksCompanyCardExpenseAccountSelectCardPage"
             title="workspace.accounting.exportAs"
             sections={sections}
             listItem={RadioListItem}
@@ -119,7 +119,5 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
         />
     );
 }
-
-QuickbooksCompanyCardExpenseAccountSelectCardPage.displayName = 'QuickbooksCompanyCardExpenseAccountSelectCardPage';
 
 export default withPolicyConnections(QuickbooksCompanyCardExpenseAccountSelectCardPage);

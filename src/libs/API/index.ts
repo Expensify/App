@@ -8,8 +8,6 @@ import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Rea
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
-import * as OptimisticReportNames from '@libs/OptimisticReportNames';
-import {getUpdateContext, initialize as initializeOptimisticReportNamesContext} from '@libs/OptimisticReportNamesConnectionManager';
 import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
@@ -18,7 +16,7 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
-import {READ_COMMANDS, WRITE_COMMANDS} from './types';
+import {READ_COMMANDS} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -51,11 +49,6 @@ addMiddleware(SaveResponseInOnyx);
 // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
 addMiddleware(FraudMonitoring);
 
-// Initialize OptimisticReportNames context on module load
-initializeOptimisticReportNamesContext().catch(() => {
-    Log.warn('Failed to initialize OptimisticReportNames context');
-});
-
 let requestIndex = 0;
 
 type OnyxData = {
@@ -85,25 +78,11 @@ function prepareRequest<TCommand extends ApiCommand>(
         shouldApplyOptimisticData = conflictAction.type !== 'noAction';
     }
 
-    const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
+    const {optimisticData, successData, failureData, ...onyxDataWithoutOptimisticData} = onyxData;
+
     if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
-
-        // Process optimistic data through report name middleware
-        // Skip for OpenReport command to avoid unnecessary processing
-        if (command === WRITE_COMMANDS.OPEN_REPORT) {
-            Onyx.update(optimisticData);
-        } else {
-            try {
-                const context = getUpdateContext();
-                const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
-                Onyx.update(processedOptimisticData);
-            } catch (error) {
-                Log.hmmm('[API] Failed to process optimistic report names', {error});
-                // Fallback to original optimistic data if processing fails
-                Onyx.update(optimisticData);
-            }
-        }
+        Onyx.update(optimisticData);
     }
 
     const isWriteRequest = type === CONST.API_REQUEST_TYPE.WRITE;
@@ -130,6 +109,8 @@ function prepareRequest<TCommand extends ApiCommand>(
         initiatedOffline: isOffline(),
         requestID: requestIndex++,
         ...onyxDataWithoutOptimisticData,
+        successData,
+        failureData,
         ...conflictResolver,
     };
 
@@ -146,19 +127,23 @@ function prepareRequest<TCommand extends ApiCommand>(
  * Process a prepared request according to its type.
  */
 function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<void | Response> {
+    Log.info('[API] Processing request', false, {command: request.command, type});
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
+        Log.info('[API] Write command. Pushing to SequentialQueue', false, {command: request.command});
         pushToSequentialQueue(request);
         return Promise.resolve();
     }
 
     // Read requests are processed right away, but don't return the response to the caller
     if (type === CONST.API_REQUEST_TYPE.READ) {
+        Log.info('[API] Read command. Processing request with middleware', false, {command: request.command});
         processWithMiddleware(request);
         return Promise.resolve();
     }
 
     // Requests with side effects process right away, and return the response to the caller
+    Log.info('[API] Side effect command. Processing request with middleware', false, {command: request.command});
     return processWithMiddleware(request);
 }
 

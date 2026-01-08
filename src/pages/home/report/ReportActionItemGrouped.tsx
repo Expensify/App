@@ -18,6 +18,4 @@ function ReportActionItemGrouped({wrapperStyle, children}: ReportActionItemGroup
     );
 }
 
-ReportActionItemGrouped.displayName = 'ReportActionItemGrouped';
-
 export default ReportActionItemGrouped;

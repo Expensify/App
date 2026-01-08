@@ -163,14 +163,14 @@ function selectPreviousResult() {
 }
 
 function updateSelectedResult() {
-    g_searchResultsArray.forEach((result, index) => {
+    for (const [index, result] of g_searchResultsArray.entries()) {
         if (index === g_currentSelectionIndex) {
             result.classList.add('highlight');
             result.scrollIntoView({behavior: 'smooth', block: 'nearest'});
         } else {
             result.classList.remove('highlight');
         }
-    });
+    }
 }
 
 function navigateToSelectedResult() {
@@ -234,8 +234,8 @@ function performSearch(query) {
 
     if (results && results.length > 0) {
         g_searchResultsArray = [];
-        results.forEach((result) => {
-            result.result.forEach((docId) => {
+        for (const result of results) {
+            for (const docId of result.result) {
                 const doc = g_index.store[docId];
                 if (doc && doc.content) {
                     const searchTermIndex = doc.content.toLowerCase().indexOf(query);
@@ -257,8 +257,8 @@ function performSearch(query) {
                         updateSelectedResult();
                     }
                 }
-            });
-        });
+            }
+        }
         g_searchResults.style.display = 'block';
         g_searchResults.focus();
     } else {

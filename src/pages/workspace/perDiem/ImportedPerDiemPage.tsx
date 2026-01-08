@@ -143,7 +143,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedPerDiemPage.displayName}
+            testID="ImportedPerDiemPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -168,7 +168,5 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         </ScreenWrapper>
     );
 }
-
-ImportedPerDiemPage.displayName = 'ImportedPerDiemPage';
 
 export default ImportedPerDiemPage;

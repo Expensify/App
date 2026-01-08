@@ -1,6 +1,7 @@
 import type {PropsWithChildren} from 'react';
 import React, {createContext, useEffect, useMemo, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
+import {filterPersonalCards} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -27,7 +28,7 @@ const ExpensifyCardContext = createContext<ExpensifyCardContextProviderProps>({
  * Context to display revealed expensify card data and pass it between screens.
  */
 function ExpensifyCardContextProvider({children}: PropsWithChildren) {
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: false});
     const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
@@ -37,9 +38,9 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
             return {};
         }
         const errors: Record<string, Errors | undefined> = {};
-        Object.keys(cardList).forEach((cardID) => {
+        for (const cardID of Object.keys(cardList)) {
             errors[cardID] = cardList[cardID]?.errors;
-        });
+        }
         return errors;
     }, [cardList]);
 
@@ -47,12 +48,12 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
     useEffect(() => {
         setCardsDetailsErrors((prevErrors) => {
             const clearedErrors = {...prevErrors};
-            Object.keys(clearedErrors).forEach((cardID) => {
+            for (const cardID of Object.keys(clearedErrors)) {
                 if (cardListErrors[cardID] && Object.keys(cardListErrors[cardID]).length > 0) {
-                    return;
+                    continue;
                 }
                 delete clearedErrors[Number(cardID)];
-            });
+            }
             return clearedErrors;
         });
     }, [cardListErrors]);

@@ -9,7 +9,9 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import {removeApprovalWorkflow} from '@libs/actions/Workflow';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceMembersPage from '@pages/workspace/WorkspaceMembersPage';
 import CONST from '@src/CONST';
@@ -23,6 +25,26 @@ jest.unmock('react-native-reanimated');
 jest.unmock('react-native-worklets');
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+
+jest.mock('@libs/WorkflowUtils', () => {
+    // eslint-disable-next-line
+    const actual = jest.requireActual('@libs/WorkflowUtils');
+    // eslint-disable-next-line
+    return {
+        ...actual,
+        updateWorkflowDataOnApproverRemoval: jest.fn(() => [{members: [], approvers: [], isDefault: false, removeApprovalWorkflow: true}]),
+    };
+});
+
+jest.mock('@libs/actions/Workflow', () => {
+    // eslint-disable-next-line
+    const actual = jest.requireActual('@libs/actions/Workflow');
+    // eslint-disable-next-line
+    return {
+        ...actual,
+        removeApprovalWorkflow: jest.fn(),
+    };
+});
 
 TestHelper.setupGlobalFetchMock();
 
@@ -66,6 +88,7 @@ describe('WorkspaceMembers', () => {
         owner: ownerEmail,
         ownerAccountID,
         type: CONST.POLICY.TYPE.CORPORATE,
+        approver: adminEmail,
         employeeList: {
             [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN},
             [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
@@ -134,20 +157,23 @@ describe('WorkspaceMembers', () => {
 
             // Wait for menu items to be visible
             await waitFor(() => {
-                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember');
+                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
                 expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
             });
 
             // Find and verify "Make member" dropdown menu item
-            const makeMemberMenuItem = screen.getByTestId('PopoverMenuItem-Make member');
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
+            const makeMemberMenuItem = screen.getByTestId(`PopoverMenuItem-${makeMemberText}`);
             expect(makeMemberMenuItem).toBeOnTheScreen();
 
             // Find and verify "Make auditor" dropdown menu item
-            const makeAuditorMenuItem = screen.getByTestId('PopoverMenuItem-Make auditor');
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
+            const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
             // Find and verify "Make admin" dropdown menu item is not present
-            const makeAdminMenuItem = screen.queryByTestId('PopoverMenuItem-Make admin');
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
+            const makeAdminMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`);
             expect(makeAdminMenuItem).not.toBeOnTheScreen();
 
             unmount();
@@ -180,20 +206,23 @@ describe('WorkspaceMembers', () => {
 
             // Wait for menu items to be visible
             await waitFor(() => {
-                const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin');
+                const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
                 expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
             });
 
             // Find and verify "Make admin" dropdown menu item
-            const makeAdminMenuItem = screen.getByTestId('PopoverMenuItem-Make admin');
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
+            const makeAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAdminText}`);
             expect(makeAdminMenuItem).toBeOnTheScreen();
 
             // Find and verify "Make auditor" dropdown menu item
-            const makeAuditorMenuItem = screen.getByTestId('PopoverMenuItem-Make auditor');
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
+            const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
             // Find and verify "Make member" dropdown menu item is not present
-            const makeMemberMenuItem = screen.queryByTestId('PopoverMenuItem-Make member');
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
+            const makeMemberMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`);
             expect(makeMemberMenuItem).not.toBeOnTheScreen();
 
             unmount();
@@ -226,20 +255,23 @@ describe('WorkspaceMembers', () => {
 
             // Wait for menu items to be visible
             await waitFor(() => {
-                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember');
+                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
                 expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
             });
 
             // Find and verify "Make member" dropdown menu item
-            const makeMemberMenuItem = screen.getByTestId('PopoverMenuItem-Make member');
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
+            const makeMemberMenuItem = screen.getByTestId(`PopoverMenuItem-${makeMemberText}`);
             expect(makeMemberMenuItem).toBeOnTheScreen();
 
             // Find and verify "Make admin" dropdown menu item
-            const makeAdminMenuItem = screen.getByTestId('PopoverMenuItem-Make admin');
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
+            const makeAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAdminText}`);
             expect(makeAdminMenuItem).toBeOnTheScreen();
 
             // Find and verify "Make auditor" dropdown menu item is not present
-            const makeAuditorMenuItem = screen.queryByTestId('PopoverMenuItem-Make auditor');
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
+            const makeAuditorMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).not.toBeOnTheScreen();
 
             unmount();
@@ -276,21 +308,71 @@ describe('WorkspaceMembers', () => {
 
             // Wait for menu items to be visible
             await waitFor(() => {
-                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember');
+                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 2});
                 expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
             });
 
-            // Find and verify "Make member" dropdown menu item
-            const makeMemberMenuItem = screen.getByTestId('PopoverMenuItem-Make member');
+            // Find and verify "Make members" dropdown menu item (plural form for 2 selected items)
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 2});
+            const makeMemberMenuItem = screen.getByTestId(`PopoverMenuItem-${makeMemberText}`);
             expect(makeMemberMenuItem).toBeOnTheScreen();
 
-            // Find and verify "Make admin" dropdown menu item
-            const makeAdminMenuItem = screen.getByTestId('PopoverMenuItem-Make admin');
+            // Find and verify "Make admins" dropdown menu item (plural form for 2 selected items)
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 2});
+            const makeAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAdminText}`);
             expect(makeAdminMenuItem).toBeOnTheScreen();
 
-            // Find and verify "Make auditor" dropdown menu item
-            const makeAuditorMenuItem = screen.getByTestId('PopoverMenuItem-Make auditor');
+            // Find and verify "Make auditors" dropdown menu item (plural form for 2 selected items)
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 2});
+            const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    describe('Removing members who are approvers and non-approvers', () => {
+        it('should call workflow actions once when removing multiple members including an approver', async () => {
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await screen.findByText(ADMIN_OPTION);
+
+            // Select all
+            fireEvent.press(screen.getByTestId('selection-list-select-all-checkbox'));
+
+            // Open dropdown
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Click "Remove members"
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 3});
+            const removeMenuItem = screen.getByText(removeText);
+            fireEvent.press(removeMenuItem, {
+                nativeEvent: {},
+                type: 'press',
+                target: removeMenuItem,
+                currentTarget: removeMenuItem,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Wait until confirm modal confirm button exists
+            const confirmText = TestHelper.translateLocal('common.remove');
+
+            await waitFor(() => {
+                expect(screen.getByLabelText(confirmText)).toBeOnTheScreen();
+            });
+
+            // Press confirm button
+            fireEvent.press(screen.getByLabelText(confirmText));
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Verify workflow actions are only called once when an approver is removed
+            expect(updateWorkflowDataOnApproverRemoval).toHaveBeenCalledTimes(1);
+            expect(removeApprovalWorkflow).toHaveBeenCalledTimes(1);
 
             unmount();
             await waitForBatchedUpdatesWithAct();

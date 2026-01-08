@@ -3,20 +3,16 @@ import lodashSortBy from 'lodash/sortBy';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
-import {getPolicy} from './PolicyUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
 /**
  * Returns custom unit ID for the per diem transaction
  */
-function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
+function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     let category: string | undefined;
 
@@ -56,9 +52,9 @@ type Destination = {
  */
 function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] {
     const optionCollection = new Map<string, ModifiedOptionTree>();
-    Object.values(options).forEach((option) => {
+    for (const option of Object.values(options)) {
         if (optionCollection.has(option.rateID)) {
-            return;
+            continue;
         }
 
         optionCollection.set(option.rateID, {
@@ -70,7 +66,7 @@ function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] 
             isSelected: !!option.isSelected,
             currency: option.currency,
         });
-    });
+    }
 
     return Array.from(optionCollection.values());
 }

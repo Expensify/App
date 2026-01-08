@@ -66,5 +66,4 @@ function UpdateRequiredView() {
     );
 }
 
-UpdateRequiredView.displayName = 'UpdateRequiredView';
 export default UpdateRequiredView;

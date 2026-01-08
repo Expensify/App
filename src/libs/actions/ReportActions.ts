@@ -57,9 +57,9 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
     if (keys) {
         const errors: Record<string, null> = {};
 
-        keys.forEach((key) => {
+        for (const key of keys) {
             errors[key] = null;
-        });
+        }
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
             [reportAction.reportActionID]: {
@@ -98,10 +98,10 @@ function clearAllRelatedReportActionErrors(reportID: string | undefined, reportA
 
     if (reportAction.childReportID && ignore !== 'child') {
         const childActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
-        Object.values(childActions).forEach((action) => {
+        for (const action of Object.values(childActions)) {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
             clearAllRelatedReportActionErrors(reportAction.childReportID, action, 'parent', childErrorKeys);
-        });
+        }
     }
 }
 

@@ -49,7 +49,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
             if (!destinationTrimmed) {
                 errors.destination = translate('common.error.fieldRequired');
             } else if (destinationTrimmed.length > CONST.MAX_LENGTH_256) {
-                errors.destination = translate('common.error.characterLimitExceedCounter', {length: destinationTrimmed.length, limit: CONST.MAX_LENGTH_256});
+                errors.destination = translate('common.error.characterLimitExceedCounter', destinationTrimmed.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;
@@ -78,7 +78,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditPerDiemDestinationPage.displayName}
+                testID="EditPerDiemDestinationPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -114,7 +114,5 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditPerDiemDestinationPage.displayName = 'EditPerDiemDestinationPage';
 
 export default EditPerDiemDestinationPage;

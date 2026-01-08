@@ -81,6 +81,4 @@ function UnlinkLoginForm() {
     );
 }
 
-UnlinkLoginForm.displayName = 'UnlinkLoginForm';
-
 export default UnlinkLoginForm;

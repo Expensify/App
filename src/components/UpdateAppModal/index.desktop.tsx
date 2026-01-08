@@ -11,6 +11,4 @@ function UpdateAppModal({onSubmit}: UpdateAppModalProps) {
     return <BaseUpdateAppModal onSubmit={updateApp} />;
 }
 
-UpdateAppModal.displayName = 'UpdateAppModal';
-
 export default UpdateAppModal;

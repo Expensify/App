@@ -18,6 +18,4 @@ function ConnectToQuickbooksDesktopFlow({policyID}: ConnectToQuickbooksDesktopFl
     return null;
 }
 
-ConnectToQuickbooksDesktopFlow.displayName = 'ConnectToQuickbooksDesktopFlow';
-
 export default ConnectToQuickbooksDesktopFlow;

@@ -91,9 +91,9 @@ const getHTMLOfSelection = (): string => {
     const divsToRemove = div.querySelectorAll(`[data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}=true]`);
 
     if (divsToRemove && divsToRemove.length > 0) {
-        divsToRemove.forEach((element) => {
+        for (const element of divsToRemove) {
             element.remove();
-        });
+        }
     }
 
     return div.innerHTML;
@@ -160,7 +160,7 @@ const getCurrentSelection: GetCurrentSelection = () => {
     // Newline characters need to be removed here because the HTML could contain both newlines and <br> tags, and when
     // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
     // is pasted, there are extra newlines in the content that we want to avoid.
-    const newHtml = render(domRepresentation).replace(/<br>\n/g, '<br>');
+    const newHtml = render(domRepresentation).replaceAll('<br>\n', '<br>');
     return newHtml || '';
 };
 

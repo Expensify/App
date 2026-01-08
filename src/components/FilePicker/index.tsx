@@ -76,6 +76,5 @@ function FilePicker({children, acceptableFileTypes = ''}: FilePickerProps): Reac
         </>
     );
 }
-FilePicker.displayName = 'FilePicker';
 
 export default FilePicker;

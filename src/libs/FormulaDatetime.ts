@@ -208,17 +208,17 @@ function applyTokenReplacement(format: string, tokens: Array<{token: string; val
 
         const {token, value} = tokenData;
         const placeholder = `###${i.toString().padStart(3, '0')}###`;
-        const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        const regex = new RegExp(token.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
 
         if (result.includes(token)) {
-            result = result.replace(regex, placeholder);
+            result = result.replaceAll(regex, placeholder);
             placeholderMap[placeholder] = value;
         }
     }
 
     // Phase 2: Replace placeholders with actual values
     for (const [placeholder, value] of Object.entries(placeholderMap)) {
-        result = result.replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value);
+        result = result.replaceAll(new RegExp(placeholder.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value);
     }
 
     return result;

@@ -65,7 +65,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 showTooltip();
             }
         });
-    }, [insets, shouldSuppressTooltip]);
+    }, [insets.top, insets.bottom, insets.left, insets.right, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
@@ -176,7 +176,5 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         </GenericTooltip>
     );
 }
-
-BaseEducationalTooltip.displayName = 'BaseEducationalTooltip';
 
 export default memo(BaseEducationalTooltip);

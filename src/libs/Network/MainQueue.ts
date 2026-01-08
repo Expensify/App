@@ -45,7 +45,7 @@ function process() {
     // - the request does not have shouldRetry === false (specified when we do not want to retry, defaults to true)
     const requestsToProcessOnNextRun: OnyxRequest[] = [];
 
-    networkRequestQueue.forEach((queuedRequest) => {
+    for (const queuedRequest of networkRequestQueue) {
         // Check if we can make this request at all and if we can't see if we should save it for the next run or chuck it into the ether
         if (!canMakeRequest(queuedRequest)) {
             const shouldRetry = queuedRequest?.data?.shouldRetry;
@@ -54,11 +54,11 @@ function process() {
             } else {
                 console.debug('Skipping request that should not be re-tried: ', {command: queuedRequest.command});
             }
-            return;
+            continue;
         }
 
         processWithMiddleware(queuedRequest);
-    });
+    }
 
     // We clear the request queue at the end by setting the queue to requestsToProcessOnNextRun which will either have some
     // requests we want to retry or an empty array

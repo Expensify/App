@@ -89,13 +89,13 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
     }, []);
 
     const cleanScrollOffsets = useCallback((keys: string[], shouldDelete: (key: string) => boolean) => {
-        keys.forEach((key) => {
+        for (const key of keys) {
             if (!shouldDelete(key)) {
-                return;
+                continue;
             }
 
             delete scrollOffsetsRef.current[key];
-        });
+        }
     }, []);
 
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback(
@@ -107,7 +107,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
             const routeName = focusedRoute?.name;
 
             const isSearchScreen = routeName === SCREENS.SEARCH.ROOT;
-            const isSearchMoneyRequestReport = routeName === SCREENS.SEARCH.MONEY_REQUEST_REPORT || routeName === SCREENS.SEARCH.REPORT_RHP;
+            const isSearchMoneyRequestReport = routeName === SCREENS.SEARCH.MONEY_REQUEST_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 
             const scrollOffsetKeys = Object.keys(scrollOffsetsRef.current);
 

@@ -1,10 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 import React, {createRef} from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -133,6 +133,7 @@ describe('AvatarButtonWithIcon', () => {
         it('should render with all props provided', () => {
             const onPressMock = jest.fn();
             const anchorRef = createRef<View>();
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'Camera']));
 
             renderWithProvider(
                 <AvatarButtonWithIcon
@@ -146,11 +147,11 @@ describe('AvatarButtonWithIcon', () => {
                     editIconStyle={{backgroundColor: 'blue'}}
                     DefaultAvatar={DefaultAvatar}
                     size={CONST.AVATAR_SIZE.X_LARGE}
-                    fallbackIcon={Expensicons.Building}
+                    fallbackIcon={icons.current.Building}
                     type={CONST.ICON_TYPE_WORKSPACE}
                     pendingAction="update"
                     disabled={false}
-                    editIcon={Expensicons.Camera}
+                    editIcon={icons.current.Camera}
                 />,
             );
 

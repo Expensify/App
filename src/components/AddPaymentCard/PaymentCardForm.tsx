@@ -144,7 +144,7 @@ function PaymentCardForm({
             return;
         }
 
-        let value = newValue.replace(CONST.REGEX.NON_NUMERIC, '');
+        let value = newValue.replaceAll(CONST.REGEX.NON_NUMERIC, '');
 
         if (value.length === 1) {
             const firstDigit = value.charAt(0);
@@ -163,7 +163,7 @@ function PaymentCardForm({
             }
         }
 
-        const prevValue = previousValueRef.current?.replace(CONST.REGEX.NON_NUMERIC, '') ?? '';
+        const prevValue = previousValueRef.current?.replaceAll(CONST.REGEX.NON_NUMERIC, '') ?? '';
         let formattedValue = value;
 
         if (value.length === 2 && prevValue.length < 2) {
@@ -185,7 +185,7 @@ function PaymentCardForm({
             errors.nameOnCard = translate(label.error.nameOnCard);
         }
 
-        if (values.cardNumber && !isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+        if (values.cardNumber && !isValidDebitCard(values.cardNumber.replaceAll(' ', ''))) {
             errors.cardNumber = translate(label.error.cardNumber);
         }
 
@@ -210,10 +210,7 @@ function PaymentCardForm({
         if (values.addressZipCode && !isValidPaymentZipCode(values.addressZipCode)) {
             errors.addressZipCode = translate('addPaymentCardPage.error.addressZipCode');
         } else if (values.addressZipCode.length > CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE) {
-            errors.addressZipCode = translate('common.error.characterLimitExceedCounter', {
-                length: values.addressZipCode.length,
-                limit: CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE,
-            });
+            errors.addressZipCode = translate('common.error.characterLimitExceedCounter', values.addressZipCode.length, CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE);
         }
 
         if (!values.acceptTerms) {
@@ -225,13 +222,13 @@ function PaymentCardForm({
 
     const onChangeCardNumber = useCallback((newValue: string) => {
         // Replace all characters that are not spaces or digits
-        let validCardNumber = newValue.replace(/[^\d ]/g, '');
+        let validCardNumber = newValue.replaceAll(/[^\d ]/g, '');
 
         // Gets only the first 16 digits if the inputted number have more digits than that
         validCardNumber = validCardNumber.match(/(?:\d *){1,16}/)?.[0] ?? '';
 
         // Remove all spaces to simplify formatting
-        const cleanedNumber = validCardNumber.replace(/ /g, '');
+        const cleanedNumber = validCardNumber.replaceAll(' ', '');
 
         // Check if the number is a potential Amex card (starts with 34 or 37 and has up to 15 digits)
         const isAmex = /^3[47]\d{0,13}$/.test(cleanedNumber);
@@ -239,7 +236,7 @@ function PaymentCardForm({
         // Format based on Amex or standard 4-4-4-4 pattern
         if (isAmex) {
             // Format as 4-6-5 for Amex
-            validCardNumber = cleanedNumber.replace(/(\d{1,4})(\d{1,6})?(\d{1,5})?/, (match, p1, p2, p3) => [p1, p2, p3].filter(Boolean).join(' '));
+            validCardNumber = cleanedNumber.replaceAll(/(\d{1,4})(\d{1,6})?(\d{1,5})?/g, (match, p1, p2, p3) => [p1, p2, p3].filter(Boolean).join(' '));
         } else {
             // Format as 4-4-4-4 for non-Amex
             validCardNumber = cleanedNumber.match(/.{1,4}/g)?.join(' ') ?? '';
@@ -262,7 +259,6 @@ function PaymentCardForm({
                 submitButtonText={submitButtonText}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
-                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -275,6 +271,7 @@ function PaymentCardForm({
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     onChangeText={onChangeCardNumber}
                     value={cardNumber}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -285,6 +282,7 @@ function PaymentCardForm({
                     role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.mt5]}
                     spellCheck={false}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
                 <View style={[styles.flexRow, styles.mt5]}>
                     <View style={[styles.mr2, styles.flex1]}>
@@ -301,6 +299,7 @@ function PaymentCardForm({
                             placeholder={translate(label.defaults.expirationDate)}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                             maxLength={5}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                     <View style={styles.flex1}>
@@ -313,6 +312,7 @@ function PaymentCardForm({
                             role={CONST.ROLE.PRESENTATION}
                             maxLength={4}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                 </View>
@@ -327,6 +327,7 @@ function PaymentCardForm({
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             // Limit the address search only to the USA until we fully can support international debit cards
                             limitSearchesToCountry={CONST.COUNTRY.US}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                 )}
@@ -376,7 +377,5 @@ function PaymentCardForm({
         </>
     );
 }
-
-PaymentCardForm.displayName = 'PaymentCardForm';
 
 export default PaymentCardForm;

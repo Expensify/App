@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
@@ -124,13 +125,13 @@ function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<st
 function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxValues<TFormID>, requiredFields: Array<FormOnyxKeys<TFormID>>): FormInputErrors<TFormID> {
     const errors: FormInputErrors<TFormID> = {};
 
-    requiredFields.forEach((fieldKey) => {
+    for (const fieldKey of requiredFields) {
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
-            return;
+            continue;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[fieldKey] = translateLocal('common.error.fieldRequired');
-    });
+    }
 
     return errors;
 }
@@ -230,10 +231,10 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
+        return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', format(maximalDate, CONST.DATE.FNS_FORMAT_STRING));
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
+    return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', format(minimalDate, CONST.DATE.FNS_FORMAT_STRING));
 }
 
 /**
@@ -278,12 +279,12 @@ function validateIdentity(identity: Record<string, string>): Record<string, bool
     const errors: Record<string, boolean> = {};
 
     // Check that all required fields are filled
-    requiredFields.forEach((fieldName) => {
+    for (const fieldName of requiredFields) {
         if (isRequiredFulfilled(identity[fieldName])) {
-            return;
+            continue;
         }
         errors[fieldName] = true;
-    });
+    }
 
     if (!isValidAddress(identity.street)) {
         errors.street = true;
@@ -469,7 +470,7 @@ type DateTimeValidationErrorKeys = {
  * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
  * returns an object containing the error messages for the date and time
  */
-const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValidationErrorKeys => {
+const validateDateTimeIsAtLeastOneMinuteInFuture = (translate: LocalizedTranslate, data: string): DateTimeValidationErrorKeys => {
     if (!data) {
         return {
             dateValidationErrorKey: '',
@@ -478,8 +479,8 @@ const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValid
     }
     const parsedInputData = parseISO(data);
 
-    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(parsedInputData);
-    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(parsedInputData);
+    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(translate, parsedInputData);
+    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(translate, parsedInputData);
     return {
         dateValidationErrorKey,
         timeValidationErrorKey,
@@ -572,13 +573,13 @@ function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<
 
     let totalOwnedPercentageSum = 0;
     const totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
-    totalOwnedPercentageKeys.forEach((key) => {
+    for (const key of totalOwnedPercentageKeys) {
         if (key === ownerBeingModifiedID) {
-            return;
+            continue;
         }
 
         totalOwnedPercentageSum += totalOwnedPercentage[key];
-    });
+    }
 
     const isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
 

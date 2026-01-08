@@ -1,10 +1,12 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuProps} from '@components/PopoverMenu';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 // eslint-disable-next-line no-restricted-imports
 import themeColors from '@styles/theme/themes/dark';
 
@@ -23,6 +25,7 @@ const story: Meta<typeof PopoverMenu> = {
 function Template(props: PopoverMenuProps) {
     const [isVisible, setIsVisible] = React.useState(false);
     const toggleVisibility = () => setIsVisible(!isVisible);
+    const icons = useMemoizedLazyExpensifyIcons(['Bank', 'CreditCard']);
     return (
         <>
             <MenuItem
@@ -41,12 +44,12 @@ function Template(props: PopoverMenuProps) {
                     menuItems={[
                         {
                             text: 'Bank account',
-                            icon: Expensicons.Bank,
+                            icon: icons.Bank,
                             onSelected: toggleVisibility,
                         },
                         {
                             text: 'Debit card',
-                            icon: Expensicons.CreditCard,
+                            icon: icons.CreditCard,
                             onSelected: toggleVisibility,
                         },
                     ]}

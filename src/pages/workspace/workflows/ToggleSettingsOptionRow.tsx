@@ -189,19 +189,16 @@ function ToggleSettingOptionRow({
         >
             <View style={styles.pRelative}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, shouldPlaceSubtitleBelowSwitch && styles.h10]}>
-                    {shouldMakeContentPressable ? (
-                        <PressableWithoutFeedback
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            onPress={onPress}
-                            accessibilityLabel={title}
-                            role="button"
-                            accessible={false}
-                        >
-                            {contentArea}
-                        </PressableWithoutFeedback>
-                    ) : (
-                        contentArea
-                    )}
+                    <PressableWithoutFeedback
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                        onPress={shouldMakeContentPressable ? onPress : undefined}
+                        accessibilityLabel={title}
+                        role="button"
+                        accessible={false}
+                        disabled={!shouldMakeContentPressable}
+                    >
+                        {contentArea}
+                    </PressableWithoutFeedback>
                     <Switch
                         disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}

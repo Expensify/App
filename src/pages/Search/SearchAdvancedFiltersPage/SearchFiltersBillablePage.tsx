@@ -11,6 +11,4 @@ function SearchFiltersBillablePage() {
     );
 }
 
-SearchFiltersBillablePage.displayName = 'SearchFiltersBillablePage';
-
 export default SearchFiltersBillablePage;

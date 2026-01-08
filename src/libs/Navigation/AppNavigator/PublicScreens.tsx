@@ -69,6 +69,7 @@ function PublicScreens() {
             />
             <RootStack.Screen
                 name={SCREENS.SAML_SIGN_IN}
+                options={{gestureEnabled: false}}
                 component={SAMLSignInPage}
             />
             <RootStack.Screen
@@ -98,7 +99,5 @@ function PublicScreens() {
         </RootStack.Navigator>
     );
 }
-
-PublicScreens.displayName = 'PublicScreens';
 
 export default PublicScreens;

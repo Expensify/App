@@ -7,17 +7,20 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {Section} from '@components/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteToRoom, searchInServer} from '@libs/actions/Report';
+import {inviteToRoomAction, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -55,13 +58,15 @@ function RoomInvitePage({
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const isReportArchived = useReportIsArchived(report.reportID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -74,10 +79,10 @@ function RoomInvitePage({
         const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
             .filter(([, participant]) => participant && !isHiddenForCurrentUser(participant.notificationPreference))
             .map(([accountID]) => Number(accountID));
-        getLoginsByAccountIDs(visibleParticipantAccountIDs).forEach((participant) => {
+        for (const participant of getLoginsByAccountIDs(visibleParticipantAccountIDs)) {
             const smsDomain = addSMSDomainIfPhoneNumber(participant);
             res[smsDomain] = true;
-        });
+        }
 
         return res;
     }, [report.participants]);
@@ -87,19 +92,19 @@ function RoomInvitePage({
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, betas ?? [], excludedUsers);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, loginList, betas ?? [], excludedUsers);
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, MemberForList> = {};
-        inviteOptions.personalDetails.forEach((detail) => {
+        for (const detail of inviteOptions.personalDetails) {
             if (!detail.login) {
-                return;
+                continue;
             }
             detailsMap[detail.login] = formatMemberForList(detail);
-        });
+        }
         const newSelectedOptions: OptionData[] = [];
-        selectedOptions.forEach((option) => {
+        for (const option of selectedOptions) {
             newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
-        });
+        }
 
         return {
             userToInvite: inviteOptions.userToInvite,
@@ -108,16 +113,16 @@ function RoomInvitePage({
             recentReports: [],
             currentUserOption: null,
         };
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions, nvpDismissedProductTraining]);
+    }, [areOptionsInitialized, betas, excludedUsers, loginList, nvpDismissedProductTraining, options.personalDetails, selectedOptions]);
 
     const inviteOptions = useMemo(() => {
         if (debouncedSearchTerm.trim() === '') {
             return defaultOptions;
         }
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers});
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, {excludeLogins: excludedUsers});
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode]);
+    }, [debouncedSearchTerm, defaultOptions, countryCode, loginList, excludedUsers]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
@@ -183,7 +188,7 @@ function RoomInvitePage({
         [selectedOptions],
     );
 
-    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
+    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions.length]);
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
@@ -191,7 +196,12 @@ function RoomInvitePage({
     const backRoute = useMemo(() => {
         return reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, backTo, isReportArchived]);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = useMemo(() => getReportName(report), [report]);
+
+    const ancestors = useAncestors(report);
+
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
@@ -199,20 +209,24 @@ function RoomInvitePage({
             return;
         }
         const invitedEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
-        selectedOptions.forEach((option) => {
+        for (const option of selectedOptions) {
             const login = option.login ?? '';
             const accountID = option.accountID;
             if (!login.toLowerCase().trim() || !accountID) {
-                return;
+                continue;
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
-        });
-        if (reportID) {
-            inviteToRoom(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
         }
-        clearUserSearchPhrase();
-        Navigation.goBack(backRoute);
-    }, [selectedOptions, backRoute, reportID, validate, formatPhoneNumber]);
+        if (report?.reportID) {
+            inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            clearUserSearchPhrase();
+            if (backTo) {
+                Navigation.goBack(backTo);
+            } else {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            }
+        }
+    }, [validate, selectedOptions, ancestors, report, currentUserPersonalDetails.timezone, backTo]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
@@ -246,7 +260,7 @@ function RoomInvitePage({
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={RoomInvitePage.displayName}
+            testID="RoomInvitePage"
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
@@ -290,7 +304,5 @@ function RoomInvitePage({
         </ScreenWrapper>
     );
 }
-
-RoomInvitePage.displayName = 'RoomInvitePage';
 
 export default withNavigationTransitionEnd(withReportOrNotFound()(RoomInvitePage));

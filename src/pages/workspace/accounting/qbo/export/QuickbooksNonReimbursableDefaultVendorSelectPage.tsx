@@ -23,7 +23,7 @@ type CardListItem = ListItem & {
 function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
@@ -68,7 +68,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksNonReimbursableDefaultVendorSelectPage.displayName}
+            displayName="QuickbooksNonReimbursableDefaultVendorSelectPage"
             title="workspace.accounting.defaultVendor"
             sections={sections}
             listItem={RadioListItem}
@@ -85,7 +85,5 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
         />
     );
 }
-
-QuickbooksNonReimbursableDefaultVendorSelectPage.displayName = 'QuickbooksNonReimbursableDefaultVendorSelectPage';
 
 export default withPolicyConnections(QuickbooksNonReimbursableDefaultVendorSelectPage);

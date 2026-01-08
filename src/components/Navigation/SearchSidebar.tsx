@@ -35,11 +35,12 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {lastSearchType, setLastSearchType} = useSearchContext();
 
     const queryJSON = useMemo(() => {
-        if (params?.q) {
-            return buildSearchQueryJSON(params.q);
+        if (!params?.q) {
+            return undefined;
         }
-        return undefined;
-    }, [params?.q]);
+
+        return buildSearchQueryJSON(params.q, params.rawQuery);
+    }, [params?.q, params?.rawQuery]);
 
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {
@@ -53,7 +54,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
 
         setLastSearchType(currentSearchResults.type);
-    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults?.type]);
 
     const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !!currentSearchResults?.isLoading;
 
@@ -77,5 +78,5 @@ function SearchSidebar({state}: SearchSidebarProps) {
         </View>
     );
 }
-SearchSidebar.displayName = 'SearchSidebar';
+
 export default SearchSidebar;

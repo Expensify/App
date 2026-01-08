@@ -47,10 +47,7 @@ const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
     const name = values[INPUT_IDS.NAME];
     if (name.length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        errors[INPUT_IDS.NAME] = translateLocal('common.error.characterLimitExceedCounter', {
-            length: name.length,
-            limit: CONST.TAX_RATES.NAME_MAX_LENGTH,
-        });
+        errors[INPUT_IDS.NAME] = translateLocal('common.error.characterLimitExceedCounter', name.length, CONST.TAX_RATES.NAME_MAX_LENGTH);
     } else if (policy?.taxRates?.taxes && isExistingTaxName(name, policy.taxRates.taxes)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[INPUT_IDS.NAME] = translateLocal('workspace.taxes.error.taxRateAlreadyExists');
@@ -65,10 +62,7 @@ const validateTaxCode = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
     const taxCode = values[INPUT_IDS_TAX_CODE.TAX_CODE];
     if (taxCode.length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        errors[INPUT_IDS_TAX_CODE.TAX_CODE] = translateLocal('common.error.characterLimitExceedCounter', {
-            length: taxCode.length,
-            limit: CONST.TAX_RATES.NAME_MAX_LENGTH,
-        });
+        errors[INPUT_IDS_TAX_CODE.TAX_CODE] = translateLocal('common.error.characterLimitExceedCounter', taxCode.length, CONST.TAX_RATES.NAME_MAX_LENGTH);
     } else if (policy?.taxRates?.taxes && isExistingTaxCode(taxCode, policy.taxRates.taxes)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[INPUT_IDS_TAX_CODE.TAX_CODE] = translateLocal('workspace.taxes.error.taxCodeAlreadyExists');
@@ -318,7 +312,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
     const successRates: Record<string, NullishDeep<Rate>> = {};
     const failureRates: Record<string, NullishDeep<Rate>> = {};
 
-    ratesToUpdate.forEach((rate) => {
+    for (const rate of ratesToUpdate) {
         const rateID = rate.customUnitRateID;
         optimisticRates[rateID] = {
             attributes: {
@@ -339,7 +333,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                 taxClaimablePercentage: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         };
-    });
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [

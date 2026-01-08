@@ -48,7 +48,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -62,7 +62,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
-                testID={EditReportFieldPage.displayName}
+                testID="EditReportFieldPage"
             >
                 <FullPageNotFoundView shouldShow />
             </ScreenWrapper>
@@ -130,7 +130,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={EditReportFieldPage.displayName}
+            testID="EditReportFieldPage"
         >
             <HeaderWithBackButton
                 title={fieldName}
@@ -183,7 +183,5 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         </ScreenWrapper>
     );
 }
-
-EditReportFieldPage.displayName = 'EditReportFieldPage';
 
 export default EditReportFieldPage;

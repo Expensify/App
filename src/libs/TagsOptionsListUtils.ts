@@ -76,13 +76,13 @@ function getTagListSections({
     const selectedTagsWithDisabledState: SelectedTagOption[] = [];
     const numberOfTags = enabledTags.length;
 
-    selectedOptions.forEach((tag) => {
+    for (const tag of selectedOptions) {
         if (enabledTagsNames.has(tag.name)) {
             selectedTagsWithDisabledState.push({...tag, enabled: true});
-            return;
+            continue;
         }
         selectedTagsWithDisabledState.push({...tag, enabled: false});
-    });
+    }
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTags === 0 && selectedOptions.length > 0) {

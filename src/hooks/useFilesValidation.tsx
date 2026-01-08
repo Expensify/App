@@ -198,9 +198,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         // Reset collected errors for new validation
         collectedErrors.current = [];
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             originalFileOrder.current.set(file.uri ?? '', index);
-        });
+        }
 
         Promise.all(
             files.map((file, index) =>
@@ -219,16 +219,16 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                     setIsLoaderVisible(true);
 
                     return Promise.all(otherFiles.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
-                        convertedImages.forEach((convertedFile, index) => {
+                        for (const [index, convertedFile] of convertedImages.entries()) {
                             updateFileOrderMapping(otherFiles.at(index), convertedFile);
-                        });
+                        }
 
                         // Check if we need to resize images
                         if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                             return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
-                                processedFiles.forEach((resizedFile, index) => {
+                                for (const [index, resizedFile] of processedFiles.entries()) {
                                     updateFileOrderMapping(convertedImages.at(index), resizedFile);
-                                });
+                                }
                                 setIsLoaderVisible(false);
                                 return Promise.resolve({processedFiles, pdfsToLoad});
                             });
@@ -244,9 +244,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 if (otherFiles.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                     setIsLoaderVisible(true);
                     return Promise.all(otherFiles.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
-                        processedFiles.forEach((resizedFile, index) => {
+                        for (const [index, resizedFile] of processedFiles.entries()) {
                             updateFileOrderMapping(otherFiles.at(index), resizedFile);
-                        });
+                        }
                         setIsLoaderVisible(false);
                         return Promise.resolve({processedFiles, pdfsToLoad});
                     });
@@ -387,7 +387,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         if (!fileError) {
             return '';
         }
-        const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).reason;
+        const prompt = getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).reason;
         if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE || fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
             return (
                 <Text>
@@ -401,7 +401,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const ErrorModal = (
         <ConfirmModal
-            title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).title}
+            title={getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).title}
             onConfirm={onConfirmError}
             onCancel={hideModalAndReset}
             isVisible={isErrorModalVisible}

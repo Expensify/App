@@ -8,10 +8,10 @@ export default function useImportPlaidAccounts(policyID?: string) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
 
-    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
-    const plaidFeed = addNewCard?.data?.plaidConnectedFeed ?? assignCard?.data?.institutionId;
-    const plaidFeedName = addNewCard?.data?.plaidConnectedFeedName ?? assignCard?.data?.plaidConnectedFeedName;
-    const plaidAccounts = addNewCard?.data?.plaidAccounts ?? assignCard?.data?.plaidAccounts;
+    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
+    const plaidFeed = addNewCard?.data?.plaidConnectedFeed ?? assignCard?.cardToAssign?.institutionId;
+    const plaidFeedName = addNewCard?.data?.plaidConnectedFeedName ?? assignCard?.cardToAssign?.plaidConnectedFeedName;
+    const plaidAccounts = addNewCard?.data?.plaidAccounts ?? assignCard?.cardToAssign?.plaidAccounts;
     const country = addNewCard?.data?.selectedCountry;
     const statementPeriodEnd = addNewCard?.data?.statementPeriodEnd;
     const statementPeriodEndDay = addNewCard?.data?.statementPeriodEndDay;

@@ -1,4 +1,4 @@
-import type {VideoPlayer, VideoView} from 'expo-video';
+import type {Video} from 'expo-av';
 import type {RefObject} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
@@ -8,8 +8,10 @@ import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
-import {convertSecondsToTime} from '@components/VideoPlayer/utils';
+import {convertMillisecondsToTime} from '@components/VideoPlayer/utils';
+import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -27,10 +29,7 @@ type VideoPlayerControlsProps = {
     url: string;
 
     /** Ref for video player. */
-    videoPlayerRef: RefObject<VideoPlayer | null>;
-
-    /** Ref for video view component. */
-    videoViewRef: RefObject<VideoView | null>;
+    videoPlayerRef: RefObject<Video | null>;
 
     /** Is video playing. */
     isPlaying: boolean;
@@ -57,7 +56,6 @@ function VideoPlayerControls({
     position,
     url,
     videoPlayerRef,
-    videoViewRef,
     isPlaying,
     small = false,
     style,
@@ -66,9 +64,11 @@ function VideoPlayerControls({
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     reportID,
 }: VideoPlayerControlsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();
+    const {isFullScreenRef} = useFullScreenContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
@@ -77,22 +77,20 @@ function VideoPlayerControls({
     };
 
     const enterFullScreenMode = useCallback(() => {
+        // eslint-disable-next-line react-compiler/react-compiler
+        isFullScreenRef.current = true;
         updateCurrentURLAndReportID(url, reportID);
-        videoViewRef.current?.enterFullscreen();
-    }, [reportID, updateCurrentURLAndReportID, url, videoViewRef]);
+        videoPlayerRef.current?.presentFullscreenPlayer();
+    }, [isFullScreenRef, reportID, updateCurrentURLAndReportID, url, videoPlayerRef]);
 
     const seekPosition = useCallback(
         (newPosition: number) => {
-            if (!videoPlayerRef.current) {
-                return;
-            }
-            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
-            videoPlayerRef.current.currentTime = newPosition;
+            videoPlayerRef.current?.setStatusAsync({positionMillis: newPosition});
         },
         [videoPlayerRef],
     );
 
-    const durationFormatted = useMemo(() => convertSecondsToTime(duration), [duration]);
+    const durationFormatted = useMemo(() => convertMillisecondsToTime(duration), [duration]);
 
     return (
         <Animated.View
@@ -113,10 +111,11 @@ function VideoPlayerControls({
                             onPress={togglePlayCurrentVideo}
                             style={styles.mr2}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.PLAY_PAUSE_BUTTON}
                         />
                         {shouldShowTime && (
                             <View style={[styles.videoPlayerControlsRow]}>
-                                <Text style={[styles.videoPlayerText, styles.videoPlayerTimeComponentWidth]}>{convertSecondsToTime(position)}</Text>
+                                <Text style={[styles.videoPlayerText, styles.videoPlayerTimeComponentWidth]}>{convertMillisecondsToTime(position)}</Text>
                                 <Text style={[styles.videoPlayerText]}>/</Text>
                                 <Text style={[styles.videoPlayerText, styles.videoPlayerTimeComponentWidth]}>{durationFormatted}</Text>
                             </View>
@@ -130,12 +129,14 @@ function VideoPlayerControls({
                             onPress={enterFullScreenMode}
                             style={iconSpacing}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.FULLSCREEN_BUTTON}
                         />
                         <IconButton
-                            src={Expensicons.ThreeDots}
+                            src={icons.ThreeDots}
                             tooltipText={translate('common.more')}
                             onPress={showPopoverMenu}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MORE_BUTTON}
                         />
                     </View>
                 </View>
@@ -153,7 +154,5 @@ function VideoPlayerControls({
         </Animated.View>
     );
 }
-
-VideoPlayerControls.displayName = 'VideoPlayerControls';
 
 export default VideoPlayerControls;

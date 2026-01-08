@@ -24,11 +24,11 @@ function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
         return (
             Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
                 // Escape brackets when pasting a link, since unescaped [] can break Markdown link syntax
-                .replace(/&amp;#91;/g, '[')
-                .replace(/&amp;#93;/g, ']')
+                .replaceAll('&amp;#91;', '[')
+                .replaceAll('&amp;#93;', ']')
                 // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
-                .replace(/(<emoji[^>]*>)(?:<emoji[^>]*>)+/g, '$1')
-                .replace(/(<\/emoji[^>]*>)(?:<\/emoji[^>]*>)+/g, '$1')
+                .replaceAll(/(<emoji[^>]*>)(?:<emoji[^>]*>)+/g, '$1')
+                .replaceAll(/(<\/emoji[^>]*>)(?:<\/emoji[^>]*>)+/g, '$1')
         );
     }, [htmlParam]);
 
@@ -49,7 +49,7 @@ function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
 
     return onLinkPress ? (
         <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: true}}
+            defaultTextProps={{selectable: true, allowFontScaling: false}}
             renderersProps={renderersProps}
         >
             {htmlSource}
@@ -58,7 +58,5 @@ function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
         htmlSource
     );
 }
-
-RenderHTML.displayName = 'RenderHTML';
 
 export default RenderHTML;

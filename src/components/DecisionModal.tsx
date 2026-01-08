@@ -77,6 +77,4 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
     );
 }
 
-DecisionModal.displayName = 'DecisionModal';
-
 export default DecisionModal;

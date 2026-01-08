@@ -52,5 +52,4 @@ function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPick
     );
 }
 
-CountryPicker.displayName = 'CountryPicker';
 export default CountryPicker;

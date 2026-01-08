@@ -39,7 +39,7 @@ function prepareOnyxDataForMappingUpdate(
     mappingValue: boolean | SageIntacctMappingValue,
     oldMappingValue?: boolean | SageIntacctMappingValue,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -63,7 +63,7 @@ function prepareOnyxDataForMappingUpdate(
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -87,7 +87,7 @@ function prepareOnyxDataForMappingUpdate(
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -175,7 +175,7 @@ function UpdateSageIntacctTaxSolutionID(policyID: string | undefined, taxSolutio
     if (!policyID) {
         return;
     }
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -199,7 +199,7 @@ function UpdateSageIntacctTaxSolutionID(policyID: string | undefined, taxSolutio
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -223,7 +223,7 @@ function UpdateSageIntacctTaxSolutionID(policyID: string | undefined, taxSolutio
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -251,7 +251,7 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string | undefined, ena
     if (!policyID) {
         return;
     }
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -275,7 +275,7 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string | undefined, ena
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -299,7 +299,7 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string | undefined, ena
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -330,7 +330,7 @@ function prepareOnyxDataForUserDimensionUpdate(
     oldDimensionName: string,
     pendingAction: OnyxCommon.PendingAction,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -352,7 +352,7 @@ function prepareOnyxDataForUserDimensionUpdate(
 
     const pendingActionAfterFailure = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? pendingAction : null;
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -374,7 +374,7 @@ function prepareOnyxDataForUserDimensionUpdate(
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -447,7 +447,7 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Sag
     const exporterOptimisticData = settingName === CONST.SAGE_INTACCT_CONFIG.EXPORTER ? {exporter: settingValue} : {};
     const exporterErrorData = settingName === CONST.SAGE_INTACCT_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -472,7 +472,7 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Sag
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -497,7 +497,7 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Sag
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -638,7 +638,7 @@ function removeSageIntacctUserDimensionsByName(dimensions: SageIntacctDimension[
 }
 
 function prepareOnyxDataForConfigUpdate(policyID: string, settingName: keyof SageIntacctConnectionsConfig, settingValue: string | boolean | null, oldSettingValue?: string | boolean | null) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -660,7 +660,7 @@ function prepareOnyxDataForConfigUpdate(policyID: string, settingName: keyof Sag
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -682,7 +682,7 @@ function prepareOnyxDataForConfigUpdate(policyID: string, settingName: keyof Sag
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -707,7 +707,7 @@ function prepareOnyxDataForConfigUpdate(policyID: string, settingName: keyof Sag
 }
 
 function prepareOnyxDataForSyncUpdate(policyID: string, settingName: keyof Connections['intacct']['config']['sync'], settingValue: string | boolean, oldSettingValue?: string | boolean) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -731,7 +731,7 @@ function prepareOnyxDataForSyncUpdate(policyID: string, settingName: keyof Conne
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -755,7 +755,7 @@ function prepareOnyxDataForSyncUpdate(policyID: string, settingName: keyof Conne
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -780,7 +780,7 @@ function prepareOnyxDataForSyncUpdate(policyID: string, settingName: keyof Conne
 }
 
 function prepareOnyxDataForAutoSyncUpdate(policyID: string, settingName: keyof Connections['intacct']['config']['autoSync'], settingValue: boolean) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -804,7 +804,7 @@ function prepareOnyxDataForAutoSyncUpdate(policyID: string, settingName: keyof C
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -828,7 +828,7 @@ function prepareOnyxDataForAutoSyncUpdate(policyID: string, settingName: keyof C
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -929,7 +929,11 @@ function updateSageIntacctSyncReimbursementAccountID(policyID: string | undefine
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctEntity(policyID: string, entity: string, oldEntity: string) {
+function updateSageIntacctEntity(policyID: string | undefined, entity: string, oldEntity: string) {
+    if (!policyID) {
+        return;
+    }
+
     const parameters = {
         policyID,
         entity,

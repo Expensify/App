@@ -43,6 +43,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
         false,
         localeCompare,
+        formatPhoneNumber,
     );
     const shareDestination = useMemo(
         () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),
@@ -101,7 +102,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         }
 
         createTaskAndNavigate({
-            parentReportID: parentReport?.reportID,
+            parentReport,
             title: task.title,
             description: task?.description ?? '',
             assigneeEmail: task?.assignee ?? '',
@@ -119,7 +120,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={NewTaskPage.displayName}
+            testID="NewTaskPage"
         >
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
@@ -207,7 +208,5 @@ function NewTaskPage({route}: NewTaskPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewTaskPage.displayName = 'NewTaskPage';
 
 export default NewTaskPage;

@@ -16,6 +16,7 @@ import {
     renamePolicyTag,
     renamePolicyTagList,
     setPolicyRequiresTag,
+    setPolicyTagApprover,
     setPolicyTagGLCode,
     setPolicyTagsRequired,
     setWorkspaceTagEnabled,
@@ -452,13 +453,13 @@ describe('actions/Policy', () => {
                 callback: (val) => (optimisticPolicyTags = val),
             });
 
-            Object.keys(tagsToUpdate).forEach((key) => {
+            for (const key of Object.keys(tagsToUpdate)) {
                 const updatedTag = optimisticPolicyTags?.[tagListName]?.tags[key];
                 expect(updatedTag?.enabled).toBeFalsy();
                 expect(updatedTag?.errors).toBeFalsy();
                 expect(updatedTag?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                 expect(updatedTag?.pendingFields?.enabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-            });
+            }
 
             mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -470,12 +471,12 @@ describe('actions/Policy', () => {
                 callback: (val) => (successPolicyTags = val),
             });
 
-            Object.keys(tagsToUpdate).forEach((key) => {
+            for (const key of Object.keys(tagsToUpdate)) {
                 const updatedTag = successPolicyTags?.[tagListName]?.tags[key];
                 expect(updatedTag?.errors).toBeFalsy();
                 expect(updatedTag?.pendingAction).toBeFalsy();
                 expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
-            });
+            }
         });
 
         it('reset policy tag enable when api returns error', async () => {
@@ -512,12 +513,12 @@ describe('actions/Policy', () => {
                 callback: (val) => (failurePolicyTags = val),
             });
 
-            Object.keys(tagsToUpdate).forEach((key) => {
+            for (const key of Object.keys(tagsToUpdate)) {
                 const updatedTag = failurePolicyTags?.[tagListName]?.tags[key];
                 expect(updatedTag?.errors).toBeTruthy();
                 expect(updatedTag?.pendingAction).toBeFalsy();
                 expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
-            });
+            }
         });
 
         it('should work with data from useOnyx hook', async () => {
@@ -827,6 +828,84 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('SetPolicyTagApprover', () => {
+        it('should set approval rule when tag approval rule is not present', async () => {
+            // Given a policy
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+            const tagListName = 'Fake tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
+            const tagName = Object.keys(fakePolicyTags?.[tagListName]?.tags).at(0) ?? '';
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            setPolicyTagApprover(fakePolicy, tagName, 'admin@company.com');
+            await waitForBatchedUpdates();
+
+            // Then the approval rule should be created with the tag name
+            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+
+            expect(updatedPolicy?.rules?.approvalRules).toHaveLength(1);
+            expect(updatedPolicy?.rules?.approvalRules?.[0]?.applyWhen?.[0]?.value).toBe(tagName);
+            expect(updatedPolicy?.rules?.approvalRules?.[0]?.applyWhen?.[0]?.condition).toBe(CONST.POLICY.RULE_CONDITIONS.MATCHES);
+            expect(updatedPolicy?.rules?.approvalRules?.[0]?.applyWhen?.[0]?.field).toBe(CONST.POLICY.FIELDS.TAG);
+            expect(updatedPolicy?.rules?.approvalRules?.[0]?.approver).toBe('admin@company.com');
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should update approval rule when tag approval rule is present', async () => {
+            // Given a policy with approval rules that reference a tag
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+            const tagListName = 'Fake tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
+            const tagName = Object.keys(fakePolicyTags?.[tagListName]?.tags).at(0) ?? '';
+
+            // Create approval rule that uses the tag
+            fakePolicy.rules = {
+                approvalRules: [
+                    {
+                        id: 'rule-1',
+                        applyWhen: [
+                            {
+                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                field: CONST.POLICY.FIELDS.TAG,
+                                value: tagName,
+                            },
+                        ],
+                        approver: 'admin2@company.com',
+                    },
+                ],
+            };
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            setPolicyTagApprover(fakePolicy, tagName, 'admin@company.com');
+            await waitForBatchedUpdates();
+
+            // Then the approval rule should be created with the tag name
+            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+
+            expect(updatedPolicy?.rules?.approvalRules).toHaveLength(1);
+            expect(updatedPolicy?.rules?.approvalRules?.[0]?.id).toBe('rule-1');
+            expect(updatedPolicy?.rules?.approvalRules?.[0]?.applyWhen?.[0]?.value).toBe(tagName);
+            expect(updatedPolicy?.rules?.approvalRules?.[0]?.applyWhen?.[0]?.condition).toBe(CONST.POLICY.RULE_CONDITIONS.MATCHES);
+            expect(updatedPolicy?.rules?.approvalRules?.[0]?.applyWhen?.[0]?.field).toBe(CONST.POLICY.FIELDS.TAG);
+            expect(updatedPolicy?.rules?.approvalRules?.[0]?.approver).toBe('admin@company.com');
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
     describe('DeletePolicyTags', () => {
         it('should not modify Onyx data when policyTags is empty', async () => {
             const fakePolicy = createRandomPolicy(0);
@@ -932,9 +1011,9 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatePolicyTags = val),
             });
 
-            tagsToDelete.forEach((tagName) => {
+            for (const tagName of tagsToDelete) {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            });
+            }
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -945,9 +1024,9 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatePolicyTags = val),
             });
 
-            tagsToDelete.forEach((tagName) => {
+            for (const tagName of tagsToDelete) {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
-            });
+            }
         });
 
         it('reset the deleted policy tag when api returns error', async () => {
@@ -980,10 +1059,10 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatePolicyTags = val),
             });
 
-            tagsToDelete.forEach((tagName) => {
+            for (const tagName of tagsToDelete) {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName].pendingAction).toBeFalsy();
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName].errors).toBeTruthy();
-            });
+            }
         });
 
         it('should work with data from useOnyx hook', async () => {
@@ -1009,9 +1088,9 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatePolicyTags = val),
             });
 
-            tagsToDelete.forEach((tagName) => {
+            for (const tagName of tagsToDelete) {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
-            });
+            }
         });
     });
 
@@ -1754,9 +1833,9 @@ describe('actions/Policy', () => {
             expect(policyData.current.policy?.pendingFields?.areTagsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
             // And all tags should be disabled
-            Object.keys(existingTags).forEach((tagName) => {
+            for (const tagName of Object.keys(existingTags)) {
                 expect(policyData.current?.tags?.[tagListName]?.tags[tagName]?.enabled).toBe(false);
-            });
+            }
 
             await mockFetch.resume();
 

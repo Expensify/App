@@ -68,7 +68,7 @@ function VisibilityPage({report}: VisibilityProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={VisibilityPage.displayName}
+            testID="VisibilityPage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableVisibility}>
                 <HeaderWithBackButton
@@ -113,7 +113,5 @@ function VisibilityPage({report}: VisibilityProps) {
         </ScreenWrapper>
     );
 }
-
-VisibilityPage.displayName = 'VisibilityPage';
 
 export default withReportOrNotFound()(VisibilityPage);

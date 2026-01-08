@@ -50,6 +50,4 @@ function TestDriveBanner({onPress}: TestDriveBannerProps) {
     );
 }
 
-TestDriveBanner.displayName = 'TestDriveBanner';
-
 export default TestDriveBanner;

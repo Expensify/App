@@ -38,20 +38,24 @@ jest.mock('react-native-keyboard-controller', () => ({
 }));
 
 const triggerKeyboardEvent = (event: string, data: SimplifiedKeyboardEvent = {}) => {
-    (mockKeyboardListeners[event] || []).forEach((handler) => handler(data));
+    for (const handler of mockKeyboardListeners[event] || []) {
+        handler(data);
+    }
 };
 
 const triggerKeyboardControllerEvent = (event: string, data: SimplifiedKeyboardEvent = {}) => {
-    (mockKeyboardControllerListeners[event] || []).forEach((handler) => handler(data));
+    for (const handler of mockKeyboardControllerListeners[event] || []) {
+        handler(data);
+    }
 };
 
 const clearListeners = () => {
-    Object.keys(mockKeyboardListeners).forEach((key) => {
+    for (const key of Object.keys(mockKeyboardListeners)) {
         mockKeyboardListeners[key] = [];
-    });
-    Object.keys(mockKeyboardControllerListeners).forEach((key) => {
+    }
+    for (const key of Object.keys(mockKeyboardControllerListeners)) {
         mockKeyboardControllerListeners[key] = [];
-    });
+    }
 };
 
 describe('Keyboard utils: Android', () => {

@@ -23,12 +23,10 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
-        with:
-          IS_DESKTOP_BUILD: true
 
       - name: Verify there's no Prettier diff
         run: |
-          npm run prettier -- --log-level silent
+          npm run prettier -- --log-level error
           if ! git diff --name-only --exit-code; then
             # shellcheck disable=SC2016
             echo 'Error: Prettier diff detected! Please run `npm run prettier` and commit the changes.'

@@ -1,16 +1,21 @@
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {DotIndicator} from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -29,7 +34,7 @@ import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isRepor
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isManagedCardTransaction as isCardTransactionUtils, isScanning} from '@libs/TransactionUtils';
+import {isManagedCardTransaction as isCardTransactionUtils, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -59,7 +64,9 @@ function TransactionPreviewContent({
     shouldShowPayerAndReceiver,
     navigateToReviewFields,
     isReviewDuplicateTransactionPage = false,
+    shouldHighlight = false,
 }: TransactionPreviewContentProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -72,13 +79,16 @@ function TransactionPreviewContent({
         [transaction, policy, isParentPolicyExpenseChat],
     );
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
 
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-
+    const currentUserDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserDetails.email ?? '';
+    const currentUserAccountID = currentUserDetails.accountID;
     const transactionPreviewCommonArguments = useMemo(
         () => ({
             iouReport: report,
@@ -97,8 +107,11 @@ function TransactionPreviewContent({
                 ...transactionPreviewCommonArguments,
                 areThereDuplicates,
                 isReportAPolicyExpenseChat,
+                currentUserEmail,
+                currentUserAccountID,
+                reportActions,
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
@@ -116,8 +129,11 @@ function TransactionPreviewContent({
                 shouldShowRBR,
                 violationMessage,
                 reportActions,
+                currentUserEmail,
+                currentUserAccountID,
+                originalTransaction,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserEmail, currentUserAccountID, originalTransaction],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
@@ -136,7 +152,8 @@ function TransactionPreviewContent({
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
-    const isIOUSettled = isSettled(report?.reportID);
+    const pendingAction = action?.pendingAction;
+    const isIOUSettled = !pendingAction && isSettled(report?.reportID);
     const isSettlementOrApprovalPartial = !!report?.pendingFields?.partial;
     const isTransactionScanning = isScanning(transaction);
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
@@ -207,10 +224,17 @@ function TransactionPreviewContent({
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
     const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
 
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        shouldHighlight,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.cardBG,
+        shouldApplyOtherStyles: false,
+    });
+
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
     return (
-        <View style={[transactionWrapperStyles, containerStyles]}>
+        <Animated.View style={[transactionWrapperStyles, containerStyles, animatedHighlightStyle]}>
             <OfflineWithFeedback
                 errors={walletTermsErrors}
                 onClose={() => offlineWithFeedbackOnClose}
@@ -221,13 +245,13 @@ function TransactionPreviewContent({
                 shouldDisableOpacity={isDeleted}
                 shouldHideOnDelete={shouldHideOnDelete}
             >
-                <View style={[(isTransactionScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius]]}>
+                <View style={[(isTransactionScanning || isWhisper) && [styles.reportPreviewBoxHoverBorderColor, styles.reportContainerBorderRadius]]}>
                     <ReportActionItemImages
                         images={receiptImages}
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isHovered={isHovered || isTransactionScanning}
                         size={1}
-                        shouldUseAspectRatio
+                        shouldUseAspectRatio={!isMapDistanceRequest(transaction)}
                     />
                     {shouldShowSkeleton ? (
                         <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
@@ -325,7 +349,7 @@ function TransactionPreviewContent({
                                                     ]}
                                                 >
                                                     <Icon
-                                                        src={Folder}
+                                                        src={icons.Folder}
                                                         height={variables.iconSizeExtraSmall}
                                                         width={variables.iconSizeExtraSmall}
                                                         fill={theme.icon}
@@ -341,7 +365,7 @@ function TransactionPreviewContent({
                                             {shouldShowTag && !!tag && (
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
                                                     <Icon
-                                                        src={Tag}
+                                                        src={icons.Tag}
                                                         height={variables.iconSizeExtraSmall}
                                                         width={variables.iconSizeExtraSmall}
                                                         fill={theme.icon}
@@ -386,10 +410,8 @@ function TransactionPreviewContent({
                     )}
                 </View>
             </OfflineWithFeedback>
-        </View>
+        </Animated.View>
     );
 }
-
-TransactionPreviewContent.displayName = 'TransactionPreviewContent';
 
 export default TransactionPreviewContent;

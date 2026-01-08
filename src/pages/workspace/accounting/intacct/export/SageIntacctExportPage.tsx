@@ -62,12 +62,12 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 ],
             },
         ],
-        [exportConfig, policyID, translate],
+        [exportConfig?.exporter, exportConfig?.exportDate, exportConfig?.reimbursable, exportConfig?.nonReimbursable, policyID, translate],
     );
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctExportPage.displayName}
+            displayName="SageIntacctExportPage"
             headerTitle="workspace.accounting.export"
             headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
             title="workspace.sageIntacct.exportDescription"
@@ -96,7 +96,5 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-SageIntacctExportPage.displayName = 'SageIntacctExportPage';
 
 export default withPolicyConnections(SageIntacctExportPage);

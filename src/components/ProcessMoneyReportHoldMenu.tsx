@@ -68,24 +68,35 @@ function ProcessMoneyReportHoldMenu({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
+    const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             if (startAnimation) {
                 startAnimation();
             }
-            approveMoneyRequest(moneyRequestReport, activePolicy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled, full);
+            approveMoneyRequest(
+                moneyRequestReport,
+                activePolicy,
+                currentUserDetails.accountID,
+                currentUserDetails.email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                moneyRequestReportNextStep,
+                full,
+            );
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full, activePolicy);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full, activePolicy, policy);
         }
         onClose();
     };
@@ -111,8 +122,6 @@ function ProcessMoneyReportHoldMenu({
         />
     );
 }
-
-ProcessMoneyReportHoldMenu.displayName = 'ProcessMoneyReportHoldMenu';
 
 export default ProcessMoneyReportHoldMenu;
 export type {ActionHandledType};

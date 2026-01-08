@@ -1,12 +1,13 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useMemo, useState} from 'react';
-import {CheckSquare} from '@components/Icon/Expensicons';
+import React, {useMemo, useState} from 'react';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionListWithSections/types';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -17,21 +18,20 @@ type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TI
     turnOnSelectionModeOnLongPress?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
     isScreenFocused?: boolean;
+    ref?: ForwardedRef<SelectionListHandle>;
 };
 
-function SelectionListWithModal<TItem extends ListItem>(
-    {
-        turnOnSelectionModeOnLongPress,
-        onTurnOnSelectionMode,
-        onLongPressRow,
-        isScreenFocused = false,
-        sections,
-        isSelected,
-        selectedItems: selectedItemsProp,
-        ...rest
-    }: SelectionListWithModalProps<TItem>,
-    ref: ForwardedRef<SelectionListHandle>,
-) {
+function SelectionListWithModal<TItem extends ListItem>({
+    turnOnSelectionModeOnLongPress,
+    onTurnOnSelectionMode,
+    onLongPressRow,
+    isScreenFocused = false,
+    sections,
+    isSelected,
+    selectedItems: selectedItemsProp,
+    ref,
+    ...rest
+}: SelectionListWithModalProps<TItem>) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
@@ -40,6 +40,7 @@ function SelectionListWithModal<TItem extends ListItem>(
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
@@ -106,7 +107,7 @@ function SelectionListWithModal<TItem extends ListItem>(
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={CheckSquare}
+                    icon={icons.CheckSquare}
                     onPress={turnOnSelectionMode}
                     pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
                 />
@@ -116,4 +117,4 @@ function SelectionListWithModal<TItem extends ListItem>(
 }
 
 export type {SelectionListWithModalProps};
-export default forwardRef(SelectionListWithModal);
+export default SelectionListWithModal;

@@ -1,5 +1,5 @@
 import {Keyboard} from 'react-native';
-import {isMobile} from '@libs/Browser';
+import {isMobile, isMobileSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 
 let isVisible = false;
@@ -27,13 +27,19 @@ const handleResize = () => {
     // and smaller overlays like offline indicators on Android. Height differences > 152px reliably indicate keyboard visibility.
     isVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
 
-    keyboardVisibilityChangeListenersSet.forEach((cb) => cb(isVisible));
+    for (const cb of keyboardVisibilityChangeListenersSet) {
+        cb(isVisible);
+    }
 };
 
 window.visualViewport?.addEventListener('resize', handleResize);
 
-const dismiss = (): Promise<void> => {
+const dismiss = (shouldSkipSafari = false): Promise<void> => {
     return new Promise((resolve) => {
+        if (shouldSkipSafari && isMobileSafari()) {
+            resolve();
+            return;
+        }
         if (!isVisible || !isMobile()) {
             resolve();
             return;

@@ -55,7 +55,7 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
 
     return (
         <SelectionScreen
-            displayName={NetSuiteVendorBillApprovalLevelSelectPage.displayName}
+            displayName="NetSuiteVendorBillApprovalLevelSelectPage"
             title="workspace.netsuite.advancedConfig.exportVendorBillsTo.label"
             headerContent={headerContent}
             sections={[{data}]}
@@ -78,7 +78,5 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
         />
     );
 }
-
-NetSuiteVendorBillApprovalLevelSelectPage.displayName = 'NetSuiteVendorBillApprovalLevelSelectPage';
 
 export default withPolicyConnections(NetSuiteVendorBillApprovalLevelSelectPage);

@@ -54,7 +54,7 @@ const useEmojiPickerMenu = () => {
 
             return [normalizedSearchTerm, emojisSuggestions] as const;
         },
-        [allEmojis, preferredLocale],
+        [allEmojis.length, preferredLocale],
     );
 
     return {

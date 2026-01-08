@@ -107,7 +107,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
     const handlePastePlainText = useCallback(
         (event: ClipboardEvent) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const clipboardText = event.clipboardData?.getData('text/plain')?.trim() || event.clipboardData?.getData('text/uri-list')?.trim();
+            const clipboardText = event.clipboardData?.getData('text/plain') || event.clipboardData?.getData('text/uri-list');
             if (!clipboardText) {
                 return;
             }

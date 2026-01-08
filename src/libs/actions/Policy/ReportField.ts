@@ -135,9 +135,9 @@ function renameReportFieldsListValue({valueIndex, newValueName, listValues}: Ren
 function setReportFieldsListValueEnabled({valueIndexes, enabled, disabledListValues}: SetReportFieldsListValueEnabledParams) {
     const disabledListValuesCopy = [...disabledListValues];
 
-    valueIndexes.forEach((valueIndex) => {
+    for (const valueIndex of valueIndexes) {
         disabledListValuesCopy[valueIndex] = !enabled;
-    });
+    }
 
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.DISABLED_LIST_VALUES]: disabledListValuesCopy,
@@ -151,12 +151,10 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
     const listValuesCopy = [...listValues];
     const disabledListValuesCopy = [...disabledListValues];
 
-    valueIndexes
-        .sort((a, b) => b - a)
-        .forEach((valueIndex) => {
-            listValuesCopy.splice(valueIndex, 1);
-            disabledListValuesCopy.splice(valueIndex, 1);
-        });
+    for (const valueIndex of valueIndexes.sort((a, b) => b - a)) {
+        listValuesCopy.splice(valueIndex, 1);
+        disabledListValuesCopy.splice(valueIndex, 1);
+    }
 
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.LIST_VALUES]: listValuesCopy,
@@ -418,14 +416,14 @@ function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes,
 
     const updatedReportField = cloneDeep(reportField);
 
-    valueIndexes.forEach((valueIndex) => {
+    for (const valueIndex of valueIndexes) {
         updatedReportField.disabledOptions[valueIndex] = !enabled;
         const shouldResetDefaultValue = !enabled && reportField.defaultValue === reportField.values.at(valueIndex);
 
         if (shouldResetDefaultValue) {
             updatedReportField.defaultValue = '';
         }
-    });
+    }
 
     // We are using the offline pattern A (optimistic without feedback)
     const onyxData: OnyxData = {
@@ -504,18 +502,16 @@ function removeReportFieldListValue({policy, reportFieldID, valueIndexes}: Remov
     const reportField = previousFieldList[reportFieldKey];
     const updatedReportField = cloneDeep(reportField);
 
-    valueIndexes
-        .sort((a, b) => b - a)
-        .forEach((valueIndex) => {
-            const shouldResetDefaultValue = reportField.defaultValue === reportField.values.at(valueIndex);
+    for (const valueIndex of valueIndexes.sort((a, b) => b - a)) {
+        const shouldResetDefaultValue = reportField.defaultValue === reportField.values.at(valueIndex);
 
-            if (shouldResetDefaultValue) {
-                updatedReportField.defaultValue = '';
-            }
+        if (shouldResetDefaultValue) {
+            updatedReportField.defaultValue = '';
+        }
 
-            updatedReportField.values.splice(valueIndex, 1);
-            updatedReportField.disabledOptions.splice(valueIndex, 1);
-        });
+        updatedReportField.values.splice(valueIndex, 1);
+        updatedReportField.disabledOptions.splice(valueIndex, 1);
+    }
 
     // We are using the offline pattern A (optimistic without feedback)
     const onyxData: OnyxData = {

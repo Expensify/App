@@ -86,6 +86,4 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
     );
 }
 
-CountrySelector.displayName = 'CountrySelector';
-
 export default CountrySelector;

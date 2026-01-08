@@ -90,7 +90,7 @@ const charMap: Record<string, string> = {
  * @returns the sanitized text
  */
 function sanitizeConsoleInput(text: string): string {
-    return text.replace(charsToSanitize, (match) => charMap[match]);
+    return text.replaceAll(charsToSanitize, (match) => charMap[match]);
 }
 
 /**

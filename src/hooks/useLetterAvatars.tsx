@@ -43,7 +43,7 @@ function useLetterAvatars(name: string | undefined, size?: AvatarSizeName): Lett
         const avatarList: LetterAvatarItem[] = [];
         const avatarMap: Record<string, React.FC<SvgProps>> = {};
 
-        LETTER_AVATAR_COLOR_OPTIONS.forEach(({fillColor, backgroundColor}) => {
+        for (const {fillColor, backgroundColor} of LETTER_AVATAR_COLOR_OPTIONS) {
             function StyledLetterAvatar() {
                 return (
                     <ColoredLetterAvatar
@@ -63,7 +63,7 @@ function useLetterAvatars(name: string | undefined, size?: AvatarSizeName): Lett
             });
 
             avatarMap[id] = StyledLetterAvatar;
-        });
+        }
 
         return {
             avatarList,

@@ -62,7 +62,7 @@ function CloseAccountPage() {
      * @param phoneOrEmail - The input string to be sanitized.
      * @returns The sanitized string
      */
-    const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
+    const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replaceAll(/\s+/g, '').toLowerCase();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
@@ -95,7 +95,7 @@ function CloseAccountPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={CloseAccountPage.displayName}
+            testID="CloseAccountPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
                 <HeaderWithBackButton
@@ -159,7 +159,5 @@ function CloseAccountPage() {
         </ScreenWrapper>
     );
 }
-
-CloseAccountPage.displayName = 'CloseAccountPage';
 
 export default CloseAccountPage;

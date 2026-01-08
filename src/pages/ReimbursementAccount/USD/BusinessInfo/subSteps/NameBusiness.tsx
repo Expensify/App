@@ -67,6 +67,4 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-NameBusiness.displayName = 'NameBusiness';
-
 export default NameBusiness;

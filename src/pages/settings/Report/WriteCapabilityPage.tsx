@@ -49,7 +49,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={WriteCapabilityPage.displayName}
+            testID="WriteCapabilityPage"
         >
             <FullPageNotFoundView shouldShow={!isAbleToEdit}>
                 <HeaderWithBackButton
@@ -68,7 +68,5 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
         </ScreenWrapper>
     );
 }
-
-WriteCapabilityPage.displayName = 'WriteCapabilityPage';
 
 export default withReportOrNotFound()(WriteCapabilityPage);

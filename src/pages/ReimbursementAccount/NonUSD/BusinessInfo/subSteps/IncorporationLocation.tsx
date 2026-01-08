@@ -124,6 +124,4 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
     );
 }
 
-IncorporationLocation.displayName = 'IncorporationLocation';
-
 export default IncorporationLocation;

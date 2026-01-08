@@ -49,14 +49,15 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                 return acc;
             }
 
-            Object.entries(feed.settings.companyCards).forEach(([key, feedSettings]) => {
+            for (const [key, feedSettings] of Object.entries(feed.settings.companyCards)) {
                 const feedName = key as CompanyCardFeed;
                 const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
                 const feedCompanyCardNickname = feed.settings.companyCardNicknames?.[feedName];
                 const domainID = onyxKey.split('_').at(-1);
+                const shouldAddFeed = domainID && (feedSettings.preferredPolicy ? feedSettings.preferredPolicy === policyID : domainID === workspaceAccountID.toString());
 
-                if (feedSettings.preferredPolicy !== policyID || !domainID) {
-                    return;
+                if (!shouldAddFeed) {
+                    continue;
                 }
 
                 const combinedFeedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
@@ -68,11 +69,11 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                     domainID: Number(domainID),
                     feed: feedName,
                 };
-            });
+            }
 
             return acc;
         }, result);
-    }, [allFeeds, policyID]);
+    }, [allFeeds, policyID, workspaceAccountID]);
 
     return [workspaceFeeds, allFeedsResult, defaultFeed];
 };

@@ -1,7 +1,6 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
-
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
@@ -11,12 +10,14 @@ import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
@@ -71,6 +72,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
     const instanceIDRef = useRef('');
+    const {email} = useCurrentUserPersonalDetails();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
@@ -334,6 +336,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
+    const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
     useEffect(() => {
         if (!originalReport) {
             return;
@@ -363,7 +366,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID);
+            deleteAppReport(reportAction.childReportID, email ?? '', reportTransactions, violations);
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
@@ -384,6 +387,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         deleteTransactions,
         currentSearchHash,
         isOriginalReportArchived,
+        email,
+        reportTransactions,
+        violations,
     ]);
 
     const hideDeleteModal = () => {
@@ -478,7 +484,5 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         </>
     );
 }
-
-PopoverReportActionContextMenu.displayName = 'PopoverReportActionContextMenu';
 
 export default PopoverReportActionContextMenu;

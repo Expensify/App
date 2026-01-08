@@ -1,5 +1,4 @@
 // this file is for testing which methods should not be exported so it is not possible to use named imports - that's why we need to disable the no-restricted-syntax rule
-
 /* eslint-disable no-restricted-syntax */
 import * as IOU from '@libs/actions/IOU';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -18,9 +17,9 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getReport).toBeUndefined();
     });
 
-    it('does not export isOneTransactionReport', () => {
+    it('does not export isOneTransactionReportDeprecated', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.isOneTransactionReport).toBeUndefined();
+        expect(ReportUtils.isOneTransactionReportDeprecated).toBeUndefined();
     });
 
     it('does not export getPolicy', () => {

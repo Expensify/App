@@ -152,6 +152,4 @@ function SMSDeliveryFailurePage() {
     );
 }
 
-SMSDeliveryFailurePage.displayName = 'SMSDeliveryFailurePage';
-
 export default SMSDeliveryFailurePage;

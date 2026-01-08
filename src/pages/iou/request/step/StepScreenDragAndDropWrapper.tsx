@@ -61,6 +61,4 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
     );
 }
 
-StepScreenDragAndDropWrapper.displayName = 'StepScreenDragAndDropWrapper';
-
 export default StepScreenDragAndDropWrapper;

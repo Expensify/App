@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
-import type {BeneficialOwnerDataKey, SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {BeneficialOwnerDataKey} from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SafeString from '@src/utils/SafeString';
 
@@ -26,44 +26,44 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
     const signerDetails: Record<string, string | boolean | FileObject[]> = {};
     const signerFiles: Record<string, string | FileObject | boolean> = {};
 
-    signerDetailsFields.forEach((fieldName: keyof SignerInfoStepProps) => {
+    for (const fieldName of signerDetailsFields) {
         if (fieldName === EMAIL) {
             signerDetails[fieldName] = signerEmail;
-            return;
+            continue;
         }
 
         if (!reimbursementAccountDraft?.[fieldName]) {
-            return;
+            continue;
         }
 
         if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE) {
             signerDetails[ADDRESS] = signerDetails[ADDRESS]
                 ? `${SafeString(signerDetails[ADDRESS])}, ${SafeString(reimbursementAccountDraft?.[fieldName])}`
                 : reimbursementAccountDraft?.[fieldName];
-            return;
+            continue;
         }
 
         signerDetails[fieldName] = reimbursementAccountDraft?.[fieldName];
-    });
+    }
 
     if (isUserBeneficialOwner) {
         signerDetails[FULL_NAME] = '';
         signerDetails[DATE_OF_BIRTH] = '';
         signerDetails[ADDRESS] = '';
 
-        beneficialOwnerFields.forEach((fieldName) => {
+        for (const fieldName of beneficialOwnerFields) {
             const beneficialFieldKey: BeneficialOwnerDataKey = `${BENEFICIAL_PREFIX}_${CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY}_${fieldName}`;
 
             if (fieldName === FIRST_NAME || fieldName === LAST_NAME) {
                 signerDetails[FULL_NAME] = signerDetails[FULL_NAME]
                     ? `${SafeString(signerDetails[FULL_NAME])} ${SafeString(reimbursementAccountDraft?.[beneficialFieldKey])}`
                     : SafeString(reimbursementAccountDraft?.[beneficialFieldKey]);
-                return;
+                continue;
             }
 
             if (fieldName === DOB) {
                 signerDetails[DATE_OF_BIRTH] = SafeString(reimbursementAccountDraft?.[beneficialFieldKey]);
-                return;
+                continue;
             }
 
             if (fieldName === BENEFICIAL_STREET || fieldName === BENEFICIAL_CITY || fieldName === BENEFICIAL_STATE || fieldName === BENEFICIAL_ZIP_CODE) {
@@ -71,17 +71,17 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
                     ? `${SafeString(signerDetails[ADDRESS])}, ${SafeString(reimbursementAccountDraft?.[beneficialFieldKey])}`
                     : SafeString(reimbursementAccountDraft?.[beneficialFieldKey]);
             }
-        });
+        }
     }
 
-    signerFilesFields.forEach((fieldName) => {
+    for (const fieldName of signerFilesFields) {
         if (!reimbursementAccountDraft?.[fieldName]) {
-            return;
+            continue;
         }
 
         // eslint-disable-next-line rulesdir/prefer-at
         signerFiles[fieldName] = reimbursementAccountDraft?.[fieldName][0];
-    });
+    }
 
     return {signerDetails, signerFiles};
 }

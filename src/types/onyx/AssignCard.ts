@@ -3,12 +3,16 @@ import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {CompanyCardFeed} from './CardFeeds';
+import type PersonalDetails from './PersonalDetails';
 
 /** Assign card flow steps */
 type AssignCardStep = ValueOf<typeof CONST.COMPANY_CARD.STEP>;
 
 /** Data required to be sent to issue a new card */
 type AssignCardData = {
+    /** The cardholder personal details */
+    cardholder?: PersonalDetails;
+
     /** The email address of the assignee */
     email: string;
 
@@ -41,6 +45,12 @@ type AssignCardData = {
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
+
+    /** The email address of the inviting member */
+    invitingMemberEmail: string;
+
+    /** The accountID of the inviting member */
+    invitingMemberAccountID: number;
 };
 
 /** Model of assign card flow */
@@ -49,13 +59,13 @@ type AssignCard = {
     currentStep: AssignCardStep;
 
     /** Data required to be sent to assign a card */
-    data: Partial<AssignCardData>;
+    cardToAssign: Partial<AssignCardData>;
 
     /** Whether the user is editing step */
     isEditing: boolean;
 
-    /** Whether the card is successfully assigned */
-    isAssigned?: boolean;
+    /** Whether the assignment flow has finished */
+    isAssignmentFinished?: boolean;
 
     /** Whether the card is assigning */
     isAssigning?: boolean;

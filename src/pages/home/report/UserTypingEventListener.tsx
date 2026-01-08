@@ -76,11 +76,9 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             }
             interactionTask.cancel();
         };
-    }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route]);
+    }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route?.params?.reportID]);
 
     return null;
 }
-
-UserTypingEventListener.displayName = 'UserTypingEventListener';
 
 export default UserTypingEventListener;
