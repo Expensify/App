@@ -2,7 +2,12 @@ import type {ViewStyle} from 'react-native';
 import type {EmptyObject, ValueOf} from 'type-fest';
 import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type {MultifactorAuthenticationActionParams, MultifactorAuthenticationKeyInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {
+    AllMultifactorAuthenticationFactors,
+    MultifactorAuthenticationActionParams,
+    MultifactorAuthenticationKeyInfo,
+    MultifactorAuthenticationReason,
+} from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
@@ -102,6 +107,21 @@ type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationSc
 
 type MultifactorAuthenticationScenarioConfigRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig<never>>;
 
+type MultifactorAuthenticationScenarioAdditionalParams<T extends MultifactorAuthenticationScenario> = T extends keyof MultifactorAuthenticationScenarioPayload
+    ? MultifactorAuthenticationScenarioPayload[T]
+    : EmptyObject;
+
+type MultifactorAuthenticationScenarioParams<T extends MultifactorAuthenticationScenario> = Partial<AllMultifactorAuthenticationFactors> &
+    MultifactorAuthenticationScenarioAdditionalParams<T>;
+
+type MultifactorAuthenticationProcessScenarioParameters<T extends MultifactorAuthenticationScenario> = AllMultifactorAuthenticationFactors &
+    MultifactorAuthenticationScenarioAdditionalParams<T>;
+
+type MultifactorAuthenticationScenarioResponseWithSuccess = {
+    httpCode: number | undefined;
+    successful: boolean;
+};
+
 type RegisterBiometricsParams = MultifactorAuthenticationActionParams<
     {
         keyInfo: MultifactorAuthenticationKeyInfo<'biometric'>;
@@ -127,14 +147,18 @@ export type {
     MultifactorAuthenticationModal,
     MultifactorAuthenticationNotificationRecord,
     MultifactorAuthenticationNotificationMap,
+    MultifactorAuthenticationScenarioResponseWithSuccess,
     MultifactorAuthenticationScenarioResponse,
+    MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParameters,
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationNotificationOptions,
+    MultifactorAuthenticationScenarioParams,
     AllMultifactorAuthenticationNotificationType,
     MultifactorAuthenticationScenarioConfig,
     MultifactorAuthenticationUI,
     MultifactorAuthenticationScenarioConfigRecord,
+    MultifactorAuthenticationProcessScenarioParameters,
     MultifactorAuthenticationDefaultUIConfig,
     MultifactorAuthenticationScenarioCustomConfig,
 };

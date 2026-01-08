@@ -1,3 +1,4 @@
+import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
@@ -49,8 +50,12 @@ const getNotificationPaths = (scenario: MultifactorAuthenticationScenario | unde
     };
 };
 
+async function resetKeys(accountID: number) {
+    await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
+}
+
 const Status = {
     createEmptyStatus,
 } as const;
 
-export {getAuthTypeName, getNotificationPaths, isValidScenario, shouldClearScenario, Status};
+export {getAuthTypeName, getNotificationPaths, isValidScenario, shouldClearScenario, resetKeys, Status};

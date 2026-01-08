@@ -77,6 +77,8 @@ type MultifactorAuthenticationStep = {
 
 type MultifactorAuthenticationResponseMap = typeof VALUES.API_RESPONSE_MAP;
 
+type MultifactorAuthenticationKeyType = ValueOf<typeof VALUES.KEY_ALIASES>;
+
 type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationFactors> = T & Pick<AllMultifactorAuthenticationFactors, R>;
 
 type KeyInfoType = 'biometric' | 'public-key';
@@ -98,14 +100,20 @@ type MultifactorAuthenticationKeyInfo<T extends KeyInfoType> = {
     response: ResponseDetails<T>;
 };
 
+type MultifactorKeyStoreOptions = {
+    nativePromptTitle?: string;
+};
+
 export type {
     MultifactorAuthenticationFactor,
     MultifactorAuthenticationStep,
     MultifactorAuthenticationResponseMap,
+    MultifactorAuthenticationKeyType,
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationPartialStatus,
     MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationActionParams,
+    MultifactorKeyStoreOptions,
     MultifactorAuthenticationReason,
 };
