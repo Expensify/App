@@ -26,8 +26,6 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
 
     const domainAccountID = route.params.domainAccountID;
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
-    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
-    const domainSecurityGroupID = domainName ? myDomainSecurityGroups?.[domainName] : null;
 
     const domainSuffix = domainName ? `@${domainName}` : '';
 
@@ -72,10 +70,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     };
 
     const inviteUser = () => {
-        if (!domainSecurityGroupID) {
-            return;
-        }
-        addMemberToDomain(domainAccountID, email, domainSecurityGroupID);
+        addMemberToDomain(domainAccountID, email);
         Navigation.dismissModal();
     };
 

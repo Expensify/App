@@ -650,8 +650,8 @@ function clearAddAdminError(domainAccountID: number, accountID: number) {
     });
 }
 
-function addMemberToDomain(domainAccountID: number, targetEmail: string, defaultSecurityGroupID: string) {
-    const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
+function addMemberToDomain(domainAccountID: number, targetEmail: string) {
+    const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
     const optimisticAccountID = generateAccountID(targetEmail);
 
     const optimisticData: OnyxUpdate[] = [
@@ -791,7 +791,6 @@ function addMemberToDomain(domainAccountID: number, targetEmail: string, default
         authToken,
         emailList: [targetEmail],
         domainAccountID,
-        defaultSecurityGroupID,
     };
     API.write(WRITE_COMMANDS.ADD_DOMAIN_MEMBER, params, {optimisticData, successData, failureData});
 }
