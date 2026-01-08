@@ -328,7 +328,7 @@ type SearchTypeMenuItem = {
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
     similarSearchHash: number;
-    count?: number;
+    badgeText?: string;
     emptyState?: {
         title: TranslationPaths;
         subtitle: TranslationPaths;
@@ -2762,7 +2762,7 @@ function createTypeMenuSections(
             const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
-                count: todoReports.reportsToSubmit.length,
+                badgeText: todoReports.reportsToSubmit.length > 50 ? '50+' : todoReports.reportsToSubmit.length.toString(),
                 emptyState: {
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
@@ -2791,7 +2791,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.APPROVE]) {
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
-                count: todoReports.reportsToApprove.length,
+                badgeText: todoReports.reportsToApprove.length > 50 ? '50+' : todoReports.reportsToApprove.length.toString(),
                 emptyState: {
                     title: 'search.searchResults.emptyApproveResults.title',
                     subtitle: 'search.searchResults.emptyApproveResults.subtitle',
@@ -2801,7 +2801,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
-                count: todoReports.reportsToPay.length,
+                badgeText: todoReports.reportsToPay.length > 50 ? '50+' : todoReports.reportsToPay.length.toString(),
                 emptyState: {
                     title: 'search.searchResults.emptyPayResults.title',
                     subtitle: 'search.searchResults.emptyPayResults.subtitle',
@@ -2811,7 +2811,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
-                count: todoReports.reportsToExport.length,
+                badgeText: todoReports.reportsToExport.length > 50 ? '50+' : todoReports.reportsToExport.length.toString(),
                 emptyState: {
                     title: 'search.searchResults.emptyExportResults.title',
                     subtitle: 'search.searchResults.emptyExportResults.subtitle',

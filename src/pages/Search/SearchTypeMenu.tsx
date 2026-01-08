@@ -261,11 +261,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                                             });
 
-                                            let badgeText: string | undefined;
-                                            if (item.count) {
-                                                badgeText = item.count > 50 ? '50+' : item.count.toString();
-                                            }
-
                                             return (
                                                 <MenuItem
                                                     key={item.key}
@@ -276,7 +271,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     iconWidth={variables.iconSizeNormal}
                                                     iconHeight={variables.iconSizeNormal}
                                                     wrapperStyle={styles.sectionMenuItem}
-                                                    badgeText={badgeText}
+                                                    badgeText={item.badgeText}
                                                     focused={focused}
                                                     onPress={onPress}
                                                     shouldIconUseAutoWidthStyle
