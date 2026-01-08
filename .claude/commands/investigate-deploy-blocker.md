@@ -1,9 +1,9 @@
 ---
-allowed-tools: Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Glob,Grep,Read
+allowed-tools: Bash(gh issue view:*),Bash(gh issue edit:* --remove-label DeployBlocker),Bash(gh issue edit:* --remove-label DeployBlockerCash),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Glob,Grep,Read
 description: Investigate a deploy blocker issue to find the causing PR and recommend resolution
 ---
 
-Investigate deploy blocker issue #$ISSUE_NUMBER using the `deploy-blocker-investigator` agent.
+Investigate the deploy blocker issue at $ISSUE_URL using the `deploy-blocker-investigator` agent.
 
 The agent will:
 - Analyze the issue to determine if it's a frontend (App) or backend bug
