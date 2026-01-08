@@ -56,29 +56,31 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
-            corpayFields?.formFields?.forEach((field) => {
-                const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
+            if (corpayFields?.formFields) {
+                for (const field of corpayFields.formFields) {
+                    const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
 
-                if (field.isRequired && !values[fieldID]) {
-                    errors[fieldID] = translate('common.error.fieldRequired');
+                    if (field.isRequired && !values[fieldID]) {
+                        errors[fieldID] = translate('common.error.fieldRequired');
+                    }
+
+                    for (const rule of field.validationRules) {
+                        if (!rule.regEx) {
+                            continue;
+                        }
+
+                        if (new RegExp(rule.regEx).test(SafeString(values[fieldID]))) {
+                            continue;
+                        }
+
+                        errors[fieldID] = rule.errorMessage;
+                    }
                 }
-
-                field.validationRules.forEach((rule) => {
-                    if (!rule.regEx) {
-                        return;
-                    }
-
-                    if (new RegExp(rule.regEx).test(SafeString(values[fieldID]))) {
-                        return;
-                    }
-
-                    errors[fieldID] = rule.errorMessage;
-                });
-            });
+            }
 
             return errors;
         },
-        [corpayFields, translate],
+        [corpayFields?.formFields, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -112,6 +114,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                             city: 'bankCity',
                             country: '',
                         }}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 </View>
             );
@@ -144,7 +147,5 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         </FormProvider>
     );
 }
-
-BankAccountDetails.displayName = 'BankAccountDetails';
 
 export default BankAccountDetails;

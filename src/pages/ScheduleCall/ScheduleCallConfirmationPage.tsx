@@ -52,7 +52,7 @@ function ScheduleCallConfirmationPage() {
             currentUserPersonalDetails,
             userTimezone,
         );
-    }, [currentUserPersonalDetails, scheduleCallDraft, userTimezone]);
+    }, [currentUserPersonalDetails, scheduleCallDraft?.timeSlot, scheduleCallDraft?.date, scheduleCallDraft?.guide, scheduleCallDraft?.reportID, userTimezone]);
 
     const guideDetails: PersonalDetails | null = useMemo(
         () =>
@@ -96,7 +96,7 @@ function ScheduleCallConfirmationPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={ScheduleCallConfirmationPage.displayName}
+            testID="ScheduleCallConfirmationPage"
         >
             <HeaderWithBackButton
                 title={translate('scheduledCall.confirmation.title')}
@@ -151,7 +151,5 @@ function ScheduleCallConfirmationPage() {
         </ScreenWrapper>
     );
 }
-
-ScheduleCallConfirmationPage.displayName = 'ScheduleCallConfirmationPage';
 
 export default ScheduleCallConfirmationPage;

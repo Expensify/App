@@ -3,10 +3,11 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -27,11 +28,12 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
-
+    const icons = useMemoizedLazyExpensifyIcons(['Bell']);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const signerEmail = reimbursementAccount?.achData?.corpay?.signerEmail;
     const secondSignerEmail = reimbursementAccount?.achData?.corpay?.secondSignerEmail;
     const error = getLatestErrorMessage(reimbursementAccount);
+    const {asset: Pillow} = useMemoizedLazyAsset(() => loadIllustration('Pillow' as IllustrationName));
 
     const handleSendReminder = () => {
         if (!signerEmail || !policyID) {
@@ -54,7 +56,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
         return () => {
             clearReimbursementAccountSendReminderForCorpaySignerInformation();
         };
-    }, [reimbursementAccount]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSendingReminderForCorpaySignerInformation, reimbursementAccount?.isSuccess]);
 
     return (
         <ScrollView
@@ -66,7 +68,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
                     <Icon
                         width={144}
                         height={132}
-                        src={Illustrations.Pillow}
+                        src={Pillow}
                     />
                 </View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3, styles.mt5]}>{translate('signerInfoStep.hangTight')}</Text>
@@ -85,7 +87,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
                     style={[styles.w100]}
                     onPress={handleSendReminder}
                     large
-                    icon={reimbursementAccount?.isSendingReminderForCorpaySignerInformation ? undefined : Expensicons.Bell}
+                    icon={reimbursementAccount?.isSendingReminderForCorpaySignerInformation ? undefined : icons.Bell}
                     text={translate('signerInfoStep.sendReminder')}
                     isLoading={reimbursementAccount?.isSendingReminderForCorpaySignerInformation}
                 />
@@ -93,7 +95,5 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
         </ScrollView>
     );
 }
-
-HangTight.displayName = 'HangTight';
 
 export default HangTight;

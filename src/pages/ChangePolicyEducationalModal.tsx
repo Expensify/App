@@ -1,8 +1,8 @@
 import React, {useCallback} from 'react';
 import ChangeWorkspaceMenuSectionList from '@components/ChangeWorkspaceMenuSectionList';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import * as Illustrations from '@components/Icon/Illustrations';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +15,7 @@ function ChangePolicyEducationalModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['ReceiptFairy']);
 
     const onConfirm = useCallback(() => {
         dismissChangePolicyModal();
@@ -27,7 +28,7 @@ function ChangePolicyEducationalModal() {
             title={translate('iou.changePolicyEducational.title')}
             description={translate('iou.changePolicyEducational.description')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.ReceiptFairy}
+            image={illustrations.ReceiptFairy}
             imageWidth={variables.changePolicyEducationModalIconWidth}
             imageHeight={variables.changePolicyEducationModalIconHeight}
             contentFitImage="cover"
@@ -39,12 +40,11 @@ function ChangePolicyEducationalModal() {
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
             onClose={onConfirm}
             onConfirm={onConfirm}
+            shouldUseScrollView
         >
             <ChangeWorkspaceMenuSectionList />
         </FeatureTrainingModal>
     );
 }
-
-ChangePolicyEducationalModal.displayName = 'ChangePolicyEducationalModal';
 
 export default ChangePolicyEducationalModal;

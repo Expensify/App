@@ -2,26 +2,13 @@
 
 ## Running the mobile application using Rock 🪨
 
-This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run android`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from GitHub. If a matching remote build isn’t available, it automatically falls back to building locally.
+This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run android`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from S3. If a matching remote build isn’t available, it automatically falls back to building locally.
 
 By storing complete native build artifacts remotely, Rock reduces the need for local compilation and simplifies setup through automated downloads.
 
 **Note:** Any changes to files involved in generating a fingerprint (e.g., `package.json`) will trigger a local build.
 
 The following steps describe how to configure the project to fully utilize Rock.
-
-### Generating GitHub Personal Access Token
-
-To take advantage of remote builds, setup your GitHub Personal Access Token (PAT) in your `.env` file:
-
-1. Create a GitHub Personal Access Token:
-   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
-   - Click "Generate new token (classic)"
-   - Select the following scope:
-     - `repo`
-   - Copy the generated token
-
-2. Add `GITHUB_TOKEN` to `.env` file with your generated token
 
 ### Running the mobile application 📱
 * To install project dependencies run: `npm install`
@@ -71,6 +58,13 @@ If you haven't done any intentional edits outside of `src/` (like adding new dep
 
 2. **React Native Environment Setup**
    - Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
+
+3. **ccache Setup (Optional)**
+   - The Android project can utilize [ccache](https://ccache.dev/) to significantly reduce compilation times. Since C/C++ code doesn't change as frequently, ccache can cache compilation results and reuse them across builds.
+   - Install ccache via Homebrew: `brew install ccache`
+   - Once installed, the build system will automatically detect and use ccache when available.
+   - To view cumulative statistics on cache usage, run: `ccache --show-stats`
+   - **Note:** If you encounter any issues with the ccache cache, our clean command (via Rock CLI) will automatically clean the ccache directory as well.
 
 ## Running the Android App
 

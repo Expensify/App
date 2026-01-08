@@ -20,5 +20,4 @@ function NetSuiteMenuWithTopDescriptionForm({value, valueRenderer, ...props}: Ne
     );
 }
 
-NetSuiteMenuWithTopDescriptionForm.displayName = 'NetSuiteMenuWithTopDescriptionForm';
 export default NetSuiteMenuWithTopDescriptionForm;

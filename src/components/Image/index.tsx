@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
@@ -101,7 +101,7 @@ function Image({
             return session.creationDate;
         }
         return undefined;
-    }, [session, isAuthTokenRequired, isAcceptedSession]);
+    }, [session?.creationDate, isAuthTokenRequired, isAcceptedSession]);
     useEffect(() => {
         if (!isAuthTokenRequired) {
             return;
@@ -157,7 +157,7 @@ function Image({
     }
     if (source === undefined) {
         return (
-            <FullScreenLoadingIndicator
+            <LoadingIndicator
                 iconSize={loadingIconSize}
                 style={loadingIndicatorStyles}
             />

@@ -1,8 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -23,6 +22,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
@@ -98,7 +98,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const {transactions: reportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportID);
     const hasPendingDeletionTransaction = Object.values(reportTransactions ?? {}).some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
+    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true), [reportTransactions, reportActions, isOffline]);
 
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
@@ -164,6 +164,11 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
+    // We need to cancel telemetry span when user leaves the screen before full report data is loaded
+    useEffect(() => {
+        return () => cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+    }, [reportID]);
+
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
@@ -179,7 +184,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     if (isLoadingApp) {
         return (
             <View style={styles.flex1}>
-                <HeaderGap />
                 <ReportHeaderSkeletonView />
                 <ReportActionsSkeletonView />
                 {shouldDisplayReportFooter ? (
@@ -201,6 +205,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     return (
         <View style={styles.flex1}>
             <OfflineWithFeedback
+                pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
+                errors={reportErrors}
+                needsOffscreenAlphaCompositing
+                shouldShowErrorMessages={false}
+            >
+                {reportHeaderView}
+            </OfflineWithFeedback>
+            <OfflineWithFeedback
                 pendingAction={reportPendingAction}
                 errors={reportErrors}
                 onClose={dismissReportCreationError}
@@ -209,8 +221,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 contentContainerStyle={styles.flex1}
                 errorRowStyles={[styles.ph5, styles.mv2]}
             >
-                <HeaderGap />
-                {reportHeaderView}
                 <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                     {shouldDisplayMoneyRequestActionsList ? (
                         <MoneyRequestReportActionsList
@@ -224,6 +234,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
                             showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
+                            reportPendingAction={reportPendingAction}
                         />
                     ) : (
                         <ReportActionsView
@@ -257,7 +268,5 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         </View>
     );
 }
-
-MoneyRequestReportView.displayName = 'MoneyRequestReportView';
 
 export default MoneyRequestReportView;

@@ -34,6 +34,4 @@ function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Tooltip
     );
 }
 
-PopoverAnchorTooltip.displayName = 'PopoverAnchorTooltip';
-
 export default PopoverAnchorTooltip;

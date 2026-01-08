@@ -165,11 +165,9 @@ function MagicCodeInput({
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
 
-    useMagicCodePaste(inputRef, onChangeTextProp);
-
     useEffect(() => {
         lastValue.current = input.length;
-    }, [input]);
+    }, [input.length]);
 
     useEffect(() => {
         // Note: there are circumstances where the value state isn't updated yet
@@ -184,7 +182,7 @@ function MagicCodeInput({
             return;
         }
         setWasSubmitted(false);
-    }, [value, maxLength]);
+    }, [value.length, maxLength]);
 
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();
@@ -327,6 +325,8 @@ function MagicCodeInput({
         onChangeTextProp(finalInput);
         valueRef.current = finalInput;
     };
+
+    useMagicCodePaste(inputRef, onChangeText);
 
     /**
      * Handles logic related to certain key presses.
@@ -538,8 +538,6 @@ function MagicCodeInput({
         </>
     );
 }
-
-MagicCodeInput.displayName = 'MagicCodeInput';
 
 export default MagicCodeInput;
 export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};

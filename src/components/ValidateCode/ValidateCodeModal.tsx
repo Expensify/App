@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ExpensifyWordmark from '@components/ExpensifyWordmark';
 import Icon from '@components/Icon';
-import {MagicCode} from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,6 +27,7 @@ type ValidateCodeModalProps = {
 function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['MagicCode']);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const signInHere = useCallback(() => signInWithValidateCode(accountID, code, preferredLocale), [accountID, code, preferredLocale]);
@@ -51,7 +52,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                         <Icon
                             width={variables.modalTopIconWidth}
                             height={variables.modalTopIconHeight}
-                            src={MagicCode}
+                            src={illustrations.MagicCode}
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
@@ -85,7 +86,5 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
         </FullPageNotFoundView>
     );
 }
-
-ValidateCodeModal.displayName = 'ValidateCodeModal';
 
 export default ValidateCodeModal;

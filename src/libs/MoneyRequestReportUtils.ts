@@ -13,6 +13,7 @@ import {
     hasUpdatedTotal,
     isInvoiceReport,
     isMoneyRequestReport,
+    isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
 import {isTransactionPendingDelete} from './TransactionUtils';
@@ -30,13 +31,16 @@ const IOU_ACTIONS_TO_FILTER_OUT = new Set<OriginalMessageIOU['type']>([CONST.IOU
  * at the top the report, instead of in-between the rest of messages like in normal chat.
  * Because of that several action types are not relevant to this ReportView and should not be shown.
  */
-function isActionVisibleOnMoneyRequestReport(action: ReportAction) {
+function isActionVisibleOnMoneyRequestReport(action: ReportAction, shouldShowCreatedActions = false) {
     if (isMoneyRequestAction(action)) {
         const originalMessage = getOriginalMessage(action);
         return originalMessage ? !IOU_ACTIONS_TO_FILTER_OUT.has(originalMessage.type) : false;
     }
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        return shouldShowCreatedActions;
+    }
 
-    return action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED;
+    return true;
 }
 
 /**
@@ -60,18 +64,17 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
 /**
  * Returns a correct reportID for a given TransactionListItemType for navigation/displaying purposes.
  */
-function getReportIDForTransaction(transactionItem: TransactionListItemType) {
+function getReportIDForTransaction(transactionItem: TransactionListItemType, IOUTransactionID?: string) {
     const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isFromOneTransactionReport = isOneTransactionReport(transactionItem.report);
 
-    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-        ? transactionItem.transactionThreadReportID
-        : transactionItem.reportID;
+    return (!isFromOneTransactionReport || isFromSelfDM) && IOUTransactionID ? IOUTransactionID : transactionItem.reportID;
 }
 
 /**
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
-function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false) {
+function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
@@ -82,6 +85,9 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         }
 
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        if (!action && includeOrphanedTransactions) {
+            return true;
+        }
         if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
             return true;
         }

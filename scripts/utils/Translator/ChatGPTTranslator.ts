@@ -25,6 +25,7 @@ class ChatGPTTranslator extends Translator {
         const systemPrompt = dedent(`
             ${getBasePrompt(targetLang)}
             ${getContextPrompt(context)}
+            ~~~~~~~~~~~
         `);
 
         let attempt = 0;

@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
-import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 
 type HoldMenuSection = {
@@ -17,20 +17,20 @@ type HoldMenuSection = {
     titleTranslationKey: TranslationPaths;
 };
 
-const holdMenuSections: HoldMenuSection[] = [
-    {
-        icon: Illustrations.Stopwatch,
-        titleTranslationKey: 'iou.holdIsLeftBehind',
-    },
-    {
-        icon: Illustrations.RealtimeReport,
-        titleTranslationKey: 'iou.unholdWhenReady',
-    },
-];
-
 function HoldMenuSectionList() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['RealtimeReport', 'Stopwatch']);
+    const holdMenuSections: HoldMenuSection[] = [
+        {
+            icon: illustrations.Stopwatch,
+            titleTranslationKey: 'iou.holdIsLeftBehind',
+        },
+        {
+            icon: illustrations.RealtimeReport,
+            titleTranslationKey: 'iou.unholdWhenReady',
+        },
+    ];
 
     return (
         <>
@@ -53,7 +53,5 @@ function HoldMenuSectionList() {
         </>
     );
 }
-
-HoldMenuSectionList.displayName = 'HoldMenuSectionList';
 
 export default HoldMenuSectionList;

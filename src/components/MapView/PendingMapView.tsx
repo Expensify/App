@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -13,12 +13,13 @@ function PendingMapView({title = '', subtitle = '', style, isSmallerIcon = false
     const hasTextContent = !isEmpty(title) || !isEmpty(subtitle);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateRoutePending']);
     const iconSize = isSmallerIcon ? variables.iconSizeSuperLarge : variables.iconSizeUltraLarge;
     return (
         <View style={[styles.mapPendingView, style]}>
             {hasTextContent ? (
                 <BlockingView
-                    icon={Expensicons.EmptyStateRoutePending}
+                    icon={icons.EmptyStateRoutePending}
                     iconColor={theme.border}
                     title={title}
                     subtitle={subtitle}
@@ -27,7 +28,7 @@ function PendingMapView({title = '', subtitle = '', style, isSmallerIcon = false
             ) : (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
                     <Icon
-                        src={Expensicons.EmptyStateRoutePending}
+                        src={icons.EmptyStateRoutePending}
                         width={iconSize}
                         height={iconSize}
                         fill={theme.border}
@@ -37,7 +38,5 @@ function PendingMapView({title = '', subtitle = '', style, isSmallerIcon = false
         </View>
     );
 }
-
-PendingMapView.displayName = 'PendingMapView';
 
 export default PendingMapView;

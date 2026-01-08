@@ -1,7 +1,9 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -13,6 +15,7 @@ import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Meter']);
     const {translate} = useLocalize();
     const [source, setSource] = useState('');
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
@@ -32,8 +35,8 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (typeof source === 'number' || !source) {
             return;
         }
-        fileDownload(addEncryptedAuthTokenToURL(source));
-    }, [source]);
+        fileDownload(translate, addEncryptedAuthTokenToURL(source));
+    }, [source, translate]);
 
     const menuItems = useMemo(() => {
         const items: PopoverMenuItem[] = [];
@@ -41,7 +44,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (!isOffline && !isLocalFile) {
             // eslint-disable-next-line react-compiler/react-compiler
             items.push({
-                icon: Expensicons.Download,
+                icon: icons.Download,
                 text: translate('common.download'),
                 onSelected: () => {
                     downloadAttachment();
@@ -50,7 +53,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         }
 
         items.push({
-            icon: Expensicons.Meter,
+            icon: icons.Meter,
             text: translate('videoPlayer.playbackSpeed'),
             subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
                 icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : undefined,
@@ -63,7 +66,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
             })),
         });
         return items;
-    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
+    }, [icons.Download, icons.Meter, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
     const contextValue = useMemo(
         () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource}),
@@ -79,7 +82,5 @@ function useVideoPopoverMenuContext() {
     }
     return videoPopoverMenuContext;
 }
-
-VideoPopoverMenuContextProvider.displayName = 'VideoPopoverMenuContextProvider';
 
 export {VideoPopoverMenuContextProvider, useVideoPopoverMenuContext};

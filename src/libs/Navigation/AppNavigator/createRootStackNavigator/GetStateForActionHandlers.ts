@@ -107,7 +107,7 @@ function handleOpenDomainSplitAction(
     const actionToPushDomainSplitNavigator = StackActions.push(NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR, {
         screen: action.payload.screenName,
         params: {
-            accountID: action.payload.accountID,
+            domainAccountID: action.payload.domainAccountID,
         },
     });
 

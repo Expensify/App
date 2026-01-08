@@ -32,6 +32,4 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
     );
 }
 
-InlineCodeBlock.displayName = 'InlineCodeBlock';
-
 export default InlineCodeBlock;

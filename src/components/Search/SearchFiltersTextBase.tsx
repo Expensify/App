@@ -61,6 +61,4 @@ function SearchFiltersTextBase({filterKey, titleKey, testID, characterLimit = CO
     );
 }
 
-SearchFiltersTextBase.displayName = 'SearchFiltersTextBase';
-
 export default SearchFiltersTextBase;

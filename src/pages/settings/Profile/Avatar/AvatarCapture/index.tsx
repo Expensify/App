@@ -1,12 +1,12 @@
-import React, {forwardRef, useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 import type {View as RNView} from 'react-native';
 import variables from '@styles/variables';
-import type {AvatarCaptureHandle, AvatarCaptureProps} from './types';
+import type {AvatarCaptureProps} from './types';
 
 /**
  * Web implementation of AvatarCapture using HTML Canvas
  */
-function AvatarCapture({children, fileName: name}: AvatarCaptureProps, ref: React.ForwardedRef<AvatarCaptureHandle>) {
+function AvatarCapture({children, fileName: name, ref}: AvatarCaptureProps) {
     const containerRef = useRef<RNView>(null);
 
     useImperativeHandle(
@@ -97,8 +97,4 @@ function AvatarCapture({children, fileName: name}: AvatarCaptureProps, ref: Reac
     return <div ref={containerRef as unknown as React.RefObject<HTMLDivElement>}>{children}</div>;
 }
 
-const AvatarCaptureWithRef = forwardRef(AvatarCapture);
-
-AvatarCapture.displayName = 'AvatarCapture';
-
-export default AvatarCaptureWithRef;
+export default AvatarCapture;

@@ -11,5 +11,4 @@ function Overlay({...rest}: Omit<BaseOverlayProps, 'shouldUseNativeStyles'>) {
     );
 }
 
-Overlay.displayName = 'Overlay';
 export default Overlay;

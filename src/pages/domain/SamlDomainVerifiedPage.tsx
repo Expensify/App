@@ -1,5 +1,4 @@
 import React from 'react';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ROUTES from '@src/ROUTES';
@@ -9,16 +8,14 @@ import BaseDomainVerifiedPage from './BaseDomainVerifiedPage';
 type SamlDomainVerifiedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VERIFIED>;
 
 function SamlDomainVerifiedPage({route}: SamlDomainVerifiedPageProps) {
-    const accountID = route.params.accountID;
+    const {domainAccountID} = route.params;
 
     return (
         <BaseDomainVerifiedPage
-            accountID={accountID}
-            redirectTo={ROUTES.DOMAIN_VERIFY.getRoute(accountID)}
-            navigateAfterConfirmation={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute())}
+            domainAccountID={domainAccountID}
+            redirectTo={ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID)}
         />
     );
 }
 
-SamlDomainVerifiedPage.displayName = 'SamlDomainVerifiedPage';
 export default SamlDomainVerifiedPage;

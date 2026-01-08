@@ -108,6 +108,4 @@ function PressableWithSecondaryInteraction({
     );
 }
 
-PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
-
 export default PressableWithSecondaryInteraction;

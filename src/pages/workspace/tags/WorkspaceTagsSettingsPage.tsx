@@ -129,7 +129,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
                     style={[styles.defaultModalContainer]}
-                    testID={WorkspaceTagsSettingsPage.displayName}
+                    testID="WorkspaceTagsSettingsPage"
                 >
                     <HeaderWithBackButton
                         title={translate('common.settings')}
@@ -141,7 +141,5 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTagsSettingsPage.displayName = 'WorkspaceTagsSettingsPage';
 
 export default WorkspaceTagsSettingsPage;

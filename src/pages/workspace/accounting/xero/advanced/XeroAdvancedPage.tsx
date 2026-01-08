@@ -51,7 +51,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroAdvancedPage.displayName}
+            displayName="XeroAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={currentXeroOrganizationName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -127,7 +127,5 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
         </ConnectionLayout>
     );
 }
-
-XeroAdvancedPage.displayName = 'XeroAdvancedPage';
 
 export default withPolicyConnections(XeroAdvancedPage);

@@ -6,9 +6,19 @@ import {Animated} from 'react-native';
 import defaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
+const secondOverlayWideRHPProgress = new Animated.Value(0);
+const secondOverlayRHPOnWideRHPProgress = new Animated.Value(0);
+const secondOverlayRHPOnSuperWideRHPProgress = new Animated.Value(0);
+const thirdOverlayProgress = new Animated.Value(0);
+
+const animatedReceiptPaneRHPWidth = new Animated.Value(0);
+const animatedWideRHPWidth = new Animated.Value(0);
+const animatedSuperWideRHPWidth = new Animated.Value(0);
+
+const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(0);
+const modalStackOverlayWideRHPPositionLeft = new Animated.Value(0);
+
 const expandedRHPProgress = new Animated.Value(0);
-const secondOverlayProgress = new Animated.Value(0);
-const receiptPaneRHPWidth = new Animated.Value(0);
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
@@ -16,12 +26,18 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     return <WideRHPContext.Provider value={defaultWideRHPContextValue}>{children}</WideRHPContext.Provider>;
 }
 
-// Wide RHP is not displayed on native platforms
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function useShowWideRHPVersion(condition: boolean) {}
-
-WideRHPContextProvider.displayName = 'WideRHPContextProvider';
-
 export default WideRHPContextProvider;
+export {
+    animatedReceiptPaneRHPWidth,
+    animatedSuperWideRHPWidth,
+    animatedWideRHPWidth,
+    expandedRHPProgress,
+    modalStackOverlaySuperWideRHPPositionLeft,
+    modalStackOverlayWideRHPPositionLeft,
+    secondOverlayRHPOnSuperWideRHPProgress,
+    secondOverlayRHPOnWideRHPProgress,
+    secondOverlayWideRHPProgress,
+    thirdOverlayProgress,
+    WideRHPContext,
+};
 export type {WideRHPContextType};
-export {expandedRHPProgress, secondOverlayProgress, WideRHPContext, useShowWideRHPVersion, receiptPaneRHPWidth};
