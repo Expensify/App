@@ -13,7 +13,7 @@ The unshare flow removes the account from their Wallet immediately and prevents 
 
 ---
 
-## Who can use Unshare a business bank account
+## Who can unshare a business bank account
 
 To unshare a business bank account, you must:
 - Be a **Workspace Admin**.
@@ -21,7 +21,7 @@ To unshare a business bank account, you must:
 
 ---
 
-## Where to find Unshare a business bank account
+## Where to unshare a business bank account
 
 1. Select **Wallet** from the navigation tabs on the left.
 2. Choose your business bank account and click the **More** (three-dot) menu.
