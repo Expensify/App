@@ -1281,7 +1281,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Tariffa non valida per questo workspace. Seleziona una tariffa disponibile dal workspace.',
             endDateBeforeStartDate: 'La data di fine non può essere precedente alla data di inizio',
             endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
-            invalidReadings: 'Inserisci sia la lettura iniziale sia quella finale',
+            invalidReadings: 'Inserisci sia la lettura iniziale che quella finale',
             negativeDistanceNotAllowed: 'La lettura finale deve essere maggiore della lettura iniziale',
         },
         dismissReceiptError: 'Ignora errore',

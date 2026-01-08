@@ -1277,7 +1277,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Taxa inválida para este workspace. Selecione uma taxa disponível do workspace.',
             endDateBeforeStartDate: 'A data de término não pode ser anterior à data de início',
             endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
-            invalidReadings: 'Insira as leituras de início e de fim',
+            invalidReadings: 'Insira as leituras de início e fim',
             negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
         },
         dismissReceiptError: 'Dispensar erro',
@@ -7064,7 +7064,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         error: {
             selectSuggestedAddress: 'Selecione um endereço sugerido ou use a localização atual',
         },
-        odometer: {startReading: 'Começar a ler', endReading: 'Finalizar leitura', saveForLater: 'Salvar para depois', totalDistance: 'Distância total'},
+        odometer: {startReading: 'Começar a ler', endReading: 'Encerrar leitura', saveForLater: 'Salvar para depois', totalDistance: 'Distância total'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Boletim perdido ou danificado',

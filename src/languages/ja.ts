@@ -1279,7 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'このワークスペースでは無効なレートです。ワークスペースから利用可能なレートを選択してください。',
             endDateBeforeStartDate: '終了日は開始日より前にはできません',
             endDateSameAsStartDate: '終了日は開始日と同じにはできません',
-            invalidReadings: '開始と終了の読数を両方入力してください',
+            invalidReadings: '開始と終了の両方の読みを入力してください',
             negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
         },
         dismissReceiptError: 'エラーを閉じる',
@@ -7029,7 +7029,7 @@ ${reportName}
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
         },
-        odometer: {startReading: '読み始める', endReading: '読み終える', saveForLater: '後で保存', totalDistance: '合計距離'},
+        odometer: {startReading: '読み始める', endReading: '読み取り終了', saveForLater: '後で保存', totalDistance: '合計距離'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成績証明書の紛失または損傷',

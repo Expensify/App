@@ -1284,7 +1284,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Satz für diesen Workspace ungültig. Bitte wählen Sie einen verfügbaren Satz aus dem Workspace aus.',
             endDateBeforeStartDate: 'Das Enddatum darf nicht vor dem Startdatum liegen',
             endDateSameAsStartDate: 'Das Enddatum darf nicht mit dem Startdatum identisch sein',
-            invalidReadings: 'Bitte gib sowohl den Start- als auch den Endstand ein',
+            invalidReadings: 'Bitte geben Sie sowohl Anfangs- als auch Endstand ein',
             negativeDistanceNotAllowed: 'Endablesung muss größer als Startablesung sein',
         },
         dismissReceiptError: 'Fehler ausblenden',

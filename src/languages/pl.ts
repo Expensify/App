@@ -954,7 +954,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Subskrypcja',
         domains: 'Domeny',
     },
-    tabSelector: {chat: 'Czat', room: 'Pokój', distance: 'Dystans', manual: 'Ręczny', scan: 'Skanuj', map: 'Mapa', gps: 'GPS', odometer: 'Licznik kilometrów'},
+    tabSelector: {chat: 'Czat', room: 'Pokój', distance: 'Dystans', manual: 'Ręczny', scan: 'Skanuj', map: 'Mapa', gps: 'GPS', odometer: 'Licznik przebiegu'},
     spreadsheet: {
         upload: 'Prześlij arkusz kalkulacyjny',
         import: 'Importuj arkusz kalkulacyjny',
@@ -7061,7 +7061,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         error: {
             selectSuggestedAddress: 'Wybierz sugerowany adres lub użyj bieżącej lokalizacji',
         },
-        odometer: {startReading: 'Rozpocznij czytanie', endReading: 'Zakończ czytanie', saveForLater: 'Zapisz na później', totalDistance: 'Całkowita odległość'},
+        odometer: {startReading: 'Rozpocznij czytanie', endReading: 'Zakończ czytanie', saveForLater: 'Zapisz na później', totalDistance: 'Całkowity dystans'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Świadectwo zgubione lub uszkodzone',

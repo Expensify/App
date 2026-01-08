@@ -1287,7 +1287,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: 'La date de fin ne peut pas être antérieure à la date de début',
             endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
             invalidReadings: 'Veuillez saisir les relevés de début et de fin',
-            negativeDistanceNotAllowed: 'L’index de fin doit être supérieur à l’index de début',
+            negativeDistanceNotAllowed: 'La lecture de fin doit être supérieure à la lecture de début',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera entièrement votre reçu téléchargé. Êtes-vous sûr ?',
@@ -7111,7 +7111,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
         },
-        odometer: {startReading: 'Commencer la lecture', endReading: 'Terminer la lecture', saveForLater: 'Enregistrer pour plus tard', totalDistance: 'Distance totale'},
+        odometer: {startReading: 'Commencer la lecture', endReading: 'Fin de lecture', saveForLater: 'Enregistrer pour plus tard', totalDistance: 'Distance totale'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Bulletin perdu ou endommagé',
