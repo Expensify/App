@@ -75,11 +75,6 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
-type DeleteTransactionParams = {
-    amount: string;
-    merchant: string;
-};
-
 type MovedTransactionParams = {
     reportUrl: string;
     reportName?: string;
@@ -116,11 +111,7 @@ type RequestAmountParams = {amount: string};
 
 type ReportFieldParams = {name: string; value: string};
 
-type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
-
 type SplitAmountParams = {amount: string};
-
-type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
 type UserSplitParams = {amount: string};
 
@@ -147,8 +138,6 @@ type SizeExceededParams = {maxUploadSizeInMB: number};
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
 
 type NotAllowedExtensionParams = {allowedExtensions: string[]};
-
-type EnterMagicCodeParams = {contactMethod: string};
 
 type TransferParams = {amount: string};
 
@@ -240,8 +229,6 @@ type TaskCreatedActionParams = {title: string};
 type OptionalParam<T> = Partial<T>;
 
 type TermsParams = {amount: string};
-
-type ElectronicFundsParams = {percentage: string; amount: string};
 
 type LogSizeParams = {size: number};
 
@@ -361,11 +348,6 @@ type LastSyncDateParams = {
     formattedDate: string;
 };
 
-type CustomersOrJobsLabelParams = {
-    importFields: string[];
-    importType: string;
-};
-
 type ExportAgainModalDescriptionParams = {
     reportName: string;
     connectionName: ConnectionName;
@@ -409,10 +391,6 @@ type StatementTitleParams = {year: number | string; monthName: string};
 
 type TrialStartedTitleParams = {numOfDays: number};
 
-type EarlyDiscountTitleParams = {discountType: number};
-
-type EarlyDiscountSubtitleParams = {days: number; hours: number; minutes: number; seconds: number};
-
 type YourPlanPriceParams = {lower: string; upper: string};
 
 type YourPlanPriceValueParams = {price: string};
@@ -449,18 +427,8 @@ type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDeleg
 
 type RoleNamesParams = {role: string};
 
-type FeatureNameParams = {
-    featureName: string;
-    moreFeaturesLink?: string;
-};
-
 type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
-};
-
-type DemotedFromWorkspaceParams = {
-    policyName: string;
-    oldRole: string;
 };
 
 type IntegrationExportParams = {
@@ -514,10 +482,6 @@ type CustomUnitRateParams = {
     rate: number;
 };
 
-type EditDestinationSubtitleParams = {
-    destination: string;
-};
-
 type SubmitsToParams = {
     name: string;
 };
@@ -558,10 +522,6 @@ type TotalAmountGreaterOrLessThanOriginalParams = {
     amount: string;
 };
 
-type EmployeeInviteMessageParams = {
-    name: string;
-};
-
 type RailTicketParams = {
     origin: string;
     destination: string;
@@ -575,14 +535,6 @@ type TravelTypeParams = {
 
 type QBDSetupErrorBodyParams = {
     conciergeLink: string;
-};
-
-type EmptyCategoriesSubtitleWithAccountingParams = {
-    accountingPageURL: string;
-};
-
-type EmptyTagsSubtitleWithAccountingParams = {
-    accountingPageURL: string;
 };
 
 type SettlementAccountInfoParams = {
@@ -602,11 +554,6 @@ type MergeFailureUncreatedAccountDescriptionParams = {
 
 type MergeFailureDescriptionGenericParams = {
     email: string;
-};
-
-type EnableContinuousReconciliationParams = {
-    connectionName: string;
-    accountingAdvancedSettingsLink: string;
 };
 
 type WorkspaceUpgradeNoteParams = {
@@ -638,10 +585,6 @@ type PayAndDowngradeDescriptionParams = {
 
 type WalletAgreementParams = {
     walletAgreementUrl: string;
-};
-
-type ErrorODIntegrationParams = {
-    oldDotPolicyConnectionsURL: string;
 };
 
 type SettlementAccountReconciliationParams = {
@@ -680,8 +623,6 @@ export type {
     InvalidValueParams,
     IntegrationExportParams,
     RemovedFromApprovalWorkflowParams,
-    DemotedFromWorkspaceParams,
-    FeatureNameParams,
     DelegateRoleParams,
     VacationDelegateParams,
     LastSyncAccountingParams,
@@ -696,8 +637,6 @@ export type {
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsRenewsOnParams,
     TrialStartedTitleParams,
-    EarlyDiscountTitleParams,
-    EarlyDiscountSubtitleParams,
     RemoveMemberPromptParams,
     StatementTitleParams,
     RenamedWorkspaceNameActionParams,
@@ -711,10 +650,7 @@ export type {
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     DeleteActionParams,
     DeleteConfirmationParams,
-    DidSplitAmountMessageParams,
     EditActionParams,
-    ElectronicFundsParams,
-    EnterMagicCodeParams,
     SubmittedToVacationDelegateParams,
     LearnMoreRouteParams,
     HeldRequestParams,
@@ -745,9 +681,7 @@ export type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
-    DeleteTransactionParams,
     MovedTransactionParams,
-    RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
@@ -803,7 +737,6 @@ export type {
     RemoveMembersWarningPrompt,
     ConnectionNameParams,
     LastSyncDateParams,
-    CustomersOrJobsLabelParams,
     ExportAgainModalDescriptionParams,
     IntegrationSyncFailedParams,
     UpdateRoleParams,
@@ -827,7 +760,6 @@ export type {
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyDescriptionParams,
-    EditDestinationSubtitleParams,
     WorkEmailResendCodeParams,
     WorkEmailMergingBlockedParams,
     NewWorkspaceNameParams,
@@ -861,20 +793,16 @@ export type {
     SubscriptionSettingsSummaryParams,
     ReviewParams,
     WorkspaceMembersCountParams,
-    EmployeeInviteMessageParams,
     RailTicketParams,
     TravelTypeParams,
     PhoneErrorRouteParams,
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     QBDSetupErrorBodyParams,
-    EmptyCategoriesSubtitleWithAccountingParams,
-    EmptyTagsSubtitleWithAccountingParams,
     SettlementAccountInfoParams,
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
-    EnableContinuousReconciliationParams,
     WorkspaceUpgradeNoteParams,
     WorkflowSettingsParam,
     MovedActionParams,
@@ -886,7 +814,6 @@ export type {
     PayAndDowngradeDescriptionParams,
     WalletAgreementParams,
     SubscriptionSettingsLearnMoreParams,
-    ErrorODIntegrationParams,
     MergeAccountIntoParams,
     NextStepParams,
     ReportFieldParams,
