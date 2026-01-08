@@ -67,6 +67,7 @@ function AutoSubmitModal() {
             onConfirm={onClose}
             titleStyles={[styles.mb1]}
             contentInnerContainerStyles={[styles.mb5]}
+            shouldUseScrollView
         >
             {menuSections.map((section) => (
                 <View

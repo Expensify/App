@@ -9,10 +9,6 @@ type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
 
-type LoggedInAsParams = {
-    email: string;
-};
-
 type SignUpNewFaceCodeParams = {
     login: string;
 };
@@ -304,8 +300,6 @@ type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: strin
 
 type UpdatedPolicyCustomUnitTaxClaimablePercentageParams = {customUnitRateName: string; newValue: number; oldValue?: number};
 
-type UpdatedPolicyCustomUnitRateIndexParams = {customUnitName: string; customUnitRateName: string; oldValue?: number; newValue: number};
-
 type UpdatedPolicyCustomUnitRateEnabledParams = {customUnitName: string; customUnitRateName: string; oldValue: boolean; newValue: boolean};
 
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
@@ -331,12 +325,6 @@ type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number}
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
 type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
-
-type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
-
-type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
-
-type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
@@ -827,7 +815,6 @@ export type {
     IssueVirtualCardParams,
     LocalTimeParams,
     LogSizeParams,
-    LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MovedFromPersonalSpaceParams,
@@ -963,9 +950,6 @@ export type {
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyReimbursementEnabledParams,
-    UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     UpdatedPolicyApprovalRuleParams,
@@ -1009,6 +993,5 @@ export type {
     ReportFieldParams,
     FocusModeUpdateParams,
     RoutedDueToDEWParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
 };

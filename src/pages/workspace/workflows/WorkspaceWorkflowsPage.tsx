@@ -27,7 +27,6 @@ import {
     isCurrencySupportedForDirectReimbursement,
     isCurrencySupportedForGlobalReimbursement,
     openPolicyWorkflowsPage,
-    setIsForcedToChangeCurrency,
     setWorkspaceApprovalMode,
     setWorkspaceAutoHarvesting,
     setWorkspaceReimbursement,
@@ -132,8 +131,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
 
         setIsUpdateWorkspaceCurrencyModalOpen(false);
-        setIsForcedToChangeCurrency(true);
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
     }, [policy]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
@@ -276,6 +274,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 <ApprovalWorkflowSection
                                     approvalWorkflow={workflow}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers.at(0)?.email ?? ''))}
+                                    currency={policy?.outputCurrency}
                                 />
                             </OfflineWithFeedback>
                         ))}
