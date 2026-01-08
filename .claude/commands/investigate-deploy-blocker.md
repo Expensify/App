@@ -6,7 +6,7 @@ description: Investigate a deploy blocker issue to find the causing PR and recom
 Investigate deploy blocker issue #$ISSUE_NUMBER using the `deploy-blocker-investigator` agent.
 
 The agent will:
-- Analyze the issue to determine if it's frontend (App) or backend (Auth/PHP)
+- Analyze the issue to determine if it's a frontend (App) or backend bug
 - Find the most likely causing PR
 - Post a comment with findings and recommendation
 - Update labels if appropriate
