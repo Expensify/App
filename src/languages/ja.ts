@@ -72,7 +72,6 @@ import type {
     LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
-    LoggedInAsParams,
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
@@ -191,7 +190,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -502,6 +500,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'さらに表示',
         showLess: '表示を減らす',
         merchant: '加盟店',
+        change: '変更',
         category: 'カテゴリ',
         report: 'レポート',
         billable: '請求可能',
@@ -763,15 +762,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
         signIn: 'もう一度サインインしてください。',
-        redirectedToDesktopApp: 'デスクトップアプリにリダイレクトしました。',
-        youCanAlso: '〜することもできます',
-        openLinkInBrowser: 'ブラウザーでこのリンクを開く',
-        loggedInAs: ({email}: LoggedInAsParams) =>
-            `${email} でログインしています。このアカウントでデスクトップアプリにログインするには、プロンプトで「リンクを開く」をクリックしてください。`,
-        doNotSeePrompt: 'プロンプトが表示されませんか？',
-        tryAgain: '再試行',
-        or: '、または',
-        continueInWeb: 'Webアプリに進む',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -844,12 +834,6 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'チャットのスピードで進む出張と経費管理',
             body: '次世代のExpensifyへようこそ。コンテキストに応じたリアルタイムチャットの力で、出張や経費精算がこれまで以上にスピーディーに進みます。',
         },
-    },
-    thirdPartySignIn: {
-        alreadySignedIn: (email: string) => `すでに ${email} としてサインインしています。`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `${provider}でサインインしたくありませんか？`,
-        continueWithMyCurrentSession: '現在のセッションを続行',
-        redirectToDesktopMessage: 'サインインが完了すると、デスクトップアプリにリダイレクトします。',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'シングルサインオンでログインを続行:',
@@ -1259,6 +1243,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} 用` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `送信済み${memo ? `、メモ「${memo}」と述べています` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を通じて送信されました`,
+        queuedToSubmitViaDEW: 'カスタム承認ワークフローを介して送信待ちキューに入れられました',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} 用` : ''} を追跡中`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} を分割`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `分割 ${formattedAmount}${comment ? `${comment} 用` : ''}`,
@@ -1565,25 +1550,34 @@ const translations: TranslationDeepObject<typeof en> = {
     nextStep: {
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `<strong>あなた</strong>が経費を追加するのを待機中。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が経費を追加するのを待機中です。`;
+                        return `<strong>${actor}</strong> が経費を追加するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `管理者が経費を追加するのを待機しています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `経費の提出を<strong>あなた</strong>が行うのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong> が経費を提出するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が経費を提出するのを待機中。`;
                 }
             },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `これ以上の対応は不要です！`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `<strong>あなた</strong>が銀行口座を追加するのを待機中です。`;
+                        return `<strong>あなた</strong>が銀行口座を追加するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `<strong>${actor}</strong>が銀行口座を追加するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1595,85 +1589,84 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta} に` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `<strong>あなた</strong>の経費が自動送信されるのを待機中${formattedETA}。`;
+                        return `<strong>あなたの</strong>経費が自動的に提出されるのを待機中${formattedETA}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> の経費が自動的に提出されるのを待っています${formattedETA}。`;
+                        return `<strong>${actor}</strong> さんの経費が ${formattedETA} に自動送信されるまで待機中。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者の経費が自動送信されるのを待っています${formattedETA}。`;
+                        return `管理者の経費が自動送信されるのを待機中${formattedETA}`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `問題を修正するのを<strong>あなた</strong>が行うのを待機中です。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が問題を修正するのを待っています。`;
+                        return `<strong>${actor}</strong> が問題を修正するのを待機中。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が問題を修正するのを待機しています。`;
+                        return `管理者が問題を修正するのを待機中です。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `<strong>あなた</strong>が経費を承認するのを待っています。`;
+                        return `<strong>あなた</strong>の経費承認待ち。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong>の経費承認待ち。`;
+                        return `<strong>${actor}</strong> が経費を承認するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を承認するのを待機中。`;
+                        return `管理者が経費を承認するのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `このレポートをエクスポートするのを<strong>あなた</strong>が行うのを待っています。`;
+                        return `このレポートをエクスポートするのを<strong>あなた</strong>が待機しています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> がこのレポートをエクスポートするのを待っています。`;
+                        return `このレポートのエクスポートを<strong>${actor}</strong>が行うのを待機中です。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `このレポートをエクスポートする管理者を待機中です。`;
+                        return `管理者がこのレポートをエクスポートするのを待機中。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `経費の支払いを<strong>あなた</strong>が行うのを待っています。`;
+                        return `<strong>あなた</strong>の経費支払い待ち`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `<strong>${actor}</strong> が経費を支払うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を支払うのを待っています。`;
+                        return `管理者が経費を支払うのを待機中。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `<strong>あなた</strong>がビジネス銀行口座の設定を完了するのを待機しています。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> がビジネス銀行口座の設定を完了するのを待機中です。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者がビジネス銀行口座の設定を完了するのを待っています。`;
+                        return `ビジネス用銀行口座の設定完了を<strong>あなた</strong>が行うのを待っています。`;
+                    case CONST /* eslint-disable max-len */.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong> がビジネス銀行口座の設定を完了するのを待っています。`;
+                    case // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
+                    CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者がビジネス銀行口座の設定を完了するのを待機しています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta} までに` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta} まで` : ` ${eta}`;
                 }
-                return `支払いの完了を待機しています${formattedETA}。`;
+                return `支払いの完了を待機中${formattedETA}。`;
             },
-        },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
+                `おっと！<strong>ご自身</strong>に提出しようとしているようです。自分のレポートを承認することは、ワークスペースで<strong>禁止</strong>されています。このレポートは別のメンバーに提出するか、管理者に連絡して提出先の担当者を変更してください。`,
+            // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
+        }, // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'まもなく',
             [CONST.NEXT_STEP.ETA_KEY.TODAY]: '今日の後ほど',
@@ -1785,7 +1778,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updateRequired: '更新が必要です',
         pleaseInstall: '最新バージョンの New Expensify にアップデートしてください',
         pleaseInstallExpensifyClassic: '最新バージョンの Expensify をインストールしてください',
-        toGetLatestChanges: 'モバイルまたはデスクトップの場合は、最新バージョンをダウンロードしてインストールしてください。Web の場合は、ブラウザを更新（再読み込み）してください。',
+        toGetLatestChanges: 'モバイルまの場合は、最新バージョンをダウンロードしてインストールしてください。Web の場合は、ブラウザを更新（再読み込み）してください。',
         newAppNotAvailable: 'The New Expensify アプリは、もう利用できません。',
     },
     initialSettingsPage: {
@@ -1805,9 +1798,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             ios: {
                 label: 'iOS',
-            },
-            desktop: {
-                label: 'macOS',
             },
         },
         troubleshoot: {
@@ -2281,7 +2271,25 @@ ${merchant} への ${amount}（${date}）`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
-        header: 'このメンバーに承認用として送信:',
+        title: 'このメンバーに承認用として送信:',
+        description: 'この人が経費を承認します。',
+    },
+    workflowsApprovalLimitPage: {
+        title: '承認者',
+        header: '（オプション）承認限度額を追加しますか？',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `<strong>${approverName}</strong>が承認者で、レポートが以下の金額を超える場合に別の承認者を追加します：`
+                : 'レポートが以下の金額を超える場合に別の承認者を追加します：',
+        reportAmountLabel: 'レポート金額',
+        additionalApproverLabel: '追加の承認者',
+        skip: 'スキップ',
+        next: '次へ',
+        removeLimit: '制限を削除',
+        enterAmountError: '有効な金額を入力してください',
+        enterApproverError: 'レポート制限を設定する場合は承認者が必要です',
+        enterBothError: 'レポート金額と追加の承認者を入力してください',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `${approvalLimit}を超えるレポートは${approverName}に転送されます`,
     },
     workflowsPayerPage: {
         title: '認可された支払担当者',
@@ -2360,6 +2368,21 @@ ${merchant} への ${amount}（${date}）`,
         addFirstPaymentMethod: 'アプリ内で直接支払いを送受信するには、支払方法を追加してください。',
         defaultPaymentMethod: 'デフォルト',
         bankAccountLastFour: (lastFour: string) => `銀行口座 • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: '経費ルール',
+        subtitle: 'これらのルールはあなたの経費に適用されます。ワークスペースに提出する場合、そのワークスペースのルールがこれらより優先されることがあります。',
+        emptyRules: {title: 'ルールがまだ作成されていません', subtitle: '経費報告を自動化するルールを追加する。'},
+        changes: {
+            billable: (value: boolean) => `経費 ${value ? '請求対象' : '請求不可'} を更新`,
+            category: (value: string) => `カテゴリを「${value}」に更新`,
+            comment: (value: string) => `説明を「${value}」に変更`,
+            merchant: (value: string) => `支払先を「${value}」に更新`,
+            reimbursable: (value: boolean) => `経費 ${value ? '精算対象' : '非精算'} を更新`,
+            report: (value: string) => `レポート名を「${value}」として追加`,
+            tag: (value: string) => `タグを「${value}」に更新`,
+            tax: (value: string) => `税率を${value}に更新`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -3848,6 +3871,8 @@ ${
             viewTransactions: '取引を表示',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName} の経費`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card の取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">当社のインテグレーション</a>によって作成される「Expensify Card 負債勘定」に自動的にエクスポートされます。</muted-text-label>`,
+            youCantDowngradeInvoicing:
+                '請求書払いのサブスクリプションでは、プランをダウングレードできません。サブスクリプションについて相談したり変更したりする場合は、アカウントマネージャーまたはConciergeまでお問い合わせください。',
         },
         receiptPartners: {
             uber: {
@@ -4798,7 +4823,6 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             customCloseDate: 'カスタム締め日',
             letsDoubleCheck: 'すべてが正しく見えるか、もう一度確認しましょう。',
             confirmationDescription: '取引のインポートを直ちに開始します。',
-            cardholder: 'カード保有者',
             card: 'カード',
             cardName: 'カード名',
             brokenConnectionError: '<rbr>カードフィード接続が切断されています。再度接続を確立するために、<a href="#">銀行にログイン</a>してください。</rbr>',
@@ -6347,11 +6371,8 @@ ${reportName}
             }
             return `距離レート「${customUnitRateName}」に税還付可能分「${newValue}」を追加しました`;
         },
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `${customUnitName} のレート "${customUnitRateName}" のインデックスを "${newValue}" に変更しました ${oldValue ? `(以前は "${oldValue}")` : ''}`;
-        },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `${newValue ? '有効化' : '無効化'} ${customUnitName} のレート "${customUnitRateName}"`;
+            return `${newValue ? '有効' : '無効'} ${customUnitName}レート「${customUnitRateName}」`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `「${customUnitName}」のレート「${rateName}」を削除しました`,
         addedReportField: (fieldType: string, fieldName?: string) => `${fieldType} レポートフィールド「${fieldName}」を追加しました`,
@@ -6778,74 +6799,6 @@ ${reportName}
         permissionError: {
             title: 'ストレージへのアクセス',
             message: 'Expensify は、ストレージへのアクセス権限がないと添付ファイルを保存できません。権限を更新するには「設定」をタップしてください。',
-        },
-    },
-    desktopApplicationMenu: {
-        mainMenu: '新しい Expensify',
-        about: '新Expensifyについて',
-        update: '新しい Expensify を更新',
-        checkForUpdates: 'アップデートを確認',
-        toggleDevTools: '開発者ツールを切り替え',
-        viewShortcuts: 'キーボードショートカットを表示',
-        services: 'サービス',
-        hide: '新しい Expensify を非表示',
-        hideOthers: 'ほかを隠す',
-        showAll: 'すべて表示',
-        quit: 'New Expensify を終了',
-        fileMenu: 'ファイル',
-        closeWindow: 'ウィンドウを閉じる',
-        editMenu: '編集',
-        undo: '元に戻す',
-        redo: 'やり直し',
-        cut: '切り取り',
-        copy: 'コピー',
-        paste: '貼り付け',
-        pasteAndMatchStyle: 'ペーストしてスタイルを合わせる',
-        pasteAsPlainText: 'プレーンテキストとして貼り付け',
-        delete: '削除',
-        selectAll: 'すべて選択',
-        speechSubmenu: '音声',
-        startSpeaking: '話し始める',
-        stopSpeaking: '発話を停止',
-        viewMenu: '表示',
-        reload: '再読み込み',
-        forceReload: '強制再読み込み',
-        resetZoom: '実際のサイズ',
-        zoomIn: 'ズームイン',
-        zoomOut: 'ズームアウト',
-        togglefullscreen: 'フルスクリーンを切り替え',
-        historyMenu: '履歴',
-        back: '戻る',
-        forward: '転送',
-        windowMenu: 'ウィンドウ',
-        minimize: '最小化',
-        zoom: 'Zoom',
-        front: 'すべてを前面に表示',
-        helpMenu: 'ヘルプ',
-        learnMore: '詳細はこちら',
-        documentation: 'ドキュメント',
-        communityDiscussions: 'コミュニティディスカッション',
-        searchIssues: '検索の問題',
-    },
-    historyMenu: {
-        forward: '転送',
-        back: '戻る',
-    },
-    checkForUpdatesModal: {
-        available: {
-            title: 'アップデートがあります',
-            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
-                `新しいバージョンはまもなく利用可能になります。${!isSilentUpdating ? '準備ができしだい、更新の準備が整ったことをお知らせします。' : ''}`,
-            soundsGood: 'いいですね',
-        },
-        notAvailable: {
-            title: 'アップデートを利用できません',
-            message: '現在利用可能なアップデートはありません。後でもう一度ご確認ください。',
-            okay: 'OK',
-        },
-        error: {
-            title: 'アップデートの確認に失敗しました',
-            message: 'アップデートを確認できませんでした。しばらくしてからもう一度お試しください。',
         },
     },
     settlement: {
@@ -7905,10 +7858,19 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             addAdminError: 'このメンバーを管理者として追加できません。もう一度お試しください。',
         },
     },
-    desktopAppRetiredPage: {
-        title: 'デスクトップアプリは廃止されました',
-        body: 'New Expensify の Mac デスクトップアプリは廃止されました。今後は、アカウントへアクセスする際に Web アプリをご利用ください。',
-        goToWeb: 'Web を開く',
+    gps: {
+        tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',
+        disclaimer: '移動中の経路から、GPS を使って経費を作成しましょう。下の「開始」をタップして追跡を始めてください。',
+        error: {failedToStart: '位置情報の追跡を開始できませんでした。', failedToGetPermissions: '必要な位置情報の権限を取得できませんでした。'},
+        trackingDistance: '距離を追跡中...',
+        stopped: '停止',
+        start: '開始',
+        stop: '停止',
+        discard: '破棄',
+        stopGpsTrackingModal: {title: 'GPS追跡を停止', prompt: '本当に終了しますか？現在のジャーニーが終了します。', cancel: '追跡を再開', confirm: 'GPS追跡を停止'},
+        discardDistanceTrackingModal: {title: '距離の追跡を破棄', prompt: '本当に実行しますか？現在の行程が破棄され、元に戻すことはできません。', confirm: '距離の追跡を破棄'},
+        zeroDistanceTripModal: {title: '経費を作成できません', prompt: '開始地点と終了地点が同じ経路では経費を作成できません。'},
+        desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
