@@ -89,7 +89,7 @@ import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
-import type {Accountant, Attendee} from '@src/types/onyx/IOU';
+import type {Accountant, Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -11718,7 +11718,7 @@ describe('actions/IOU', () => {
     describe('Report Totals Calculation for Split Expenses', () => {
         function calculateReportTotalsForSplitExpenses(
             expenseReport: Report | undefined,
-            splitExpenses: SplitExpenseItem[],
+            splitExpenses: SplitExpense[],
             allReportsList: Record<string, Report> | undefined,
             changesInReportTotal: number,
         ): Map<string, number> {
@@ -11750,7 +11750,7 @@ describe('actions/IOU', () => {
                 total: 10000,
             } as Report;
 
-            const splitExpenses: SplitExpenseItem[] = [];
+            const splitExpenses: SplitExpense[] = [];
             const allReportsList = {
                 [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
                     reportID: 'report1',
@@ -11771,7 +11771,7 @@ describe('actions/IOU', () => {
                 total: 15000,
             } as Report;
 
-            const splitExpenses: SplitExpenseItem[] = [];
+            const splitExpenses: SplitExpense[] = [];
             const allReportsList = {}; // Empty, so should fall back to expenseReport.total
             const changesInReportTotal = 3000;
 
@@ -11787,7 +11787,7 @@ describe('actions/IOU', () => {
                 total: 10000,
             } as Report;
 
-            const splitExpenses: SplitExpenseItem[] = [];
+            const splitExpenses: SplitExpense[] = [];
             const allReportsList = {
                 [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
                     reportID: 'report1',
@@ -11808,15 +11808,15 @@ describe('actions/IOU', () => {
                 total: 10000,
             } as Report;
 
-            const splitExpenses: SplitExpenseItem[] = [
+            const splitExpenses: SplitExpense[] = [
                 {
                     reportID: 'splitReport1',
                     amount: 2000,
-                } as SplitExpenseItem,
+                } as SplitExpense,
                 {
                     reportID: 'splitReport2',
                     amount: 3000,
-                } as SplitExpenseItem,
+                } as SplitExpense,
             ];
 
             const allReportsList = {
@@ -11849,15 +11849,15 @@ describe('actions/IOU', () => {
                 total: 10000,
             } as Report;
 
-            const splitExpenses: SplitExpenseItem[] = [
+            const splitExpenses: SplitExpense[] = [
                 {
                     reportID: undefined,
                     amount: 2000,
-                } as SplitExpenseItem,
+                } as SplitExpense,
                 {
                     reportID: 'splitReport1',
                     amount: 3000,
-                } as SplitExpenseItem,
+                } as SplitExpense,
             ];
 
             const allReportsList = {
@@ -11886,19 +11886,19 @@ describe('actions/IOU', () => {
             } as Report;
 
             // Two split expenses with the same reportID
-            const splitExpenses: SplitExpenseItem[] = [
+            const splitExpenses: SplitExpense[] = [
                 {
                     reportID: 'splitReport1',
                     amount: 2000,
-                } as SplitExpenseItem,
+                } as SplitExpense,
                 {
                     reportID: 'splitReport1', // Duplicate reportID
                     amount: 3000,
-                } as SplitExpenseItem,
+                } as SplitExpense,
                 {
                     reportID: 'splitReport2',
                     amount: 1500,
-                } as SplitExpenseItem,
+                } as SplitExpense,
             ];
 
             const allReportsList = {
@@ -11931,11 +11931,11 @@ describe('actions/IOU', () => {
                 total: 10000,
             } as Report;
 
-            const splitExpenses: SplitExpenseItem[] = [
+            const splitExpenses: SplitExpense[] = [
                 {
                     reportID: 'splitReport1',
                     amount: 2000,
-                } as SplitExpenseItem,
+                } as SplitExpense,
             ];
 
             const allReportsList = {
@@ -11960,7 +11960,7 @@ describe('actions/IOU', () => {
                 total: 10000,
             } as Report;
 
-            const splitExpenses: SplitExpenseItem[] = [];
+            const splitExpenses: SplitExpense[] = [];
             const allReportsList = {
                 [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
                     reportID: 'mainReport',
@@ -11981,7 +11981,7 @@ describe('actions/IOU', () => {
                 total: 10000,
             } as Report;
 
-            const splitExpenses: SplitExpenseItem[] = [];
+            const splitExpenses: SplitExpense[] = [];
             const allReportsList = {
                 [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
                     reportID: 'mainReport',
