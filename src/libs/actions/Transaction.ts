@@ -238,7 +238,10 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
 }
 
-function getOnyxDataForRouteRequest(transactionID: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): OnyxData {
+function getOnyxDataForRouteRequest(
+    transactionID: string,
+    transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
+): OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.TRANSACTION_BACKUP | typeof ONYXKEYS.COLLECTION.TRANSACTION> {
     let keyPrefix;
     switch (transactionState) {
         case CONST.TRANSACTION.STATE.DRAFT:

@@ -322,7 +322,9 @@ function buildTaskData(
     hasOutstandingChildTaskInParentReport: boolean,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
-) {
+): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> & {
+    parameters: CompleteTaskParams;
+} {
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
@@ -433,7 +435,7 @@ function completeTask(
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
     reportIDFromAction?: string,
-): OnyxData {
+): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
     if (!taskReportID) {
@@ -1285,7 +1287,7 @@ function getFinishOnboardingTaskOnyxData(
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
-): OnyxData {
+): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     if (taskReport && canActionTask(taskReport, parentReportAction, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {

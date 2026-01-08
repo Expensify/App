@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
 import {InteractionManager} from 'react-native';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
@@ -309,7 +309,7 @@ type MoneyRequestInformation = {
     reportPreviewAction: OnyxTypes.ReportAction;
     transactionThreadReportID?: string;
     createdReportActionIDForThread: string | undefined;
-    onyxData: OnyxData;
+    onyxData: OnyxData<OnyxKey>;
     billable?: boolean;
     reimbursable?: boolean;
 };
@@ -351,7 +351,7 @@ type TrackExpenseInformation = {
     actionableWhisperReportActionIDParam?: string;
     optimisticReportID: string | undefined;
     optimisticReportActionID: string | undefined;
-    onyxData: OnyxData;
+    onyxData: OnyxData<OnyxKey>;
 };
 
 type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
@@ -382,7 +382,7 @@ type TrackedExpenseReportInformation = {
     isLinkedTrackedExpenseReportArchived: boolean | undefined;
 };
 type TrackedExpenseParams = {
-    onyxData?: OnyxData;
+    onyxData?: OnyxData<OnyxKey>;
     reportInformation: TrackedExpenseReportInformation;
     transactionParams: TrackedExpenseTransactionParams;
     policyParams: TrackedExpensePolicyParams;
@@ -402,12 +402,12 @@ type SplitData = {
 type SplitsAndOnyxData = {
     splitData: SplitData;
     splits: Split[];
-    onyxData: OnyxData;
+    onyxData: OnyxData<OnyxKey>;
 };
 
 type UpdateMoneyRequestData = {
     params: UpdateMoneyRequestParams;
-    onyxData: OnyxData;
+    onyxData: OnyxData<OnyxKey>;
 };
 
 type PayMoneyRequestData = {
@@ -1476,7 +1476,7 @@ function getReceiptError(
 }
 
 /** Helper function to get optimistic fields violations onyx data */
-function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<OnyxData, 'optimisticData' | 'failureData'> {
+function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_VIOLATIONS>, 'optimisticData' | 'failureData'> {
     const missingFields: OnyxTypes.ReportFieldsViolations = {};
     const excludedFields = Object.values(CONST.REPORT_VIOLATIONS_EXCLUDED_FIELDS) as string[];
 
@@ -1515,7 +1515,7 @@ type BuildOnyxDataForTestDriveIOUParams = {
     testDriveCommentReportActionID?: string;
 };
 
-function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDriveIOUParams): OnyxData {
+function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDriveIOUParams): OnyxData<OnyxKey> {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -5319,11 +5319,11 @@ type ConvertTrackedExpenseToRequestParams = {
         createdReportActionID: string | undefined;
         reportActionID: string;
     };
-    onyxData: OnyxData;
+    onyxData: OnyxData<OnyxKey>;
     workspaceParams?: ConvertTrackedWorkspaceParams;
 };
 
-function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData) {
+function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData<OnyxKey>) {
     API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
 }
 
@@ -8023,7 +8023,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         : receipt;
 
     let parameters: CreateDistanceRequestParams;
-    let onyxData: OnyxData;
+    let onyxData: OnyxData<OnyxKey>;
     const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeRecentWaypoints(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {
