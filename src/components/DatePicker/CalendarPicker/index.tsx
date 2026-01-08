@@ -193,12 +193,11 @@ function CalendarPicker({
                     hoverDimmingValue={1}
                     disabled={years.length <= 1}
                     testID="currentYearButton"
-                    accessibilityLabel={translate('common.currentYear')}
+                    accessibilityLabel={`${currentYearView}, ${translate('yearPickerPage.selectYear')}`}
                 >
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
                         testID="currentYearText"
-                        accessibilityLabel={translate('common.currentYear')}
                     >
                         {currentYearView}
                     </Text>
@@ -208,7 +207,7 @@ function CalendarPicker({
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
                         testID="currentMonthText"
-                        accessibilityLabel={translate('common.currentMonth')}
+                        accessibilityLabel={`${monthNames.at(currentMonthView)}, ${translate('common.currentMonth')}`}
                     >
                         {monthNames.at(currentMonthView)}
                     </Text>
