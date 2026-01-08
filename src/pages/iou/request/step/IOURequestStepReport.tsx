@@ -97,7 +97,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             },
         ];
 
-        transactions.forEach((transactionItem) =>
+        for (const transactionItem of transactions) {
             setTransactionReport(
                 transactionItem.transactionID,
                 {
@@ -105,8 +105,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     participants,
                 },
                 true,
-            ),
-        );
+            );
+        }
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
         // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
