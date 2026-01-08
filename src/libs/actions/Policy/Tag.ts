@@ -100,7 +100,9 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                     importFinalModal: {
                         titleKey: 'spreadsheet.importSuccessfulTitle',
                         promptKey: 'spreadsheet.importTagsSuccessfulDescription',
-                        promptKeyParams: [tagsLength],
+                        promptKeyParams: {
+                            tags: tagsLength,
+                        },
                     },
                 },
             },
