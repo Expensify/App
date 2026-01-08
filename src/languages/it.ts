@@ -6951,7 +6951,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connesso a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'ha lasciato la chat',
                 companyCardConnectionBroken: ({feedName, policyID, workspaceCompanyCardRoute}: {feedName: string; policyID: string; workspaceCompanyCardRoute?: string}) => {
-                    const url = workspaceCompanyCardRoute ?? `https://new.expensify.com/workspaces/${policyID}/company-cards`;
+                    const url = workspaceCompanyCardRoute ?? '';
                     return `La connessione ${feedName} non funziona. Per ripristinare le importazioni delle carte, <a href='${url}'>accedi alla tua banca</a>`;
                 },
             },
