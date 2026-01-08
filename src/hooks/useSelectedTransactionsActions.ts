@@ -425,6 +425,7 @@ function useSelectedTransactionsActions({
         expensifyIcons.DocumentMerge,
         expensifyIcons.ArrowCollapse,
         expensifyIcons.Trashcan,
+        expensifyIcons.Pencil,
         localeCompare,
         isOnSearch,
     ]);
