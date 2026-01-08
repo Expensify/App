@@ -63,6 +63,7 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
+    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
@@ -1230,7 +1231,7 @@ const translations: TranslationDeepObject<typeof en> = {
         canceledRequest: (amount: string, submitterDisplayName: string) => `cancelou o pagamento de ${amount}, porque ${submitterDisplayName} não ativou sua Expensify Wallet em 30 dias`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} adicionou uma conta bancária. O pagamento de ${amount} foi realizado.`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}marcado como pago`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marcado como pago${comment ? `, dizendo "${comment}"` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pagou com carteira`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}pago com Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,

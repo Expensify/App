@@ -63,6 +63,7 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
+    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
@@ -1232,7 +1233,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いはキャンセルされました`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} が銀行口座を追加しました。${amount} の支払いが行われました。`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}は支払済みにマークされました`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}は支払済みにマークされました${comment ? `、「${comment}」と言っています` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}はウォレットで支払い済み`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}は<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>を通じてExpensifyで支払われました`,
