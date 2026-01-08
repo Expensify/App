@@ -53,8 +53,6 @@ When analyzing, look at the App code to understand:
 | Backend bug | Remove `DeployBlockerCash` if present (doesn't block App deploy) |
 | Frontend bug | Remove `DeployBlocker` if present (doesn't block Web deploy) |
 
-**Important**: Only remove a label if it actually exists on the issue. Do not mention removing labels that aren't there.
-
 ---
 
 ## Comment Structure
