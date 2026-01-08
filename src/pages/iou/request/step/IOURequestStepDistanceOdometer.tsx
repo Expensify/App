@@ -10,7 +10,6 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -107,7 +106,7 @@ function IOURequestStepDistanceOdometer({
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isCreatingNewRequest = !(backTo || isEditing);
+    const isCreatingNewRequest = !(backTo ?? isEditing);
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -287,7 +286,11 @@ function IOURequestStepDistanceOdometer({
     };
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.goBack();
+        }
     };
 
     // Navigate to next page following Manual tab pattern
@@ -332,7 +335,7 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        if (backToReport) {
+        if (backToReport && backTo) {
             Navigation.goBack(backTo);
             return;
         }

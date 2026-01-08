@@ -1732,6 +1732,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: IOUType;
         transactionID: string;
         reportID: string;
+        backTo?: string;
         backToReport?: string;
         reportActionID?: string;
     };

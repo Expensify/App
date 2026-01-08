@@ -785,6 +785,8 @@ type TransactionDetails = {
     postedDate: string;
     transactionID: string;
     distance?: number;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 type OptimisticIOUReport = Pick<
