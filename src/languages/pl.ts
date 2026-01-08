@@ -190,7 +190,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -6396,11 +6395,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             return `dodał(a) odzyskiwalną część podatku „${newValue}” do stawki za dystans „${customUnitRateName}`;
         },
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `zmienił indeks stawki ${customUnitName} "${customUnitRateName}" na "${newValue}" ${oldValue ? `(wcześniej "${oldValue}")` : ''}`;
-        },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `${newValue ? 'włączony' : 'wyłączony'} stawka ${customUnitName} "${customUnitRateName}"`;
+            return `${newValue ? 'włączone' : 'Wyłączone'} stawka jednostki ${customUnitName} „${customUnitRateName}”`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `usunął stawkę „${rateName}” dla „${customUnitName}”`,
         addedReportField: (fieldType: string, fieldName?: string) => `dodano pole raportu ${fieldType} „${fieldName}”`,
