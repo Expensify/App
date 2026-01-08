@@ -107,8 +107,7 @@ function IOURequestStepDistanceOdometer({
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingConfirmation = action === CONST.IOU.ACTION.CREATE && !!backToReport;
-    const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
+    const isCreatingNewRequest = !backToReport && !isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -153,7 +152,7 @@ function IOURequestStepDistanceOdometer({
         const shouldReset =
             hasInitializedRefs.current &&
             !isEditing &&
-            !isEditingConfirmation &&
+            !backToReport &&
             !hasTransactionData &&
             (wasCleared || (prevTransactionStartRef.current === undefined && prevTransactionEndRef.current === undefined));
 
@@ -172,7 +171,7 @@ function IOURequestStepDistanceOdometer({
         // Update refs to track previous values
         prevTransactionStartRef.current = currentStart;
         prevTransactionEndRef.current = currentEnd;
-    }, [isFocused, isEditing, isEditingConfirmation, transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
+    }, [isFocused, isEditing, backToReport, transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
 
     // Initialize initial values refs on mount for DiscardChangesConfirmation
     // These should never be updated after mount - they represent the "baseline" state
@@ -235,7 +234,7 @@ function IOURequestStepDistanceOdometer({
         if (shouldSkipConfirmation) {
             return translate('iou.createExpense');
         }
-        const shouldShowSave = isEditing || isEditingConfirmation;
+        const shouldShowSave = isEditing || backToReport;
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
@@ -297,10 +296,10 @@ function IOURequestStepDistanceOdometer({
 
     useEffect(() => {
         allowNavigationRef.current = false;
-    }, [isFocused, isEditingConfirmation]);
+    }, [isFocused, backToReport]);
 
     useBeforeRemove((event) => {
-        if (!isEditingConfirmation || !isFocused || allowNavigationRef.current) {
+        if (!backToReport || !isFocused || allowNavigationRef.current) {
             return;
         }
         event.preventDefault();
@@ -310,10 +309,10 @@ function IOURequestStepDistanceOdometer({
             return;
         }
         Navigation.goBack();
-    }, isEditingConfirmation && isFocused);
+    }, backToReport && isFocused);
 
     const navigateBack = () => {
-        if (isEditingConfirmation) {
+        if (backToReport) {
             allowNavigation();
         }
         if (confirmationRoute) {
@@ -369,7 +368,7 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        if (isEditingConfirmation) {
+        if (backToReport) {
             allowNavigation();
             if (confirmationRoute) {
                 Navigation.goBack(confirmationRoute);
@@ -528,7 +527,7 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     };
 
-    const shouldEnableDiscardConfirmation = !isEditingConfirmation && !shouldSkipConfirmation && !isEditing;
+    const shouldEnableDiscardConfirmation = !backToReport && !shouldSkipConfirmation && !isEditing;
 
     return (
         <StepScreenWrapper
