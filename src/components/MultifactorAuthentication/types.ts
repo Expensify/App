@@ -1,13 +1,21 @@
 import type {ValueOf} from 'type-fest';
 import type {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {
+    AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationPartialStatus,
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationStep,
+    MultifactorAuthenticationTrigger,
+    MultifactorAuthenticationTriggerArgument,
     MultifactorKeyStoreOptions,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
-import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from './config/types';
+import type {
+    AllMultifactorAuthenticationNotificationType,
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioParams,
+} from './config/types';
 
 type MultifactorAuthorization<T extends MultifactorAuthenticationScenario> = (
     scenario: T,
@@ -55,9 +63,39 @@ type UseBiometricsSetup = MultifactorAuthenticationStep &
         refresh: () => Promise<MultifactorAuthenticationStatus<BiometricsStatus>>;
     };
 
-type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
+type TriggerWithArgument = keyof MultifactorAuthenticationTriggerArgument;
+type MultifactorTriggerArgument<T extends MultifactorAuthenticationTrigger> = T extends TriggerWithArgument ? MultifactorAuthenticationTriggerArgument[T] : void;
 
-type UseMultifactorAuthenticationStatus<T> = [MultifactorAuthenticationStatus<T>, SetMultifactorAuthenticationStatus<T>];
+type UseMultifactorAuthentication = {
+    info: MultifactorAuthenticationInfo &
+        MultifactorAuthenticationStatusMessage & {
+            success: undefined | boolean;
+            headerTitle: string;
+            scenario: MultifactorAuthenticationScenario | undefined;
+        };
+    proceed: <T extends MultifactorAuthenticationScenario>(
+        scenario: T,
+        params?: MultifactorAuthenticationScenarioParams<T> & Partial<NotificationPaths>,
+    ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
+    update: (
+        params: Partial<AllMultifactorAuthenticationFactors> & {
+            softPromptDecision?: boolean;
+        },
+    ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
+    trigger: <T extends MultifactorAuthenticationTrigger>(
+        triggerType: T,
+        argument?: MultifactorTriggerArgument<T>,
+    ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
+};
+
+type MultifactorAuthenticationScenarioStatus = {
+    payload?: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario>;
+    type?: MultifactorAuthenticationStatusKeyType;
+};
+
+type MultifactorAuthenticationStatusKeyType = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE>;
+
+type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
 
 type NoScenarioForStatusReason = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON>;
 
@@ -67,6 +105,8 @@ type SetMultifactorAuthenticationStatus<T> = (
     customNotificationPaths?: Partial<NotificationPaths>,
 ) => MultifactorAuthenticationStatus<T>;
 
+type UseMultifactorAuthenticationStatus<T> = [MultifactorAuthenticationStatus<T>, SetMultifactorAuthenticationStatus<T>];
+
 type NotificationPaths = {
     successNotification: AllMultifactorAuthenticationNotificationType;
     failureNotification: AllMultifactorAuthenticationNotificationType;
@@ -74,12 +114,17 @@ type NotificationPaths = {
 
 export type {
     SetMultifactorAuthenticationStatus,
+    MultifactorAuthenticationStatusKeyType,
     AuthTypeName,
     UseMultifactorAuthenticationStatus,
     UseBiometricsSetup,
     Register,
     MultifactorAuthorization,
+    UseMultifactorAuthentication,
+    MultifactorAuthenticationScenarioStatus,
+    MultifactorAuthenticationStatusMessage,
     BiometricsStatus,
+    MultifactorTriggerArgument,
     NotificationPaths,
     NoScenarioForStatusReason,
 };

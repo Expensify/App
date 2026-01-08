@@ -1,5 +1,5 @@
 import type {EmptyObject, Simplify, ValueOf} from 'type-fest';
-import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import type {NotificationPaths} from '@components/MultifactorAuthentication/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
@@ -15,6 +15,13 @@ type MultifactorAuthenticationPartialStatusConditional<OmitStep> = OmitStep exte
           step: MultifactorAuthenticationStep;
       }
     : EmptyObject;
+
+type MultifactorAuthenticationTrigger = ValueOf<typeof VALUES.TRIGGER>;
+
+type MultifactorAuthenticationTriggerArgument = {
+    [VALUES.TRIGGER.FAILURE]: AllMultifactorAuthenticationNotificationType | MultifactorAuthenticationScenario;
+    [VALUES.TRIGGER.FULFILL]: AllMultifactorAuthenticationNotificationType | MultifactorAuthenticationScenario;
+};
 
 type MultifactorAuthenticationReason = ValueOf<{
     [K in keyof typeof VALUES.REASON]: ValueOf<(typeof VALUES.REASON)[K]>;
@@ -41,8 +48,6 @@ type MultifactorAuthenticationStatus<T, OmitStep = false> = MultifactorAuthentic
 
     notificationPaths: NotificationPaths;
 };
-
-type MultifactorAuthenticationFactorsRequirements = ValueOf<typeof VALUES.FACTORS_REQUIREMENTS>;
 
 type MultifactorAuthenticationFactor = ValueOf<typeof VALUES.FACTORS>;
 
@@ -74,6 +79,8 @@ type MultifactorAuthenticationStep = {
 
     isRequestFulfilled: boolean;
 };
+
+type MultifactorAuthenticationFactorsRequirements = ValueOf<typeof VALUES.FACTORS_REQUIREMENTS>;
 
 type MultifactorAuthenticationResponseMap = typeof VALUES.API_RESPONSE_MAP;
 
@@ -112,8 +119,10 @@ export type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationPartialStatus,
+    MultifactorAuthenticationTrigger,
     MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationActionParams,
+    MultifactorAuthenticationTriggerArgument,
     MultifactorKeyStoreOptions,
     MultifactorAuthenticationReason,
 };
