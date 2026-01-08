@@ -2788,15 +2788,6 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
         });
     }
 
-    if (customUnitName && customUnitRateName && updatedField === 'index' && typeof newValue === 'number') {
-        return translate('workspaceActions.updatedCustomUnitRateIndex', {
-            customUnitName,
-            customUnitRateName,
-            oldValue: oldValue ? Number(oldValue) : undefined,
-            newValue,
-        });
-    }
-
     if (customUnitName && customUnitRateName && updatedField === 'enabled' && typeof oldValue === 'boolean' && typeof newValue === 'boolean') {
         return translate('workspaceActions.updatedCustomUnitRateEnabled', {
             customUnitName,
