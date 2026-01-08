@@ -240,6 +240,26 @@ npm run android
 npm run web
 ```
 
+## Browser Testing with Playwright
+
+Claude can interact with the running App dev server using Playwright MCP for testing and debugging:
+
+### Setup
+1. Verify dev server is running
+2. Dev server runs at `https://dev.new.expensify.com:8082/`
+3. Ask Claude to open the URL in Playwright browser
+
+### Verifying Dev server is running
+- Verify App server is running: `ps aux | grep "webpack" | grep -v grep`
+- **App dev server runs on the HOST machine**, not inside the VM
+- Start command: `cd App && npm run web`
+- The VM is for backend services only (Auth, Bedrock, Integration-Server, Web-Expensify)
+
+### Dev Environment Sign-In
+- **Email**: Use any random Gmail address (e.g., `userthrowaway123456@gmail.com`)
+- **Magic code**: Always `000000` in dev environment
+- **Onboarding**: Skip optional steps
+
 ## Architecture Decisions
 
 ### React Native New Architecture
