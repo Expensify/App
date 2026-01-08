@@ -1687,7 +1687,10 @@ function getUserToInviteOption({
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
     const isInOptionToExclude = loginsToExclude[addSMSDomainIfPhoneNumber(searchValue).toLowerCase()];
 
-    if (isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
+    // Angle brackets are not valid characters for user names
+    const hasInvalidCharacters = shouldAcceptName && (searchValue.includes('<') || searchValue.includes('>'));
+
+    if (isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude || hasInvalidCharacters) {
         return null;
     }
 
@@ -2446,7 +2449,7 @@ function getFilteredRecentAttendees(personalDetails: OnyxEntry<PersonalDetailsLi
         .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
         .map((attendee) => ({
             ...attendee,
-            login: attendee.email ?? attendee.displayName,
+            login: attendee.email ? attendee.email : attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
         .map((attendee) => getParticipantsOption(attendee, personalDetails));
@@ -2740,13 +2743,8 @@ function filterUserToInvite(
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
     config?: FilterUserToInviteConfig,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}, shouldAcceptName = false} = config ?? {};
+    const {canInviteUser = true, excludeLogins = {}} = config ?? {};
     if (!canInviteUser) {
-        return null;
-    }
-
-    // Angle brackets are not valid characters for users names
-    if (shouldAcceptName && (searchValue.includes('<') || searchValue.includes('>'))) {
         return null;
     }
 
