@@ -6389,6 +6389,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: RORY_EMAIL,
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            quickAction: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
