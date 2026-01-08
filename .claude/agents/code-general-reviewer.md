@@ -3,7 +3,6 @@
 name: code-general-reviewer
 description: Reviews code against documented standards, architectural patterns, and best practices.
 tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash
-model: opus
 
 ---
 
