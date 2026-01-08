@@ -435,6 +435,13 @@ class TranslationGenerator {
                 `)}${COLORS.RESET}`,
             );
 
+            if (!this.isIncremental) {
+                const scriptPath = path.relative(process.cwd(), path.resolve(__dirname, 'generateTranslations.ts'));
+                console.log(
+                    `Note: You are currently running a full retranslation of the entire \`en.ts\` file. To incrementally translate only what you changed on your branch, run: ${COLORS.BLUE}\`npx ts-node ${scriptPath} --compare-ref main\`${COLORS.RESET}\n`,
+                );
+            }
+
             const userConfirmed = await this.cli.promptUserConfirmation(`Do you want to proceed? ${COLORS.BOLD}Estimated cost: $${estimatedCost.toFixed(2)} USD.${COLORS.RESET} (y/n) `);
 
             if (!userConfirmed) {
