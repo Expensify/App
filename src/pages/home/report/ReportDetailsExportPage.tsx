@@ -1,13 +1,12 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
-import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,7 +36,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const policyID = report?.policyID;
 
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
@@ -47,30 +46,16 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const isExported = isExportedUtil(reportActions);
 
     const confirmExport = useCallback(
-        (type: ExportType) => {
+        (type = modalStatus) => {
             if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
                 exportToIntegration(reportID, connectionName);
             } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
                 markAsManuallyExported(reportID, connectionName);
             }
+            setModalStatus(null);
             Navigation.dismissModal();
         },
-        [connectionName, reportID],
-    );
-
-    const showExportAgainModal = useCallback(
-        async (type: ExportType) => {
-            const result = await showConfirmModal({
-                title: translate('workspace.exportAgainModal.title'),
-                prompt: translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName}),
-                confirmText: translate('workspace.exportAgainModal.confirmText'),
-                cancelText: translate('workspace.exportAgainModal.cancelText'),
-            });
-            if (result.action === ModalActions.CONFIRM) {
-                confirmExport(type);
-            }
-        },
-        [showConfirmModal, translate, report?.reportName, connectionName, confirmExport],
+        [connectionName, modalStatus, reportID],
     );
 
     const exportSelectorOptions: ExportSelectorType[] = [
@@ -120,25 +105,36 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     }
 
     return (
-        <SelectionScreen<ExportType>
-            policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="ReportDetailsExportPage"
-            sections={[{data: exportSelectorOptions}]}
-            listItem={UserListItem}
-            shouldBeBlocked={false}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
-            title="common.export"
-            connectionName={connectionName}
-            onSelectRow={({value}) => {
-                if (isExported) {
-                    showExportAgainModal(value);
-                } else {
-                    confirmExport(value);
-                }
-            }}
-        />
+        <>
+            <SelectionScreen<ExportType>
+                policyID={policyID}
+                accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+                displayName="ReportDetailsExportPage"
+                sections={[{data: exportSelectorOptions}]}
+                listItem={UserListItem}
+                shouldBeBlocked={false}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
+                title="common.export"
+                connectionName={connectionName}
+                onSelectRow={({value}) => {
+                    if (isExported) {
+                        setModalStatus(value);
+                    } else {
+                        confirmExport(value);
+                    }
+                }}
+            />
+            <ConfirmModal
+                title={translate('workspace.exportAgainModal.title')}
+                onConfirm={confirmExport}
+                onCancel={() => setModalStatus(null)}
+                prompt={translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName})}
+                confirmText={translate('workspace.exportAgainModal.confirmText')}
+                cancelText={translate('workspace.exportAgainModal.cancelText')}
+                isVisible={!!modalStatus}
+            />
+        </>
     );
 }
 
