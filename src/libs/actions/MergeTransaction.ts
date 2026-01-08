@@ -24,7 +24,7 @@ import {getTransactionViolationsOfTransaction, isDistanceRequest, isTransactionP
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
-import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
+import {getCleanUpTransactionThreadReportOnyxData, getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
 import type {UpdateMoneyRequestData} from './IOU';
 
 /**
@@ -401,6 +401,18 @@ function mergeTransactionRequest({
               },
           ]
         : [];
+
+    const sourceIouAction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
+    const sourceTransactionThreadReportID = sourceIouAction?.childReportID;
+    const shouldDeleteTransactionThread = !!sourceTransactionThreadReportID;
+    const cleanUpSourceTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
+        transactionThreadID: sourceTransactionThreadReportID,
+        shouldDeleteTransactionThread,
+        reportAction: sourceIouAction,
+    });
+    optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
+    successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);
+    failureSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.failureData);
 
     // Optimistic delete the merge transaction
     const optimisticMergeTransactionData: OnyxUpdate = {
