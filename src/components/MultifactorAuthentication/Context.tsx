@@ -1,9 +1,28 @@
 import React, {createContext, useContext} from 'react';
 import type {ReactNode} from 'react';
+import type {UnknownRecord} from 'type-fest';
 import type {MultifactorAuthenticationScenario} from './config/types';
 
-const MultifactorAuthenticationContext = createContext<{proceed: (scenario: MultifactorAuthenticationScenario) => MultifactorAuthenticationScenario}>({
+const MultifactorAuthenticationContext = createContext<{
+    proceed: (scenario: MultifactorAuthenticationScenario) => MultifactorAuthenticationScenario;
+    update: (props: UnknownRecord) => void;
+    trigger: (type: unknown) => void;
+    info: {
+        scenario: MultifactorAuthenticationScenario;
+        headerTitle: string;
+        title: string;
+        description: string;
+    };
+}>({
     proceed: (scenario) => scenario,
+    update: () => {},
+    trigger: () => {},
+    info: {
+        scenario: 'BIOMETRICS-TEST',
+        headerTitle: 'Header title',
+        title: 'Title',
+        description: 'Description',
+    },
 });
 
 type MultifactorAuthenticationContextProviderProps = {
@@ -17,6 +36,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const MultifactorAuthenticationContextData = {
         proceed: (scenario: MultifactorAuthenticationScenario) => scenario,
+        update: () => {},
+        trigger: () => {},
+        info: {
+            scenario: 'BIOMETRICS-TEST',
+            headerTitle: 'Header title',
+            title: 'Title',
+            description: 'Description',
+        },
     };
 
     return <MultifactorAuthenticationContext.Provider value={MultifactorAuthenticationContextData}>{children}</MultifactorAuthenticationContext.Provider>;

@@ -876,7 +876,11 @@ const SCREENS = {
         ADD_ADMIN: 'Domain_Add_Admin',
     },
     MULTIFACTOR_AUTHENTICATION: {
+        MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
         BIOMETRICS_TEST: 'Multifactor_Authentication_Biometrics_Test',
+        NOTIFICATION: 'Multifactor_Authentication_Notification',
+        PROMPT: 'Multifactor_Authentication_Prompt',
+        NOT_FOUND: 'Multifactor_Authentication_Not_Found',
     },
 } as const;
 

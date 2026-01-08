@@ -3,6 +3,7 @@ import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/Se
 import type {MultifactorAuthenticationFactor, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
 import {requestBiometricChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
+import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
 import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenario} from './config/types';
 import type {AuthTypeName, BiometricsStatus, NoScenarioForStatusReason, NotificationPaths} from './types';
 
@@ -127,6 +128,10 @@ const getNotificationPath = (scenarioPrefix: Lowercase<MultifactorAuthentication
     return `${scenarioPrefix ?? 'biometrics-test'}-${suffix}` as AllMultifactorAuthenticationNotificationType;
 };
 
+const getMultifactorCancelConfirmModalConfig = (scenario?: MultifactorAuthenticationScenario) => {
+    return (scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] : MULTIFACTOR_AUTHENTICATION_DEFAULT_UI).MODALS.cancelConfirmation;
+};
+
 const isValidScenario = (scenario: string): scenario is MultifactorAuthenticationScenario => {
     const scenarios = Object.values(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO);
     return !!scenarios.find((sc) => sc === scenario);
@@ -162,4 +167,15 @@ const Status = {
     createEmptyStatus,
 } as const;
 
-export {getAuthTypeName, doesDeviceSupportBiometrics, isBiometryConfigured, isValidScenario, shouldClearScenario, getNotificationPaths, createAuthorizeErrorStatus, resetKeys, Status};
+export {
+    getAuthTypeName,
+    doesDeviceSupportBiometrics,
+    isBiometryConfigured,
+    isValidScenario,
+    shouldClearScenario,
+    getNotificationPaths,
+    createAuthorizeErrorStatus,
+    resetKeys,
+    getMultifactorCancelConfirmModalConfig,
+    Status,
+};

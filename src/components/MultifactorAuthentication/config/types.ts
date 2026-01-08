@@ -11,7 +11,7 @@ import type {
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import type {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG, MultifactorAuthenticationScenarioPayload} from './index';
+import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG, MultifactorAuthenticationScenarioPayload} from './index';
 
 type MultifactorAuthenticationCancelConfirm = {
     description?: TranslationPaths;
@@ -103,7 +103,7 @@ type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unkn
     NOTIFICATIONS: MultifactorAuthenticationNotificationOptional;
 };
 
-type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig, 'nativePromptTitle' | 'MODALS' | 'NOTIFICATIONS'>;
+type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig<never>, 'nativePromptTitle' | 'MODALS' | 'NOTIFICATIONS'>;
 
 type MultifactorAuthenticationScenarioConfigRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig<never>>;
 
@@ -121,6 +121,8 @@ type MultifactorAuthenticationScenarioResponseWithSuccess = {
     httpCode: number | undefined;
     successful: boolean;
 };
+
+type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATION_PROMPT_UI;
 
 type RegisterBiometricsParams = MultifactorAuthenticationActionParams<
     {
@@ -154,6 +156,7 @@ export type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationNotificationOptions,
     MultifactorAuthenticationScenarioParams,
+    MultifactorAuthenticationPromptType,
     AllMultifactorAuthenticationNotificationType,
     MultifactorAuthenticationScenarioConfig,
     MultifactorAuthenticationUI,
