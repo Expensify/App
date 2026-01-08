@@ -314,6 +314,8 @@ function IOURequestStepDistanceManual({
             transaction,
             reportID,
             policy,
+            policyTags,
+            policyCategories,
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
@@ -331,6 +333,7 @@ function IOURequestStepDistanceManual({
             quickAction,
             introSelected,
             activePolicyID,
+            policyRecentlyUsedCurrencies,
         ],
     );
 

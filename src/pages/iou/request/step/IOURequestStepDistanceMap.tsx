@@ -571,6 +571,8 @@ function IOURequestStepDistanceMap({
         transaction?.routes,
         report?.reportID,
         policy,
+        policyTags,
+        policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,

@@ -463,6 +463,7 @@ function IOURequestStepDistance({
         quickAction,
         introSelected,
         activePolicyID,
+        policyRecentlyUsedCurrencies,
     ]);
 
     const getError = () => {
@@ -570,6 +571,8 @@ function IOURequestStepDistance({
         transaction?.routes,
         report?.reportID,
         policy,
+        policyTags,
+        policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
