@@ -91,6 +91,20 @@ function ReceiptView({route}: ReceiptViewProps) {
         Navigation.goBack(route.params.backTo);
     }, [route.params.backTo]);
 
+    const handleDeleteReceiptPress = useCallback(async () => {
+        const result = await showConfirmModal({
+            title: translate('receipt.deleteReceipt'),
+            prompt: translate('receipt.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deleteReceipt();
+    }, [showConfirmModal, translate, deleteReceipt]);
+
     return (
         <ScreenWrapper
             testID="ReceiptView"
@@ -104,20 +118,7 @@ function ReceiptView({route}: ReceiptViewProps) {
                 <Button
                     shouldShowRightIcon
                     iconRight={expensifyIcons.Trashcan}
-                    onPress={() => {
-                        showConfirmModal({
-                            title: translate('receipt.deleteReceipt'),
-                            prompt: translate('receipt.deleteConfirmation'),
-                            confirmText: translate('common.delete'),
-                            cancelText: translate('common.cancel'),
-                            danger: true,
-                        }).then((result) => {
-                            if (result.action !== ModalActions.CONFIRM) {
-                                return;
-                            }
-                            deleteReceipt();
-                        });
-                    }}
+                    onPress={handleDeleteReceiptPress}
                     innerStyles={styles.bgTransparent}
                     large
                 />

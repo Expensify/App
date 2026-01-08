@@ -1286,19 +1286,18 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
-    const confirmRemoveCurrentTransaction = () => {
-        showConfirmModal({
+    const confirmRemoveCurrentTransaction = async () => {
+        const result = await showConfirmModal({
             title: translate('iou.removeExpense'),
             prompt: translate('iou.removeExpenseConfirmation'),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
             danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            removeCurrentTransaction();
         });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        removeCurrentTransaction();
     };
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
@@ -1370,7 +1369,9 @@ function IOURequestStepConfirmation({
                         iouCategory={transaction?.category}
                         onConfirm={onConfirm}
                         onSendMoney={sendMoney}
-                        showRemoveExpenseConfirmModal={confirmRemoveCurrentTransaction}
+                        showRemoveExpenseConfirmModal={() => {
+                            confirmRemoveCurrentTransaction();
+                        }}
                         receiptPath={receiptPath}
                         receiptFilename={receiptFilename}
                         iouType={iouType}

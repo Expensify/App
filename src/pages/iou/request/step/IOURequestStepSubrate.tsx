@@ -158,6 +158,21 @@ function IOURequestStepSubrate({
         goBack();
     };
 
+    const handleDeleteSubrate = async () => {
+        const result = await showConfirmModal({
+            title: translate('iou.deleteSubrate'),
+            prompt: translate('iou.deleteSubrateConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldEnableNewFocusManagement: true,
+            danger: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deleteSubrateAndHideModal();
+    };
+
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
@@ -188,19 +203,7 @@ function IOURequestStepSubrate({
                             icon: expensifyIcons.Trashcan,
                             text: translate('iou.deleteSubrate'),
                             onSelected: () => {
-                                showConfirmModal({
-                                    title: translate('iou.deleteSubrate'),
-                                    prompt: translate('iou.deleteSubrateConfirmation'),
-                                    confirmText: translate('common.delete'),
-                                    cancelText: translate('common.cancel'),
-                                    shouldEnableNewFocusManagement: true,
-                                    danger: true,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
-                                    deleteSubrateAndHideModal();
-                                });
+                                handleDeleteSubrate();
                             },
                             shouldCallAfterModalHide: true,
                         },

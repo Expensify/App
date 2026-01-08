@@ -158,6 +158,21 @@ function IOURequestStepWaypoint({
         goBack();
     };
 
+    const handleDeleteWaypoint = async () => {
+        const result = await showConfirmModal({
+            title: translate('distance.deleteWaypoint'),
+            prompt: translate('distance.deleteWaypointConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldEnableNewFocusManagement: true,
+            danger: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deleteStopAndHideModal();
+    };
+
     const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
             lat: values.lat ?? 0,
@@ -208,19 +223,7 @@ function IOURequestStepWaypoint({
                             icon: expensifyIcons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
                             onSelected: () => {
-                                showConfirmModal({
-                                    title: translate('distance.deleteWaypoint'),
-                                    prompt: translate('distance.deleteWaypointConfirmation'),
-                                    confirmText: translate('common.delete'),
-                                    cancelText: translate('common.cancel'),
-                                    shouldEnableNewFocusManagement: true,
-                                    danger: true,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
-                                    deleteStopAndHideModal();
-                                });
+                                handleDeleteWaypoint();
                             },
                             shouldCallAfterModalHide: true,
                         },
