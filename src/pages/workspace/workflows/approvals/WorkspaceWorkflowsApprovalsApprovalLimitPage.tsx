@@ -1,7 +1,9 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
+import type {NumberWithSymbolFormRef} from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -58,8 +60,18 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const [editedApprovalLimit, setEditedApprovalLimit] = useState<string | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
+    const amountFormRef = useRef<NumberWithSymbolFormRef>(null);
+    const isFocused = useIsFocused();
 
     const approvalLimit = editedApprovalLimit ?? defaultApprovalLimit;
+
+    // Clear the amount input when the screen is focused and the over-limit approver was unselected
+    useEffect(() => {
+        if (!isFocused || currentApprover?.approvalLimit != null || editedApprovalLimit !== null) {
+            return;
+        }
+        amountFormRef.current?.updateNumber('');
+    }, [isFocused, currentApprover?.approvalLimit, editedApprovalLimit]);
 
     const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
     const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
@@ -90,7 +102,10 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         }
         // Mark that we've completed the initial wizard flow before navigating to the summary page
         setApprovalWorkflowIsInitialFlow(false);
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
+        // Use forceReplace to replace the ApprovalLimit page in the navigation stack
+        // so that when the user presses back from the Create page, they go to the Approver page
+        // (not back to ApprovalLimit, especially when skipping)
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID), {forceReplace: true});
     };
 
     const updateCurrentApprover = (update: Partial<Approver>) => {
@@ -216,14 +231,14 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                         shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                     />
-                                    <View style={[styles.mt3, styles.mb5]}>
+                                    <View style={[styles.mt3, styles.mb5, styles.renderHTML]}>
                                         <RenderHTML html={translate('workflowsApprovalLimitPage.description', {approverName: approverDisplayName})} />
                                     </View>
                                 </>
                             ) : (
                                 <>
                                     <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsApprovalLimitPage.header')}</Text>
-                                    <View style={styles.mb5}>
+                                    <View style={[styles.mb5, styles.renderHTML]}>
                                         <RenderHTML html={translate('workflowsApprovalLimitPage.description', {approverName: approverDisplayName})} />
                                     </View>
                                 </>
@@ -240,6 +255,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                     disabled={areLimitFieldsDisabled}
                                     errorText={amountError}
                                     onSubmitEditing={handleSubmit}
+                                    numberFormRef={amountFormRef}
                                 />
                             </View>
 

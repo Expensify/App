@@ -237,7 +237,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         shouldShowRightIcon
                         onPress={() => {
                             setImportedSpreadsheetIsImportingMultiLevelTags(false);
-                            if (hasVisibleTags) {
+                            if (hasVisibleTags && isMultiLevelTags) {
                                 showConfirmModal({
                                     title: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
                                     prompt: switchSingleToMultiLevelTagPrompt,

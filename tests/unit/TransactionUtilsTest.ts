@@ -430,6 +430,7 @@ describe('TransactionUtils', () => {
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     },
                 },
+                merchant: '(none)',
             });
 
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.DISTANCE);
@@ -467,6 +468,21 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+        });
+
+        it('returns time when the transaction has a comment with time type', () => {
+            const transaction = generateTransaction({
+                comment: {
+                    type: 'time',
+                    units: {
+                        count: 2,
+                        unit: 'h',
+                        rate: 50,
+                    },
+                },
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.TIME);
         });
     });
 
@@ -591,7 +607,7 @@ describe('TransactionUtils', () => {
         it('should return (none) if transaction has no merchant', () => {
             const transaction = generateTransaction();
             const merchant = TransactionUtils.getMerchant(transaction);
-            expect(merchant).toBe('(none)');
+            expect(merchant).toBe('Expense');
         });
 
         it('should return modified merchant if transaction has modified merchant', () => {
@@ -1335,6 +1351,132 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('isCategoryBeingAnalyzed', () => {
+        it('should return false for undefined transaction', () => {
+            expect(TransactionUtils.isCategoryBeingAnalyzed(undefined)).toBe(false);
+        });
+
+        it('should return false when category is not missing', () => {
+            const transaction = generateTransaction({
+                category: 'Food',
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false for partial transactions (empty merchant and zero amount)', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return true when pendingAction is ADD and category is missing', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+        });
+
+        it('should return true when within auto-categorization grace period', () => {
+            // Set pendingAutoCategorizationTime to 30 seconds ago (within 1 minute grace period)
+            const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+            const pendingAutoCategorizationTime = thirtySecondsAgo.toISOString().replace('T', ' ').replace('Z', '');
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                comment: {
+                    pendingAutoCategorizationTime,
+                },
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+        });
+
+        it('should return false when auto-categorization grace period has passed', () => {
+            // Set pendingAutoCategorizationTime to 2 minutes ago (outside 1 minute grace period)
+            const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+            const pendingAutoCategorizationTime = twoMinutesAgo.toISOString().replace('T', ' ').replace('Z', '');
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: undefined,
+                comment: {
+                    pendingAutoCategorizationTime,
+                },
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false when pendingAutoCategorizationTime is invalid', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: undefined,
+                comment: {
+                    pendingAutoCategorizationTime: 'invalid-date',
+                },
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false when category is Uncategorized but no pending action or auto-categorization', () => {
+            const transaction = generateTransaction({
+                category: 'Uncategorized',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: undefined,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false for unreported expenses', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false for invoice expenses', async () => {
+            const invoiceReportID = 'invoice123';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
+                reportID: invoiceReportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+            });
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: invoiceReportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+    });
+
     describe('shouldReuseInitialTransaction', () => {
         const initialTransaction = generateTransaction({
             transactionID: '1',
@@ -1384,6 +1526,31 @@ describe('TransactionUtils', () => {
                 receipt: {source: 'source'},
             });
             expect(TransactionUtils.shouldReuseInitialTransaction(transactionWithReceiptSource, true, 0, true, [initialTransaction])).toBe(false);
+        });
+    });
+
+    describe('shouldShowExpenseBreakdown', () => {
+        it('should return false when transactions array is undefined', () => {
+            expect(TransactionUtils.shouldShowExpenseBreakdown(undefined)).toBe(false);
+        });
+
+        it('should return false when transactions array is empty', () => {
+            expect(TransactionUtils.shouldShowExpenseBreakdown([])).toBe(false);
+        });
+
+        it('should return false when all transactions are reimbursable', () => {
+            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: true})];
+            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(false);
+        });
+
+        it('should return true when all transactions are non-reimbursable', () => {
+            const transactions = [generateTransaction({reimbursable: false}), generateTransaction({reimbursable: false})];
+            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+        });
+
+        it('should return true when there are both reimbursable and non-reimbursable transactions', () => {
+            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: false})];
+            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
         });
     });
 });

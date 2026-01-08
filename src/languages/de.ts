@@ -19,14 +19,7 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    CanceledRequestParams,
-    CardInfoParams,
     ChangeFieldParams,
-    ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerSubscriptionParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
-    CharacterLengthLimitParams,
     ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
@@ -79,7 +72,6 @@ import type {
     LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
-    LoggedInAsParams,
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
@@ -131,7 +123,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -167,6 +158,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -198,7 +190,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -343,6 +334,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Vorname',
         lastName: 'Nachname',
         scanning: 'Scannen',
+        analyzing: 'Analysiere…',
         addCardTermsOfService: 'Expensify-Nutzungsbedingungen',
         perPerson: 'pro Person',
         phone: 'Telefon',
@@ -417,13 +409,14 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'bis',
         genericErrorMessage: 'Ups ... Etwas ist schiefgelaufen und Ihre Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es später erneut.',
         percentage: 'Prozentsatz',
+        converted: 'Konvertiert',
         error: {
             invalidAmount: 'Ungültiger Betrag',
             acceptTerms: 'Sie müssen die Nutzungsbedingungen akzeptieren, um fortzufahren',
             phoneNumber: `Bitte gib eine vollständige Telefonnummer ein (z. B. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Dieses Feld ist erforderlich',
             requestModified: 'Diese Anfrage wird von einem anderen Mitglied bearbeitet',
-            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Zeichenlimit überschritten (${length}/${limit})`,
+            characterLimitExceedCounter: (length: number, limit: number) => `Zeichenlimit überschritten (${length}/${limit})`,
             dateInvalid: 'Bitte wählen Sie ein gültiges Datum aus',
             invalidDateShouldBeFuture: 'Bitte wähle heute oder ein zukünftiges Datum aus',
             invalidTimeShouldBeFuture: 'Bitte wähle eine Uhrzeit, die mindestens eine Minute in der Zukunft liegt',
@@ -506,6 +499,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Mehr anzeigen',
         showLess: 'Weniger anzeigen',
         merchant: 'Händler',
+        change: 'Ändern',
         category: 'Kategorie',
         report: 'Bericht',
         billable: 'Verrechenbar',
@@ -768,14 +762,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wird gestartet',
         expired: 'Ihre Sitzung ist abgelaufen.',
         signIn: 'Bitte melden Sie sich erneut an.',
-        redirectedToDesktopApp: 'Wir haben Sie zur Desktop-App weitergeleitet.',
-        youCanAlso: 'Sie können auch',
-        openLinkInBrowser: 'Öffne diesen Link in deinem Browser',
-        loggedInAs: ({email}: LoggedInAsParams) => `Sie sind als ${email} angemeldet. Klicken Sie im Dialogfeld auf „Link öffnen“, um sich mit diesem Konto bei der Desktop-App anzumelden.`,
-        doNotSeePrompt: 'Du kannst den Prompt nicht sehen?',
-        tryAgain: 'Erneut versuchen',
-        or: ', oder',
-        continueInWeb: 'Weiter zur Web-App',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -850,12 +836,6 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Reisen und Ausgaben – mit der Geschwindigkeit eines Chats',
             body: 'Willkommen bei der nächsten Generation von Expensify, in der Ihre Reisen und Ausgaben dank kontextbezogenem Chat in Echtzeit schneller abgewickelt werden.',
         },
-    },
-    thirdPartySignIn: {
-        alreadySignedIn: (email: string) => `Du bist bereits als ${email} angemeldet.`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `Möchtest du dich nicht mit ${provider} anmelden?`,
-        continueWithMyCurrentSession: 'Mit meiner aktuellen Sitzung fortfahren',
-        redirectToDesktopMessage: 'Wir leiten dich zur Desktop-App weiter, sobald du dich angemeldet hast.',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Mit Single Sign-On weiter anmelden:',
@@ -1220,20 +1200,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Wenn Sie keine Website haben, können Sie stattdessen das LinkedIn- oder Social-Media-Profil Ihres Unternehmens angeben.',
         invalidDomainError: 'Sie haben eine ungültige Domain eingegeben. Um fortzufahren, geben Sie bitte eine gültige Domain ein.',
         publicDomainError: 'Sie haben eine öffentliche Domäne eingegeben. Um fortzufahren, geben Sie bitte eine private Domäne ein.',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} werden gescannt`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} ausstehend`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 Ausgabe (${statusText.join(', ')})` : `1 Ausgabe`,
-                other: (count: number) => (statusText.length > 0 ? `${count} Ausgaben (${statusText.join(', ')})` : `${count} Ausgaben`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 Ausgabe',
@@ -1281,6 +1247,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `Eingereicht${memo ? `, mit dem Hinweis ${memo}` : ''}`,
         automaticallySubmitted: `eingereicht über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">verspätete Einreichungen</a>`,
+        queuedToSubmitViaDEW: 'in die Warteschlange gestellt zur Einreichung über benutzerdefinierten Genehmigungsworkflow',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `Verfolgung von ${formattedAmount}${comment ? `für ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `Split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `aufteilen ${formattedAmount}${comment ? `für ${comment}` : ''}`,
@@ -1304,7 +1271,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'hat diesen Bericht abgelehnt',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+        canceledRequest: (amount: string, submitterDisplayName: string) =>
             `hat die Zahlung über ${amount} storniert, weil ${submitterDisplayName} seine Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} hat ein Bankkonto hinzugefügt. Die Zahlung über ${amount} wurde durchgeführt.`,
@@ -1589,29 +1556,38 @@ const translations: TranslationDeepObject<typeof en> = {
     nextStep: {
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warte darauf, dass <strong>du</strong> Ausgaben hinzufügst.`;
+                        return `Warten auf <strong>dich</strong>, um Ausgaben hinzuzufügen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf <strong>${actor}</strong>, um Ausgaben hinzuzufügen.`;
+                        return `Warten, bis <strong>${actor}</strong> Ausgaben hinzufügt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Warten darauf, dass ein Admin Ausgaben hinzufügt.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Warte darauf, dass <strong>du</strong> Spesen einreichst.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten darauf, dass <strong>${actor}</strong> Ausgaben einreicht.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten auf einen Admin, der Ausgaben einreicht.`;
                 }
             },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Keine weiteren Maßnahmen erforderlich!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>Sie</strong> ein Bankkonto hinzufügen.`;
+                        return `Warten auf <strong>dich</strong>, um ein Bankkonto hinzuzufügen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten darauf, dass <strong>${actor}</strong> ein Bankkonto hinzufügt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf einen Admin, um ein Bankkonto hinzuzufügen.`;
+                        return `Warten auf einen Admin, der ein Bankkonto hinzufügt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
@@ -1619,75 +1595,69 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta}` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>deine</strong> Spesen automatisch eingereicht werden${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass die Spesen von <strong>${actor}</strong> automatisch eingereicht werden${formattedETA}.`;
+                        return `Warten darauf, dass die Ausgaben von <strong>${actor}</strong> automatisch eingereicht werden${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten darauf, dass die Ausgaben eines Admins automatisch eingereicht werden${formattedETA}.`;
+                        return `Warten darauf, dass die Spesen eines Admins automatisch eingereicht werden${formattedETA}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten auf <strong>dich</strong>, um das/die Problem(e) zu beheben.`;
+                        return `Warte darauf, dass <strong>du</strong> die Probleme behebst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warte auf <strong>${actor}</strong>, um die(n) Fehler zu beheben.`;
+                        return `Warten auf <strong>${actor}</strong>, um die Probleme zu beheben.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf einen Admin zur Behebung des/der Problem(e).`;
+                        return `Warten auf einen Admin, um die Probleme zu beheben.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten auf <strong>deine</strong> Genehmigung von Ausgaben.`;
+                        return `Warte darauf, dass <strong>du</strong> Ausgaben genehmigst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf die Genehmigung der Ausgaben durch <strong>${actor}</strong>.`;
+                        return `Warten auf <strong>${actor}</strong>, um Spesen zu genehmigen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf die Genehmigung von Ausgaben durch einen Admin.`;
+                        return `Warten auf die Genehmigung von Spesen durch einen Admin.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warte darauf, dass <strong>du</strong> diesen Bericht exportierst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass <strong>${actor}</strong> diesen Bericht exportiert.`;
+                        return `Warten, bis <strong>${actor}</strong> diesen Bericht exportiert.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Warten auf einen Admin, um diesen Bericht zu exportieren.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>du</strong> Spesen bezahlst.`;
+                        return `Warte darauf, dass <strong>du</strong> Spesen bezahlst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten, bis <strong>${actor}</strong> die Spesen bezahlt.`;
+                        return `Warten auf <strong>${actor}</strong>, um Spesen zu bezahlen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf einen Admin, um Auslagen zu bezahlen.`;
+                        return `Warten auf einen Admin, der Spesen bezahlt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>du</strong> die Einrichtung eines Geschäftskontos abschließt.`;
+                        return `Warte darauf, dass <strong>du</strong> die Einrichtung eines Geschäftskontos abschließt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass <strong>${actor}</strong> die Einrichtung eines Geschäftskontos abschließt.`;
+                        return `Warten, bis <strong>${actor}</strong> die Einrichtung eines Geschäftskontos abgeschlossen hat.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf einen Admin, der die Einrichtung eines Geschäftskontos abschließt.`;
+                        return `Warten auf einen Admin, der das Geschäftskonto fertig einrichtet.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
@@ -1697,6 +1667,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Warten auf Abschluss der Zahlung${formattedETA}.`;
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
+                `Ups! Sie scheinen diesen Bericht bei <strong>sich selbst</strong> einzureichen. Das Genehmigen eigener Berichte ist in Ihrem Workspace <strong>verboten</strong>. Bitte reichen Sie diesen Bericht bei jemand anderem ein oder kontaktieren Sie Ihren Admin, um die Person zu ändern, an die Sie Berichte einreichen.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'in Kürze',
@@ -1811,7 +1784,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updateRequired: 'Update erforderlich',
         pleaseInstall: 'Bitte auf die neueste Version von New Expensify aktualisieren',
         pleaseInstallExpensifyClassic: 'Bitte installiere die neueste Version von Expensify',
-        toGetLatestChanges: 'Für Mobilgeräte oder Desktop laden Sie die neueste Version herunter und installieren Sie sie. Für das Web aktualisieren Sie Ihren Browser.',
+        toGetLatestChanges: 'Für Mobilgeräte laden Sie die neueste Version herunter und installieren Sie sie. Für das Web aktualisieren Sie Ihren Browser.',
         newAppNotAvailable: 'Die neue Expensify-App ist nicht mehr verfügbar.',
     },
     initialSettingsPage: {
@@ -1831,9 +1804,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             ios: {
                 label: 'iOS',
-            },
-            desktop: {
-                label: 'macOS',
             },
         },
         troubleshoot: {
@@ -2029,9 +1999,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Aus Sicherheitsgründen erfordert Xero eine Zwei-Faktor-Authentifizierung, um die Integration zu verbinden.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Zwei-Faktor-Authentifizierung erforderlich',
         twoFactorAuthIsRequiredForAdminsTitle: 'Bitte aktivieren Sie die Zwei-Faktor-Authentifizierung',
-        twoFactorAuthIsRequiredXero:
-            'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Bitte aktivieren Sie sie, um Expensify weiterhin nutzen zu können.',
-        twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen verlangt die Verwendung von Zwei-Faktor-Authentifizierung. Bitte aktivieren Sie sie, um Expensify weiterhin verwenden zu können.',
+        twoFactorAuthIsRequiredXero: 'Für Ihre Xero-Buchhaltungsverbindung ist eine Zwei-Faktor-Authentifizierung erforderlich.',
+        twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen erfordert eine Zwei-Faktor-Authentifizierung.',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden',
         twoFactorAuthRequired: 'Für Ihre Xero-Verbindung ist eine Zwei-Faktor-Authentifizierung (2FA) erforderlich und sie kann nicht deaktiviert werden.',
     },
@@ -2157,6 +2126,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Bestätigen Sie Ihr Bankkonto',
         personalBankAccounts: 'Persönliche Bankkonten',
         businessBankAccounts: 'Geschäftsbankkonten',
+        shareBankAccount: 'Bankkonto teilen',
+        bankAccountShared: 'Geteiltes Bankkonto',
+        shareBankAccountTitle: 'Wählen Sie die Administratoren aus, mit denen dieses Bankkonto geteilt werden soll:',
+        shareBankAccountSuccess: 'Bankkonto geteilt!',
+        shareBankAccountSuccessDescription: 'Die ausgewählten Administratoren erhalten eine Bestätigungsnachricht vom Concierge.',
+        shareBankAccountFailure: 'Beim Versuch, das Bankkonto freizugeben, ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+        shareBankAccountEmptyTitle: 'Keine Administratoren verfügbar',
+        shareBankAccountEmptyDescription: 'Es gibt keine Workspace-Administratoren, mit denen Sie dieses Bankkonto teilen können.',
+        shareBankAccountNoAdminsSelected: 'Bitte wählen Sie einen Administrator aus, bevor Sie fortfahren',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2405,6 +2383,21 @@ ${amount} für ${merchant} – ${date}`,
         addFirstPaymentMethod: 'Fügen Sie eine Zahlungsmethode hinzu, um Zahlungen direkt in der App zu senden und zu empfangen.',
         defaultPaymentMethod: 'Standard',
         bankAccountLastFour: (lastFour: string) => `Bankkonto • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Ausgabenregeln',
+        subtitle: 'Diese Regeln gelten für deine Ausgaben. Wenn du in einen Workspace einreichst, können die Workspace-Regeln diese gegebenenfalls außer Kraft setzen.',
+        emptyRules: {title: 'Du hast noch keine Regeln erstellt', subtitle: 'Füge eine Regel hinzu, um Spesenberichte zu automatisieren.'},
+        changes: {
+            billable: (value: boolean) => `Ausgabe ${value ? 'verrechenbar' : 'nicht abrechenbar'} aktualisieren`,
+            category: (value: string) => `Kategorie auf „${value}“ aktualisieren`,
+            comment: (value: string) => `Beschreibung in „${value}“ ändern`,
+            merchant: (value: string) => `Händler aktualisieren auf „${value}“`,
+            reimbursable: (value: boolean) => `Ausgabe ${value ? 'erstattungsfähig' : 'nicht erstattungsfähig'} aktualisieren`,
+            report: (value: string) => `Einen Bericht mit dem Namen „${value}“ hinzufügen`,
+            tag: (value: string) => `Tag auf „${value}“ aktualisieren`,
+            tax: (value: string) => `Steuersatz auf ${value} aktualisieren`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -2883,6 +2876,7 @@ ${
             containsReservedWord: 'Der Name darf die Wörter Expensify oder Concierge nicht enthalten',
             hasInvalidCharacter: 'Name darf kein Komma oder Semikolon enthalten',
             requiredFirstName: 'Der Vorname darf nicht leer sein',
+            cannotContainSpecialCharacters: 'Der Name darf keine Sonderzeichen enthalten',
         },
     },
     privatePersonalDetails: {
@@ -3897,14 +3891,14 @@ ${
                 monthly: 'Monatlich',
             },
             planType: 'Tarifart',
-            submitExpense: 'Reiche deine Ausgaben unten ein:',
             defaultCategory: 'Standardkategorie',
             viewTransactions: 'Transaktionen anzeigen',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spesen von ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-Transaktionen werden automatisch in ein „Expensify Card Liability Account“ exportiert, das mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstellt wurde.</muted-text-label>`,
+            youCantDowngradeInvoicing:
+                'Sie können Ihren Tarif bei einem per Rechnung abgerechneten Abonnement nicht herabstufen. Um Ihr Abonnement zu besprechen oder Änderungen daran vorzunehmen, wenden Sie sich an Ihren Account Manager oder Concierge, um Hilfe zu erhalten.',
         },
         receiptPartners: {
-            connect: 'Jetzt verbinden',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Verbunden mit ${organizationName}` : 'Automatisieren Sie Reise- und Essenslieferungskosten in Ihrer gesamten Organisation.',
@@ -3932,8 +3926,6 @@ ${
                 invitationFailure: 'Einladen des Mitglieds zu Uber for Business fehlgeschlagen',
                 autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoRemove: 'Entfernte Arbeitsbereichsmitglieder in Uber for Business deaktivieren',
-                bannerTitle: 'Expensify + Uber für Business',
-                bannerDescription: 'Verbinde Uber for Business, um Reise- und Essenslieferkosten in deinem gesamten Unternehmen zu automatisieren.',
                 emptyContent: {
                     title: 'Keine ausstehenden Einladungen',
                     subtitle: 'Hurra! Wir haben überall nachgesehen und keine offenen Einladungen gefunden.',
@@ -4872,7 +4864,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             customCloseDate: 'Benutzerdefiniertes Abschlussdatum',
             letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
             confirmationDescription: 'Wir beginnen sofort mit dem Import der Transaktionen.',
-            cardholder: 'Karteninhaber',
             card: 'Karte',
             cardName: 'Kartenname',
             brokenConnectionError:
@@ -4884,6 +4875,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 'Expensify Limited ist als Vertreter von Plaid Financial Ltd. tätig, einem zugelassenen Zahlungsinstitut, das von der Financial Conduct Authority gemäß den Payment Services Regulations 2017 reguliert wird (Firm Reference Number: 804718). Plaid stellt Ihnen über Expensify Limited als dessen Vertreter regulierte Kontoinformationsdienste zur Verfügung.',
             assign: 'Zuweisen',
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',
@@ -5298,7 +5290,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Sie haben noch keine Tags erstellt',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Füge ein Tag hinzu, um Projekte, Standorte, Abteilungen und mehr zu verfolgen.',
-                subtitleHTML: `<muted-text><centered-text>Importieren Sie eine Tabelle, um Tags für die Nachverfolgung von Projekten, Standorten, Abteilungen und mehr hinzuzufügen. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Erfahren Sie mehr</a> über die Formatierung von Tag-Dateien.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Fügen Sie Tags hinzu, um Projekte, Standorte, Abteilungen und mehr nachzuverfolgen. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Erfahren Sie mehr</a> über das Formatieren von Tag-Dateien für den Import.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Ihre Tags werden derzeit über eine Buchhaltungsverbindung importiert. Gehen Sie zu <a href="${accountingPageURL}">Buchhaltung</a>, um Änderungen vorzunehmen.</centered-text></muted-text>`,
             },
@@ -5922,14 +5914,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
 Möchten Sie diesen Betrag (${amount}) überweisen, um die Abrechnung für diesen Workspace zu übernehmen? Ihre Zahlungskarte wird sofort belastet.`,
             subscriptionTitle: 'Jahresabonnement übernehmen',
             subscriptionButtonText: 'Abonnement übertragen',
-            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+            subscriptionText: (usersCount: number, finalCount: number) =>
                 `Die Übernahme dieses Workspaces führt dazu, dass sein Jahresabonnement mit Ihrem aktuellen Abonnement zusammengeführt wird. Dadurch erhöht sich die Größe Ihres Abonnements um ${usersCount} Mitglieder, sodass Ihr neues Abonnement eine Größe von ${finalCount} hat. Möchten Sie fortfahren?`,
             duplicateSubscriptionTitle: 'Warnung: Doppelte Abonnements',
             duplicateSubscriptionButtonText: 'Weiter',
-            duplicateSubscriptionText: ({
-                email,
-                workspaceName,
-            }: ChangeOwnerDuplicateSubscriptionParams) => `Es sieht so aus, als ob du versuchst, die Abrechnung für die Workspaces von ${email} zu übernehmen. Dafür musst du jedoch zuerst Administrator in all ihren Workspaces sein.
+            duplicateSubscriptionText: (
+                email: string,
+                workspaceName: string,
+            ) => `Es sieht so aus, als ob du versuchst, die Abrechnung für die Workspaces von ${email} zu übernehmen. Dafür musst du jedoch zuerst Administrator in all ihren Workspaces sein.
 
 Klicke auf „Weiter“, wenn du nur die Abrechnung für den Workspace ${workspaceName} übernehmen möchtest.
 
@@ -6442,11 +6434,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
             return `hat einen steuererstattungsfähigen Anteil von „${newValue}“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
         },
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `änderte den Index des ${customUnitName}-Tarifs "${customUnitRateName}" auf "${newValue}" ${oldValue ? `(zuvor "${oldValue}")` : ''}`;
-        },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `${newValue ? 'aktiviert' : 'deaktiviert'} ${customUnitName}-Tarif "${customUnitRateName}"`;
+            return `${newValue ? 'aktiviert' : 'deaktiviert'} den ${customUnitName}-Satz „${customUnitRateName}“`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `hat den Preis „${rateName}“ für „${customUnitName}“ entfernt`,
         addedReportField: (fieldType: string, fieldName?: string) => `${fieldType}-Berichtsfield „${fieldName}“ hinzugefügt`,
@@ -6622,6 +6611,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `benutzerdefinierte Berichtsnamensformel in „${newValue}“ geändert (zuvor „${oldValue}“)`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -6880,74 +6871,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             message: 'Expensify kann Anhänge ohne Speicherzugriff nicht speichern. Tippe auf „Einstellungen“, um die Berechtigungen zu aktualisieren.',
         },
     },
-    desktopApplicationMenu: {
-        mainMenu: 'Neues Expensify',
-        about: 'Über New Expensify',
-        update: 'Neue Expensify-Version aktualisieren',
-        checkForUpdates: 'Auf Updates prüfen',
-        toggleDevTools: 'Entwicklertools umschalten',
-        viewShortcuts: 'Tastenkürzel anzeigen',
-        services: 'Dienste',
-        hide: 'Neues Expensify ausblenden',
-        hideOthers: 'Andere ausblenden',
-        showAll: 'Alle anzeigen',
-        quit: 'New Expensify beenden',
-        fileMenu: 'Datei',
-        closeWindow: 'Fenster schließen',
-        editMenu: 'Bearbeiten',
-        undo: 'Rückgängig',
-        redo: 'Wiederholen',
-        cut: 'Ausschneiden',
-        copy: 'Kopieren',
-        paste: 'Einfügen',
-        pasteAndMatchStyle: 'Einsetzen und Stil anpassen',
-        pasteAsPlainText: 'Als unformatierten Text einfügen',
-        delete: 'Löschen',
-        selectAll: 'Alle auswählen',
-        speechSubmenu: 'Sprache',
-        startSpeaking: 'Sprechen starten',
-        stopSpeaking: 'Sprachausgabe stoppen',
-        viewMenu: 'Anzeigen',
-        reload: 'Neu laden',
-        forceReload: 'Neu laden erzwingen',
-        resetZoom: 'Tatsächliche Größe',
-        zoomIn: 'Vergrößern',
-        zoomOut: 'Verkleinern',
-        togglefullscreen: 'Vollbild umschalten',
-        historyMenu: 'Verlauf',
-        back: 'Zurück',
-        forward: 'Weiterleiten',
-        windowMenu: 'Fenster',
-        minimize: 'Minimieren',
-        zoom: 'Zoom',
-        front: 'Alle nach vorne bringen',
-        helpMenu: 'Hilfe',
-        learnMore: 'Mehr erfahren',
-        documentation: 'Dokumentation',
-        communityDiscussions: 'Community-Diskussionen',
-        searchIssues: 'Probleme suchen',
-    },
-    historyMenu: {
-        forward: 'Weiterleiten',
-        back: 'Zurück',
-    },
-    checkForUpdatesModal: {
-        available: {
-            title: 'Aktualisierung verfügbar',
-            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
-                `Die neue Version wird in Kürze verfügbar sein.${!isSilentUpdating ? 'Wir benachrichtigen dich, sobald wir bereit sind, das Update durchzuführen.' : ''}`,
-            soundsGood: 'Klingt gut',
-        },
-        notAvailable: {
-            title: 'Aktualisierung nicht verfügbar',
-            message: 'Derzeit ist kein Update verfügbar. Bitte versuchen Sie es später noch einmal!',
-            okay: 'OK',
-        },
-        error: {
-            title: 'Update-Überprüfung fehlgeschlagen',
-            message: 'Wir konnten nicht nach einem Update suchen. Bitte versuche es in Kürze erneut.',
-        },
-    },
     settlement: {
         status: {
             pending: 'Ausstehend',
@@ -6991,13 +6914,13 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName} geändert in „${newValue}“ (zuvor „${oldValue}“)`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `setze ${fieldName} auf „${newValue}“`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `den Workspace geändert${fromPolicyName ? `(zuvor ${fromPolicyName})` : ''}`;
                     }
                     return `Arbeitsbereich in ${toPolicyName}${fromPolicyName ? `(zuvor ${fromPolicyName})` : ''} geändert`;
                 },
-                changeType: ({oldType, newType}: ChangeTypeParams) => `Typ von ${oldType} in ${newType} geändert`,
+                changeType: (oldType: string, newType: string) => `Typ von ${oldType} in ${newType} geändert`,
                 exportedToCSV: `in CSV exportiert`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
@@ -7541,9 +7464,9 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             title: 'Zahlung',
             subtitle: 'Fügen Sie eine Karte hinzu, um Ihr Expensify-Abonnement zu bezahlen.',
             addCardButton: 'Zahlungskarte hinzufügen',
+            cardInfo: (name: string, expiration: string, currency: string) => `Name: ${name}, Ablaufdatum: ${expiration}, Währung: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `Ihr nächstes Zahlungsdatum ist der ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Karte mit Endziffern ${cardNumber}`,
-            cardInfo: ({name, expiration, currency}: CardInfoParams) => `Name: ${name}, Ablaufdatum: ${expiration}, Währung: ${currency}`,
             changeCard: 'Zahlungskarte ändern',
             changeCurrency: 'Zahlungswährung ändern',
             cardNotFound: 'Keine Zahlungskarte hinzugefügt',
@@ -7658,12 +7581,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             whatsMainReason: 'Was ist der Hauptgrund, warum du die automatische Verlängerung deaktivierst?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Wird am ${date} verlängert.`,
             pricingConfiguration: 'Die Preise hängen von der Konfiguration ab. Wählen Sie für den niedrigsten Preis ein Jahresabonnement und holen Sie sich die Expensify Card.',
-            learnMore: {
-                part1: 'Erfahren Sie mehr auf unserer',
-                pricingPage: 'Preisseite',
-                part2: 'oder chatte mit unserem Team in deiner',
-                adminsRoom: '#admins-Raum.',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>Erfahren Sie mehr auf unserer <a href="${CONST.PRICING}">Preisseite</a> oder chatten Sie mit unserem Team in Ihrem ${hasAdminsRoom ? `<a href="adminsRoom">#admins-Raum.</a>` : '#admins-Raum.'}</muted-text>`,
             estimatedPrice: 'Geschätzter Preis',
             changesBasedOn: 'Dies ändert sich basierend auf deiner Expensify Card-Nutzung und den untenstehenden Abonnementoptionen.',
         },
@@ -8007,17 +7926,43 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             findAdmin: 'Admin finden',
             primaryContact: 'Hauptansprechpartner',
             addPrimaryContact: 'Primären Kontakt hinzufügen',
+            setPrimaryContactError: 'Primären Kontakt kann nicht festgelegt werden. Bitte versuchen Sie es später erneut.',
             settings: 'Einstellungen',
             consolidatedDomainBilling: 'Konsolidierte Domain-Abrechnung',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Wenn diese Option aktiviert ist, bezahlt der Hauptansprechpartner für alle Workspaces, die Mitgliedern von <strong>${domainName}</strong> gehören, und erhält alle Rechnungsbelege.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Die konsolidierte Domain-Abrechnung konnte nicht geändert werden. Bitte versuche es später erneut.',
+            addAdmin: 'Admin hinzufügen',
+            invite: 'Einladen',
+            addAdminError: 'Dieser Benutzer kann nicht als Admin hinzugefügt werden. Bitte versuche es erneut.',
         },
     },
-    desktopAppRetiredPage: {
-        title: 'Desktop-App wurde eingestellt',
-        body: 'Die neue Expensify Desktop-App für Mac wurde eingestellt. Bitte verwenden Sie künftig die Web-App, um auf Ihr Konto zuzugreifen.',
-        goToWeb: 'Zur Web-App gehen',
+    gps: {
+        tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',
+        disclaimer: 'Benutze GPS, um eine Ausgabe von deiner Reise zu erstellen. Tippe unten auf „Start“, um mit der Aufzeichnung zu beginnen.',
+        error: {failedToStart: 'Standortverfolgung konnte nicht gestartet werden.', failedToGetPermissions: 'Die erforderlichen Standortberechtigungen konnten nicht abgerufen werden.'},
+        trackingDistance: 'Strecke wird verfolgt...',
+        stopped: 'Angehalten',
+        start: 'Start',
+        stop: 'Stopp',
+        discard: 'Verwerfen',
+        stopGpsTrackingModal: {
+            title: 'GPS-Tracking stoppen',
+            prompt: 'Bist du sicher? Dadurch wird deine aktuelle Reise beendet.',
+            cancel: 'Verfolgung fortsetzen',
+            confirm: 'GPS-Tracking stoppen',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Entfernungsverfolgung verwerfen',
+            prompt: 'Bist du sicher? Dadurch wird deine aktuelle Reise verworfen und kann nicht rückgängig gemacht werden.',
+            confirm: 'Entfernungsverfolgung verwerfen',
+        },
+        zeroDistanceTripModal: {title: 'Ausgabe kann nicht erstellt werden', prompt: 'Sie können keine Ausgabe mit demselben Start- und Zielort erstellen.'},
+        desktop: {
+            title: 'Entfernung auf deinem Handy verfolgen',
+            subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
+            button: 'App herunterladen',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
