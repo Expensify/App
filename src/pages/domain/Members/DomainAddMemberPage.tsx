@@ -72,6 +72,9 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     };
 
     const inviteUser = () => {
+        if (!domainSecurityGroupID) {
+            return;
+        }
         addMemberToDomain(domainAccountID, email, domainSecurityGroupID);
         Navigation.dismissModal();
     };
