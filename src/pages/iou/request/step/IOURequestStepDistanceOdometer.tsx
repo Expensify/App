@@ -61,7 +61,7 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepDistanceOdometer({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backToReport},
+        params: {action, iouType, reportID, transactionID, backTo, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -107,7 +107,7 @@ function IOURequestStepDistanceOdometer({
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isCreatingNewRequest = !backToReport && !isEditing;
+    const isCreatingNewRequest = !(backTo || isEditing);
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -527,8 +527,9 @@ function IOURequestStepDistanceOdometer({
             testID={IOURequestStepDistanceOdometer.displayName}
             shouldShowNotFoundPage={false}
             shouldShowWrapper={!isCreatingNewRequest}
+            includeSafeAreaPaddingBottom
         >
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.mb5]}>
+            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
                 <View>
                     {/* Start Reading */}
                     <View style={[styles.mb6, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
