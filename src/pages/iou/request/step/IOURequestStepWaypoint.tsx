@@ -10,9 +10,9 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type BaseModalProps from '@components/Modal/types';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
@@ -66,6 +66,7 @@ function IOURequestStepWaypoint({
     transaction,
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
@@ -140,10 +141,10 @@ function IOURequestStepWaypoint({
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
-                address: waypointValue ?? '',
-                name: values.name ?? '',
-                lat: values.lat ?? 0,
-                lng: values.lng ?? 0,
+                address: waypointValue,
+                name: values.name,
+                lat: values.lat,
+                lng: values.lng,
                 keyForList: `${(values.name ?? 'waypoint') as string}_${Date.now()}`,
             };
             save(waypoint);
@@ -162,10 +163,10 @@ function IOURequestStepWaypoint({
 
     const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
-            lat: values.lat ?? 0,
-            lng: values.lng ?? 0,
-            address: values.address ?? '',
-            name: values.name ?? '',
+            lat: values.lat,
+            lng: values.lng,
+            address: values.address,
+            name: values.name,
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
@@ -207,7 +208,7 @@ function IOURequestStepWaypoint({
                     shouldSetModalVisibility={false}
                     threeDotsMenuItems={[
                         {
-                            icon: Expensicons.Trashcan,
+                            icon: icons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
                             onSelected: () => {
                                 setRestoreFocusType(undefined);

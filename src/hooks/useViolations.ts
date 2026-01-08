@@ -6,7 +6,7 @@ import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 /**
  * Names of Fields where violations can occur.
  */
-const validationFields = ['amount', 'billable', 'category', 'comment', 'date', 'merchant', 'receipt', 'tag', 'tax', 'customUnitRateID', 'none'] as const;
+const validationFields = ['amount', 'billable', 'category', 'comment', 'date', 'merchant', 'receipt', 'tag', 'tax', 'customUnitRateID', 'waypoints', 'none'] as const;
 
 type ViolationField = TupleToUnion<typeof validationFields>;
 
@@ -60,6 +60,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     hold: () => 'none',
     receiptGeneratedWithAI: () => 'receipt',
     companyCardRequired: () => 'none',
+    noRoute: () => 'waypoints',
 };
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
