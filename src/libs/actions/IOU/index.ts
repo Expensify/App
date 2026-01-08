@@ -14352,7 +14352,7 @@ function assignReportToMe(
         bypassNextApproverID: accountID,
     });
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -14467,7 +14467,7 @@ function addReportApprover(
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
     });
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

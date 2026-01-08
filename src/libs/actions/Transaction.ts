@@ -622,13 +622,12 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
     const optimisticReportActions = {
         [optimisticReportAction.reportActionID]: optimisticReportAction,
     };
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         optimisticData: [
             // Optimistically dismissing the violation, removing it from the list of violations
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 value: transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
             },
             // Optimistically adding the system message indicating we dismissed the violation
@@ -664,7 +663,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
 }
 
 function openDraftDistanceExpense() {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.NVP_RECENT_WAYPOINTS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.SET,

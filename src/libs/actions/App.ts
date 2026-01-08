@@ -271,7 +271,13 @@ function getOnyxDataForOpenOrReconnect(
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
 ): OnyxData {
-    const result: OnyxData = {
+    const result: OnyxData<
+        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
+        | typeof ONYXKEYS.HAS_LOADED_APP
+        | typeof ONYXKEYS.IS_LOADING_APP
+        | typeof ONYXKEYS.COLLECTION.REPORT
+        | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

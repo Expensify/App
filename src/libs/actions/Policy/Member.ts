@@ -173,7 +173,7 @@ function buildRoomMembersOnyxData(
  * Updates the import spreadsheet data according to the result of the import
  */
 function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
