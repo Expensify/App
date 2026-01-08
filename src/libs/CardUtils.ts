@@ -733,6 +733,10 @@ function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, work
     }, {});
 }
 
+function isCardWithBrokenConnection(card: Card): boolean {
+    return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
+}
+
 /**
  * Check if any card from the provided feed(s) has a broken connection
  *
@@ -744,9 +748,7 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
         return false;
     }
 
-    return Object.values(feedCards).some(
-        (card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult),
-    );
+    return Object.values(feedCards).some((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardWithBrokenConnection(card));
 }
 
 /**
@@ -935,6 +937,7 @@ export {
     isCardHiddenFromSearch,
     getFeedType,
     flatAllCardsList,
+    isCardWithBrokenConnection,
     checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
