@@ -671,6 +671,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: '経費精算対象の合計',
         nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
+        duplicateExpense: '重複した経費',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1493,6 +1494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
+        correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {

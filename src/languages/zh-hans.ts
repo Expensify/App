@@ -668,6 +668,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: '可报销总额',
         nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
+        duplicateExpense: '重复报销',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -1467,6 +1468,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} 至 ${endDate}（${count} 天）`,
         splitByDate: '按日期拆分',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `报告因自定义审批工作流而转发至 ${to}`,
+        correctDistanceRateError: '修复里程费率错误后请重试。',
     },
     transactionMerge: {
         listPage: {
