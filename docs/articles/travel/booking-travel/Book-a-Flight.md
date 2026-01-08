@@ -12,7 +12,7 @@ Book flights easily through Expensify’s built-in travel booking tool. This gui
 
 Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
 
-If you don’t see the **Book travel** option, contact your Account Manager or Concierge to schedule a travel demo and enable the feature for your account.
+If you don’t see the **Book travel** option, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
 # How to book a flight
 
