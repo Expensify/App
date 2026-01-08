@@ -69,7 +69,7 @@ Post ONE comment with:
 3. **Recommendation** - one of:
    - **REVERT** - Default choice. Preferred when the causing PR is clear and can be cleanly reverted. Especially important if the PR caused multiple linked issues.
    - **ROLL FORWARD** - Use when reverting is problematic: fix is simpler than revert, revert would cause merge conflicts, or many dependent PRs have merged on top.
-   - **NEEDS INVESTIGATION** - Use when you cannot determine the root cause with reasonable confidence. List candidate PRs for human review.
+   - **NEEDS INVESTIGATION** - Use when you cannot determine the root cause with reasonable confidence. List candidate PRs for human review, and tag PR author and reviewers.
    - **DEMOTE** - Use when the bug is pretty minor (cosmetic and uncommon, pretty edge case, affects very few users) and not worth blocking the deploy.
 
 State which label you're removing (if any) and why.
