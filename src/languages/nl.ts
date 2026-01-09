@@ -1988,6 +1988,7 @@ const translations: TranslationDeepObject<typeof en> = {
         use2fa: 'Tweeledige verificatiecode gebruiken',
     },
     twoFactorAuthForm: {
+        twoFactorAuthCode: 'Tweefactorauthenticatiecode',
         error: {
             pleaseFillTwoFactorAuth: 'Voer uw tweefactorauthenticatiecode in',
             incorrect2fa: 'Onjuiste twee-factor-authenticatiecode. Probeer het nog eens.',

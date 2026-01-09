@@ -374,6 +374,7 @@ function IOURequestStepDistanceManual({
                 containerStyle={styles.iouAmountTextInputContainer}
                 autoGrowExtraSpace={variables.w80}
                 errorText={formError}
+                accessibilityLabel={`${translate('common.distance')} (${unit})`}
                 footer={
                     <Button
                         success

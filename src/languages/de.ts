@@ -1995,6 +1995,7 @@ const translations: TranslationDeepObject<typeof en> = {
         use2fa: 'Zwei-Faktor-Authentifizierungscode verwenden',
     },
     twoFactorAuthForm: {
+        twoFactorAuthCode: 'Zwei-Faktor-Authentifizierungscode',
         error: {
             pleaseFillTwoFactorAuth: 'Bitte geben Sie Ihren Zwei-Faktor-Authentifizierungscode ein',
             incorrect2fa: 'Falscher Zwei-Faktor-Authentifizierungscode. Bitte versuche es erneut.',

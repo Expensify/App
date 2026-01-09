@@ -241,6 +241,7 @@ function AddressForm({
                 inputID={INPUT_IDS.ZIP_POST_CODE}
                 label={translate('common.zipPostCode')}
                 aria-label={translate('common.zipPostCode')}
+                accessibilityHint={zipFormat}
                 role={CONST.ROLE.PRESENTATION}
                 autoCapitalize="characters"
                 defaultValue={zip}
