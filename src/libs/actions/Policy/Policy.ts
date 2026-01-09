@@ -784,7 +784,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string | undefined, au
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>, additionalData: SetWorkspaceApprovalModeAdditionalData = {}) {
+function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>, additionalData?: SetWorkspaceApprovalModeAdditionalData) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
@@ -803,47 +803,50 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
 
     const nextStepOptimisticData: OnyxUpdate[] = [];
     const nextStepFailureData: OnyxUpdate[] = [];
-    const {reportNextSteps, transactionViolations, betas} = additionalData;
-    const resolvedTransactionViolations: OnyxCollection<TransactionViolations> = transactionViolations ?? {};
-    const resolvedReportNextSteps: NonNullable<OnyxCollection<ReportNextStepDeprecated>> = reportNextSteps ?? {};
-    const resolvedBetas: Beta[] = betas ?? [];
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, resolvedBetas);
-    const affectedReports = ReportUtils.getAllPolicyReports(policyID).filter(
-        (report) => !!report && ReportUtils.isExpenseReport(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
-    );
+    const shouldUpdateNextSteps = additionalData?.reportNextSteps != null && additionalData?.transactionViolations != null && additionalData?.betas != null;
+    if (shouldUpdateNextSteps) {
+        const {reportNextSteps, transactionViolations, betas} = additionalData;
+        const resolvedTransactionViolations: OnyxCollection<TransactionViolations> = transactionViolations ?? {};
+        const resolvedReportNextSteps: NonNullable<OnyxCollection<ReportNextStepDeprecated>> = reportNextSteps ?? {};
+        const resolvedBetas: Beta[] = betas ?? [];
+        const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, resolvedBetas);
+        const affectedReports = ReportUtils.getAllPolicyReports(policyID).filter(
+            (report) => !!report && ReportUtils.isExpenseReport(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
+        );
 
-    for (const report of affectedReports) {
-        const reportID = report?.reportID;
+        for (const report of affectedReports) {
+            const reportID = report?.reportID;
 
-        if (!reportID) {
-            continue;
+            if (!reportID) {
+                continue;
+            }
+
+            const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
+            const currentNextStep: OnyxEntry<ReportNextStepDeprecated> | null = resolvedReportNextSteps[nextStepKey] ?? null;
+            const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations, currentUserAccountID, currentUserEmail, undefined, undefined, report, updatedPolicy);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Next step generation uses deprecated "ReportNextStepDeprecated" types (still in active use).
+            const optimisticNextStep = buildNextStepNew({
+                report,
+                policy: updatedPolicy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+
+            nextStepOptimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: nextStepKey,
+                value: optimisticNextStep,
+            });
+
+            nextStepFailureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: nextStepKey,
+                value: currentNextStep ?? null,
+            });
         }
-
-        const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
-        const currentNextStep: OnyxEntry<ReportNextStepDeprecated> | null = resolvedReportNextSteps[nextStepKey] ?? null;
-        const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations, currentUserAccountID, currentUserEmail, undefined, undefined, report, updatedPolicy);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticNextStep = buildNextStepNew({
-            report,
-            policy: updatedPolicy,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserEmail,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
-        });
-
-        nextStepOptimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: nextStepKey,
-            value: optimisticNextStep,
-        });
-
-        nextStepFailureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: nextStepKey,
-            value: currentNextStep ?? null,
-        });
     }
 
     const optimisticData: OnyxUpdate[] = [
