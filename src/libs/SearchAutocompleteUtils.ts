@@ -128,12 +128,6 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
-const userFriendlyStatusList = Object.values({
-    ...CONST.SEARCH.STATUS.EXPENSE,
-    ...CONST.SEARCH.STATUS.INVOICE,
-    ...CONST.SEARCH.STATUS.TRIP,
-    ...CONST.SEARCH.STATUS.TASK,
-}).map((value) => getUserFriendlyValue(value));
 
 /**
  * @private
@@ -147,14 +141,13 @@ function filterOutRangesWithCorrectValue(
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
     currentType: string,
-    translatedStatusMap: SharedValue<Record<string, boolean>>,
+    translatedStatusSet: SharedValue<Set<string>>,
 ) {
     'worklet';
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
     const expenseTypeList = userFriendlyExpenseTypeList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
-    const statusList = userFriendlyStatusList;
     const groupByList = userFriendlyGroupByList;
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
@@ -191,8 +184,11 @@ function filterOutRangesWithCorrectValue(
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
-            return statusList.includes(range.value) || !!translatedStatusMap.get()[range.value];
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
+            // Normalize by replacing thin spaces (U+2009) with regular spaces to match translated values
+            const normalizedValue = range.value.replaceAll('\u2009', ' ');
+            return translatedStatusSet.get().has(normalizedValue);
+        }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
@@ -250,7 +246,7 @@ function parseForLiveMarkdown(
     currencyList: SharedValue<string[]>,
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
-    translatedStatusMap: SharedValue<Record<string, boolean>>,
+    translatedStatusSet: SharedValue<Set<string>>,
 ): MarkdownRange[] {
     'worklet';
 
@@ -260,7 +256,7 @@ function parseForLiveMarkdown(
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, currentType, translatedStatusMap))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, currentType, translatedStatusSet))
         .map((range) => {
             const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';

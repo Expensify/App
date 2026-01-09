@@ -19,11 +19,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-import {formatTranslatedValue, getStatusOptions} from '@libs/SearchUIUtils';
+import {getAllTranslatedStatusValues} from '@libs/SearchTranslationUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
 type SearchAutocompleteInputProps = {
@@ -124,24 +123,8 @@ function SearchAutocompleteInput({
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 
-    const translatedStatusMap = useMemo(() => {
-        const allStatusTypes: SearchDataTypes[] = [
-            CONST.SEARCH.DATA_TYPES.EXPENSE,
-            CONST.SEARCH.DATA_TYPES.INVOICE,
-            CONST.SEARCH.DATA_TYPES.TRIP,
-            CONST.SEARCH.DATA_TYPES.TASK,
-            CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-        ];
-        const statusMap: Record<string, boolean> = {};
-        for (const type of allStatusTypes) {
-            const statusOptions = getStatusOptions(translate, type);
-            for (const option of statusOptions) {
-                statusMap[formatTranslatedValue(option.text)] = true;
-            }
-        }
-        return statusMap;
-    }, [translate]);
-    const translatedStatusSharedValue = useSharedValue(translatedStatusMap);
+    const translatedStatusSet = useMemo(() => getAllTranslatedStatusValues(translate), [translate]);
+    const translatedStatusSharedValue = useSharedValue(translatedStatusSet);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -195,9 +178,9 @@ function SearchAutocompleteInput({
         scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
-            translatedStatusSharedValue.set(translatedStatusMap);
+            translatedStatusSharedValue.set(translatedStatusSet);
         });
-    }, [translatedStatusSharedValue, translatedStatusMap]);
+    }, [translatedStatusSharedValue, translatedStatusSet]);
 
     const parser = useCallback(
         (input: string) => {

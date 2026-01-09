@@ -1181,7 +1181,6 @@ function formatDefaultRawFilterSegment(
             break;
     }
 
-    // Translate status values if translate function is available
     const formattedValues = cleanedValues.map((val) => {
         if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type) {
             const statusOptions = getStatusOptions(translate, type);

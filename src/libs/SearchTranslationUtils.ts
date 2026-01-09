@@ -90,6 +90,19 @@ function formatTranslatedValue(text: string): string {
     return text.toLowerCase().replaceAll(' ', '\u2009');
 }
 
+/**
+ * Returns a Set of all translated status values across all search data types.
+ * Values are lowercased for case-insensitive matching.
+ */
+function getAllTranslatedStatusValues(translate: LocalizedTranslate): Set<string> {
+    return new Set(
+        Object.values(CONST.SEARCH.DATA_TYPES)
+            .map((type) => getStatusOptions(translate, type as SearchDataTypes))
+            .flat()
+            .map((option) => option.text.toLowerCase()),
+    );
+}
+
 export {
     getStatusOptions,
     getHasOptions,
@@ -99,4 +112,5 @@ export {
     getTripStatusOptions,
     getTaskStatusOptions,
     formatTranslatedValue,
+    getAllTranslatedStatusValues,
 };
