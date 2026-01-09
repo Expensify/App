@@ -116,7 +116,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     }, []);
 
     const styles = useThemeStyles();
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle<Transaction & ListItem>>(null);
 
     const shouldShowTextInput = useMemo(() => {
         return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
@@ -131,7 +131,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             const searchableFields: string[] = [];
 
             const merchant = getMerchant(transaction);
-            if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
+            if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
                 searchableFields.push(merchant);
             }
 
