@@ -590,7 +590,6 @@ function TransactionItemRow({
             isAmountColumnWide,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
-            hash,
             reportActions,
         ],
     );
