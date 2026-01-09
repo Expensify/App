@@ -953,7 +953,7 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (isTypeSplit && iouAmount === 0) {
+                if (isEditingSplitBill && iouAmount === 0) {
                     setFormError('iou.error.invalidAmount');
                     return;
                 }
