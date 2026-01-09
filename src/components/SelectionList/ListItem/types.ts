@@ -339,7 +339,6 @@ export type {
     SpendCategorySelectorListItemProps,
     UserListItemProps,
     InviteMemberListItemProps,
-    TableListItemProps,
     WorkspaceListItemType,
     UserSelectionListItemProps,
     TableListItemProps,
