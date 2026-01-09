@@ -5329,7 +5329,6 @@ type ConvertTrackedWorkspaceParams = {
     billable: boolean | undefined;
     policyID: string;
     receipt: Receipt | undefined;
-    waypoints?: string;
     customUnitID?: string;
     customUnitRateID?: string;
     reimbursable?: boolean;
@@ -5341,6 +5340,7 @@ type AddTrackedExpenseToPolicyParam = {
     comment: string;
     created: string;
     merchant: string;
+    waypoints?: string;
     transactionID: string;
     reimbursable: boolean;
     actionableWhisperReportActionID: string | undefined;
@@ -5366,6 +5366,7 @@ type ConvertTrackedExpenseToRequestParams = {
         currency: string;
         comment: string;
         merchant: string;
+        waypoints?: string;
         created: string;
         attendees?: Attendee[];
         transactionThreadReportID?: string;
@@ -5405,6 +5406,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         merchant,
         created,
         attendees,
+        waypoints,
         transactionThreadReportID,
         isLinkedTrackedExpenseReportArchived,
     } = transactionParams;
@@ -5433,6 +5435,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             comment,
             created,
             merchant,
+            waypoints,
             reimbursable: true,
             transactionID,
             actionableWhisperReportActionID,
@@ -5456,6 +5459,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         comment,
         created,
         merchant,
+        waypoints,
         payerAccountID,
         payerEmail,
         chatReportID: chatParams.reportID,
@@ -5960,7 +5964,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                           taxAmount,
                           billable,
                           policyID: chatReport.policyID,
-                          waypoints: sanitizedWaypoints,
                           reimbursable,
                           ...customUnitParams,
                       }
@@ -5978,6 +5981,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     merchant,
                     created,
                     attendees,
+                    waypoints: sanitizedWaypoints,
                     transactionID: transaction.transactionID,
                     actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction,
