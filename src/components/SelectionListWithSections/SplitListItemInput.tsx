@@ -66,6 +66,4 @@ function SplitListItemInput({
     );
 }
 
-SplitListItemInput.displayName = 'SplitListItemInput';
-
 export default SplitListItemInput;

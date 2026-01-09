@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertSecondsToTime} from '@components/VideoPlayer/utils';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -66,6 +67,7 @@ function VideoPlayerControls({
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     reportID,
 }: VideoPlayerControlsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();
@@ -134,7 +136,7 @@ function VideoPlayerControls({
                             sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.FULLSCREEN_BUTTON}
                         />
                         <IconButton
-                            src={Expensicons.ThreeDots}
+                            src={icons.ThreeDots}
                             tooltipText={translate('common.more')}
                             onPress={showPopoverMenu}
                             small={small}

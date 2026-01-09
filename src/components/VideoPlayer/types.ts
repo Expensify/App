@@ -79,6 +79,7 @@ type VideoPlayerProps = {
      * Report ID of the video resource.
      */
     reportID?: string;
+    onTap?: (shouldShowArrows?: boolean) => void;
 };
 
 export default VideoPlayerProps;

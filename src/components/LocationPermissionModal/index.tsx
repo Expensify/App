@@ -28,6 +28,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const checkPermission = useCallback(() => {
         getLocationPermission().then((status) => {
             if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+                setHasError(status === RESULTS.BLOCKED);
                 return;
             }
             onGrant();
@@ -73,7 +74,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
-        setIsLoading(true);
         if (hasError) {
             if (Linking.openSettings) {
                 Linking.openSettings();
@@ -90,6 +90,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             setShowModal(false);
             return;
         }
+        setIsLoading(true);
         cb();
     };
 
