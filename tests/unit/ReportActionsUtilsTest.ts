@@ -2750,19 +2750,19 @@ describe('ReportActionsUtils', () => {
         } as ReportAction);
 
         beforeEach(() => {
-            jest.spyOn(require('../../src/libs/ReportUtils'), 'getReportOrDraftReport').mockImplementation((reportID: string) => {
+            jest.spyOn(require('../../src/libs/ReportUtils'), 'getReportOrDraftReport').mockImplementation(((reportID: string) => {
                 if (reportID === expenseReportID) {
-                    return {...createRandomReport(0), reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE};
+                    return {...createRandomReport(0, undefined), reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE};
                 }
                 if (reportID === regularIOUReportID) {
-                    return {...createRandomReport(0), reportID: regularIOUReportID, type: CONST.REPORT.TYPE.IOU};
+                    return {...createRandomReport(0, undefined), reportID: regularIOUReportID, type: CONST.REPORT.TYPE.IOU};
                 }
                 return null;
-            });
+            }) as any);
 
-            jest.spyOn(require('../../src/libs/ReportUtils'), 'isExpenseReport').mockImplementation((report: Report | null) => {
+            jest.spyOn(require('../../src/libs/ReportUtils'), 'isExpenseReport').mockImplementation(((report: Report | null) => {
                 return report?.reportID === expenseReportID;
-            });
+            }) as any);
         });
 
         afterEach(() => {
