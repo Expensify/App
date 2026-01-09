@@ -2,7 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import {isActionableTrackExpense, isCreatedAction, isCreatedTaskReportAction, isDeletedAction, isMoneyRequestAction, isReportPreviewAction, isWhisperAction} from './ReportActionsUtils';
-import {getChildReportNotificationPreference, shouldDisplayThreadReplies} from './ReportUtils';
+import {getChildReportNotificationPreference, shouldDisableThread, shouldDisplayThreadReplies} from './ReportUtils';
 
 type ThreadMenuParams = {
     reportAction: OnyxEntry<ReportAction>;
@@ -24,6 +24,7 @@ function shouldShowJoinThread({reportAction, isArchivedRoom, isThreadReportParen
     const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewAction(reportAction);
     const isTaskAction = isCreatedTaskReportAction(reportAction);
     const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
+    const isThreadDisabled = shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
 
     return (
         !subscribed &&
@@ -32,6 +33,7 @@ function shouldShowJoinThread({reportAction, isArchivedRoom, isThreadReportParen
         !isExpenseReportAction &&
         !isThreadReportParentAction &&
         !isHarvestCreatedExpenseReportAction &&
+        !isThreadDisabled &&
         (shouldDisplayThreadRepliesResult || (!isDeletedActionResult && !isArchivedRoom))
     );
 }
@@ -49,6 +51,7 @@ function shouldShowLeaveThread({reportAction, isArchivedRoom, isThreadReportPare
     const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewAction(reportAction);
     const isTaskAction = isCreatedTaskReportAction(reportAction);
     const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
+    const isThreadDisabled = shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
 
     return (
         subscribed &&
@@ -57,6 +60,7 @@ function shouldShowLeaveThread({reportAction, isArchivedRoom, isThreadReportPare
         !isExpenseReportAction &&
         !isThreadReportParentAction &&
         !isHarvestCreatedExpenseReportAction &&
+        !isThreadDisabled &&
         (shouldDisplayThreadRepliesResult || (!isDeletedActionResult && !isArchivedRoom))
     );
 }
