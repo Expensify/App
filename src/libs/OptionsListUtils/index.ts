@@ -860,7 +860,7 @@ function createOption(
     report: OnyxInputOrEntry<Report>,
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    private_isArchived?: string,
+    isArchived?: string,
 ): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
 
@@ -922,7 +922,7 @@ function createOption(
         const reportNameValuePairsForReport = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
 
         // Set properties that are used in SearchOption context
-        result.private_isArchived = private_isArchived ?? reportNameValuePairsForReport?.private_isArchived;
+        result.private_isArchived = isArchived ?? reportNameValuePairsForReport?.private_isArchived;
         result.keyForList = String(report.reportID);
 
         // Type/category flags already set in initialization above, but update brickRoadIndicator
@@ -987,7 +987,7 @@ function createOption(
  */
 function getReportOption(
     participant: Participant,
-    private_isArchived: string,
+    isArchived: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     reportDrafts?: OnyxCollection<Report>,
 ): OptionData {
@@ -1003,7 +1003,7 @@ function getReportOption(
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
-        private_isArchived,
+        isArchived,
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1011,7 +1011,7 @@ function getReportOption(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, undefined, allPersonalDetails, undefined, {private_isArchived});
+        option.text = computeReportName(report, undefined, undefined, undefined, undefined, allPersonalDetails, undefined, {private_isArchived: isArchived});
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
@@ -1044,7 +1044,7 @@ function getReportOption(
 function getReportDisplayOption(
     report: OnyxEntry<Report>,
     unknownUserDetails: OnyxEntry<Participant>,
-    private_isArchived: string,
+    isArchived: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
@@ -1058,7 +1058,7 @@ function getReportDisplayOption(
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
-        private_isArchived,
+        isArchived,
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1066,7 +1066,7 @@ function getReportDisplayOption(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, undefined, allPersonalDetails, undefined, {private_isArchived});
+        option.text = computeReportName(report, undefined, undefined, undefined, undefined, allPersonalDetails, undefined, {private_isArchived: isArchived});
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {

@@ -326,7 +326,7 @@ function IOURequestStepDistanceMap({
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, reportNameValuePairs?.private_isArchived ?? '', reportAttributesDerived);
+                    : getReportOption(participant, reportNameValuePairs?.private_isArchived, reportAttributesDerived);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
