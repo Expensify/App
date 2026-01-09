@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -38,20 +38,18 @@ function SearchEditMultipleAmountPage() {
     const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            if (isCurrencyPickerVisible) {
+    useFocusEffect(() => {
+        if (isCurrencyPickerVisible) {
+            return;
+        }
+        focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION + 100);
+        return () => {
+            if (!focusTimeoutRef.current) {
                 return;
             }
-            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION + 100);
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, [isCurrencyPickerVisible]),
-    );
+            clearTimeout(focusTimeoutRef.current);
+        };
+    });
 
     const amount = draftTransaction?.amount ?? 0;
 
