@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {SplitListItemType} from '@components/SelectionListWithSections/types';
+import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
