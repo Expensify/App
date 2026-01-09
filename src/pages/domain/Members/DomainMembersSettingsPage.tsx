@@ -1,19 +1,22 @@
-import {domainMemberSettingsSelector} from '@selectors/Domain';
-import {Str} from 'expensify-common';
+import { domainMemberSettingsSelector } from '@selectors/Domain';
+import { Str } from 'expensify-common';
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLatestError} from '@libs/ErrorUtils';
-import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@navigation/types';
+import { getLatestError } from '@libs/ErrorUtils';
+import Navigation from '@navigation/Navigation';
+import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
+import type { SettingsNavigatorParamList } from '@navigation/types';
 import BaseDomainSettingsPage from '@pages/domain/BaseDomainSettingsPage';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearToggleTwoFactorAuthRequiredForDomainError, toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
+import { clearToggleTwoFactorAuthRequiredForDomainError, toggleTwoFactorAuthRequiredForDomain } from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
 
 type DomainMembersSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS_SETTINGS>;
 
@@ -46,7 +49,12 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
                     if (!domain?.email) {
                         return;
                     }
-                    toggleTwoFactorAuthRequiredForDomain(domainAccountID, Str.extractEmailDomain(domain.email), value);
+
+                    if (!value) {
+                        Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH.getRoute(domainAccountID));
+                    } else {
+                        toggleTwoFactorAuthRequiredForDomain(domainAccountID, Str.extractEmailDomain(domain.email), value);
+                    }
                 }}
                 title={translate('domain.members.forceTwoFactorAuth')}
                 subtitle={
