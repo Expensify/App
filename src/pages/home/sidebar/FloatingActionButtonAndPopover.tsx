@@ -258,8 +258,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 defaultChatEnabledPolicy,
-                false,
                 allBetas,
+                false,
                 shouldDismissEmptyReportsConfirmation,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -555,6 +555,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         showDelegateNoAccessModal,
         reportID,
         allTransactionDrafts,
+        allBetas,
     ]);
 
     const isTravelEnabled = useMemo(() => {

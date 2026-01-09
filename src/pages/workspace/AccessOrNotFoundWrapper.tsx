@@ -55,6 +55,7 @@ const ACCESS_VARIANTS = {
         login: string,
         report: Report,
         allPolicies: NonNullable<OnyxCollection<Policy>> | null,
+        allBetas?: OnyxEntry<Beta[]>,
         iouType?: IOUType,
         isArchivedReport?: boolean,
         isRestrictedToPreferredPolicy?: boolean,

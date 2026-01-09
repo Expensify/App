@@ -79,8 +79,8 @@ function SearchTransactionsChangeReport() {
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
-            false,
             allBetas,
+            false,
             shouldDismissEmptyReportsConfirmation,
         );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];

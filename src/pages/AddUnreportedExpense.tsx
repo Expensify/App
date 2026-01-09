@@ -207,6 +207,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         reportNextStep,
         policyCategories,
         policyRecentlyUsedCurrencies,
+        allBetas,
     ]);
 
     const footerContent = useMemo(() => {

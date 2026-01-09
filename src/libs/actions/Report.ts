@@ -3106,8 +3106,8 @@ function createNewReport(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
-    shouldNotifyNewAction = false,
     allBetas: OnyxEntry<Beta[]>,
+    shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
 ) {
     const optimisticReportID = generateReportID();

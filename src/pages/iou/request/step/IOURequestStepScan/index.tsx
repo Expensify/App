@@ -451,6 +451,7 @@ function IOURequestStepScan({
             activePolicyID,
             quickAction,
             policyRecentlyUsedCurrencies,
+            allBetas,
         ],
     );
 

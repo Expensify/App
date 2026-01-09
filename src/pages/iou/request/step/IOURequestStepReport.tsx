@@ -189,8 +189,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForNewReport,
-            false,
             allBetas,
+            false,
             shouldDismissEmptyReportsConfirmation,
         );
         handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);

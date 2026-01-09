@@ -122,8 +122,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 isASAPSubmitBetaEnabled,
                 hasViolations,
                 policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
-                false,
                 allBetas,
+                false,
                 shouldDismissEmptyReportsConfirmation,
             );
             const selectedTransactionsKeys = Object.keys(selectedTransactions);
@@ -172,6 +172,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             policies,
             clearSelectedTransactions,
             backTo,
+            allBetas,
         ],
     );
 
