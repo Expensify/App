@@ -111,7 +111,7 @@ function ReportActionItemMessageEdit({
     ref,
 }: ReportActionItemMessageEditProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
-    const {email} = useCurrentUserPersonalDetails();
+    const {email, accountID} = useCurrentUserPersonalDetails();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -324,6 +324,7 @@ function ReportActionItemMessageEdit({
             isOriginalReportArchived,
             isOriginalParentReportArchived,
             email ?? '',
+            accountID ?? CONST.DEFAULT_NUMBER_ID,
             Object.fromEntries(draftMessageVideoAttributeCache),
         );
         deleteDraft();

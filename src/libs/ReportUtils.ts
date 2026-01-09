@@ -4970,7 +4970,7 @@ function getReportActionWithMissingSmartscanFields(iouReportID: string | undefin
         if (isEmptyObject(transaction)) {
             return false;
         }
-        if (!wasActionTakenByCurrentUser(action)) {
+        if (!wasActionTakenByCurrentUser(action, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID)) {
             return false;
         }
         return hasMissingSmartscanFieldsTransactionUtils(transaction);

@@ -371,7 +371,7 @@ function MoneyRequestReportActionsList({
      */
     const earliestReceivedOfflineMessageIndex = useMemo(() => {
         const lastIndex = reportActions.findLastIndex((action) => {
-            return wasMessageReceivedWhileOffline(action, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime);
+            return wasMessageReceivedWhileOffline(action, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime);
         });
 
         // The last index in the list is the earliest message that was received while offline
