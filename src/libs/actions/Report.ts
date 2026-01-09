@@ -4426,8 +4426,10 @@ async function completeOnboarding({
         });
     }
 
+    // Wait for the workspace to be created before completing the guided setup
     await waitForWrites(WRITE_COMMANDS.CREATE_WORKSPACE);
 
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
 }
 
