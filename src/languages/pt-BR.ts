@@ -247,6 +247,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Logo Expensify',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Contagem',
         cancel: 'Cancelar',
@@ -4861,6 +4862,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             earnedCashbackDescription: 'O saldo de cashback é baseado nos gastos mensais liquidados com o Cartão Expensify em todo o seu workspace.',
             issueNewCard: 'Emitir novo cartão',
             finishSetup: 'Concluir configuração',
+            cardIllustration: 'Cartão Comercial Expensify Visa',
             chooseBankAccount: 'Escolher conta bancária',
             chooseExistingBank: 'Escolha uma conta bancária empresarial existente para pagar o saldo do seu Cartão Expensify ou adicione uma nova conta bancária',
             accountEndingIn: 'Conta terminando em',
@@ -5033,6 +5035,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                         automaticImport: 'Vamos importar as transações automaticamente',
                     },
                     subtitle: 'Vincule os cartões que você já possui para importação automática de transações, correspondência de recibos e reconciliação.',
+                    cardIllustration: 'Ilustração de cartões corporativos',
                 },
                 bankConnectionError: 'Problema de conexão bancária',
                 connectWithPlaid: 'conectar via Plaid',
@@ -6987,6 +6990,11 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         scrollToNewestMessages: 'Rolar até as mensagens mais recentes',
         preStyledText: 'Texto pré-formatado',
         viewAttachment: 'Ver anexo',
+        error: 'Erro',
+        success: 'Sucesso',
+        opensInNewTab: 'Abre em uma nova aba',
+        hasItemsToReview: 'Tem itens para revisar',
+        hasActionToTake: 'Tem ações a tomar',
     },
     parentReportAction: {
         deletedReport: 'Relatório excluído',

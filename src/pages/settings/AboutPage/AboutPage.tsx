@@ -46,6 +46,7 @@ type MenuItem = {
     action: () => Promise<void>;
     link?: string;
     wrapperStyle?: StyleProp<ViewStyle>;
+    shouldAnnounceOpensNewTab?: boolean;
 };
 
 function AboutPage() {
@@ -79,6 +80,7 @@ function AboutPage() {
                     return Promise.resolve();
                 },
                 link: CONST.GITHUB_URL,
+                shouldAnnounceOpensNewTab: true,
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
@@ -89,6 +91,7 @@ function AboutPage() {
                     return Promise.resolve();
                 },
                 link: CONST.UPWORK_URL,
+                shouldAnnounceOpensNewTab: true,
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
@@ -97,7 +100,7 @@ function AboutPage() {
             },
         ];
 
-        return baseMenuItems.map(({translationKey, icon, iconRight, action, link}: MenuItem) => ({
+        return baseMenuItems.map(({translationKey, icon, iconRight, action, link, shouldAnnounceOpensNewTab}: MenuItem) => ({
             key: translationKey,
             title: translate(translationKey),
             icon,
@@ -116,6 +119,7 @@ function AboutPage() {
             ref: popoverAnchor,
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
+            shouldAnnounceOpensNewTab,
         }));
     }, [icons, styles, translate, waitForNavigate]);
 

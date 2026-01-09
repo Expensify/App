@@ -247,6 +247,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Logo Expensify',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Liczba',
         cancel: 'Anuluj',
@@ -4860,6 +4861,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             earnedCashbackDescription: 'Saldo zwrotu gotówki opiera się na rozliczonych miesięcznych wydatkach kartą Expensify w Twojej przestrzeni roboczej.',
             issueNewCard: 'Wydaj nową kartę',
             finishSetup: 'Zakończ konfigurację',
+            cardIllustration: 'Karta biznesowa Expensify Visa',
             chooseBankAccount: 'Wybierz konto bankowe',
             chooseExistingBank: 'Wybierz istniejące firmowe konto bankowe, aby spłacić saldo karty Expensify, lub dodaj nowe konto bankowe',
             accountEndingIn: 'Konto kończące się na',
@@ -5032,6 +5034,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         automaticImport: 'Automatycznie pobierzemy transakcje',
                     },
                     subtitle: 'Połącz karty, które już masz, aby automatycznie importować transakcje, dopasowywać paragony i przeprowadzać uzgodnienia.',
+                    cardIllustration: 'Ilustracja kart firmowych',
                 },
                 bankConnectionError: 'Problem z połączeniem bankowym',
                 connectWithPlaid: 'połącz przez Plaid',
@@ -6983,6 +6986,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         scrollToNewestMessages: 'Przewiń do najnowszych wiadomości',
         preStyledText: 'Wstępnie sformatowany tekst',
         viewAttachment: 'Wyświetl załącznik',
+        error: 'Błąd',
+        success: 'Sukces',
+        opensInNewTab: 'Otwiera w nowej karcie',
+        hasItemsToReview: 'Ma elementy do przejrzenia',
+        hasActionToTake: 'Ma działania do podjęcia',
     },
     parentReportAction: {
         deletedReport: 'Usunięty raport',

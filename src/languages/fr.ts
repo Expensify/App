@@ -247,6 +247,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Logo Expensify',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Nombre',
         cancel: 'Annuler',
@@ -4897,6 +4898,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             earnedCashbackDescription: 'Le solde de remise en argent est basé sur les dépenses réglées mensuelles de la carte Expensify dans l’ensemble de votre espace de travail.',
             issueNewCard: 'Émettre une nouvelle carte',
             finishSetup: 'Terminer la configuration',
+            cardIllustration: 'Carte commerciale Expensify Visa',
             chooseBankAccount: 'Choisir un compte bancaire',
             chooseExistingBank: 'Choisissez un compte bancaire professionnel existant pour régler le solde de votre Carte Expensify, ou ajoutez un nouveau compte bancaire',
             accountEndingIn: 'Compte se terminant par',
@@ -5071,6 +5073,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         automaticImport: 'Nous importerons automatiquement les transactions',
                     },
                     subtitle: 'Liez les cartes que vous avez déjà pour l’importation automatique des transactions, la correspondance des reçus et la réconciliation.',
+                    cardIllustration: 'Illustration des cartes d'entreprise',
                 },
                 bankConnectionError: 'Problème de connexion bancaire',
                 connectWithPlaid: 'se connecter via Plaid',
@@ -7034,6 +7037,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         scrollToNewestMessages: 'Faire défiler jusqu’aux derniers messages',
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Voir la pièce jointe',
+        error: 'Erreur',
+        success: 'Succès',
+        opensInNewTab: 'Ouvre dans un nouvel onglet',
+        hasItemsToReview: 'A des éléments à examiner',
+        hasActionToTake: 'A des actions à effectuer',
     },
     parentReportAction: {
         deletedReport: 'Note de frais supprimée',

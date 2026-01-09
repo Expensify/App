@@ -247,6 +247,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Logo Expensify',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Conteggio',
         cancel: 'Annulla',
@@ -4876,6 +4877,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             earnedCashbackDescription: 'Il saldo del rimborso in contanti si basa sulle spese mensili consolidate effettuate con la Expensify Card nel tuo spazio di lavoro.',
             issueNewCard: 'Emetti nuova carta',
             finishSetup: 'Completa configurazione',
+            cardIllustration: 'Carta Commerciale Expensify Visa',
             chooseBankAccount: 'Scegli conto bancario',
             chooseExistingBank: 'Scegli un conto bancario aziendale esistente per pagare il saldo della tua Expensify Card oppure aggiungi un nuovo conto bancario',
             accountEndingIn: 'Conto che termina con',
@@ -5050,6 +5052,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         automaticImport: 'Importeremo automaticamente le transazioni',
                     },
                     subtitle: 'Collega le carte che hai già per l’importazione automatica delle transazioni, l’abbinamento delle ricevute e la riconciliazione.',
+                    cardIllustration: 'Illustrazione carte aziendali',
                 },
                 bankConnectionError: 'Problema di connessione bancaria',
                 connectWithPlaid: 'connetti tramite Plaid',
@@ -7009,6 +7012,11 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         scrollToNewestMessages: 'Scorri ai messaggi più recenti',
         preStyledText: 'Testo preformattato',
         viewAttachment: 'Visualizza allegato',
+        error: 'Errore',
+        success: 'Successo',
+        opensInNewTab: 'Apre in una nuova scheda',
+        hasItemsToReview: 'Ha elementi da rivedere',
+        hasActionToTake: 'Ha azioni da intraprendere',
     },
     parentReportAction: {
         deletedReport: 'Report eliminato',

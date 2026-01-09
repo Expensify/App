@@ -247,6 +247,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Expensify 标志',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: '数量',
         cancel: '取消',
@@ -4775,6 +4776,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             earnedCashbackDescription: '现金返还余额是根据您工作区内已结算的每月 Expensify Card 消费计算得出。',
             issueNewCard: '发放新卡',
             finishSetup: '完成设置',
+            cardIllustration: 'Expensify Visa 商务卡',
             chooseBankAccount: '选择银行账户',
             chooseExistingBank: '选择现有的企业银行账户来支付你的 Expensify Card 余额，或添加一个新的银行账户',
             accountEndingIn: '以 … 结尾的账户',
@@ -4939,6 +4941,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     title: '自带卡片（BYOC）',
                     features: {support: '连接来自 10,000 多家银行的卡片', assignCards: '关联你团队的现有卡片', automaticImport: '我们会自动导入交易记录'},
                     subtitle: '关联你已有的卡片，以自动导入交易、匹配收据并进行对账。',
+                    cardIllustration: '公司卡插图',
                 },
                 bankConnectionError: '银行连接问题',
                 connectWithPlaid: '通过 Plaid 连接',
@@ -6838,6 +6841,11 @@ ${reportName}
         scrollToNewestMessages: '滚动到最新消息',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
+        error: '错误',
+        success: '成功',
+        opensInNewTab: '在新标签页中打开',
+        hasItemsToReview: '有待审核的项目',
+        hasActionToTake: '有待处理的事项',
     },
     parentReportAction: {
         deletedReport: '已删除的报表',

@@ -51,6 +51,9 @@ type FeatureListProps = {
     /** Customize the Illustration container */
     illustrationContainerStyle?: StyleProp<ViewStyle>;
 
+    /** Accessibility label for the illustration */
+    illustrationAccessibilityLabel?: string;
+
     /** The style used for the title */
     titleStyles?: StyleProp<TextStyle>;
 
@@ -75,6 +78,7 @@ function FeatureList({
     illustrationStyle,
     illustrationBackgroundColor,
     illustrationContainerStyle,
+    illustrationAccessibilityLabel,
     titleStyles,
     contentPaddingOnLargeScreens,
     footer,
@@ -95,6 +99,7 @@ function FeatureList({
             illustrationStyle={illustrationStyle}
             titleStyles={titleStyles}
             illustrationContainerStyle={illustrationContainerStyle}
+            illustrationAccessibilityLabel={illustrationAccessibilityLabel}
             contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
             renderSubtitle={renderSubtitle}
         >

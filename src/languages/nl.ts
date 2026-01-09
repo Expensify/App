@@ -247,6 +247,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Expensify logo',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Aantal',
         cancel: 'Annuleren',
@@ -4873,6 +4874,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             earnedCashbackDescription: 'Het cashback-saldo is gebaseerd op de afgehandelde maandelijkse Expensify Card-uitgaven binnen je workspace.',
             issueNewCard: 'Nieuwe kaart uitgeven',
             finishSetup: 'Setup voltooien',
+            cardIllustration: 'Expensify Visa zakelijke kaart',
             chooseBankAccount: 'Kies bankrekening',
             chooseExistingBank: 'Kies een bestaande zakelijke bankrekening om je Expensify Card‑saldo te betalen, of voeg een nieuwe bankrekening toe',
             accountEndingIn: 'Rekening eindigend op',
@@ -5046,6 +5048,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                         automaticImport: 'We halen transacties automatisch op',
                     },
                     subtitle: 'Koppel de kaarten die je al hebt voor automatische transactie-import, bonkoppeling en reconciliatie.',
+                    cardIllustration: 'Bedrijfskaarten illustratie',
                 },
                 bankConnectionError: 'Probleem met bankverbinding',
                 connectWithPlaid: 'verbinden via Plaid',
@@ -6998,6 +7001,11 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         scrollToNewestMessages: 'Scroll naar nieuwste berichten',
         preStyledText: 'Vooraf opgemaakte tekst',
         viewAttachment: 'Bijlage bekijken',
+        error: 'Fout',
+        success: 'Succes',
+        opensInNewTab: 'Opent in een nieuw tabblad',
+        hasItemsToReview: 'Heeft items om te bekijken',
+        hasActionToTake: 'Heeft acties te ondernemen',
     },
     parentReportAction: {
         deletedReport: 'Verwijderd rapport',

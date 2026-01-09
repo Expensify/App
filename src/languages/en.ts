@@ -238,7 +238,8 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
-        // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
+        expensifyLogo: 'Expensify logo',
+        // @context Used as a noun meaning a numerical total or quantity, not the verb "to count."
         count: 'Count',
         cancel: 'Cancel',
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
@@ -4797,6 +4798,7 @@ const translations = {
             earnedCashbackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
             issueNewCard: 'Issue new card',
             finishSetup: 'Finish setup',
+            cardIllustration: 'Expensify Visa Commercial Card',
             chooseBankAccount: 'Choose bank account',
             chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
             accountEndingIn: 'Account ending in',
@@ -4967,6 +4969,7 @@ const translations = {
                         assignCards: 'Link your team’s existing cards',
                         automaticImport: 'We’ll pull in transactions automatically',
                     },
+                    cardIllustration: 'Company cards illustration',
                 },
                 bankConnectionError: 'Bank connection issue',
                 connectWithPlaid: 'connect via Plaid',
@@ -6900,6 +6903,11 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
+        error: 'Error',
+        success: 'Success',
+        opensInNewTab: 'Opens in a new tab',
+        hasItemsToReview: 'Has items to review',
+        hasActionToTake: 'Has action to take',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',

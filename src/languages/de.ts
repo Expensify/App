@@ -247,6 +247,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Expensify-Logo',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Anzahl',
         cancel: 'Abbrechen',
@@ -4892,6 +4893,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             earnedCashbackDescription: 'Der Cash-Back-Saldo basiert auf den abgerechneten monatlichen Expensify-Card-Ausgaben in Ihrem Workspace.',
             issueNewCard: 'Neue Karte ausstellen',
             finishSetup: 'Einrichtung abschließen',
+            cardIllustration: 'Expensify Visa Geschäftskarte',
             chooseBankAccount: 'Bankkonto auswählen',
             chooseExistingBank: 'Wählen Sie ein bestehendes Geschäftskonto aus, um Ihr Expensify Card-Guthaben zu begleichen, oder fügen Sie ein neues Bankkonto hinzu',
             accountEndingIn: 'Konto mit Endziffer',
@@ -5065,6 +5067,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         automaticImport: 'Wir werden Transaktionen automatisch abrufen',
                     },
                     subtitle: 'Verknüpfe die Karten, die du bereits hast, um Transaktionen automatisch zu importieren, Belege abzugleichen und Abstimmungen durchzuführen.',
+                    cardIllustration: 'Firmenkarten-Illustration',
                 },
                 bankConnectionError: 'Problem mit Bankverbindung',
                 connectWithPlaid: 'Über Plaid verbinden',
@@ -7024,6 +7027,11 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         scrollToNewestMessages: 'Zum neuesten Nachrichtenverlauf scrollen',
         preStyledText: 'Vorformatierter Text',
         viewAttachment: 'Anhang anzeigen',
+        error: 'Fehler',
+        success: 'Erfolg',
+        opensInNewTab: 'Öffnet in einem neuen Tab',
+        hasItemsToReview: 'Hat zu überprüfende Elemente',
+        hasActionToTake: 'Hat ausstehende Aktionen',
     },
     parentReportAction: {
         deletedReport: 'Gelöschter Bericht',

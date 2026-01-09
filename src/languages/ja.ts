@@ -247,6 +247,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        expensifyLogo: 'Expensifyロゴ',
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: '件数',
         cancel: 'キャンセル',
@@ -4850,6 +4851,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             earnedCashbackDescription: 'キャッシュバック残高は、ワークスペース全体での月次の清算済み Expensify Card 利用額に基づいています。',
             issueNewCard: '新しいカードを発行',
             finishSetup: 'セットアップを完了',
+            cardIllustration: 'Expensify Visaビジネスカード',
             chooseBankAccount: '銀行口座を選択',
             chooseExistingBank: '既存のビジネス銀行口座を選択して Expensify Card の残高を支払うか、新しい銀行口座を追加してください',
             accountEndingIn: '…で終わるアカウント',
@@ -5017,6 +5019,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     title: '自分のカードを持ち込む（BYOC）',
                     features: {support: '10,000以上の銀行のカードを連携', assignCards: 'チームの既存のカードをリンクする', automaticImport: '取引を自動的に取り込みます'},
                     subtitle: 'すでにお持ちのカードをリンクして、自動取引の取り込み、レシート照合、および消込を行いましょう。',
+                    cardIllustration: '法人カードのイラスト',
                 },
                 bankConnectionError: '銀行接続の問題',
                 connectWithPlaid: 'Plaid で接続',
@@ -6953,6 +6956,11 @@ ${reportName}
         scrollToNewestMessages: '最新のメッセージまでスクロール',
         preStyledText: '事前スタイル設定済みテキスト',
         viewAttachment: '添付ファイルを表示',
+        error: 'エラー',
+        success: '成功',
+        opensInNewTab: '新しいタブで開く',
+        hasItemsToReview: '確認が必要な項目があります',
+        hasActionToTake: '対応が必要な項目があります',
     },
     parentReportAction: {
         deletedReport: '削除されたレポート',
