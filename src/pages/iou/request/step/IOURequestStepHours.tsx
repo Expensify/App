@@ -59,6 +59,7 @@ function IOURequestStepTimeHours({
 
     useEffect(() => {
         setFormError('');
+        moneyRequestTimeInputRef.current?.updateNumber('');
     }, [selectedTab]);
 
     useFocusEffect(() => {
