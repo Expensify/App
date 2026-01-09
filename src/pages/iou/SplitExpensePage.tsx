@@ -11,7 +11,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
+import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -54,8 +54,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SplitAmountList from './SplitAmountList';
-import SplitPercentageList from './SplitPercentageList';
+import SplitList from './SplitList';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
@@ -90,6 +89,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`, {canBeMissing: true});
 
     const policy = usePolicy(currentReport?.policyID);
@@ -211,6 +211,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             currentUserPersonalDetails,
             transactionViolations,
+            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
         });
     }, [
         splitExpenses,
@@ -240,6 +241,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionDetails?.currency,
         isBetaEnabled,
         transactionViolations,
+        policyRecentlyUsedCurrencies,
     ]);
 
     const onSplitExpenseValueChange = useCallback(
@@ -257,7 +259,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
-    const sections = useMemo(() => {
+    const options = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
         const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
         const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
@@ -311,9 +313,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             };
         });
 
-        const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
-
-        return newSections;
+        return items;
     }, [
         transaction,
         draftTransaction?.comment?.splitExpenses,
@@ -419,10 +419,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         );
     }, [styles.pb3, styles.moneyRequestMenuItem, styles.flex1, translate, splitDatesTitle, handleDatePress]);
 
-    const initiallyFocusedOptionKey = useMemo(
-        () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
-        [sections, splitExpenseTransactionID],
-    );
+    const initiallyFocusedOptionKey = options.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList;
 
     const headerTitle = useMemo(() => {
         if (Number(splitExpenseTransactionID)) {
@@ -481,11 +478,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
                                             <View style={styles.flex1}>
-                                                <SplitAmountList
-                                                    sections={sections}
+                                                <SplitList
+                                                    data={options}
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
                                                     listFooterContent={listFooterContent}
+                                                    mode={CONST.TAB.SPLIT.AMOUNT}
                                                 />
                                                 {footerContent}
                                             </View>
@@ -496,11 +494,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
                                             <View style={styles.flex1}>
-                                                <SplitPercentageList
-                                                    sections={sections}
+                                                <SplitList
+                                                    data={options}
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
                                                     listFooterContent={listFooterContent}
+                                                    mode={CONST.TAB.SPLIT.PERCENTAGE}
                                                 />
                                                 {footerContent}
                                             </View>
@@ -512,11 +511,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                         <TabScreenWithFocusTrapWrapper>
                                             <View style={styles.flex1}>
                                                 {headerDateContent}
-                                                <SplitAmountList
-                                                    sections={sections}
+                                                <SplitList
+                                                    data={options}
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
                                                     listFooterContent={<View style={[shouldUseNarrowLayout && styles.mb3]} />}
+                                                    mode={CONST.TAB.SPLIT.DATE}
                                                 />
                                                 {footerContent}
                                             </View>
@@ -527,11 +527,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         </View>
                     ) : (
                         <View style={styles.flex1}>
-                            <SplitAmountList
-                                sections={sections}
+                            <SplitList
+                                data={options}
                                 initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                 onSelectRow={onSelectRow}
                                 listFooterContent={listFooterContent}
+                                mode={CONST.TAB.SPLIT.AMOUNT}
                             />
                             {footerContent}
                         </View>
