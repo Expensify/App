@@ -1012,7 +1012,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const metadata = searchResults?.search;
     const isDefaultExpensesSearch = queryJSON ? isDefaultExpensesQuery(queryJSON) : false;
-    const isSavedSearch = queryJSON?.hash !== undefined && Object.prototype.hasOwnProperty.call(savedSearches ?? {}, String(queryJSON.hash));
+    const isSavedSearch = queryJSON?.hash != undefined && String(queryJSON.hash) in (savedSearches ?? {});
     const shouldShowFooter = shouldShowSearchPageFooter({
         isSavedSearch,
         resultsCount: metadata?.count,
