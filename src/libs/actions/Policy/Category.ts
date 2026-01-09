@@ -1,5 +1,5 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -39,7 +39,7 @@ import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategor
 import type {OnyxData} from '@src/types/onyx/Request';
 
 function appendSetupCategoriesOnboardingData(
-    onyxData: OnyxData,
+    onyxData: OnyxData<OnyxKey>,
     setupCategoryTaskReport: OnyxEntry<Report>,
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     isSetupCategoriesTaskParentReportArchived: boolean,

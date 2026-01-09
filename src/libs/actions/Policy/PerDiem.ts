@@ -49,7 +49,7 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
     const workspaceChatReportID = findPolicyExpenseChatByPolicyID(policyID)?.reportID;
 
     const shouldClearQuickAction = quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !enabled && workspaceChatReportID === quickAction?.chatReportID;
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
