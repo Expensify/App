@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
-import ActivityIndicator from '@components/ActivityIndicator';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -42,12 +42,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const renderContent = () => {
         if (!!isLoading && !paymentBankAccountID) {
-            return (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={styles.flex1}
-                />
-            );
+            return <FullScreenLoadingIndicator shouldUseGoBackButton />;
         }
         if (paymentBankAccountID) {
             return (
