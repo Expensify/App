@@ -13,8 +13,14 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportNameValuePairs} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, OriginalMessageUnreportedTransaction} from '@src/types/onyx/OriginalMessage';
+import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
+import type {
+    JoinWorkspaceResolution,
+    OriginalMessageChangeLog,
+    OriginalMessageExportIntegration,
+    OriginalMessageMarkedReimbursed,
+    OriginalMessageUnreportedTransaction,
+} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -30,7 +36,7 @@ import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
-import {formatMessageElementList} from './Localize';
+import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
@@ -86,8 +92,7 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
 
-let currentUserAccountID: number | undefined;
-let currentEmail = '';
+let deprecatedCurrentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -96,8 +101,7 @@ Onyx.connect({
             return;
         }
 
-        currentUserAccountID = value.accountID;
-        currentEmail = value?.email ?? '';
+        deprecatedCurrentUserAccountID = value.accountID;
     },
 });
 
@@ -257,6 +261,56 @@ function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): report
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
+function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED);
+}
+
+function getMostRecentActiveDEWSubmitFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction | undefined {
+    const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+
+    // Find the most recent DEW_SUBMIT_FAILED action
+    const mostRecentDewSubmitFailedAction = actionsArray
+        .filter((action): action is ReportAction => isDynamicExternalWorkflowSubmitFailedAction(action))
+        .reduce<ReportAction | undefined>((latest, current) => {
+            if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                return current;
+            }
+            return latest;
+        }, undefined);
+
+    if (!mostRecentDewSubmitFailedAction) {
+        return undefined;
+    }
+
+    // Find the most recent SUBMITTED action
+    const mostRecentSubmittedAction = actionsArray
+        .filter((action): action is ReportAction => isSubmittedAction(action))
+        .reduce<ReportAction | undefined>((latest, current) => {
+            if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                return current;
+            }
+            return latest;
+        }, undefined);
+
+    // Return the DEW action if there's no SUBMITTED action, or if DEW_SUBMIT_FAILED is more recent
+    if (!mostRecentSubmittedAction || mostRecentDewSubmitFailedAction.created > mostRecentSubmittedAction.created) {
+        return mostRecentDewSubmitFailedAction;
+    }
+
+    return undefined;
+}
+
+/**
+ * Checks if there's a pending DEW submission in progress.
+ * Uses reportMetadata.pendingExpenseAction which is set during submit and cleared on success/failure.
+ */
+function hasPendingDEWSubmit(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPolicy: boolean): boolean {
+    if (!isDEWPolicy) {
+        return false;
+    }
+    return reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.SUBMIT;
+}
+
 function isDynamicExternalWorkflowForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED) && getOriginalMessage(reportAction)?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
 }
@@ -314,6 +368,12 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return reportAction.originalMessage;
+}
+
+function getMarkedReimbursedMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
 }
 
 function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
@@ -393,7 +453,7 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAc
     if (!isWhisperAction(reportAction)) {
         return false;
     }
-    return !getWhisperedTo(reportAction).includes(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    return !getWhisperedTo(reportAction).includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED> {
@@ -2166,18 +2226,18 @@ function getMentionedEmailsFromMessage(message: string) {
     return matches.map((match) => Str.removeSMSDomain(match[1].substring(1)));
 }
 
-function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>) {
+function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string) {
     const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
     const message = getReportActionMessage(reportAction)?.html ?? '';
     const emailsFromMessage = getMentionedEmailsFromMessage(message);
-    return accountIDsFromMessage.includes(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) || emailsFromMessage.includes(currentEmail) || message.includes('<mention-here>');
+    return accountIDsFromMessage.includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) || emailsFromMessage.includes(currentUserEmail) || message.includes('<mention-here>');
 }
 
 /**
  * Check if the current user is the requestor of the action
  */
 function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return currentUserAccountID === reportAction?.actorAccountID;
+    return deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
 }
 
 /**
@@ -2256,17 +2316,17 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
     const result: Array<{text: string; url: string}> = [];
     if (isPending) {
         result.push({
-            text: translate('report.actions.type.exportedToIntegration.pending', {label}),
+            text: translate('report.actions.type.exportedToIntegration.pending', label),
             url: '',
         });
     } else if (markedManually) {
         result.push({
-            text: translate('report.actions.type.exportedToIntegration.manual', {label}),
+            text: translate('report.actions.type.exportedToIntegration.manual', label),
             url: '',
         });
     } else if (automaticAction) {
         result.push({
-            text: translate('report.actions.type.exportedToIntegration.automaticActionOne', {label}),
+            text: translate('report.actions.type.exportedToIntegration.automaticActionOne', label),
             url: '',
         });
         const url = CONST.HELP_DOC_LINKS[label as keyof typeof CONST.HELP_DOC_LINKS];
@@ -2276,7 +2336,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
         });
     } else {
         result.push({
-            text: translate('report.actions.type.exportedToIntegration.automatic', {label}),
+            text: translate('report.actions.type.exportedToIntegration.automatic', label),
             url: '',
         });
     }
@@ -2740,15 +2800,6 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
         });
     }
 
-    if (customUnitName && customUnitRateName && updatedField === 'index' && typeof newValue === 'number') {
-        return translate('workspaceActions.updatedCustomUnitRateIndex', {
-            customUnitName,
-            customUnitRateName,
-            oldValue: oldValue ? Number(oldValue) : undefined,
-            newValue,
-        });
-    }
-
     if (customUnitName && customUnitRateName && updatedField === 'enabled' && typeof oldValue === 'boolean' && typeof newValue === 'boolean') {
         return translate('workspaceActions.updatedCustomUnitRateEnabled', {
             customUnitName,
@@ -3177,7 +3228,7 @@ function getRemovedFromApprovalChainMessage(translate: LocalizedTranslate, repor
     const originalMessage = getOriginalMessage(reportAction);
     const submittersNames = getPersonalDetailsByIDs({
         accountIDs: originalMessage?.submittersAccountIDs ?? [],
-        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        currentUserAccountID: deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
     }).map(({displayName, login}) => displayName ?? login ?? 'Unknown Submitter');
     return translate('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
 }
@@ -3213,7 +3264,7 @@ function getDemotedFromWorkspaceMessage(translate: LocalizedTranslate, reportAct
     const originalMessage = getOriginalMessage(reportAction);
     const policyName = originalMessage?.policyName ?? translate('workspace.common.workspace');
     const oldRole = translate('workspace.common.roleName', {role: originalMessage?.oldRole}).toLowerCase();
-    return translate('workspaceActions.demotedFromWorkspace', {policyName, oldRole});
+    return translate('workspaceActions.demotedFromWorkspace', policyName, oldRole);
 }
 
 function getUpdatedAuditRateMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
@@ -3343,7 +3394,7 @@ function getCardIssuedMessage({
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink = (expensifyCardLinkText: string) =>
         shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
-    const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
+    const isAssigneeCurrentUser = deprecatedCurrentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
             ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('workspace.companyCards.companyCard')}</a>`
@@ -3491,6 +3542,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
     getReportActionMessageFragments,
@@ -3585,6 +3637,9 @@ export {
     isDynamicExternalWorkflowForwardedAction,
     isUnapprovedAction,
     isForwardedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
+    getMostRecentActiveDEWSubmitFailedAction,
+    hasPendingDEWSubmit,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,

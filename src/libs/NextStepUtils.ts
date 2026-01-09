@@ -124,7 +124,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     actorAccountID: ownerAccountID,
                 };
@@ -185,7 +185,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             // Manual submission
             if (report?.total !== 0 && !policy?.harvesting?.enabled && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
                 nextStep = {
-                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     actorAccountID: ownerAccountID,
                 };
@@ -325,6 +325,36 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
         message: [
             {
                 text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
+function buildOptimisticNextStepForDynamicExternalWorkflowError(iconFill?: string) {
+    const optimisticNextStep: ReportNextStepDeprecated = {
+        type: 'alert',
+        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+        iconFill,
+        message: [
+            {
+                text: "This report can't be submitted. Please review the comments to resolve.",
+                type: 'alert-text',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
+function buildOptimisticNextStepForDEWOfflineSubmission() {
+    const optimisticNextStep: ReportNextStepDeprecated = {
+        type: 'neutral',
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for you to come back online to determine next steps.',
             },
         ],
     };
@@ -703,6 +733,8 @@ export {
     parseMessage,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
+    buildOptimisticNextStepForDynamicExternalWorkflowError,
+    buildOptimisticNextStepForDEWOfflineSubmission,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStepNew,
 };
