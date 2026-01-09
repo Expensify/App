@@ -1128,6 +1128,14 @@ function openReport(
                 chatReportID: transactionParentReportID,
             },
         });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                parentReportActionID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportActionID ?? null,
+                chatReportID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.chatReportID ?? null,
+            },
+        });
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1137,6 +1145,13 @@ function openReport(
                     ...optimisticIOUAction,
                     childReportID: reportID,
                 },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+            value: {
+                [iouReportActionID]: null,
             },
         });
 
