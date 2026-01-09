@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import {clearResetDomainErrors} from '@src/libs/actions/Domain';
+import {clearDomainErrors} from '@src/libs/actions/Domain';
 import ROUTES from '@src/ROUTES';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import DomainsListRow from './DomainsListRow';
@@ -74,7 +74,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
             style={[styles.mb2, styles.mh5]}
             contentContainerStyle={item.errors ? styles.mb2 : undefined}
             errors={item?.errors}
-            onClose={() => clearResetDomainErrors(item.accountID)}
+            onClose={() => clearDomainErrors(item.accountID)}
         >
             <PressableWithoutFeedback
                 role={CONST.ROLE.BUTTON}

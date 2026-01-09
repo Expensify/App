@@ -769,7 +769,7 @@ function resetDomain(domainAccountID: number, domainName: string, domain: Domain
 /**
  * Clears errors after trying to reset domain
  */
-function clearResetDomainErrors(domainAccountID: number) {
+function clearDomainErrors(domainAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         errors: null,
     });
@@ -800,5 +800,5 @@ export {
     clearAdminError,
     revokeDomainAdminAccess,
     resetDomain,
-    clearResetDomainErrors,
+    clearDomainErrors,
 };
