@@ -31,8 +31,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {buildCannedSearchQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded, shouldShowSearchPageFooter} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
@@ -85,6 +85,7 @@ function SearchPageNarrow({
     const {isOffline} = useNetwork();
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {canBeMissing: true});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
@@ -181,7 +182,15 @@ function SearchPageNarrow({
         );
     }
 
-    const shouldShowFooter = !!metadata?.count || Object.keys(selectedTransactions).length > 0;
+    const isDefaultExpensesSearch = queryJSON ? isDefaultExpensesQuery(queryJSON) : false;
+    const isSavedSearch = queryJSON?.hash !== undefined && Object.prototype.hasOwnProperty.call(savedSearches ?? {}, String(queryJSON.hash));
+    const shouldShowFooter = shouldShowSearchPageFooter({
+        isSavedSearch,
+        resultsCount: metadata?.count,
+        isDefaultExpensesSearch,
+        selectedTransactionsCount: Object.keys(selectedTransactions).length,
+    });
+
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 

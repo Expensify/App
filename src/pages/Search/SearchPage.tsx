@@ -78,7 +78,8 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
+import {shouldShowSearchPageFooter} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -123,6 +124,7 @@ function SearchPage({route}: SearchPageProps) {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
 
@@ -1009,7 +1011,14 @@ function SearchPage({route}: SearchPageProps) {
     const {resetVideoPlayerData} = usePlaybackContext();
 
     const metadata = searchResults?.search;
-    const shouldShowFooter = !!metadata?.count || selectedTransactionsKeys.length > 0;
+    const isDefaultExpensesSearch = queryJSON ? isDefaultExpensesQuery(queryJSON) : false;
+    const isSavedSearch = queryJSON?.hash !== undefined && Object.prototype.hasOwnProperty.call(savedSearches ?? {}, String(queryJSON.hash));
+    const shouldShowFooter = shouldShowSearchPageFooter({
+        isSavedSearch,
+        resultsCount: metadata?.count,
+        isDefaultExpensesSearch,
+        selectedTransactionsCount: selectedTransactionsKeys.length,
+    });
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
