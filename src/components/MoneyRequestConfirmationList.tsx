@@ -53,7 +53,6 @@ import {
     hasMissingSmartscanFields,
     hasRoute as hasRouteUtil,
     isMerchantMissing,
-    isReceiptBeingScanned,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
@@ -954,9 +953,8 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                // Prevent confirming a split expense while the receipt is still being scanned
-                if (isTypeSplit && isReceiptBeingScanned(transaction) && iouAmount === 0) {
-                    setFormError('iou.receiptScanInProgress');
+                if (isTypeSplit && iouAmount === 0) {
+                    setFormError('iou.error.invalidAmount');
                     return;
                 }
 
