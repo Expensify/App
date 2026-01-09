@@ -79,12 +79,12 @@ function Confirmation() {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
         IOU.mergeDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
     }, [transactionsMergeParams]);
 
     const contextValue = useMemo(
