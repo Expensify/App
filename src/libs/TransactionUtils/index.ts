@@ -401,6 +401,12 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         splitExpensesTotal,
         participants,
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        odometerStart,
+        odometerEnd,
+        type,
+        count,
+        rate,
+        unit,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -450,7 +456,14 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         lodashSet(commentJSON, 'customUnit', customUnit);
     }
 
-    const isManualTransaction = !isPerDiemTransaction && !isMapDistanceTransaction && !isManualDistanceTransaction && !splitExpenses && !receipt?.source;
+    if (type === CONST.TRANSACTION.TYPE.TIME) {
+        commentJSON.units = {
+            count,
+            rate,
+            unit,
+        };
+        commentJSON.type = type;
+    }
 
     return {
         ...(!isEmptyObject(pendingFields) ? {pendingFields} : {}),
