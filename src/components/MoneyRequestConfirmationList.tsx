@@ -116,6 +116,12 @@ type MoneyRequestConfirmationListProps = {
     /** IOU isBillable */
     iouIsBillable?: boolean;
 
+    /** Time expense's hour count */
+    iouHours?: number;
+
+    /** Time expense's hourly rate */
+    iouRate?: number;
+
     /** Callback to toggle the billable state */
     onToggleBillable?: (isOn: boolean) => void;
 
@@ -157,6 +163,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
+
+    /** Whether the expense is a time expense */
+    isTimeRequest?: boolean;
 
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
@@ -249,6 +258,9 @@ function MoneyRequestConfirmationList({
     iouIsReimbursable = true,
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
+    isTimeRequest = false,
+    iouHours,
+    iouRate,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -343,11 +355,11 @@ function MoneyRequestConfirmationList({
         ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && !isTimeRequest;
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
@@ -1142,11 +1154,14 @@ function MoneyRequestConfirmationList({
             iouIsBillable={iouIsBillable}
             iouMerchant={iouMerchant}
             iouType={iouType}
+            iouHours={iouHours}
+            iouRate={iouRate}
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
             isManualDistanceRequest={isManualDistanceRequest}
             isOdometerDistanceRequest={isOdometerDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
+            isTimeRequest={isTimeRequest}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
             isPolicyExpenseChat={isPolicyExpenseChat}
@@ -1233,5 +1248,6 @@ export default memo(
         prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
         prevProps.reportActionID === nextProps.reportActionID &&
         prevProps.action === nextProps.action &&
-        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt,
+        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
+        prevProps.isTimeRequest === nextProps.isTimeRequest,
 );
