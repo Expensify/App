@@ -31,7 +31,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.CREATE> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.CREATE>;
 
-function IOURequestStepTimeHours({
+function IOURequestStepHours({
     report,
     route: {
         params: {iouType, reportID, transactionID = '-1', action, reportActionID},
@@ -91,7 +91,7 @@ function IOURequestStepTimeHours({
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.time')}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={Navigation.goBack}
             testID="IOURequestStepTimeHours"
             shouldShowWrapper={false}
             includeSafeAreaPaddingBottom
@@ -134,7 +134,7 @@ function IOURequestStepTimeHours({
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepHoursWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTimeHours);
+const IOURequestStepHoursWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepHours);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepHoursWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepHoursWithWritableReportOrNotFound);
 
