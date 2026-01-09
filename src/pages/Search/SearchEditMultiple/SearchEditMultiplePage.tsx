@@ -26,7 +26,7 @@ import type {TransactionChanges} from '@src/types/onyx/Transaction';
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {selectedTransactions, selectedTransactionIDs} = useSearchContext();
+    const {selectedTransactionIDs} = useSearchContext();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
@@ -78,7 +78,7 @@ function SearchEditMultiplePage() {
     // Determine policyID based on context:
     // - If all selected transactions belong to the same policy, use that policy
     // - Otherwise, fall back to the user's active workspace policy
-    const policyID = getSearchBulkEditPolicyID(selectedTransactions, activePolicyID);
+    const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, allTransactions, allReports);
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
 

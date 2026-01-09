@@ -14,12 +14,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function SearchEditMultipleTagPage() {
     const {translate} = useLocalize();
-    const {selectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs} = useSearchContext();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
     // Determine policyID based on context
-    const policyID = getSearchBulkEditPolicyID(selectedTransactions, activePolicyID);
+    const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, allTransactions, allReports);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 

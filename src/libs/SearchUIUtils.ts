@@ -16,7 +16,6 @@ import type {
     SearchQueryJSON,
     SearchStatus,
     SearchWithdrawalType,
-    SelectedTransactions,
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
@@ -3463,14 +3462,27 @@ function getTableMinWidth(columns: SearchColumnType[]) {
  * - If all selected transactions belong to the same policy, use that policy
  * - Otherwise, fall back to the user's active workspace policy
  */
-function getSearchBulkEditPolicyID(selectedTransactions: SelectedTransactions, activePolicyID: string | undefined): string | undefined {
-    const transactionValues = Object.values(selectedTransactions);
-    if (transactionValues.length === 0) {
+function getSearchBulkEditPolicyID(
+    selectedTransactionIDs: string[],
+    activePolicyID: string | undefined,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): string | undefined {
+    if (selectedTransactionIDs.length === 0) {
         return activePolicyID;
     }
 
-    const firstPolicyID = transactionValues.at(0)?.policyID;
-    const allSamePolicy = transactionValues.every((transaction) => transaction.policyID === firstPolicyID);
+    const policyIDs = selectedTransactionIDs.map((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction?.reportID) {
+            return undefined;
+        }
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        return report?.policyID;
+    });
+
+    const firstPolicyID = policyIDs.at(0);
+    const allSamePolicy = policyIDs.every((policyID) => policyID === firstPolicyID);
 
     if (allSamePolicy && firstPolicyID) {
         return firstPolicyID;
