@@ -432,13 +432,31 @@ function MoneyRequestParticipantsSelector({
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 
+    const importContactsButtonComponent = useMemo(() => {
+        const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
+        if (!shouldShowImportContactsButton || showLoadingPlaceholder || shouldShowListEmptyContent) {
+            return null;
+        }
+        return (
+            <MenuItem
+                title={translate('contact.importContacts')}
+                icon={icons.UserPlus}
+                onPress={goToSettings}
+                shouldShowRightIcon
+                style={styles.ph0}
+            />
+        );
+    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, translate, styles.ph0, showLoadingPlaceholder, shouldShowListEmptyContent]);
+
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !selectedOptions.length) {
-            return;
+            return importContactsButtonComponent;
         }
 
         return (
             <>
+                {importContactsButtonComponent}
+
                 {shouldShowReferralBanner && !isCategorizeOrShareAction && (
                     <ReferralProgramCTA
                         referralContentType={referralContentType}
@@ -486,6 +504,7 @@ function MoneyRequestParticipantsSelector({
         shouldShowReferralBanner,
         isCategorizeOrShareAction,
         onFinish,
+        importContactsButtonComponent,
     ]);
 
     const onSelectRow = useCallback(
@@ -504,22 +523,6 @@ function MoneyRequestParticipantsSelector({
         },
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
-
-    const footerContentAbovePaginationComponent = useMemo(() => {
-        const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
-        if (!shouldShowImportContactsButton) {
-            return null;
-        }
-        return (
-            <MenuItem
-                title={translate('contact.importContacts')}
-                icon={icons.UserPlus}
-                onPress={goToSettings}
-                shouldShowRightIcon
-                style={styles.mb3}
-            />
-        );
-    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, styles.mb3, translate]);
 
     const ClickableImportContactTextComponent = useMemo(() => {
         if (searchTerm.length || isSearchingForReports) {
@@ -581,7 +584,6 @@ function MoneyRequestParticipantsSelector({
                 }
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
-                footerContentAbovePagination={footerContentAbovePaginationComponent}
                 headerMessage={header}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
