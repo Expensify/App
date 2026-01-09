@@ -607,6 +607,13 @@ function getSuggestedSearches(
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                     dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                    status: [
+                        CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                        CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                        CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+                        CONST.SEARCH.STATUS.EXPENSE.DONE,
+                        CONST.SEARCH.STATUS.EXPENSE.PAID,
+                    ],
                 },
                 {
                     sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
