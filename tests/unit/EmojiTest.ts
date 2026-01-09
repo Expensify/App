@@ -484,5 +484,89 @@ describe('EmojiTest', () => {
             expect(result).toBe('234😄');
             expect(result.includes(ZWNJ)).toBe(false);
         });
+
+        it('should add two spaces before asterisk when asterisk comes after emoji', () => {
+            // Given an emoji followed by asterisk (common mobile Safari issue)
+            // Scenario: User types "#😄" then "*" - Safari may corrupt the *
+            const input = '#😄*';
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then two spaces should be added before asterisk, and ZWNJ between # and emoji
+            expect(result).toBe(`#${ZWNJ}😄  *`);
+        });
+
+        it('should handle emoji followed by asterisk then emoji', () => {
+            // Given emoji, asterisk, then emoji (like "#😄*😀")
+            const input = '#😄*😀';
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then two spaces should be added before *, and ZWNJ between # and first emoji, and between * and second emoji
+            expect(result).toBe(`#${ZWNJ}😄  *${ZWNJ}😀`);
+        });
+
+        it('should add two spaces before hash symbol when hash comes after emoji', () => {
+            // Given an emoji followed by hash symbol
+            const input = '😄#';
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then two spaces should be added before hash
+            expect(result).toBe(`😄  #`);
+        });
+
+        it('should fix corrupted keycap sequence followed by emoji', () => {
+            // Given Safari has created "*️⃣😄" (corrupted keycap + emoji)
+            // This happens when Safari corrupts "*😄" to "*️⃣😄" before React processes it
+            const corruptedKeycapWithEmoji = '*\uFE0F\u20E3😄'; // *️⃣😄
+
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(corruptedKeycapWithEmoji);
+
+            // Then it should be converted to "*\u200C😄" (preserving the emoji)
+            expect(result).toBe(`*${ZWNJ}😄`);
+        });
+
+        it('should handle space between symbol and emoji correctly', () => {
+            // Given text with space between symbol and emoji (like "#😃 *😄")
+            const input = '#😃 *😄';
+
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+
+            // Then ZWNJ should be inserted between symbols and emojis, and two spaces before * (even if one space already exists)
+            expect(result).toBe(`#${ZWNJ}😃  *${ZWNJ}😄`);
+        });
+
+        it('should fix corrupted keycap in text with spaces', () => {
+            // Given text like "#😃 *️⃣😄" where Safari corrupted "*😄" to "*️⃣😄"
+            const input = '#😃 *\uFE0F\u20E3😄';
+
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+
+            // Then corrupted keycap should be fixed to "*\u200C😄" (keycap removed, ZWNJ added)
+            expect(result).toBe(`#${ZWNJ}😃 *${ZWNJ}😄`);
+        });
+
+        it('should ensure two spaces before symbol even if one space already exists', () => {
+            // Given emoji followed by one space then symbol (like "#😄 *")
+            const input = '#😄 *';
+
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+
+            // Then two spaces should be ensured before the symbol
+            expect(result).toBe(`#${ZWNJ}😄  *`);
+        });
+
+        it('should fix corrupted keycap sequences first', () => {
+            // Given corrupted keycap sequence (like "*️⃣")
+            const input = '*\uFE0F\u20E3';
+
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+
+            // Then corrupted keycap should be fixed to just the base character
+            expect(result).toBe('*');
+        });
     });
 });
