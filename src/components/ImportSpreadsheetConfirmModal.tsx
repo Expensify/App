@@ -32,7 +32,12 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
         }
         const title = spreadsheet.importFinalModal.titleKey ? translate(spreadsheet.importFinalModal.titleKey) : '';
         const prompt = spreadsheet.importFinalModal.promptKey
-            ? translate(spreadsheet.importFinalModal.promptKey, ...(spreadsheet.importFinalModal.promptKeyParams as TranslationParameters<typeof spreadsheet.importFinalModal.promptKey>))
+            ? translate(
+                  spreadsheet.importFinalModal.promptKey,
+                  ...((spreadsheet.importFinalModal.promptKeyParams ? spreadsheet.importFinalModal.promptKeyParams : []) as TranslationParameters<
+                      typeof spreadsheet.importFinalModal.promptKey
+                  >),
+              )
             : '';
         setTitleText(title);
         setPromptText(prompt);
