@@ -112,10 +112,6 @@ function MoneyRequestReportPreview({
             name: 'MoneyRequestReportPreview',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${iouReportID}`, {
-            name: 'MoneyRequestReportPreview',
-            op: CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD,
-        });
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true});

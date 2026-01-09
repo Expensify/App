@@ -1695,7 +1695,6 @@ const CONST = {
         TAG_AUTHENTICATION_JSON_CODE: 'authentication_json_code',
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
-        SPAN_OPEN_TRANSACTION_THREAD: 'ManualOpenTransactionThread',
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
         SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',
@@ -1715,7 +1714,9 @@ const CONST = {
         },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
-        ATTRIBUTE_ONE_TRANSACTION_THREAD: 'one_transaction_thread',
+        ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',
+        ATTRIBUTE_IS_TRANSACTION_THREAD: 'is_transaction_thread',
+        ATTRIBUTE_REPORT_TYPE: 'report_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',

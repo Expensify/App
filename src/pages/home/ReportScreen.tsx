@@ -621,7 +621,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
             // We need to cancel telemetry span when user leaves the screen before full report data is loaded
             cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
-            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${reportID}`);
         };
     }, [reportID]);
 

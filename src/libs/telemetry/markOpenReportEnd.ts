@@ -1,28 +1,28 @@
 import Timing from '@libs/actions/Timing';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
-import {cancelSpan, endSpan, getSpan} from './activeSpans';
+import {endSpan, getSpan} from './activeSpans';
 
 /**
  * Mark all 'open_report*' performance events as finished using both Performance (local) and Timing (remote) tracking.
  */
 function markOpenReportEnd(reportId: string, isTransactionThread?: boolean, isOneTransactionThread?: boolean) {
-    const transactionThreadSpanId = `${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${reportId}`;
-    const reportSpanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportId}`;
-
-    if (!isTransactionThread && !isOneTransactionThread) {
-        cancelSpan(transactionThreadSpanId);
-        endSpan(reportSpanId);
-    } else {
-        cancelSpan(reportSpanId);
-
-        const span = getSpan(transactionThreadSpanId);
-        span?.setAttributes({
-            [CONST.TELEMETRY.ATTRIBUTE_ONE_TRANSACTION_THREAD]: isOneTransactionThread,
-        });
-
-        endSpan(transactionThreadSpanId);
+    let reportType = 'report';
+    if (isTransactionThread) {
+        reportType = 'transaction_thread';
+    } else if (isOneTransactionThread) {
+        reportType = 'one_transaction_report';
     }
+
+    const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportId}`;
+    const span = getSpan(spanId);
+    span?.setAttributes({
+        [CONST.TELEMETRY.ATTRIBUTE_IS_TRANSACTION_THREAD]: isTransactionThread,
+        [CONST.TELEMETRY.ATTRIBUTE_IS_ONE_TRANSACTION_REPORT]: isOneTransactionThread,
+        [CONST.TELEMETRY.ATTRIBUTE_REPORT_TYPE]: reportType,
+    });
+
+    endSpan(spanId);
 
     Performance.markEnd(CONST.TIMING.OPEN_REPORT);
     Timing.end(CONST.TIMING.OPEN_REPORT);

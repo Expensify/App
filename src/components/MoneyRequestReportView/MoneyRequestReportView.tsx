@@ -169,7 +169,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     useEffect(() => {
         return () => {
             cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
-            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${reportID}`);
         };
     }, [reportID]);
 

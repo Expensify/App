@@ -68,7 +68,6 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
                 shouldBlockReportNavigation
             ) {
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
-                cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${option.reportID}`);
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));

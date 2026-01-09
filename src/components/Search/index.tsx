@@ -787,11 +787,6 @@ function Search({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${reportID}`, {
-                name: 'Search',
-                op: CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD,
-            });
-
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
