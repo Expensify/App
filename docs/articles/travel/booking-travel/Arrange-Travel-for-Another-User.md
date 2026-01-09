@@ -9,7 +9,7 @@ After you're assigned the Travel Arranger role, you can arrange travel for anoth
 
 ---
 
-## Where to find Travel
+## Where to find Expensify Travel
 
 Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
 
