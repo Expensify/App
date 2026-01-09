@@ -45,6 +45,7 @@ const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearch
             <TransactionItemRow
                 transactionItem={transactionItem}
                 violations={transactionItem.violations}
+                report={transactionItem.report}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
             />
@@ -164,6 +165,7 @@ describe('TransactionItemRowRBR', () => {
         };
         const mockTransaction = createBaseTransaction({
             violations: mockViolations,
+            report: mockReport,
             modifiedMerchant: '',
             merchant: '',
         });
@@ -187,6 +189,7 @@ describe('TransactionItemRowRBR', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
         };
         const mockTransaction = createBaseTransaction({
+            report: mockReport,
             modifiedMerchant: '',
             merchant: '',
         });
@@ -275,6 +278,7 @@ describe('TransactionItemRowRBR', () => {
         };
         const mockTransaction = createBaseTransaction({
             violations: mockViolations,
+            report: mockReport,
             modifiedMerchant: '',
             merchant: '',
         });

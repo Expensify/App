@@ -253,6 +253,7 @@ function MoneyRequestConfirmationList({
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [reportTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
     const [defaultMileageRateDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
         selector: mileageRateSelector,
@@ -407,8 +408,8 @@ function MoneyRequestConfirmationList({
             return false;
         }
 
-        return (!!hasSmartScanFailed && hasMissingSmartscanFields(transaction)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction));
-    }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
+        return (!!hasSmartScanFailed && hasMissingSmartscanFields(transaction, reportTransaction)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction, reportTransaction));
+    }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit, reportTransaction]);
 
     const isMerchantEmpty = useMemo(() => !iouMerchant || isMerchantMissing(transaction), [transaction, iouMerchant]);
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
@@ -944,7 +945,7 @@ function MoneyRequestConfirmationList({
                     }
                 }
 
-                if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {
+                if (isEditingSplitBill && areRequiredFieldsEmpty(transaction, reportTransaction)) {
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
@@ -997,6 +998,7 @@ function MoneyRequestConfirmationList({
             showDelegateNoAccessModal,
             iouCategory,
             policyCategories,
+            reportTransaction,
         ],
     );
 
