@@ -331,6 +331,8 @@ const SCREENS = {
         STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
         STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
+        STEP_TIME_RATE: 'Money_Request_Step_Time_Rate',
+        STEP_HOURS: 'Money_Request_Step_Hours',
     },
 
     TRANSACTION_DUPLICATE: {

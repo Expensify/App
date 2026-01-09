@@ -1419,6 +1419,8 @@ function IOURequestStepConfirmation({
                         expensesNumber={transactions.length}
                         isReceiptEditable
                         isTimeRequest={isTimeRequest}
+                        iouHours={transaction?.comment?.units?.count}
+                        iouRate={transaction?.comment?.units?.rate}
                     />
                 </View>
             </DragAndDropProvider>

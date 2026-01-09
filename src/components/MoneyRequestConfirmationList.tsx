@@ -116,6 +116,12 @@ type MoneyRequestConfirmationListProps = {
     /** IOU isBillable */
     iouIsBillable?: boolean;
 
+    /** Time expense's hour count */
+    iouHours?: number;
+
+    /** Time expense's hourly rate */
+    iouRate?: number;
+
     /** Callback to toggle the billable state */
     onToggleBillable?: (isOn: boolean) => void;
 
@@ -253,6 +259,8 @@ function MoneyRequestConfirmationList({
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
     isTimeRequest = false,
+    iouHours,
+    iouRate,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -347,7 +355,7 @@ function MoneyRequestConfirmationList({
         ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && !isTimeRequest;
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
@@ -1146,11 +1154,14 @@ function MoneyRequestConfirmationList({
             iouIsBillable={iouIsBillable}
             iouMerchant={iouMerchant}
             iouType={iouType}
+            iouHours={iouHours}
+            iouRate={iouRate}
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
             isManualDistanceRequest={isManualDistanceRequest}
             isOdometerDistanceRequest={isOdometerDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
+            isTimeRequest={isTimeRequest}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
             isPolicyExpenseChat={isPolicyExpenseChat}

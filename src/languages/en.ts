@@ -1444,6 +1444,8 @@ const translations = {
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} hours @ ${rate} / hour`,
             hrs: 'hrs',
+            hours: 'Hours',
+            ratePreview: (rate: string) => `${rate} / hour`,
         },
     },
     transactionMerge: {

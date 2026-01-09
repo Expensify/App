@@ -337,6 +337,7 @@ function IOURequestStartPage({
                                                 <IOURequestStepHours
                                                     route={route}
                                                     navigation={navigation}
+                                                    isCreatingNewRequest
                                                 />
                                             </TabScreenWithFocusTrapWrapper>
                                         )}
