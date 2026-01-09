@@ -584,7 +584,7 @@ function MoneyReportHeader({
             currentSearchKey,
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
-            allBetas
+            allBetas,
         ],
     );
 
@@ -652,7 +652,7 @@ function MoneyReportHeader({
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
-                    allBetas
+                    allBetas,
                 });
             }
         },
