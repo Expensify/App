@@ -3103,6 +3103,71 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
         });
 
+        test('Should conditionally include Billable and Reimbursable columns in expense report view when enabled', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const reimbursableTransaction = {
+                ...baseTransaction,
+                transactionID: 'reimbursableTx',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                billable: true,
+            };
+            const nonReimbursableTransaction = {
+                ...baseTransaction,
+                transactionID: 'nonReimbursableTx',
+                merchant: 'Test Merchant 2',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                reimbursable: false,
+                billable: false,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [reimbursableTransaction, nonReimbursableTransaction], [], true, undefined, undefined, false, true, true);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.BILLABLE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE);
+
+            // Column order: after Tag and before Amount (and before Comments)
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TAG)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE));
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.BILLABLE));
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
+        });
+
+        test('Should not include Reimbursable column in expense report view when all expenses are reimbursable', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const reimbursableTransaction1 = {
+                ...baseTransaction,
+                transactionID: 'reimbursableTx1',
+                merchant: 'Test Merchant 1',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                reimbursable: true,
+                billable: false,
+            };
+            const reimbursableTransaction2 = {
+                ...baseTransaction,
+                transactionID: 'reimbursableTx2',
+                merchant: 'Test Merchant 2',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                billable: true,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [reimbursableTransaction1, reimbursableTransaction2], [], true, undefined, undefined, false, true, false);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.BILLABLE);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE);
+        });
+
         test('Should handle modifiedMerchant and empty category/tag values correctly', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
