@@ -786,12 +786,11 @@ function addMemberToDomain(domainAccountID: number, targetEmail: string) {
         },
     ];
 
-    const authToken = getAuthToken();
     const params: AddMemberToDomainParams = {
-        authToken,
         emailList: [targetEmail],
         domainAccountID,
     };
+
     API.write(WRITE_COMMANDS.ADD_DOMAIN_MEMBER, params, {optimisticData, successData, failureData});
 }
 

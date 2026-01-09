@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isValidEmail} from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {addMemberToDomain} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,60 +25,60 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const domainAccountID = route.params.domainAccountID;
+    const {domainAccountID} = route.params;
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
     const [email, setEmail] = useState<string | undefined>();
 
     const isEmailInvalid = !!domainName && !!email && !isValidEmail(`${email}@${domainName}`);
 
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight
-            shouldUseCachedViewportHeight
-            testID={DomainAddMemberPage.displayName}
-            includeSafeAreaPaddingBottom
-        >
-            <HeaderWithBackButton
-                title={translate('domain.members.addMember')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}
-            />
-
-            <View style={[styles.flex1, styles.p5]}>
-                <TextInput
-                    accessibilityLabel={`${translate('common.email')}`}
-                    label={`${translate('common.email')}`}
-                    value={email}
-                    onChangeText={setEmail}
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    inputMode={CONST.INPUT_MODE.EMAIL}
-                    autoFocus
-                    suffixCharacter={domainName ? `@${domainName}` : undefined}
-                    suffixStyle={styles.colorMuted}
-                    hasError={isEmailInvalid}
-                    errorText={isEmailInvalid ? translate('messages.errorMessageInvalidEmail') : undefined}
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                shouldEnableMaxHeight
+                shouldUseCachedViewportHeight
+                testID="DomainAddMemberPage"
+                includeSafeAreaPaddingBottom
+            >
+                <HeaderWithBackButton
+                    title={translate('domain.members.addMember')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}
                 />
-            </View>
 
-            <FormAlertWithSubmitButton
-                isDisabled={!email || isEmailInvalid}
-                isAlertVisible={false}
-                buttonText={translate('common.invite')}
-                onSubmit={() => {
-                    if (!domainName || !email) {
-                        return;
-                    }
+                <View style={[styles.flex1, styles.p5]}>
+                    <TextInput
+                        accessibilityLabel={`${translate('common.email')}`}
+                        label={`${translate('common.email')}`}
+                        value={email}
+                        onChangeText={setEmail}
+                        autoCapitalize="none"
+                        spellCheck={false}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
+                        autoFocus
+                        suffixCharacter={domainName ? `@${domainName}` : undefined}
+                        suffixStyle={styles.colorMuted}
+                        hasError={isEmailInvalid}
+                        errorText={isEmailInvalid ? translate('messages.errorMessageInvalidEmail') : undefined}
+                    />
+                </View>
 
-                    addMemberToDomain(domainAccountID, `${email}@${domainName}`);
-                    Navigation.dismissModal();
-                }}
-                containerStyles={styles.p5}
-                enabledWhenOffline
-            />
-        </ScreenWrapper>
+                <FormAlertWithSubmitButton
+                    isDisabled={!email || isEmailInvalid}
+                    isAlertVisible={false}
+                    buttonText={translate('common.invite')}
+                    onSubmit={() => {
+                        if (!domainName || !email) {
+                            return;
+                        }
+
+                        addMemberToDomain(domainAccountID, `${email}@${domainName}`);
+                        Navigation.dismissModal();
+                    }}
+                    containerStyles={styles.p5}
+                    enabledWhenOffline
+                />
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
-
-DomainAddMemberPage.displayName = 'DomainAddMemberPage';
 
 export default DomainAddMemberPage;
