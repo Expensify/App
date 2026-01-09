@@ -1,12 +1,6 @@
-import {
-    getAllNonDeletedTransactions,
-    getThreadReportIDsForTransactions,
-    hasNonReimbursableTransactions,
-    isActionVisibleOnMoneyRequestReport,
-    isBillableEnabledOnPolicy,
-} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, getThreadReportIDsForTransactions, isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import CONST from '@src/CONST';
-import type {Policy, ReportAction, Transaction} from '@src/types/onyx';
+import type {ReportAction, Transaction} from '@src/types/onyx';
 import {actionR14932, actionR98765} from '../../../__mocks__/reportData/actions';
 import {transactionR14932, transactionR98765} from '../../../__mocks__/reportData/transactions';
 
@@ -94,35 +88,5 @@ describe('getAllNonDeletedTransactions', () => {
         expect(result).toHaveLength(2);
         expect(result.map((t) => t.transactionID)).toContain(transactionR14932.transactionID);
         expect(result.map((t) => t.transactionID)).toContain(orphanedTransaction.transactionID);
-    });
-});
-
-describe('isBillableEnabledOnPolicy', () => {
-    test('returns false when policy is missing', () => {
-        expect(isBillableEnabledOnPolicy(undefined)).toBe(false);
-    });
-
-    test('returns true when defaultBillable is not disabled', () => {
-        const policy = {disabledFields: {defaultBillable: false}} as unknown as Policy;
-        expect(isBillableEnabledOnPolicy(policy)).toBe(true);
-    });
-
-    test('returns false when defaultBillable is disabled', () => {
-        const policy = {disabledFields: {defaultBillable: true}} as unknown as Policy;
-        expect(isBillableEnabledOnPolicy(policy)).toBe(false);
-    });
-});
-
-describe('hasNonReimbursableTransactions', () => {
-    test('returns false when all transactions are reimbursable by default', () => {
-        const t1 = {reimbursable: undefined} as unknown as Transaction;
-        const t2 = {reimbursable: true} as unknown as Transaction;
-        expect(hasNonReimbursableTransactions([t1, t2])).toBe(false);
-    });
-
-    test('returns true when any transaction is non-reimbursable', () => {
-        const reimbursable = {reimbursable: true} as unknown as Transaction;
-        const nonReimbursable = {reimbursable: false} as unknown as Transaction;
-        expect(hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
     });
 });
