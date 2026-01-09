@@ -510,14 +510,14 @@ function peg$parse(input, options) {
   var peg$f52 = function() {return "columns"};
   var peg$f53 = function() { return "perDiem"; };
   var peg$f54 = function() { return "drafts"; };
-  var peg$f55 = function() { return "originalAmount"; };
+  var peg$f55 = function() { return "originalamount"; };
   var peg$f56 = function() { return "taxAmount"; };
-  var peg$f57 = function() { return "policyName"; };
+  var peg$f57 = function() { return "policyname"; };
   var peg$f58 = function() { return "withdrawalID"; };
   var peg$f59 = function() { return "bankAccount"; };
   var peg$f60 = function() { return "reportID"; };
   var peg$f61 = function() { return "base62ReportID"; };
-  var peg$f62 = function() { return "exportedTo"; };
+  var peg$f62 = function() { return "exportedto"; };
   var peg$f63 = function() { return "exchangeRate"; };
   var peg$f64 = function() { return "reimbursableTotal"; };
   var peg$f65 = function() { return "nonReimbursableTotal"; };

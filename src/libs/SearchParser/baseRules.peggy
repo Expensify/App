@@ -107,14 +107,14 @@ values
 
 perDiem                 = "per-diem"i                  { return "perDiem"; }
 drafts                  = "draft"i / "drafts"i         { return "drafts"; }
-originalAmount          = "original-amount"i           { return "originalAmount"; }
+originalAmount          = "original-amount"i           { return "originalamount"; }
 taxAmount               = "tax"i                       { return "taxAmount"; }
-policyName              = "policy-name"i               { return "policyName"; }
+policyName              = "policy-name"i               { return "policyname"; }
 withdrawalId            = "withdrawal-id"i             { return "withdrawalID"; }
 bankAccount             = "bank-account"i              { return "bankAccount"; }
 reportId                = "long-report-id"i            { return "reportID"; }
 base62ReportId          = "report-id"i                 { return "base62ReportID"; }
-exportedTo              = "exported-to"i               { return "exportedTo"; }
+exportedTo              = "exported-to"i               { return "exportedto"; }
 exchangeRate            = "exchange-rate"i             { return "exchangeRate"; }
 reimbursableTotal       = "reimbursable-total"i        { return "reimbursableTotal"; }
 nonReimbursableTotal    = "non-reimbursable-total"i    { return "nonReimbursableTotal"; }
