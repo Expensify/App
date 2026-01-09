@@ -7920,7 +7920,16 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
             revokeAdminAccess: 'Revoca accesso amministratore',
             cantRevokeAdminAccess: 'Impossibile revocare i privilegi di amministratore dal referente tecnico',
-            error: {removeAdmin: 'Impossibile rimuovere questo utente come amministratore. Riprova.'},
+            error: {
+                removeAdmin: 'Impossibile rimuovere questo utente come amministratore. Riprova.',
+                removeDomain: 'Impossibile rimuovere questo dominio. Riprova.',
+                removeDomainNameInvalid: 'Inserisci il tuo nome di dominio per reimpostarlo.',
+            },
+            resetDomain: 'Reimposta dominio',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `Per favore digita <strong>${domainName}</strong> per confermare il ripristino del dominio.`, //_/\__/_/  \_,_/\__/\__/\_,_/
+            enterDomainName: 'Inserisci qui il tuo nome di dominio',
+            resetDomainInfo: ({contactMethodRoute}: {contactMethodRoute?: string}) =>
+                `Questa azione è <strong>permanente</strong> e i seguenti dati verranno eliminati: <br/> <ul><li>Connessioni alle carte aziendali e tutte le spese non riportate da tali carte</li> <li>Impostazioni SAML e di gruppo</li> </ul> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/> Nota: puoi rimuovere questo dominio dall’elenco dei tuoi domini eliminando l’email associata dalle tue <a href="${contactMethodRoute}">modalità di contatto</a>.`,
         },
     },
     gps: {

@@ -118,7 +118,6 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                             />
                             {domainHasOnlyOneAdmin && (
                                 <MenuItem
-                                    disabled={isCurrentUserPrimaryContact}
                                     style={styles.mb5}
                                     title={translate('domain.admins.resetDomain')}
                                     icon={icons.ClosedSign}
