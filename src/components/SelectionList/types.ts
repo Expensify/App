@@ -26,6 +26,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Called when "Select All" button is pressed */
     onSelectAll?: () => void;
 
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
     /** Called when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
@@ -72,17 +75,23 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     selectedItems?: readonly string[];
 
     style?: {
-        /** Styles to apply to the list */
+        /** Styles for the list */
         listStyle?: StyleProp<ViewStyle>;
 
-        /** Styles applied for the title of the list item */
+        /** Styles for the list container */
+        containerStyle?: StyleProp<ViewStyle>;
+
+        /** Styles for the title of the list item */
         listItemTitleStyles?: StyleProp<TextStyle>;
 
         /** Styles for the list item wrapper */
         listItemWrapperStyle?: StyleProp<ViewStyle>;
 
-        /** Styles to apply to the list container */
-        containerStyle?: StyleProp<ViewStyle>;
+        /** Styles for the list header wrapper */
+        listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** Styles for the title container of the list item */
+        listItemTitleContainerStyles?: StyleProp<ViewStyle>;
     };
 
     /** Function that determines if an item is selected */
@@ -130,8 +139,14 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to ignore focus events */
     shouldIgnoreFocus?: boolean;
 
+    /** Whether to show the right caret icon */
+    shouldShowRightCaret?: boolean;
+
     /** Whether to stop automatic propagation on pressing enter key */
     shouldStopPropagation?: boolean;
+
+    /** Whether to place customListHeader in the list so it scrolls with data */
+    shouldHeaderBeInsideList?: boolean;
 
     /** Whether to scroll to the focused item */
     shouldScrollToFocusedIndex?: boolean;
@@ -150,6 +165,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
+
+    /** Whether to clear the text input when a row is selected */
+    shouldClearInputOnSelect?: boolean;
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;

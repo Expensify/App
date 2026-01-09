@@ -34,7 +34,7 @@ type MessagesRowProps = {
     dismissError?: () => void;
 };
 
-function MessagesRow({messages = {}, type, onDismiss = () => {}, containerStyles, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -49,7 +49,7 @@ function MessagesRow({messages = {}, type, onDismiss = () => {}, containerStyles
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb4, styles.messagesRowHeight, containerStyles]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <DotIndicatorMessage
                 dismissError={dismissError}
                 style={styles.flex1}

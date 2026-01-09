@@ -116,6 +116,15 @@ type Comment = {
 
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
+
+    /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
+    pendingAutoCategorizationTime?: string;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
 };
 
 /** Model of transaction custom unit */
@@ -502,6 +511,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The receipt object associated with the transaction */
         receipt?: Receipt;
 
+        /** The transaction thread reportID - usually set for transactions in the search snapshot */
+        transactionThreadReportID?: string | undefined;
+
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 
@@ -587,6 +599,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The inserted time of the transaction */
         inserted?: string;
+
+        /** Transaction type */
+        transactionType?: string;
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
