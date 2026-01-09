@@ -34,15 +34,17 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
     const {environmentURL} = useEnvironment();
 
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`, {canBeMissing: true});
 
+    const missingDomainData = !domain || !domainName;
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.route}`;
 
     const handleResetDomain = () => {
-        if (!domainName) {
-            Log.hmmm('Domain name is missing');
+        if (missingDomainData) {
+            Log.hmmm('Domain data is missing');
             return;
         }
-        resetDomain(route.params.domainAccountID, domainName);
+        resetDomain(route.params.domainAccountID, domainName, domain);
         Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
     };
 
@@ -53,7 +55,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
             const isValid = sanitizePhoneOrEmail(domainName) === sanitizePhoneOrEmail(values.domainName);
 
             if (!isValid) {
-                errors.domainName = translate('closeAccountPage.enterYourDefaultContactMethod');
+                errors.domainName = translate('domain.admins.error.removeDomainNameInvalid');
             }
         }
 
@@ -79,6 +81,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
                 submitButtonText={translate('domain.admins.resetDomain')}
                 style={[styles.flexGrow1, styles.mh5]}
                 isSubmitActionDangerous
+                isSubmitDisabled={missingDomainData}
             >
                 <View
                     fsClass={CONST.FULLSTORY.CLASS.UNMASK}

@@ -72,7 +72,8 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
             key={`domain_${item.title}_${index}`}
             pendingAction={item.pendingAction}
             style={[styles.mb2, styles.mh5]}
-            errors={item.errors?.removeDomainError}
+            contentContainerStyle={item.errors?.errors ? styles.mb2 : undefined}
+            errors={item.errors?.errors}
             onClose={() => clearResetDomainErrors(item.accountID)}
         >
             <PressableWithoutFeedback

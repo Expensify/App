@@ -7,6 +7,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getAuthToken} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Domain} from '@src/types/onyx';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
 
@@ -722,7 +723,7 @@ function clearRemoveAdminError(domainAccountID: number, accountID: number) {
 /**
  * Removes the domain
  */
-function resetDomain(domainAccountID: number, domainName: string) {
+function resetDomain(domainAccountID: number, domainName: string, domain: Domain) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -731,11 +732,11 @@ function resetDomain(domainAccountID: number, domainName: string) {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             },
         },
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-        //     value: null,
-        // },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: null,
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
@@ -749,11 +750,16 @@ function resetDomain(domainAccountID: number, domainName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                removeDomainError: null,
+                errors: null,
             },
         },
     ];
     const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: domain,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -765,7 +771,7 @@ function resetDomain(domainAccountID: number, domainName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                removeDomainError: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.error.removeDomain'),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.error.removeDomain'),
             },
         },
     ];
@@ -781,18 +787,12 @@ function resetDomain(domainAccountID: number, domainName: string) {
 /**
  * Clears errors after trying to reset domain
  */
-function clearResetDomainErrors(domainAccountID: number, accountID: number) {
+function clearResetDomainErrors(domainAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        adminErrors: {
-            [accountID]: null,
-        },
+        errors: null,
     });
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        admin: {
-            [accountID]: {
-                pendingAction: null,
-            },
-        },
+        pendingAction: null,
     });
 }
 
