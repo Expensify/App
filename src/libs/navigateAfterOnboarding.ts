@@ -69,8 +69,6 @@ function getReportIDAfterOnboarding(
  * - RHP Admins Room: navigate to the workspace overview and open the side panel with the Admins Room
  */
 function handleRHPVariantNavigation(isRHPAdminsRoom: boolean, onboardingPolicyID?: string, onboardingAdminsChatReportID?: string) {
-    console.log(`%%% onboardingRHPVariant`, onboardingRHPVariant);
-
     Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
     SidePanelActions.openSidePanelWithContent(true, isRHPAdminsRoom ? onboardingAdminsChatReportID : undefined);
     Navigation.isNavigationReady().then(() => {
