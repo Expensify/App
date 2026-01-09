@@ -703,24 +703,6 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
 }
 
 /**
- * Removes an error after trying to remove admin
- */
-function clearRemoveAdminError(domainAccountID: number, accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        adminErrors: {
-            [accountID]: null,
-        },
-    });
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        admin: {
-            [accountID]: {
-                pendingAction: null,
-            },
-        },
-    });
-}
-
-/**
  * Removes the domain
  */
 function resetDomain(domainAccountID: number, domainName: string, domain: Domain) {
@@ -817,7 +799,6 @@ export {
     addAdminToDomain,
     clearAdminError,
     revokeDomainAdminAccess,
-    clearRemoveAdminError,
     resetDomain,
     clearResetDomainErrors,
 };

@@ -625,7 +625,7 @@ function WorkspacesListPage() {
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
-                errors: allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`],
+                errors: allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`]?.errors,
             });
 
             return domainItems;

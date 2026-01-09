@@ -10,7 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import {clearResetDomainErrors} from '@src/libs/actions/Domain';
 import ROUTES from '@src/ROUTES';
-import type {DomainErrors} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import DomainsListRow from './DomainsListRow';
 
 type DomainMenuItemProps = {
@@ -41,7 +41,7 @@ type DomainItem = {
     isValidated: boolean;
 
     /** Current errors for domain */
-    errors?: DomainErrors;
+    errors?: Errors;
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
 
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
@@ -72,8 +72,8 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
             key={`domain_${item.title}_${index}`}
             pendingAction={item.pendingAction}
             style={[styles.mb2, styles.mh5]}
-            contentContainerStyle={item.errors?.errors ? styles.mb2 : undefined}
-            errors={item.errors?.errors}
+            contentContainerStyle={item.errors ? styles.mb2 : undefined}
+            errors={item?.errors}
             onClose={() => clearResetDomainErrors(item.accountID)}
         >
             <PressableWithoutFeedback
