@@ -68,9 +68,9 @@ function getReportIDAfterOnboarding(
  * - RHP Concierge DM: navigate to the workspace overview and open the side panel with the Concierge DM
  * - RHP Admins Room: navigate to the workspace overview and open the side panel with the Admins Room
  */
-function handleRHPVariantNavigation(isRHPAdminsRoom: boolean, onboardingPolicyID?: string, onboardingAdminsChatReportID?: string) {
+function handleRHPVariantNavigation(onboardingPolicyID?: string) {
     Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
-    SidePanelActions.openSidePanelWithContent(true, isRHPAdminsRoom ? onboardingAdminsChatReportID : undefined);
+    SidePanelActions.openSidePanel(true);
     Navigation.isNavigationReady().then(() => {
         Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
     });
@@ -89,7 +89,7 @@ function navigateAfterOnboarding(
     const isRHPConciergeDM = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
     const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
     if (isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom)) {
-        handleRHPVariantNavigation(isRHPAdminsRoom, onboardingPolicyID, onboardingAdminsChatReportID);
+        handleRHPVariantNavigation(onboardingPolicyID);
         return;
     }
 
