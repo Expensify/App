@@ -52,6 +52,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 import type {Domain, Policy} from '@src/types/onyx';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
@@ -61,7 +62,7 @@ type NavigationTabBarProps = {
     shouldShowFloatingCameraButton?: boolean;
 };
 
-function getLastRoute(navigator: ValueOf<typeof NAVIGATORS>, screen: string) {
+function getLastRoute(navigator: ValueOf<typeof NAVIGATORS>, screen: Screen) {
     const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
     const lastNavigator = rootState.routes.findLast((route) => route.name === navigator);
     const lastNavigatorState = lastNavigator && lastNavigator.key ? getPreservedNavigatorState(lastNavigator?.key) : undefined;
