@@ -23,11 +23,3 @@ fi
 
 # Apply packages using patch-package
 scripts/applyPatches.sh
-
-# Install node_modules in subpackage, unless we're in a CI/CD environment,
-# where the node_modules for subpackage are cached separately.
-# See `.github/actions/composite/setupNode/action.yml` for more context.
-if [[ -z ${CI+x} ]]; then
-  cd desktop || exit 1
-  npm install
-fi
