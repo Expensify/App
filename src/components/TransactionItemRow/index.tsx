@@ -90,6 +90,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** Precomputed violations */
     violations?: TransactionViolation[];
 
+    /** Used to initiate payment from search page */
+    hash?: number;
+
     /** Report to which the transaction belongs */
     report?: Report;
 
