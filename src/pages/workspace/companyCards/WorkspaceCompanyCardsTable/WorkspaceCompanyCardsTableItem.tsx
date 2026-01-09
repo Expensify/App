@@ -230,7 +230,7 @@ function WorkspaceCompanyCardTableItem({
                                 <Button
                                     success
                                     small={shouldUseNarrowTableLayout}
-                                    text={translate('workspace.companyCards.assign')}
+                                    text={shouldUseNarrowTableLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
                                     onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}
                                 />
