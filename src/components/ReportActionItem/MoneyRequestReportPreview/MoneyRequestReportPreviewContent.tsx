@@ -542,7 +542,7 @@ function MoneyRequestReportPreviewContent({
         isIouReportArchived,
         isChatReportArchived,
         currentUserDetails.accountID,
-        currentUserDetails.email,
+        currentUserDetails.login,
         iouReport,
         policy,
         transactions,
