@@ -1990,7 +1990,8 @@ function handlePreexistingReport(report: Report) {
 
         const isOptimisticReportFocused = activeRoute?.includes(`/r/${reportID}`);
 
-        // Fix specific case: when user is editing a money request report (/e/ route) and has
+        // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
+        // When user is editing a money request report (/e/:reportID route) and has
         // an optimistic report in the background that should be replaced with preexisting report
         const isOptimisticReportInBackground = screenName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && backTo && backTo.includes(`/r/${reportID}`);
 
@@ -2002,7 +2003,7 @@ function handlePreexistingReport(report: Report) {
                 if (isOptimisticReportFocused) {
                     Navigation.setParams({reportID: preexistingReportID.toString()});
                 } else if (isOptimisticReportInBackground) {
-                    // Navigate to the corrected backTo route with the preexisting report ID
+                    // Navigate to the correct backTo route with the preexisting report ID
                     Navigation.navigate(backTo.replace(`/r/${reportID}`, `/r/${preexistingReportID}`) as Route);
                 }
             };
