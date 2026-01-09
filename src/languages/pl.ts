@@ -656,6 +656,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Suma niepodlegająca zwrotowi',
         originalAmount: 'Kwota pierwotna',
         insights: 'Analizy',
+        duplicateExpense: 'Zduplikowany wydatek',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1454,6 +1455,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} do ${endDate} (${count} dni)`,
         splitByDate: 'Podziel według daty',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `raport przekazany do ${to} z powodu niestandardowego procesu zatwierdzania`,
+        correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
     },
     transactionMerge: {
         listPage: {

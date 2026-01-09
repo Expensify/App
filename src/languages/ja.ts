@@ -655,6 +655,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
         insights: 'インサイト',
+        duplicateExpense: '重複した経費',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1456,6 +1457,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
+        correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {

@@ -214,6 +214,7 @@ import {
     getDistanceInMeters,
     getMerchant,
     getOriginalTransactionWithSplitInfo,
+    getTransactionType,
     getUpdatedTransaction,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
@@ -628,6 +629,8 @@ type CreateDistanceRequestInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    customUnitPolicyID?: string;
+    shouldHandleNavigation?: boolean;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -6531,6 +6534,7 @@ type DuplicateExpenseTransactionParams = {
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    customUnitPolicyID: string;
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
@@ -6545,6 +6549,7 @@ function duplicateExpenseTransaction({
     activePolicyID,
     quickAction,
     policyRecentlyUsedCurrencies,
+    customUnitPolicyID,
     targetPolicy,
     targetPolicyCategories,
     targetReport,
@@ -6621,7 +6626,35 @@ function duplicateExpenseTransaction({
         policyCategories: targetPolicyCategories ?? {},
     };
 
-    return requestMoney(params);
+    const transactionType = getTransactionType(transaction);
+
+    switch (transactionType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
+            const distanceParams: CreateDistanceRequestInformation = {
+                ...params,
+                participants,
+                existingTransaction: {
+                    ...(params.transactionParams ?? {}),
+                    comment: transaction.comment,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    modifiedCreated: '',
+                    reportID: '1',
+                    transactionID: '1',
+                },
+                transactionParams: {
+                    ...(params.transactionParams ?? {}),
+                    comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
+                    validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+                },
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                quickAction,
+                customUnitPolicyID,
+            };
+            return createDistanceRequest(distanceParams);
+        }
+        default:
+            return requestMoney(params);
+    }
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
@@ -8061,6 +8094,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        customUnitPolicyID,
+        shouldHandleNavigation = true,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -8146,6 +8181,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reportActionID: splitData.reportActionID,
             waypoints: JSON.stringify(sanitizedWaypoints),
             customUnitRateID,
+            customUnitPolicyID,
             comment,
             created,
             category,
@@ -8251,6 +8287,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             createdReportActionIDForThread,
             payerEmail,
             customUnitRateID,
+            customUnitPolicyID,
             description: parsedComment,
             attendees: attendees ? JSON.stringify(attendees) : undefined,
         };
@@ -8269,7 +8306,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
-    dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
+
+    if (shouldHandleNavigation) {
+        dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
+    }
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, userAccountID);
