@@ -49,6 +49,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAdmin, isValidated, action} = item;
+
     const threeDotsMenuItems: PopoverMenuItem[] | undefined = useMemo(
         () =>
             isAdmin
@@ -67,6 +68,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                 : undefined,
         [isAdmin, icons.Globe, translate, action, isValidated, item.accountID],
     );
+
     return (
         <OfflineWithFeedback
             key={`domain_${item.title}_${index}`}
