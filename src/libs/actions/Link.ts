@@ -188,6 +188,9 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
+/**
+ * Normalizes a route by replacing route path variables with a generic placeholder(:id). For example /report/12345 becomes /report/:id
+ */
 function getNormalizedRoute(route: string) {
     const routeWithoutParams = route.split('?').at(0) ?? '';
     const segments = routeWithoutParams.split('/').filter((segment) => segment !== '');
