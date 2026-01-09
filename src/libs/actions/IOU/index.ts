@@ -12158,7 +12158,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
             report: iouReport,
             policy,
             predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-            shouldFixViolations: updatedTransactionViolations.length > 1,
+            shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: userAccountID,
             currentUserEmailParam: currentUserEmail,
         });
@@ -12166,7 +12166,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
             report: iouReport,
             policy,
             predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-            shouldFixViolations: updatedTransactionViolations.length > 1,
+            shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: userAccountID,
             currentUserEmailParam: currentUserEmail,
         });
