@@ -1,27 +1,28 @@
-import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import { adminAccountIDsSelector, technicalContactSettingsSelector } from '@selectors/Domain';
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type { OnyxEntry } from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type { ListItem } from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import { getSearchValueForPhoneOrEmail, sortAlphabetically } from '@libs/OptionsListUtils';
+import { getDisplayNameOrDefault } from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@navigation/types';
+import type { SettingsNavigatorParamList } from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import {setPrimaryContact} from '@userActions/Domain';
+import { setPrimaryContact } from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type { PersonalDetailsList } from '@src/types/onyx';
+
 
 type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -70,11 +71,13 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
         }
 
         const details = personalDetails?.[accountID];
-        if (details?.login === technicalContactSettings?.technicalContactEmail) {
+        let isSelected = false;
+        if (!!details?.login && !!technicalContactSettings?.technicalContactEmail && details.login === technicalContactSettings.technicalContactEmail) {
             technicalContactEmailKey = String(accountID);
+            isSelected = true;
         }
         data.push({
-            isSelected: details?.login === technicalContactSettings?.technicalContactEmail,
+            isSelected,
             keyForList: String(accountID),
             accountID,
             login: details?.login ?? '',
