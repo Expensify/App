@@ -158,7 +158,7 @@ function isSubmitAction({
     isChatReportArchived = false,
     primaryAction,
     violations,
-    currentUserEmail,
+    currentUserLogin,
     currentUserAccountID,
 }: {
     report: Report;
@@ -170,7 +170,7 @@ function isSubmitAction({
     isChatReportArchived?: boolean;
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     violations?: OnyxCollection<TransactionViolation[]>;
-    currentUserEmail?: string;
+    currentUserLogin?: string;
     currentUserAccountID?: number;
 }): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
@@ -193,8 +193,8 @@ function isSubmitAction({
         return false;
     }
 
-    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
-        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+    if (violations && currentUserLogin && currentUserAccountID !== undefined) {
+        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserLogin, currentUserAccountID, report, policy))) {
             return false;
         }
     }
@@ -834,7 +834,7 @@ function getSecondaryReportActions({
             isChatReportArchived,
             primaryAction,
             violations,
-            currentUserEmail: currentUserLogin,
+            currentUserLogin,
             currentUserAccountID,
         })
     ) {

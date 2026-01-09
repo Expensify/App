@@ -168,7 +168,7 @@ function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
 function getReportPreviewAction({
     isReportArchived,
     currentUserAccountID,
-    currentUserEmail,
+    currentUserLogin,
     report,
     policy,
     transactions,
@@ -181,7 +181,7 @@ function getReportPreviewAction({
 }: {
     isReportArchived: boolean;
     currentUserAccountID: number;
-    currentUserEmail: string;
+    currentUserLogin: string;
     report: Report | undefined;
     policy: Policy | undefined;
     transactions: Transaction[];
@@ -213,16 +213,16 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserEmail, violationsData, policy, transactions)) {
+    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, isReportArchived, currentUserAccountID, currentUserEmail, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, currentUserEmail, policy)) {
+    if (canExport(report, currentUserLogin, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

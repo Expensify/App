@@ -1827,7 +1827,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
     });
 
-    it('it should only send the last sequential UpdateComment request to BE with currentUserEmail', async () => {
+    it('it should only send the last sequential UpdateComment request to BE with currentUserLogin', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
