@@ -171,10 +171,13 @@ function GenericPressable({
                 isDisabled && [StyleUtils.parseStyleFromFunction(disabledStyle, state), styles.noSelect],
                 isRoleButton && styles.userSelectNone,
             ]}
-            // accessibility props
+            fsClass={forwardedFSClass}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
+            // accessibility props - must come after {...rest} to ensure proper disabled state announcement
             accessibilityState={{
-                disabled: isDisabled,
                 ...rest.accessibilityState,
+                disabled: isDisabled,
             }}
             aria-disabled={isDisabled}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
@@ -182,9 +185,6 @@ function GenericPressable({
             onMagicTap={!isDisabled ? voidOnPressHandler : undefined}
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
-            fsClass={forwardedFSClass}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
             onHoverOut={(event) => {
                 if (event?.type === 'pointerenter' || event?.type === 'mouseenter') {
                     return;

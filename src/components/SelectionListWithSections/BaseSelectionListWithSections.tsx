@@ -45,6 +45,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldSingleExecuteRowSelect = false,
     onCheckboxPress,
     onSelectAll,
+    selectAllAccessibilityLabel,
     onDismissError,
     getItemHeight = getDefaultItemHeight,
     textInputLabel = '',
@@ -608,6 +609,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         );
     };
 
+    const selectAllLabel = selectAllAccessibilityLabel ?? translate('workspace.people.selectAll');
+
     const header = () => (
         <>
             {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
@@ -615,7 +618,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
                             testID="selection-list-select-all-checkbox"
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={selectAllLabel}
                             isChecked={flattenedSections.allSelected}
                             isIndeterminate={flattenedSections.someSelected}
                             onPress={selectAllRow}
@@ -625,7 +628,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                             <PressableWithFeedback
                                 style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                                 onPress={selectAllRow}
-                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                accessibilityLabel={selectAllLabel}
                                 role="button"
                                 accessibilityState={{checked: flattenedSections.allSelected}}
                                 disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
