@@ -77,7 +77,6 @@ function PersonalInfoPage() {
             return;
         }
         if (screenIndex === 0) {
-            // Wallet.updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
