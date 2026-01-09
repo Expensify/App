@@ -69,9 +69,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('domain.admins.resetDomain')}
-                onBackButtonPress={() => {
-                    Navigation.goBack();
-                }}
+                onBackButtonPress={() => Navigation.goBack()}
             />
 
             <FormProvider
