@@ -243,6 +243,8 @@ describe('useTodos', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 approver: CURRENT_USER_EMAIL,
                 exporter: CURRENT_USER_EMAIL,
+                reimburser: CURRENT_USER_EMAIL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 achAccount: {
                     bankAccountID: 1,
                     reimburser: CURRENT_USER_EMAIL,
