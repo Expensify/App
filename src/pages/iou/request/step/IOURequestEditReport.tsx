@@ -104,8 +104,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForNewReport,
-            false,
             allBetas,
+            false,
             shouldDismissEmptyReportsConfirmation,
         );
         selectReport({value: optimisticReport.reportID}, optimisticReport);
