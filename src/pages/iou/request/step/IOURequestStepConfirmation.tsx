@@ -686,9 +686,9 @@ function IOURequestStepConfirmation({
                     participant,
                 },
                 policyParams: {
-                    policy: personalPolicy,
-                    policyTagList: personalPolicyTags,
-                    policyRecentlyUsedTags: personalPolicyRecentlyUsedTags,
+                    policy,
+                    policyTagList: policyTags,
+                    policyRecentlyUsedTags,
                     policyCategories,
                     policyRecentlyUsedCategories: policyRecentlyUsedCategoriesParam,
                 },
