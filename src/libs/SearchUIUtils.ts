@@ -1809,7 +1809,14 @@ function getReportSections(
                 );
                 const hasVisibleViolationsForReport =
                     hasAnyViolationsForReport &&
-                    ViolationsUtils.hasVisibleViolationsForUser(reportItem, allViolations, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, allReportTransactions);
+                    ViolationsUtils.hasVisibleViolationsForUser(
+                        reportItem,
+                        allTransactionViolations ?? allViolations,
+                        currentUserEmail,
+                        currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                        policy,
+                        allReportTransactions,
+                    );
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
