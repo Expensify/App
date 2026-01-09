@@ -24,8 +24,7 @@ function convertToNativeNavigationOptions(
         };
     }
 
-    const optionsObject = screenOptions as PlatformStackNavigationOptions;
-    return {...buildPlatformSpecificNavigationOptions<NativeStackNavigationOptions>(optionsObject), ...optionsObject.native};
+    return {...buildPlatformSpecificNavigationOptions<NativeStackNavigationOptions>(screenOptions), ...screenOptions.native};
 }
 
 export default convertToNativeNavigationOptions;

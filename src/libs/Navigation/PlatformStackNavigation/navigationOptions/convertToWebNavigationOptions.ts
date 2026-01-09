@@ -22,8 +22,7 @@ function convertToWebNavigationOptions(screenOptions: ScreenOptionsOrCallback<Pl
         };
     }
 
-    const optionsObject = screenOptions as PlatformStackNavigationOptions;
-    return {...buildPlatformSpecificNavigationOptions<StackNavigationOptions>(optionsObject), ...optionsObject.web};
+    return {...buildPlatformSpecificNavigationOptions<StackNavigationOptions>(screenOptions), ...screenOptions.web};
 }
 
 export default convertToWebNavigationOptions;

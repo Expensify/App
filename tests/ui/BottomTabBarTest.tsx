@@ -33,6 +33,18 @@ jest.mock('@src/hooks/useRootNavigationState', () => {
     }));
 });
 
+// Mock useNavigationState to avoid "Couldn't get the navigation state" error
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual('@react-navigation/native');
+    return {
+        ...actualNav,
+        useNavigationState: jest.fn(() => ({
+            name: 'Home',
+            params: {},
+        })),
+    };
+});
+
 // Mock the specific function that's causing the navigation error
 jest.mock('@libs/Navigation/helpers/navigateToWorkspacesPage', () => ({
     default: jest.fn(),
