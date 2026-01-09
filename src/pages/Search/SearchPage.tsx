@@ -127,6 +127,7 @@ function SearchPage({route}: SearchPageProps) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
@@ -582,7 +583,9 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         // Check if all selected transactions can be rejected
-        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => !hasTransactionBeenRejected(id));
+        const hasNoRejectedTransaction = selectedTransactionsKeys.every(
+            (id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? []),
+        );
 
         const shouldShowRejectOption =
             queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
@@ -885,6 +888,7 @@ function SearchPage({route}: SearchPageProps) {
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,
+        allTransactionViolations,
         currentSearchResults?.data,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
