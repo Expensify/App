@@ -786,7 +786,7 @@ const keywordTests = [
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
-            columns: ['originalAmount', 'taxAmount', 'base62ReportID'],
+            columns: ['originalamount', 'taxAmount', 'base62ReportID'],
             filters: null,
         },
     },
