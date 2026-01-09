@@ -400,7 +400,7 @@ function useSelectedTransactionsActions({
         expensifyIcons.Trashcan,
         localeCompare,
         isOnSearch,
-        login
+        login,
     ]);
 
     return {
