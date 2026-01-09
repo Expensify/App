@@ -77,6 +77,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     for (const accountID of adminAccountIDs ?? []) {
         const details = personalDetails?.[accountID];
         const isPrimaryContact = technicalContactSettings?.technicalContactEmail === details?.login;
+        const isPendingActionDelete = domainPendingAction?.[accountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         data.push({
             keyForList: String(accountID),
             accountID,
@@ -94,6 +95,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             rightElement: isPrimaryContact && <Badge text={translate('domain.admins.primaryContact')} />,
             errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
             pendingAction: domainPendingAction?.[accountID]?.pendingAction,
+            isInteractive: !isPendingActionDelete,
+            isDisabled: isPendingActionDelete,
         });
     }
 

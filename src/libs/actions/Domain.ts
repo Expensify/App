@@ -643,15 +643,8 @@ function clearAdminError(domainAccountID: number, accountID: number) {
 /**
  * Removes admin access for a domain member
  */
-function revokeDomainAdminAccess(domainAccountID: number, permissionKey: string, accountID: number) {
+function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
     const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                [permissionKey]: null,
-            },
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -678,13 +671,6 @@ function revokeDomainAdminAccess(domainAccountID: number, permissionKey: string,
         },
     ];
     const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                [permissionKey]: accountID,
-            },
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,

@@ -59,30 +59,6 @@ const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 
-/**
- * Creates a reverse map of admin access data from the domain object.
- * Maps account IDs (values) to their corresponding keys (without the prefix).
- *
- * @param domain - The domain object from Onyx
- * @returns A record mapping account IDs to their keys
- */
-function adminAccessReverseMapSelector(domain: OnyxEntry<Domain>): Record<number, string> {
-    if (!domain) {
-        return {};
-    }
-
-    return Object.entries(domain).reduce<Record<number, string>>((acc, [key, value]) => {
-        if (!key.startsWith(ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX) || value === undefined || value === null) {
-            return acc;
-        }
-
-        const keyWithoutPrefix = key.replace(ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, '');
-        acc[Number(value)] = keyWithoutPrefix;
-
-        return acc;
-    }, {});
-}
-
 export {
     domainMemberSamlSettingsSelector,
     domainSettingsPrimaryContactSelector,
@@ -93,5 +69,4 @@ export {
     technicalContactSettingsSelector,
     domainEmailSelector,
     adminPendingActionSelector,
-    adminAccessReverseMapSelector,
 };
