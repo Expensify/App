@@ -779,7 +779,7 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (isExpenseSplit && isSplitAvailable) {
+                            if (isExpenseSplit) {
                                 initSplitExpense(allTransactions, allReports, transaction);
                                 return;
                             }

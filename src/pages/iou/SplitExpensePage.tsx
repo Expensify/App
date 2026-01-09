@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -46,7 +47,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -74,15 +75,25 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`, {canBeMissing: true});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
+
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+
+    console.log({transactionReport, parentTransactionReport, expenseReport});
+
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
+
+    const isChatReportArchived = useReportIsArchived(transactionReport?.chatReportID);
+
     const allTransactions = useAllTransactions();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
+
+    const splitExpenseTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpenseTransactionID)}`];
+
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -100,6 +111,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
@@ -110,7 +122,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
+
+    const splitIOUAction = getIOUActionForTransactions([splitExpenseTransactionID], transactionReport?.reportID).at(0);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
+    console.log({expenseReport});
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
@@ -122,6 +137,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
 
     const {isBetaEnabled} = usePermissions();
+
+    const canEditSplitAmount = useMemo(() => {
+        return canEditFieldOfMoneyRequest(splitIOUAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived);
+    }, [splitIOUAction, isChatReportArchived]);
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -259,6 +278,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
+    const isEditingSplitAmount = useMemo(() => !!Number(splitExpenseTransactionID), [splitExpenseTransactionID]);
+
     const sections = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
         const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
@@ -309,7 +330,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseValueChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-                isEditable: (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
+                isEditable: isEditingSplitAmount ? canEditSplitAmount : (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
             };
         });
 
@@ -318,6 +339,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         return newSections;
     }, [
         transaction,
+        isEditingSplitAmount,
+        canEditSplitAmount,
         draftTransaction?.comment?.splitExpenses,
         draftTransaction?.currency,
         allTransactions,
@@ -427,7 +450,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     );
 
     const headerTitle = useMemo(() => {
-        if (Number(splitExpenseTransactionID)) {
+        if (isEditingSplitAmount) {
             return translate('iou.editSplits');
         }
         if (isPercentageMode) {
@@ -437,7 +460,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return translate('iou.splitByDate');
         }
         return translate('iou.split');
-    }, [splitExpenseTransactionID, isDateMode, isPercentageMode, translate]);
+    }, [splitExpenseTransactionID, isDateMode, isPercentageMode, translate, isEditingSplitAmount]);
 
     const onSelectRow = useCallback(
         (item: SplitListItemType) => {
@@ -454,6 +477,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         [draftTransaction, reportID],
     );
 
+    const shouldShowNotFoundPage = useMemo(() => {
+        return isEmptyObject(draftTransaction) || !reportID || (isEditingSplitAmount ? !canEditSplitAmount : !isSplitAvailable);
+    }, [isEditingSplitAmount, canEditSplitAmount, draftTransaction, reportID, isSplitAvailable]);
+
     return (
         <ScreenWrapper
             testID="SplitExpensePage"
@@ -461,7 +488,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
