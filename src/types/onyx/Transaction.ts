@@ -119,6 +119,12 @@ type Comment = {
 
     /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
     pendingAutoCategorizationTime?: string;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
 };
 
 /** Model of transaction custom unit */
@@ -476,7 +482,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         merchant: string;
 
         /** The edited transaction amount */
-        modifiedAmount?: number | string;
+        modifiedAmount?: number;
 
         /** The edited attendees list */
         modifiedAttendees?: Attendee[];

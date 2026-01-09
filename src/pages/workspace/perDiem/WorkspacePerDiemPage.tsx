@@ -13,9 +13,9 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
@@ -460,24 +460,23 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 )}
                 {hasVisibleSubRates && !isLoading && (
                     <SelectionListWithModal
-                        addBottomSafeAreaPadding
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
-                        onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
-                        sections={[{data: filteredSubRatesList, isDisabled: false}]}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        selectedItems={selectedPerDiem.map((item) => item.subRateID)}
-                        onCheckboxPress={toggleSubRate}
-                        onSelectRow={openSubRateDetails}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onSelectAll={filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}
+                        data={filteredSubRatesList}
                         ListItem={TableListItem}
-                        listHeaderContent={headerContent}
-                        shouldShowListEmptyContent={false}
+                        onSelectRow={openSubRateDetails}
+                        canSelectMultiple={canSelectMultiple}
+                        onCheckboxPress={toggleSubRate}
                         customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        listItemTitleContainerStyles={styles.flex3}
+                        selectedItems={selectedPerDiem.map((item) => item.subRateID)}
+                        onSelectAll={filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5], listItemTitleContainerStyles: styles.flex3}}
+                        onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        customListHeaderContent={headerContent}
+                        showListEmptyContent={false}
                         showScrollIndicator={false}
+                        turnOnSelectionModeOnLongPress
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}
