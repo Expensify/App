@@ -231,11 +231,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
-        } else if (groupItem.transactionsQueryJSON && !isExpanded) {
-            searchTransactionsRef.current();
         }
         handleToggle();
-    }, [isEmpty, shouldDisplayEmptyView, groupItem.transactionsQueryJSON, isExpanded, handleToggle, onPress]);
+    }, [isEmpty, shouldDisplayEmptyView, handleToggle, onPress]);
 
     const getHeader = useCallback(
         (hovered: boolean) => {
