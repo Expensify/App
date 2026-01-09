@@ -116,9 +116,14 @@ type CardFeedErrors = {
 };
 
 /**
+ *
+ */
+type AllCardFeedErrorsMap = Map<number, Map<CardFeed, CardFeedErrors>>;
+
+/**
  * The errors of all card feeds.
  */
-type AllCardFeedErrors = Map<number, Map<CardFeed, CardFeedErrors>>;
+type AllCardFeedErrors = Record<number, Record<CardFeed, CardFeedErrors>>;
 
 /**
  * The derived value for card feed errors.
@@ -133,6 +138,7 @@ export type {
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
     CardFeedErrorsDerivedValue,
+    AllCardFeedErrorsMap,
     AllCardFeedErrors,
     CardFeedErrors,
     CardErrors,

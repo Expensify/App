@@ -28,5 +28,17 @@ function filterObject<TObject extends Record<string, unknown>>(obj: TObject, pre
         }, {} as TObject);
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {shallowCompare, filterObject};
+type MapToObjectResult<T> = T extends Map<infer K, infer V> ? Record<K extends string | number | symbol ? K : string, MapToObjectResult<V>> : T;
+
+/**
+ * Recursively converts a Map (and any nested Maps) to a plain object.
+ */
+function mapToObject<K extends string | number | symbol, V>(map: Map<K, V>): Record<K, MapToObjectResult<V>> {
+    const result = {} as Record<K, MapToObjectResult<V>>;
+    for (const [key, value] of map.entries()) {
+        result[key] = (value instanceof Map ? mapToObject(value) : value) as MapToObjectResult<V>;
+    }
+    return result;
+}
+
+export {shallowCompare, filterObject, mapToObject};

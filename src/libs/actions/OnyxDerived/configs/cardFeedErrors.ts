@@ -1,9 +1,10 @@
 import {getCombinedCardFeedsFromAllFeeds} from '@libs/CardFeedUtils';
 import {getCompanyCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
+import {mapToObject} from '@libs/ObjectUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeed, CompanyCardFeed} from '@src/types/onyx';
-import type {AllCardFeedErrors, CardErrors, CardFeedErrors} from '@src/types/onyx/DerivedValues';
+import type {AllCardFeedErrors, AllCardFeedErrorsMap, CardErrors, CardFeedErrors} from '@src/types/onyx/DerivedValues';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 // function getPolicyWorkspaceAccountIDMapping(policyCollection: OnyxCollection<Policy>): Record<string, number> {
@@ -34,7 +35,7 @@ export default createOnyxDerivedValueConfig({
         //     companyCardFeeds.set({workspaceAccountID: Number(workspaceAccountID), feedName}, value);
         // }
 
-        const cardFeedErrors: AllCardFeedErrors = new Map();
+        const cardFeedErrors: AllCardFeedErrorsMap = new Map();
 
         function addErrorsForCard(card: Card) {
             const bankName = card.bank as CompanyCardFeed;
@@ -92,6 +93,6 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        return cardFeedErrors;
+        return mapToObject(cardFeedErrors) as AllCardFeedErrors;
     },
 });
