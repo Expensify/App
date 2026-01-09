@@ -1131,10 +1131,7 @@ function openReport(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                parentReportActionID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportActionID ?? null,
-                chatReportID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.chatReportID ?? null,
-            },
+            value: null,
         });
 
         optimisticData.push({
