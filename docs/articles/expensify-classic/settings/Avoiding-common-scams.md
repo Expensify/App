@@ -88,7 +88,7 @@ Expensify uses Magic Codes instead of passwords to simplify login while keeping 
 
 ## How do I know if an email is really from Expensify?
 
-Legitimate Expensify emails always come from an address ending in **@expensify.com**. If you’re unsure, don’t click any links — just log into the Expensify app directly and message Concierge.
+Legitimate Expensify emails always come from an address ending in **@expensify.com** or **@team.expensify.com**. If you’re unsure, don’t click any links — just log into the Expensify app directly and message Concierge.
 
 ## Can Expensify call me?
 
