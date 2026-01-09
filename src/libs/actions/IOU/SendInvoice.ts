@@ -34,15 +34,7 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {
-    getAllPersonalDetails,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getPolicyRecentlyUsedTagsData,
-    getReceiptError,
-    getSearchOnyxUpdate,
-    mergePolicyRecentlyUsedCategories,
-    mergePolicyRecentlyUsedCurrencies,
-} from '.';
+import {getAllPersonalDetails, getReceiptError, getSearchOnyxUpdate, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from '.';
 import type {BasePolicyParams} from '.';
 
 type SendInvoiceInformation = {
@@ -65,6 +57,7 @@ type SendInvoiceOptions = {
     currentUserAccountID: number;
     policyRecentlyUsedCurrencies: string[];
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>;
+    invoiceChatReportID?: string;
     receiptFile?: Receipt;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -72,6 +65,7 @@ type SendInvoiceOptions = {
     companyName?: string;
     companyWebsite?: string;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+    policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -529,6 +523,7 @@ function getSendInvoiceInformation({
     currentUserAccountID,
     policyRecentlyUsedCurrencies,
     invoiceChatReport,
+    invoiceChatReportID,
     receiptFile,
     policy,
     policyTagList,
@@ -536,6 +531,7 @@ function getSendInvoiceInformation({
     companyName,
     companyWebsite,
     policyRecentlyUsedCategories,
+    policyRecentlyUsedTags,
 }: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
@@ -554,6 +550,7 @@ function getSendInvoiceInformation({
     if (!chatReport) {
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
+            optimisticReportID: invoiceChatReportID,
             participantList: [receiverAccountID, currentUserAccountID],
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             policyID: senderWorkspaceID,
@@ -592,9 +589,7 @@ function getSendInvoiceInformation({
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
         policyTags: getPolicyTagsData(optimisticInvoiceReport.policyID),
-        // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(optimisticInvoiceReport.policyID),
+        policyRecentlyUsedTags,
         transactionTags: tag,
     });
     const optimisticRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(currency, policyRecentlyUsedCurrencies);
@@ -679,9 +674,11 @@ function sendInvoice({
     policy,
     policyTagList,
     policyCategories,
+    invoiceChatReportID,
     companyName,
     companyWebsite,
     policyRecentlyUsedCategories,
+    policyRecentlyUsedTags,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -705,6 +702,7 @@ function sendInvoice({
         transaction,
         currentUserAccountID,
         policyRecentlyUsedCurrencies,
+        invoiceChatReportID,
         invoiceChatReport,
         receiptFile,
         policy,
@@ -713,6 +711,7 @@ function sendInvoice({
         companyName,
         companyWebsite,
         policyRecentlyUsedCategories,
+        policyRecentlyUsedTags,
     });
 
     const parameters: SendInvoiceParams = {

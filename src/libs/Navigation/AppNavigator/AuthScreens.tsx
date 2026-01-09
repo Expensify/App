@@ -45,7 +45,6 @@ import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
-import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -254,8 +253,6 @@ function AuthScreens() {
         }
 
         App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID);
-
-        App.redirectThirdPartyDesktopSignIn();
 
         Download.clearDownloads();
 
@@ -620,11 +617,6 @@ function AuthScreens() {
                     options={rootNavigatorScreenOptions.rightModalNavigator}
                     component={RightModalNavigator}
                     listeners={modalScreenListenersWithCancelSearch}
-                />
-                <RootStack.Screen
-                    name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
-                    options={rootNavigatorScreenOptions.fullScreen}
-                    component={DesktopSignInRedirectPage}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SHARE_MODAL_NAVIGATOR}

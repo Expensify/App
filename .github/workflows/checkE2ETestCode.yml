@@ -19,8 +19,6 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
-        with:
-          IS_DESKTOP_BUILD: 'true'
 
       - name: Verify e2e tests compile correctly
         run: npm run e2e-test-runner-build
