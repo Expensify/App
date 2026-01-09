@@ -242,6 +242,14 @@ Onyx.connect({
     },
 });
 
+let reportAttributesDerivedGlobal: ReportAttributesDerivedValue['reports'];
+Onyx.connectWithoutView({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => {
+        reportAttributesDerivedGlobal = value?.reports ?? {};
+    },
+});
+
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 let allReportActions: OnyxCollection<ReportActions>;
@@ -657,7 +665,7 @@ function getLastMessageTextForReport({
             : undefined;
         // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
-            const reportName = computeReportName(iouReport);
+            const reportName = reportAttributesDerivedGlobal?.[iouReport.reportID]?.reportName ?? computeReportName(iouReport);
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
@@ -942,7 +950,10 @@ function createOption(
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
 
         const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
-        const computedReportName = computeReportName(report, allReports, allPolicies, undefined, allReportNameValuePairs, personalDetailsForCompute, allReportActions);
+        const computedReportName =
+            reportAttributesDerivedGlobal?.[report.reportID]?.reportName ??
+            computeReportName(report, allReports, allPolicies, undefined, allReportNameValuePairs, personalDetailsForCompute, allReportActions);
+
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;
