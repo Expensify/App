@@ -9,7 +9,7 @@ import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import SidePanelActions from '@libs/actions/SidePanel';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -69,9 +69,10 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const reportID = useMemo(() => {
         const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
         const isUserAdmin = isPolicyAdmin(activePolicy, session?.email);
+        const isPolicyActive = shouldShowPolicy(activePolicy, false, session?.email ?? '');
         const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
-        if (isRHPAdminsRoom && isUserAdmin && adminsChatReportID) {
+        if (isRHPAdminsRoom && isUserAdmin && isPolicyActive && adminsChatReportID) {
             return adminsChatReportID;
         }
 
