@@ -19,8 +19,10 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {Domain, PersonalDetailsList} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {getLatestError} from '@libs/ErrorUtils';
+import {clearSetPrimaryContactError} from '@userActions/Domain';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type MemberDetailsMenuItem = {
@@ -52,6 +54,12 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
         canBeMissing: true,
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
     });
+
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${String(accountID)}` as const]
+    })
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
     const phoneNumber = getPhoneNumber(personalDetails);
@@ -110,6 +118,20 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
                             shouldShowRightIcon={item.shouldShowRightIcon}
                         />
                     ))}
+
+                    <OfflineWithFeedback
+                        errorRowStyles={[styles.ph5]}
+                        // pendingAction={domainPendingActions?.technicalContactEmail}
+                        // errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
+                        // onClose={() => clearSetPrimaryContactError(domainAccountID)}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('domain.common.vacationDelegate')}
+                            title={vacationDelegate?.delegate}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
+                        />
+                    </OfflineWithFeedback>
 
                     <MenuItem
                         style={styles.mb5}
