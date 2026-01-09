@@ -10,6 +10,7 @@ import type {Emoji} from '@assets/emojis/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {waitForWrites} from '@libs/API';
 import * as API from '@libs/API';
 import type {
     AddCommentOrAttachmentParams,
@@ -58,7 +59,7 @@ import type {
 } from '@libs/API/parameters';
 import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
 import * as CollectionUtils from '@libs/CollectionUtils';
@@ -4338,22 +4339,7 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
-function completeOnboarding({
-    engagementChoice,
-    onboardingMessage,
-    firstName = '',
-    lastName = '',
-    adminsChatReportID,
-    onboardingPolicyID,
-    paymentSelected,
-    companySize,
-    userReportedIntegration,
-    wasInvited,
-    selectedInterestedFeatures = [],
-    shouldSkipTestDriveModal,
-    isInvitedAccountant,
-    onboardingPurposeSelected,
-}: {
+type CompleteOnboardingProps = {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
     firstName?: string;
@@ -4368,7 +4354,24 @@ function completeOnboarding({
     shouldSkipTestDriveModal?: boolean;
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
-}) {
+};
+
+async function completeOnboarding({
+    engagementChoice,
+    onboardingMessage,
+    firstName = '',
+    lastName = '',
+    adminsChatReportID,
+    onboardingPolicyID,
+    paymentSelected,
+    companySize,
+    userReportedIntegration,
+    wasInvited,
+    selectedInterestedFeatures = [],
+    shouldSkipTestDriveModal,
+    isInvitedAccountant,
+    onboardingPurposeSelected,
+}: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
         engagementChoice,
@@ -4423,7 +4426,9 @@ function completeOnboarding({
         });
     }
 
-    API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+    await waitForWrites(WRITE_COMMANDS.CREATE_WORKSPACE);
+
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
 }
 
 /** Loads necessary data for rendering the RoomMembersPage */

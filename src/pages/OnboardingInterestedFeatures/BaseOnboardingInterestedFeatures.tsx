@@ -152,7 +152,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
 
-    const handleContinue = useCallback(() => {
+    const handleContinue = useCallback(async () => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
             return;
         }
@@ -192,7 +192,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             setOnboardingPolicyID(policyID);
         }
 
-        completeOnboarding({
+        await completeOnboarding({
             engagementChoice: onboardingPurposeSelected,
             onboardingMessage: onboardingMessages[onboardingPurposeSelected],
             adminsChatReportID,
