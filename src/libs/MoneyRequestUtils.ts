@@ -60,10 +60,14 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
  * Some callers (e.g. split-by-percentage) may temporarily allow values above 100 while the user edits; they can
  * opt into this relaxed behavior via the `allowExceedingHundred` flag.
  * The `allowDecimal` flag enables one decimal place (0.1 precision) for more granular percentage splits.
+ * The `shouldAllowNegative` flag enables negative percentages (e.g. for split expenses with negative amounts).
  */
-function validatePercentage(amount: string, allowExceedingHundred = false, allowDecimal = false): boolean {
+function validatePercentage(amount: string, allowExceedingHundred = false, allowDecimal = false, shouldAllowNegative = false): boolean {
     if (allowExceedingHundred) {
-        const regex = allowDecimal ? /^\d*\.?\d?$/u : /^\d*$/u;
+        const regex = allowDecimal ? /^-?\d*\.?\d?$/u : /^-?\d*$/u;
+        if (shouldAllowNegative) {
+            return amount === '' || amount === '-' || regex.test(amount);
+        }
         return amount === '' || regex.test(amount);
     }
 
