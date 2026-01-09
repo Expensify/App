@@ -20,10 +20,10 @@ import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getTransactionViolationsOfTransaction, isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
 import type {UpdateMoneyRequestData} from './IOU';
 
@@ -183,6 +183,7 @@ function getTransactionsForMerging({
 
 function getOnyxTargetTransactionData(
     targetTransaction: Transaction,
+    targetTransactionViolations: OnyxEntry<TransactionViolations>,
     mergeTransaction: MergeTransaction,
     policy: OnyxEntry<Policy>,
     policyTags: OnyxEntry<PolicyTagLists>,
@@ -194,7 +195,6 @@ function getOnyxTargetTransactionData(
     let data: UpdateMoneyRequestData;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionThreadReportID = getTransactionThreadReportID(targetTransaction);
-    const violations = getTransactionViolationsOfTransaction(targetTransaction.transactionID);
 
     // Compare mergeTransaction with targetTransaction and remove fields with same values
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
@@ -222,7 +222,7 @@ function getOnyxTargetTransactionData(
             policy,
             policyTagList: policyTags,
             policyCategories,
-            violations,
+            violations: targetTransactionViolations ?? [],
             shouldBuildOptimisticModifiedExpenseReportAction,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -264,6 +264,7 @@ type MergeTransactionRequestParams = {
     mergeTransactionID: string;
     mergeTransaction: MergeTransaction;
     targetTransaction: Transaction;
+    allTransactionViolations: OnyxCollection<TransactionViolations>;
     sourceTransaction: Transaction;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
@@ -280,6 +281,7 @@ function mergeTransactionRequest({
     mergeTransaction,
     targetTransaction,
     sourceTransaction,
+    allTransactionViolations,
     policy,
     policyTags,
     policyCategories,
@@ -317,6 +319,7 @@ function mergeTransactionRequest({
 
     const onyxTargetTransactionData = getOnyxTargetTransactionData(
         targetTransaction,
+        allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],
         mergeTransaction,
         policy,
         policyTags,
@@ -327,12 +330,12 @@ function mergeTransactionRequest({
     );
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
-    const optimisticSourceTransactionData: OnyxUpdate = {
+    const optimisticSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
         value: null,
     };
-    const failureSourceTransactionData: OnyxUpdate = {
+    const failureSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
         value: sourceTransaction,
@@ -403,7 +406,7 @@ function mergeTransactionRequest({
         : [];
 
     // Optimistic delete the merge transaction
-    const optimisticMergeTransactionData: OnyxUpdate = {
+    const optimisticMergeTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`,
         value: null,
@@ -411,7 +414,7 @@ function mergeTransactionRequest({
 
     // Optimistic delete duplicated transaction violations
     const optimisticTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
-        const violations = getTransactionViolationsOfTransaction(id);
+        const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? [];
 
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -421,7 +424,7 @@ function mergeTransactionRequest({
         };
     });
     const failureTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
-        const violations = getTransactionViolationsOfTransaction(id);
+        const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? [];
 
         return {
             onyxMethod: Onyx.METHOD.MERGE,
