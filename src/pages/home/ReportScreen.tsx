@@ -248,6 +248,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const report = useMemo(
         () =>
             reportOnyx && {
+                created: reportOnyx.created,
                 hasParentAccess: reportOnyx.hasParentAccess,
                 lastReadTime: reportOnyx.lastReadTime,
                 reportID: reportOnyx.reportID,
@@ -725,6 +726,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             (prevDeletedParentAction && !deletedParentAction)
         ) {
             const currentRoute = navigationRef.getCurrentRoute();
+            const topmostReportIDInSearchRHP = Navigation.getTopmostReportIDInSearchRHP();
+            const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
+            const isHoldScreenOpenInRHP =
+                currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
             const isReportDetailOpenInRHP =
                 isTopMostReportId &&
                 reportDetailScreens.find((r) => r === currentRoute?.name) &&
@@ -734,11 +739,11 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 reportIDFromRoute === currentRoute.params.reportID;
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
             // Prevent auto navigation for report in RHP
-            if (isInNarrowPaneModal) {
-                Navigation.goBack(backTo as Route);
-                return;
-            }
-            if (!isFocused && !isReportDetailOpenInRHP) {
+            if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {
+                if (isInNarrowPaneModal) {
+                    Navigation.goBack(backTo as Route);
+                    return;
+                }
                 return;
             }
             Navigation.dismissModal();
@@ -775,7 +780,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         setShouldShowComposeInput(true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
-        route,
+        route.name,
         report,
         prevReport?.reportID,
         prevUserLeavingStatus,
