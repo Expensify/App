@@ -1927,16 +1927,6 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.SET_DEFAULT_WORKSPACE]: {
         navigateTo?: Routes;
     };
-    [SCREENS.MONEY_REQUEST.STEP_HOURS]: {
-        iouType: typeof CONST.IOU.TYPE.SUBMIT | typeof CONST.IOU.TYPE.CREATE;
-        reportID: string;
-        transactionID: string;
-        action: IOUAction;
-        pageIndex?: string;
-        currency?: string;
-        backToReport?: string;
-        reportActionID?: string;
-    };
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
