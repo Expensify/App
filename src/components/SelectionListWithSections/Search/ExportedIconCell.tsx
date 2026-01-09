@@ -9,18 +9,33 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, isExportedToIntegrationAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
 
 type ExportedIconCellProps = {
     reportID?: string;
+    hash?: number;
 };
 
-function ExportedIconCell({reportID}: ExportedIconCellProps) {
+function ExportedIconCell({reportID, hash}: ExportedIconCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const reportActions = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
+
+    // We need to subscribe directly to the snapshot to get the report actions because this can be rendered in either a group
+    // list (which has a separate hash than the current top-level search query) or in the top-level search query.
+    // This selector is specific to this edge-case (and thus is not in the selectors folder) and should be used in other places where the snapshot needs to be accessed
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const reportActions = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
+        canBeMissing: true,
+        selector: (snapshot) => {
+            return Object.entries(snapshot?.data ?? {})
+                .filter(([key]) => key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)
+                .map(([, value]) => Object.values(value ?? {}) as ReportAction[])
+                .flat();
+        },
+    });
 
     const actions = Object.values(reportActions[0] ?? {});
+    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
 
     let isExportedToCsv = false;
     let isExportedToNetsuite = false;
@@ -38,15 +53,18 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
         }
 
         if (isExportedToIntegrationAction(action)) {
-            const label = getOriginalMessage(action)?.label;
+            const message = getOriginalMessage(action);
+            const label = message?.label;
+            const type = message?.type;
+            isExportedToCsv = isExportedToCsv || type === CONST.EXPORT_TEMPLATE;
             isExportedToXero = isExportedToXero || label === CONST.EXPORT_LABELS.XERO;
-            isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT;
             isExportedToNetsuite = isExportedToNetsuite || label === CONST.EXPORT_LABELS.NETSUITE;
             isExportedToQuickbooksOnline = isExportedToQuickbooksOnline || label === CONST.EXPORT_LABELS.QBO;
             isExportedToQuickbooksDesktop = isExportedToQuickbooksDesktop || label === CONST.EXPORT_LABELS.QBD;
             isExportedToZenefits = isExportedToZenefits || label === CONST.EXPORT_LABELS.ZENEFITS;
             isExportedToBillCom = isExportedToBillCom || label === CONST.EXPORT_LABELS.BILLCOM;
             isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.CERTINIA;
+            isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT || label === CONST.EXPORT_LABELS.SAGE_INTACCT;
         }
     }
 
