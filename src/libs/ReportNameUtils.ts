@@ -34,6 +34,7 @@ import {
     getActionableCardFraudAlertResolutionMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCompanyCardConnectionBrokenMessage,
     getIntegrationSyncFailedMessage,
     getJoinRequestMessage,
     getMarkedReimbursedMessage,
@@ -537,6 +538,11 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getIntegrationSyncFailedMessage(translateLocal, parentReportAction, report?.policyID);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getCompanyCardConnectionBrokenMessage(translateLocal, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
