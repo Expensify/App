@@ -188,18 +188,17 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [showConfirmModal, translate]);
 
     const signOut = useCallback(
-        (shouldForceSignout = false) => {
+        async (shouldForceSignout = false) => {
             if (!network.isOffline || shouldForceSignout) {
                 return signOutAndRedirectToSignIn();
             }
 
             // When offline, warn the user that any actions they took while offline will be lost if they sign out
-            showSignOutModal().then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                signOut(true);
-            });
+            const result = await showSignOutModal();
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            signOut(true);
         },
         [network.isOffline],
     );

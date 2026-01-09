@@ -305,21 +305,20 @@ function WalletPage() {
     );
 
     const {showConfirmModal} = useConfirmModal();
-    const showDeleteAccountModal = useCallback(() => {
-        return showConfirmModal({
+    const showDeleteAccountModal = useCallback(async () => {
+        const result = await showConfirmModal({
             title: translate('walletPage.deleteAccount'),
             prompt: translate('walletPage.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
             danger: true,
-        }).then((result) => {
-            resetSelectedPaymentMethodData();
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            deletePaymentMethod();
         });
+        resetSelectedPaymentMethodData();
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deletePaymentMethod();
     }, [showConfirmModal, translate, resetSelectedPaymentMethodData, deletePaymentMethod]);
 
     const threeDotMenuItems = useMemo(

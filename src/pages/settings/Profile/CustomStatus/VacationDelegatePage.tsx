@@ -153,20 +153,19 @@ function VacationDelegatePage() {
                 return;
             }
 
-            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '', false, vacationDelegate?.delegate).then((response) => {
+            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '', false, vacationDelegate?.delegate).then(async (response) => {
                 if (!response?.jsonCode) {
                     Navigation.goBack(ROUTES.SETTINGS_STATUS);
                     return;
                 }
 
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    showVacationDelegateWarningModal().then((result) => {
-                        if (result.action === ModalActions.CONFIRM) {
-                            setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true, vacationDelegate?.delegate).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
-                        } else {
-                            clearVacationDelegateError(vacationDelegate?.previousDelegate);
-                        }
-                    });
+                    const result = await showVacationDelegateWarningModal();
+                    if (result.action === ModalActions.CONFIRM) {
+                        setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true, vacationDelegate?.delegate).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
+                    } else {
+                        clearVacationDelegateError(vacationDelegate?.previousDelegate);
+                    }
                     setNewVacationDelegate(option?.login ?? '');
                     return;
                 }

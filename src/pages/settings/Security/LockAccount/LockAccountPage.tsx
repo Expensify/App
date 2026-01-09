@@ -23,8 +23,8 @@ function LockAccountPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const {showConfirmModal} = useConfirmModal();
-    const showReportSuspiciousActivityModal = useCallback(() => {
-        return showConfirmModal({
+    const showReportSuspiciousActivityModal = useCallback(async () => {
+        const result = await showConfirmModal({
             title: translate('lockAccountPage.reportSuspiciousActivity'),
             prompt: (
                 <>
@@ -37,27 +37,26 @@ function LockAccountPage() {
             shouldShowCancelButton: true,
             danger: true,
             shouldDisableConfirmButtonWhenOffline: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        // If there is no user accountID yet (because the app isn't fully setup yet), so return early
+        if (session?.accountID === -1) {
+            return;
+        }
+        setIsLoading(true);
+        lockAccount().then((response) => {
+            setIsLoading(false);
+            if (!response?.jsonCode) {
                 return;
             }
-            // If there is no user accountID yet (because the app isn't fully setup yet), so return early
-            if (session?.accountID === -1) {
-                return;
-            }
-            setIsLoading(true);
-            lockAccount().then((response) => {
-                setIsLoading(false);
-                if (!response?.jsonCode) {
-                    return;
-                }
 
-                if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                    Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT);
-                } else {
-                    Navigation.navigate(ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT);
-                }
-            });
+            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT);
+            } else {
+                Navigation.navigate(ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT);
+            }
         });
     }, [showConfirmModal, translate, session?.accountID, styles.mb5]);
 

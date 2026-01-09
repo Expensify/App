@@ -269,13 +269,12 @@ function CardSection() {
                     title={translate('subscription.cardSection.requestRefund')}
                     titleStyle={styles.textStrong}
                     disabled={isOffline}
-                    onPress={() => {
-                        showRequestRefundModal().then((result) => {
-                            if (result.action !== ModalActions.CONFIRM) {
-                                return;
-                            }
-                            requestRefund();
-                        });
+                    onPress={async () => {
+                        const result = await showRequestRefundModal();
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        requestRefund();
                     }}
                 />
             )}

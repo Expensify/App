@@ -64,21 +64,20 @@ function TroubleshootPage() {
     const {showConfirmModal} = useConfirmModal();
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
     const {setShouldResetSearchQuery} = useSearchContext();
-    const showResetAndRefreshModal = useCallback(() => {
-        return showConfirmModal({
+    const showResetAndRefreshModal = useCallback(async () => {
+        const result = await showConfirmModal({
             title: translate('common.areYouSure'),
             prompt: translate('initialSettingsPage.troubleshoot.confirmResetDescription'),
             confirmText: translate('initialSettingsPage.troubleshoot.resetAndRefresh'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            resetOptions();
-            setShouldResetSearchQuery(true);
-            clearOnyxAndResetApp();
         });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        resetOptions();
+        setShouldResetSearchQuery(true);
+        clearOnyxAndResetApp();
     }, [showConfirmModal, translate, resetOptions, setShouldResetSearchQuery]);
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {

@@ -162,18 +162,17 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Toggle delete confirm modal visibility
      */
     const turnOnDeleteModal = useCallback(() => {
-        const openDeleteModal = () => {
-            showRemoveContactMethodModal().then((result) => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    validateCodeFormRef.current?.focusLastSelected?.();
-                });
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-
-                deleteContactMethod(contactMethod, loginList ?? {}, backTo);
+        const openDeleteModal = async () => {
+            const result = await showRemoveContactMethodModal();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                validateCodeFormRef.current?.focusLastSelected?.();
             });
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            deleteContactMethod(contactMethod, loginList ?? {}, backTo);
         };
 
         if (canUseTouchScreen()) {
