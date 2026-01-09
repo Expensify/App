@@ -180,7 +180,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
-    
+
     useEffect(() => {
         if (!isExpanded) {
             return;
