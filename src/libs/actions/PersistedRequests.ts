@@ -145,9 +145,8 @@ function updateOngoingRequest(newRequest: Request) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
     ongoingRequest = newRequest;
 
-    if (newRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest);
-    }
+    // Always persist the ongoing request to prevent data loss on app close
+    Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest);
 }
 
 function processNextRequest(): Request | null {
@@ -167,9 +166,11 @@ function processNextRequest(): Request | null {
     const newPersistedRequests = persistedRequests.slice(1);
     persistedRequests = newPersistedRequests;
 
-    if (ongoingRequest && ongoingRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, ongoingRequest);
-    }
+    // Persist both the updated queue and the ongoing request to prevent data loss on app close
+    Onyx.multiSet({
+        [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+        [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest,
+    });
 
     return ongoingRequest;
 }
