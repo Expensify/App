@@ -748,6 +748,29 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'セッションの有効期限が切れました。',
         signIn: 'もう一度サインインしてください。',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: '生体認証テスト',
+            authenticationSuccessful: '認証成功',
+            successfullyAuthenticatedUsing: ({authType}) => `${authType}を使用して正常に認証されました。`,
+            troubleshootBiometricsStatus: ({registered}) => `生体認証（${registered ? '登録済み' : '未登録'}）`,
+            yourAttemptWasUnsuccessful: '認証試みが失敗しました。',
+            areYouSureToReject: '本当に拒否しますか？この画面を閉じると認証試みが拒否されます。',
+            rejectAuthentication: '認証拒否',
+            test: 'テスト',
+            biometricsAuthentication: '生体認証',
+        },
+        oops: 'おっと、何か問題が発生しました',
+        looksLikeYouRanOutOfTime: '時間切れのようです！ 商人で再試行してください。',
+        youRanOutOfTime: '時間切れでした',
+        letsVerifyItsYou: '本人確認をしましょう',
+        verifyYourself: {
+            biometrics: '顔または指紋で本人確認をしてください',
+        },
+        enableQuickVerification: {
+            biometrics: '顔または指紋を使用して、パスワードやコード不要の迅速かつ安全な認証を有効にしてください。',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             アブラカダブラ、

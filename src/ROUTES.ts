@@ -5,6 +5,7 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from './components/MultifactorAuthentication/config/types';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
@@ -50,6 +51,11 @@ const PUBLIC_SCREENS_ROUTES = {
 
 // Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
 const VERIFY_ACCOUNT = 'verify-account';
+
+const MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES = {
+    FACTOR: 'multifactor-authentication/factor',
+    PROMPT: 'multifactor-authentication/prompt',
+} as const;
 
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
@@ -3597,6 +3603,21 @@ const ROUTES = {
         route: 'domain/:domainAccountID/admins/invite',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/invite` as const,
     },
+
+    MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.FACTOR}/magic-code`,
+    MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
+
+    MULTIFACTOR_AUTHENTICATION_NOTIFICATION: {
+        route: 'multifactor-authentication/notification/:notificationType',
+        getRoute: (notificationType: AllMultifactorAuthenticationNotificationType) => `multifactor-authentication/notification/${notificationType}` as const,
+    },
+
+    MULTIFACTOR_AUTHENTICATION_PROMPT: {
+        route: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.PROMPT}/:promptType`,
+        getRoute: (promptType: MultifactorAuthenticationPromptType) => `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.PROMPT}/${promptType}` as const,
+    },
+
+    MULTIFACTOR_AUTHENTICATION_NOT_FOUND: 'multifactor-authentication/not-found',
 } as const;
 
 /**
@@ -3612,7 +3633,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES};
 export default ROUTES;
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;

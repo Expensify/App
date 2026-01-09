@@ -396,4 +396,12 @@ export default {
     splitExpenseAmountMobileWidth: 82,
     splitExpensePercentageWidth: 42,
     splitExpensePercentageMobileWidth: 62,
+
+    // Multifactor Authentication illustrations size
+    openPadlockWidth: 140,
+    openPadlockHeight: 140,
+    runOutOfTimeWidth: 218,
+    runOutOfTimeHeight: 200,
+    humptyDumptyWidth: 245,
+    humptyDumptyHeight: 165,
 } as const;

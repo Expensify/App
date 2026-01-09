@@ -1278,6 +1278,10 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     CALCULATE_BILL_NEW_DOT: 'CalculateBillNewDot',
 
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
+
+    REGISTER_BIOMETRICS: 'RegisterBiometrics',
+    BIOMETRICS_TEST: 'BiometricsTest',
+    REQUEST_BIOMETRIC_CHALLENGE: 'RequestBiometricChallenge',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1306,6 +1310,9 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: Parameters.AcceptSpotnanaTermsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_BIOMETRICS]: Parameters.RegisterBiometricsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.BIOMETRICS_TEST]: Parameters.BiometricsTestParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_BIOMETRIC_CHALLENGE]: EmptyObject;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
