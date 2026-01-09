@@ -65,7 +65,11 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
  */
 function validatePercentage(amount: string, allowExceedingHundred = false, allowDecimal = false, shouldAllowNegative = false): boolean {
     if (allowExceedingHundred) {
-        const regex = allowDecimal ? /^-?\d*[.,]?\d?$/u : /^-?\d*$/u;
+        // Build regex pattern conditionally based on flags
+        const negativePattern = shouldAllowNegative ? '-?' : '';
+        const decimalPattern = allowDecimal ? '[.,]?\\d?' : '';
+        const regex = new RegExp(`^${negativePattern}\\d*${decimalPattern}$`, 'u');
+
         if (shouldAllowNegative) {
             return amount === '' || amount === '-' || regex.test(amount);
         }
