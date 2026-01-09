@@ -273,7 +273,11 @@ function CardSection() {
                     isVisible={isRequestRefundModalVisible}
                     onConfirm={requestRefund}
                     onCancel={() => setIsRequestRefundModalVisible(false)}
-                    prompt={<RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />}
+                    prompt={
+                        <View style={[styles.flexRow]}>
+                            <RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />
+                        </View>
+                    }
                     confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
                     cancelText={translate('common.cancel')}
                     danger
