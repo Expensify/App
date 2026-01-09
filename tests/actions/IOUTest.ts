@@ -2300,6 +2300,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 policyRecentlyUsedCurrencies: [],
+                allBetas: [CONST.BETAS.ALL],
             });
             waitForBatchedUpdates();
 
@@ -2486,6 +2487,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                allBetas: [CONST.BETAS.ALL],
             });
             waitForBatchedUpdates();
 
@@ -2545,6 +2547,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                allBetas: [CONST.BETAS.ALL],
             });
             waitForBatchedUpdates();
 
@@ -3394,6 +3397,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags,
                 quickAction: {},
                 policyRecentlyUsedCurrencies: [],
+                allBetas: [CONST.BETAS.ALL],
             });
 
             waitForBatchedUpdates();
@@ -4159,7 +4163,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport, undefined, [CONST.BETAS.ALL], undefined);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport, undefined, undefined, [CONST.BETAS.ALL]);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4302,7 +4306,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (chatReport && expenseReport) {
-                        payMoneyRequest('ACH', chatReport, expenseReport, undefined, [CONST.BETAS.ALL], undefined);
+                        payMoneyRequest('ACH', chatReport, expenseReport, undefined, undefined, [CONST.BETAS.ALL]);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4527,7 +4531,18 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
 
-            const newExpenseReportID = payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, undefined, undefined, [CONST.BETAS.ALL], undefined, false, undefined, policy);
+            const newExpenseReportID = payMoneyRequest(
+                CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                expenseReport,
+                undefined,
+                undefined,
+                [CONST.BETAS.ALL],
+                undefined,
+                false,
+                undefined,
+                policy,
+            );
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
             expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
@@ -6418,6 +6433,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: RORY_EMAIL,
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            allBetas: [CONST.BETAS.ALL],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -10742,6 +10758,7 @@ describe('actions/IOU', () => {
                     policy: {...createRandomPolicy(1)},
                     policyRecentlyUsedTags,
                 },
+                allBetas: [CONST.BETAS.ALL],
             });
 
             waitForBatchedUpdates();
@@ -10994,7 +11011,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy);
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, [CONST.BETAS.ALL]);
             await waitForBatchedUpdates();
 
             // Then: createdIOUReportActionID shouldn't be undefined

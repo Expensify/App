@@ -1092,12 +1092,6 @@ Onyx.connectWithoutView({
     },
 });
 
-// let allBetas: OnyxEntry<Beta[]>;
-// Onyx.connectWithoutView({
-//     key: ONYXKEYS.BETAS,
-//     callback: (value) => (allBetas = value),
-// });
-
 let allTransactions: OnyxCollection<Transaction> = {};
 let reportsTransactions: Record<string, Transaction[]> = {};
 Onyx.connectWithoutView({

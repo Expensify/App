@@ -6544,7 +6544,7 @@ type DuplicateExpenseTransactionParams = {
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>,
+    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
@@ -6562,6 +6562,7 @@ function duplicateExpenseTransaction({
     targetPolicy,
     targetPolicyCategories,
     targetReport,
+    allBetas,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -9244,8 +9245,8 @@ function getReportFromHoldRequestsOnyxData(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     recipient: Participant,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    createdTimestamp?: string,
     allBetas: OnyxEntry<OnyxTypes.Beta[]>,
+    createdTimestamp?: string,
 ): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -10194,7 +10195,7 @@ function approveMoneyRequest(
     let optimisticHoldReportExpenseActionIDs;
     if (!full && !!chatReport && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID}, policy, originalCreated, allBetas);
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID}, policy, allBetas, originalCreated);
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
         successData.push(...holdReportOnyxData.successData);
