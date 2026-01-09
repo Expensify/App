@@ -1002,6 +1002,17 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
+ * Original message for broken Concierge company card connection
+ */
+type OriginalMessageCompanyCardConnectionBroken = {
+    /** The policy ID for which the company card connection was broken */
+    policyID: string;
+
+    /** The feed name for which the company card connection was broken */
+    feedName: string;
+};
+
+/**
  * Original message for DEW_SUBMIT_FAILED and DEW_APPROVE_FAILED actions
  */
 type OriginalMessageDEWFailed = {
@@ -1168,6 +1179,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
+    [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
@@ -1198,5 +1210,6 @@ export type {
     OriginalMessageMovedTransaction,
     OriginalMessageMarkedReimbursed,
     OriginalMessageConciergeAutoMapMccGroups,
+    OriginalMessageCompanyCardConnectionBroken,
     OriginalMessageReimbursementDirectorInformationRequired,
 };
