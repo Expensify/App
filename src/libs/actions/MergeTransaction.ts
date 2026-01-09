@@ -346,12 +346,12 @@ function mergeTransactionRequest({
     const sourceTransactionSuccessData: OnyxUpdate[] = [];
     const sourceTransactionFailureData: OnyxUpdate[] = [];
     if (!isUnreportedSourceTransaction || !selfDMReportID) {
-        const optimisticSourceTransactionData: OnyxUpdate = {
+        const optimisticSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
             value: null,
         };
-        const failureSourceTransactionData: OnyxUpdate = {
+        const failureSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
             value: sourceTransaction,
@@ -465,7 +465,7 @@ function mergeTransactionRequest({
         }
     }
     // Optimistic delete the merge transaction
-    const optimisticMergeTransactionData: OnyxUpdate = {
+    const optimisticMergeTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`,
         value: null,
