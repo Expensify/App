@@ -4981,16 +4981,21 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     ctaText: 'Rezerwuj lub zarządzaj',
                 },
                 travelInvoicing: {
-                    title: 'Fakturowanie podróży',
-                    description: 'Scentralizuj wszystkie podróże służbowe pracowników na jednej fakturze.',
-                    currentSpend: 'Bieżące wydatki',
-                    spendLimit: 'Limit wydatków',
-                    settlementAccount: 'Konto rozliczeniowe',
-                    settlementFrequency: 'Częstotliwość rozliczeń',
-                    setup: {
-                        title: 'Skonfiguruj scentralizowane fakturowanie podróży',
+                    travelBookingSection: {
+                        title: 'Rezerwacja podróży',
+                        subtitle: 'Gratulacje! Wszystko gotowe, aby rezerwować i zarządzać podróżami w tym obszarze roboczym.',
+                        manageTravelLabel: 'Zarządzaj podróżami',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Centralne fakturowanie',
                         subtitle: 'Pozwól członkom rozliczać i fakturować podróże bezpośrednio na przestrzeń roboczą',
-                        ctaText: 'Skonfiguruj fakturowanie podróży',
+                        subsections: {
+                            currentTravelSpendLabel: 'Aktualne wydatki na podróże',
+                            currentTravelSpendCta: 'Zapłać saldo',
+                            currentTravelLimitLabel: 'Obecny limit podróży',
+                            settlementAccountLabel: 'Konto rozliczeniowe',
+                            settlementFrequencyLabel: 'Częstotliwość rozliczeń',
+                        },
                     },
                 },
             },

@@ -4890,13 +4890,18 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     ctaText: '预订或管理',
                 },
                 travelInvoicing: {
-                    title: '旅行发票',
-                    description: '将所有员工差旅集中到一张发票中。',
-                    currentSpend: '当前支出',
-                    spendLimit: '支出限额',
-                    settlementAccount: '结算账户',
-                    settlementFrequency: '结算频率',
-                    setup: {title: '设置集中化差旅发票管理', subtitle: '允许您的成员直接将差旅费用支付和记入该工作区', ctaText: '设置差旅开票'},
+                    travelBookingSection: {title: '旅行预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', manageTravelLabel: '管理差旅'},
+                    centralInvoicingSection: {
+                        title: '集中开票',
+                        subtitle: '允许您的成员直接向工作区支付和开具差旅费用',
+                        subsections: {
+                            currentTravelSpendLabel: '当前差旅行支出',
+                            currentTravelSpendCta: '支付余额',
+                            currentTravelLimitLabel: '当前出差限额',
+                            settlementAccountLabel: '结算账户',
+                            settlementFrequencyLabel: '结算频率',
+                        },
+                    },
                 },
             },
             expensifyCard: {

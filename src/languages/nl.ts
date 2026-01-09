@@ -4991,16 +4991,17 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     ctaText: 'Boeken of beheren',
                 },
                 travelInvoicing: {
-                    title: 'Facturatie voor reizen',
-                    description: 'Centraliseer alle zakelijke reizen van medewerkers op één enkele factuur.',
-                    currentSpend: 'Huidige uitgaven',
-                    spendLimit: 'Bestedingslimiet',
-                    settlementAccount: 'Verrekeningsrekening',
-                    settlementFrequency: 'Afrekeningsfrequentie',
-                    setup: {
-                        title: 'Gecentraliseerde reisfacturatie instellen',
-                        subtitle: 'Sta uw leden toe reizen rechtstreeks via de workspace te betalen en te factureren',
-                        ctaText: 'Reisfacturatie instellen',
+                    travelBookingSection: {title: 'Reisboeking', subtitle: 'Gefeliciteerd! Je kunt nu reizen boeken en beheren in deze werkruimte.', manageTravelLabel: 'Reizen beheren'},
+                    centralInvoicingSection: {
+                        title: 'Centrale facturatie',
+                        subtitle: 'Sta je leden toe om reizen rechtstreeks via de workspace te betalen en te factureren',
+                        subsections: {
+                            currentTravelSpendLabel: 'Huidige reiskosten',
+                            currentTravelSpendCta: 'Saldo betalen',
+                            currentTravelLimitLabel: 'Huidige reislimoet',
+                            settlementAccountLabel: 'Afwikkelingsrekening',
+                            settlementFrequencyLabel: 'Frequentie van afwikkeling',
+                        },
                     },
                 },
             },

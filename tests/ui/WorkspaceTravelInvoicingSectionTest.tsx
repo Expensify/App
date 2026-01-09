@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -22,8 +23,9 @@ const WORKSPACE_ACCOUNT_ID = 999888;
 // We use literal values that match the constants above.
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualNav,
         useIsFocused: () => true,
@@ -39,13 +41,11 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@hooks/useWorkspaceAccountID', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => 999888, // Must match WORKSPACE_ACCOUNT_ID
 }));
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
 }));
@@ -81,7 +81,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
     });
 
     describe('When Travel Invoicing is not configured', () => {
-        it('should show setup CTA when card settings are not available', async () => {
+        it('should show BookOrManageYourTrip when card settings are not available', async () => {
             // Given no Travel Invoicing card settings exist
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
@@ -94,11 +94,11 @@ describe('WorkspaceTravelInvoicingSection', () => {
             // Wait for component to render
             await waitForBatchedUpdatesWithAct();
 
-            // Then the setup CTA should be visible (GetStartedTravelInvoicing)
-            expect(screen.getByText('Set up centralized travel invoicing')).toBeTruthy();
+            // Then the fallback component should be visible (BookOrManageYourTrip)
+            expect(screen.getByText('Book or manage your trip')).toBeTruthy();
         });
 
-        it('should show setup CTA when paymentBankAccountID is not set', async () => {
+        it('should show BookOrManageYourTrip when paymentBankAccountID is not set', async () => {
             // Given Travel Invoicing card settings exist but without paymentBankAccountID
             const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_TRAVEL_US` as OnyxKey;
 
@@ -116,8 +116,8 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Then the setup CTA should be visible
-            expect(screen.getByText('Set up centralized travel invoicing')).toBeTruthy();
+            // Then the fallback component should be visible
+            expect(screen.getByText('Book or manage your trip')).toBeTruthy();
         });
     });
 
@@ -134,7 +134,6 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     remainingLimit: 50000,
                     currentBalance: 10000,
                 });
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(bankAccountKey, {
                     12345: {
                         accountData: {
@@ -156,7 +155,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
             expect(screen.getByText('Travel booking')).toBeTruthy();
         });
 
-        it('should display current spend when configured', async () => {
+        it('should display current travel spend label when configured', async () => {
             // Given Travel Invoicing is configured with current balance
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
@@ -165,7 +164,6 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     remainingLimit: 50000,
                     currentBalance: 25000,
                 });
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(bankAccountKey, {
                     12345: {
                         accountData: {
@@ -183,11 +181,11 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Then the current spend label should be visible
-            expect(screen.getByText('Current spend')).toBeTruthy();
+            // Then the current travel spend label should be visible
+            expect(screen.getByText('Current travel spend')).toBeTruthy();
         });
 
-        it('should display spend limit when configured', async () => {
+        it('should display current travel limit label when configured', async () => {
             // Given Travel Invoicing is configured with remaining limit
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
@@ -196,7 +194,6 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     remainingLimit: 100000,
                     currentBalance: 25000,
                 });
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(bankAccountKey, {
                     12345: {
                         accountData: {
@@ -214,11 +211,11 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Then the spend limit label should be visible
-            expect(screen.getByText('Spend limit')).toBeTruthy();
+            // Then the current travel limit label should be visible
+            expect(screen.getByText('Current travel limit')).toBeTruthy();
         });
 
-        it('should display settlement account information', async () => {
+        it('should display settlement account label', async () => {
             // Given Travel Invoicing is configured with settlement account
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
@@ -227,7 +224,6 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     remainingLimit: 50000,
                     currentBalance: 10000,
                 });
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(bankAccountKey, {
                     12345: {
                         accountData: {
@@ -249,7 +245,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
             expect(screen.getByText('Settlement account')).toBeTruthy();
         });
 
-        it('should display settlement frequency information', async () => {
+        it('should display settlement frequency label', async () => {
             // Given Travel Invoicing is configured
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
@@ -258,7 +254,6 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     remainingLimit: 50000,
                     currentBalance: 10000,
                 });
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(bankAccountKey, {
                     12345: {
                         accountData: {

@@ -4666,17 +4666,21 @@ ${amount} para ${merchant} - ${date}`,
                     ctaText: 'Reservar o gestionar',
                 },
                 travelInvoicing: {
-                    title: 'Facturación de viajes',
-                    description: 'Centraliza todos los viajes de los empleados en una sola factura.',
-                    currentSpend: 'Gasto actual',
-                    spendLimit: 'Límite de gasto',
-                    settlementAccount: 'Cuenta de liquidación',
-                    settlementFrequency: 'Frecuencia de liquidación',
-                    setup: {
-                        title: 'Configurar facturación de viajes',
-                        subtitle:
-                            'Consolida todas las reservas de viajes de los empleados en una sola factura a nivel de empresa. Los gastos son gestionados por Expensify y facturados a intervalos regulares.',
-                        ctaText: 'Comenzar',
+                    travelBookingSection: {
+                        title: 'Reserva de viajes',
+                        subtitle: '¡Felicidades! Todo está listo para reservar y gestionar viajes en este espacio de trabajo.',
+                        manageTravelLabel: 'Gestionar viajes',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Facturación centralizada',
+                        subtitle: 'Permite que tus miembros paguen y facturen los viajes directamente al espacio de trabajo',
+                        subsections: {
+                            currentTravelSpendLabel: 'Gasto actual en viajes',
+                            currentTravelSpendCta: 'Pagar saldo',
+                            currentTravelLimitLabel: 'Límite actual de viajes',
+                            settlementAccountLabel: 'Cuenta de liquidación',
+                            settlementFrequencyLabel: 'Frecuencia de liquidación',
+                        },
                     },
                 },
             },

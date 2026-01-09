@@ -132,14 +132,14 @@ describe('TravelInvoicingUtils', () => {
     });
 
     describe('getTravelSettlementAccount', () => {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         const mockBankAccountList: BankAccountList = {
             12345: {
+                bankCurrency: 'USD',
+                bankCountry: 'US',
                 accountData: {
                     addressName: 'Test Company',
                     accountNumber: '****1234',
                     routingNumber: '123456789',
-                    accountType: 'checking',
                     bankAccountID: 12345,
                 },
             },

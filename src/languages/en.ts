@@ -4915,16 +4915,21 @@ const translations = {
                     ctaText: 'Book or manage',
                 },
                 travelInvoicing: {
-                    title: 'Travel Invoicing',
-                    description: 'Centralize all employee travel on a single invoice.',
-                    currentSpend: 'Current spend',
-                    spendLimit: 'Spend limit',
-                    settlementAccount: 'Settlement account',
-                    settlementFrequency: 'Settlement frequency',
-                    setup: {
-                        title: 'Set up centralized travel invoicing',
+                    travelBookingSection: {
+                        title: 'Travel booking',
+                        subtitle: "Congrats! You're all set to book and manage travel on this workspace.",
+                        manageTravelLabel: 'Manage travel',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Central invoicing',
                         subtitle: 'Allow your members to pay and bill travel directly to the workspace',
-                        ctaText: 'Set up travel invoicing',
+                        subsections: {
+                            currentTravelSpendLabel: 'Current travel spend',
+                            currentTravelSpendCta: 'Pay balance',
+                            currentTravelLimitLabel: 'Current travel limit',
+                            settlementAccountLabel: 'Settlement account',
+                            settlementFrequencyLabel: 'Settlement frequency',
+                        },
                     },
                 },
             },

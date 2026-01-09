@@ -4968,13 +4968,22 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     ctaText: '予約または管理',
                 },
                 travelInvoicing: {
-                    title: '出張請求',
-                    description: 'すべての従業員の出張を 1 つの請求書に集約します。',
-                    currentSpend: '現在の支出',
-                    spendLimit: '利用上限',
-                    settlementAccount: '決済口座',
-                    settlementFrequency: '決済頻度',
-                    setup: {title: '出張費の集中請求を設定', subtitle: 'メンバーが出張費をワークスペースに直接請求・支払いできるようにします', ctaText: '出張請求書を設定'},
+                    travelBookingSection: {
+                        title: '出張予約',
+                        subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。',
+                        manageTravelLabel: '出張を管理',
+                    },
+                    centralInvoicingSection: {
+                        title: '中央請求書管理',
+                        subtitle: 'メンバーが出張費をワークスペースに直接請求および支払いできるようにする',
+                        subsections: {
+                            currentTravelSpendLabel: '現在の出張費用',
+                            currentTravelSpendCta: '残高を支払う',
+                            currentTravelLimitLabel: '現在の出張上限',
+                            settlementAccountLabel: '決済口座',
+                            settlementFrequencyLabel: '清算頻度',
+                        },
+                    },
                 },
             },
             expensifyCard: {

@@ -4981,16 +4981,21 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     ctaText: 'Reservar ou gerenciar',
                 },
                 travelInvoicing: {
-                    title: 'Faturamento de Viagens',
-                    description: 'Centralize todas as viagens dos funcionários em uma única fatura.',
-                    currentSpend: 'Gasto atual',
-                    spendLimit: 'Limite de gastos',
-                    settlementAccount: 'Conta de liquidação',
-                    settlementFrequency: 'Frequência de liquidação',
-                    setup: {
-                        title: 'Configurar faturamento centralizado de viagens',
-                        subtitle: 'Permita que seus membros paguem e faturem viagens diretamente ao workspace',
-                        ctaText: 'Configurar faturamento de viagens',
+                    travelBookingSection: {
+                        title: 'Reserva de viagem',
+                        subtitle: 'Parabéns! Agora você está pronto para reservar e gerenciar viagens neste workspace.',
+                        manageTravelLabel: 'Gerenciar viagens',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Faturamento centralizado',
+                        subtitle: 'Permita que seus membros paguem e cobrem viagens diretamente para o espaço de trabalho',
+                        subsections: {
+                            currentTravelSpendLabel: 'Gasto atual com viagens',
+                            currentTravelSpendCta: 'Pagar saldo',
+                            currentTravelLimitLabel: 'Limite de viagem atual',
+                            settlementAccountLabel: 'Conta de liquidação',
+                            settlementFrequencyLabel: 'Frequência de liquidação',
+                        },
                     },
                 },
             },

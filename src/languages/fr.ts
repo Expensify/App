@@ -5019,16 +5019,21 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     ctaText: 'Réserver ou gérer',
                 },
                 travelInvoicing: {
-                    title: 'Facturation de voyage',
-                    description: 'Centralisez tous les déplacements des employés sur une seule facture.',
-                    currentSpend: 'Dépense actuelle',
-                    spendLimit: 'Limite de dépenses',
-                    settlementAccount: 'Compte de règlement',
-                    settlementFrequency: 'Fréquence de règlement',
-                    setup: {
-                        title: 'Configurer la facturation centralisée des déplacements',
+                    travelBookingSection: {
+                        title: 'Réservation de voyage',
+                        subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer les déplacements sur cet espace de travail.',
+                        manageTravelLabel: 'Gérer les déplacements',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Facturation centralisée',
                         subtitle: 'Autorisez vos membres à payer et à facturer les déplacements directement à l’espace de travail',
-                        ctaText: 'Configurer la facturation des déplacements',
+                        subsections: {
+                            currentTravelSpendLabel: 'Dépenses de voyage actuelles',
+                            currentTravelSpendCta: 'Payer le solde',
+                            currentTravelLimitLabel: 'Limite de déplacement actuelle',
+                            settlementAccountLabel: 'Compte de règlement',
+                            settlementFrequencyLabel: 'Fréquence de règlement',
+                        },
                     },
                 },
             },

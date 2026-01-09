@@ -5010,16 +5010,21 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     ctaText: 'Buchen oder verwalten',
                 },
                 travelInvoicing: {
-                    title: 'Reiserechnungsstellung',
-                    description: 'Zentralisieren Sie alle Mitarbeiterreisen auf einer einzigen Rechnung.',
-                    currentSpend: 'Aktuelle Ausgaben',
-                    spendLimit: 'Ausgabenlimit',
-                    settlementAccount: 'Verrechnungskonto',
-                    settlementFrequency: 'Häufigkeit der Abrechnung',
-                    setup: {
-                        title: 'Zentrale Reiseabrechnung einrichten',
+                    travelBookingSection: {
+                        title: 'Reisebuchung',
+                        subtitle: 'Glückwunsch! Du kannst jetzt in diesem Workspace Reisen buchen und verwalten.',
+                        manageTravelLabel: 'Reisen verwalten',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Zentrale Rechnungsstellung',
                         subtitle: 'Ermöglichen Sie Ihren Mitgliedern, Reisen direkt über den Workspace zu bezahlen und abzurechnen',
-                        ctaText: 'Reiseabrechnung einrichten',
+                        subsections: {
+                            currentTravelSpendLabel: 'Aktuelle Reisekosten',
+                            currentTravelSpendCta: 'Saldo bezahlen',
+                            currentTravelLimitLabel: 'Aktuelles Reiselimit',
+                            settlementAccountLabel: 'Ausgleichskonto',
+                            settlementFrequencyLabel: 'Abrechnungshäufigkeit',
+                        },
                     },
                 },
             },

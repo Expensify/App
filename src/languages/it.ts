@@ -4997,16 +4997,21 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     ctaText: 'Prenota o gestisci',
                 },
                 travelInvoicing: {
-                    title: 'Fatturazione viaggi',
-                    description: 'Centralizza tutti i viaggi dei dipendenti su un’unica fattura.',
-                    currentSpend: 'Spesa attuale',
-                    spendLimit: 'Limite di spesa',
-                    settlementAccount: 'Conto di regolamento',
-                    settlementFrequency: 'Frequenza di liquidazione',
-                    setup: {
-                        title: 'Imposta la fatturazione centralizzata dei viaggi',
-                        subtitle: 'Consenti ai tuoi membri di pagare e addebitare i viaggi direttamente allo spazio di lavoro',
-                        ctaText: 'Imposta la fatturazione dei viaggi',
+                    travelBookingSection: {
+                        title: 'Prenotazione di viaggio',
+                        subtitle: 'Complimenti! Ora sei pronto per prenotare e gestire i viaggi in questo spazio di lavoro.',
+                        manageTravelLabel: 'Gestisci viaggi',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Fatturazione centralizzata',
+                        subtitle: 'Consenti ai tuoi membri di pagare e fatturare i viaggi direttamente allo spazio di lavoro',
+                        subsections: {
+                            currentTravelSpendLabel: 'Spesa di viaggio attuale',
+                            currentTravelSpendCta: 'Paga saldo',
+                            currentTravelLimitLabel: 'Limite di viaggio attuale',
+                            settlementAccountLabel: 'Conto di regolamento',
+                            settlementFrequencyLabel: 'Frequenza di regolamento',
+                        },
                     },
                 },
             },
