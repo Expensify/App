@@ -38,7 +38,7 @@ function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplit
                 }}
                 value={inputValue}
                 textInputContainerStyles={StyleUtils.splitPercentageInputStyles(styles)}
-                containerStyles={styles.optionRowPercentInputContainer}
+                containerStyles={[styles.optionRowPercentInputContainer, styles.ml3]}
                 inputStyle={[styles.optionRowPercentInput, styles.lineHeightUndefined]}
                 onFocus={focusHandler}
                 onBlur={(event) => {

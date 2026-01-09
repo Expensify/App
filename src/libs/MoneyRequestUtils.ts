@@ -61,17 +61,19 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
  * opt into this relaxed behavior via the `allowExceedingHundred` flag.
  * The `allowDecimal` flag enables one decimal place (0.1 precision) for more granular percentage splits.
  * The `shouldAllowNegative` flag enables negative percentages (e.g. for split expenses with negative amounts).
+ * Accepts both period (.) and comma (,) as decimal separators to support locale-specific input (e.g., Spanish).
  */
 function validatePercentage(amount: string, allowExceedingHundred = false, allowDecimal = false, shouldAllowNegative = false): boolean {
     if (allowExceedingHundred) {
-        const regex = allowDecimal ? /^-?\d*\.?\d?$/u : /^-?\d*$/u;
+        const regex = allowDecimal ? /^-?\d*[.,]?\d?$/u : /^-?\d*$/u;
         if (shouldAllowNegative) {
             return amount === '' || amount === '-' || regex.test(amount);
         }
         return amount === '' || regex.test(amount);
     }
 
-    const regexString = allowDecimal ? '^(100(\\.0)?|[0-9]{1,2}(\\.\\d)?)$' : '^(100|[0-9]{1,2})$';
+    // Accept both period and comma as decimal separators
+    const regexString = allowDecimal ? '^(100([.,]0)?|[0-9]{1,2}([.,]\\d)?)$' : '^(100|[0-9]{1,2})$';
     const percentageRegex = new RegExp(regexString, 'i');
     return amount === '' || percentageRegex.test(amount);
 }
