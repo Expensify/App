@@ -36,6 +36,7 @@ import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
+import {convertToBackendAmount} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {formatMemberForList} from './OptionsListUtils';
@@ -1667,6 +1668,14 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
+function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.units?.time?.enabled;
+}
+
+function getDefaultTimeTrackingRate(policy: Policy): number | undefined {
+    return policy.units?.time?.rate ? convertToBackendAmount(policy.units?.time?.rate) : undefined;
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1829,6 +1838,8 @@ export {
     getTravelStep,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
+    isTimeTrackingEnabled,
+    getDefaultTimeTrackingRate,
 };
 
 export type {MemberEmailsToAccountIDs};
