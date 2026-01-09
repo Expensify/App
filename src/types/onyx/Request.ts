@@ -2,7 +2,7 @@ import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import type Response from './Response';
 
 /** Model of onyx requests sent to the API */
-type OnyxData<TKey extends OnyxKey = OnyxKey> = {
+type OnyxData<TKey extends OnyxKey> = {
     /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
     successData?: Array<OnyxUpdate<TKey>>;
 
