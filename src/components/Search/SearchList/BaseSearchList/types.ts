@@ -35,9 +35,6 @@ type BaseSearchListProps = Pick<
     /** The callback, which is run when a row is pressed */
     onSelectRow: (item: SearchListItem) => void;
 
-    /** Whether the screen containing the list is focused */
-    isFocused?: boolean;
-
     /** The ref to the list */
     ref: ForwardedRef<FlashListRef<SearchListItem>>;
 

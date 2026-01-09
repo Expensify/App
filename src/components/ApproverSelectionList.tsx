@@ -167,6 +167,7 @@ function ApproverSelectionList({
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                     showScrollIndicator
+                    isRowMultilineSupported
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
