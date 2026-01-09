@@ -1558,7 +1558,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
             policyID: parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
             ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             oldPolicyName: parentReport?.policyName ?? '',
-            notificationPreference: getChildReportNotificationPreference(parentReportAction),
+            notificationPreference: getChildReportNotificationPreference(parentReportAction, false),
             parentReportActionID: parentReportAction.reportActionID,
             parentReportID,
             optimisticReportID: childReportID,

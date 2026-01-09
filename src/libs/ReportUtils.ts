@@ -2750,13 +2750,13 @@ function isActionCreator(reportAction: OnyxInputOrEntry<ReportAction> | Partial<
  * Returns the notification preference of the action's child report if it exists.
  * Otherwise, calculates it based on the action's authorship.
  */
-function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<ReportAction> | Partial<ReportAction>): NotificationPreference {
+function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<ReportAction> | Partial<ReportAction>, isContextMenu: boolean = true): NotificationPreference {
     const childReportNotificationPreference = reportAction?.childReportNotificationPreference ?? '';
     if (childReportNotificationPreference) {
         return childReportNotificationPreference;
     }
 
-    return CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    return isActionCreator(reportAction) && !isContextMenu ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
