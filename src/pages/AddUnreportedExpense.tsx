@@ -75,8 +75,15 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     return false;
                 }
 
+                const transactionAmount = getTransactionDetails(item)?.amount ?? 0;
+
                 // Negative values are not allowed for unreported expenses
-                if ((getTransactionDetails(item)?.amount ?? 0) < 0) {
+                if (transactionAmount < 0) {
+                    return false;
+                }
+
+                // Zero amount expenses are not allowed in IOU reports
+                if (isIOUReport(report) && transactionAmount === 0) {
                     return false;
                 }
 
@@ -91,7 +98,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 return true;
             });
         },
-        [policy],
+        [policy, report],
     );
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
