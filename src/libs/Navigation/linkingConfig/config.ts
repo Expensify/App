@@ -1151,6 +1151,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.MEMBER_DETAILS]: {
                             path: ROUTES.DOMAIN_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.DOMAIN.VACATION_DELEGATE]: {
+                            path: ROUTES.DOMAIN_VACATION_DELEGATE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {

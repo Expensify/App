@@ -1,5 +1,6 @@
 import type CONST from '@src/CONST';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+import type VacationDelegate from '@src/types/onyx/VacationDelegate';
 import type * as OnyxCommon from './OnyxCommon';
 import type SecurityGroup from './SecurityGroup';
 
@@ -45,7 +46,8 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     samlRequiredError?: OnyxCommon.Errors;
 }> &
     PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
-    PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>;
+    PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup> &
+    PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, VacationDelegate>;
 
 /** Model of SAML metadata */
 type SamlMetadata = {

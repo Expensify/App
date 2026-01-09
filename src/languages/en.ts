@@ -7833,6 +7833,9 @@ const translations = {
             title: 'Members',
             findMember: 'Find member',
         },
+        common: {
+            vacationDelegate: 'Vacation delegate',
+        }
     },
 };
 
