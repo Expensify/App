@@ -191,6 +191,7 @@ import {
     getLastVisibleMessage as getLastVisibleMessageReportActionsUtils,
     getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
+    getMostRecentActiveDEWApproveFailedAction,
     getMostRecentActiveDEWSubmitFailedAction,
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
@@ -229,12 +230,14 @@ import {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
+    isApprovedAction,
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
+    isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
     isIntegrationMessageAction,
@@ -9236,6 +9239,15 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
         }
     }
 
+    // Check for DEW approve failures on SUBMITTED status reports (GBR)
+    if (!isReportArchived && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        const mostRecentActiveDEWApproveAction = getMostRecentActiveDEWApproveFailedAction(reportActionsArray);
+        if (mostRecentActiveDEWApproveAction) {
+            reportActionErrors.dewApproveFailed = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage');
+            reportAction = mostRecentActiveDEWApproveAction;
+        }
+    }
+
     return {
         errors: reportActionErrors,
         reportAction,
@@ -12564,7 +12576,12 @@ function selectFilteredReportActions(
             const actions = Object.values(actionsGroup ?? {});
             const filteredActions = actions.filter(
                 (action): action is ReportAction =>
-                    isExportIntegrationAction(action) || isIntegrationMessageAction(action) || isDynamicExternalWorkflowSubmitFailedAction(action) || isSubmittedAction(action),
+                    isExportIntegrationAction(action) ||
+                    isIntegrationMessageAction(action) ||
+                    isDynamicExternalWorkflowSubmitFailedAction(action) ||
+                    isDynamicExternalWorkflowApproveFailedAction(action) ||
+                    isSubmittedAction(action) ||
+                    isApprovedAction(action),
             );
             return [reportId, filteredActions];
         }),

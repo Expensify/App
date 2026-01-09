@@ -556,12 +556,12 @@ function SearchPage({route}: SearchPageProps) {
                     const selectedPolicyIDList = selectedReports.length
                         ? selectedReports.map((report) => report.policyID)
                         : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
-                    const hasDEWPolicy = selectedPolicyIDList.some((policyID) => {
+                    const dewPolicyID = selectedPolicyIDList.find((policyID) => {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
                         return hasDynamicExternalWorkflow(policy);
                     });
-
-                    if (hasDEWPolicy && !isDEWBetaEnabled) {
+                    const dewPolicy = dewPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${dewPolicyID}`] : undefined;
+                    if (dewPolicy && !isDEWBetaEnabled) {
                         setIsDEWModalVisible(true);
                         return;
                     }
@@ -572,6 +572,7 @@ function SearchPage({route}: SearchPageProps) {
                     approveMoneyRequestOnSearch(
                         hash,
                         reportIDList.filter((reportID) => reportID !== undefined),
+                        dewPolicy,
                     );
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {

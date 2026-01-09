@@ -56,6 +56,7 @@ import {
     getSortedReportActions,
     getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
+    hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
@@ -65,6 +66,7 @@ import {
     isClosedAction,
     isCreatedTaskReportAction,
     isDeletedParentAction,
+    isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isInviteOrRemovedAction,
     isMarkAsClosedAction,
@@ -724,14 +726,20 @@ function getLastMessageTextForReport({
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
+        const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+        const isPendingAdd = lastReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
         if (automaticAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallyApproved'));
+        } else if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            lastMessageTextFromReport = translateLocal('iou.queuedToApproveViaDEW');
         } else {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.approvedMessage');
         }
-    } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction)) {
+    } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction) || isDynamicExternalWorkflowApproveFailedAction(lastReportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = getOriginalMessage(lastReportAction)?.message ?? translateLocal('iou.error.genericCreateFailureMessage');
     } else if (isUnapprovedAction(lastReportAction)) {

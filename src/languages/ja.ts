@@ -1221,6 +1221,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `送信済み${memo ? `、メモ「${memo}」と述べています` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を通じて送信されました`,
         queuedToSubmitViaDEW: 'カスタム承認ワークフローを介して送信待ちキューに入れられました',
+        queuedToApproveViaDEW: 'カスタム承認ワークフローを介して承認待ちキューに入れられました',
         trackedAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `${comment} 用` : ''} を追跡中`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} を分割`,
         didSplitAmount: (formattedAmount: string, comment: string) => `分割 ${formattedAmount}${comment ? `${comment} 用` : ''}`,
