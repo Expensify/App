@@ -6,7 +6,6 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import * as ReportUtils from '@libs/ReportUtils';
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -942,7 +941,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             expect(IOU.requestMoney).toHaveBeenCalled();
             const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
-            const params = requestMoneyMock.mock.calls[0]?.[0];
+            const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report).toBeUndefined();
         });
 
@@ -1008,7 +1007,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             expect(IOU.requestMoney).toHaveBeenCalled();
             const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
-            const params = requestMoneyMock.mock.calls[0]?.[0];
+            const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report?.reportID).toBe(routeReportID);
         });
 
@@ -1023,7 +1022,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 harvesting: {enabled: false},
             };
 
-            const isReportOutstandingSpy = jest.spyOn(ReportUtils, 'isReportOutstanding').mockReturnValue(true);
+            const isReportOutstandingSpy = jest.spyOn(require('@libs/ReportUtils'), 'isReportOutstanding').mockReturnValue(true);
 
             try {
                 await act(async () => {
@@ -1083,7 +1082,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
                 expect(IOU.requestMoney).toHaveBeenCalled();
                 const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
-                const params = requestMoneyMock.mock.calls[0]?.[0];
+                const params = requestMoneyMock.mock.calls.at(0)?.at(0);
                 expect(params?.report?.reportID).toBe(transactionReportID);
             } finally {
                 isReportOutstandingSpy.mockRestore();
