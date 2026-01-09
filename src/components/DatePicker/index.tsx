@@ -7,7 +7,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import mergeRefs from '@libs/mergeRefs';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
@@ -32,7 +31,6 @@ function DatePicker({
     autoFocus = false,
     shouldHideClearButton = false,
     forwardedFSClass,
-    ref,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -126,7 +124,7 @@ function DatePicker({
                 style={styles.mv2}
             >
                 <TextInput
-                    ref={mergeRefs(ref, textInputRef)}
+                    ref={textInputRef}
                     inputID={inputID}
                     forceActiveLabel
                     icon={selectedDate ? null : icons.Calendar}
