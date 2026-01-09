@@ -268,7 +268,7 @@ claude mcp add playwright npx '@playwright/mcp@latest'
 - **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
 
 ### Dev Environment Sign-In Credentials
-- **Email**: Generate a random Gmail address (e.g., `user<random-numbers>@gmail.com`)
+- **Email**: Generate a random Gmail address (e.g., `user+<random-numbers>@gmail.com`)
 - **Magic code**: Always `000000` for dev environment
 - **Onboarding**: Always skip optional steps
 
