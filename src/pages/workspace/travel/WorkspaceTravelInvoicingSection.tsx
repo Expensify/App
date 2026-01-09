@@ -176,9 +176,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             <Section
                 title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.title')}
                 subtitle={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.subtitle')}
-                containerStyles={[styles.pv8, styles.ph0]}
-                titleStyles={[styles.textStrong, styles.ph8]}
-                subtitleStyles={[styles.mb6, styles.ph8]}
+                containerStyles={[styles.ph0, isSmallScreenWidth ? styles.pv5 : styles.pv8]}
+                titleStyles={[styles.textStrong, isSmallScreenWidth ? styles.ph5 : styles.ph8]}
+                subtitleStyles={[styles.mb6, isSmallScreenWidth ? styles.ph5 : styles.ph8]}
                 subtitleMuted
             >
                 <MenuItem
