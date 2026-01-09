@@ -61,7 +61,7 @@ type NavigationTabBarProps = {
     shouldShowFloatingCameraButton?: boolean;
 };
 
-function getLastRoute(navigator: string, screen: string) {
+function getLastRoute(navigator: ValueOf<typeof NAVIGATORS>, screen: string) {
     const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
     const lastNavigator = rootState.routes.findLast((route) => route.name === navigator);
     const lastNavigatorState = lastNavigator && lastNavigator.key ? getPreservedNavigatorState(lastNavigator?.key) : undefined;
