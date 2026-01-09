@@ -592,7 +592,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 <FormHelpMessage
                                     isError
                                     style={styles.menuItemError}
-                                    message={translate('workspace.accounting.errorODIntegration', {oldDotPolicyConnectionsURL})}
+                                    message={translate('workspace.accounting.errorODIntegration', oldDotPolicyConnectionsURL)}
                                     shouldRenderMessageAsHTML
                                 />
                             )}
