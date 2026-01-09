@@ -171,6 +171,9 @@ function Image({
             onLoad={handleLoad}
             style={[style, aspectRatioStyle, shouldOpacityBeZero && {opacity: 0}]}
             source={source}
+            // Enable disk caching for images that require auth tokens (receipts) to make them available offline
+            // Keep default (none) for other images to avoid memory leaks
+            cachePolicy={isAuthTokenRequired ? 'disk' : forwardedProps.cachePolicy}
         />
     );
 }
