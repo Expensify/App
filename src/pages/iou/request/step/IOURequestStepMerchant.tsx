@@ -122,7 +122,7 @@ function IOURequestStepMerchant({
         if (isEditing) {
             updateMoneyRequestMerchant(
                 transactionID,
-                parentReport,
+                report,
                 parentReport,
                 newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 policy,
