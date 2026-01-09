@@ -180,22 +180,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
-
-    useEffect(() => {
-        if (!newTransactionID || !isExpanded) {
-            return;
-        }
-        searchTransactions();
-    }, [newTransactionID, isExpanded, searchTransactions]);
+    // Refetch when expanding (ensures fresh data after navigating back) and when newTransactionID changes
 
     useEffect(() => {
         if (!isExpanded) {
             return;
         }
         searchTransactions();
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isExpanded]);
+    }, [newTransactionID, isExpanded, searchTransactions]);
 
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
