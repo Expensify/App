@@ -1,4 +1,5 @@
 /* eslint-disable rulesdir/prefer-actions-set-data */
+
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import Onyx from 'react-native-onyx';
 import {Authenticate} from '@libs/Authentication';
