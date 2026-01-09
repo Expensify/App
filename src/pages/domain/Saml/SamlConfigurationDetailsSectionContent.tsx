@@ -62,8 +62,8 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
             <TextPicker
                 value={samlMetadata.metaIdentity}
                 inputID="identityProviderMetadata"
-                description={translate('domain.samlConfigurationDetails.identityProviderMetaData')}
-                label={translate('domain.samlConfigurationDetails.identityProviderMetaData')}
+                description={translate('domain.samlConfigurationDetails.identityProviderMetadata')}
+                label={translate('domain.samlConfigurationDetails.identityProviderMetadata')}
                 wrapperStyle={styles.sectionMenuItemTopDescription}
                 numberOfLinesTitle={2}
                 titleStyle={[styles.fontSizeLabel, styles.textMono, styles.wordBreakAll]}
@@ -165,7 +165,5 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
         </>
     );
 }
-
-SamlConfigurationDetailsSectionContent.displayName = 'SamlConfigurationDetailsSectionContent';
 
 export default SamlConfigurationDetailsSectionContent;

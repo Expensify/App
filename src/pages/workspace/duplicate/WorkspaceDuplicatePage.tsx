@@ -23,14 +23,12 @@ function WorkspaceDuplicatePage() {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceDuplicatePage.displayName}
+                testID="WorkspaceDuplicatePage"
             >
                 <WorkspaceDuplicateForm policyID={policyID} />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceDuplicatePage.displayName = 'WorkspaceDuplicatePage';
 
 export default WorkspaceDuplicatePage;

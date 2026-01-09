@@ -3,6 +3,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
 import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomFlatListProps} from './types';
 
 // On iOS, we have to unset maintainVisibleContentPosition while the user is scrolling to prevent jumping to the beginning issue
@@ -14,9 +15,11 @@ function CustomFlatList<T>({
     onMomentumScrollBegin,
     onMomentumScrollEnd,
     onScroll: onScrollProp,
+    shouldHideContent = false,
     ...restProps
 }: CustomFlatListProps<T>) {
     const [isScrolling, setIsScrolling] = useState(false);
+    const styles = useThemeStyles();
 
     const handleScrollBegin = useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -45,6 +48,8 @@ function CustomFlatList<T>({
 
     const maintainVisibleContentPosition = isScrolling || shouldDisableVisibleContentPosition ? undefined : maintainVisibleContentPositionProp;
 
+    const contentContainerStyle = [restProps.contentContainerStyle, shouldHideContent && styles.opacity0];
+
     if (enableAnimatedKeyboardDismissal) {
         return (
             <KeyboardDismissibleFlatList
@@ -56,6 +61,7 @@ function CustomFlatList<T>({
                 onScroll={onScrollProp}
                 onMomentumScrollBegin={handleScrollBegin}
                 onMomentumScrollEnd={handleScrollEnd}
+                contentContainerStyle={contentContainerStyle}
             />
         );
     }
@@ -69,9 +75,9 @@ function CustomFlatList<T>({
             onScroll={handleScroll}
             onMomentumScrollBegin={handleScrollBegin}
             onMomentumScrollEnd={handleScrollEnd}
+            contentContainerStyle={contentContainerStyle}
         />
     );
 }
 
-CustomFlatList.displayName = 'CustomFlatList';
 export default CustomFlatList;

@@ -117,7 +117,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 
         // It's possible that the anchor is inside an active modal (e.g., add emoji reaction in report context menu).
         // So, we need to get the anchor position first before closing the active modal which will also destroy the anchor.
-        KeyboardUtils.dismiss().then(() =>
+        KeyboardUtils.dismiss(true).then(() =>
             calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
                 close(() => {
                     onWillShow?.();
@@ -279,5 +279,4 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     );
 }
 
-EmojiPicker.displayName = 'EmojiPicker';
 export default withViewportOffsetTop(EmojiPicker);

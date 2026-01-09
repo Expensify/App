@@ -37,6 +37,4 @@ function Country({onBackButtonPress, stepNames, setUSDBankAccountStep, policyID}
     );
 }
 
-Country.displayName = 'Country';
-
 export default Country;

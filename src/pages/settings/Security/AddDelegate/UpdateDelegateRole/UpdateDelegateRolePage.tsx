@@ -1,3 +1,4 @@
+import {delegatesSelector} from '@selectors/Account';
 import React from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,11 +8,13 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -39,20 +42,24 @@ function UpdateDelegateRoleSelectionListHeader() {
 
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
+    const [delegates] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: delegatesSelector});
     const {currentRole, login} = route.params;
+
+    const currentDelegate = delegates?.find((d) => d.email === login);
+    const matchingRole = currentDelegate?.role ?? currentRole;
 
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
         text: translate('delegate.role', {role}),
         keyForList: role,
         alternateText: translate('delegate.roleDescription', {role}),
-        isSelected: role === currentRole,
+        isSelected: role === matchingRole,
     }));
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={UpdateDelegateRolePage.displayName}
+            testID="UpdateDelegateRolePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -61,7 +68,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                 />
                 <SelectionList
                     alternateNumberOfSupportedLines={4}
-                    initiallyFocusedItemKey={currentRole}
+                    initiallyFocusedItemKey={matchingRole}
                     shouldUpdateFocusedIndex
                     customListHeader={<UpdateDelegateRoleSelectionListHeader />}
                     onSelectRow={(option) => {
@@ -78,7 +85,5 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
         </ScreenWrapper>
     );
 }
-
-UpdateDelegateRolePage.displayName = 'UpdateDelegateRolePage';
 
 export default UpdateDelegateRolePage;

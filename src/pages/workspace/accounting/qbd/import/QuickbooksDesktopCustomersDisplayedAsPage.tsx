@@ -56,7 +56,7 @@ function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectio
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopCustomersDisplayedAsPage.displayName}
+            displayName="QuickbooksDesktopCustomersDisplayedAsPage"
             sections={data.length ? [{data}] : []}
             listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS.getRoute(policyID))}
@@ -72,7 +72,5 @@ function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectio
         />
     );
 }
-
-QuickbooksDesktopCustomersDisplayedAsPage.displayName = 'QuickbooksDesktopCustomersDisplayedAsPage';
 
 export default withPolicyConnections(QuickbooksDesktopCustomersDisplayedAsPage);

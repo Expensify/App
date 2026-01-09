@@ -34,7 +34,7 @@ function DatePicker({
     forwardedFSClass,
     ref,
 }: DateInputWithPickerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Calendar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -163,7 +163,5 @@ function DatePicker({
         </>
     );
 }
-
-DatePicker.displayName = 'DatePicker';
 
 export default DatePicker;

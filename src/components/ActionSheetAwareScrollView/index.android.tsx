@@ -21,7 +21,6 @@ function ActionSheetAwareScrollView({style, children, ref, ...restProps}: Action
         </Reanimated.ScrollView>
     );
 }
-ActionSheetAwareScrollView.displayName = 'ActionSheetAwareScrollView';
 
 export default ActionSheetAwareScrollView;
 

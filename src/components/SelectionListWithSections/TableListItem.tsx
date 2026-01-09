@@ -149,6 +149,4 @@ function TableListItem<TItem extends ListItem>({
     );
 }
 
-TableListItem.displayName = 'TableListItem';
-
 export default TableListItem;

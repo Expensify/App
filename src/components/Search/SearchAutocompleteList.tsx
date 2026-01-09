@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
@@ -22,9 +23,12 @@ import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
@@ -190,7 +194,8 @@ function SearchAutocompleteList({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass'] as const);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
     const searchOptions = useMemo(() => {
@@ -212,8 +217,9 @@ function SearchAutocompleteList({
             countryCode,
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
+            loginList,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -420,6 +426,7 @@ function SearchAutocompleteList({
                     includeRecentReports: false,
                     includeCurrentUser: true,
                     countryCode,
+                    loginList,
                     shouldShowGBR: true,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
@@ -431,6 +438,12 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
+                // If autocompleteValue is empty or just whitespace and we have already completed keys,
+                // return empty array to hide suggestion list (consistent with group-by behavior)
+                if (!autocompleteValue.trim() && alreadyAutocompletedKeys.size > 0) {
+                    return [];
+                }
+
                 const filteredReports = getSearchOptions({
                     options,
                     draftComments,
@@ -444,8 +457,14 @@ function SearchAutocompleteList({
                     includeRecentReports: true,
                     includeCurrentUser: false,
                     countryCode,
+                    loginList,
                     shouldShowGBR: true,
-                }).recentReports;
+                }).recentReports.filter((chat) => {
+                    if (!chat.text) {
+                        return false;
+                    }
+                    return !alreadyAutocompletedKeys.has(chat.text.toLowerCase());
+                });
 
                 return filteredReports.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
@@ -608,6 +627,7 @@ function SearchAutocompleteList({
         nvpDismissedProductTraining,
         betas,
         countryCode,
+        loginList,
         currentUserLogin,
         groupByAutocompleteList,
         statusAutocompleteList,
@@ -773,13 +793,21 @@ function SearchAutocompleteList({
     if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
-
-    const styledRecentReports = recentReportsOptions.map((item) => ({
-        ...item,
-        pressableStyle: styles.br2,
-        text: StringUtils.lineBreaksToSpaces(item.text),
-        wrapperStyle: [styles.pr3, styles.pl3],
-    }));
+    const styledRecentReports = useMemo(
+        () =>
+            recentReportsOptions.map((option) => {
+                const report = getReportOrDraftReport(option.reportID);
+                const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+                const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+                return {
+                    ...option,
+                    pressableStyle: styles.br2,
+                    text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+                    wrapperStyle: [styles.pr3, styles.pl3],
+                };
+            }),
+        [recentReportsOptions, styles.br2, styles.pr3, styles.pl3],
+    );
     sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
@@ -887,6 +915,8 @@ function SearchAutocompleteList({
         )
     );
 }
+
+SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
 export default React.memo(SearchAutocompleteList);
 export {SearchRouterItem};

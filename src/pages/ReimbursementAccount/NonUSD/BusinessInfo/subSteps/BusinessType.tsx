@@ -101,6 +101,4 @@ function BusinessType({onNext, isEditing, onMove}: BusinessTypeProps) {
     );
 }
 
-BusinessType.displayName = 'BusinessType';
-
 export default BusinessType;

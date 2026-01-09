@@ -97,6 +97,4 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     );
 }
 
-WorkspaceCompanyCardStatementCloseDatePage.displayName = 'WorkspaceCompanyCardStatementCloseDatePage';
-
 export default WorkspaceCompanyCardStatementCloseDatePage;

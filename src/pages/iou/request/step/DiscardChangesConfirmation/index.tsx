@@ -1,27 +1,29 @@
 import type {NavigationAction} from '@react-navigation/native';
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled = true}: DiscardChangesConfirmationProps) {
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
+    const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
+    const isConfirmed = useRef(false);
 
     useBeforeRemove(
         useCallback(
             (e) => {
-                if (!getHasUnsavedChanges() || shouldNavigateBack.current) {
+                if (!isEnabled || !isFocused || !getHasUnsavedChanges() || shouldNavigateBack.current) {
                     return;
                 }
 
@@ -29,8 +31,9 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
                 blockedNavigationAction.current = e.data.action;
                 navigateAfterInteraction(() => setIsVisible((prev) => !prev));
             },
-            [getHasUnsavedChanges],
+            [getHasUnsavedChanges, isFocused, isEnabled],
         ),
+        isEnabled && isFocused,
     );
 
     /**
@@ -39,6 +42,9 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
      * So we need to go forward to get back to the current page
      */
     useEffect(() => {
+        if (!isEnabled || !isFocused) {
+            return undefined;
+        }
         // transitionStart is triggered before the previous page is fully loaded so RHP sliding animation
         // could be less "glitchy" when going back and forth between the previous and current pages
         const unsubscribe = navigation.addListener('transitionStart', ({data: {closing}}) => {
@@ -57,7 +63,27 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
         });
 
         return unsubscribe;
-    }, [navigation, getHasUnsavedChanges]);
+    }, [navigation, getHasUnsavedChanges, isFocused, isEnabled]);
+
+    useEffect(() => {
+        if ((isFocused && isEnabled) || !isVisible) {
+            return;
+        }
+        setIsVisible(false);
+        blockedNavigationAction.current = undefined;
+        shouldNavigateBack.current = false;
+    }, [isFocused, isVisible, isEnabled]);
+
+    const navigateBack = useCallback(() => {
+        if (blockedNavigationAction.current) {
+            navigationRef.current?.dispatch(blockedNavigationAction.current);
+            return;
+        }
+        if (!shouldNavigateBack.current) {
+            return;
+        }
+        navigationRef.current?.goBack();
+    }, []);
 
     return (
         <ConfirmModal
@@ -68,18 +94,8 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
             confirmText={translate('discardChangesConfirmation.confirmText')}
             cancelText={translate('common.cancel')}
             onConfirm={() => {
+                isConfirmed.current = true;
                 setIsVisible(false);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    if (blockedNavigationAction.current) {
-                        navigationRef.current?.dispatch(blockedNavigationAction.current);
-                        return;
-                    }
-                    if (!shouldNavigateBack.current) {
-                        return;
-                    }
-                    navigationRef.current?.goBack();
-                });
             }}
             onCancel={() => {
                 setIsVisible(false);
@@ -87,8 +103,13 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
                 shouldNavigateBack.current = false;
             }}
             onModalHide={() => {
-                shouldNavigateBack.current = false;
-                onCancel?.();
+                if (isConfirmed.current) {
+                    isConfirmed.current = false;
+                    setNavigationActionToMicrotaskQueue(navigateBack);
+                } else {
+                    shouldNavigateBack.current = false;
+                    onCancel?.();
+                }
             }}
             shouldIgnoreBackHandlerDuringTransition
         />

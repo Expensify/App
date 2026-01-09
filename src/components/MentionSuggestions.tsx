@@ -165,8 +165,6 @@ function MentionSuggestions({
     );
 }
 
-MentionSuggestions.displayName = 'MentionSuggestions';
-
 export default MentionSuggestions;
 
 export type {Mention};

@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
+import {getReportIDForExpense, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import CONST from '@src/CONST';
@@ -25,7 +25,7 @@ type TransactionMergeReceiptsProps = {
 function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: TransactionMergeReceiptsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom']);
 
     return (
         <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentBetween]}>
@@ -73,7 +73,11 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                         icon={expensifyIcons.Zoom}
                                         onPress={() => {
                                             Navigation.navigate(
-                                                ROUTES.TRANSACTION_RECEIPT.getRoute(getTransactionThreadReportID(transaction) ?? transaction.reportID, transaction.transactionID, true),
+                                                ROUTES.TRANSACTION_RECEIPT.getRoute(
+                                                    getTransactionThreadReportID(transaction) ?? transaction.reportID ?? getReportIDForExpense(transaction),
+                                                    transaction.transactionID,
+                                                    true,
+                                                ),
                                             );
                                         }}
                                     />
@@ -87,5 +91,4 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
     );
 }
 
-TransactionMergeReceipts.displayName = 'TransactionMergeReceipts';
 export default TransactionMergeReceipts;

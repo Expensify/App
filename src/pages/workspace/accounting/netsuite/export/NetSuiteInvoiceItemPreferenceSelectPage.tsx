@@ -84,7 +84,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
             onBackButtonPress={goBack}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteInvoiceItemPreferenceSelectPage.displayName}
+            displayName="NetSuiteInvoiceItemPreferenceSelectPage"
             policyID={policyID}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldUseScrollView={false}
@@ -135,7 +135,5 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
         </ConnectionLayout>
     );
 }
-
-NetSuiteInvoiceItemPreferenceSelectPage.displayName = 'NetSuiteInvoiceItemPreferenceSelectPage';
 
 export default withPolicyConnections(NetSuiteInvoiceItemPreferenceSelectPage);

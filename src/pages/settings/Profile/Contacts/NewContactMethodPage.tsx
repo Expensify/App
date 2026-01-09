@@ -59,14 +59,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             if (!values.phoneOrEmail) {
                 addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.contactMethodRequired'));
             } else if (values.phoneOrEmail.length > CONST.LOGIN_CHARACTER_LIMIT) {
-                addErrorMessage(
-                    errors,
-                    'phoneOrEmail',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.phoneOrEmail.length,
-                        limit: CONST.LOGIN_CHARACTER_LIMIT,
-                    }),
-                );
+                addErrorMessage(errors, 'phoneOrEmail', translate('common.error.characterLimitExceedCounter', values.phoneOrEmail.length, CONST.LOGIN_CHARACTER_LIMIT));
             }
 
             if (!!values.phoneOrEmail && !(validateIfNumber || Str.isValidEmail(values.phoneOrEmail))) {
@@ -96,7 +89,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
-            testID={NewContactMethodPage.displayName}
+            testID="NewContactMethodPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -130,7 +123,5 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewContactMethodPage.displayName = 'NewContactMethodPage';
 
 export default NewContactMethodPage;

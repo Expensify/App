@@ -39,7 +39,7 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['TreasureChest'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['TreasureChest']);
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
@@ -118,18 +118,10 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     }
 
     const title = isSubscriptionPage ? (
-        <RenderHTML
-            html={translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle', {
-                discountType: discountInfo?.discountType,
-            })}
-        />
+        <RenderHTML html={translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle', discountInfo?.discountType)} />
     ) : (
         <View style={[styles.justifyContentBetween, styles.flexRow]}>
-            <RenderHTML
-                html={translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle', {
-                    discountType: discountInfo?.discountType,
-                })}
-            />
+            <RenderHTML html={translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle', discountInfo?.discountType)} />
             {shouldUseNarrowLayout && dismissButton}
         </View>
     );
@@ -138,19 +130,12 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
         <BillingBanner
             title={title}
             style={!isSubscriptionPage && [styles.hoveredComponentBG, styles.borderBottom]}
-            subtitle={translate('subscription.billingBanner.earlyDiscount.subtitle', {
-                days: discountInfo?.days,
-                hours: discountInfo?.hours,
-                minutes: discountInfo?.minutes,
-                seconds: discountInfo?.seconds,
-            })}
+            subtitle={translate('subscription.billingBanner.earlyDiscount.subtitle', discountInfo?.days, discountInfo?.hours, discountInfo?.minutes, discountInfo?.seconds)}
             subtitleStyle={[styles.mt1, styles.mutedNormalTextLabel, isSubscriptionPage && StyleUtils.getTextColorStyle(theme.trialTimer)]}
             icon={illustrations.TreasureChest}
             rightComponent={!isSubscriptionPage && rightComponent}
         />
     );
 }
-
-EarlyDiscountBanner.displayName = 'EarlyDiscountBanner';
 
 export default EarlyDiscountBanner;

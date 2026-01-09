@@ -24,7 +24,7 @@ type ThreadDividerProps = {
 };
 
 function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Thread'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Thread']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -53,6 +53,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
                     accessibilityLabel={translate('threads.thread')}
                     role={CONST.ROLE.BUTTON}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.THREAD_DIVIDER}
                 >
                     <Icon
                         src={icons.Thread}
@@ -68,5 +69,4 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     );
 }
 
-ThreadDivider.displayName = 'ThreadDivider';
 export default ThreadDivider;

@@ -184,6 +184,4 @@ function NonUSDVerifiedBankAccountFlow({
     return null;
 }
 
-NonUSDVerifiedBankAccountFlow.displayName = 'NonUSDVerifiedBankAccountFlow';
-
 export default NonUSDVerifiedBankAccountFlow;

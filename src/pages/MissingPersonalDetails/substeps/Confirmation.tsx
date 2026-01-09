@@ -59,6 +59,4 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing}
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;

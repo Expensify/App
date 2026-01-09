@@ -280,6 +280,4 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     );
 }
 
-NavigationRoot.displayName = 'NavigationRoot';
-
 export default NavigationRoot;

@@ -73,7 +73,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleRevealCardDetails}
@@ -86,7 +86,5 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         />
     );
 }
-
-ExpensifyCardVerifyAccountPage.displayName = 'ExpensifyCardVerifyAccountPage';
 
 export default ExpensifyCardVerifyAccountPage;

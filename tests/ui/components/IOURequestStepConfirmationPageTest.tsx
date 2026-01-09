@@ -338,7 +338,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </HTMLProviderWrapper>
             </OnyxListItemProvider>,
         );
-        fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', {expensesNumber: 2})));
+        fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', 2)));
         expect(IOU.startSplitBill).toHaveBeenCalledTimes(2);
     });
 

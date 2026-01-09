@@ -7,7 +7,6 @@ import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -68,8 +67,6 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
 
 function ProfilePage({route}: ProfilePageProps) {
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'Phone'] as const);
-
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector, canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
@@ -77,7 +74,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
-
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;
     const reportKey = useMemo(() => {
@@ -177,7 +174,7 @@ function ProfilePage({route}: ProfilePageProps) {
     }, [accountID, isCurrentUser, loginParams, report]);
 
     return (
-        <ScreenWrapper testID={ProfilePage.displayName}>
+        <ScreenWrapper testID="ProfilePage">
             <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
@@ -293,7 +290,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         {!!report?.reportID && !!isDebugModeEnabled && (
                             <MenuItem
                                 title={translate('debug.debug')}
-                                icon={Expensicons.Bug}
+                                icon={expensifyIcons.Bug}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
                             />
@@ -305,7 +302,5 @@ function ProfilePage({route}: ProfilePageProps) {
         </ScreenWrapper>
     );
 }
-
-ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;

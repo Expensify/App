@@ -63,6 +63,4 @@ function BaseQuickEmojiReactions({
     );
 }
 
-BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
-
 export default BaseQuickEmojiReactions;

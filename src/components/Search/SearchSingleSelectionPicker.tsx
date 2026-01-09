@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -117,8 +118,6 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
         />
     );
 }
-
-SearchSingleSelectionPicker.displayName = 'SearchSingleSelectionPicker';
 
 export default SearchSingleSelectionPicker;
 export type {SearchSingleSelectionPickerItem};

@@ -1,4 +1,5 @@
 import type {ForwardedRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {forwardRef, useEffect} from 'react';
 import type {FlatList} from 'react-native';
 import {useAnimatedProps, useComposedEventHandler} from 'react-native-reanimated';
@@ -52,6 +53,5 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ...restProps}: 
         />
     );
 }
-KeyboardDismissibleFlatList.displayName = 'KeyboardDismissibleFlatList';
 
 export default forwardRef(KeyboardDismissibleFlatList);

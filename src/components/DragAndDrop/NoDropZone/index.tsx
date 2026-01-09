@@ -27,6 +27,4 @@ function NoDropZone({children}: NoDropZoneProps) {
     );
 }
 
-NoDropZone.displayName = 'NoDropZone';
-
 export default NoDropZone;

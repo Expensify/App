@@ -22,6 +22,11 @@ type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'CellRendererComponent'> & 
      * Custom cell renderer component
      */
     CellRendererComponent?: React.ComponentType<CellRendererProps<T>> | null;
+
+    /**
+     * Whether to hide the content (e.g. when first displaying the report actions list, we initially show only the top report actions. We then show the full report actions list after the user scrolls)
+     */
+    shouldHideContent?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

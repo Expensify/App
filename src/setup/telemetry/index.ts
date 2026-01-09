@@ -7,13 +7,9 @@ import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import pkg from '../../../package.json';
-import makeDebugTransport, {DEBUG_SENTRY_ENABLED} from './debugTransport';
+import makeDebugTransport from './debugTransport';
 
 export default function (): void {
-    if (isDevelopment() && !DEBUG_SENTRY_ENABLED) {
-        return;
-    }
-
     const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, browserTracingIntegration].filter((integration) => !!integration);
 
     Sentry.init({

@@ -106,7 +106,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={MissingPersonalDetailsContent.displayName}
+            testID="MissingPersonalDetailsContent"
         >
             <HeaderWithBackButton
                 title={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
@@ -130,7 +130,5 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         </ScreenWrapper>
     );
 }
-
-MissingPersonalDetailsContent.displayName = 'MissingPersonalDetailsContent';
 
 export default MissingPersonalDetailsContent;

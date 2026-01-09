@@ -15,7 +15,7 @@ type RepliesDividerProps = {
 };
 
 function RepliesDivider({shouldHideThreadDividerLine}: RepliesDividerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Thread'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Thread']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -37,5 +37,4 @@ function RepliesDivider({shouldHideThreadDividerLine}: RepliesDividerProps) {
     );
 }
 
-RepliesDivider.displayName = 'RepliesDivider';
 export default RepliesDivider;

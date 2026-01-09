@@ -32,14 +32,14 @@ type InviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSpl
 
 function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ToddInCar'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddInCar']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [isInvitationSent, setIsInvitationSent] = useState(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
@@ -216,7 +216,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
 
     if (isInvitationSent || shouldSkipToAllSet) {
         return (
-            <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
+            <ScreenWrapper testID="InviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.allSet')}
                     onBackButtonPress={() => Navigation.dismissModal()}
@@ -241,7 +241,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
+            <ScreenWrapper testID="InviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.sendInvites')}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -263,7 +263,5 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         </AccessOrNotFoundWrapper>
     );
 }
-
-InviteReceiptPartnerPolicyPage.displayName = 'InviteReceiptPartnerPolicyPage';
 
 export default InviteReceiptPartnerPolicyPage;

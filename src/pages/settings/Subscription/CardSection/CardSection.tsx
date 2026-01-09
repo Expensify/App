@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
@@ -46,8 +45,8 @@ function CardSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'CreditCard']);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
@@ -80,8 +79,14 @@ function CardSection() {
     }, []);
 
     const viewPurchases = useCallback(() => {
-        const query = buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+        const query = buildQueryStringFromFilterFormValues({
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            merchant: CONST.EXPENSIFY_MERCHANT,
+        });
+
+        // rawQuery is needed to populate rawFilterList, which prevents useSuggestedSearchDefaultNavigation from auto-redirecting to actionable searches.
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
@@ -193,7 +198,7 @@ function CardSection() {
                     {!isEmptyObject(defaultCard?.accountData) && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <Icon
-                                src={Expensicons.CreditCard}
+                                src={expensifyIcons.CreditCard}
                                 additionalStyles={styles.subscriptionAddedCardIcon}
                                 fill={theme.icon}
                                 medium
@@ -201,11 +206,12 @@ function CardSection() {
                             <View style={styles.flex1}>
                                 <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData, translate)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
-                                    {translate('subscription.cardSection.cardInfo', {
-                                        name: defaultCard?.accountData?.addressName ?? '',
-                                        expiration: `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
-                                        currency: defaultCard?.accountData?.currency ?? '',
-                                    })}
+                                    {translate(
+                                        'subscription.cardSection.cardInfo',
+                                        defaultCard?.accountData?.addressName ?? '',
+                                        `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
+                                        defaultCard?.accountData?.currency ?? '',
+                                    )}
                                 </Text>
                             </View>
                             <CardSectionActions />
@@ -249,7 +255,7 @@ function CardSection() {
                 {!!(subscriptionPlan && account?.isEligibleForRefund) && (
                     <MenuItem
                         shouldShowRightIcon
-                        icon={Expensicons.Bill}
+                        icon={expensifyIcons.Bill}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.requestRefund')}
                         titleStyle={styles.textStrong}
@@ -267,7 +273,11 @@ function CardSection() {
                     isVisible={isRequestRefundModalVisible}
                     onConfirm={requestRefund}
                     onCancel={() => setIsRequestRefundModalVisible(false)}
-                    prompt={<RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />}
+                    prompt={
+                        <View style={[styles.flexRow]}>
+                            <RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />
+                        </View>
+                    }
                     confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
                     cancelText={translate('common.cancel')}
                     danger
@@ -276,7 +286,5 @@ function CardSection() {
         </>
     );
 }
-
-CardSection.displayName = 'CardSection';
 
 export default CardSection;

@@ -46,7 +46,7 @@ function SearchFiltersGroupByPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersGroupByPage.displayName}
+            testID="SearchFiltersGroupByPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -84,7 +84,5 @@ function SearchFiltersGroupByPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersGroupByPage.displayName = 'SearchFiltersGroupByPage';
 
 export default SearchFiltersGroupByPage;

@@ -85,6 +85,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 shouldShowBackButton
                 progressBarPercentage={40}
                 onBackButtonPress={handleBackButtonPress}
+                shouldDisplayHelpButton={false}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
@@ -128,7 +129,5 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingPrivateDomain.displayName = 'BaseOnboardingPrivateDomain';
 
 export default BaseOnboardingPrivateDomain;

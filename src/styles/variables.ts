@@ -102,6 +102,7 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
     superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
@@ -223,6 +224,10 @@ export default {
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     popoverZIndex: 10000,
+    modalBaseZIndex: 9999,
+    sidePanelZIndex: 9998,
+    modalRightDockedZIndex: 9997,
+    modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
@@ -341,6 +346,7 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    w200: 200,
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,
@@ -385,4 +391,9 @@ export default {
 
     // Report search header max width
     reportSearchHeaderMaxWidth: 700,
+
+    // Split expense tabs
+    splitExpenseAmountMobileWidth: 82,
+    splitExpensePercentageWidth: 42,
+    splitExpensePercentageMobileWidth: 62,
 } as const;
