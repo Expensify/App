@@ -1727,6 +1727,16 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes;
+        backToReport?: string;
+        reportActionID?: string;
+    };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
         reportID: string;
@@ -2028,6 +2038,12 @@ type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
         policyID: string;
         bankAccountID: string;
         isCompleted: string;
+    };
+};
+
+type ConnectExistingBankAccountNavigatorParamList = {
+    [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
+        policyID: string;
     };
 };
 
@@ -2407,9 +2423,6 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVOICES]: {
@@ -2945,6 +2958,7 @@ export type {
     ReportVerifyAccountNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     ReimbursementAccountEnterSignerInfoNavigatorParamList,
+    ConnectExistingBankAccountNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,

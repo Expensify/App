@@ -430,7 +430,6 @@ describe('TransactionUtils', () => {
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     },
                 },
-                merchant: '(none)',
             });
 
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.DISTANCE);
@@ -607,7 +606,7 @@ describe('TransactionUtils', () => {
         it('should return (none) if transaction has no merchant', () => {
             const transaction = generateTransaction();
             const merchant = TransactionUtils.getMerchant(transaction);
-            expect(merchant).toBe('Expense');
+            expect(merchant).toBe('(none)');
         });
 
         it('should return modified merchant if transaction has modified merchant', () => {
