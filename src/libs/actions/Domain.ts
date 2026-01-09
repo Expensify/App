@@ -731,11 +731,11 @@ function resetDomain(domainAccountID: number, domainName: string) {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: null,
-        },
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+        //     value: null,
+        // },
     ];
     const successData: OnyxUpdate[] = [
         {

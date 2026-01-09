@@ -49,6 +49,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAdmin, isValidated, action} = item;
+    console.log(item);
 
     const threeDotsMenuItems: PopoverMenuItem[] | undefined = useMemo(
         () =>

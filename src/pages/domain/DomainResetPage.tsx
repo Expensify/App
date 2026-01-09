@@ -12,6 +12,8 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Log from '@libs/__mocks__/Log';
+import {sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -36,11 +38,13 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.route}`;
 
     const handleResetDomain = () => {
-        resetDomain(route.params.domainAccountID);
+        if (!domainName) {
+            Log.hmmm('Domain name is missing');
+            return;
+        }
+        resetDomain(route.params.domainAccountID, domainName);
         Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
     };
-
-    const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replaceAll(/\s+/g, '').toLowerCase();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RESET_DOMAIN_FORM>) => {
         const errors = getFieldRequiredErrors(values, ['domainName']);
@@ -60,7 +64,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             shouldUseCachedViewportHeight
-            testID={DomainResetDomainPage.displayName}
+            testID="DomainResetDomainPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -102,7 +106,5 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
         </ScreenWrapper>
     );
 }
-
-DomainResetDomainPage.displayName = 'DomainResetDomainPage';
 
 export default DomainResetDomainPage;
