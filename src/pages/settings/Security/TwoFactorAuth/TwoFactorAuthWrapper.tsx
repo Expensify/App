@@ -55,10 +55,13 @@ function TwoFactorAuthWrapper({
 
         const is2FAEnabled = !!account.requiresTwoFactorAuth;
 
+        console.log("CHUCKCHUCK stepName", stepName);
         switch (stepName) {
             case CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES:
             case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLE:
+            case CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_NEW:
+            case CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_OLD:
                 return false;
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
                 return !account.codesAreCopied;

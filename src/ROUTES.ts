@@ -453,6 +453,11 @@ const ROUTES = {
     },
     SETTINGS_2FA_DISABLED: 'settings/security/two-factor-auth/disabled',
     SETTINGS_2FA_DISABLE: 'settings/security/two-factor-auth/disable',
+    SETTINGS_2FA_REPLACE_VERIFY_OLD: 'settings/security/two-factor-auth/replace/verify-old',
+    SETTINGS_2FA_REPLACE_VERIFY_NEW: {
+        route: 'settings/security/two-factor-auth/replace/verify-new',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth/replace/verify-new', backTo),
+    },
 
     SETTINGS_STATUS: 'settings/profile/status',
 
