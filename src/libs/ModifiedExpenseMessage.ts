@@ -246,7 +246,7 @@ function getForReportAction({
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency;
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
-        const oldAmount = convertToDisplayString(oldAmountValue, oldCurrency);
+        const oldAmount = oldAmountValue ? convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
 
         const currency = reportActionOriginalMessage?.currency;
         const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
@@ -397,7 +397,7 @@ function getForReportAction({
 
         const taxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
         const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
-        const oldTaxAmount = convertToDisplayString(oldTaxAmountValue, currency);
+        const oldTaxAmount = oldTaxAmountValue > 0 ? convertToDisplayString(oldTaxAmountValue, currency) : '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         buildMessageFragmentForValue(translateLocal, taxAmount, oldTaxAmount, translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
@@ -536,7 +536,7 @@ function getForReportActionTemp({
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency;
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
-        const oldAmount = convertToDisplayString(oldAmountValue, oldCurrency);
+        const oldAmount = oldAmountValue ? convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
 
         const currency = reportActionOriginalMessage?.currency;
         const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
@@ -659,7 +659,7 @@ function getForReportActionTemp({
 
         const taxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
         const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
-        const oldTaxAmount = convertToDisplayString(oldTaxAmountValue, currency);
+        const oldTaxAmount = oldTaxAmountValue > 0 ? convertToDisplayString(oldTaxAmountValue, currency) : '';
         buildMessageFragmentForValue(translate, taxAmount, oldTaxAmount, translate('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 

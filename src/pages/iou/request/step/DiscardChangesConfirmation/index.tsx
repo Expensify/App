@@ -1,5 +1,5 @@
 import type {NavigationAction} from '@react-navigation/native';
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
@@ -11,8 +11,9 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled = true}: DiscardChangesConfirmationProps) {
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
+    const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
@@ -22,7 +23,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
     useBeforeRemove(
         useCallback(
             (e) => {
-                if (!getHasUnsavedChanges() || shouldNavigateBack.current) {
+                if (!isEnabled || !isFocused || !getHasUnsavedChanges() || shouldNavigateBack.current) {
                     return;
                 }
 
@@ -30,8 +31,9 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
                 blockedNavigationAction.current = e.data.action;
                 navigateAfterInteraction(() => setIsVisible((prev) => !prev));
             },
-            [getHasUnsavedChanges],
+            [getHasUnsavedChanges, isFocused, isEnabled],
         ),
+        isEnabled && isFocused,
     );
 
     /**
@@ -40,6 +42,9 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
      * So we need to go forward to get back to the current page
      */
     useEffect(() => {
+        if (!isEnabled || !isFocused) {
+            return undefined;
+        }
         // transitionStart is triggered before the previous page is fully loaded so RHP sliding animation
         // could be less "glitchy" when going back and forth between the previous and current pages
         const unsubscribe = navigation.addListener('transitionStart', ({data: {closing}}) => {
@@ -58,7 +63,16 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
         });
 
         return unsubscribe;
-    }, [navigation, getHasUnsavedChanges]);
+    }, [navigation, getHasUnsavedChanges, isFocused, isEnabled]);
+
+    useEffect(() => {
+        if ((isFocused && isEnabled) || !isVisible) {
+            return;
+        }
+        setIsVisible(false);
+        blockedNavigationAction.current = undefined;
+        shouldNavigateBack.current = false;
+    }, [isFocused, isVisible, isEnabled]);
 
     const navigateBack = useCallback(() => {
         if (blockedNavigationAction.current) {
