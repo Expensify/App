@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -142,7 +143,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
+    const cardFeedErrors = useCardFeedErrors();
+
+    const hasCardFeedErrors = Object.values(cardFeedErrors).some((feedErrors) => Object.values(feedErrors).some((feedError) => feedError.shouldShowRBR));
+
+    const hasBrokenFeedConnection = hasCardFeedErrors || checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     const walletBrickRoadIndicator = useMemo(() => {
         if (hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
