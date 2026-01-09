@@ -50,6 +50,7 @@ const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = [
     'MoneyCircle',
     'Percent',
     'Crosshair',
+    'Meter',
     'Clock',
 ] as const;
 
@@ -87,6 +88,8 @@ function getIconTitleAndTestID(
             return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
         case CONST.TAB_REQUEST.DISTANCE_GPS:
             return {icon: icons.Crosshair, title: translate('tabSelector.gps'), testID: 'distanceGPS'};
+        case CONST.TAB_REQUEST.DISTANCE_ODOMETER:
+            return {icon: icons.Meter, title: translate('tabSelector.odometer'), testID: 'distanceOdometer'};
         case CONST.TAB.SPLIT.AMOUNT:
             return {icon: icons.MoneyCircle, title: translate('iou.amount'), testID: 'split-amount'};
         case CONST.TAB.SPLIT.PERCENTAGE:
