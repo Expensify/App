@@ -13,6 +13,7 @@ import DualDropZone from '@components/DropZone/DualDropZone';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -132,6 +133,14 @@ const AI_PLACEHOLDER_KEYS = [
     'reportActionCompose.addColleagueWithMention',
 ] as const;
 
+/**
+ * Returns a random AI-aware placeholder for expense threads
+ */
+function getRandomPlaceholder(translate: LocalizedTranslate): string {
+    const randomIndex = Math.floor(Math.random() * AI_PLACEHOLDER_KEYS.length);
+    return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
+}
+
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
 
@@ -186,8 +195,6 @@ function ReportActionCompose({
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     });
-
-    const [randomPlaceholderIndex] = useState(() => Math.floor(Math.random() * AI_PLACEHOLDER_KEYS.length));
 
     /**
      * Updates the visibility state of the menu
@@ -272,11 +279,11 @@ function ReportActionCompose({
         // Show AI-aware placeholder for expense-related reports where user can write
         // to encourage using Concierge AI for expense management
         if (isExpenseRelatedReport && canUserPerformWriteAction) {
-            return translate(AI_PLACEHOLDER_KEYS[randomPlaceholderIndex]);
+            return getRandomPlaceholder(translate);
         }
 
         return translate('reportActionCompose.writeSomething');
-    }, [includesConcierge, translate, userBlockedFromConcierge, isExpenseRelatedReport, canUserPerformWriteAction, randomPlaceholderIndex]);
+    }, [includesConcierge, translate, userBlockedFromConcierge, isExpenseRelatedReport, canUserPerformWriteAction]);
 
     const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
 
