@@ -12,10 +12,7 @@ type ResetDomainForm = Form<
     {
         [INPUT_IDS.DOMAIN_NAME]: string;
     }
-> & {
-    /** Whether domain creation has succeeded */
-    hasCreationSucceeded?: boolean;
-};
+>;
 
 export type {ResetDomainForm};
 export default INPUT_IDS;
