@@ -780,13 +780,13 @@ const keywordTests = [
         },
     },
     {
-        query: 'columns:original-amount,tax-amount,is',
+        query: 'columns:original-amount,tax,report-id',
         expected: {
             type: 'expense',
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
-            columns: ['originalAmount', 'taxAmount', 'is'],
+            columns: ['originalAmount', 'taxAmount', 'base62ReportID'],
             filters: null,
         },
     },
