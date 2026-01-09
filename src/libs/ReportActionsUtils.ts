@@ -8,12 +8,23 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
 import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isActionableWhisperRequiringWritePermission} from '@userActions/OnyxDerived/configs/visibleReportActions';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
+import type {
+    Card,
+    OnyxInputOrEntry,
+    OriginalMessageIOU,
+    PersonalDetails,
+    Policy,
+    PrivatePersonalDetails,
+    ReportMetadata,
+    ReportNameValuePairs,
+    VisibleReportActionsDerivedValue,
+} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, OriginalMessageUnreportedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -1120,6 +1131,55 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
 }
 
 /**
+ * Checks if a report action is visible using the pre-computed derived value when available,
+ * falling back to runtime calculation if not.
+ */
+function isReportActionVisible(
+    reportAction: OnyxEntry<ReportAction>,
+    reportID: string,
+    canUserPerformWriteAction?: boolean,
+    visibleReportActions?: VisibleReportActionsDerivedValue,
+): boolean {
+    if (visibleReportActions) {
+        const staticVisibility = visibleReportActions[reportID]?.[reportAction?.reportActionID ?? ''] ?? true;
+        if (!staticVisibility) {
+            return false;
+        }
+        if (!canUserPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) {
+            return false;
+        }
+        return true;
+    }
+    return shouldReportActionBeVisible(reportAction, reportAction?.reportActionID ?? '', canUserPerformWriteAction);
+}
+
+/**
+ * Checks if a report action is visible as last action using the pre-computed derived value when available,
+ * falling back to runtime calculation if not.
+ */
+function isReportActionVisibleAsLastAction(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    canUserPerformWriteAction?: boolean,
+    visibleReportActions?: VisibleReportActionsDerivedValue,
+): boolean {
+    if (!reportAction) {
+        return false;
+    }
+
+    if (Object.keys(reportAction.errors ?? {}).length > 0) {
+        return false;
+    }
+
+    const reportID = reportAction.reportID ?? '';
+
+    return (
+        isReportActionVisible(reportAction, reportID, canUserPerformWriteAction, visibleReportActions) &&
+        (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
+        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction) && !isPendingHide(reportAction))
+    );
+}
+
+/**
  * For policy change logs, report URLs are generated in the server,
  * which includes a baseURL placeholder that's replaced in the client.
  */
@@ -1150,6 +1210,7 @@ function getLastVisibleAction(
     canUserPerformWriteAction?: boolean,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!isEmpty(actionsToMerge)) {
@@ -1159,7 +1220,7 @@ function getLastVisibleAction(
     } else {
         reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
-    const visibleReportActions = reportActions.filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction));
+    const visibleReportActions = reportActions.filter((action): action is ReportAction => isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return undefined;
@@ -1187,8 +1248,9 @@ function getLastVisibleMessage(
     canUserPerformWriteAction?: boolean,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ): LastVisibleMessage {
-    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge);
+    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge, undefined, visibleReportActionsData);
     const message = getReportActionMessage(lastVisibleAction);
 
     if (message && isReportMessageAttachment(message)) {
@@ -1290,6 +1352,7 @@ function getSortedReportActionsForDisplay(
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     canUserPerformWriteAction?: boolean,
     shouldIncludeInvisibleActions = false,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
@@ -1300,7 +1363,10 @@ function getSortedReportActionsForDisplay(
         filteredReportActions = Object.values(reportActions).filter(Boolean);
     } else {
         filteredReportActions = Object.entries(reportActions)
-            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction))
+            .filter(([, reportAction]) => {
+                const reportID = reportAction?.reportID ?? '';
+                return isReportActionVisible(reportAction, reportID, canUserPerformWriteAction, visibleReportActionsData);
+            })
             .map(([, reportAction]) => reportAction);
     }
 
@@ -1599,9 +1665,14 @@ function getOneTransactionThreadReportID(...args: Parameters<typeof getOneTransa
  * When we delete certain reports, we want to check whether there are any visible actions left to display.
  * If there are no visible actions left (including system messages), we can hide the report from view entirely
  */
-function doesReportHaveVisibleActions(reportID: string, canUserPerformWriteAction?: boolean, actionsToMerge: ReportActions = {}): boolean {
+function doesReportHaveVisibleActions(
+    reportID: string,
+    canUserPerformWriteAction?: boolean,
+    actionsToMerge: ReportActions = {},
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+): boolean {
     const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge, true));
-    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction));
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData));
 
     // Exclude the task system message and the created message
     const visibleReportActionsWithoutTaskSystemMessage = visibleReportActions.filter((action) => !isTaskAction(action) && !isCreatedAction(action));
@@ -3649,6 +3720,8 @@ export {
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
+    isReportActionVisible,
+    isReportActionVisibleAsLastAction,
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,

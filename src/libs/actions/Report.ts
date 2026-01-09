@@ -198,6 +198,7 @@ import type {
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
+    VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -314,6 +315,14 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+    },
+});
+
+let visibleReportActionsData: VisibleReportActionsDerivedValue | undefined;
+Onyx.connect({
+    key: ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS,
+    callback: (value) => {
+        visibleReportActionsData = value ?? undefined;
     },
 });
 
@@ -2038,7 +2047,7 @@ function deleteReportComment(
             (action) =>
                 action.reportActionID !== reportAction.reportActionID &&
                 ReportActionsUtils.didMessageMentionCurrentUser(action) &&
-                ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID),
+                ReportActionsUtils.isReportActionVisible(action, reportID, undefined, visibleReportActionsData),
         );
         optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
     }

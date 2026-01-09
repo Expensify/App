@@ -76,12 +76,12 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isReportActionVisible,
     isReportPreviewAction,
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
     isWhisperAction,
-    shouldReportActionBeVisible,
     withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
@@ -160,6 +160,7 @@ import type {
     ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
+    VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -241,6 +242,14 @@ Onyx.connect({
     },
 });
 
+let visibleReportActionsData: VisibleReportActionsDerivedValue | undefined;
+Onyx.connect({
+    key: ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS,
+    callback: (value) => {
+        visibleReportActionsData = value ?? undefined;
+    },
+});
+
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 let allReportActions: OnyxCollection<ReportActions>;
@@ -254,6 +263,14 @@ Onyx.connect({
         }
 
         allReportActions = actions ?? {};
+
+        // Skip processing if derived value is not ready yet - will be processed when derived value loads
+        if (!visibleReportActionsData) {
+            return;
+        }
+
+        // Capture the current value of visibleReportActionsData to avoid closure issues
+        const currentVisibleReportActionsData = visibleReportActionsData;
 
         // Iterate over the report actions to build the sorted and lastVisible report actions objects
         for (const reportActions of Object.entries(allReportActions)) {
@@ -290,9 +307,9 @@ Onyx.connect({
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
             const reportActionsForDisplay = sortedReportActions.filter(
-                (reportAction, actionKey) =>
+                (reportAction) =>
                     (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
-                    shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed) &&
+                    isReportActionVisible(reportAction, reportID, isWriteActionAllowed, currentVisibleReportActionsData) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
@@ -598,6 +615,7 @@ function getLastMessageTextForReport({
     isReportArchived = false,
     policyForMovingExpensesID,
     reportMetadata,
+    visibleReportActionsDataParam,
 }: {
     report: OnyxEntry<Report>;
     lastActorDetails: Partial<PersonalDetails> | null;
@@ -607,10 +625,11 @@ function getLastMessageTextForReport({
     isReportArchived?: boolean;
     policyForMovingExpensesID?: string;
     reportMetadata?: OnyxEntry<ReportMetadata>;
+    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue;
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
-    const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
+    const lastVisibleMessage = getLastVisibleMessage(report?.reportID, undefined, {}, undefined, visibleReportActionsDataParam);
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
@@ -646,10 +665,11 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReportAction = iouReport?.reportID
-            ? allSortedReportActions[iouReport.reportID]?.find(
-                  (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                      shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction(report, isReportArchived)) &&
+        const iouReportID = iouReport?.reportID ?? '';
+        const lastIOUMoneyReportAction = iouReportID
+            ? allSortedReportActions[iouReportID]?.find(
+                  (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                      isReportActionVisible(reportAction, iouReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) &&
                       reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                       isMoneyRequestAction(reportAction),
               )

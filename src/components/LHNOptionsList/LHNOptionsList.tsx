@@ -34,7 +34,7 @@ import {
     getSortedReportActionsForDisplay,
     isInviteOrRemovedAction,
     isMoneyRequestAction,
-    shouldReportActionBeVisibleAsLastAction,
+    isReportActionVisibleAsLastAction,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -71,6 +71,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const theme = useTheme();
@@ -204,7 +205,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
             const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
-            const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
+            const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite, false, visibleReportActionsData);
             const lastReportAction = sortedReportActions.at(0);
 
             // Get the transaction for the last report action
@@ -236,6 +237,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
                 policyForMovingExpensesID,
                 reportMetadata: itemReportMetadata,
+                visibleReportActionsDataParam: visibleReportActionsData,
             });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
@@ -247,7 +249,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 const canUserPerformWriteAction = canUserPerformWriteActionUtil(item, isReportArchived);
                 const actionsArray = getSortedReportActions(Object.values(itemReportActions));
                 const reportActionsForDisplay = actionsArray.filter(
-                    (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    (reportAction) =>
+                        isReportActionVisibleAsLastAction(reportAction, canUserPerformWriteAction, visibleReportActionsData) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
                 );
                 lastAction = reportActionsForDisplay.at(-1);
             }

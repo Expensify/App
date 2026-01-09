@@ -31,6 +31,9 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
 const supportedActionTypes = new Set<ReportActionName>([...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)]);
 
+// DEBUG: Counter to track compute calls - remove after debugging
+let computeCallCount = 0;
+
 function getOrCreateReportVisibilityRecord(result: VisibleReportActionsDerivedValue, reportID: string): Record<string, boolean> {
     if (!result[reportID]) {
         // eslint-disable-next-line no-param-reassign
@@ -159,6 +162,14 @@ export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS,
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.SESSION],
     compute: ([allReportActions, allReports, session], {sourceValues, currentValue}): VisibleReportActionsDerivedValue => {
+        // DEBUG: Log compute calls - remove after debugging
+        computeCallCount++;
+        // eslint-disable-next-line no-console
+        console.log(`[DERIVED COMPUTE] visibleReportActions #${computeCallCount}`, {
+            trigger: sourceValues ? Object.keys(sourceValues).join(', ') : 'INITIAL',
+            timestamp: new Date().toISOString(),
+        });
+
         if (!allReportActions) {
             return {};
         }
