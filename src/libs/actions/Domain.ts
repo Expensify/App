@@ -625,15 +625,9 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
 }
 
 /**
- * Removes an error after trying to add admin
+ * Removes an error and pending actions after trying to add admin
  */
 function clearAdminError(domainAccountID: number, accountID: number) {
-    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        [PERMISSION_KEY]: null,
-    });
-
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         adminErrors: {
             [accountID]: null,
@@ -650,16 +644,7 @@ function clearAdminError(domainAccountID: number, accountID: number) {
  * Removes admin access for a domain member
  */
 function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
-    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
-
     const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                [PERMISSION_KEY]: null,
-            },
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,

@@ -39,7 +39,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
 
     const [primaryContact] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: domainSettingsPrimaryContactSelector,
-        canBeMissing: false,
+        canBeMissing: true,
     });
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -73,6 +73,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         if (confirmResult.action !== ModalActions.CONFIRM) {
             return;
         }
+
         revokeDomainAdminAccess(route.params.domainAccountID, route.params.accountID);
         Navigation.dismissModal();
     };
