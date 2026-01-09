@@ -1,5 +1,5 @@
 import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
-import * as MoneyRequestReportUtils from '@libs/MoneyRequestReportUtils';
+import {getReportIDForTransaction, hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 
@@ -117,28 +117,28 @@ describe('MoneyRequestReportUtils', () => {
     describe('getReportIDForTransaction', () => {
         it('returns transaction thread ID if its not from one transaction report', () => {
             const transactionItem: TransactionListItemType = {...transactionItemBaseMock};
-            const resultID = MoneyRequestReportUtils.getReportIDForTransaction(transactionItem, '456');
+            const resultID = getReportIDForTransaction(transactionItem, '456');
 
             expect(resultID).toBe('456');
         });
 
         it('returns transaction thread ID if its from self DM', () => {
             const transactionItem: TransactionListItemType = {...transactionItemBaseMock, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
-            const resultID = MoneyRequestReportUtils.getReportIDForTransaction(transactionItem, '456');
+            const resultID = getReportIDForTransaction(transactionItem, '456');
 
             expect(resultID).toBe('456');
         });
 
         it('returns expense reportID if its from one transaction report', () => {
             const transactionItem: TransactionListItemType = {...transactionItemBaseMock, report: {...reportBaseMock, transactionCount: 1}};
-            const resultID = MoneyRequestReportUtils.getReportIDForTransaction(transactionItem);
+            const resultID = getReportIDForTransaction(transactionItem);
 
             expect(resultID).toBe('123');
         });
 
         it('returns reportID if transaction thread ID is 0 - unreported', () => {
             const transactionItem: TransactionListItemType = {...transactionItemBaseMock};
-            const resultID = MoneyRequestReportUtils.getReportIDForTransaction(transactionItem);
+            const resultID = getReportIDForTransaction(transactionItem);
 
             expect(resultID).toBe('123');
         });
@@ -146,17 +146,17 @@ describe('MoneyRequestReportUtils', () => {
 
     describe('isBillableEnabledOnPolicy', () => {
         test('returns false when policy is missing', () => {
-            expect(MoneyRequestReportUtils.isBillableEnabledOnPolicy(undefined)).toBe(false);
+            expect(isBillableEnabledOnPolicy(undefined)).toBe(false);
         });
 
         test('returns true when defaultBillable is not disabled', () => {
             const policy = {disabledFields: {defaultBillable: false}} as unknown as Policy;
-            expect(MoneyRequestReportUtils.isBillableEnabledOnPolicy(policy)).toBe(true);
+            expect(isBillableEnabledOnPolicy(policy)).toBe(true);
         });
 
         test('returns false when defaultBillable is disabled', () => {
             const policy = {disabledFields: {defaultBillable: true}} as unknown as Policy;
-            expect(MoneyRequestReportUtils.isBillableEnabledOnPolicy(policy)).toBe(false);
+            expect(isBillableEnabledOnPolicy(policy)).toBe(false);
         });
     });
 
@@ -164,13 +164,13 @@ describe('MoneyRequestReportUtils', () => {
         test('returns false when all transactions are reimbursable by default', () => {
             const t1 = {reimbursable: undefined} as unknown as Transaction;
             const t2 = {reimbursable: true} as unknown as Transaction;
-            expect(MoneyRequestReportUtils.hasNonReimbursableTransactions([t1, t2])).toBe(false);
+            expect(hasNonReimbursableTransactions([t1, t2])).toBe(false);
         });
 
         test('returns true when any transaction is non-reimbursable', () => {
             const reimbursable = {reimbursable: true} as unknown as Transaction;
             const nonReimbursable = {reimbursable: false} as unknown as Transaction;
-            expect(MoneyRequestReportUtils.hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
+            expect(hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
         });
     });
 });
