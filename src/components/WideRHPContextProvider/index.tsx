@@ -210,7 +210,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * It helps us open expense as wide, before it fully loads.
      */
     const markReportIDAsExpense = useCallback(
-        (reportID: string) => {
+        (reportID?: string) => {
+            if (!reportID) {
+                return;
+            }
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const isInvoice = report?.type === CONST.REPORT.TYPE.INVOICE;
             const isTask = report?.type === CONST.REPORT.TYPE.TASK;

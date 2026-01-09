@@ -31,10 +31,12 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
+import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getReportName, isHiddenForCurrentUser} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -193,6 +195,8 @@ function RoomInvitePage({
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
+    const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
+    const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const backRoute = useMemo(() => {
         return reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, backTo, isReportArchived]);
@@ -217,16 +221,16 @@ function RoomInvitePage({
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         }
-        if (reportID) {
-            inviteToRoomAction(reportID, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
+        if (report?.reportID) {
+            inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
             clearUserSearchPhrase();
             if (backTo) {
                 Navigation.goBack(backTo);
             } else {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             }
         }
-    }, [validate, selectedOptions, ancestors, reportID, currentUserPersonalDetails.timezone, backTo]);
+    }, [validate, selectedOptions, ancestors, report, currentUserPersonalDetails.timezone, backTo]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
@@ -270,7 +274,7 @@ function RoomInvitePage({
             >
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
-                    subtitle={reportName}
+                    subtitle={shouldParserToHTML ? Parser.htmlToText(reportName) : reportName}
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
