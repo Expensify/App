@@ -100,6 +100,7 @@ const WRITE_COMMANDS = {
     SIGN_IN_USER: 'SigninUser',
     SIGN_IN_USER_WITH_LINK: 'SigninUserWithLink',
     REQUEST_UNLINK_VALIDATION_LINK: 'RequestUnlinkValidationLink',
+    UNSHARE_BANK_ACCOUNT: 'UnshareBankAccount',
     UNLINK_LOGIN: 'UnlinkLogin',
     ENABLE_TWO_FACTOR_AUTH: 'EnableTwoFactorAuth',
     DISABLE_TWO_FACTOR_AUTH: 'DisableTwoFactorAuth',
@@ -531,6 +532,7 @@ const WRITE_COMMANDS = {
     SET_TECHNICAL_CONTACT_EMAIL: 'SetTechnicalContactEmail',
     TOGGLE_CONSOLIDATED_DOMAIN_BILLING: 'ToggleConsolidatedDomainBilling',
     ADD_DOMAIN_ADMIN: 'AddDomainAdmin',
+    REMOVE_DOMAIN_ADMIN: 'RemoveDomainAdmin',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -889,6 +891,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RESOLVE_DUPLICATES]: Parameters.ResolveDuplicatesParams;
     [WRITE_COMMANDS.MERGE_TRANSACTION]: Parameters.MergeTransactionParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE]: Parameters.UpdateSubscriptionTypeParams;
+    [WRITE_COMMANDS.UNSHARE_BANK_ACCOUNT]: Parameters.UnshareBankAccountParams;
     [WRITE_COMMANDS.SIGN_UP_USER]: Parameters.SignUpUserParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY]: Parameters.UpdateSubscriptionAddNewUsersAutomaticallyParams;
@@ -1082,6 +1085,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_DOMAIN]: Parameters.DomainParams;
     [WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL]: Parameters.SetTechnicalContactEmailParams;
     [WRITE_COMMANDS.TOGGLE_CONSOLIDATED_DOMAIN_BILLING]: Parameters.ToggleConsolidatedDomainBillingParams;
+    [WRITE_COMMANDS.REMOVE_DOMAIN_ADMIN]: Parameters.RemoveDomainAdminParams;
     [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: Parameters.AddAdminToDomainParams;
 };
 

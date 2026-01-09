@@ -31,7 +31,7 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
             onCancel={onClose}
             prompt={
                 <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML html={translate('focusModeUpdateModal.prompt', priorityModePageUrl)} />
+                    <RenderHTML html={translate('focusModeUpdateModal.prompt', {priorityModePageUrl})} />
                 </View>
             }
             isVisible

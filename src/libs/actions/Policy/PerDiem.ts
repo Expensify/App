@@ -136,7 +136,9 @@ function updateImportSpreadsheetData(ratesLength: number) {
                     importFinalModal: {
                         titleKey: 'spreadsheet.importSuccessfulTitle',
                         promptKey: 'spreadsheet.importPerDiemRatesSuccessfulDescription',
-                        promptKeyParams: [ratesLength],
+                        promptKeyParams: {
+                            rates: ratesLength,
+                        },
                     },
                 },
             },
