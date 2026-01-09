@@ -184,8 +184,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
 
         const lastReportRoute = getLastRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
         if (lastReportRoute) {
-            const {reportID} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            const {reportID, reportActionID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo));
             return;
         }
 
