@@ -615,7 +615,9 @@ function IOURequestStepConfirmation({
                         originalTransactionID: item.comment?.originalTransactionID,
                         source: item.comment?.source,
                         isLinkedTrackedExpenseReportArchived,
-                        ...(isTimeRequest ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: 'h'} : {}),
+                        ...(isTimeRequest
+                            ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR}
+                            : {}),
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport,
