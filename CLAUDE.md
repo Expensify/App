@@ -240,7 +240,7 @@ npm run android
 npm run web
 ```
 
-## Browser Testing with Playwright
+## Browser Testing with Playwright MCP
 
 Claude can interact with the running App dev server using Playwright MCP for testing and debugging:
 
@@ -248,17 +248,29 @@ Claude can interact with the running App dev server using Playwright MCP for tes
 1. Verify dev server is running
 2. Dev server runs at `https://dev.new.expensify.com:8082/`
 3. Ask Claude to open the URL in Playwright browser
+2. **IF MCP NOT AVAILABLE**: Guide user to install it before proceeding
 
-### Verifying Dev server is running
-- Verify App server is running: `ps aux | grep "webpack" | grep -v grep`
-- **App dev server runs on the HOST machine**, not inside the VM
-- Start command: `cd App && npm run web`
-- The VM is for backend services only (Auth, Bedrock, Integration-Server, Web-Expensify)
+### MCP Installation
+If Playwright MCP connection fails, guide user to install:
+```bash
+claude mcp add playwright npx '@playwright/mcp@latest'
+```
 
-### Dev Environment Sign-In
-- **Email**: Use any random Gmail address (e.g., `userthrowaway123456@gmail.com`)
+### Testing Workflow (MCP Required)
+1. Verify App dev server is running: `ps aux | grep "webpack" | grep -v grep`
+2. Use Playwright MCP tools to navigate to `https://dev.new.expensify.com:8082/`
+3. Use MCP tools to interact with the browser (click, type, screenshot, etc.)
+
+### Dev Server Requirements
+- **Location**: Runs on HOST machine (not in VM)
+- **URL**: `https://dev.new.expensify.com:8082/`
+- **Start command**: `cd App && npm run web`
+- **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
+
+### Dev Environment Sign-In Credentials
+- **Email**: Any random Gmail address (e.g., `testuser12345@gmail.com`)
 - **Magic code**: Always `000000` in dev environment
-- **Onboarding**: Skip optional steps
+- **Onboarding**: Skip all optional steps
 
 ## Architecture Decisions
 
