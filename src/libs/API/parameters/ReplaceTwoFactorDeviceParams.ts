@@ -4,4 +4,3 @@ type ReplaceTwoFactorDeviceParams = {
 };
 
 export default ReplaceTwoFactorDeviceParams;
-

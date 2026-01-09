@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -7,8 +7,11 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import {clearTwoFactorAuthSecretKey} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
@@ -19,6 +22,14 @@ function ReplaceDeviceVerifyOldPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
+
+    // Navigate to verify new page when we receive the new secret key from the backend
+    useEffect(() => {
+        if (!account?.twoFactorAuthSecretKey) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_NEW.route);
+    }, [account?.twoFactorAuthSecretKey]);
 
     return (
         <TwoFactorAuthWrapper
@@ -57,4 +68,3 @@ function ReplaceDeviceVerifyOldPage() {
 }
 
 export default ReplaceDeviceVerifyOldPage;
-

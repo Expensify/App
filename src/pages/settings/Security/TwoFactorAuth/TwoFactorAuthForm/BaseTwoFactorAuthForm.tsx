@@ -14,12 +14,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {isValidRecoveryCode, isValidTwoFactorCode} from '@libs/ValidationUtils';
 import {clearAccountMessages, replaceTwoFactorDevice, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {BaseTwoFactorAuthFormRef} from './types';
 
 type BaseTwoFactorAuthFormProps = {
@@ -113,13 +111,11 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus,
 
         if (step === CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_OLD) {
             replaceTwoFactorDevice('verify_old', sanitizedTwoFactorCode);
-            Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_NEW.route);
             return;
         }
 
         if (step === CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_NEW) {
             replaceTwoFactorDevice('verify_new', sanitizedTwoFactorCode);
-            Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.route);
             return;
         }
 

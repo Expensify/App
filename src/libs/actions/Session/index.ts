@@ -1193,6 +1193,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                // Clear the secret key once we know we no longer need to show it
+                // This is necessary in case the user needs to complete the replaceTwoFactorDevice flow on this device at some point in the future - that flow uses the presence of this key to know when to navigate from one step to the next
+                twoFactorAuthSecretKey: null,
             },
         },
     ];
@@ -1233,6 +1236,7 @@ function replaceTwoFactorDevice(step: 'verify_old' | 'verify_new', twoFactorAuth
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: true,
+                errors: null,
             },
         },
     ];
@@ -1243,6 +1247,9 @@ function replaceTwoFactorDevice(step: 'verify_old' | 'verify_new', twoFactorAuth
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                errors: null,
+                // clear out the secret key to signal to the view that the call succeeded
+                ...(step === 'verify_new' ? {twoFactorAuthSecretKey: null} : {}),
             },
         },
     ];
@@ -1259,7 +1266,15 @@ function replaceTwoFactorDevice(step: 'verify_old' | 'verify_new', twoFactorAuth
 
     const params: ReplaceTwoFactorDeviceParams = {step, twoFactorAuthCode};
 
-    API.write(WRITE_COMMANDS.REPLACE_TWO_FACTOR_DEVICE, params, {optimisticData, successData, failureData});
+    return API.write(WRITE_COMMANDS.REPLACE_TWO_FACTOR_DEVICE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears the two-factor auth secret key from account data.
+ * Used when starting the device replacement flow to ensure clean state.
+ */
+function clearTwoFactorAuthSecretKey() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: undefined});
 }
 
 /**
@@ -1544,6 +1559,7 @@ export {
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
     replaceTwoFactorDevice,
+    clearTwoFactorAuthSecretKey,
     waitForUserSignIn,
     hasAuthToken,
     isExpiredSession,
