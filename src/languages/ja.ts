@@ -81,6 +81,7 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
+    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
@@ -652,6 +653,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: '経費精算対象の合計',
         nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
+        insights: 'インサイト',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -972,15 +974,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'サブスクリプション',
         domains: 'ドメイン',
     },
-    tabSelector: {
-        chat: 'チャット',
-        room: '部屋',
-        distance: '距離',
-        manual: '手動',
-        scan: 'スキャン',
-        map: '地図',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: 'チャット', room: '部屋', distance: '距離', manual: '手動', scan: 'スキャン', map: '地図', gps: 'GPS', odometer: 'オドメーター'},
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',
         import: 'スプレッドシートをインポート',
@@ -1254,7 +1248,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いはキャンセルされました`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} が銀行口座を追加しました。${amount} の支払いが行われました。`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}は支払済みにマークされました`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}は支払済みにマークされました${comment ? `、「${comment}」と言っています` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}はウォレットで支払い済み`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}は<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>を通じてExpensifyで支払われました`,
@@ -1308,6 +1302,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'このワークスペースでは無効なレートです。ワークスペースから利用可能なレートを選択してください。',
             endDateBeforeStartDate: '終了日は開始日より前にはできません',
             endDateSameAsStartDate: '終了日は開始日と同じにはできません',
+            invalidReadings: '開始と終了の両方の読みを入力してください',
+            negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: '注意！このエラーを無視すると、アップロードした領収書が完全に削除されます。本当に実行しますか？',
@@ -1823,6 +1819,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Sentryリクエストをコンソールに記録',
             sentryHighlightedSpanOps: 'ハイライト表示するspan名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: '左側ナビキャッシュ',
+            clearleftHandNavCache: 'クリア',
         },
         debugConsole: {
             saveLog: 'ログを保存',
@@ -3825,9 +3823,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 最終同期日 ${formattedDate}`,
             authenticationError: (connectionName: string) => `認証エラーのため、${connectionName} に接続できません。`,
             learnMore: '詳細はこちら',
-            memberAlternateText: 'メンバーはレポートを提出および承認できます。',
-            adminAlternateText: '管理者は、すべてのレポートとワークスペース設定を完全に編集できます。',
-            auditorAlternateText: '監査担当者はレポートを閲覧し、コメントすることができます。',
+            memberAlternateText: 'レポートを提出して承認する。',
+            adminAlternateText: 'レポートとワークスペース設定を管理します。',
+            auditorAlternateText: 'レポートを表示してコメントする。',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -6758,6 +6756,7 @@ ${reportName}
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
+        topSpenders: 'トップ支出者',
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
@@ -6893,6 +6892,8 @@ ${reportName}
                 removedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} への接続を削除しました`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続済み`,
                 leftTheChat: 'チャットを退出しました',
+                companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
+                    `${feedName} との接続が切断されています。カードの取引明細の取り込みを再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
@@ -7052,6 +7053,7 @@ ${reportName}
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
         },
+        odometer: {startReading: '読み始める', endReading: '読み取り終了', saveForLater: '後で保存', totalDistance: '合計距離'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成績証明書の紛失または損傷',

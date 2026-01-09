@@ -81,6 +81,7 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
+    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
@@ -649,6 +650,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: '可报销总额',
         nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
+        insights: '洞察',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -961,15 +963,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: '订阅',
         domains: '域名',
     },
-    tabSelector: {
-        chat: '聊天',
-        room: '房间',
-        distance: '距离',
-        manual: '手动',
-        scan: '扫描',
-        map: '地图',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: '聊天', room: '房间', distance: '距离', manual: '手动', scan: '扫描', map: '地图', gps: 'GPS', odometer: '里程表'},
     spreadsheet: {
         upload: '上传电子表格',
         import: '导入电子表格',
@@ -1233,7 +1227,7 @@ const translations: TranslationDeepObject<typeof en> = {
         adminCanceledRequest: '已取消付款',
         canceledRequest: (amount: string, submitterDisplayName: string) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify Wallet`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}标记为已支付`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}标记为已支付${comment ? `，说"${comment}"` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}使用钱包支付`,
         automaticallyPaidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}通过 Expensify 按照<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>付款`,
         noReimbursableExpenses: '此报表包含无效金额',
@@ -1286,6 +1280,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: '此汇率对该工作区无效。请选择此工作区中的可用汇率。',
             endDateBeforeStartDate: '结束日期不能早于开始日期',
             endDateSameAsStartDate: '结束日期不能与开始日期相同',
+            invalidReadings: '请输入起始读数和结束读数',
+            negativeDistanceNotAllowed: '结束读数必须大于开始读数',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒！关闭此错误会完全删除你上传的收据。确定要继续吗？',
@@ -1795,6 +1791,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: '将Sentry请求记录到控制台',
             sentryHighlightedSpanOps: '突出显示的Span名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: '左侧导航缓存',
+            clearleftHandNavCache: '清除',
         },
         debugConsole: {
             saveLog: '保存日志',
@@ -3770,9 +3768,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 上次同步时间：${formattedDate}`,
             authenticationError: (connectionName: string) => `由于身份验证错误，无法连接到 ${connectionName}。`,
             learnMore: '了解更多',
-            memberAlternateText: '成员可以提交和批准报表。',
-            adminAlternateText: '管理员对所有报表和工作区设置拥有完整的编辑权限。',
-            auditorAlternateText: '审核员可以查看并评论报表。',
+            memberAlternateText: '提交并批准报表。',
+            adminAlternateText: '管理报表和工作区设置。',
+            auditorAlternateText: '查看并评论报表。',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -6648,6 +6646,7 @@ ${reportName}
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选择所有匹配的项目',
         },
+        topSpenders: '最高支出者',
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
@@ -6778,6 +6777,8 @@ ${reportName}
                 removedConnection: ({connectionName}: ConnectionNameParams) => `已移除与 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 的连接`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: '已离开聊天',
+                companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
+                    `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>`,
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',
@@ -6935,6 +6936,7 @@ ${reportName}
         error: {
             selectSuggestedAddress: '请选择一个建议地址或使用当前位置',
         },
+        odometer: {startReading: '开始阅读', endReading: '结束阅读', saveForLater: '稍后保存', totalDistance: '总距离'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成绩单遗失或损坏',
