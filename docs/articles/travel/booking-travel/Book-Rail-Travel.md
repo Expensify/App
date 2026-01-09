@@ -42,7 +42,7 @@ If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify T
 - The rail booking receipt will sync automatically with your Expensify account.  
 - If your payment card is connected to Expensify, the receipt will merge with the imported expense.  
 
-**Note:** Rail bookings may not be available in all countries or regions.
+**Note:** Rail bookings are not supported in all regions. Availability may vary
 
 # FAQ
 
