@@ -22,7 +22,8 @@ import {
     hasTravelInvoicingSettlementAccount,
     PROGRAM_TRAVEL_US,
 } from '@libs/TravelInvoicingUtils';
-import ToggleSettingOptionRow, {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BookOrManageYourTrip from './BookOrManageYourTrip';
@@ -83,12 +84,12 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             // onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
             subMenuItems: (
                 <>
-                    <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.dFlex, styles.flexRow, styles.mt6, styles.gap4, styles.alignItemsCenter]}>
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendLabel')}
                             title={formattedSpend}
                             rootWrapperStyle={styles.flex1}
-                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
                             descriptionTextStyle={styles.textLabelSupportingNormal}
                             interactive={false}
@@ -110,7 +111,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     <MenuItemWithTopDescription
                         description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelLimitLabel')}
                         title={formattedLimit}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         titleStyle={styles.textNormalThemeText}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         interactive={false}
@@ -120,7 +121,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                         description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementAccountLabel')}
                         title={settlementAccountNumber}
                         onPress={() => {}}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         titleStyle={styles.textNormalThemeText}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         shouldShowRightIcon
@@ -130,7 +131,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                         description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
                         title={localizedFrequency}
                         onPress={() => {}}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         titleStyle={styles.textNormalThemeText}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         shouldShowRightIcon

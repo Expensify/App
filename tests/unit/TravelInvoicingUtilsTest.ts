@@ -133,7 +133,7 @@ describe('TravelInvoicingUtils', () => {
 
     describe('getTravelSettlementAccount', () => {
         const mockBankAccountList: BankAccountList = {
-            12345: {
+            bankAccountID: {
                 bankCurrency: 'USD',
                 bankCountry: 'US',
                 accountData: {
@@ -170,7 +170,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should fallback to bank account data when paymentBankAccountAddressName is not set', () => {
             const cardSettings = {
-                paymentBankAccountID: 12345,
+                paymentBankAccountID: 'bankAccountID' as unknown as number,
             } as ExpensifyCardSettings;
             const result = getTravelSettlementAccount(cardSettings, mockBankAccountList);
             expect(result).toBeDefined();
