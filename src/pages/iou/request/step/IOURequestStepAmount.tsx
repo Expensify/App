@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
+import {privateIsArchivedSelector} from '@selectors/ReportNameValuePairs';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
@@ -95,7 +96,7 @@ function IOURequestStepAmount({
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [privateIsArchived] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true, selector: privateIsArchivedSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
@@ -187,7 +188,7 @@ function IOURequestStepAmount({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportNameValuePairs, reportAttributesDerived);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived ?? '', reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
