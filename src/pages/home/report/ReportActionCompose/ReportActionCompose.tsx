@@ -113,6 +113,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
+
+    /** Whether the report screen is being displayed in the side panel */
+    isInSidePanel?: boolean;
 };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -136,6 +139,7 @@ function ReportActionCompose({
     didHideComposerInput,
     reportTransactions,
     transactionThreadReportID,
+    isInSidePanel = false,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -332,7 +336,7 @@ function ReportActionCompose({
             }
 
             if (attachmentFileRef.current) {
-                addAttachmentWithComment(transactionThreadReport ?? report, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
+                addAttachmentWithComment(transactionThreadReport ?? report, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true, isInSidePanel);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
@@ -348,7 +352,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [isConciergeChat, kickoffWaitingIndicator, transactionThreadReport, report, reportID, ancestors, personalDetail.timezone, onSubmit],
+        [isConciergeChat, kickoffWaitingIndicator, transactionThreadReport, report, reportID, ancestors, personalDetail.timezone, onSubmit, isInSidePanel],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
