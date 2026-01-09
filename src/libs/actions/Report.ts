@@ -78,7 +78,7 @@ import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -182,6 +182,7 @@ import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     BankAccountList,
@@ -230,6 +231,7 @@ import {isAnonymousUser} from './Session';
 import {onServerDataReady} from './Welcome';
 import {getOnboardingMessages} from './Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
+import SCREENS from '@src/SCREENS';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -1975,12 +1977,34 @@ function handlePreexistingReport(report: Report) {
             });
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
         };
+
+        if(!navigationRef.isReady()) {
+            callback();
+            return;
+        }
+
+        const activeRouteInfo = navigationRef.getCurrentRoute();
+        const backTo = (activeRouteInfo?.params as {backTo?: Route})?.backTo;
+        const screenName = activeRouteInfo?.name;
+        const activeRoute = activeRouteInfo?.path;
+
+        const isOptimisticReportFocused = activeRoute?.includes(`/r/${reportID}`);
+
+        // Fix specific case: when user is editing a money request report (/e/ route) and has
+        // an optimistic report in the background that should be replaced with preexisting report
+        const isOptimisticReportInBackground = screenName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && backTo && backTo.includes(`/r/${reportID}`);
+
         // Only re-route them if they are still looking at the optimistically created report
-        if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
+        if (isOptimisticReportFocused || isOptimisticReportInBackground) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.setParams({reportID: preexistingReportID.toString()});
+                if (isOptimisticReportFocused) {
+                    Navigation.setParams({reportID: preexistingReportID.toString()});
+                } else if (isOptimisticReportInBackground) {
+                    // Navigate to the corrected backTo route with the preexisting report ID
+                    Navigation.navigate(backTo.replace(`/r/${reportID}`, `/r/${preexistingReportID}`) as Route);
+                }
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
