@@ -1129,7 +1129,7 @@ function openReport(
             },
         });
         failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: null,
         });
