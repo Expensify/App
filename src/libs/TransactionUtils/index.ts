@@ -71,8 +71,6 @@ import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {
     Comment,
     Receipt,
@@ -114,6 +112,8 @@ type TransactionParams = {
     splitsStartDate?: string;
     splitsEndDate?: string;
     distance?: number;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -153,7 +153,8 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
         return (
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
         );
     }
 
@@ -188,7 +189,28 @@ function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedM
     }
 
     // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction) && isEmptyObject(transaction?.comment?.waypoints);
+    // Exclude odometer requests which also have no waypoints but have odometer readings
+    return (
+        hasDistanceCustomUnit(transaction) &&
+        isEmptyObject(transaction?.comment?.waypoints) &&
+        transaction?.comment?.odometerStart === undefined &&
+        transaction?.comment?.odometerEnd === undefined
+    );
+}
+
+function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    // Odometer requests have odometerStart and odometerEnd in comment, and no waypoints
+    return (
+        hasDistanceCustomUnit(transaction) &&
+        isEmptyObject(transaction?.comment?.waypoints) &&
+        (transaction?.comment?.odometerStart !== undefined || transaction?.comment?.odometerEnd !== undefined)
+    );
 }
 
 function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
@@ -212,11 +234,18 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
 }
 
+function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.TIME;
+}
+
 function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return isManagedCardTransaction(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
+    if (isOdometerDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+    }
     if (isManualDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     }
@@ -252,7 +281,8 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
         return CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD;
     }
 
-    return getRequestType(transaction);
+    const requestType = getRequestType(transaction);
+    return requestType as ValueOf<typeof CONST.IOU.EXPENSE_TYPE>;
 }
 
 /**
@@ -273,6 +303,10 @@ function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: Card
 
     if (customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL) {
         return CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM;
+    }
+
+    if (isTimeRequest(transaction)) {
+        return CONST.SEARCH.TRANSACTION_TYPE.TIME;
     }
 
     const cardID = transaction?.cardID;
@@ -354,12 +388,20 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         splitExpensesTotal,
         participants,
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        odometerStart,
+        odometerEnd,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
     const transactionID = existingTransactionID ?? rand64();
 
     const commentJSON: Comment = {comment, attendees};
+    if (odometerStart !== undefined) {
+        commentJSON.odometerStart = odometerStart;
+    }
+    if (odometerEnd !== undefined) {
+        commentJSON.odometerEnd = odometerEnd;
+    }
     if (isDemoTransactionParam) {
         commentJSON.isDemoTransaction = true;
     }
@@ -384,7 +426,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
 
     const isMapDistanceTransaction = !!pendingFields?.waypoints;
     const isManualDistanceTransaction = isManualDistanceRequest(existingTransaction);
-    if (isMapDistanceTransaction || isManualDistanceTransaction) {
+    const isOdometerDistanceTransaction = isOdometerDistanceRequest(existingTransaction);
+    if (isMapDistanceTransaction || isManualDistanceTransaction || isOdometerDistanceTransaction) {
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
         lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
         lodashSet(commentJSON, 'customUnit.quantity', distance);
@@ -830,6 +873,25 @@ function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
 }
 
 /**
+ * Determines if a transaction's convertedAmount should be cleared when moving to a different currency workspace.
+ * The convertedAmount is calculated for the source workspace's currency, so it becomes stale when:
+ * 1. Source and destination workspace currencies differ, AND
+ * 2. The transaction's currency doesn't match the destination currency
+ *
+ * Transactions that match the destination currency can keep their convertedAmount since no conversion is needed.
+ */
+function shouldClearConvertedAmount(transaction: OnyxInputOrEntry<Transaction>, sourceCurrency: string | undefined, destinationCurrency: string | undefined): boolean {
+    if (!sourceCurrency || !destinationCurrency || sourceCurrency === destinationCurrency) {
+        return false;
+    }
+
+    const transactionCurrency = getCurrency(transaction);
+    const transactionMatchesDestination = transactionCurrency === destinationCurrency;
+
+    return !transactionMatchesDestination;
+}
+
+/**
  * Return the original currency field from the transaction.
  */
 function getOriginalCurrency(transaction: Transaction): string {
@@ -1268,8 +1330,7 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>, r
  * Get all transaction violations of the transaction with given transactionID.
  */
 function getTransactionViolations(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transaction: OnyxEntry<Transaction | SearchTransaction>,
+    transaction: OnyxEntry<Transaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1314,8 +1375,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transaction: Transaction | SearchTransaction,
+    transaction: Transaction,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1456,8 +1516,7 @@ function shouldShowViolation(
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
 function allHavePendingRTERViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions: OnyxEntry<Transaction[] | SearchTransaction[]>,
+    transactions: OnyxEntry<Transaction[]>,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1491,8 +1550,7 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
 function hasAnyTransactionWithoutRTERViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions: Transaction[] | SearchTransaction[],
+    transactions: Transaction[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -2469,6 +2527,7 @@ export {
     getTaxAmount,
     getTaxCode,
     getCurrency,
+    shouldClearConvertedAmount,
     getDistanceInMeters,
     getCardID,
     getOriginalCurrency,
@@ -2496,6 +2555,7 @@ export {
     isDistanceRequest,
     isMapDistanceRequest,
     isManualDistanceRequest,
+    isOdometerDistanceRequest,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
@@ -2573,6 +2633,7 @@ export {
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
     shouldShowExpenseBreakdown,
+    isTimeRequest,
 };
 
 export type {TransactionChanges};
