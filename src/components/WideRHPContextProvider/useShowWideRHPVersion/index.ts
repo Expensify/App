@@ -24,8 +24,6 @@ function useShowWideRHPVersion(condition: boolean) {
         }
     }, [removeWideRHPRouteKey, route]);
 
-
-
     /**
      * Effect that sets up cleanup when the screen is unmounted.
      */

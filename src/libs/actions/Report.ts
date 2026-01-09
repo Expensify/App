@@ -183,6 +183,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     BankAccountList,
@@ -231,7 +232,6 @@ import {isAnonymousUser} from './Session';
 import {onServerDataReady} from './Welcome';
 import {getOnboardingMessages} from './Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
-import SCREENS from '@src/SCREENS';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -1978,7 +1978,7 @@ function handlePreexistingReport(report: Report) {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
         };
 
-        if(!navigationRef.isReady()) {
+        if (!navigationRef.isReady()) {
             callback();
             return;
         }
