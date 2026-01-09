@@ -15,10 +15,8 @@ import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, OpenS
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import * as Localize from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -809,7 +807,6 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], a
                                 },
                             });
 
-                            const errorKey = DateUtils.getMicroseconds();
                             failureData.push({
                                 onyxMethod: Onyx.METHOD.MERGE,
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
@@ -817,10 +814,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], a
                                     [reportPreviewAction.reportActionID]: {
                                         ...reportPreviewAction,
                                         pendingAction: null,
-                                        errors: {
-                                            // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                            [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
-                                        },
+                                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage'),
                                     },
                                 },
                             });
