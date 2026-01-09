@@ -27,10 +27,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {maskCardNumber} from '@libs/CardUtils';
+import {filterPersonalCards, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
@@ -54,7 +55,7 @@ const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
 
 function WalletPage() {
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         canBeMissing: true,
         selector: fundListSelector,
@@ -66,6 +67,8 @@ function WalletPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const personalPolicy = usePolicy(personalPolicyID);
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -206,7 +209,7 @@ function WalletPage() {
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
             const bankAccount = bankAccountList?.[paymentMethod.methodID] ?? {};
-            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods, bankAccount);
+            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods, bankAccount, personalPolicy);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
@@ -220,6 +223,7 @@ function WalletPage() {
         resetSelectedPaymentMethodData,
         bankAccountList,
         lastUsedPaymentMethods,
+        personalPolicy,
     ]);
 
     /**
@@ -272,7 +276,7 @@ function WalletPage() {
         !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm &&
         paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
-    // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
+    // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
     const headerWithBackButton = (
