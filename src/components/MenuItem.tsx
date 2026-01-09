@@ -403,6 +403,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether to show the badge in a separate row */
         shouldShowBadgeInSeparateRow?: boolean;
+
+        /** Whether to show the badge below the title */
+        shouldShowBadgeBelow?: boolean;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -424,6 +427,7 @@ function MenuItem({
     badgeSuccess,
     onBadgePress,
     shouldShowBadgeInSeparateRow = false,
+    shouldShowBadgeBelow = false,
     style,
     wrapperStyle,
     titleWrapperStyle,
@@ -922,13 +926,23 @@ function MenuItem({
                                                                 </Text>
                                                             </View>
                                                         )}
+                                                        {!!badgeText && shouldShowBadgeBelow && (
+                                                            <Badge
+                                                                text={badgeText}
+                                                                icon={badgeIcon}
+                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2]}
+                                                                success={badgeSuccess}
+                                                                onPress={onBadgePress}
+                                                                pressable={!!onBadgePress}
+                                                            />
+                                                        )}
                                                         {furtherDetailsComponent}
                                                         {titleComponent}
                                                     </View>
                                                 </View>
                                             </View>
                                             <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
-                                                {!!badgeText && !shouldShowBadgeInSeparateRow && (
+                                                {!!badgeText && !shouldShowBadgeInSeparateRow && !shouldShowBadgeBelow && (
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
