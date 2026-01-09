@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
+import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -25,11 +25,14 @@ type PercentageFormProps = BaseTextInputProps & {
     /** Whether to allow one decimal place (0.1 precision) for more granular percentage splits. */
     allowDecimal?: boolean;
 
+    /** Whether to allow negative percentages (e.g. for split expenses with negative amounts). */
+    allowNegative?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 
-function PercentageForm({value: amount, errorText, onInputChange, label, allowExceedingHundred = false, allowDecimal = false, ref, ...rest}: PercentageFormProps) {
+function PercentageForm({value: amount, errorText, onInputChange, label, allowExceedingHundred = false, allowDecimal = false, allowNegative = false, ref, ...rest}: PercentageFormProps) {
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -45,7 +48,8 @@ function PercentageForm({value: amount, errorText, onInputChange, label, allowEx
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            if (!validatePercentage(newAmountWithoutSpaces, allowExceedingHundred, allowDecimal)) {
+            const withLeadingZero = addLeadingZero(newAmountWithoutSpaces, allowNegative);
+            if (!validatePercentage(withLeadingZero, allowExceedingHundred, allowDecimal, allowNegative)) {
                 return;
             }
 
@@ -53,7 +57,7 @@ function PercentageForm({value: amount, errorText, onInputChange, label, allowEx
             const normalizedAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
             onInputChange?.(normalizedAmount);
         },
-        [allowExceedingHundred, allowDecimal, onInputChange],
+        [allowExceedingHundred, allowDecimal, allowNegative, onInputChange],
     );
 
     const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
