@@ -1465,6 +1465,8 @@ const CONST = {
             SUBMITTED: 1,
             APPROVED: 2,
             BILLING: 3,
+            REIMBURSABLE: 4,
+            REIMBURSABLE_BILLABLE: 5,
             AUTOREIMBURSED: 6,
         },
         STATUS_NUM: {
@@ -2877,6 +2879,8 @@ const CONST = {
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
+        // This is the transactionID used when bulk editing multiple expenses
+        OPTIMISTIC_BULK_EDIT_TRANSACTION_ID: 'optimisticBulkEditTransactionID',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
@@ -6697,6 +6701,7 @@ const CONST = {
             TAG: 'tag',
         },
         BULK_ACTION_TYPES: {
+            EDIT: 'edit',
             EXPORT: 'export',
             APPROVE: 'approve',
             PAY: 'pay',
