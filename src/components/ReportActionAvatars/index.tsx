@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {CompanyCardFeed, InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {HorizontalStacking} from './ReportActionAvatar';
 import ReportActionAvatar from './ReportActionAvatar';
 import useReportActionAvatars from './useReportActionAvatars';
@@ -72,6 +72,9 @@ type ReportActionAvatarsProps = {
 
     /** chatReportID needed for the avatars logic. When provided, this will be used as a fallback if the snapshot is undefined */
     chatReportID?: string;
+
+    /** Optional personal details map to use instead of the global Onyx personal details */
+    personalDetailsList?: PersonalDetailsList;
 };
 
 /**
@@ -105,6 +108,7 @@ function ReportActionAvatars({
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
     chatReportID,
+    personalDetailsList,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -140,6 +144,7 @@ function ReportActionAvatars({
         invitedEmailsToAccountIDs,
         shouldUseCustomFallbackAvatar,
         chatReportID,
+        personalDetailsList,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
