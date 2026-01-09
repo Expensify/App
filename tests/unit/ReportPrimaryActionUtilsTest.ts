@@ -38,6 +38,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
     getValidConnectedIntegration: jest.fn(),
+    isPaidGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 
 describe('getPrimaryAction', () => {

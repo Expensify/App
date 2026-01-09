@@ -11,6 +11,7 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPreferredExporter,
 } from './PolicyUtils';
@@ -417,6 +418,11 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
     } = params;
+
+    // The expense report of personal policy shouldn't have any action
+    if (isExpenseReportUtils(report) && !isPaidGroupPolicy(policy)) {
+        return '';
+    }
 
     // We want to have action displayed for either paid or approved animations
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

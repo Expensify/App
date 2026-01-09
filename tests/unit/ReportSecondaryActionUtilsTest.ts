@@ -39,6 +39,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
+    isPaidGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 
 describe('getSecondaryAction', () => {
@@ -88,6 +89,7 @@ describe('getSecondaryAction', () => {
             harvesting: {
                 enabled: true,
             },
+            type: CONST.POLICY.TYPE.CORPORATE,
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -124,6 +126,7 @@ describe('getSecondaryAction', () => {
             harvesting: {
                 enabled: true,
             },
+            type: CONST.POLICY.TYPE.CORPORATE,
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
@@ -155,6 +158,7 @@ describe('getSecondaryAction', () => {
                 enabled: true,
             },
             role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.CORPORATE,
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
@@ -186,6 +190,7 @@ describe('getSecondaryAction', () => {
             harvesting: {
                 enabled: true,
             },
+            type: CONST.POLICY.TYPE.CORPORATE,
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
@@ -264,6 +269,7 @@ describe('getSecondaryAction', () => {
                 enabled: true,
             },
             role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.CORPORATE,
         } as unknown as Policy;
 
         const transaction = {
@@ -311,6 +317,7 @@ describe('getSecondaryAction', () => {
                 enabled: true,
             },
             role: CONST.POLICY.ROLE.AUDITOR,
+            type: CONST.POLICY.TYPE.CORPORATE,
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
