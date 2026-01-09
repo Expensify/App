@@ -6891,7 +6891,7 @@ function getMovedTransactionMessage(action: ReportAction) {
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(report) ?? report?.reportName ?? '';
-    let reportUrl = getReportURLForCurrentContext(report?.reportID);
+    const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.movedTransactionTo', {
