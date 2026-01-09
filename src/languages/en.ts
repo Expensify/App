@@ -7831,8 +7831,10 @@ const translations = {
             title: 'Members',
             findMember: 'Find member',
             forceTwoFactorAuth: 'Force two-factor authentication',
-            forceTwoFactorAuthDescription: `<muted-text>Please disable <a href="${CONST.SAML_HELP_URL}">SAML</a> to force two-factor authentication.</muted-text>`,
+            forceTwoFactorAuthSAMLEnabledDescription: `<muted-text>Please disable <a href="${CONST.SAML_HELP_URL}">SAML</a> to force two-factor authentication.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Require Two-Factor Authentication for all members of this domain. Domain members will be prompted to set up Two-Factor Authentication on their account when they sign in.</muted-text>`,
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
+            enterTwoFactorAuthCodeDescription: 'Enter a Two-Factor Authentication code from your authenticator app.',
         },
     },
 };

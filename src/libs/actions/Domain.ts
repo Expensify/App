@@ -648,7 +648,7 @@ function clearAddAdminError(domainAccountID: number, accountID: number) {
     });
 }
 
-function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainName: string, twoFactorAuthRequired: boolean) {
+function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainName: string, twoFactorAuthRequired: boolean, twoFactorAuthCode?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -720,6 +720,7 @@ function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainNam
         domainAccountID,
         domainName,
         enabled: twoFactorAuthRequired,
+        twoFactorAuthCode,
     };
 
     API.write(WRITE_COMMANDS.TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN, params, {optimisticData, failureData, successData});
