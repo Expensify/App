@@ -44,7 +44,7 @@ function IOURequestStepHours({
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const rate = policy ? (getDefaultTimeTrackingRate(policy) ?? 0) : 0;
+    const rate = policy ? getDefaultTimeTrackingRate(policy) : undefined;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -73,6 +73,10 @@ function IOURequestStepHours({
     });
 
     const saveTime = (count: number) => {
+        if (rate === undefined) {
+            return;
+        }
+
         if (Number.isNaN(count) || count <= 0) {
             setFormError(translate('iou.error.quantityGreaterThanZero'));
             return;
@@ -92,7 +96,7 @@ function IOURequestStepHours({
         <StepScreenWrapper
             headerTitle={translate('iou.time')}
             onBackButtonPress={Navigation.goBack}
-            testID="IOURequestStepTimeHours"
+            testID="IOURequestStepHours"
             shouldShowWrapper={false}
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
