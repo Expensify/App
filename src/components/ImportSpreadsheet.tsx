@@ -68,21 +68,32 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         const lowerExt = fileExtension.toLowerCase();
 
         if (isImportingMultiLevelTags) {
-            if (!CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS.includes(lowerExt as TupleToUnion<typeof CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS>)) {
-                setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+            if (
+                !CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS.includes(
+                    lowerExt as TupleToUnion<typeof CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS>,
+                )
+            ) {
+                setUploadFileError(
+                    true,
+                    'attachmentPicker.wrongFileType',
+                    'attachmentPicker.notAllowedExtension',
+                );
                 return false;
             }
-        } else {
-            if (!CONST.ALLOWED_SPREADSHEET_EXTENSIONS.includes(lowerExt as TupleToUnion<typeof CONST.ALLOWED_SPREADSHEET_EXTENSIONS>)) {
-                setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-                return false;
-            }
-        }    
+        } else if (
+            !CONST.ALLOWED_SPREADSHEET_EXTENSIONS.includes(
+                lowerExt as TupleToUnion<typeof CONST.ALLOWED_SPREADSHEET_EXTENSIONS>,
+            )
+        ) {
+            setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+            return false;
+        }
 
         if ((file?.size ?? 0) <= 0) {
             setUploadFileError(true, 'attachmentPicker.attachmentTooSmall', 'spreadsheet.sizeNotMet');
             return false;
         }
+
         return true;
     };
 
