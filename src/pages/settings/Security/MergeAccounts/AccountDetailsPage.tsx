@@ -173,7 +173,6 @@ function AccountDetailsPage() {
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => Navigation.dismissModal()}
-                shouldDisplayHelpButton={false}
             />
             <FullPageOfflineBlockingView>
                 <FormProvider

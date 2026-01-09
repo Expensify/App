@@ -14,8 +14,6 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
 
@@ -38,7 +36,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
         }
     };
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'FallbackAvatar', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserAccountID = getCurrentUserAccountID();
@@ -86,7 +84,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                 onPress={() => navigateToAvatarPage(icon)}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={icon.name ?? ''}
-                disabled={icon.source === Expensicons.FallbackAvatar}
+                disabled={icon.source === expensifyIcons.FallbackAvatar}
             >
                 <Avatar
                     source={icon.source}
@@ -123,7 +121,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                             onPress={() => navigateToAvatarPage(icon)}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={icon.name ?? ''}
-                            disabled={icon.source === Expensicons.FallbackAvatar}
+                            disabled={icon.source === expensifyIcons.FallbackAvatar}
                         >
                             <Avatar
                                 source={icon.source}

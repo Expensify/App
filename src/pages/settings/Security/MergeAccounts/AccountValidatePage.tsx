@@ -168,7 +168,6 @@ function AccountValidatePage() {
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
-                shouldDisplayHelpButton={false}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}

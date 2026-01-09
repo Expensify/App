@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,7 +51,7 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 };
 
 const platform = getPlatform(true);
-const isWeb = ([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP, CONST.PLATFORM.MOBILE_WEB] as Platform[]).includes(platform);
+const isWeb = ([CONST.PLATFORM.WEB, CONST.PLATFORM.MOBILE_WEB] as Platform[]).includes(platform);
 
 function IOURequestStartPage({
     route,
@@ -64,13 +65,14 @@ function IOURequestStartPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const personalPolicy = usePersonalPolicy();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
+    const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
+    const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -137,27 +139,6 @@ function IOURequestStartPage({
         Navigation.closeRHPFlow();
     };
 
-    // This useEffect is used to initialize the money request, so that currency will be reset to default currency on page reload.
-    useEffect(() => {
-        if (transaction?.amount !== 0) {
-            return;
-        }
-        initMoneyRequest({
-            reportID,
-            policy,
-            isFromGlobalCreate,
-            currentIouRequestType: transaction?.iouRequestType,
-            newIouRequestType: transaction?.iouRequestType,
-            report,
-            parentReport,
-            currentDate,
-            lastSelectedDistanceRates,
-            currentUserPersonalDetails,
-            hasOnlyPersonalPolicies,
-        });
-        // eslint-disable-next-line
-    }, []);
-
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
             Keyboard.dismiss();
@@ -168,6 +149,7 @@ function IOURequestStartPage({
             initMoneyRequest({
                 reportID,
                 policy,
+                personalPolicy,
                 isFromGlobalCreate: transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
@@ -184,6 +166,7 @@ function IOURequestStartPage({
             transaction?.isFromGlobalCreate,
             reportID,
             policy,
+            personalPolicy,
             isFromGlobalCreate,
             report,
             parentReport,
@@ -198,11 +181,11 @@ function IOURequestStartPage({
     useFocusEffect(
         useCallback(() => {
             // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
-            if (transaction?.reportID === reportID || isLoadingSelectedTab || !transactionRequestType || prevTransactionReportID !== transaction?.reportID) {
+            if (transaction?.reportID === reportID || isLoadingTransaction || isLoadingSelectedTab || !transactionRequestType || prevTransactionReportID !== transaction?.reportID) {
                 return;
             }
             resetIOUTypeIfChanged(transactionRequestType);
-        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
+        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID, isLoadingTransaction]),
     );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
@@ -251,14 +234,10 @@ function IOURequestStartPage({
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
                 shouldEnableMinHeight={canUseTouchScreen()}
-                headerGapStyles={isDraggingOver ? styles.dropWrapper : []}
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
-                <DragAndDropProvider
-                    setIsDraggingOver={setIsDraggingOver}
-                    isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
-                >
+                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}>
                     <View style={styles.flex1}>
                         <FocusTrapContainerElement
                             onContainerElementChanged={setHeaderWithBackButtonContainerElement}

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';

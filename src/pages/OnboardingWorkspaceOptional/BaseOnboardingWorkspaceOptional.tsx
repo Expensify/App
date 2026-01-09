@@ -110,7 +110,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             testID="BaseOnboardingWorkspaceOptional"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton progressBarPercentage={100} />
+            <HeaderWithBackButton
+                progressBarPercentage={100}
+                shouldDisplayHelpButton={false}
+            />
             <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
                     <Text style={styles.textHeadlineH1}>{translate('onboarding.workspace.title')}</Text>
