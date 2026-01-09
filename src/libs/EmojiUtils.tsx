@@ -664,23 +664,27 @@ function containsOnlyCustomEmoji(text?: string): boolean {
 }
 
 /**
- * Insert ZWNJ (Zero-Width Non-Joiner) between digits and emojis to prevent Safari's automatic keycap sequence bug.
+ * Insert ZWNJ (Zero-Width Non-Joiner) between digits/symbols and emojis to prevent Safari's automatic keycap sequence bug.
  *
- * Safari has a browser-specific behavior where it automatically converts a digit immediately followed by an emoji
- * into a Unicode keycap sequence (e.g., "1" + "😄" becomes "1️⃣"). This happens at the browser's input handling level
- * before React can process the text, causing character corruption or unexpected joining.
+ * Safari has a browser-specific behavior where it automatically converts a digit (#, *, or 0-9) immediately followed by an emoji
+ * into a Unicode keycap sequence (e.g., "1" + "😄" becomes "1️⃣", "#" + "😄" becomes "#️⃣", "*" + "😄" becomes "*️⃣").
+ * This happens at the browser's input handling level before React can process the text, causing character corruption or unexpected joining.
  *
  * The ZWNJ character (U+200C) is a non-printing Unicode character that prevents the formation of ligatures or
- * unwanted character joining. By inserting it between digits and emojis, we break Safari's automatic keycap
+ * unwanted character joining. By inserting it between digits/symbols and emojis, we break Safari's automatic keycap
  * sequence detection, ensuring the text displays correctly.
  *
- * Example: "234😄" becomes "234\u200C😄" (ZWNJ is invisible but prevents Safari's corruption)
+ * Examples:
+ * - "234😄" becomes "234\u200C😄"
+ * - "#😄" becomes "#\u200C😄"
+ * - "*😄" becomes "*\u200C😄"
+ * (ZWNJ is invisible but prevents Safari's corruption)
  */
 function insertZWNJBetweenDigitAndEmoji(input: string): string {
     if (!isSafari()) {
         return input;
     }
-    return input.replaceAll(CONST.REGEX.DIGIT_FOLLOWED_BY_EMOJI, '$1\u200C$2');
+    return input.replaceAll(CONST.REGEX.DIGIT_OR_SYMBOL_FOLLOWED_BY_EMOJI, '$1\u200C$2');
 }
 
 /**
