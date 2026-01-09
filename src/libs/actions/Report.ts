@@ -4955,7 +4955,7 @@ function deleteAppReport(
     reportID: string | undefined,
     currentUserEmailParam: string,
     reportTransactions: Record<string, Transaction>,
-    transactionsViolations: Record<string, TransactionViolations>,
+    allTransactionViolations: OnyxCollection<TransactionViolations>,
 ) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
@@ -5294,7 +5294,7 @@ function deleteAppReport(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID, currentUserEmailParam)},
+            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID, currentUserEmailParam, allTransactionViolations)},
         });
     }
 
