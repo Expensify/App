@@ -7990,6 +7990,10 @@ ${amount} para ${merchant} - ${date}`,
             invite: 'Invitar',
             addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
         },
+        members: {
+            title: 'Miembros',
+            findMember: 'Buscar miembro',
+        },
     },
     gps: {
         tooltip: '¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.',
