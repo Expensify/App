@@ -232,7 +232,9 @@ function clearUpdateSubscriptionSizeError() {
 }
 
 function clearOutstandingBalance() {
-    const onyxData: OnyxData<typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED> = {
+    const onyxData: OnyxData<
+        typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
