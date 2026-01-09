@@ -339,20 +339,21 @@ function SecuritySettingsPage() {
                     modalClose(() => showLockedAccountModal());
                     return;
                 }
-                modalClose(async () => {
+                modalClose(() => {
                     setShouldShowDelegatePopoverMenu(false);
-                    setSelectedEmail(undefined);
-                    const result = await showRemoveCopilotModal();
-                    if (result.action === ModalActions.CLOSE) {
-                        setSelectedDelegate(undefined);
-                    } else {
-                        if (isActingAsDelegate) {
-                            showDelegateNoAccessModal();
-                            return;
+                    showRemoveCopilotModal().then((result) => {
+                        if (result.action === ModalActions.CLOSE) {
+                            setSelectedDelegate(undefined);
+                        } else {
+                            if (isActingAsDelegate) {
+                                showDelegateNoAccessModal();
+                                return;
+                            }
+                            removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
+                            setSelectedDelegate(undefined);
                         }
-                        removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
-                        setSelectedDelegate(undefined);
-                    }
+                    });
+                    setSelectedEmail(undefined);
                 });
             },
         },
