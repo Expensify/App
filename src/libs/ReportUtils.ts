@@ -23,7 +23,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type PolicyData from '@hooks/usePolicyData/types';
-import {computeReportName} from '@libs/ReportNameUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {ThemeColors} from '@styles/theme/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
@@ -177,6 +176,7 @@ import {
     getAllReportActions,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCompanyCardConnectionBrokenMessage,
     getDefaultApproverUpdateMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
@@ -189,6 +189,7 @@ import {
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
     getLastVisibleMessage as getLastVisibleMessageActionUtils,
     getLastVisibleMessage as getLastVisibleMessageReportActionsUtils,
+    getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
     getMostRecentActiveDEWSubmitFailedAction,
     getNumberOfMoneyRequests,
@@ -273,6 +274,7 @@ import type {LastVisibleMessage} from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
 import {
     buildReportNameFromParticipantNames,
+    computeReportName,
     generateArchivedReportName,
     getGroupChatName,
     getInvoicePayerName,
@@ -785,6 +787,8 @@ type TransactionDetails = {
     postedDate: string;
     transactionID: string;
     distance?: number;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 type OptimisticIOUReport = Pick<
@@ -857,7 +861,6 @@ type OptionData = {
     isDefaultRoom?: boolean;
     isInvoiceRoom?: boolean;
     isExpenseReport?: boolean;
-    isDM?: boolean;
     isOptimisticPersonalDetail?: boolean;
     selected?: boolean;
     isOptimisticAccount?: boolean;
@@ -2789,12 +2792,18 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
  * - if current user is not the submitter of an expense report
  */
 function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false, isMovingTransaction = false): boolean {
-    if (!isMoneyRequestReport(moneyRequestReport) || (isExpenseReport(moneyRequestReport) && !isCurrentUserSubmitter(moneyRequestReport))) {
+    if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
+
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(moneyRequestReport?.policyID);
+
+    if (isExpenseReport(moneyRequestReport) && (!isCurrentUserSubmitter(moneyRequestReport) || !isPaidGroupPolicyPolicyUtils(policy))) {
+        return false;
+    }
+
     if (
         isInstantSubmitEnabled(policy) &&
         isSubmitAndClose(policy) &&
@@ -5097,7 +5106,7 @@ function getReportPreviewMessage(
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.didSplitAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
+            return translateLocal('iou.didSplitAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
         }
     }
 
@@ -5113,7 +5122,7 @@ function getReportPreviewMessage(
             if (amount && currency) {
                 const formattedAmount = convertToDisplayString(amount, currency);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.trackedAmount', {formattedAmount, comment});
+                return translateLocal('iou.trackedAmount', formattedAmount, comment);
             }
 
             return reportActionMessage;
@@ -5133,7 +5142,7 @@ function getReportPreviewMessage(
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.trackedAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
+            return translateLocal('iou.trackedAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
         }
     }
 
@@ -5216,9 +5225,13 @@ function getReportPreviewMessage(
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal(translatePhraseKey, '', reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '');
         }
-        if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify' || translatePhraseKey === 'iou.paidElsewhere') {
+        if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal(translatePhraseKey, payerDisplayName ?? '');
+        }
+        if (translatePhraseKey === 'iou.paidElsewhere') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal(translatePhraseKey, {payer: payerDisplayName ?? undefined});
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -5260,7 +5273,7 @@ function getReportPreviewMessage(
                 ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils})
                 : '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.expenseAmount', {formattedAmount: amountToDisplay, comment})}`;
+        return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.expenseAmount', amountToDisplay, comment)}`;
     }
 
     if (containsNonReimbursable) {
@@ -5367,7 +5380,7 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.oldMerchant = getMerchant(oldTransaction);
 
         // For the originalMessage, we should use the non-negative amount, similar to what getAmount does for oldAmount
-        originalMessage.amount = Math.abs(Number(updatedTransaction?.modifiedAmount ?? 0));
+        originalMessage.amount = Math.abs(updatedTransaction?.modifiedAmount ?? 0);
         originalMessage.currency = updatedTransaction?.modifiedCurrency ?? CONST.CURRENCY.USD;
         originalMessage.merchant = updatedTransaction?.modifiedMerchant;
     }
@@ -5727,8 +5740,7 @@ function getReportName(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.paidElsewhere');
+        return getMarkedReimbursedMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
@@ -5823,6 +5835,11 @@ function getReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getIntegrationSyncFailedMessage(translateLocal, parentReportAction, report?.policyID);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getCompanyCardConnectionBrokenMessage(translateLocal, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
@@ -6864,10 +6881,7 @@ function getDeletedTransactionMessage(action: ReportAction) {
     const currency = deletedTransactionOriginalMessage.currency ?? '';
     const formattedAmount = convertToDisplayString(amount, currency) ?? '';
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const message = translateLocal('iou.deletedTransaction', {
-        amount: formattedAmount,
-        merchant: deletedTransactionOriginalMessage.merchant ?? '',
-    });
+    const message = translateLocal('iou.deletedTransaction', formattedAmount, deletedTransactionOriginalMessage.merchant ?? '');
     return message;
 }
 
@@ -7037,7 +7051,7 @@ function getIOUReportActionMessage(
             break;
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            iouMessage = translateLocal('iou.expenseAmount', {formattedAmount: amount});
+            iouMessage = translateLocal('iou.expenseAmount', amount);
             break;
         default:
             break;
@@ -9396,6 +9410,17 @@ function reasonForReportToBeInOptionList({
     const isEmptyChat = isEmptyReport(report, isReportArchived);
     const canHideReport = shouldHideReport(report, currentReportId, isReportArchived);
 
+    // Drafts already return early above, so no draft check needed here
+    if (isChatThread(report) && isEmptyChat) {
+        const isParentDeleted = !isEmptyObject(parentReportAction) && isDeletedAction(parentReportAction);
+        const isParentPendingDelete = !isEmptyObject(parentReportAction) && parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const hasReplies = (parentReportAction?.childVisibleActionCount ?? 0) > 0;
+
+        if ((isParentDeleted || isParentPendingDelete) && !hasReplies) {
+            return null;
+        }
+    }
+
     // Include reports if they are pinned
     if (report.isPinned) {
         return CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER;
@@ -10371,7 +10396,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         }
         if (translationKey === 'iou.paidElsewhere') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal(translationKey, '');
+            return translateLocal(translationKey);
         }
         if (translationKey === 'iou.payerSettledWithMissingBankAccount') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -10399,10 +10424,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         translationKey = 'iou.expenseAmount';
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal(translationKey, {
-        formattedAmount,
-        comment: getMerchantOrDescription(transaction),
-    });
+    return translateLocal(translationKey, formattedAmount, getMerchantOrDescription(transaction));
 }
 
 /**
@@ -10627,10 +10649,10 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
     const adjustedTotal = total * coefficient;
 
     // For the "approve unheld" option to be valid, we need:
-    // 1. There should be held expenses
+    // 1. There should be held expenses (unheld amount != total amount)
     // 2. For expense reports with negative totals, we need to ensure the unheld amount is valid
     //    by checking that the absolute values are meaningful and different
-    const hasHeldExpensesLocal = hasHeldExpenses(iouReport?.reportID);
+    const hasHeldExpensesLocal = unheldTotal !== total;
     const hasValidNonHeldAmount =
         hasHeldExpensesLocal &&
         // For normal cases (positive amounts or IOU reports)
@@ -12236,10 +12258,7 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
 function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>): boolean {
     const transactions = getReportTransactions(iouReport?.reportID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
-        return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) <= 0);
-    }
-    return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
+    return isIOUReport(iouReport) && transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
 }
 
 /**

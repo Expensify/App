@@ -16,6 +16,7 @@ import {
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
+    isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyMember,
     isPreferredExporter,
@@ -209,7 +210,7 @@ function isSubmitAction({
 
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0)) {
+    if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0) || !isPaidGroupPolicy(policy)) {
         return false;
     }
 
