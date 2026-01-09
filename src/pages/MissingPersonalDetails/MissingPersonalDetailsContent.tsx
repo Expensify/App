@@ -95,9 +95,9 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     };
 
     const handleMoveTo = useCallback(
-        (pageName: string) => {
-            ref.current?.moveTo(findPageIndex(formPages, pageName));
-            moveTo(pageName);
+        (pageIndex: number) => {
+            ref.current?.moveTo(pageIndex);
+            moveTo(pageIndex);
         },
         [moveTo],
     );

@@ -410,7 +410,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     large
                     text={translate('cardPage.getPhysicalCard')}
                     pressOnEnter
-                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
+                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME))}
                     style={[styles.mh5, styles.mb5]}
                 />
             )}

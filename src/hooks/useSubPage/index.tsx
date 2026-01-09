@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import type {ComponentType} from 'react';
-import {useCallback, useMemo} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PageConfig, SubPageProps, UseSubPageProps} from './types';
 
@@ -34,33 +33,22 @@ function findLastPageIndex<TProps extends SubPageProps>(pages: Array<PageConfig<
  */
 export default function useSubPage<TProps extends SubPageProps>({pages, onFinished, initialPageName, skipPages = [], onPageChange = () => {}, buildRoute}: UseSubPageProps<TProps>) {
     const route = useRoute();
-
-    // Derive current page name and isEditing from URL
-    const {currentPageName, isEditing} = useMemo(() => {
-        const params = route.params as {subStep?: string; action?: 'edit'} | undefined;
-        return {
-            currentPageName: params?.subStep ?? initialPageName ?? pages.at(0)?.pageName,
-            isEditing: params?.action === 'edit',
-        };
-    }, [route.params, initialPageName, pages]);
-
-    const pageIndex = useMemo(() => findPageIndex(pages, currentPageName), [pages, currentPageName]);
-    const lastPageIndex = useMemo(() => findLastPageIndex(pages, skipPages), [pages, skipPages]);
+    const params = route.params as {subStep?: string; action?: 'edit'} | undefined;
+    const currentPageName = params?.subStep ?? initialPageName ?? pages.at(0)?.pageName;
+    const isEditing = params?.action === 'edit';
+    const pageIndex = findPageIndex(pages, currentPageName);
+    const lastPageIndex = findLastPageIndex(pages, skipPages);
     const lastPageName = pages.at(lastPageIndex)?.pageName;
 
-    // Function to navigate to a specific page by name
-    const navigateToPage = useCallback(
-        (pageName: string, action?: 'edit') => {
-            Navigation.navigate(buildRoute(pageName, action));
-        },
-        [buildRoute],
-    );
+    const navigateToPage = (pageName: string, action?: 'edit') => {
+        Navigation.navigate(buildRoute(pageName, action));
+    };
 
     if (pages.length === skipPages.length) {
         throw new Error('All pages are skipped');
     }
 
-    const prevPage = useCallback(() => {
+    const prevPage = () => {
         let targetIndex = pageIndex - 1;
         while (targetIndex >= 0 && skipPages.includes(pages.at(targetIndex)?.pageName ?? '')) {
             targetIndex -= 1;
@@ -74,57 +62,52 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         if (targetPage) {
             navigateToPage(targetPage.pageName);
         }
-    }, [pageIndex, skipPages, pages, navigateToPage]);
+    };
 
-    const nextPage = useCallback(
-        (finishData?: unknown) => {
-            if (isEditing && lastPageName) {
-                navigateToPage(lastPageName);
-                return;
-            }
+    const nextPage = (finishData?: unknown) => {
+        if (isEditing && lastPageName) {
+            navigateToPage(lastPageName);
+            return;
+        }
 
-            let targetIndex = pageIndex + 1;
-            while (targetIndex < pages.length && skipPages.includes(pages.at(targetIndex)?.pageName ?? '')) {
-                targetIndex += 1;
-            }
+        let targetIndex = pageIndex + 1;
+        while (targetIndex < pages.length && skipPages.includes(pages.at(targetIndex)?.pageName ?? '')) {
+            targetIndex += 1;
+        }
 
-            if (targetIndex > lastPageIndex) {
-                onFinished(finishData);
-            } else {
-                const targetPage = pages.at(targetIndex);
-                if (targetPage) {
-                    onPageChange();
-                    navigateToPage(targetPage.pageName);
-                }
-            }
-        },
-        [isEditing, lastPageName, pageIndex, pages, skipPages, lastPageIndex, onFinished, onPageChange, navigateToPage],
-    );
-
-    const moveTo = useCallback(
-        (pageName: string, turnOnEditMode?: boolean) => {
-            const shouldEdit = !(turnOnEditMode !== undefined && !turnOnEditMode);
-            navigateToPage(pageName, shouldEdit ? 'edit' : undefined);
-        },
-        [navigateToPage],
-    );
-
-    const resetToPage = useCallback(
-        (pageName?: string) => {
-            const targetPage = pageName ?? pages.at(0)?.pageName;
+        if (targetIndex > lastPageIndex) {
+            onFinished(finishData);
+        } else {
+            const targetPage = pages.at(targetIndex);
             if (targetPage) {
-                navigateToPage(targetPage);
+                onPageChange();
+                navigateToPage(targetPage.pageName);
             }
-        },
-        [navigateToPage, pages],
-    );
+        }
+    };
 
-    const goToLastPage = useCallback(() => {
+    const moveTo = (step: number, turnOnEditMode?: boolean) => {
+        const pageName = pages.at(step)?.pageName;
+        if (!pageName) {
+            return;
+        }
+        const shouldEdit = !(turnOnEditMode !== undefined && !turnOnEditMode);
+        navigateToPage(pageName, shouldEdit ? 'edit' : undefined);
+    };
+
+    const resetToPage = (pageName?: string) => {
+        const targetPage = pageName ?? pages.at(0)?.pageName;
+        if (targetPage) {
+            navigateToPage(targetPage);
+        }
+    };
+
+    const goToLastPage = () => {
         if (!lastPageName) {
             return;
         }
         navigateToPage(lastPageName);
-    }, [lastPageName, navigateToPage]);
+    };
 
     const currentPage = pages.at(pageIndex);
 

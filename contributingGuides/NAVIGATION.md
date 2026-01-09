@@ -332,6 +332,92 @@ export default NewSettingsScreen;
 
 5. Link the component to the screen. To do that you need to find a proper navigator:
 
+    - If you add a central screen, you will probably want to add it to one of the full-screen navigators (SettingsSplitNavigator, SearchFullScreenNavigator, etc.).
+
+    ```ts
+    // src/libs/Navigation/AppNavigator/Navigators/SettingsSplitNavigator.tsx
+    type Screens = Partial<Record<keyof SettingsSplitNavigatorParamList, () => React.ComponentType>>;
+
+    const CENTRAL_PANE_SETTINGS_SCREENS = {
+        // other account tab screens...
+        [SCREENS.SETTINGS.NEW_SCREEN]: () => require<ReactComponentModule>('../../../../pages/NewSettingsScreen').default,
+    } satisfies Screens;
+
+    const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();
+
+    function SettingsSplitNavigator() {
+        const route = useRoute();
+        const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+
+        return (
+            <FocusTrapForScreens>
+                <Split.Navigator
+                    persistentScreens={[SCREENS.SETTINGS.ROOT]}
+                    sidebarScreen={SCREENS.SETTINGS.ROOT}
+                    defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
+                    parentRoute={route}
+                    screenOptions={splitNavigatorScreenOptions.centralScreen}
+                >
+                    <Split.Screen
+                        name={SCREENS.SETTINGS.ROOT}
+                        getComponent={loadInitialSettingsPage}
+                        options={splitNavigatorScreenOptions.sidebarScreen}
+                    />
+                    {Object.entries(CENTRAL_PANE_SETTINGS_SCREENS).map(([screenName, componentGetter]) => {
+                        return (
+                            <Split.Screen
+                                key={screenName}
+                                name={screenName as keyof Screens}
+                                getComponent={componentGetter}
+                            />
+                        );
+                    })}
+                </Split.Navigator>
+            </FocusTrapForScreens>
+        );
+    }
+
+    SettingsSplitNavigator.displayName = 'SettingsSplitNavigator';
+
+    export {CENTRAL_PANE_SETTINGS_SCREENS};
+    export default SettingsSplitNavigator;
+    ```
+
+    - If you add an RHP screen, you will need to put it to the right navigator in the ModalStackNavigators. In this case, you also need to ensure that the appropriate screen is displayed under the overlay. To cover it, add your screen to a proper mapping file in `src/libs/Navigation/linkingConfig/RELATIONS/index.ts`.
+
+    ```ts
+    // src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx
+    import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+    import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+    import type {SettingsNavigatorParamList} from '@navigation/types';
+    import SCREENS from '@src/SCREENS';
+    import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+
+    const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
+        // ...existing code
+        [SCREENS.SETTINGS.NEW_SCREEN]: () => require<ReactComponentModule>('../../../../pages/NewSettingsScreen').default,
+    });
+    ```
+
+   Let's assume that we want to have PreferencesPage below our new Settings RHP screen.
+
+    ```ts
+    // src/libs/Navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP.ts
+    import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+    import SCREENS from '@src/SCREENS';
+
+    // This file is used to define relation between settings split navigator's central screens and RHP screens.
+    const SETTINGS_TO_RHP: Partial<Record<keyof SettingsSplitNavigatorParamList, string[]>> = {
+        // ...existing code
+        [SCREENS.SETTINGS.PREFERENCES.ROOT]: [
+            // ...existing code
+            SCREENS.SETTINGS.NEW_SCREEN,
+        ],
+    };
+
+    export default SETTINGS_TO_RHP;
+    ```
+
 ## Multi-step flows with URL synchronization
 
 Multi-step flows (wizards, forms with multiple screens) should use URL-based navigation via the `useSubPage` hook. This approach ensures browser navigation works correctly, users can bookmark or share specific steps, and page refreshes preserve the current position.
@@ -521,92 +607,6 @@ const {...} = useSubPage<CustomSubPageProps>({
     // ...other props
 });
 ```
-
-    - If you add a central screen, you will probably want to add it to one of the full-screen navigators (SettingsSplitNavigator, SearchFullScreenNavigator, etc.).
-
-    ```ts
-    // src/libs/Navigation/AppNavigator/Navigators/SettingsSplitNavigator.tsx
-    type Screens = Partial<Record<keyof SettingsSplitNavigatorParamList, () => React.ComponentType>>;
-
-    const CENTRAL_PANE_SETTINGS_SCREENS = {
-        // other account tab screens...
-        [SCREENS.SETTINGS.NEW_SCREEN]: () => require<ReactComponentModule>('../../../../pages/NewSettingsScreen').default,
-    } satisfies Screens;
-
-    const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();
-
-    function SettingsSplitNavigator() {
-        const route = useRoute();
-        const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
-
-        return (
-            <FocusTrapForScreens>
-                <Split.Navigator
-                    persistentScreens={[SCREENS.SETTINGS.ROOT]}
-                    sidebarScreen={SCREENS.SETTINGS.ROOT}
-                    defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
-                    parentRoute={route}
-                    screenOptions={splitNavigatorScreenOptions.centralScreen}
-                >
-                    <Split.Screen
-                        name={SCREENS.SETTINGS.ROOT}
-                        getComponent={loadInitialSettingsPage}
-                        options={splitNavigatorScreenOptions.sidebarScreen}
-                    />
-                    {Object.entries(CENTRAL_PANE_SETTINGS_SCREENS).map(([screenName, componentGetter]) => {
-                        return (
-                            <Split.Screen
-                                key={screenName}
-                                name={screenName as keyof Screens}
-                                getComponent={componentGetter}
-                            />
-                        );
-                    })}
-                </Split.Navigator>
-            </FocusTrapForScreens>
-        );
-    }
-
-    SettingsSplitNavigator.displayName = 'SettingsSplitNavigator';
-
-    export {CENTRAL_PANE_SETTINGS_SCREENS};
-    export default SettingsSplitNavigator;
-    ```
-
-    - If you add an RHP screen, you will need to put it to the right navigator in the ModalStackNavigators. In this case, you also need to ensure that the appropriate screen is displayed under the overlay. To cover it, add your screen to a proper mapping file in `src/libs/Navigation/linkingConfig/RELATIONS/index.ts`.
-
-    ```ts
-    // src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx
-    import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-    import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-    import type {SettingsNavigatorParamList} from '@navigation/types';
-    import SCREENS from '@src/SCREENS';
-    import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-
-    const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
-        // ...existing code
-        [SCREENS.SETTINGS.NEW_SCREEN]: () => require<ReactComponentModule>('../../../../pages/NewSettingsScreen').default,
-    });
-    ```
-
-    Let's assume that we want to have PreferencesPage below our new Settings RHP screen.
-
-    ```ts
-    // src/libs/Navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP.ts
-    import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-    import SCREENS from '@src/SCREENS';
-
-    // This file is used to define relation between settings split navigator's central screens and RHP screens.
-    const SETTINGS_TO_RHP: Partial<Record<keyof SettingsSplitNavigatorParamList, string[]>> = {
-        // ...existing code
-        [SCREENS.SETTINGS.PREFERENCES.ROOT]: [
-            // ...existing code
-            SCREENS.SETTINGS.NEW_SCREEN,
-        ],
-    };
-
-    export default SETTINGS_TO_RHP;
-    ```
 
 ## Debugging
 

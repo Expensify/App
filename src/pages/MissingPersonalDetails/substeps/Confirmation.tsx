@@ -5,7 +5,7 @@ import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
-const PAGE_NAMES = CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME;
+const PAGE_INDEXES = CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
 
 function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing}: CustomSubPageProps) {
     const {translate} = useLocalize();
@@ -16,7 +16,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing}
             title: `${values[INPUT_IDS.LEGAL_FIRST_NAME]} ${values[INPUT_IDS.LEGAL_LAST_NAME]}`,
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(PAGE_NAMES.LEGAL_NAME);
+                onMove(PAGE_INDEXES.LEGAL_NAME);
             },
         },
         {
@@ -24,7 +24,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing}
             title: values[INPUT_IDS.DATE_OF_BIRTH],
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(PAGE_NAMES.DATE_OF_BIRTH);
+                onMove(PAGE_INDEXES.DATE_OF_BIRTH);
             },
         },
         {
@@ -34,7 +34,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing}
             }, ${values[INPUT_IDS.ZIP_POST_CODE].toUpperCase()}, ${values[INPUT_IDS.COUNTRY]}`,
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(PAGE_NAMES.ADDRESS);
+                onMove(PAGE_INDEXES.ADDRESS);
             },
         },
         {
@@ -42,7 +42,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing}
             title: values[INPUT_IDS.PHONE_NUMBER],
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(PAGE_NAMES.PHONE_NUMBER);
+                onMove(PAGE_INDEXES.PHONE_NUMBER);
             },
         },
     ];

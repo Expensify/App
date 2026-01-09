@@ -8,8 +8,8 @@ type SubPageProps = {
     /** continues to next sub page */
     onNext: (data?: unknown) => void;
 
-    /** moves user to passed sub page by name */
-    onMove: (pageName: string, turnOnEditMode?: boolean) => void;
+    /** moves user to passed sub page index */
+    onMove: (pageIndex: number, turnOnEditMode?: boolean) => void;
 
     /** name of currently displayed sub page */
     currentPageName?: string;
