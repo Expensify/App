@@ -10,7 +10,7 @@ import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports,
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
-import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, OpenSearchPageParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -376,8 +376,8 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchPage() {
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
+function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParams) {
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
 }
 
 function search({
