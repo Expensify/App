@@ -12,7 +12,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportPreviewAction} from '@libs/actions/IOU';
-import {isActionableWhisperRequiringWritePermission} from '@libs/actions/OnyxDerived/configs/visibleReportActions';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -26,6 +25,7 @@ import {
     getMostRecentIOURequestActionID,
     getOriginalMessage,
     getSortedReportActionsForDisplay,
+    isActionableWhisperRequiringWritePermission,
     isCreatedAction,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
