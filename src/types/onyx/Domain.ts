@@ -1,6 +1,6 @@
 import type CONST from '@src/CONST';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
-import type VacationDelegate from '@src/types/onyx/VacationDelegate';
+import type VacationDelegate from './VacationDelegate';
 import type * as OnyxCommon from './OnyxCommon';
 import type SecurityGroup from './SecurityGroup';
 

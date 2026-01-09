@@ -1391,7 +1391,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.VACATION_DELEGATE]: {
         domainAccountID: number;
         accountID: number;
-    }
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {

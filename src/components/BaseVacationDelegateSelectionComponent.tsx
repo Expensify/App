@@ -1,41 +1,48 @@
-import React, { useEffect } from 'react';
-import { View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { formatPhoneNumber } from '@libs/LocalePhoneNumber';
-import { getHeaderMessage } from '@libs/OptionsListUtils';
-import { getPersonalDetailByEmail } from '@libs/PersonalDetailsUtils';
-import { searchInServer } from '@userActions/Report';
+import {searchInServer} from '@libs/actions/Report';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {getHeaderMessage} from '@libs/OptionsListUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type VacationDelegate from '@src/types/onyx/VacationDelegate';
+import type {Participant} from '@src/types/onyx/IOU';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import ScreenWrapper from './ScreenWrapper';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import UserListItem from './SelectionListWithSections/UserListItem';
 
-
 type BaseVacationDelegateSelectionComponentProps = {
-    vacationDelegate: OnyxEntry<VacationDelegate>;
+    /** Current vacation delegate login */
+    currentVacationDelegate?: string;
+
+    /** Callback when a row is selected */
+    onSelectRow: (option: Participant) => void;
+
+    /** Title for the header */
+    headerTitle: string;
+
+    /** Function to call when back button is pressed */
+    onBackButtonPress?: () => void;
 };
 
-function BaseVacationDelegateSelectionComponent({vacationDelegate}: BaseVacationDelegateSelectionComponentProps) {
-    const styles = useThemeStyles();
+function BaseVacationDelegateSelectionComponent({currentVacationDelegate, onSelectRow, headerTitle, onBackButtonPress}: BaseVacationDelegateSelectionComponentProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const delegatePersonalDetails = getPersonalDetailByEmail(vacationDelegate?.delegate ?? '');
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
+
+    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
 
     const excludeLogins = {
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
-        ...(vacationDelegate?.delegate && {[vacationDelegate.delegate]: true}),
+        ...(currentVacationDelegate && {[currentVacationDelegate]: true}),
     };
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
@@ -49,16 +56,21 @@ function BaseVacationDelegateSelectionComponent({vacationDelegate}: BaseVacation
         },
     });
 
+    useEffect(() => {
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
+
     const sectionsList = [];
-    if (vacationDelegate && delegatePersonalDetails) {
+
+    if (currentVacationDelegate && delegatePersonalDetails) {
         sectionsList.push({
             title: undefined,
             data: [
                 {
                     ...delegatePersonalDetails,
-                    text: delegatePersonalDetails?.displayName ?? vacationDelegate.delegate,
-                    alternateText: delegatePersonalDetails?.login ?? vacationDelegate.delegate,
-                    login: delegatePersonalDetails.login ?? vacationDelegate.delegate,
+                    text: delegatePersonalDetails?.displayName ?? currentVacationDelegate,
+                    alternateText: delegatePersonalDetails?.login ?? currentVacationDelegate,
+                    login: delegatePersonalDetails.login ?? currentVacationDelegate,
                     keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
                     isDisabled: false,
                     isSelected: true,
@@ -80,13 +92,12 @@ function BaseVacationDelegateSelectionComponent({vacationDelegate}: BaseVacation
     sectionsList.push({
         title: translate('common.recents'),
         data: availableOptions.recentReports,
-        shouldShow: availableOptions.recentReports?.length > 0,
+        shouldShow: (availableOptions.recentReports?.length ?? 0) > 0,
     });
-
     sectionsList.push({
         title: translate('common.contacts'),
         data: availableOptions.personalDetails,
-        shouldShow: availableOptions.personalDetails?.length > 0,
+        shouldShow: (availableOptions.personalDetails?.length ?? 0) > 0,
     });
 
     if (availableOptions.userToInvite) {
@@ -99,7 +110,7 @@ function BaseVacationDelegateSelectionComponent({vacationDelegate}: BaseVacation
 
     const sections = sectionsList.map((section) => ({
         ...section,
-        data: section.data.map((option) => ({
+        data: (section.data ?? []).map((option) => ({
             ...option,
             text: option.text ?? option.displayName ?? '',
             alternateText: option.alternateText ?? option.login ?? undefined,
@@ -111,42 +122,37 @@ function BaseVacationDelegateSelectionComponent({vacationDelegate}: BaseVacation
         })),
     }));
 
-    useEffect(() => {
-        searchInServer(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
+    const headerMessage = getHeaderMessage(
+        (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+        !!availableOptions.userToInvite,
+        debouncedSearchTerm.trim(),
+        countryCode,
+        false,
+    );
 
     return (
-            <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding
-                testID={BaseVacationDelegateSelectionComponent.displayName}
-            >
-                <HeaderWithBackButton title={translate('domain.common.vacationDelegate')} />
-
-                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
-                        sections={areOptionsInitialized ? sections : []}
-                        ListItem={UserListItem}
-                        onSelectRow={() => {}}
-                        shouldSingleExecuteRowSelect
-                        onChangeText={setSearchTerm}
-                        textInputValue={searchTerm}
-                        headerMessage={getHeaderMessage(
-                            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-                            !!availableOptions.userToInvite,
-                            debouncedSearchTerm.trim(),
-                            countryCode,
-                            false,
-                        )}
-                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
-                        onEndReached={onListEndReached}
-                    />
-                </View>
-            </ScreenWrapper>
+        <>
+            <HeaderWithBackButton
+                title={headerTitle}
+                onBackButtonPress={onBackButtonPress}
+            />
+            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                <SelectionList
+                    sections={areOptionsInitialized ? sections : []}
+                    ListItem={UserListItem}
+                    onSelectRow={onSelectRow}
+                    shouldSingleExecuteRowSelect
+                    onChangeText={setSearchTerm}
+                    textInputValue={searchTerm}
+                    headerMessage={headerMessage}
+                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                    showLoadingPlaceholder={!areOptionsInitialized}
+                    isLoadingNewOptions={!!isSearchingForReports}
+                    onEndReached={onListEndReached}
+                />
+            </View>
+        </>
     );
 }
-
-BaseVacationDelegateSelectionComponent.displayName = 'BaseVacationDelegateSelectionComponent';
 
 export default BaseVacationDelegateSelectionComponent;

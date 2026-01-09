@@ -7835,7 +7835,7 @@ const translations = {
         },
         common: {
             vacationDelegate: 'Vacation delegate',
-        }
+        },
     },
 };
 

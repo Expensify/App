@@ -14,15 +14,15 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestError} from '@libs/ErrorUtils';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
+import {clearSetPrimaryContactError} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Domain, PersonalDetailsList} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {getLatestError} from '@libs/ErrorUtils';
-import {clearSetPrimaryContactError} from '@userActions/Domain';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type MemberDetailsMenuItem = {
@@ -58,8 +58,8 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${String(accountID)}` as const]
-    })
+        selector: (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${String(accountID)}` as const],
+    });
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
     const phoneNumber = getPhoneNumber(personalDetails);
