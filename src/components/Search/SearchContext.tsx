@@ -28,6 +28,7 @@ const defaultSearchContext: SearchContextProps = {
     areAllMatchingItemsSelected: false,
     showSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
+    currentSearchResults: undefined,
     setLastSearchType: () => {},
     setCurrentSearchHashAndKey: () => {},
     setCurrentSearchQueryJSON: () => {},

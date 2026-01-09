@@ -44,7 +44,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {PersonalDetails, Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -133,6 +133,7 @@ type TransactionItemRowProps = {
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
     customCardNames?: Record<number, string>;
+    reportActions?: ReportAction[];
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -181,6 +182,7 @@ function TransactionItemRow({
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
     customCardNames,
+    reportActions,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -556,10 +558,7 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                    <ExportedIconCell
-                        hash={hash}
-                        reportID={transactionItem.reportID}
-                    />
+                    <ExportedIconCell reportActions={reportActions} />
                 </View>
             ),
         }),
@@ -592,6 +591,7 @@ function TransactionItemRow({
             isTaxAmountColumnWide,
             isLargeScreenWidth,
             hash,
+            reportActions,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
