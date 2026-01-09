@@ -3598,9 +3598,6 @@ const translations = {
         features: {
             saveMoney: 'Save money on your bookings',
             alerts: 'Get realtime alerts if your travel plans change',
-            easyPayments: 'Easy payments for your members',
-            travelSpendLimits: 'Set travel spend limits',
-            invoicedMonthlyWeekly: 'Get invoiced monthly or weekly',
         },
         bookTravel: 'Book travel',
         bookDemo: 'Book demo',

@@ -3608,9 +3608,6 @@ ${
         features: {
             saveMoney: 'Bespaar geld op je boekingen',
             alerts: 'Ontvang realtime meldingen als uw reisplannen veranderen',
-            easyPayments: 'Moeiteloze betalingen voor je leden',
-            travelSpendLimits: 'Reisuitgavenlimieten instellen',
-            invoicedMonthlyWeekly: 'Maandelijks of wekelijks gefactureerd worden',
         },
         bookTravel: 'Reis boeken',
         bookDemo: 'Demo boeken',

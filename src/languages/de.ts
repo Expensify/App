@@ -3621,9 +3621,6 @@ ${
         features: {
             saveMoney: 'Spare Geld bei deinen Buchungen',
             alerts: 'Erhalten Sie Echtzeit-Benachrichtigungen, wenn sich Ihre Reisepläne ändern',
-            easyPayments: 'Einfache Zahlungen für Ihre Mitglieder',
-            travelSpendLimits: 'Reiseausgabenlimits festlegen',
-            invoicedMonthlyWeekly: 'Monatlich oder wöchentlich abrechnen lassen',
         },
         bookTravel: 'Reise buchen',
         bookDemo: 'Demo buchen',

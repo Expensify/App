@@ -3598,9 +3598,6 @@ ${
         features: {
             saveMoney: '予約で節約しましょう',
             alerts: '旅行計画が変更された場合のリアルタイムアラートを受け取る',
-            easyPayments: 'メンバーのための簡単なお支払い',
-            travelSpendLimits: '出張費の上限を設定',
-            invoicedMonthlyWeekly: '毎月または毎週の請求書発行',
         },
         bookTravel: '出張を予約',
         bookDemo: 'デモを予約',

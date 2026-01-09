@@ -3601,9 +3601,6 @@ ${
         features: {
             saveMoney: 'Economize nas suas reservas',
             alerts: 'Receba alertas em tempo real se seus planos de viagem mudarem',
-            easyPayments: 'Pagamentos fáceis para seus membros',
-            travelSpendLimits: 'Definir limites de gastos de viagem',
-            invoicedMonthlyWeekly: 'Seja faturado mensalmente ou semanalmente',
         },
         bookTravel: 'Reservar viagem',
         bookDemo: 'Agendar demonstração',

@@ -3601,9 +3601,6 @@ ${
         features: {
             saveMoney: 'Oszczędzaj pieniądze na swoich rezerwacjach',
             alerts: 'Otrzymuj alerty w czasie rzeczywistym, jeśli Twoje plany podróży się zmienią',
-            easyPayments: 'Łatwe płatności dla Twoich członków',
-            travelSpendLimits: 'Ustaw limity wydatków na podróże',
-            invoicedMonthlyWeekly: 'Otrzymuj faktury co miesiąc lub co tydzień',
         },
         bookTravel: 'Zarezerwuj podróż',
         bookDemo: 'Zarezerwuj demo',

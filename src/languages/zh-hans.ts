@@ -3549,9 +3549,6 @@ ${
         features: {
             saveMoney: '在预订时省钱',
             alerts: '如果您的旅行计划发生变化，获取实时提醒',
-            easyPayments: '为您的成员提供便捷付款',
-            travelSpendLimits: '设置差旅支出限额',
-            invoicedMonthlyWeekly: '按月或按周开具发票',
         },
         bookTravel: '预订出行',
         bookDemo: '预订演示',
