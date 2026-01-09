@@ -90,9 +90,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** Precomputed violations */
     violations?: TransactionViolation[];
 
-    /** Used to initiate payment from search page */
-    hash?: number;
-
     /** Report to which the transaction belongs */
     report?: Report;
 
@@ -101,7 +98,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 };
 
 type TransactionItemRowProps = {
-    hash?: number;
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
     shouldUseNarrowLayout: boolean;
@@ -150,7 +146,6 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 }
 
 function TransactionItemRow({
-    hash,
     transactionItem,
     report,
     shouldUseNarrowLayout,
