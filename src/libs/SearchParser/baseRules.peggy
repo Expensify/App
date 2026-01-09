@@ -83,7 +83,7 @@ columns = "columns"i {return "columns"}
 // Value transformation rules
 values
   = perDiem
-  / draft
+  / drafts
   / originalAmount
   / taxRate
   / taxAmount
@@ -105,16 +105,16 @@ values
   / groupWithdrawn
   / groupWithdrawalId
 
-perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
-draft = "drafts"i / "draft"i {return "drafts"; }
+perDiem                 = "per-diem"i                  { return "perDiem"; }
+drafts                  = "draft"i / "drafts"i         { return "drafts"; }
 originalAmount          = "original-amount"i           { return "originalAmount"; }
-taxAmount               = "tax-amount"i                { return "taxAmount"; }
+taxAmount               = "tax"i                       { return "taxAmount"; }
 policyName              = "policy-name"i               { return "policyName"; }
-withdrawalId            = "withdrawal-id"i             { return "withdrawalId"; }
+withdrawalId            = "withdrawal-id"i             { return "withdrawalID"; }
 bankAccount             = "bank-account"i              { return "bankAccount"; }
-reportId                = "report-id"i                 { return "reportId"; }
-base62ReportId           = "base62-report-id"i          { return "base62ReportId"; }
-exportedTo               = "exported-to"i              { return "exportedTo"; }
+reportId                = "long-report-id"i            { return "reportID"; }
+base62ReportId          = "report-id"i                 { return "base62ReportID"; }
+exportedTo              = "exported-to"i               { return "exportedTo"; }
 exchangeRate            = "exchange-rate"i             { return "exchangeRate"; }
 reimbursableTotal       = "reimbursable-total"i        { return "reimbursableTotal"; }
 nonReimbursableTotal    = "non-reimbursable-total"i    { return "nonReimbursableTotal"; }
@@ -125,7 +125,7 @@ groupCard               = "group-card"i                { return "groupCard"; }
 groupFeed               = "group-feed"i                { return "groupFeed"; }
 groupBankAccount        = "group-bank-account"i        { return "groupBankAccount"; }
 groupWithdrawn          = "group-withdrawn"i           { return "groupWithdrawn"; }
-groupWithdrawalId       = "group-withdrawal-id"i       { return "groupWithdrawalId"; }
+groupWithdrawalId       = "group-withdrawal-id"i       { return "groupWithdrawalID"; }
 
 
 operator "operator"
