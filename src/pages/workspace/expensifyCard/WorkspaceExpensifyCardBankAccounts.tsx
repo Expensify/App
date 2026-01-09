@@ -205,7 +205,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicator={false}
             >
-                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
                     <HeaderWithBackButton
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.goBack()}
