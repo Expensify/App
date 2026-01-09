@@ -87,6 +87,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
+    shouldBlockScrollOnSelect = false,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -177,13 +178,14 @@ function BaseSelectionList<TItem extends ListItem>({
         setShouldDisableHoverStyle(true);
     }, [setShouldDisableHoverStyle]);
 
+    const isSelectingRowRef = useRef(false);
     const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: data.length - 1,
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
-            if (!shouldScrollToFocusedIndex) {
+            if (!shouldScrollToFocusedIndex || (isSelectingRowRef.current && shouldBlockScrollOnSelect)) {
                 return;
             }
 
@@ -217,6 +219,9 @@ function BaseSelectionList<TItem extends ListItem>({
             if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
                 setFocusedIndex(indexToFocus);
             }
+            if (shouldBlockScrollOnSelect) {
+                isSelectingRowRef.current = true;
+            }
             onSelectRow(item);
 
             if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
@@ -235,6 +240,7 @@ function BaseSelectionList<TItem extends ListItem>({
             textInputOptions,
             onCheckboxPress,
             setFocusedIndex,
+            shouldBlockScrollOnSelect,
         ],
     );
 

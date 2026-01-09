@@ -111,6 +111,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                         shouldSingleExecuteRowSelect
                         addBottomSafeAreaPadding
                         showScrollIndicator
+                        shouldBlockScrollOnSelect
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
