@@ -588,7 +588,10 @@ function IOURequestStepConfirmation({
                     action,
                     transactionParams: {
                         amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
-                        distance: isManualDistanceRequest && item.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
+                        distance:
+                            isManualDistanceRequest && typeof item.comment?.customUnit?.quantity === 'number'
+                                ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity)
+                                : undefined,
                         attendees: item.comment?.attendees,
                         currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
                         created: item.created,
