@@ -19,6 +19,8 @@ import {translate} from '@libs/Localize';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-syntax
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/ReportActionsUtils';
 import {buildReportNameFromParticipantNames, computeReportName, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -187,6 +189,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         })),
     },
 }));
+
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
+    isPaidGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team'),
+}));
+
+const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
@@ -2929,7 +2939,8 @@ describe('ReportUtils', () => {
                         type: CONST.REPORT.TYPE.EXPENSE,
                         ownerAccountID: currentUserAccountID,
                     };
-                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL]);
+                    mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], CONST.BETAS.ALL]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -6076,6 +6087,8 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
             // When it's checked if the transactions can be added
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
@@ -6093,6 +6106,8 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID + 1,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
 
             const result = canAddTransaction(report, false);
 
@@ -6137,6 +6152,8 @@ describe('ReportUtils', () => {
             });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
 
             // If the canAddTransaction is used for the case of adding expense into the report
             const result = canAddTransaction(report, isReportArchived.current);
