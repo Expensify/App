@@ -427,7 +427,7 @@ function isExportAction(currentAccountID: number, currentUserEmail: string, repo
     return isAdmin && isReportFinished && syncEnabled;
 }
 
-function isMarkAsExportedAction(currentAccountID: number, currentUserEmail: string, report: Report, policy?: Policy): boolean {
+function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: string, report: Report, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -450,7 +450,7 @@ function isMarkAsExportedAction(currentAccountID: number, currentUserEmail: stri
         return false;
     }
 
-    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, false, policy);
+    const isReportPayer = isPayerUtils(currentAccountID, currentUserLogin, report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -471,7 +471,7 @@ function isMarkAsExportedAction(currentAccountID: number, currentUserEmail: stri
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const isExporter = isPreferredExporter(policy, currentUserEmail);
+    const isExporter = isPreferredExporter(policy, currentUserLogin);
 
     return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
@@ -763,7 +763,7 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
 }
 
 function getSecondaryReportActions({
-    currentUserEmail: currentUserLogin,
+    currentUserLogin,
     currentUserAccountID,
     report,
     chatReport,
@@ -777,7 +777,7 @@ function getSecondaryReportActions({
     policies,
     isChatReportArchived = false,
 }: {
-    currentUserEmail: string;
+    currentUserLogin: string;
     currentUserAccountID: number;
     report: Report;
     chatReport: OnyxEntry<Report>;
@@ -810,7 +810,7 @@ function getSecondaryReportActions({
     }
 
     const primaryAction = getReportPrimaryAction({
-        currentUserEmail: currentUserLogin,
+        currentUserLogin,
         currentUserAccountID,
         report,
         chatReport,
@@ -913,17 +913,17 @@ function getSecondaryReportActions({
 
 function getSecondaryExportReportActions(
     currentUserAccountID: number,
-    currentUserEmail: string,
+    currentUserLogin: string,
     report: Report,
     policy?: Policy,
     exportTemplates: ExportTemplate[] = [],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
-    if (isExportAction(currentUserAccountID, currentUserEmail, report, policy)) {
+    if (isExportAction(currentUserAccountID, currentUserLogin, report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
-    if (isMarkAsExportedAction(currentUserAccountID, currentUserEmail, report, policy)) {
+    if (isMarkAsExportedAction(currentUserAccountID, currentUserLogin, report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
 
@@ -938,7 +938,7 @@ function getSecondaryExportReportActions(
 }
 
 function getSecondaryTransactionThreadActions(
-    currentUserEmail: string,
+    currentUserLogin: string,
     parentReport: Report,
     reportTransaction: Transaction,
     reportAction: ReportAction | undefined,
@@ -956,11 +956,11 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(currentUserEmail, parentReport, policy)) {
+    if (canRejectReportAction(currentUserLogin, parentReport, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserEmail, policy)) {
+    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 

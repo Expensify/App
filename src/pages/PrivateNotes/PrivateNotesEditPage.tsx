@@ -52,7 +52,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetailsList = usePersonalDetails();
-    const {email} = useCurrentUserPersonalDetails();
+    const {login} = useCurrentUserPersonalDetails();
 
     // We need to edit the note in markdown format, but display it in HTML format
     const [privateNote, setPrivateNote] = useState(() => privateNoteDraft || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim());
@@ -93,7 +93,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim(), email ?? '', undefined);
+            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim(), login ?? '', undefined);
             updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }
 

@@ -62,7 +62,7 @@ describe('getSecondaryAction', () => {
         const result = [CONST.REPORT.SECONDARY_ACTIONS.EXPORT, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
         expect(
             getSecondaryReportActions({
-                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -95,7 +95,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Transaction;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -125,7 +125,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -155,7 +155,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -199,7 +199,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Transaction;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -229,7 +229,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -275,7 +275,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -307,7 +307,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -345,7 +345,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Transaction;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -389,7 +389,7 @@ describe('getSecondaryAction', () => {
         } as TransactionViolation;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -429,7 +429,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -466,7 +466,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -505,7 +505,7 @@ describe('getSecondaryAction', () => {
         } as unknown as TransactionViolation;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -544,7 +544,7 @@ describe('getSecondaryAction', () => {
         } as unknown as TransactionViolation;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -580,7 +580,7 @@ describe('getSecondaryAction', () => {
         } as unknown as TransactionViolation;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -616,7 +616,7 @@ describe('getSecondaryAction', () => {
         } as unknown as TransactionViolation;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -649,7 +649,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Transaction;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -673,7 +673,7 @@ describe('getSecondaryAction', () => {
         const policy = {approver: EMPLOYEE_EMAIL} as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -700,7 +700,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -726,7 +726,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -752,7 +752,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -779,7 +779,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -806,7 +806,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -834,7 +834,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -862,7 +862,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -905,7 +905,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -952,7 +952,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -999,7 +999,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1046,7 +1046,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1080,7 +1080,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1123,7 +1123,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1167,7 +1167,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1226,7 +1226,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1285,7 +1285,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1344,7 +1344,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1369,7 +1369,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1432,7 +1432,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1476,7 +1476,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1535,7 +1535,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1579,7 +1579,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1628,7 +1628,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1668,7 +1668,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1704,7 +1704,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1755,7 +1755,7 @@ describe('getSecondaryAction', () => {
 
         // Then it should return false since the unreported card expense is imported with deleting disabled
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1797,7 +1797,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1826,7 +1826,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1859,7 +1859,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1902,7 +1902,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1932,7 +1932,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -1990,7 +1990,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -2030,7 +2030,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -2073,7 +2073,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -2338,7 +2338,7 @@ describe('getSecondaryExportReportActions', () => {
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -2468,7 +2468,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -2636,7 +2636,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
             const result = getSecondaryReportActions({
-                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport: undefined,
@@ -2688,7 +2688,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
             const result = getSecondaryReportActions({
-                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport: undefined,
@@ -2711,7 +2711,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction];
 
             const result = getSecondaryReportActions({
-                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -2731,7 +2731,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction];
 
             const result = getSecondaryReportActions({
-                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -2751,7 +2751,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const transactions = [{transactionID: '1'} as unknown as Transaction];
 
             const result = getSecondaryReportActions({
-                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -2770,7 +2770,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             } as unknown as Report;
 
             const result = getSecondaryReportActions({
-                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -2790,7 +2790,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction];
 
             const result = getSecondaryReportActions({
-                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -2810,7 +2810,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction, {transactionID: '3'} as unknown as Transaction];
 
             const result = getSecondaryReportActions({
-                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
