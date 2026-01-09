@@ -54,13 +54,14 @@ function CloseAccountPage() {
     // here, we left this as is during refactor to limit the breaking changes.
     useEffect(() => () => clearError(), []);
 
-    const onSubmit = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
         setReasonForLeaving(values.reasonForLeaving);
-        const result = await showCloseAccountWarningModal();
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-        closeAccount(reasonForLeaving);
+        showCloseAccountWarningModal().then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            closeAccount(reasonForLeaving);
+        });
     };
 
     const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
