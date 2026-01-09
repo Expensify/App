@@ -1466,7 +1466,7 @@ describe('ReportActionsUtils', () => {
                 created: '2025-09-29',
                 originalMessage: {
                     toReportID: report.reportID,
-                    fromReportID: 1,
+                    fromReportID: '1',
                 },
             };
 
