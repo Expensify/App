@@ -180,8 +180,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
-    // Refetch when expanding (ensures fresh data after navigating back) and when newTransactionID changes
-
+    
     useEffect(() => {
         if (!isExpanded) {
             return;
