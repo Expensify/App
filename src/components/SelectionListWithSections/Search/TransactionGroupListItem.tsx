@@ -188,6 +188,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
         searchTransactions();
     }, [newTransactionID, isExpanded, searchTransactions]);
 
+    useEffect(() => {
+        if (!isExpanded) {
+            return;
+        }
+        searchTransactions();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isExpanded]);
+
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
         if (isExpanded) {
