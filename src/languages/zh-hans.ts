@@ -7695,6 +7695,9 @@ ${reportName}
             addAdmin: '添加管理员',
             invite: '邀请',
             addAdminError: '无法将此成员添加为管理员。请重试。',
+            revokeAdminAccess: '撤销管理员访问权限',
+            cantRevokeAdminAccess: '无法撤销技术联系人的管理员访问权限',
+            error: {removeAdmin: '无法将此用户移除管理员角色。请重试。'},
         },
     },
     gps: {
