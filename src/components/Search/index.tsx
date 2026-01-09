@@ -372,14 +372,14 @@ function Search({
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        openSearch();
+        openSearch({includePartiallySetupBankAccounts: true});
     }, []);
 
     useEffect(() => {
         if (!prevIsOffline || isOffline) {
             return;
         }
-        openSearch();
+        openSearch({includePartiallySetupBankAccounts: true});
     }, [isOffline, prevIsOffline]);
 
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
@@ -1048,7 +1048,6 @@ function Search({
                     canSelectMultiple={canSelectMultiple}
                     selectedTransactions={selectedTransactions}
                     shouldPreventLongPressRow={isChat || isTask}
-                    isFocused={isFocused}
                     onDEWModalOpen={handleDEWModalOpen}
                     isDEWBetaEnabled={isDEWBetaEnabled}
                     SearchTableHeader={
