@@ -941,7 +941,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             expect(IOU.requestMoney).toHaveBeenCalled();
-            const params = (IOU.requestMoney as jest.Mock).mock.calls.at(0)?.at(0);
+            const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
+            const params = requestMoneyMock.mock.calls[0]?.[0];
             expect(params?.report).toBeUndefined();
         });
 
@@ -1006,7 +1007,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             expect(IOU.requestMoney).toHaveBeenCalled();
-            const params = (IOU.requestMoney as jest.Mock).mock.calls.at(0)?.at(0);
+            const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
+            const params = requestMoneyMock.mock.calls[0]?.[0];
             expect(params?.report?.reportID).toBe(routeReportID);
         });
 
@@ -1080,7 +1082,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
                 expect(IOU.requestMoney).toHaveBeenCalled();
-                const params = (IOU.requestMoney as jest.Mock).mock.calls.at(0)?.at(0);
+                const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
+                const params = requestMoneyMock.mock.calls[0]?.[0];
                 expect(params?.report?.reportID).toBe(transactionReportID);
             } finally {
                 isReportOutstandingSpy.mockRestore();
