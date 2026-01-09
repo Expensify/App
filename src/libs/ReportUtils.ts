@@ -189,6 +189,7 @@ import {
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
     getLastVisibleMessage as getLastVisibleMessageActionUtils,
     getLastVisibleMessage as getLastVisibleMessageReportActionsUtils,
+    getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
     getMostRecentActiveDEWSubmitFailedAction,
     getNumberOfMoneyRequests,
@@ -785,6 +786,8 @@ type TransactionDetails = {
     postedDate: string;
     transactionID: string;
     distance?: number;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 type OptimisticIOUReport = Pick<
@@ -857,7 +860,6 @@ type OptionData = {
     isDefaultRoom?: boolean;
     isInvoiceRoom?: boolean;
     isExpenseReport?: boolean;
-    isDM?: boolean;
     isOptimisticPersonalDetail?: boolean;
     selected?: boolean;
     isOptimisticAccount?: boolean;
@@ -2119,7 +2121,7 @@ function pushTransactionViolationsOnyxData(
     // Iterate through all policy reports to find transactions that need optimistic violations
     for (const {transactions, violations} of nonInvoiceReportTransactionsAndViolations) {
         for (const transaction of Object.values(transactions)) {
-            const existingViolations = violations[transaction.transactionID];
+            const existingViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
                 existingViolations ?? [],
@@ -5104,7 +5106,7 @@ function getReportPreviewMessage(
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.didSplitAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
+            return translateLocal('iou.didSplitAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
         }
     }
 
@@ -5120,7 +5122,7 @@ function getReportPreviewMessage(
             if (amount && currency) {
                 const formattedAmount = convertToDisplayString(amount, currency);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.trackedAmount', {formattedAmount, comment});
+                return translateLocal('iou.trackedAmount', formattedAmount, comment);
             }
 
             return reportActionMessage;
@@ -5140,7 +5142,7 @@ function getReportPreviewMessage(
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.trackedAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
+            return translateLocal('iou.trackedAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
         }
     }
 
@@ -5223,9 +5225,13 @@ function getReportPreviewMessage(
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal(translatePhraseKey, '', reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '');
         }
-        if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify' || translatePhraseKey === 'iou.paidElsewhere') {
+        if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal(translatePhraseKey, payerDisplayName ?? '');
+        }
+        if (translatePhraseKey === 'iou.paidElsewhere') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal(translatePhraseKey, {payer: payerDisplayName ?? undefined});
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -5267,7 +5273,7 @@ function getReportPreviewMessage(
                 ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils})
                 : '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.expenseAmount', {formattedAmount: amountToDisplay, comment})}`;
+        return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.expenseAmount', amountToDisplay, comment)}`;
     }
 
     if (containsNonReimbursable) {
@@ -5734,8 +5740,7 @@ function getReportName(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.paidElsewhere');
+        return getMarkedReimbursedMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
@@ -6622,11 +6627,6 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 
     const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
 
-    const totalAmount = report.total !== undefined && !Number.isNaN(report.total) ? Math.abs(report.total) : 0;
-    const nonReimbursableTotal =
-        'nonReimbursableTotal' in report && report.nonReimbursableTotal !== undefined && !Number.isNaN(report.nonReimbursableTotal) ? Math.abs(report.nonReimbursableTotal) : 0;
-    const reimbursableAmount = totalAmount - nonReimbursableTotal;
-
     const result = formula
         // We don't translate because the server response is always in English
         .replaceAll(/\{report:type\}/gi, 'Expense Report')
@@ -6634,7 +6634,6 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         .replaceAll(/\{report:enddate\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
         .replaceAll(/\{report:id\}/gi, getBase62ReportID(Number(report.reportID)))
         .replaceAll(/\{report:total\}/gi, report.total !== undefined && !Number.isNaN(report.total) ? convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
-        .replaceAll(/\{report:reimbursable\}/gi, report.total !== undefined && !Number.isNaN(report.total) ? convertToDisplayString(reimbursableAmount, report.currency).toString() : '')
         .replaceAll(/\{report:currency\}/gi, report.currency ?? '')
         .replaceAll(/\{report:policyname\}/gi, policy?.name ?? '')
         .replaceAll(/\{report:workspacename\}/gi, policy?.name ?? '')
@@ -6877,10 +6876,7 @@ function getDeletedTransactionMessage(action: ReportAction) {
     const currency = deletedTransactionOriginalMessage.currency ?? '';
     const formattedAmount = convertToDisplayString(amount, currency) ?? '';
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const message = translateLocal('iou.deletedTransaction', {
-        amount: formattedAmount,
-        merchant: deletedTransactionOriginalMessage.merchant ?? '',
-    });
+    const message = translateLocal('iou.deletedTransaction', formattedAmount, deletedTransactionOriginalMessage.merchant ?? '');
     return message;
 }
 
@@ -7050,7 +7046,7 @@ function getIOUReportActionMessage(
             break;
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            iouMessage = translateLocal('iou.expenseAmount', {formattedAmount: amount});
+            iouMessage = translateLocal('iou.expenseAmount', amount);
             break;
         default:
             break;
@@ -9409,6 +9405,17 @@ function reasonForReportToBeInOptionList({
     const isEmptyChat = isEmptyReport(report, isReportArchived);
     const canHideReport = shouldHideReport(report, currentReportId, isReportArchived);
 
+    // Drafts already return early above, so no draft check needed here
+    if (isChatThread(report) && isEmptyChat) {
+        const isParentDeleted = !isEmptyObject(parentReportAction) && isDeletedAction(parentReportAction);
+        const isParentPendingDelete = !isEmptyObject(parentReportAction) && parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const hasReplies = (parentReportAction?.childVisibleActionCount ?? 0) > 0;
+
+        if ((isParentDeleted || isParentPendingDelete) && !hasReplies) {
+            return null;
+        }
+    }
+
     // Include reports if they are pinned
     if (report.isPinned) {
         return CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER;
@@ -10384,7 +10391,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         }
         if (translationKey === 'iou.paidElsewhere') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal(translationKey, '');
+            return translateLocal(translationKey);
         }
         if (translationKey === 'iou.payerSettledWithMissingBankAccount') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -10412,10 +10419,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         translationKey = 'iou.expenseAmount';
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal(translationKey, {
-        formattedAmount,
-        comment: getMerchantOrDescription(transaction),
-    });
+    return translateLocal(translationKey, formattedAmount, getMerchantOrDescription(transaction));
 }
 
 /**

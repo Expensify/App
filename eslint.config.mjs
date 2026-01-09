@@ -411,7 +411,6 @@ const config = defineConfig([
                         '@styles': './src/styles',
                         // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                         '@src': './src',
-                        '@desktop': './desktop',
                         '@github': './.github',
                     },
                 },
@@ -624,7 +623,6 @@ const config = defineConfig([
         'src/languages/pl.ts',
         'src/languages/pt-BR.ts',
         'src/languages/zh-hans.ts',
-        'desktop/**/*',
     ]),
 ]);
 
