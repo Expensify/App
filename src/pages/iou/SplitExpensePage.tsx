@@ -79,8 +79,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
 
-    console.log({transactionReport, parentTransactionReport, expenseReport});
-
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
@@ -91,8 +89,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const allTransactions = useAllTransactions();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
-
-    const splitExpenseTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpenseTransactionID)}`];
 
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -125,7 +121,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const splitIOUAction = getIOUActionForTransactions([splitExpenseTransactionID], transactionReport?.reportID).at(0);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
-    console.log({expenseReport});
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
@@ -460,7 +455,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return translate('iou.splitByDate');
         }
         return translate('iou.split');
-    }, [splitExpenseTransactionID, isDateMode, isPercentageMode, translate, isEditingSplitAmount]);
+    }, [isDateMode, isPercentageMode, translate, isEditingSplitAmount]);
 
     const onSelectRow = useCallback(
         (item: SplitListItemType) => {
@@ -477,6 +472,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         [draftTransaction, reportID],
     );
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
         return isEmptyObject(draftTransaction) || !reportID || (isEditingSplitAmount ? !canEditSplitAmount : !isSplitAvailable);
     }, [isEditingSplitAmount, canEditSplitAmount, draftTransaction, reportID, isSplitAvailable]);
