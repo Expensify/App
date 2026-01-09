@@ -2284,6 +2284,114 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getWorkspaceCustomUnitRateUpdatedMessage', () => {
+        it('should return the correct message when a rate is enabled', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'enabled',
+                    oldValue: false,
+                    newValue: true,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('enabled the Distance rate "Default Rate"');
+        });
+
+        it('should return the correct message when a rate is disabled', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'enabled',
+                    oldValue: true,
+                    newValue: false,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('disabled the Distance rate "Default Rate"');
+        });
+    });
+
+    describe('didMessageMentionCurrentUser', () => {
+        const currentUserEmail = 'currentuser@example.com';
+        const otherUserEmail = 'otheruser@example.com';
+        const otherUserAccountID = 456;
+
+        it('should return true when email matches', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                        type: 'COMMENT',
+                        text: `@${currentUserEmail}`,
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when message includes mention-here', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: 'Hello <mention-here>',
+                        type: 'COMMENT',
+                        text: 'Hello @here',
+                    },
+                ],
+                originalMessage: {
+                    html: 'Hello <mention-here>',
+                    whisperedTo: [],
+                    mentionedAccountIDs: [],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when user is not mentioned', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: `<mention-user>@${otherUserEmail}</mention-user>`,
+                        type: 'COMMENT',
+                        text: `@${otherUserEmail}`,
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user>@${otherUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [otherUserAccountID],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(false);
+        });
+    });
+
     describe('getReportActionActorAccountID', () => {
         it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
             const reportAction: ReportAction = {
