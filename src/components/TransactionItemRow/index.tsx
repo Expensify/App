@@ -33,6 +33,7 @@ import {
     getMerchant,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    getReimbursable,
     getTaxName,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
@@ -364,7 +365,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
                 >
-                    <Text>{transactionItem.reimbursable ? translate('common.yes') : translate('common.no')}</Text>
+                    <Text>{getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}</Text>
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: (
