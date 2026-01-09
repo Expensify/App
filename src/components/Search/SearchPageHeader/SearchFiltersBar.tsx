@@ -38,7 +38,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
 import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -105,7 +105,7 @@ function SearchFiltersBar({
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading} = useSearchContext();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
@@ -308,14 +308,18 @@ function SearchFiltersBar({
                 updatedFilterFormValues.columns = [];
             }
 
-            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
+            // Preserve the current sortBy and sortOrder from queryJSON when updating filters
+            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
+                sortBy: queryJSON.sortBy,
+                sortOrder: queryJSON.sortOrder,
+            });
 
             close(() => {
-                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
                 Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
-        [searchAdvancedFiltersForm],
+        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder],
     );
 
     const openAdvancedFilters = useCallback(() => {

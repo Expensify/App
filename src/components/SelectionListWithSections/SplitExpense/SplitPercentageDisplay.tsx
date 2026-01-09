@@ -27,6 +27,4 @@ function SplitPercentageDisplay({splitItem, contentWidth}: SplitPercentageDispla
     );
 }
 
-SplitPercentageDisplay.displayName = 'SplitPercentageDisplay';
-
 export default SplitPercentageDisplay;

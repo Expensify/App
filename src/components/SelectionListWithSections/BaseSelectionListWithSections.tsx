@@ -145,7 +145,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
-    isPercentageMode,
+    shouldSkipContentHeaderHeightOffset,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -357,8 +357,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
 
             let viewOffset = variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea;
-            // Remove contentHeaderHeight from viewOffset calculation if isPercentageMode (for scroll offset calculation on native)
-            if (isPercentageMode) {
+            // Skip contentHeaderHeight for native split expense tabs scroll correction
+            if (shouldSkipContentHeaderHeightOffset) {
                 viewOffset = viewOffsetToKeepFocusedItemAtTopOfViewableArea;
             }
             listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset});
@@ -971,7 +971,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
-        shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
+        shouldBubble: (flattenedSections.allOptions.length > 0 && !flattenedSections.allOptions.at(focusedIndex)) || focusedIndex === -1,
         shouldStopPropagation,
         shouldPreventDefault,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused && focusedIndex >= 0,

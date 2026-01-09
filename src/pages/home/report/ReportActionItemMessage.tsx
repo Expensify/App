@@ -54,13 +54,13 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`, {canBeMissing: true});
 
-    const fragments = getReportActionMessageFragments(action);
+    const fragments = getReportActionMessageFragments(translate, action);
     const isIOUReport = isMoneyRequestAction(action);
 
     if (isMemberChangeAction(action)) {
         // This will be fixed: https://github.com/Expensify/App/issues/76852
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const fragment = getMemberChangeMessageFragment(action, getReportName);
+        const fragment = getMemberChangeMessageFragment(translate, action, getReportName);
 
         return (
             <View style={[styles.chatItemMessage, style]}>
@@ -76,7 +76,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
-        const fragment = getUpdateRoomDescriptionFragment(action);
+        const fragment = getUpdateRoomDescriptionFragment(translate, action);
         return (
             <View style={[styles.chatItemMessage, style]}>
                 <TextCommentFragment
