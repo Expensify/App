@@ -78,7 +78,7 @@ Once the bank account is approved for global reimbursement:
 4. Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add Personal Bank Account** and input their account details.
-   - Ensure the name on the account in Expensify exactly matches the name at the bank. Any mismatch may cause delays or prevent processing.
+   - **Important:** The name on an employee’s bank account must exactly match the name entered in Expensify. This verification is required for every payment, and mismatches may cause delays or prevent processing.
 
 ---
 
