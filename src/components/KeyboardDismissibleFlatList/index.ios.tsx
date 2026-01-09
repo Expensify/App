@@ -1,11 +1,4 @@
-<<<<<<< HEAD
 import {useEffect} from 'react';
-=======
-import type {ForwardedRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {forwardRef, useEffect} from 'react';
-import type {FlatList} from 'react-native';
->>>>>>> main
 import {useAnimatedProps, useComposedEventHandler} from 'react-native-reanimated';
 import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
 import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
