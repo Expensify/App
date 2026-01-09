@@ -257,20 +257,20 @@ claude mcp add playwright npx '@playwright/mcp@latest'
 ```
 
 ### Testing Workflow (MCP Required)
-1. Verify App dev server is running: `ps aux | grep "webpack" | grep -v grep`
+1. Verify App dev server is running: `pgrep webpack`
 2. Use Playwright MCP tools to navigate to `https://dev.new.expensify.com:8082/`
 3. Use MCP tools to interact with the browser (click, type, screenshot, etc.)
 
 ### Dev Server Requirements
 - **Location**: Runs on HOST machine (not in VM)
 - **URL**: `https://dev.new.expensify.com:8082/`
-- **Start command**: `cd App && npm run web`
+- **Start command**: `npm run web`
 - **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
 
 ### Dev Environment Sign-In Credentials
 - **Email**: Any random Gmail address (e.g., `testuser12345@gmail.com`)
-- **Magic code**: Always `000000` in dev environment
-- **Onboarding**: Skip all optional steps
+- **Magic code**: Always `000000` for dev environment
+- **Onboarding**: Always skip optional steps
 
 ## Architecture Decisions
 
