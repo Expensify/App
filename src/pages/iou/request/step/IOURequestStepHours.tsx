@@ -64,11 +64,8 @@ function IOURequestStepHours({
 
     useEffect(() => {
         setFormError('');
-
-        if (isCreatingNewRequest) {
-            moneyRequestTimeInputRef.current?.updateNumber('');
-        }
-    }, [selectedTab, isCreatingNewRequest]);
+        moneyRequestTimeInputRef.current?.updateNumber(`${transaction?.comment?.units?.count ?? ''}`);
+    }, [selectedTab, transaction?.comment?.units?.count]);
 
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -102,7 +99,6 @@ function IOURequestStepHours({
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID).then(() =>
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)),
             );
-
             return;
         }
 
