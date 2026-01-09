@@ -95,11 +95,11 @@ function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
     originalItemTransaction: OnyxEntry<Transaction>,
-    currentUserEmail: string,
+    currentUserLogin: string,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
-    const canRejectRequest = item.report ? canRejectReportAction(currentUserEmail, item.report, item.policy) : false;
+    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
     return [
         item.keyForList,
         {
@@ -108,7 +108,7 @@ function mapTransactionItemToSelectedEntry(
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserEmail, item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
@@ -140,7 +140,7 @@ function prepareTransactionsList(
     itemTransaction: OnyxEntry<Transaction>,
     originalItemTransaction: OnyxEntry<Transaction>,
     selectedTransactions: SelectedTransactions,
-    currentUserEmail: string,
+    currentUserLogin: string,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
@@ -150,7 +150,7 @@ function prepareTransactionsList(
     }
 
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
-    const canRejectRequest = item.report ? canRejectReportAction(currentUserEmail, item.report, item.policy) : false;
+    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
 
     return {
         ...selectedTransactions,
@@ -160,7 +160,7 @@ function prepareTransactionsList(
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserEmail, item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,

@@ -1612,7 +1612,7 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-function isPreferredExporter(policy: Policy, currentUserEmail: string) {
+function isPreferredExporter(policy: Policy, currentUserLogin: string) {
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
         policy.connections?.netsuite?.options?.config?.exporter,
@@ -1621,7 +1621,7 @@ function isPreferredExporter(policy: Policy, currentUserEmail: string) {
         policy.connections?.xero?.config?.export?.exporter,
     ];
 
-    return exporters.some((exporter) => exporter && exporter === currentUserEmail);
+    return exporters.some((exporter) => exporter && exporter === currentUserLogin);
 }
 
 /**

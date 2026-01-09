@@ -1381,7 +1381,7 @@ function getActions(
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     key: string,
     currentSearch: SearchKey,
-    currentUserEmail: string,
+    currentUserLogin: string,
     reportActions: OnyxTypes.ReportAction[] = [],
 ): SearchTransactionAction[] {
     const isTransaction = isTransactionEntry(key);
@@ -1402,7 +1402,7 @@ function getActions(
     }
 
     const policy = getPolicyFromKey(data, report);
-    const isExportAvailable = isExportAction(report, currentUserEmail, policy, reportActions) && !isTransaction;
+    const isExportAvailable = isExportAction(report, currentUserLogin, policy, reportActions) && !isTransaction;
 
     if (isSettled(report) && !isExportAvailable) {
         return [CONST.SEARCH.ACTION_TYPES.PAID];
@@ -1477,7 +1477,7 @@ function getActions(
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserEmail) && isAllowedToApproveExpenseReport) {
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserLogin) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 

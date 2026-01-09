@@ -135,9 +135,9 @@ function canPay(report: Report, isReportArchived: boolean, currentUserAccountID:
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, currentUserEmail: string, policy?: Policy) {
+function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
     const isExpense = isExpenseReport(report);
-    const isExporter = policy ? isPreferredExporter(policy, currentUserEmail) : false;
+    const isExporter = policy ? isPreferredExporter(policy, currentUserLogin) : false;
     const isReimbursed = isSettled(report);
     const isClosed = isClosedReport(report);
     const isApproved = isReportApproved({report});

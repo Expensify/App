@@ -275,7 +275,7 @@ const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE
 let conciergeReportID: string | undefined;
 let deprecatedCurrentUserAccountID = -1;
 /** @deprecated This value is deprecated and will be removed soon after migration. Use the email from useCurrentUserPersonalDetails hook instead. */
-let deprecatedCurrentUserEmail: string | undefined;
+let deprecatedCurrentUserLogin: string | undefined;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -286,7 +286,7 @@ Onyx.connect({
             return;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        deprecatedCurrentUserEmail = value.email;
+        deprecatedCurrentUserLogin = value.email;
         deprecatedCurrentUserAccountID = value.accountID;
     },
 });
@@ -1075,7 +1075,7 @@ function openReport(
             transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
         const submitterAccountID = parentReport?.ownerAccountID ?? deprecatedCurrentUserAccountID;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([submitterAccountID]).at(0) ?? deprecatedCurrentUserEmail ?? '';
+        const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([submitterAccountID]).at(0) ?? deprecatedCurrentUserLogin ?? '';
         const submitterPersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(submitterEmail);
 
         const optimisticIOUAction = buildOptimisticIOUReportAction({
@@ -1203,7 +1203,7 @@ function openReport(
     if (isGroupChat) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        parameters.groupChatAdminLogins = deprecatedCurrentUserEmail;
+        parameters.groupChatAdminLogins = deprecatedCurrentUserLogin;
         parameters.optimisticAccountIDList = Object.keys(newReportObject?.participants ?? {}).join(',');
         parameters.reportName = newReportObject?.reportName ?? '';
 
@@ -1446,7 +1446,7 @@ function createTransactionThreadReport(
         optimisticTransactionThreadReportID,
         undefined,
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        deprecatedCurrentUserEmail ? [deprecatedCurrentUserEmail] : [],
+        deprecatedCurrentUserLogin ? [deprecatedCurrentUserLogin] : [],
         optimisticTransactionThread,
         iouReportAction?.reportActionID,
         false,
@@ -2145,12 +2145,12 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  * @param originalCommentMarkdown original markdown of the comment before editing.
  * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
-function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, currentUserEmail: string, videoAttributeCache?: Record<string, string>): string {
+function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, currentUserLogin: string, videoAttributeCache?: Record<string, string>): string {
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
 
-    const userEmailDomain = isEmailPublicDomain(currentUserEmail) ? '' : Str.extractEmailDomain(currentUserEmail);
+    const userEmailDomain = isEmailPublicDomain(currentUserLogin) ? '' : Str.extractEmailDomain(currentUserLogin);
     const allPersonalDetailLogins = Object.values(allPersonalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
 
     const htmlForNewComment = getParsedMessageWithShortMentions({
@@ -2174,7 +2174,7 @@ function editReportComment(
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     isOriginalParentReportArchived: boolean | undefined,
-    currentUserEmail: string,
+    currentUserLogin: string,
     videoAttributeCache?: Record<string, string>,
 ) {
     const originalReportID = originalReport?.reportID;
@@ -2194,7 +2194,7 @@ function editReportComment(
     if (originalCommentMarkdown === textForNewComment) {
         return;
     }
-    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, currentUserEmail, videoAttributeCache);
+    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, currentUserLogin, videoAttributeCache);
 
     const reportComment = Parser.htmlToText(htmlForNewComment);
 
@@ -2208,7 +2208,7 @@ function editReportComment(
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReportID, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentUserEmail);
+        deleteReportComment(originalReportID, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentUserLogin);
         return;
     }
 
@@ -4898,12 +4898,12 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params, {optimisticData, failureData});
 }
 
-function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate, currentUserEmail: string) {
+function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate, currentUserLogin: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
     setDownload(fileName, true);
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
-        currentUserEmail,
+        currentUserLogin,
     )}`;
     fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }

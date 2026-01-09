@@ -212,7 +212,7 @@ function isPrimaryPayAction(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function isExportAction(report: Report, currentUserEmail: string, policy?: Policy, reportActions?: ReportAction[]) {
+function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[]) {
     if (!policy) {
         return false;
     }
@@ -226,7 +226,7 @@ function isExportAction(report: Report, currentUserEmail: string, policy?: Polic
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const isReportExporter = isPreferredExporter(policy, currentUserEmail);
+    const isReportExporter = isPreferredExporter(policy, currentUserLogin);
     if (!isReportExporter && !isAdmin) {
         return false;
     }

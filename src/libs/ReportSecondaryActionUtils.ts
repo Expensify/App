@@ -93,7 +93,7 @@ function isSplitAction(
     report: OnyxEntry<Report>,
     reportTransactions: Array<OnyxEntry<Transaction>>,
     originalTransaction: OnyxEntry<Transaction>,
-    currentUserEmail: string,
+    currentUserLogin: string,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     if (Number(reportTransactions?.length) !== 1 || !report) {
@@ -134,7 +134,7 @@ function isSplitAction(
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
     const isOpenReport = isOpenReportUtils(report);
     const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
-    const userIsPolicyMember = isPolicyMember(policy, currentUserEmail);
+    const userIsPolicyMember = isPolicyMember(policy, currentUserLogin);
 
     if (!(userIsPolicyMember && isPolicyExpenseChat)) {
         return false;
@@ -763,7 +763,7 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
 }
 
 function getSecondaryReportActions({
-    currentUserEmail,
+    currentUserEmail: currentUserLogin,
     currentUserAccountID,
     report,
     chatReport,
@@ -799,7 +799,7 @@ function getSecondaryReportActions({
     const didExportFail = !isExported && hasExportError;
 
     if (
-        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) &&
+        isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) &&
         (hasOnlyHeldExpenses(report?.reportID) || didExportFail)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
@@ -810,7 +810,7 @@ function getSecondaryReportActions({
     }
 
     const primaryAction = getReportPrimaryAction({
-        currentUserEmail,
+        currentUserEmail: currentUserLogin,
         currentUserAccountID,
         report,
         chatReport,
@@ -834,22 +834,22 @@ function getSecondaryReportActions({
             isChatReportArchived,
             primaryAction,
             violations,
-            currentUserEmail,
+            currentUserEmail: currentUserLogin,
             currentUserAccountID,
         })
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
-    if (isApproveAction(currentUserEmail, report, reportTransactions, violations, policy)) {
+    if (isApproveAction(currentUserLogin, report, reportTransactions, violations, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 
-    if (isUnapproveAction(currentUserEmail, report, policy)) {
+    if (isUnapproveAction(currentUserLogin, report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(currentUserAccountID, currentUserEmail, report, reportTransactions, policy)) {
+    if (isCancelPaymentAction(currentUserAccountID, currentUserLogin, report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
@@ -869,11 +869,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(currentUserEmail, report, policy)) {
+    if (canRejectReportAction(currentUserLogin, report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(report, reportTransactions, originalTransaction, currentUserEmail, policy)) {
+    if (isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
