@@ -495,6 +495,7 @@ function mergeTransactionRequest({
     const optimisticTargetReportActionData: OnyxUpdate[] = [];
     const successTargetReportActionData: OnyxUpdate[] = [];
     const failureTargetReportActionData: OnyxUpdate[] = [];
+    const finallyTargetReportActionData: OnyxUpdate[] = [];
 
     if (reportIDChanged && mergeTransaction.reportID) {
         const transactionThreadReportID = getTransactionThreadReportID(targetTransaction);
@@ -563,6 +564,14 @@ function mergeTransactionRequest({
             },
         });
 
+        finallyTargetReportActionData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForIOUAction}`,
+            value: {
+                [newIOUAction.reportActionID]: null,
+            },
+        });
+
         failureTargetReportActionData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForIOUAction}`,
@@ -582,11 +591,19 @@ function mergeTransactionRequest({
                 },
             });
 
-            successTargetReportActionData.push({
+            finallyTargetReportActionData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportIDForIOUAction}`,
                 value: {
-                    [oldIOUAction.reportActionID]: {pendingAction: null},
+                    [oldIOUAction.reportActionID]: null,
+                },
+            });
+
+            finallyTargetReportActionData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForIOUAction}`,
+                value: {
+                    [oldIOUAction.reportActionID]: null,
                 },
             });
 
@@ -594,7 +611,7 @@ function mergeTransactionRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportIDForIOUAction}`,
                 value: {
-                    [oldIOUAction.reportActionID]: null,
+                    [oldIOUAction.reportActionID]: {pendingAction: null},
                 },
             });
 
@@ -629,7 +646,10 @@ function mergeTransactionRequest({
     successData.push(...(onyxTargetTransactionData.successData ?? []));
     successData.push(...successTargetReportActionData);
 
-    API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
+    const finallyData: OnyxUpdate[] = [];
+    finallyData.push(...finallyTargetReportActionData);
+
+    API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData, finallyData});
 }
 
 export {areTransactionsEligibleForMerge, setupMergeTransactionData, setupMergeTransactionDataAndNavigate, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};

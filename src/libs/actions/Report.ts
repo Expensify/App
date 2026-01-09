@@ -1377,11 +1377,6 @@ function openReport(
 
     parameters.clientLastReadTime = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.lastReadTime ?? '';
 
-    if (isOffline) {
-        Onyx.update(optimisticData);
-        return;
-    }
-
     const paginationConfig = {
         resourceID: reportID,
         cursorID: reportActionID,

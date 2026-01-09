@@ -1,9 +1,11 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import DateUtils from '@libs/DateUtils';
+import {rand64} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction as MergeTransactionType, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {MergeTransaction as MergeTransactionType, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
@@ -495,6 +497,79 @@ describe('mergeTransactionRequest', () => {
 
             expect(updatedSourceReport).toEqual(sourceReport);
             expect(updatedSourceReport?.reportID).toBe(sourceReport.reportID);
+        });
+
+        it('should delete old IOU action when reportID changes', async () => {
+            const oldReportID = 'old-report-123';
+            const newReportID = 'new-report-456';
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'target123',
+                reportID: oldReportID,
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'source456',
+                reportID: 'source-report-789',
+            };
+            const mergeTransaction = {
+                ...createRandomMergeTransaction(1),
+                targetTransactionID: 'target123',
+                sourceTransactionID: 'source456',
+                reportID: newReportID,
+            };
+            const mergeTransactionID = 'merge789';
+
+            const oldIOUAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: 123,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: oldReportID,
+                    IOUTransactionID: targetTransaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`, createExpenseReport(1));
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`, createExpenseReport(2));
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
+
+            mockFetch?.pause?.();
+
+            mergeTransactionRequest({
+                mergeTransactionID,
+                mergeTransaction,
+                targetTransaction,
+                sourceTransaction,
+                policy: undefined,
+                policyTags: undefined,
+                policyCategories: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'test@example.com',
+                isASAPSubmitBetaEnabled: false,
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const oldReportActions = await new Promise<Record<string, ReportAction> | null>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions ?? null);
+                    },
+                });
+            });
+
+            expect(oldReportActions?.[oldIOUAction.reportActionID]).toBeUndefined();
         });
     });
 });
