@@ -25,7 +25,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
+    /** Member accountID */
     accountID: number;
+    /** Member login */
     login: string;
 };
 

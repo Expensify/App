@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ExpenseRule} from '@src/types/onyx';
+import {getCleanedTagName} from './PolicyUtils';
 
 function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextProps['translate']): string {
     const changes: string[] = [];
@@ -23,7 +24,7 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
         changes.push(translate('expenseRulesPage.changes.report', rule.report));
     }
     if (rule.tag) {
-        changes.push(translate('expenseRulesPage.changes.tag', rule.tag));
+        changes.push(translate('expenseRulesPage.changes.tag', getCleanedTagName(rule.tag)));
     }
     if (rule.tax?.field_id_TAX) {
         changes.push(translate('expenseRulesPage.changes.tax', rule.tax.field_id_TAX.value));

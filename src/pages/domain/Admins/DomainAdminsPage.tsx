@@ -44,8 +44,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     const getCustomRightElement = (accountID: number) => {
+        const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
         const login = personalDetails?.[accountID]?.login;
-        if (technicalContactSettings?.technicalContactEmail !== login) {
+        if (!technicalContactEmail || !login || technicalContactEmail !== login) {
             return null;
         }
         return <Badge text={translate('domain.admins.primaryContact')} />;

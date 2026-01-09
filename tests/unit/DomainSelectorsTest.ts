@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, domainEmailSelector, selectMemberIDs, technicalContactSettingsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, domainEmailSelector, memberAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain} from '@src/types/onyx';
@@ -120,12 +120,12 @@ describe('domainSelectors', () => {
     });
     describe('selectMemberIDs', () => {
         it('Should return an empty array if the domain object is undefined', () => {
-            expect(selectMemberIDs(undefined)).toEqual([]);
+            expect(memberAccountIDsSelector(undefined)).toEqual([]);
         });
 
         it('Should return an empty array if the domain object is empty', () => {
             const domain = {} as OnyxEntry<Domain>;
-            expect(selectMemberIDs(domain)).toEqual([]);
+            expect(memberAccountIDsSelector(domain)).toEqual([]);
         });
 
         it('Should return member IDs when keys start with the security group prefix', () => {
@@ -146,7 +146,7 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            expect(selectMemberIDs(domain).sort()).toEqual([100, 200, 300]);
+            expect(memberAccountIDsSelector(domain).sort()).toEqual([100, 200, 300]);
         });
 
         it('Should return unique member IDs if they appear in multiple security groups', () => {
@@ -165,7 +165,7 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            expect(selectMemberIDs(domain)).toEqual([123]);
+            expect(memberAccountIDsSelector(domain)).toEqual([123]);
         });
 
         it('Should ignore keys that do not start with the security group prefix', () => {
@@ -184,7 +184,7 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            expect(selectMemberIDs(domain)).toEqual([456]);
+            expect(memberAccountIDsSelector(domain)).toEqual([456]);
         });
 
         it('Should ignore groups that do not have a shared property', () => {
@@ -199,7 +199,7 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            expect(selectMemberIDs(domain)).toEqual([111]);
+            expect(memberAccountIDsSelector(domain)).toEqual([111]);
         });
 
         it('Should filter out non-numeric shared keys', () => {
@@ -216,7 +216,7 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            expect(selectMemberIDs(domain).sort()).toEqual([123, 456]);
+            expect(memberAccountIDsSelector(domain).sort()).toEqual([123, 456]);
         });
     });
 });

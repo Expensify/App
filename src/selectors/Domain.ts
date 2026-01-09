@@ -61,7 +61,7 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
  * @param domain - The domain object from Onyx
  * @returns An array of unique member account IDs
  */
-function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
+function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     if (!domain) {
         return getEmptyArray<number>();
     }
@@ -87,8 +87,6 @@ function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
     return uniqueIDs.length > 0 ? uniqueIDs : getEmptyArray<number>();
 }
 
-const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => domainMemberSharedNVP?.settings?.technicalContactEmail;
-
 const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
 export {
@@ -97,8 +95,7 @@ export {
     domainNameSelector,
     metaIdentitySelector,
     adminAccountIDsSelector,
-    technicalContactEmailSelector,
-    selectMemberIDs,
+    memberAccountIDsSelector,
     domainEmailSelector,
     technicalContactSettingsSelector,
 };
