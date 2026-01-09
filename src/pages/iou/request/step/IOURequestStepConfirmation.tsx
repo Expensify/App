@@ -27,6 +27,7 @@ import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -153,14 +154,19 @@ function IOURequestStepConfirmation({
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
     );
+    console.log({transaction});
+
+    const requestType = getRequestType(transaction);
+    const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+
     const transactionsCategories = useDeepCompareRef(
         transactions.map(({transactionID, category}) => ({
             transactionID,
             category,
         })),
     );
-    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const realPolicyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(initialTransaction, reportReal);
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
@@ -168,6 +174,9 @@ function IOURequestStepConfirmation({
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
+
+    const personalPolicyMeta = usePersonalPolicy();
+    const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyMeta?.id}`, {canBeMissing: true});
 
     /*
      * We want to use a report from the transaction if it exists
@@ -201,6 +210,10 @@ function IOURequestStepConfirmation({
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${realPolicyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
+    const [personalPolicyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${personalPolicy?.id}`, {canBeMissing: true});
+    const [personalPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicy?.id}`, {canBeMissing: true});
+    const [personalPolicyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${personalPolicy?.id}`, {canBeMissing: true});
+
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
@@ -212,6 +225,9 @@ function IOURequestStepConfirmation({
     const policyCategories = useMemo(() => {
         if (isDraftPolicy && draftPolicyID) {
             return policyCategoriesDraft;
+        }
+        if (personalPolicy?.id && isPerDiemRequest && isCreatingTrackExpense) {
+            return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicy?.id}`];
         }
 
         if (realPolicyID) {
@@ -239,12 +255,10 @@ function IOURequestStepConfirmation({
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
-    const requestType = getRequestType(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
-    const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
     const {
         taskReport: viewTourTaskReport,
@@ -1038,7 +1052,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense || isUnreported) {
+            if (!isPerDiemRequest && (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense || isUnreported)) {
                 if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
@@ -1075,7 +1089,7 @@ function IOURequestStepConfirmation({
             }
 
             if (isPerDiemRequest) {
-                submitPerDiemExpense(selectedParticipants, trimmedComment, policyRecentlyUsedCategories);
+                submitPerDiemExpense(selectedParticipants, trimmedComment, isCreatingTrackExpense ? personalPolicyRecentlyUsedCategories : policyRecentlyUsedCategories);
                 return;
             }
 
