@@ -1717,6 +1717,7 @@ const CONST = {
         ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',
         ATTRIBUTE_IS_TRANSACTION_THREAD: 'is_transaction_thread',
         ATTRIBUTE_REPORT_TYPE: 'report_type',
+        ATTRIBUTE_CHAT_TYPE: 'chat_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',

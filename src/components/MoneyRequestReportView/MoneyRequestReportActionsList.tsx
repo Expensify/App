@@ -53,16 +53,7 @@ import {
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {
-    canUserPerformWriteAction,
-    chatIncludesChronosWithID,
-    getOriginalReportID,
-    getReportLastVisibleActionCreated,
-    isHarvestCreatedExpenseReport,
-    isOneTransactionReport,
-    isReportTransactionThread,
-    isUnread,
-} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
@@ -656,11 +647,8 @@ function MoneyRequestReportActionsList({
 
         didLayout.current = true;
 
-        const isTransactionThread = isReportTransactionThread(report);
-        const isOneTransactionThread = isOneTransactionReport(report);
-
-        markOpenReportEnd(reportID, isTransactionThread, isOneTransactionThread);
-    }, [reportID, report]);
+        markOpenReportEnd(report);
+    }, [report]);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
     // Wrapped into useCallback to stabilize children re-renders
