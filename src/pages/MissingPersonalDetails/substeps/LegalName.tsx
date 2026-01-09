@@ -2,13 +2,13 @@ import React from 'react';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
-import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
+import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 const STEP_FIELDS = [INPUT_IDS.LEGAL_FIRST_NAME, INPUT_IDS.LEGAL_LAST_NAME];
 
-function LegalName({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
+function LegalName({isEditing, onNext, onMove, personalDetailsValues}: CustomSubPageProps) {
     const {translate} = useLocalize();
 
     const defaultValues = {
