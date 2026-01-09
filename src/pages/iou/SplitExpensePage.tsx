@@ -213,7 +213,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             currentUserPersonalDetails,
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-            allBetas: [CONST.BETAS.ALL],
+            allBetas,
         });
     }, [
         splitExpenses,
@@ -244,6 +244,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         isBetaEnabled,
         transactionViolations,
         policyRecentlyUsedCurrencies,
+        allBetas,
     ]);
 
     const onSplitExpenseValueChange = useCallback(
