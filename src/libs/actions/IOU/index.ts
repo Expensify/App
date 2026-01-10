@@ -882,15 +882,6 @@ Onyx.connect({
     },
 });
 
-let allNextSteps: NonNullable<OnyxCollection<OnyxTypes.ReportNextStepDeprecated>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.NEXT_STEP,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allNextSteps = value ?? {};
-    },
-});
-
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
