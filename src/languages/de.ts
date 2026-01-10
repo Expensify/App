@@ -872,6 +872,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?`;
         },
         onlyVisible: 'Nur sichtbar für',
+        explain: 'Erklären',
+        explainMessage: 'Bitte erkläre mir das.',
         replyInThread: 'Im Thread antworten',
         joinThread: 'Thread beitreten',
         leaveThread: 'Thread verlassen',
@@ -1462,6 +1464,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} bis ${endDate} (${count} Tage)`,
         splitByDate: 'Nach Datum aufteilen',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `bericht aufgrund eines benutzerdefinierten Genehmigungsworkflows an ${to} weitergeleitet`,
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Erklären</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
