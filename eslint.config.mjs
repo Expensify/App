@@ -66,6 +66,11 @@ const restrictedImportPaths = [
         message: "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead.",
     },
     {
+        name: 'react',
+        importNames: ['forwardRef'],
+        message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
+    },
+    {
         name: '@styles/index',
         importNames: ['default', 'defaultStyles'],
         message: 'Do not import styles directly. Please use the `useThemeStyles` hook instead.',
@@ -327,6 +332,10 @@ const config = defineConfig([
                     message: "Please don't declare enums, use union types instead.",
                 },
                 {
+                    selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
+                    message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
+                },
+                {
                     selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
                     message:
                         'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
@@ -402,7 +411,6 @@ const config = defineConfig([
                         '@styles': './src/styles',
                         // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                         '@src': './src',
-                        '@desktop': './desktop',
                         '@github': './.github',
                     },
                 },

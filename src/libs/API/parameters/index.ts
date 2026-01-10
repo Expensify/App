@@ -137,6 +137,7 @@ export type {default as TogglePolicyUberAutoRemovePageParams} from './TogglePoli
 export type {default as InviteToRoomParams} from './InviteToRoomParams';
 export type {default as InviteToGroupChatParams} from './InviteToGroupChatParams';
 export type {default as InviteWorkspaceEmployeesToUberParams} from './InviteWorkspaceEmployeesToUberParams';
+export type {default as UnshareBankAccountParams} from './UnshareBankAccountParams';
 export type {default as RemoveFromRoomParams} from './RemoveFromRoomParams';
 export type {default as RemoveFromGroupChatParams} from './RemoveFromGroupChatParams';
 export type {default as FlagCommentParams} from './FlagCommentParams';
@@ -161,6 +162,7 @@ export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvi
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
+export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSecondaryLoginCodeParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as OpenDraftPerDiemExpenseParams} from './OpenDraftPerDiemExpenseParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
@@ -379,6 +381,7 @@ export type {default as AssignCompanyCardParams} from './AssignCompanyCardParams
 export type {default as UnassignCompanyCard} from './UnassignCompanyCard';
 export type {default as UpdateCompanyCard} from './UpdateCompanyCard';
 export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNameParams';
+export type {default as UpdateCardTransactionStartDateParams} from './UpdateCardTransactionStartDateParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
 export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
@@ -450,6 +453,8 @@ export type {default as SetSamlIdentityParams} from './SetSamlIdentityParams';
 export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams';
 export type {default as AddAdminToDomainParams} from './AddAdminToDomainParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
+export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
 export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';
+export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';
