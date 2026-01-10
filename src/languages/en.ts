@@ -6769,6 +6769,7 @@ const translations = {
             emptyReportConfirmationPromptLink: 'Reports',
             emptyReportConfirmationDontShowAgain: "Don't show me this again",
             genericWorkspaceName: 'this workspace',
+            autoUpdateRateHint: 'The expense rate will be automatically updated to the workspace rate',
         },
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
         genericAddCommentFailureMessage: 'Unexpected error posting the comment. Please try again later.',

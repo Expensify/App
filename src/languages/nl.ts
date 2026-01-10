@@ -6863,6 +6863,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Weet je zeker dat je een ander rapport wilt maken in ${workspaceName}? Je hebt toegang tot je lege rapporten in`,
             emptyReportConfirmationPromptLink: 'Rapporten',
+            autoUpdateRateHint: 'Het uitgavenbedrag wordt automatisch bijgewerkt naar het werkruimte-tarief.',
             emptyReportConfirmationDontShowAgain: 'Niet meer weergeven',
             genericWorkspaceName: 'deze workspace',
         },

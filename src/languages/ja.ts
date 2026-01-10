@@ -6819,6 +6819,7 @@ ${reportName}
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `${workspaceName} で別のレポートを作成してもよろしいですか？ 空のレポートには次からアクセスできます`,
             emptyReportConfirmationPromptLink: 'レポート',
             genericWorkspaceName: 'このワークスペース',
+            autoUpdateRateHint: '経費のレートは、ワークスペースのレートに自動的に更新されます。',
             emptyReportConfirmationDontShowAgain: '今後表示しない',
         },
         genericCreateReportFailureMessage: 'このチャットの作成中に予期しないエラーが発生しました。後でもう一度お試しください。',

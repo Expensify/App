@@ -276,11 +276,11 @@ function IOURequestEditReportCommon({
             <MenuItem
                 onPress={handleCreateReport}
                 title={translate('report.newReport.createReport')}
-                description={policyForMovingExpenses?.name}
+                description={isPerDiemRequest ? perDiemOriginalPolicy?.name : policyForMovingExpenses?.name}
                 icon={icons.Document}
             />
         );
-    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, handleCreateReport]);
+    }, [createReport, isEditing, isOwner, handleCreateReport, translate, isPerDiemRequest, policyForMovingExpenses?.name, icons.Document]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
