@@ -5716,6 +5716,11 @@ const CONST = {
     },
 
     /**
+     * Constant for prefix of violations.
+     */
+    VIOLATIONS_PREFIX: 'violations.',
+
+    /**
      * Constants with different types for the modifiedAmount violation
      */
     MODIFIED_AMOUNT_VIOLATION_DATA: {
@@ -5769,6 +5774,7 @@ const CONST = {
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
+        MISSING_ATTENDEES: 'missingAttendees',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
