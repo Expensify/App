@@ -361,6 +361,7 @@ type GetSectionsParams = {
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+    allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
 };
 
 /**
@@ -1705,6 +1706,7 @@ function getReportSections(
     translate: LocalizedTranslate,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isActionLoadingSet: ReadonlySet<string> | undefined,
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -1798,7 +1800,7 @@ function getReportSections(
 
                 const hasAnyViolationsForReport = hasAnyViolations(
                     reportItem.reportID,
-                    allViolations,
+                    allTransactionViolations ?? allViolations,
                     currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserEmail,
                     allReportTransactions,
@@ -1807,7 +1809,14 @@ function getReportSections(
                 );
                 const hasVisibleViolationsForReport =
                     hasAnyViolationsForReport &&
-                    ViolationsUtils.hasVisibleViolationsForUser(reportItem, allViolations, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, allReportTransactions);
+                    ViolationsUtils.hasVisibleViolationsForUser(
+                        reportItem,
+                        allTransactionViolations ?? allViolations,
+                        currentUserEmail,
+                        currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                        policy,
+                        allReportTransactions,
+                    );
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
@@ -2078,6 +2087,7 @@ function getSections({
     queryJSON,
     isActionLoadingSet,
     cardFeeds,
+    allTransactionViolations,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -2087,7 +2097,7 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, translate, formatPhoneNumber, isActionLoadingSet, reportActions);
+        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, translate, formatPhoneNumber, isActionLoadingSet, allTransactionViolations, reportActions);
     }
 
     if (groupBy) {

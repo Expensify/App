@@ -432,6 +432,7 @@ function Search({
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
+            allTransactionViolations: violations,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -449,6 +450,7 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        violations,
     ]);
 
     useEffect(() => {
