@@ -18,7 +18,7 @@ export default function <TProps>(WrappedComponent: ComponentType<TProps>): React
             });
 
             return unsubscribeTransitionEnd;
-            , react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
         return (

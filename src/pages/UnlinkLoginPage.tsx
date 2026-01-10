@@ -21,7 +21,7 @@ function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
     useEffect(() => {
         unlinkLogin(Number(accountID), validateCode);
         // We only want this to run on mount
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

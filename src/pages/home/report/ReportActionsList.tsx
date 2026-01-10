@@ -244,7 +244,7 @@ function ReportActionsList({
     useEffect(() => {
         setUnreadMarkerTime(reportLastReadTime);
 
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
@@ -283,7 +283,6 @@ function ReportActionsList({
             const reportAction = sortedVisibleReportActions.at(index);
             const nextAction = sortedVisibleReportActions.at(index + 1);
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
-
 
             const shouldDisplayNewMarker =
                 reportAction &&
@@ -346,7 +345,7 @@ function ReportActionsList({
 
         setUnreadMarkerTime(mostRecentReportActionCreated);
 
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction?.created]);
 
     const lastActionIndex = lastAction?.reportActionID;
@@ -426,7 +425,7 @@ function ReportActionsList({
 
             readActionSkipped.current = true;
         }
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, reportMetadata?.hasOnceLoadedReportActions]);
 
     const handleAppVisibilityMarkAsRead = useCallback(() => {
@@ -467,7 +466,7 @@ function ReportActionsList({
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
 
     const prevHandleReportChangeMarkAsRead = useRef<() => void>(null);
@@ -500,7 +499,7 @@ function ReportActionsList({
             setIsFloatingMessageCounterVisible(false);
             reportScrollManager.scrollToBottom();
         });
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
@@ -604,7 +603,7 @@ function ReportActionsList({
 
         return cleanup;
 
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     const reportActionsListFSClass = FS.getChatFSClass(report);
@@ -619,7 +618,7 @@ function ReportActionsList({
         InteractionManager.runAfterInteractions(() => {
             reportScrollManager.scrollToBottom();
         });
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
@@ -800,7 +799,6 @@ function ReportActionsList({
     const listHeaderComponent = useMemo(() => {
         // In case of an error we want to display the header no matter what.
         if (!canShowHeader) {
-
             hasHeaderRendered.current = true;
             return null;
         }

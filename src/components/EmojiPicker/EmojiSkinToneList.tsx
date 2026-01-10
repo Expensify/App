@@ -38,7 +38,7 @@ function EmojiSkinToneList() {
             return;
         }
         toggleIsSkinToneListVisible();
-        , react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
     }, [preferredSkinTone]);
 
     const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone);

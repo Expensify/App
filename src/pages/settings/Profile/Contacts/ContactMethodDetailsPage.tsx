@@ -77,7 +77,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const loginDataRef = useRef<Login | undefined>(undefined);
     const loginData = useMemo(() => {
-
         loginDataRef.current = loginList?.[contactMethod];
         return loginList?.[contactMethod];
     }, [loginList, contactMethod]);
@@ -166,7 +165,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
-        , react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
     }, [contactMethod, loginData?.partnerUserID, loginData?.validatedDate]);
 
     const getThreeDotsMenuItems = useCallback(() => {

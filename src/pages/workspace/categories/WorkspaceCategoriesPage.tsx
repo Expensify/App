@@ -142,7 +142,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return newSelectedCategories;
         });
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyCategories]);
 
     useSearchBackPress({

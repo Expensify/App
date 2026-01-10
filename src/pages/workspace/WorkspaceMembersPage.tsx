@@ -186,7 +186,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return;
         }
         setRemoveMembersConfirmModalVisible(false);
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [accountIDs]);
 
     useEffect(() => {

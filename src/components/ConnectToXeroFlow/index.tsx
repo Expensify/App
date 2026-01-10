@@ -27,7 +27,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             return;
         }
         openLink(getXeroSetupLink(policyID), environmentURL);
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (!is2FAEnabled) {

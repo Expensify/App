@@ -24,7 +24,7 @@ function BaseAttachmentViewPdf({
             return;
         }
         attachmentCarouselPagerContext.onScaleChanged?.(1);
-        , react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     /**

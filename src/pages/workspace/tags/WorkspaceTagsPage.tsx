@@ -184,7 +184,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
             return newSelectedTags;
         });
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tagsList]);
     const cleanupSelectedOption = useCallback(() => setSelectedTags([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);

@@ -45,7 +45,7 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
         });
 
         // We want this hook to run on mounting only
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 };
 

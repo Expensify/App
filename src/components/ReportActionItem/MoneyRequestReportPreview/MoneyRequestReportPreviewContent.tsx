@@ -156,7 +156,7 @@ function MoneyRequestReportPreviewContent({
             hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
         }),
         // When transactions get updated these values may have changed, so that is a case where we also want to recompute them
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [transactions, iouReportID, action],
     );
 
@@ -401,7 +401,7 @@ function MoneyRequestReportPreviewContent({
             }),
         );
         // We only want to animate the text when the text changes
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [previewMessage, previewMessageOpacity]);
 
     useEffect(() => {
@@ -446,7 +446,6 @@ function MoneyRequestReportPreviewContent({
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 100};
     }, []);
-
 
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;

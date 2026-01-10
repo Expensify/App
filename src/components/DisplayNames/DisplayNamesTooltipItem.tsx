@@ -64,7 +64,7 @@ function DisplayNamesTooltipItem({
                     if (!childRefs.current?.at(index) || !el) {
                         return;
                     }
-                    , no-param-reassign
+                    // eslint-disable-next-line no-param-reassign
                     childRefs.current[index] = el;
                 }}
                 style={[textStyles, styles.pre]}

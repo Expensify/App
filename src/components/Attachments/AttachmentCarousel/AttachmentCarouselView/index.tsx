@@ -229,7 +229,7 @@ function AttachmentCarouselView({
 
         scrollRef.current.scrollToIndex({index: page, animated: false});
         // The hook is not supposed to run on page change, so we keep the page out of the dependencies
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cellWidth]);
 
     return (

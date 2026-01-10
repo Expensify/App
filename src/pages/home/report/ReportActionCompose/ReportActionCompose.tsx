@@ -280,7 +280,7 @@ function ReportActionCompose({
             containerRef.current.measureInWindow(callback);
         },
         // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [isComposerFullSize],
     );
 
@@ -398,7 +398,7 @@ function ReportActionCompose({
             }
             hideEmojiPicker();
         },
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
@@ -452,7 +452,6 @@ function ReportActionCompose({
             clearComposer?.();
         });
     }, [isSendDisabled, debouncedValidate, composerRefShared]);
-
 
     onSubmitAction = handleSendMessage;
 

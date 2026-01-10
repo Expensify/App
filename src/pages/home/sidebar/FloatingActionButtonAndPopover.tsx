@@ -273,7 +273,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         }
         return [];
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy, policyChatForActivePolicy, isReportArchived, isValidReport]);
 
     const quickActionTitle = useMemo(() => {
@@ -365,7 +365,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             setIsCreateMenuActive(true);
             onShowCreateMenu?.();
         },
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [isFocused, shouldUseNarrowLayout],
     );
 
@@ -382,7 +382,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             setIsCreateMenuActive(false);
             onHideCreateMenu?.();
         },
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [isCreateMenuActive],
     );
 

@@ -20,7 +20,7 @@ const useHandleNativeVideoControls: UseHandleNativeVideoControl = ({videoPlayerR
         } else {
             videoElement.removeAttribute('controlsList');
         }
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline, isLocalFile]);
 };
 

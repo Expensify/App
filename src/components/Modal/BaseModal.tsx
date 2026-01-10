@@ -163,7 +163,7 @@ function BaseModal({
             }
             hideModalCallbackRef.current?.(true);
         },
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 

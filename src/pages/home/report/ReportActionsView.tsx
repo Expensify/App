@@ -144,7 +144,7 @@ function ReportActionsView({
         listOldID = newID;
 
         return newID;
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route, reportActionID]);
 
     // When we are offline before opening an IOU/Expense report,
@@ -243,7 +243,7 @@ function ReportActionsView({
     useEffect(() => {
         // update ref with current state
         prevShouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
     const allReportActionIDs = useMemo(() => {

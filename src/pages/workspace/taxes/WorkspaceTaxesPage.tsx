@@ -120,7 +120,7 @@ function WorkspaceTaxesPage({
 
             return newSelectedTaxesIDs;
         });
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy?.taxRates?.taxes]);
 
     useSearchBackPress({

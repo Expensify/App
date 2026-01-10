@@ -18,7 +18,7 @@ function SilentCommentUpdater({updateComment, reportID}: SilentCommentUpdaterPro
 
     useEffect(() => {
         updateComment(comment);
-        , react-hooks/exhaustive-deps -- We need to run this on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
     }, []);
 
     return null;

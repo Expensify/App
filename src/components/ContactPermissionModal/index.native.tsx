@@ -32,7 +32,7 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
             }
             setIsModalVisible(true);
         });
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleGrantPermission = () => {

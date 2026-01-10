@@ -420,7 +420,7 @@ function SettlementButton({
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible except for component initialization when the last payment method is not initialized yet.
         // We need to be sure that onPress should be wrapped in an useCallback to prevent unnecessary updates.
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         paymentMethods,
         isLoadingLastPaymentMethod,

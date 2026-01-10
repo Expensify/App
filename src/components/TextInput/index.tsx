@@ -39,7 +39,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
             }
             removeVisibilityListener();
         };
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const isLabeledMultiline = !!props.label?.length && props.multiline;

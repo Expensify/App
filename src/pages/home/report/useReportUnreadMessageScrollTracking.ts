@@ -111,7 +111,7 @@ export default function useReportUnreadMessageScrollTracking({
 
         // if we're scrolled closer than the offset and read action has been skipped then mark message as read
         if (unreadActionVisible && readActionSkippedRef.current) {
-            ,no-param-reassign
+            // eslint-disable-next-line no-param-reassign
             readActionSkippedRef.current = false;
             readNewestAction(ref.current.reportID);
         }

@@ -54,7 +54,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
         return () => {
             ComposerFocusManager.setReadyToFocus(uniqueModalId);
         };
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

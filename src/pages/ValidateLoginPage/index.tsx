@@ -30,7 +30,7 @@ function ValidateLoginPage({
                 signInWithValidateCodeAndNavigate(Number(accountID), validateCode, preferredLocale, '', exitTo);
             }
         });
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

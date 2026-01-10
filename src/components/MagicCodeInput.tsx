@@ -249,7 +249,7 @@ function MagicCodeInput({
         // We have not added:
         // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // + the onFulfill as the dependency because onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, shouldSubmitOnComplete]);
 
     /**
@@ -434,14 +434,14 @@ function MagicCodeInput({
 
         // We have not added:
         // + the onChangeText and onKeyPress as the dependencies because we only want to run this when lastPressedDigit changes.
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastPressedDigit, isDisableKeyboard]);
 
     const cursorOpacity = useSharedValue(1);
 
     useEffect(() => {
         cursorOpacity.set(withRepeat(withSequence(withDelay(500, withTiming(0, {duration: 0})), withDelay(500, withTiming(1, {duration: 0}))), -1, false));
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animatedCursorStyle = useAnimatedStyle(() => ({

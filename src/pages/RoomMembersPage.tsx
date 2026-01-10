@@ -118,7 +118,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     useEffect(() => {
         clearUserSearchPhrase();
         getRoomMembers();
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     /**

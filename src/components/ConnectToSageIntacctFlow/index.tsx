@@ -26,7 +26,7 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return null;

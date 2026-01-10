@@ -270,7 +270,7 @@ function SecuritySettingsPage() {
                         success: selectedEmail === email,
                     };
                 }),
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail, icons.FallbackAvatar, icons.ThreeDots],
     );
 
@@ -292,7 +292,7 @@ function SecuritySettingsPage() {
                     interactive: false,
                 };
             }),
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [delegators, styles, translate, personalDetails, icons.FallbackAvatar],
     );
 

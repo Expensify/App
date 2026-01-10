@@ -82,7 +82,7 @@ function Composer({
             return;
         }
         setSelection(selectionProp);
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectionProp]);
 
     /**
@@ -253,7 +253,7 @@ function Composer({
         }
 
         textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     const isActive = useIsFocused();

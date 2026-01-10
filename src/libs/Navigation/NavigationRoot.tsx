@@ -171,7 +171,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         return undefined;
 
         // The initialState value is relevant only on the first render.
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // https://reactnavigation.org/docs/themes

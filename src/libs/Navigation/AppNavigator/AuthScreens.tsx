@@ -190,7 +190,7 @@ function AuthScreens() {
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
         initializePusher();
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session]);
 
     useAutoUpdateTimezone();
@@ -324,7 +324,7 @@ function AuthScreens() {
         };
 
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

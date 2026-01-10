@@ -80,7 +80,7 @@ export default function useArrowKeyFocusManager({
             return;
         }
         onFocusedIndexChange(focusedIndex);
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [focusedIndex, prevIsFocusedIndex]);
 
     const arrowUpCallback = useCallback(() => {

@@ -288,7 +288,7 @@ function NumberWithSymbolForm({
         setNewNumber(stripDecimalsFromAmount(currentNumber));
 
         // we want to update only when decimals change.
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [decimals]);
 
     /**

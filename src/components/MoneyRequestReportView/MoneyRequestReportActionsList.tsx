@@ -302,7 +302,7 @@ function MoneyRequestReportActionsList({
     useEffect(() => {
         setUnreadMarkerTime(reportLastReadTime);
 
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     useEffect(() => {
@@ -331,7 +331,7 @@ function MoneyRequestReportActionsList({
                 readActionSkipped.current = true;
             }
         }
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
 
     useEffect(() => {
@@ -363,7 +363,7 @@ function MoneyRequestReportActionsList({
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
 
     /**
@@ -405,7 +405,6 @@ function MoneyRequestReportActionsList({
                     scrollingVerticalOffset: scrollingVerticalBottomOffset.current,
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
-
 
             if (shouldDisplayNewMarker) {
                 return [reportAction.reportActionID, index];
@@ -529,7 +528,7 @@ function MoneyRequestReportActionsList({
         };
 
         // This effect handles subscribing to events, so we only want to run it on mount, and in case reportID changes
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     useEffect(() => {

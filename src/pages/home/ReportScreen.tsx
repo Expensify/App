@@ -462,7 +462,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
-
     const lastReportActionIDFromRoute = usePrevious(!firstRenderRef.current ? reportActionIDFromRoute : undefined);
 
     const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
@@ -509,15 +508,13 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 return false;
             }
 
-
             if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
-
                 return true;
             }
 
             return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
         },
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
     );
 
@@ -660,7 +657,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         };
 
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -668,7 +665,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // There should be only one openReport execution per page start or navigating
         fetchReport();
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
     const prevReportActions = usePrevious(reportActions);
@@ -691,7 +688,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID]);
 
     useEffect(() => {
@@ -774,7 +771,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         }
 
         setShouldShowComposeInput(true);
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         route.name,
         report,

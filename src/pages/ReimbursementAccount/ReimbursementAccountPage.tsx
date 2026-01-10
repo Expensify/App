@@ -213,7 +213,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             setPlaidEvent(null);
         }
         fetchData();
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPreviousPolicy]); // Only re-run this effect when isPreviousPolicy changes, which happens once when the component first loads
 
     useEffect(() => {
@@ -304,7 +304,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             const stepToOpen = getRouteForCurrentStep(currentStep);
             navigation.setParams({stepToOpen});
         },
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
     );
 

@@ -321,7 +321,7 @@ function Search({
         clearTransactionsAndSetHashAndKey();
 
         // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
@@ -607,7 +607,7 @@ function Search({
         setSelectedTransactions(newTransactionList, filteredData);
 
         isRefreshingSelection.current = true;
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 
     useEffect(() => {

@@ -18,7 +18,7 @@ function useNavigationResetOnLayoutChange({navigation}: CustomEffectsHookProps<P
             return;
         }
         navigation.reset(navigation.getState());
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout]);
 }
 

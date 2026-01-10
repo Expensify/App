@@ -129,7 +129,7 @@ function BaseTextInput({
 
         input.current.focus();
         // We only want this to run on mount
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animateLabel = useCallback(

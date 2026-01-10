@@ -166,7 +166,7 @@ function MoneyRequestParticipantsSelector({
                 onFinish();
             }
         },
-        , react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, policy, activeAdminWorkspaces],
     );
 

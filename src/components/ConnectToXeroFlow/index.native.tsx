@@ -36,7 +36,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             return;
         }
         setIsWebViewOpen(true);
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

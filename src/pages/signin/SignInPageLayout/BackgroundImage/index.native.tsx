@@ -42,7 +42,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
         return () => {
             interactionTask.cancel();
         };
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const {splashScreenState} = useSplashScreenStateContext();

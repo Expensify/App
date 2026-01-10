@@ -71,7 +71,7 @@ function PopoverWithoutOverlay({
             removeOnClose();
         };
         // We want this effect to run strictly ONLY when isVisible prop changes
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
     const modalPaddingStyles = useMemo(

@@ -54,7 +54,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
             return;
         }
         toggleTwoFactorAuth(true);
-        , react-hooks/exhaustive-deps -- We want to run this when component mounts
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, [isUserValidated, accountMetadata.status]);
 
     return (

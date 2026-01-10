@@ -93,7 +93,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
             return;
         }
         setCachedViewportHeight(windowHeight);
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowHeight, isCachedViewportHeight]);
 
     useEffect(() => {

@@ -133,7 +133,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
         // We don't want this hook to re-run on the every report change
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportIDFromRoute, transactionThreadReportID]);
 
     useEffect(() => {
@@ -200,15 +200,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 return false;
             }
 
-
             if (!reportID && !reportMetadata?.isLoadingInitialReportActions) {
-
                 return true;
             }
 
             return !!reportID && !isValidReportIDFromPath(reportID);
         },
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportID, reportMetadata?.isLoadingInitialReportActions],
     );
 

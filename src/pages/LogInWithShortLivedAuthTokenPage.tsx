@@ -59,7 +59,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
             });
         }
         // The only dependencies of the effect are based on props.route
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route]);
 
     if (account?.isLoading) {

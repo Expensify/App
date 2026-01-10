@@ -19,7 +19,7 @@ const useAutoUpdateTimezone = () => {
                 currentUserPersonalDetails.accountID,
             );
         }
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [timezone?.automatic, timezone?.selected]);
 };
 

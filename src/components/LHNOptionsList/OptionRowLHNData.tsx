@@ -79,17 +79,15 @@ function OptionRowLHNData({
         });
 
         if (deepEqual(item, optionItemRef.current)) {
-
             return optionItemRef.current;
         }
-
 
         optionItemRef.current = item;
 
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         fullReport,
         reportAttributes?.brickRoadStatus,

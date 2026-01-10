@@ -161,7 +161,7 @@ function AccessOrNotFoundWrapper({
         }
 
         openWorkspace(policyID, []);
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, policyID]);
 
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && isLoadingReportData !== false && (!Object.entries(policy ?? {}).length || !policy?.id);

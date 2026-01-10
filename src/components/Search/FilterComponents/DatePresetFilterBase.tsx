@@ -74,7 +74,7 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
             return;
         }
         setDateValues(defaultDateValues);
-        , react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSearchAdvancedFiltersFormLoading]);
 
     const setDateValue = useCallback((dateModifier: SearchDateModifier, value: string | undefined) => {
