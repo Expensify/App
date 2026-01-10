@@ -1,5 +1,4 @@
 type UnassignCompanyCard = {
-    authToken?: string | null;
     cardID: number;
 };
 

@@ -1,5 +1,4 @@
 type UpdateCardTransactionStartDateParams = {
-    authToken?: string | null;
     cardID: number;
     startDate: string;
 };
