@@ -1,5 +1,6 @@
 import {getCurrentPositionAsync, PermissionStatus, requestForegroundPermissionsAsync} from 'expo-location';
 import type {PermissionResponse} from 'expo-location';
+import {Platform} from 'react-native';
 import {GeolocationErrorCode} from './getCurrentPosition.types';
 import type {GetCurrentPosition} from './getCurrentPosition.types';
 
@@ -18,7 +19,7 @@ const getCurrentPosition: GetCurrentPosition = async (success, error, options) =
         let message = 'Geolocation call failed';
         let code = GeolocationErrorCode.POSITION_UNAVAILABLE;
 
-        if (caughtError instanceof GeolocationPositionError) {
+        if (Platform.OS === 'web' && caughtError instanceof GeolocationPositionError) {
             code = caughtError.code;
             message = caughtError.message;
         } else if (caughtError instanceof Error) {
