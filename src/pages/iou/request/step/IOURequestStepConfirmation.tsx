@@ -33,6 +33,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -231,7 +232,7 @@ function IOURequestStepConfirmation({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
@@ -566,6 +567,18 @@ function IOURequestStepConfirmation({
                     );
                 }
 
+                let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
+                if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
+                    const distance = item.comment?.customUnit?.quantity;
+                    const unit = item.comment?.customUnit?.distanceUnit;
+                    const rate = item.comment?.customUnit?.defaultP2PRate;
+                    if (distance && unit && rate) {
+                        // Convert distance to meters
+                        const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
+                        merchantToUse = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, item.currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
+                    }
+                }
+
                 const {iouReport} = requestMoneyIOUActions({
                     report,
                     existingIOUReport,
@@ -592,7 +605,7 @@ function IOURequestStepConfirmation({
                         attendees: item.comment?.attendees,
                         currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
                         created: item.created,
-                        merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant,
+                        merchant: merchantToUse,
                         comment: item?.comment?.comment?.trim() ?? '',
                         receipt,
                         category: item.category,
