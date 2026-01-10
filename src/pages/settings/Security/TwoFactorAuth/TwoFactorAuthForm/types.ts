@@ -1,4 +1,6 @@
 import type {ForwardedRef} from 'react';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 
 type BaseTwoFactorAuthFormRef = {
     validateAndSubmitForm: () => void;
@@ -15,6 +17,9 @@ type TwoFactorAuthFormProps = {
 
     /** Callback that is called when the text input is focused */
     onFocus?: () => void;
+
+    /** The current 2FA step/flow being displayed */
+    step?: ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS>;
 };
 
 export type {TwoFactorAuthFormProps, BaseTwoFactorAuthFormRef};

@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
+import type {ValueOf} from 'type-fest';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -14,7 +15,7 @@ import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidRecoveryCode, isValidTwoFactorCode} from '@libs/ValidationUtils';
-import {clearAccountMessages, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
+import {clearAccountMessages, replaceTwoFactorDevice, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseTwoFactorAuthFormRef} from './types';
@@ -33,11 +34,14 @@ type BaseTwoFactorAuthFormProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTwoFactorAuthFormRef>;
+
+    /** The current 2FA step/flow being displayed */
+    step?: ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS>;
 };
 
 const isMobile = !canFocusInputOnScreenFocus();
 
-function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true, ref}: BaseTwoFactorAuthFormProps) {
+function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true, step, ref}: BaseTwoFactorAuthFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string; recoveryCode?: string}>({});
@@ -105,12 +109,22 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus,
 
         setFormError({});
 
+        if (step === CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_OLD) {
+            replaceTwoFactorDevice('verify_old', sanitizedTwoFactorCode);
+            return;
+        }
+
+        if (step === CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_NEW) {
+            replaceTwoFactorDevice('verify_new', sanitizedTwoFactorCode);
+            return;
+        }
+
         if (validateInsteadOfDisable !== false) {
             validateTwoFactorAuth(sanitizedTwoFactorCode, shouldClearData);
             return;
         }
         toggleTwoFactorAuth(false, sanitizedTwoFactorCode);
-    }, [translate, twoFactorAuthCode, validateInsteadOfDisable, shouldClearData]);
+    }, [translate, twoFactorAuthCode, validateInsteadOfDisable, shouldClearData, step]);
 
     const validateAndSubmitRecoveryCode = useCallback(() => {
         if (recoveryInputRef.current && 'blur' in recoveryInputRef.current && typeof recoveryInputRef.current.blur === 'function') {

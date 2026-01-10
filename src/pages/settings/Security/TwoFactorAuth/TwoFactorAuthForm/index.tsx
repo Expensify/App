@@ -2,7 +2,7 @@ import React from 'react';
 import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
 import type {TwoFactorAuthFormProps} from './types';
 
-function TwoFactorAuthForm({innerRef, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile}: TwoFactorAuthFormProps) {
+function TwoFactorAuthForm({innerRef, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile, step}: TwoFactorAuthFormProps) {
     return (
         <BaseTwoFactorAuthForm
             ref={innerRef}
@@ -10,6 +10,7 @@ function TwoFactorAuthForm({innerRef, validateInsteadOfDisable, onFocus, shouldA
             validateInsteadOfDisable={validateInsteadOfDisable}
             onFocus={onFocus}
             shouldAutoFocusOnMobile={shouldAutoFocusOnMobile}
+            step={step}
         />
     );
 }
