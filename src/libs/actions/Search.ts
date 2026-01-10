@@ -830,6 +830,28 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], a
                                 },
                             },
                         });
+
+                        successData.push({
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
+                            value: null,
+                        });
+
+                        for (const key of allSnapshotKeys) {
+                            optimisticData.push({
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key,
+                                value: {
+                                    data: {
+                                        [`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`]: {
+                                            pendingFields: {
+                                                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                            },
+                                        },
+                                    } as Partial<Report>,
+                                },
+                            });
+                        }
                     }
                 }
             }
