@@ -20,7 +20,6 @@ type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNa
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID;
-    const styles = useThemeStyles();
     const defaultFundID = useDefaultFundID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
