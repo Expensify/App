@@ -51,6 +51,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const personalDetail = useCurrentUserPersonalDetails();
@@ -140,6 +141,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     openReport(
                         report.reportID,
                         '',
+                        personalDetails,
                         displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
                         report,
                         undefined,

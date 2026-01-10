@@ -123,6 +123,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const textInputRef = useRef<AnimatedTextInputRef>(null);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const contextualReportID = useRootNavigationState((state) => {
         // Safe handling when navigation is not yet initialized
@@ -455,7 +456,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         if (item?.reportID) {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                         } else if ('login' in item) {
-                            navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                            navigateToAndOpenReport(item.login ? [item.login] : [], allPersonalDetails, false);
                         }
                     });
                     onRouterClose();
@@ -482,7 +483,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 throw error;
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue],
+        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue, allPersonalDetails],
     );
 
     const updateAutocompleteSubstitutions = useCallback(
