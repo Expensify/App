@@ -2,6 +2,7 @@ import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -90,6 +91,7 @@ function ReportActionItem({
     ...props
 }: ReportActionItemProps) {
     const reportID = report?.reportID;
+    const {formatPhoneNumber} = useLocalize();
     const originalMessage = getOriginalMessage(action);
     const originalReportID = useOriginalReportID(reportID, action);
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
@@ -151,6 +153,7 @@ function ReportActionItem({
             reimbursementDeQueuedOrCanceledActionMessage={getReimbursementDeQueuedOrCanceledActionMessage(
                 action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
                 report,
+                formatPhoneNumber,
             )}
             modifiedExpenseMessage={getForReportAction({
                 reportAction: action,
