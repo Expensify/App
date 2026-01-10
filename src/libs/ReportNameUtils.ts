@@ -117,15 +117,7 @@ import {
     isUserCreatedPolicyRoom,
 } from './ReportUtils';
 
-let currentUserAccountID: number | undefined;
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserAccountID = value?.accountID;
-    },
-});
 
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -144,7 +136,15 @@ function generateArchivedReportName(reportName: string): string {
  * This function is useful in contexts such as 1:1 direct messages (DMs) or other group chats.
  * It limits to a maximum of 5 participants for the title and uses short names unless there is only one participant.
  */
-const buildReportNameFromParticipantNames = ({report, personalDetailsList: personalDetailsData}: {report: OnyxEntry<Report>; personalDetailsList?: Partial<PersonalDetailsList>}) =>
+const buildReportNameFromParticipantNames = ({
+    report,
+    personalDetailsList: personalDetailsData,
+    currentUserAccountID,
+}: {
+    report: OnyxEntry<Report>;
+    personalDetailsList?: Partial<PersonalDetailsList>;
+    currentUserAccountID: number;
+}) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((id) => id !== currentUserAccountID)
@@ -253,11 +253,13 @@ function getInvoicesChatName({
     receiverPolicy,
     personalDetails,
     policies,
+    currentUserAccountID,
 }: {
     report: OnyxEntry<Report>;
     receiverPolicy: OnyxEntry<Policy>;
     personalDetails?: Partial<PersonalDetailsList>;
     policies?: Policy[];
+    currentUserAccountID: number;
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
@@ -659,6 +661,7 @@ function computeReportName(
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
+    currentUserAccountID?: number,
 ): string {
     if (!report || !report.reportID) {
         return '';
@@ -730,7 +733,8 @@ function computeReportName(
             receiverPolicyID = (receiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = receiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`] : undefined;
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList});
+        const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID: resolvedCurrentUserAccountID});
     }
 
     if (isSelfDM(report)) {
@@ -751,7 +755,8 @@ function computeReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList});
+    const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID: resolvedCurrentUserAccountID});
 
     const finalName = formattedName ?? report?.reportName ?? '';
 
