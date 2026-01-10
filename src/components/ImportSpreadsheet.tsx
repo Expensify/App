@@ -66,14 +66,10 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
     const validateFile = (file: FileObject) => {
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
         const lowerExt = fileExtension.toLowerCase();
+
         const allowedExtensions: readonly string[] = isImportingMultiLevelTags ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS : CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
 
-        if (isImportingMultiLevelTags) {
-            if (!CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS.includes(lowerExt as TupleToUnion<typeof CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS>)) {
-                setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-                return false;
-            }
-        } else if (!allowedExtensions.includes(fileExtension.toLowerCase())) {
+        if (!allowedExtensions.includes(lowerExt)) {
             setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
         }
@@ -82,6 +78,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             setUploadFileError(true, 'attachmentPicker.attachmentTooSmall', 'spreadsheet.sizeNotMet');
             return false;
         }
+
         return true;
     };
 
