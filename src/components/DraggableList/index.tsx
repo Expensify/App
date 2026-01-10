@@ -6,6 +6,7 @@ import React, {Fragment} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
@@ -32,6 +33,15 @@ function DraggableList<T>({
         return keyExtractor(item, index);
     });
 
+    const disabledArrowKeyIndexes = data.flatMap((item, index) => ((item as {isDisabled?: boolean})?.isDisabled ? [index] : []));
+
+    const [focusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        maxIndex: data.length - 1,
+        disabledIndexes: disabledArrowKeyIndexes,
+        isActive: true,
+    });
+
     /**
      * Function to be called when the user finishes dragging an item
      * It will reorder the list and call the callback function
@@ -53,18 +63,25 @@ function DraggableList<T>({
         const key = keyExtractor(item, index);
         // Check if item has a disabled property for dragging
         const isDisabled = typeof item === 'object' && item !== null && 'isDragDisabled' in item ? !!(item as {isDragDisabled?: boolean}).isDragDisabled : false;
+        const isFocused = index === focusedIndex;
+
+        const renderedItem = renderItem({
+            item,
+            getIndex: () => index,
+            isActive: false,
+            drag: () => {},
+        });
+
+        const itemWithFocus = React.isValidElement(renderedItem) ? React.cloneElement(renderedItem, {isFocused} as React.Attributes) : renderedItem;
+
         return (
             <SortableItem
                 id={key}
                 key={key}
                 disabled={isDisabled}
+                isFocused={isFocused}
             >
-                {renderItem({
-                    item,
-                    getIndex: () => index,
-                    isActive: false,
-                    drag: () => {},
-                })}
+                {itemWithFocus}
             </SortableItem>
         );
     });
