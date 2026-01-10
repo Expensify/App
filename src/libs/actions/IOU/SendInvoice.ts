@@ -1,5 +1,5 @@
 import {InteractionManager} from 'react-native';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
@@ -49,7 +49,7 @@ type SendInvoiceInformation = {
     createdIOUReportActionID: string;
     createdReportActionIDForThread: string | undefined;
     reportActionID: string;
-    onyxData: OnyxData;
+    onyxData: OnyxData<OnyxKey>;
 };
 
 type SendInvoiceOptions = {

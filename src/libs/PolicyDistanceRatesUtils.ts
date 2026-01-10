@@ -61,7 +61,12 @@ type PolicyDistanceRateUpdateField = keyof Pick<Rate, 'name' | 'rate'> | keyof T
  * @param fieldName - The field name being updated
  * @returns Object containing optimisticData, successData, and failureData arrays
  */
-function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[], fieldName: PolicyDistanceRateUpdateField): OnyxData {
+function buildOnyxDataForPolicyDistanceRateUpdates(
+    policyID: string,
+    customUnit: CustomUnit,
+    customUnitRates: Rate[],
+    fieldName: PolicyDistanceRateUpdateField,
+): OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, NullishDeep<Rate>> = {};
