@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
@@ -58,6 +58,7 @@ type GetReportPrimaryActionParams = {
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
     violations: OnyxCollection<TransactionViolation[]>;
+    bankAccountList: OnyxEntry<BankAccountList>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
@@ -159,6 +160,7 @@ function isPrimaryPayAction(
     report: Report,
     currentUserAccountID: number,
     currentUserEmail: string,
+    bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     isChatReportArchived?: boolean,
@@ -170,7 +172,7 @@ function isPrimaryPayAction(
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, false, policy);
+    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, bankAccountList, policy, false);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -404,6 +406,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         report,
         reportTransactions,
         violations,
+        bankAccountList,
         policy,
         reportNameValuePairs,
         reportActions,
@@ -434,7 +437,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const isPayActionWithAllExpensesHeld =
-        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions) &&
+        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions) &&
         hasOnlyHeldExpenses(report?.reportID);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
@@ -462,7 +465,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    if (isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions)) {
+    if (isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 

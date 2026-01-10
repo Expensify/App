@@ -297,6 +297,7 @@ function Search({
     });
 
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
@@ -425,6 +426,7 @@ function Search({
             currentUserEmail: email ?? '',
             translate,
             formatPhoneNumber,
+            bankAccountList,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: searchKey,
@@ -449,6 +451,7 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        bankAccountList,
     ]);
 
     useEffect(() => {
