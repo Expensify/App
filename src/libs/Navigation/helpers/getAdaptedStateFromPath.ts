@@ -43,23 +43,6 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
-/**
- * Get the appropriate screen name for RHP_TO_SEARCH lookup.
- * Split tabs (amount, percentage, date) are nested routes within SPLIT_EXPENSE/SPLIT_EXPENSE_SEARCH.
- * When a split tab route is accessed from search context (path contains '/search'),
- * we use SPLIT_EXPENSE_SEARCH for the mapping lookup instead of the tab name.
- */
-function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
-    const splitTabNames = Object.values(CONST.TAB.SPLIT) as string[];
-    const isSplitTabRoute = splitTabNames.includes(route.name);
-
-    if (isSplitTabRoute && route.path?.includes('/search')) {
-        return SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH;
-    }
-
-    return route.name;
-}
-
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
@@ -86,11 +69,11 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         // If not, get the matching full screen route for the back to state.
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
-    const routeNameForLookup = getSearchScreenNameForRoute(route);
-    if (RHP_TO_SEARCH[routeNameForLookup]) {
-        const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[routeNameForLookup]);
+
+    if (RHP_TO_SEARCH[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[route.name]);
         const searchRoute = {
-            name: RHP_TO_SEARCH[routeNameForLookup],
+            name: RHP_TO_SEARCH[route.name],
             params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
         };
         return {
