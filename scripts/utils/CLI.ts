@@ -2,6 +2,7 @@
  * This file contains a CLI utility class which can be used to declaratively implement a strongly-typed CLI.
  * You provide a CLIConfig defining your arguments, then the class will handle parsing argv, type validation, error handling, and help messages.
  */
+import * as readline from 'readline';
 import type {NonEmptyObject, NonEmptyTuple, ValueOf, Writable} from 'type-fest';
 import SafeString from '@src/utils/SafeString';
 
@@ -135,11 +136,20 @@ type ParsedPositionalArgs<PositionalArgs extends CLIConfig['positionalArgs']> = 
  * console.log(cli.namedArgs.time);
  * ```
  */
+/**
+ * Built-in flags that are always available on any CLI.
+ */
+type BuiltInFlags = {
+    yes: boolean;
+    no: boolean;
+    help: boolean;
+};
+
 class CLI<TConfig extends CLIConfig> {
     /**
-     * Flags after parsing.
+     * Flags after parsing (includes built-in flags like --yes, --no, and --help).
      */
-    public readonly flags: ParsedFlags<TConfig['flags']>;
+    public readonly flags: ParsedFlags<TConfig['flags']> & BuiltInFlags;
 
     /**
      * Named args after parsing.
@@ -154,16 +164,15 @@ class CLI<TConfig extends CLIConfig> {
     constructor(private readonly config: TConfig) {
         const rawArgs = process.argv.slice(2);
 
-        // Handle help command
-        if (rawArgs.includes('help') || rawArgs.includes('--help')) {
-            this.printHelp();
-            process.exit(0);
-        }
+        // Initialize all flags to false by default (including built-in flags)
+        this.flags = {
+            ...Object.fromEntries(Object.keys(config.flags ?? {}).map((key) => [key, false])),
+            yes: false,
+            no: false,
+            help: false,
+        } as typeof this.flags;
 
         try {
-            // Initialize all flags to false by default
-            this.flags = Object.fromEntries(Object.keys(config.flags ?? {}).map((key) => [key, false])) as typeof this.flags;
-
             const parsedNamedArgs: Partial<Writable<typeof this.namedArgs>> = {};
             const parsedPositionalArgs: Partial<Writable<typeof this.positionalArgs>> = {};
             const providedNamedArgs = new Set<string>();
@@ -180,7 +189,7 @@ class CLI<TConfig extends CLIConfig> {
                     const [rawArgName, rawArgValue] = rawArg.slice(2).split('=');
                     if (rawArgName in this.flags) {
                         // Arg is a flag
-                        this.flags[rawArgName as keyof typeof this.flags] = true;
+                        (this.flags as Record<string, boolean>)[rawArgName] = true;
                     } else if (config.namedArgs && rawArgName in config.namedArgs) {
                         // Arg is a named arg
                         providedNamedArgs.add(rawArgName);
@@ -211,6 +220,12 @@ class CLI<TConfig extends CLIConfig> {
                     parsedPositionalArgs[spec.name as keyof typeof parsedPositionalArgs] = CLI.parseStringArg(rawArg, spec.name, spec) as ValueOf<typeof parsedPositionalArgs>;
                     positionalIndex++;
                 }
+            }
+
+            // Handle help command
+            if (this.flags.help) {
+                this.printHelp();
+                process.exit(0);
             }
 
             // Handle supersession logic
@@ -259,6 +274,10 @@ class CLI<TConfig extends CLIConfig> {
             this.namedArgs = parsedNamedArgs as typeof this.namedArgs;
             this.positionalArgs = parsedPositionalArgs as unknown as typeof this.positionalArgs;
         } catch (err) {
+            // If help flag was set, the error is from process.exit(0) in tests (where it's mocked to throw) - just rethrow it
+            if (this.flags.help) {
+                throw err;
+            }
             if (err instanceof Error) {
                 console.error(err.message);
                 this.printHelp();
@@ -276,19 +295,19 @@ class CLI<TConfig extends CLIConfig> {
         const namedArgUsage = Object.keys(namedArgs)
             .map((key) => `[--${key} <value>]`)
             .join(' ');
-        const flagUsage = Object.keys(flags)
-            .map((key) => `[--${key}]`)
-            .join(' ');
+        const flagUsage = [...Object.keys(flags), '--yes', '--no', '--help'].map((key) => `[${key.startsWith('--') ? key : `--${key}`}]`).join(' ');
 
         console.log(`\nUsage: npx ts-node ${scriptName} ${flagUsage} ${namedArgUsage} ${positionalUsage}\n`);
 
-        if (Object.keys(flags).length > 0) {
-            console.log('Flags:');
-            for (const [name, spec] of Object.entries(flags)) {
-                console.log(`  --${name.padEnd(20)} ${spec.description}`);
-            }
-            console.log('');
+        console.log('Flags:');
+        for (const [name, spec] of Object.entries(flags)) {
+            console.log(`  --${name.padEnd(20)} ${spec.description}`);
         }
+        // Built-in flags
+        console.log(`  --${'yes'.padEnd(20)} Automatically answer "yes" to all confirmation prompts.`);
+        console.log(`  --${'no'.padEnd(20)} Automatically answer "no" to all confirmation prompts.`);
+        console.log(`  --${'help'.padEnd(20)} Show this help message.`);
+        console.log('');
 
         if (Object.keys(namedArgs).length > 0) {
             console.log('Named Arguments:');
@@ -325,6 +344,34 @@ class CLI<TConfig extends CLIConfig> {
         } else {
             return rawString as InferStringArgParsedValue<T>;
         }
+    }
+
+    /**
+     * Prompts the user for confirmation and returns true if they confirm (y/yes), false otherwise.
+     * If --yes flag was passed, returns true immediately without prompting.
+     * If --no flag was passed, returns false immediately without prompting.
+     */
+    async promptUserConfirmation(message: string): Promise<boolean> {
+        // Check for built-in flags first
+        if (this.flags.yes) {
+            return true;
+        }
+        if (this.flags.no) {
+            return false;
+        }
+
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+
+        return new Promise((resolve) => {
+            rl.question(message, (answer) => {
+                rl.close();
+                const normalizedAnswer = answer.trim().toLowerCase();
+                resolve(normalizedAnswer === 'y' || normalizedAnswer === 'yes');
+            });
+        });
     }
 }
 
