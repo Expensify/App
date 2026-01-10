@@ -191,7 +191,6 @@ const WRITE_COMMANDS = {
     EDIT_TASK: 'EditTask',
     REOPEN_TASK: 'ReopenTask',
     COMPLETE_TASK: 'CompleteTask',
-    COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
     SET_REPORT_FIELD: 'Report_SetFields',
     DELETE_REPORT_FIELD: 'RemoveReportField',
@@ -714,7 +713,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.EDIT_TASK]: Parameters.EditTaskParams;
     [WRITE_COMMANDS.REOPEN_TASK]: Parameters.ReopenTaskParams;
     [WRITE_COMMANDS.COMPLETE_TASK]: Parameters.CompleteTaskParams;
-    [WRITE_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
@@ -1284,6 +1282,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     CALCULATE_BILL_NEW_DOT: 'CalculateBillNewDot',
 
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
+    COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1312,6 +1311,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: Parameters.AcceptSpotnanaTermsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
