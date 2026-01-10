@@ -14,7 +14,6 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAllTransactions from '@hooks/useAllTransactions';
-import useCanEditSplitExpense from '@hooks/useCanEditSplitExpense';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -47,7 +46,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -102,7 +101,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
 
-    const {isEditingSplitExpense, canEditSplitExpense} = useCanEditSplitExpense(transactionReport, splitExpenseTransactionID);
+    //const canEditSplitExpense = useCanEditSplitExpense(transactionReport, splitExpenseTransactionID);
 
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
@@ -114,6 +113,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
+
+    const isEditingSplitExpense = !!Number(splitExpenseTransactionID);
+    const splitTransactionIOUAction = getIOUActionForTransactions([splitExpenseTransactionID], expenseReport?.reportID).at(0);
+    const canEditSplitExpense = canEditFieldOfMoneyRequest(splitTransactionIOUAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
+
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
@@ -313,7 +317,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseValueChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-                isEditable: isEditingSplitExpense ? !!canEditSplitExpense : (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
+                isEditable: isEditingSplitExpense ? canEditSplitExpense : (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
             };
         });
 

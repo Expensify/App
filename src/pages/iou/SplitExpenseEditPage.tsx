@@ -9,13 +9,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
-import useCanEditSplitExpense from '@hooks/useCanEditSplitExpense';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
+import {getIOUActionForTransactions, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
@@ -29,7 +28,7 @@ import {getTagLists} from '@libs/PolicyUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -60,10 +59,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
+    const splitExpenseTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpenseTransactionID)}`];
 
     const report = getReportOrDraftReport(reportID);
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
-    const {isEditingSplitExpense, canEditSplitExpense} = useCanEditSplitExpense(currentReport, splitExpenseTransactionID);
+
+    const isEditingSplitExpense = !!splitExpenseTransaction;
+    const splitTransactionIOUAction = getIOUActionForTransactions([splitExpenseTransactionID], currentReport?.reportID).at(0);
+    const canEditSplitExpense = canEditFieldOfMoneyRequest(splitTransactionIOUAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
 
     const policy = usePolicy(currentReport?.policyID);
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
