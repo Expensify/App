@@ -28,6 +28,6 @@ type DomainErrors = {
      * Errors related to the "use technical contact billing card" setting
      */
     useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
-};
+} & GeneralDomainAdminErrors;
 
 export default DomainErrors;

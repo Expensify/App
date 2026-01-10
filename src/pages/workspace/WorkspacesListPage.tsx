@@ -149,6 +149,7 @@ function WorkspacesListPage() {
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, {canBeMissing: true});
     const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
@@ -615,7 +616,6 @@ function WorkspacesListPage() {
             if (!domain || !domain.accountID || !domain.email) {
                 return domainItems;
             }
-
             const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
             domainItems.push({
                 listItemType: 'domain',
@@ -625,11 +625,12 @@ function WorkspacesListPage() {
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
+                errors: allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`]?.errors,
             });
 
             return domainItems;
         }, []);
-    }, [navigateToDomain, allDomains, adminAccess]);
+    }, [allDomains, allDomainErrors, adminAccess, navigateToDomain]);
 
     useEffect(() => {
         const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
