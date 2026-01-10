@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
+import useCanEditSplitExpense from '@hooks/useCanEditSplitExpense';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -62,6 +63,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const report = getReportOrDraftReport(reportID);
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
+
+    const {isEditingSplitExpense, canEditSplitExpense} = useCanEditSplitExpense(currentReport, splitExpenseTransactionID);
 
     const policy = usePolicy(currentReport?.policyID);
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
@@ -124,9 +127,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(() => {
+        return isEmptyObject(splitExpenseDraftTransaction) || !reportID || (isEditingSplitExpense ? !canEditSplitExpense : !isSplitAvailable);
+    }, [isEditingSplitExpense, canEditSplitExpense, splitExpenseDraftTransaction, reportID, isSplitAvailable]);
+
     return (
         <ScreenWrapper testID="SplitExpenseEditPage">
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.splitExpenseEditTitle', {

@@ -14,6 +14,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAllTransactions from '@hooks/useAllTransactions';
+import useCanEditSplitExpense from '@hooks/useCanEditSplitExpense';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -21,7 +22,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -84,8 +84,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
 
-    const isChatReportArchived = useReportIsArchived(transactionReport?.chatReportID);
-
     const allTransactions = useAllTransactions();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
@@ -108,6 +106,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
 
+    const {isEditingSplitExpense, canEditSplitExpense} = useCanEditSplitExpense(transactionReport, splitExpenseTransactionID);
+
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
@@ -119,7 +119,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
-    const splitIOUAction = getIOUActionForTransactions([splitExpenseTransactionID], transactionReport?.reportID).at(0);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
@@ -132,10 +131,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
 
     const {isBetaEnabled} = usePermissions();
-
-    const canEditSplitAmount = useMemo(() => {
-        return canEditFieldOfMoneyRequest(splitIOUAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived);
-    }, [splitIOUAction, isChatReportArchived]);
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -273,8 +268,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
-    const isEditingSplitAmount = useMemo(() => !!Number(splitExpenseTransactionID), [splitExpenseTransactionID]);
-
     const options = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
         const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
@@ -325,15 +318,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseValueChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-                isEditable: isEditingSplitAmount ? canEditSplitAmount : (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
+                isEditable: isEditingSplitExpense ? canEditSplitExpense : (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
             };
         });
 
         return items;
     }, [
         transaction,
-        isEditingSplitAmount,
-        canEditSplitAmount,
+        isEditingSplitExpense,
+        canEditSplitExpense,
         draftTransaction?.comment?.splitExpenses,
         draftTransaction?.currency,
         allTransactions,
@@ -440,7 +433,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const initiallyFocusedOptionKey = options.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList;
 
     const headerTitle = useMemo(() => {
-        if (isEditingSplitAmount) {
+        if (isEditingSplitExpense) {
             return translate('iou.editSplits');
         }
         if (isPercentageMode) {
@@ -450,7 +443,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return translate('iou.splitByDate');
         }
         return translate('iou.split');
-    }, [isDateMode, isPercentageMode, translate, isEditingSplitAmount]);
+    }, [isDateMode, isPercentageMode, translate, isEditingSplitExpense]);
 
     const onSelectRow = useCallback(
         (item: SplitListItemType) => {
@@ -469,8 +462,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
-        return isEmptyObject(draftTransaction) || !reportID || (isEditingSplitAmount ? !canEditSplitAmount : !isSplitAvailable);
-    }, [isEditingSplitAmount, canEditSplitAmount, draftTransaction, reportID, isSplitAvailable]);
+        return isEmptyObject(draftTransaction) || !reportID || (isEditingSplitExpense ? !canEditSplitExpense : !isSplitAvailable);
+    }, [isEditingSplitExpense, canEditSplitExpense, draftTransaction, reportID, isSplitAvailable]);
 
     return (
         <ScreenWrapper
