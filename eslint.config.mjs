@@ -606,6 +606,7 @@ const config = defineConfig([
         'web/gtm.js',
         '**/.expo/**/*',
         '**/.rock/**/*',
+        '**/.yalc/**/*',
         'src/libs/SearchParser/searchParser.js',
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
