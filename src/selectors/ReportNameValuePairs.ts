@@ -10,6 +10,11 @@ const createReportNameValuePairsSelector = <T>(reportNameValuePairs: OnyxCollect
     mapOnyxCollectionItems(reportNameValuePairs, reportNameValuePairsSelector);
 
 /**
+ * Selector that extracts only the private_isArchived property from report name value pairs
+ */
+const privateIsArchivedSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => reportNameValuePairs?.private_isArchived;
+
+/**
  * Selector that creates a Set of archived report IDs from report name value pairs
  */
 const archivedReportsIdSetSelector = (all: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
@@ -26,4 +31,4 @@ const archivedReportsIdSetSelector = (all: OnyxCollection<ReportNameValuePairs>)
     return ids;
 };
 
-export {createReportNameValuePairsSelector, archivedReportsIdSetSelector};
+export {createReportNameValuePairsSelector, archivedReportsIdSetSelector, privateIsArchivedSelector};
