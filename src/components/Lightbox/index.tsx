@@ -295,7 +295,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {!isImageLoaded && !shouldShowOfflineIndicator && (
+                    {(!isImageLoaded || previousUri !== uri) && !shouldShowOfflineIndicator && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
