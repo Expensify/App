@@ -63,6 +63,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -186,6 +187,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     isASAPSubmitBetaEnabled,
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
+                    allSnapshots,
                     reportToConfirm,
                     policy,
                     reportNextStep,
@@ -206,6 +208,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         policy,
         reportNextStep,
         policyCategories,
+        allSnapshots,
         policyRecentlyUsedCurrencies,
     ]);
 

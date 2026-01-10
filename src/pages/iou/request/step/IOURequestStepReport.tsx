@@ -48,6 +48,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
     const {removeTransaction, setSelectedTransactions} = useSearchContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -129,6 +130,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     isASAPSubmitBetaEnabled,
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
+                    allSnapshots,
                     report,
                     allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                     undefined,
@@ -169,7 +171,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport([transaction.transactionID], isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+            changeTransactionsReport([transaction.transactionID], isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '', allSnapshots);
             removeTransaction(transaction.transactionID);
         });
     };
