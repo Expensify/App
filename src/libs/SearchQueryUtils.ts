@@ -44,6 +44,7 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetai
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import {formatTranslatedValue, getStatusOptions} from './SearchTranslationUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -1060,17 +1061,19 @@ function getFilterDisplayValue(
     return filterValue;
 }
 
-function getDisplayQueryFiltersForKey(
-    key: string,
-    queryFilter: QueryFilter[],
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    taxRates: Record<string, string[]>,
-    cardList: OnyxTypes.CardList,
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    currentUserAccountID: number,
-) {
+type GetDisplayQueryFiltersForKeyParams = {
+    key: string;
+    queryFilter: QueryFilter[];
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    taxRates: Record<string, string[]>;
+    cardList: OnyxTypes.CardList;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+};
+
+function getDisplayQueryFiltersForKey({key, queryFilter, personalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID}: GetDisplayQueryFiltersForKeyParams) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
         const taxRateNames = taxRateIDs
@@ -1133,7 +1136,13 @@ function getDisplayQueryFiltersForKey(
     }));
 }
 
-function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
+function formatDefaultRawFilterSegment(
+    rawFilter: RawQueryFilter,
+    policies: OnyxCollection<OnyxTypes.Policy>,
+    reports?: OnyxCollection<OnyxTypes.Report>,
+    type?: SearchDataTypes,
+    translate?: LocaleContextProps['translate'],
+) {
     const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
     const cleanedValues = rawValues.map((val) => (typeof val === 'string' ? val.trim() : '')).filter((val) => val.length > 0);
 
@@ -1177,7 +1186,16 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
             break;
     }
 
-    const formattedValues = cleanedValues.map((val) => sanitizeSearchValue(getUserFriendlyValue(val)));
+    const formattedValues = cleanedValues.map((val) => {
+        if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type) {
+            const statusOptions = getStatusOptions(translate, type);
+            const statusOption = statusOptions.find((option) => option.value === val);
+            if (statusOption) {
+                return sanitizeSearchValue(formatTranslatedValue(statusOption.text));
+            }
+        }
+        return sanitizeSearchValue(getUserFriendlyValue(val));
+    });
 
     if (!formattedValues.length) {
         return;
@@ -1202,8 +1220,21 @@ function buildUserReadableQueryString(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     autoCompleteWithSpace = false,
+    translate?: LocaleContextProps['translate'],
 ) {
     const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
+
+    const translateStatusValue = (statusValue: string): string => {
+        if (!translate || !type) {
+            return getUserFriendlyValue(statusValue);
+        }
+        const statusOptions = getStatusOptions(translate, type);
+        const statusOption = statusOptions.find((option) => option.value === statusValue);
+        if (!statusOption) {
+            return getUserFriendlyValue(statusValue);
+        }
+        return formatTranslatedValue(statusOption.text);
+    };
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -1218,7 +1249,7 @@ function buildUserReadableQueryString(
             }
 
             if (rawFilter.isDefault) {
-                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports);
+                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports, type, translate);
                 if (defaultSegment) {
                     segments.push(defaultSegment);
                 }
@@ -1238,7 +1269,17 @@ function buildUserReadableQueryString(
                 continue;
             }
 
-            const displayQueryFilters = getDisplayQueryFiltersForKey(rawFilter.key, queryFilters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+            const displayQueryFilters = getDisplayQueryFiltersForKey({
+                key: rawFilter.key,
+                queryFilter: queryFilters,
+                personalDetails: PersonalDetails,
+                reports,
+                taxRates,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+            });
 
             if (!displayQueryFilters.length) {
                 continue;
@@ -1257,7 +1298,7 @@ function buildUserReadableQueryString(
     }
 
     let title = status
-        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
+        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(translateStatusValue).join(',') : translateStatusValue(status)}`
         : `type:${getUserFriendlyValue(type)}`;
 
     if (groupBy) {
@@ -1270,7 +1311,17 @@ function buildUserReadableQueryString(
 
     for (const filterObject of filters) {
         const key = filterObject.key;
-        const displayQueryFilters = getDisplayQueryFiltersForKey(key, filterObject.filters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+        const displayQueryFilters = getDisplayQueryFiltersForKey({
+            key,
+            queryFilter: filterObject.filters,
+            personalDetails: PersonalDetails,
+            reports,
+            taxRates,
+            cardList,
+            cardFeeds,
+            policies,
+            currentUserAccountID,
+        });
 
         if (!displayQueryFilters.length) {
             continue;
