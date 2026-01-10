@@ -13989,7 +13989,7 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
     const lastUneditedIndex = uneditedSplits.length - 1;
     let uneditedIndex = 0;
 
-    const redistriutedSplitExpenses = splitWithUpdatedAmount.map((split) => {
+    const redistributedSplitExpenses = splitWithUpdatedAmount.map((split) => {
         if (split.isManuallyEdited) {
             return split;
         }
@@ -14001,7 +14001,7 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
         comment: {
-            splitExpenses: redistriutedSplitExpenses,
+            splitExpenses: redistributedSplitExpenses,
         },
     });
 }

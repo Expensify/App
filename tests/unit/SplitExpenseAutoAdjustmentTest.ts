@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {addSplitExpenseField, evenlyDistributeSplitExpenseAmounts, updateSplitExpenseAmountField} from '@libs/actions/IOU';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';
@@ -21,7 +20,7 @@ describe('Split Expense Auto-Adjustment', () => {
     const TOTAL_AMOUNT = 1000; // $10.00 in cents
 
     // Helper to create a mock draft transaction
-    const createMockDraftTransaction = (splitExpenses: SplitExpense[], amount = TOTAL_AMOUNT): OnyxEntry<Transaction> =>
+    const createMockDraftTransaction = (splitExpenses: SplitExpense[], amount = TOTAL_AMOUNT): Transaction =>
         ({
             transactionID: ORIGINAL_TRANSACTION_ID,
             reportID: REPORT_ID,
@@ -62,7 +61,7 @@ describe('Split Expense Auto-Adjustment', () => {
 
             const mockTransaction = createMockDraftTransaction(initialSplits);
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction as Transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
             await waitForBatchedUpdates();
 
             // Action: Add a third split
@@ -100,7 +99,7 @@ describe('Split Expense Auto-Adjustment', () => {
 
             const mockTransaction = createMockDraftTransaction(initialSplits);
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction as Transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
             await waitForBatchedUpdates();
 
             // Action: Add a third split
@@ -145,7 +144,7 @@ describe('Split Expense Auto-Adjustment', () => {
 
             const mockTransaction = createMockDraftTransaction(initialSplits);
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction as Transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
             await waitForBatchedUpdates();
 
             // Action: Edit split1 to $3.00
@@ -187,7 +186,7 @@ describe('Split Expense Auto-Adjustment', () => {
 
             const mockTransaction = createMockDraftTransaction(initialSplits);
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction as Transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
             await waitForBatchedUpdates();
 
             // Action: Edit split1 to $5.00
@@ -223,7 +222,7 @@ describe('Split Expense Auto-Adjustment', () => {
 
             const mockTransaction = createMockDraftTransaction(initialSplits);
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction as Transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
             await waitForBatchedUpdates();
 
             // Action: Make splits even
