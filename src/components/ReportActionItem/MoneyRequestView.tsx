@@ -178,6 +178,7 @@ function MoneyRequestView({
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
     let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: true});
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
 
     const parentReportActionSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
         transactionThreadReport?.parentReportActionID ? reportActions?.[transactionThreadReport.parentReportActionID] : undefined;
@@ -413,7 +414,8 @@ function MoneyRequestView({
         }
         updateMoneyRequestBillable(
             transaction.transactionID,
-            transactionThreadReport?.reportID,
+            transactionThreadReport,
+            parentReport,
             newBillable,
             policy,
             policyTagList,
@@ -421,6 +423,7 @@ function MoneyRequestView({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
+            parentReportNextStep,
         );
     };
 
@@ -431,7 +434,8 @@ function MoneyRequestView({
         }
         updateMoneyRequestReimbursable(
             transaction.transactionID,
-            transactionThreadReport?.reportID,
+            transactionThreadReport,
+            parentReport,
             newReimbursable,
             policy,
             policyTagList,
@@ -439,6 +443,7 @@ function MoneyRequestView({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
+            parentReportNextStep,
         );
     };
 

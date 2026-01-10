@@ -111,6 +111,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
+    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
@@ -214,6 +215,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
+            iouReportNextStep,
         });
     }, [
         splitExpenses,

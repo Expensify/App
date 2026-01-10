@@ -51,6 +51,7 @@ function IOURequestStepDescription({
     const policy = usePolicy(report?.policyID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
 
@@ -154,7 +155,8 @@ function IOURequestStepDescription({
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription(
                 transaction?.transactionID,
-                reportID,
+                report,
+                parentReport,
                 newComment,
                 policy,
                 policyTags,
@@ -172,6 +174,7 @@ function IOURequestStepDescription({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
     const getDescriptionHint = () => {
         return transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';

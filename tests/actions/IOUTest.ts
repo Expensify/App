@@ -5127,7 +5127,8 @@ describe('actions/IOU', () => {
                 updateMoneyRequestAmountAndCurrency({
                     transactionID: transaction.transactionID,
                     transactions: {},
-                    transactionThreadReportID: thread.reportID,
+                    transactionThreadReport: thread,
+                    parentReport: iouReport,
                     transactionViolations: {},
                     amount: 20000,
                     currency: CONST.CURRENCY.USD,
@@ -6977,6 +6978,7 @@ describe('actions/IOU', () => {
             const transactionID = '1';
             const policyID = '2';
             const transactionThreadReportID = '3';
+            const transactionThreadReport = {reportID: transactionThreadReportID};
             const category = 'Advertising';
             const taxCode = 'id_TAX_EXEMPT';
             const ruleTaxCode = 'id_TAX_RATE_1';
@@ -6991,12 +6993,13 @@ describe('actions/IOU', () => {
                 amount: 100,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
 
             // When updating a money request category
             updateMoneyRequestCategory({
                 transactionID,
-                transactionThreadReportID,
+                transactionThreadReport,
+                parentReport: undefined,
                 category,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -7072,7 +7075,8 @@ describe('actions/IOU', () => {
                 // When updating a money request category
                 updateMoneyRequestCategory({
                     transactionID,
-                    transactionThreadReportID: '3',
+                    transactionThreadReport: {reportID: '3'},
+                    parentReport: undefined,
                     category,
                     policy: fakePolicy,
                     policyTagList: undefined,
@@ -7115,7 +7119,8 @@ describe('actions/IOU', () => {
                 // When updating the money request category
                 updateMoneyRequestCategory({
                     transactionID,
-                    transactionThreadReportID: '3',
+                    transactionThreadReport: {reportID: '3'},
+                    parentReport: undefined,
                     category,
                     policy: fakePolicy,
                     policyTagList: undefined,
@@ -7147,6 +7152,7 @@ describe('actions/IOU', () => {
             const transactionID = '1';
             const policyID = '2';
             const transactionThreadReportID = '3';
+            const transactionThreadReport = {reportID: transactionThreadReportID};
             const category = '';
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
@@ -7165,12 +7171,13 @@ describe('actions/IOU', () => {
                 },
             ]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
 
             // When updating a money request category
             updateMoneyRequestCategory({
                 transactionID,
-                transactionThreadReportID,
+                transactionThreadReport,
+                parentReport: undefined,
                 category,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -7962,7 +7969,8 @@ describe('actions/IOU', () => {
 
             updateMoneyRequestAmountAndCurrency({
                 transactionID: fakeTransaction.transactionID,
-                transactionThreadReportID: fakeReport.reportID,
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -8029,7 +8037,8 @@ describe('actions/IOU', () => {
 
             updateMoneyRequestAmountAndCurrency({
                 transactionID: fakeTransaction.transactionID,
-                transactionThreadReportID: fakeReport.reportID,
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -8125,7 +8134,8 @@ describe('actions/IOU', () => {
 
             updateMoneyRequestAmountAndCurrency({
                 transactionID,
-                transactionThreadReportID,
+                transactionThreadReport: transactionThread,
+                parentReport: expenseReport,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -10761,10 +10771,11 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             // When updating the transaction attendees
-            updateMoneyRequestAttendees(
-                transaction.transactionID,
-                '2',
-                [
+            updateMoneyRequestAttendees({
+                transactionID: transaction.transactionID,
+                transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
+                parentReport: undefined,
+                attendees: [
                     {avatarUrl: '', displayName: 'user 1', email: 'user1@gmail.com'},
                     {avatarUrl: '', displayName: 'user 2', email: 'user2@gmail.com'},
                     {avatarUrl: '', displayName: 'user 3', email: 'user3@gmail.com'},
@@ -10772,14 +10783,14 @@ describe('actions/IOU', () => {
                     {avatarUrl: '', displayName: 'user 5', email: 'user5@gmail.com'},
                     {avatarUrl: '', displayName: 'user 6', email: 'user6@gmail.com'},
                 ],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                123,
-                '',
-                false,
-            );
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                violations: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: '',
+                isASAPSubmitBetaEnabled: false,
+            });
             await waitForBatchedUpdates();
 
             // Then the recent attendees should be updated with a maximum of 5 attendees
@@ -10810,15 +10821,18 @@ describe('actions/IOU', () => {
             };
             const transactionThreadReportID = '2';
             const iouReportID = '3';
+            const iouReport = {reportID: iouReportID, policyID: policy.id};
+            const transactionThreadReport = {reportID: transactionThreadReportID, parentReportID: iouReportID};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, policyTags);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policy.id}`, policyRecentlyUsedTags);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID, parentReportID: iouReportID});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {reportID: iouReportID, policyID: policy.id});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
 
             // When updating the expense tag
             updateMoneyRequestTag({
                 transactionID: '1',
-                transactionThreadReportID,
+                transactionThreadReport,
+                parentReport: iouReport,
                 tag: newTag,
                 policy,
                 policyTagList: policyTags,
