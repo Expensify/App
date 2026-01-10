@@ -3,7 +3,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {filterInactiveCards} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
