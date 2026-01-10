@@ -221,7 +221,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.BETAS,
-                            value: ['all'],
+                            value: [CONST.BETAS.ALL],
                         },
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
