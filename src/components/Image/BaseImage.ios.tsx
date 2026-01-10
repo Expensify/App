@@ -18,6 +18,12 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Reset isLoadedRef when source changes to allow onLoad to fire again for new images (e.g., after rotation)
+    useEffect(() => {
+        isLoadedRef.current = false;
+    }, [source]);
+
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {
             setAttachmentLoaded(source as AttachmentSource, true);
