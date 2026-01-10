@@ -137,6 +137,7 @@ export type {default as TogglePolicyUberAutoRemovePageParams} from './TogglePoli
 export type {default as InviteToRoomParams} from './InviteToRoomParams';
 export type {default as InviteToGroupChatParams} from './InviteToGroupChatParams';
 export type {default as InviteWorkspaceEmployeesToUberParams} from './InviteWorkspaceEmployeesToUberParams';
+export type {default as UnshareBankAccountParams} from './UnshareBankAccountParams';
 export type {default as RemoveFromRoomParams} from './RemoveFromRoomParams';
 export type {default as RemoveFromGroupChatParams} from './RemoveFromGroupChatParams';
 export type {default as FlagCommentParams} from './FlagCommentParams';
@@ -451,6 +452,8 @@ export type {default as SetSamlIdentityParams} from './SetSamlIdentityParams';
 export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams';
 export type {default as AddAdminToDomainParams} from './AddAdminToDomainParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
+export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
 export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';
+export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';

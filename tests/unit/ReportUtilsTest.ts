@@ -19,6 +19,8 @@ import {translate} from '@libs/Localize';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-syntax
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/ReportActionsUtils';
 import {buildReportNameFromParticipantNames, computeReportName, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -187,6 +189,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         })),
     },
 }));
+
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
+    isPaidGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team'),
+}));
+
+const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
@@ -2099,6 +2109,34 @@ describe('ReportUtils', () => {
                         `there was a problem syncing with QuickBooks ("Sync failed"). Please fix the issue in <a href="https://dev.new.expensify.com:8082/workspaces/1/accounting">workspace settings</a>.`,
                     );
                 });
+
+                test('should handle concierge company card connection broken action', () => {
+                    const companyCardConnectionBrokenAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+                        originalMessage: {
+                            feedName: 'Regions Bank cards',
+                            policyID: '1',
+                        },
+                    };
+
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: companyCardConnectionBrokenAction.reportActionID,
+                    };
+
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {
+                            [companyCardConnectionBrokenAction.reportActionID]: companyCardConnectionBrokenAction,
+                        },
+                    };
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    expect(reportName).toBe(
+                        `The Regions Bank cards connection is broken. To restore card imports, <a href='https://dev.new.expensify.com:8082/workspaces/1/company-cards'>log into your bank</a>`,
+                    );
+                });
             });
 
             describe('Invoices', () => {
@@ -2886,6 +2924,7 @@ describe('ReportUtils', () => {
                         type: CONST.REPORT.TYPE.EXPENSE,
                         ownerAccountID: currentUserAccountID,
                     };
+                    mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -5988,6 +6027,8 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
             // When it's checked if the transactions can be added
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
@@ -6005,6 +6046,8 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID + 1,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
 
             const result = canAddTransaction(report, false);
 
@@ -6049,6 +6092,8 @@ describe('ReportUtils', () => {
             });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
 
             // If the canAddTransaction is used for the case of adding expense into the report
             const result = canAddTransaction(report, isReportArchived.current);
@@ -7836,8 +7881,7 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(Number(transactionID)),
                 reportID: parentReport.reportID,
-                created: '',
-                modifiedCreated: '',
+                amount: 0,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
@@ -7862,8 +7906,7 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(12345),
                 reportID: parentReport.reportID,
-                created: '',
-                modifiedCreated: '',
+                amount: 0,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
