@@ -28,6 +28,7 @@ import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -276,8 +277,18 @@ function MoneyRequestReportTransactionList({
 
     // Always use default columns for money request report view (don't use user-customized search columns)
     const columnsToShow = useMemo(() => {
-        return getColumnsToShow(currentUserDetails?.accountID, transactions, [], true, undefined, undefined, isIOUReport(report));
-    }, [transactions, currentUserDetails?.accountID, report]);
+        return getColumnsToShow(
+            currentUserDetails?.accountID,
+            transactions,
+            [],
+            true,
+            undefined,
+            undefined,
+            isIOUReport(report),
+            isBillableEnabledOnPolicy(policy),
+            hasNonReimbursableTransactions(transactions),
+        );
+    }, [transactions, currentUserDetails?.accountID, report, policy]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 

@@ -57,6 +57,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeRecentReports: false,
+        includeUserToInvite: true,
         excludeLogins: Object.fromEntries(CONST.EXPENSIFY_EMAILS.map((email) => [email, true])),
         shouldInitialize: didScreenTransitionEnd,
         onSingleSelect: (option) => setCurrentlySelectedUser({...option, isSelected: true}),
@@ -95,6 +96,13 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                 data: filteredOptions,
             });
         }
+
+        if (availableOptions.userToInvite && currentlySelectedUser?.login !== availableOptions.userToInvite.login) {
+            sections.push({
+                title: undefined,
+                data: [availableOptions.userToInvite],
+            });
+        }
     }
 
     const footerContent = (
@@ -123,7 +131,13 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                 />
                 <SelectionList
                     sections={sections}
-                    headerMessage={getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!currentlySelectedUser, searchTerm.trim().toLowerCase(), countryCode, false)}
+                    headerMessage={getHeaderMessage(
+                        filteredOptions.length > 0 || !!currentlySelectedUser,
+                        !!availableOptions.userToInvite,
+                        searchTerm.trim().toLowerCase(),
+                        countryCode,
+                        false,
+                    )}
                     ListItem={InviteMemberListItem}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
