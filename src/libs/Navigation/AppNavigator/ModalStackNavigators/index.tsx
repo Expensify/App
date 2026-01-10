@@ -259,6 +259,7 @@ const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorPa
 
 const ReportVerifyAccountModalStackNavigator = createModalStackNavigator<ReportVerifyAccountNavigatorParamList>({
     [SCREENS.REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/home/report/ReportVerifyAccountPage').default,
+    [SCREENS.EXPENSE_REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/home/report/ExpenseReportVerifyAccountPage').default,
     [SCREENS.SEARCH.REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchReportVerifyAccountPage').default,
 });
 

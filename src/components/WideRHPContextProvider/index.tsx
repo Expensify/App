@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {createContext, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -110,6 +110,17 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [multiTransactionExpenseReportIDs, setMultiTransactionExpenseReportIDs] = useState<Set<string>>(new Set());
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
+
+    const isWideRHPClosingRef = useRef(false);
+    const isSuperWideRHPClosingRef = useRef(false);
+
+    const setIsWideRHPClosing = useCallback((isClosing: boolean) => {
+        isWideRHPClosingRef.current = isClosing;
+    }, []);
+
+    const setIsSuperWideRHPClosing = useCallback((isClosing: boolean) => {
+        isSuperWideRHPClosingRef.current = isClosing;
+    }, []);
 
     const {focusedRoute, focusedNavigator} = useRootNavigationState((state) => {
         if (!state) {
@@ -333,6 +344,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isSuperWideRHPFocused,
             syncRHPKeys,
             clearWideRHPKeys,
+            setIsWideRHPClosing,
+            setIsSuperWideRHPClosing,
         }),
         [
             wideRHPRouteKeys,
@@ -354,6 +367,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isSuperWideRHPFocused,
             syncRHPKeys,
             clearWideRHPKeys,
+            setIsWideRHPClosing,
+            setIsSuperWideRHPClosing,
         ],
     );
 
