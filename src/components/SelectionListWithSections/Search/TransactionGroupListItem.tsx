@@ -181,12 +181,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
 
+    // Use ref to avoid infinite loop - searchTransactions changes when snapshot updates
+    const searchTransactionsRef = useRef(searchTransactions);
+    searchTransactionsRef.current = searchTransactions;
     useEffect(() => {
-        if (!newTransactionID || !isExpanded) {
+        if (!isExpanded) {
             return;
         }
-        searchTransactions();
-    }, [newTransactionID, isExpanded, searchTransactions]);
+        searchTransactionsRef.current();
+    }, [newTransactionID, isExpanded]);
 
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
@@ -228,11 +231,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
-        } else if (groupItem.transactionsQueryJSON && !isExpanded) {
-            searchTransactions();
         }
         handleToggle();
-    }, [isEmpty, shouldDisplayEmptyView, groupItem.transactionsQueryJSON, isExpanded, handleToggle, onPress, searchTransactions]);
+    }, [isEmpty, shouldDisplayEmptyView, handleToggle, onPress]);
 
     const getHeader = useCallback(
         (hovered: boolean) => {
