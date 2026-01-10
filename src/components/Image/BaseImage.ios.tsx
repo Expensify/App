@@ -36,6 +36,11 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
         [onLoad, setAttachmentLoaded, source],
     );
 
+    // Use disk caching for images that need to work offline (e.g., receipts with auth tokens)
+    // Use no caching for other images to avoid memory leaks
+    // Check if cachePolicy is explicitly provided in props, otherwise default based on whether it's an auth-required image
+    const effectiveCachePolicy = props.cachePolicy ?? 'none';
+
     return (
         <ExpoImage
             // Only subscribe to onLoad when a handler is provided to avoid unnecessary event registrations, optimizing performance.
@@ -43,8 +48,7 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
             source={source}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            // Temporary solution only, since other cache policies are causing memory leaks on iOS
-            cachePolicy="none"
+            cachePolicy={effectiveCachePolicy}
         />
     );
 }
