@@ -72,7 +72,7 @@ describe('getReportPreviewAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const policy = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
-        expect(getReportPreviewAction({isReportArchived: false, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, currentUserEmail: CURRENT_USER_EMAIL, report, policy, transactions: []})).toBe(
+        expect(getReportPreviewAction({isReportArchived: false, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, currentUserLogin: CURRENT_USER_EMAIL, report, policy, transactions: []})).toBe(
             CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE,
         );
     });
@@ -107,7 +107,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -146,7 +146,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -188,7 +188,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -239,7 +239,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -282,7 +282,7 @@ describe('getReportPreviewAction', () => {
                 getReportPreviewAction({
                     isReportArchived: isReportArchived.current,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserEmail: CURRENT_USER_EMAIL,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                     report,
                     policy,
                     transactions: [transaction],
@@ -319,7 +319,7 @@ describe('getReportPreviewAction', () => {
                 getReportPreviewAction({
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserEmail: CURRENT_USER_EMAIL,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                     report,
                     policy,
                     transactions: [transaction],
@@ -357,7 +357,7 @@ describe('getReportPreviewAction', () => {
                 getReportPreviewAction({
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserEmail: CURRENT_USER_EMAIL,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                     report,
                     policy,
                     transactions: [transaction],
@@ -394,7 +394,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -428,7 +428,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -463,7 +463,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -501,7 +501,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -556,7 +556,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -599,7 +599,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -637,7 +637,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isChatReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -670,7 +670,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -704,7 +704,7 @@ describe('getReportPreviewAction', () => {
             const result = getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: '',
+                currentUserLogin: '',
                 report,
                 policy,
                 transactions: [transaction],
@@ -748,7 +748,7 @@ describe('getReportPreviewAction', () => {
             const result = getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: '',
+                currentUserLogin: '',
                 report,
                 policy,
                 transactions: [transaction],
@@ -792,7 +792,7 @@ describe('getReportPreviewAction', () => {
             const result = getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: '',
+                currentUserLogin: '',
                 report,
                 policy,
                 transactions: [transaction],

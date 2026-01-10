@@ -52,7 +52,7 @@ import {
 } from './TransactionUtils';
 
 type GetReportPrimaryActionParams = {
-    currentUserEmail: string;
+    currentUserLogin: string;
     currentUserAccountID: number;
     report: Report | undefined;
     chatReport: OnyxEntry<Report>;
@@ -213,7 +213,7 @@ function isPrimaryPayAction(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]) {
+function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[]) {
     if (!policy) {
         return false;
     }
@@ -227,7 +227,7 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const isReportExporter = isPreferredExporter(policy);
+    const isReportExporter = isPreferredExporter(policy, currentUserLogin);
     if (!isReportExporter && !isAdmin) {
         return false;
     }
@@ -399,7 +399,7 @@ function getAllExpensesToHoldIfApplicable(report: Report | undefined, reportActi
 
 function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     const {
-        currentUserEmail,
+        currentUserLogin,
         currentUserAccountID,
         report,
         reportTransactions,
@@ -434,15 +434,15 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const isPayActionWithAllExpensesHeld =
-        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions) &&
+        isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions) &&
         hasOnlyHeldExpenses(report?.reportID);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
-    if (isMarkAsCashAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
+    if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
-    if (isReviewDuplicatesAction(report, reportTransactions, currentUserEmail, currentUserAccountID, policy, violations)) {
+    if (isReviewDuplicatesAction(report, reportTransactions, currentUserLogin, currentUserAccountID, policy, violations)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
@@ -454,19 +454,19 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
-    if (isPrimaryMarkAsResolvedAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
+    if (isPrimaryMarkAsResolvedAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, violations, currentUserEmail, currentUserAccountID, reportMetadata)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID, reportMetadata)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    if (isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions)) {
+    if (isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
-    if (isExportAction(report, policy, reportActions)) {
+    if (isExportAction(report, currentUserLogin, policy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 
