@@ -221,6 +221,7 @@ function TransactionListItem<TItem extends ListItem>({
                             columns={columns}
                             isActionLoading={isLoading ?? isActionLoading}
                             isSelected={!!transactionItem.isSelected}
+                            isDisabled={!!isDisabled}
                             dateColumnSize={dateColumnSize}
                             submittedColumnSize={submittedColumnSize}
                             approvedColumnSize={approvedColumnSize}
