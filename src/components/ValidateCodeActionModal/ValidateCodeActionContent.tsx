@@ -40,7 +40,7 @@ function ValidateCodeActionContent({
 
         sendValidateCode();
         // We only want to send validate code on first render not on change of validateCodeSent, so we don't add it as a dependency.
-        // eslint-disable-next-line react-compiler/react-compiler
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sendValidateCode]);
 

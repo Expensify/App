@@ -220,7 +220,7 @@ function ReportActionItemMessageEdit({
      */
     const debouncedSaveDraft = useMemo(
         () =>
-            // eslint-disable-next-line react-compiler/react-compiler
+
             lodashDebounce((newDraft: string) => {
                 saveReportActionDraft(reportID, action, newDraft);
                 isCommentPendingSaved.current = false;
@@ -274,7 +274,7 @@ function ReportActionItemMessageEdit({
 
     useEffect(() => {
         updateDraft(draft);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- run this only when language is changed
+        , react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
     /**
@@ -586,7 +586,7 @@ function ReportActionItemMessageEdit({
 
                     <Suggestions
                         ref={suggestionsRef}
-                        // eslint-disable-next-line react-compiler/react-compiler
+
                         isComposerFocused={textInputRef.current?.isFocused()}
                         updateComment={updateDraft}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}

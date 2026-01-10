@@ -154,7 +154,7 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit, ref}: OnfidoProps) {
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
         return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
         // Onfido should be initialized only once on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, []);
 
     return (

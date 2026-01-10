@@ -42,7 +42,7 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
         return () => {
             interactionTask.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, []);
 
     if (!isInteractionComplete && isAnonymous) {

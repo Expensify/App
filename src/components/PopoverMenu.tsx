@@ -486,7 +486,7 @@ function BasePopoverMenu({
             setFocusedIndex(getSelectedItemIndex(menuItems));
         }
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex]);
 
     const menuContainerStyle = useMemo(() => {

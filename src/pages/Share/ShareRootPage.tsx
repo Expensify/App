@@ -147,7 +147,7 @@ function ShareRootPage() {
     useEffect(() => {
         clearShareData();
         handleProcessFiles();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, []);
 
     const shareTabInputRef = useRef<AnimatedTextInputRef | null>(null);

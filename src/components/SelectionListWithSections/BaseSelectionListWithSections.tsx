@@ -365,7 +365,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             pendingScrollIndexRef.current = null;
         },
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
         [flattenedSections.allOptions, currentPage],
     );
 
@@ -397,7 +397,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
 
         setDisabledArrowKeyIndexes(flattenedSections.disabledArrowKeyOptionsIndexes);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, [flattenedSections.disabledArrowKeyOptionsIndexes]);
 
     /** Check whether there is a need to scroll to an item and if all items are loaded */
@@ -461,7 +461,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         setFocusedIndex(selectedItemIndex);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, [selectedItemIndex]);
 
     const clearInputAfterSelect = useCallback(() => {
@@ -750,7 +750,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
-                            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
                             textInputRef.current = element as RNTextInput;
                         }
                     }}

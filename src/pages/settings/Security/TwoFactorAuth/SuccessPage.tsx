@@ -37,7 +37,7 @@ function SuccessPage({route}: SuccessPageProps) {
             }
             Navigation.popRootToTop();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, []);
 
     return (

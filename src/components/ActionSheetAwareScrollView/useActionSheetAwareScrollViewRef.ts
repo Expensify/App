@@ -12,7 +12,6 @@ function useActionSheetAwareScrollViewRef(ref: Ref<ActionSheetAwareScrollViewHan
             if (typeof ref === 'function') {
                 ref(assignedRef);
             } else if (ref) {
-                // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
                 ref.current = assignedRef;
             }
 

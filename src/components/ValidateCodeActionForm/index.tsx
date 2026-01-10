@@ -32,7 +32,7 @@ function ValidateCodeActionForm({
         return () => {
             isUnmounted.current = true;
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, [shouldSkipInitialValidation]);
 
     useEffect(() => {

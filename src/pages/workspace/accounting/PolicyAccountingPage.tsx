@@ -312,7 +312,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     if (!popoverAnchorRefs?.current) {
                                         return;
                                     }
-                                    // eslint-disable-next-line react-compiler/react-compiler
+
                                     popoverAnchorRefs.current[integration].current = ref;
                                 }}
                             />

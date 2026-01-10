@@ -453,7 +453,7 @@ function BaseSelectionList<TItem extends ListItem>({
             return;
         }
         setFocusedIndex(selectedItemIndex);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, [selectedItemIndex]);
 
     const prevSearchValue = usePrevious(textInputOptions?.value);

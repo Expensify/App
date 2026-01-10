@@ -69,7 +69,7 @@ function CurrencySelector({
     useEffect(() => {
         // This will cause the form to revalidate and remove any error related to currency
         onInputChange(currency);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, [currency]);
 
     return (

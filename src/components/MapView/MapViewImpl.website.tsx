@@ -173,7 +173,7 @@ function MapViewImpl({
 
         resetBoundaries();
         setShouldResetBoundaries(false);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this effect only needs to run when the boundaries reset is forced
+        , react-hooks/exhaustive-deps -- this effect only needs to run when the boundaries reset is forced
     }, [shouldResetBoundaries]);
 
     useEffect(() => {

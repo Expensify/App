@@ -52,7 +52,7 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
-        // eslint-disable-next-line react-compiler/react-compiler
+
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
     });

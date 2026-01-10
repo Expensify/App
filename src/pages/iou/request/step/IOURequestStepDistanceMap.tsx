@@ -272,7 +272,7 @@ function IOURequestStepDistanceMap({
             }
             openReport(transaction?.reportID);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = useCallback(() => {

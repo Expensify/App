@@ -93,7 +93,7 @@ function WorkspaceTaxesPage({
 
     useEffect(() => {
         fetchTaxes();
-        // eslint-disable-next-line react-compiler/react-compiler
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -120,7 +120,7 @@ function WorkspaceTaxesPage({
 
             return newSelectedTaxesIDs;
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, [policy?.taxRates?.taxes]);
 
     useSearchBackPress({

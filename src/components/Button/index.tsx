@@ -218,7 +218,7 @@ function KeyboardShortcutComponent({
             priority: enterKeyEventListenerPriority,
             shouldPreventDefault: false,
         }),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
         [shouldDisableEnterShortcut, isFocused],
     );
 

@@ -59,7 +59,7 @@ function Composer({
 
         return () => clearTimeout(timeoutID);
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     /**
@@ -67,7 +67,7 @@ function Composer({
      * @param {Element} el
      */
     const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef | null) => {
-        // eslint-disable-next-line react-compiler/react-compiler
+
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
@@ -78,7 +78,7 @@ function Composer({
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
         ref(textInput.current);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        , react-hooks/exhaustive-deps
     }, []);
 
     const onClear = useCallback(
