@@ -437,6 +437,7 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
             expect(title).toHaveBeenCalledWith(
@@ -466,6 +467,7 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
             expect(description).toHaveBeenCalledWith(
@@ -486,6 +488,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 selectedInterestedFeatures: ['categories', 'accounting', 'tags'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
@@ -502,6 +505,7 @@ describe('ReportUtils', () => {
                     tasks: [],
                 },
                 adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
