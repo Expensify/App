@@ -63,7 +63,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const report = getReportOrDraftReport(reportID);
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
-
     const {isEditingSplitExpense, canEditSplitExpense} = useCanEditSplitExpense(currentReport, splitExpenseTransactionID);
 
     const policy = usePolicy(currentReport?.policyID);
