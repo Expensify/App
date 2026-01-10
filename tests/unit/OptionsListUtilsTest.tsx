@@ -2675,7 +2675,7 @@ describe('OptionsListUtils', () => {
         it('MOVED_TRANSACTION action', async () => {
             const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
-            const report: Report = createRandomReport(0, undefined);
+            const report: Report = createRandomReport(2, undefined);
             const report2: Report = {
                 ...createRandomReport(1, undefined),
                 reportName: 'Expense Report #123',
