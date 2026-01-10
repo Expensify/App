@@ -59,6 +59,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
@@ -115,7 +117,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     }, []);
 
     const styles = useThemeStyles();
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle<Transaction & ListItem>>(null);
 
     const shouldShowTextInput = useMemo(() => {
         return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
@@ -175,6 +177,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
                     transactionViolations,
+                    policyRecentlyUsedCurrencies ?? [],
+                    quickAction,
                 );
             } else {
                 changeTransactionsReport(
@@ -190,7 +194,20 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, transactionViolations, reportToConfirm, policy, reportNextStep, policyCategories]);
+    }, [
+        selectedIds,
+        translate,
+        report,
+        isASAPSubmitBetaEnabled,
+        session?.accountID,
+        session?.email,
+        transactionViolations,
+        reportToConfirm,
+        policy,
+        reportNextStep,
+        policyCategories,
+        policyRecentlyUsedCurrencies,
+    ]);
 
     const footerContent = useMemo(() => {
         return (

@@ -461,6 +461,12 @@ type OriginalMessagePolicyChangeLog = {
     /** New default reimbursable value */
     newDefaultReimbursable?: string;
 
+    /** Old default report title formula */
+    oldDefaultTitle?: string;
+
+    /** New default report title formula */
+    newDefaultTitle?: string;
+
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
 
@@ -847,6 +853,9 @@ type OriginalMessageMarkedReimbursed = {
 
     /** Type of payment method */
     type?: string;
+
+    /** Optional comment/reason for the manual payment */
+    message?: string;
 };
 
 /** Model of `trip room preview` report action */
@@ -990,6 +999,28 @@ type OriginalMessageIntegrationSyncFailed = {
 
     /** The error message from Integration Server */
     errorMessage: string;
+};
+
+/**
+ * Original message for broken Concierge company card connection
+ */
+type OriginalMessageCompanyCardConnectionBroken = {
+    /** The policy ID for which the company card connection was broken */
+    policyID: string;
+
+    /** The feed name for which the company card connection was broken */
+    feedName: string;
+};
+
+/**
+ * Original message for DEW_SUBMIT_FAILED and DEW_APPROVE_FAILED actions
+ */
+type OriginalMessageDEWFailed = {
+    /** The error message */
+    message: string;
+
+    /** Whether the action was automatic */
+    automaticAction?: boolean;
 };
 
 /**
@@ -1144,9 +1175,11 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
+    [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
@@ -1175,6 +1208,8 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
+    OriginalMessageMarkedReimbursed,
     OriginalMessageConciergeAutoMapMccGroups,
+    OriginalMessageCompanyCardConnectionBroken,
     OriginalMessageReimbursementDirectorInformationRequired,
 };
