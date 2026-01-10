@@ -14,7 +14,7 @@ export default function (): void {
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
-        transport: isDevelopment() ? makeDebugTransport : undefined,
+        // transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
         profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
         enableAutoPerformanceTracing: true,
