@@ -189,6 +189,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFoundPage}
