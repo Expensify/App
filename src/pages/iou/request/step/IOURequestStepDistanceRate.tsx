@@ -1,3 +1,4 @@
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
@@ -9,7 +10,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
+import {
+    getIOURequestPolicyID,
+    setDraftSplitTransaction,
+    setMoneyRequestDistanceRate,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+    updateMoneyRequestDistanceRate,
+} from '@libs/actions/IOU';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -54,17 +62,21 @@ function IOURequestStepDistanceRate({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+
     const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
-    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
+    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    const currentRateID = getRateID(transaction);
-    const transactionCurrency = getCurrency(transaction);
+    const currentRateID = getRateID(currentTransaction);
+    const transactionCurrency = getCurrency(currentTransaction);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -79,7 +91,7 @@ function IOURequestStepDistanceRate({
     };
 
     const options = sortedRates.map((rate) => {
-        const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
+        const unit = currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate) : rate.unit;
         const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
         return {
@@ -92,7 +104,7 @@ function IOURequestStepDistanceRate({
         };
     });
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
     const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
 
@@ -101,18 +113,25 @@ function IOURequestStepDistanceRate({
         let taxRateExternalID;
         if (shouldShowTax) {
             const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
+            const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction) ?? '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
-            const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
-            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, unit));
-            const taxPercentage = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;
+            const unit = DistanceRequestUtils.getDistanceUnit(currentTransaction, rates[customUnitRateID]);
+            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(currentTransaction, unit));
+            const taxPercentage = taxRateExternalID ? getTaxValue(policy, currentTransaction, taxRateExternalID) : undefined;
             taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
             setMoneyRequestTaxAmount(transactionID, taxAmount);
             setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null);
         }
 
         if (currentRateID !== customUnitRateID) {
+            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+            if (isEditingSplit && transaction) {
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {customUnitRateID}, policy);
+                navigateBack();
+                return;
+            }
+
             setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, shouldUseTransactionDraft(action));
 
             if (isEditing && transaction?.transactionID) {

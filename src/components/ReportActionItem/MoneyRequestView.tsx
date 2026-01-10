@@ -546,11 +546,6 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit && isSplitAvailable) {
-                            initSplitExpense(allTransactions, allReports, transaction);
-                            return;
-                        }
-
                         if (isOdometerDistanceRequest) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(
@@ -600,11 +595,6 @@ function MoneyRequestView({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                            return;
-                        }
-
-                        if (isExpenseSplit && isSplitAvailable) {
-                            initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
 

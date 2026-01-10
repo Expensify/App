@@ -112,6 +112,8 @@ type TransactionParams = {
     splitsStartDate?: string;
     splitsEndDate?: string;
     distance?: number;
+    customUnitRateID?: string;
+    waypoints?: WaypointCollection;
     odometerStart?: number;
     odometerEnd?: number;
 };
@@ -388,6 +390,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         splitExpensesTotal,
         participants,
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        customUnitRateID,
+        waypoints,
         odometerStart,
         odometerEnd,
     } = transactionParams;
@@ -423,14 +427,18 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     if (splitExpensesTotal) {
         commentJSON.splitExpensesTotal = splitExpensesTotal;
     }
+    if (waypoints) {
+        commentJSON.waypoints = waypoints;
+    }
 
-    const isMapDistanceTransaction = !!pendingFields?.waypoints;
+    const isMapDistanceTransaction = !!pendingFields?.waypoints || existingTransaction?.comment?.waypoints?.waypoint0;
     const isManualDistanceTransaction = isManualDistanceRequest(existingTransaction);
     const isOdometerDistanceTransaction = isOdometerDistanceRequest(existingTransaction);
     if (isMapDistanceTransaction || isManualDistanceTransaction || isOdometerDistanceTransaction) {
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
         lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
         lodashSet(commentJSON, 'customUnit.quantity', distance);
+        lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
     }
 
     const isPerDiemTransaction = !!pendingFields?.subRates;
@@ -465,6 +473,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         cardID: existingTransaction?.cardID,
         cardName: existingTransaction?.cardName,
         cardNumber: existingTransaction?.cardNumber,
+        iouRequestType: existingTransaction?.iouRequestType,
     };
 }
 
@@ -755,6 +764,20 @@ function getUpdatedTransaction({
         updatedTransaction.modifiedCurrency = updatedCurrency;
     }
 
+    if (Object.hasOwn(transactionChanges, 'odometerStart') && typeof transactionChanges.odometerStart === 'number') {
+        updatedTransaction.comment = {
+            ...updatedTransaction.comment,
+            odometerStart: transactionChanges.odometerStart,
+        };
+    }
+
+    if (Object.hasOwn(transactionChanges, 'odometerEnd') && typeof transactionChanges.odometerEnd === 'number') {
+        updatedTransaction.comment = {
+            ...updatedTransaction.comment,
+            odometerEnd: transactionChanges.odometerEnd,
+        };
+    }
+
     updatedTransaction.pendingFields = {
         ...(updatedTransaction?.pendingFields ?? {}),
         ...(Object.hasOwn(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -775,6 +798,8 @@ function getUpdatedTransaction({
             amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         }),
+        ...(Object.hasOwn(transactionChanges, 'odometerStart') && {odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'odometerEnd') && {odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;

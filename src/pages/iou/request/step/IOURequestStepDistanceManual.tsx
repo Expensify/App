@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -21,6 +22,7 @@ import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
     setCustomUnitRateID,
+    setDraftSplitTransaction,
     setMoneyRequestDistance,
     setMoneyRequestMerchant,
     setMoneyRequestParticipantsFromReport,
@@ -92,7 +94,11 @@ function IOURequestStepDistanceManual({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
+    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isCreatingNewRequest = !(backTo || isEditing);
 
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
@@ -108,9 +114,9 @@ function IOURequestStepDistanceManual({
         [iouType, defaultExpensePolicy],
     );
 
-    const customUnitRateID = getRateID(transaction);
-    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
-    const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
+    const customUnitRateID = getRateID(currentTransaction);
+    const unit = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
+    const distance = currentTransaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(currentTransaction.comment.customUnit.quantity) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     useEffect(() => {
@@ -168,6 +174,13 @@ function IOURequestStepDistanceManual({
             setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft);
 
             if (action === CONST.IOU.ACTION.EDIT) {
+                // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+                if (isEditingSplit && transaction) {
+                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
+                    Navigation.goBack(backTo);
+                    return;
+                }
+
                 if (distance !== distanceAsFloat) {
                     updateMoneyRequestDistance({
                         transactionID: transaction?.transactionID,
@@ -305,27 +318,31 @@ function IOURequestStepDistanceManual({
             reportNameValuePairs,
             iouType,
             shouldUseDefaultExpensePolicy,
-            distance,
+            isEditingSplit,
             transaction,
-            reportID,
+            distance,
+            splitDraftTransaction,
+            currentTransaction?.comment,
             policy,
+            reportID,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
             translate,
-            currentUserEmailParam,
-            currentUserAccountIDParam,
             lastSelectedDistanceRates,
             backToReport,
-            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            quickAction,
+            policyRecentlyUsedCurrencies,
             customUnitRateID,
+            introSelected,
+            activePolicyID,
             navigateToConfirmationPage,
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
-            transactionViolations,
-            quickAction,
-            introSelected,
-            activePolicyID,
         ],
     );
 

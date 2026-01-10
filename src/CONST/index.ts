@@ -1778,6 +1778,7 @@ const CONST = {
         STATE: {
             CURRENT: 'current',
             DRAFT: 'draft',
+            SPLIT_DRAFT: 'splitDraft',
             BACKUP: 'backup',
         },
         LIABILITY_TYPE: {

@@ -438,6 +438,9 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     pendingFields?: PendingFields<string>;
     distance?: number;
     isLinkedTrackedExpenseReportArchived?: boolean;
+    customUnit?: TransactionCustomUnit;
+    odometerStart?: number;
+    odometerEnd?: number;
 
     /** Transaction type (e.g., 'time' for time tracking expenses) */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
@@ -13770,6 +13773,10 @@ function initSplitExpenseItemData(
         statusNum: currentReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         reimbursable: transactionDetails?.reimbursable,
+        customUnit: transaction?.comment?.customUnit ?? undefined,
+        waypoints: transaction?.comment?.waypoints ?? undefined,
+        odometerStart: transaction?.comment?.odometerStart ?? undefined,
+        odometerEnd: transaction?.comment?.odometerEnd ?? undefined,
     };
 }
 
@@ -13862,6 +13869,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
     const editDraftTransaction = buildOptimisticTransaction({
         existingTransactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
         originalTransactionID,
+        existingTransaction: originalTransaction,
         transactionParams: {
             amount: Number(splitTransactionData?.amount),
             currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
@@ -13873,6 +13881,11 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
             reportID,
             created: splitTransactionData?.created ?? '',
             category: splitTransactionData?.category ?? '',
+            distance: splitTransactionData?.customUnit?.quantity ?? undefined,
+            customUnitRateID: splitTransactionData?.customUnit?.customUnitRateID,
+            waypoints: splitTransactionData?.waypoints ?? undefined,
+            odometerStart: splitTransactionData?.odometerStart ?? undefined,
+            odometerEnd: splitTransactionData?.odometerEnd ?? undefined,
         },
     });
 
@@ -14031,6 +14044,10 @@ function updateSplitExpenseField(
                 category: transactionDetails?.category,
                 tags: splitExpenseDraftTransaction?.tag ? [splitExpenseDraftTransaction?.tag] : [],
                 created: transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
+                waypoints: splitExpenseDraftTransaction?.comment?.waypoints ?? undefined,
+                customUnit: splitExpenseDraftTransaction?.comment?.customUnit ?? undefined,
+                odometerStart: splitExpenseDraftTransaction?.comment?.odometerStart ?? undefined,
+                odometerEnd: splitExpenseDraftTransaction?.comment?.odometerEnd ?? undefined,
             };
         }
         return item;
@@ -14153,6 +14170,11 @@ function updateSplitTransactions({
                     comment: currentDescription,
                 },
                 reimbursable: split?.reimbursable,
+                quantity: split.customUnit?.quantity ?? undefined,
+                customUnitRateID: split.customUnit?.customUnitRateID,
+                odometerStart: split.odometerStart,
+                odometerEnd: split.odometerEnd,
+                waypoints: split.waypoints,
             };
         }) ?? [];
     changesInReportTotal -= splitExpensesTotal;
@@ -14224,6 +14246,10 @@ function updateSplitTransactions({
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
                 billable: originalTransactionDetails?.billable,
+                waypoints: splitExpense.waypoints,
+                customUnit: splitExpense.customUnit,
+                odometerStart: splitExpense.odometerStart,
+                odometerEnd: splitExpense.odometerEnd,
             },
             parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
             existingTransaction: originalTransaction,
@@ -14249,6 +14275,10 @@ function updateSplitTransactions({
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
                 billable: originalTransactionDetails?.billable,
+                waypoints: splitExpense.waypoints,
+                customUnit: splitExpense.customUnit,
+                odometerStart: splitExpense.odometerStart,
+                odometerEnd: splitExpense.odometerEnd,
             };
             requestMoneyInformation.existingTransaction = undefined;
         }
