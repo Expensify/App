@@ -26,6 +26,8 @@ type FormulaPart = {
     functions: string[];
 };
 
+type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'created' | 'amount' | 'currency' | 'merchant' | 'pendingAction'>;
+
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
@@ -910,4 +912,4 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
 
 export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences};
 
-export type {FormulaContext, FieldList};
+export type {FormulaContext, FieldList, MinimalTransaction};
