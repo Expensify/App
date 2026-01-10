@@ -770,6 +770,7 @@ function getOptionData({
         hasMultipleParticipants,
         localeCompare,
         formatPhoneNumberPhoneUtils,
+        undefined,
         isSelfDM(report),
     );
 
