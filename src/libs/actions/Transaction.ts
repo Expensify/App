@@ -244,6 +244,8 @@ function getOnyxDataForRouteRequest(transactionID: string, transactionState: Tra
         case CONST.TRANSACTION.STATE.DRAFT:
             keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
             break;
+        case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
+            keyPrefix = ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT;
         case CONST.TRANSACTION.STATE.BACKUP:
             keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_BACKUP;
             break;
@@ -332,6 +334,7 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
     let command;
     switch (routeType) {
         case CONST.TRANSACTION.STATE.DRAFT:
+        case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
             command = READ_COMMANDS.GET_ROUTE_FOR_DRAFT;
             break;
         case CONST.TRANSACTION.STATE.CURRENT:

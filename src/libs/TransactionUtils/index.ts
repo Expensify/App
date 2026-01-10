@@ -431,7 +431,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         commentJSON.waypoints = waypoints;
     }
 
-    const isMapDistanceTransaction = !!pendingFields?.waypoints;
+    const isMapDistanceTransaction = !!pendingFields?.waypoints || existingTransaction?.comment?.waypoints?.waypoint0;
     const isManualDistanceTransaction = isManualDistanceRequest(existingTransaction);
     const isOdometerDistanceTransaction = isOdometerDistanceRequest(existingTransaction);
     if (isMapDistanceTransaction || isManualDistanceTransaction || isOdometerDistanceTransaction) {
@@ -764,6 +764,20 @@ function getUpdatedTransaction({
         updatedTransaction.modifiedCurrency = updatedCurrency;
     }
 
+    if (Object.hasOwn(transactionChanges, 'odometerStart') && typeof transactionChanges.odometerStart === 'number') {
+        updatedTransaction.comment = {
+            ...updatedTransaction.comment,
+            odometerStart: transactionChanges.odometerStart,
+        };
+    }
+
+    if (Object.hasOwn(transactionChanges, 'odometerEnd') && typeof transactionChanges.odometerEnd === 'number') {
+        updatedTransaction.comment = {
+            ...updatedTransaction.comment,
+            odometerEnd: transactionChanges.odometerEnd,
+        };
+    }
+
     updatedTransaction.pendingFields = {
         ...(updatedTransaction?.pendingFields ?? {}),
         ...(Object.hasOwn(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -784,6 +798,8 @@ function getUpdatedTransaction({
             amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         }),
+        ...(Object.hasOwn(transactionChanges, 'odometerStart') && {odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'odometerEnd') && {odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;

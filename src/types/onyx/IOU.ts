@@ -166,6 +166,12 @@ type SplitExpense = {
 
     /** Collection of waypoints associated with the transaction */
     waypoints?: WaypointCollection;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
 };
 
 /** Model of IOU request */

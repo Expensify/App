@@ -33,7 +33,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getDistanceInMeters, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -130,6 +130,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
+    const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
     const {unit, rate} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
@@ -147,6 +148,19 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                     titleStyle={styles.flex1}
                     style={[styles.moneyRequestMenuItem]}
                     onPress={() => {
+                        if (isOdometerDistance) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                    reportID,
+                                    Navigation.getActiveRoute(),
+                                ),
+                            );
+                            return;
+                        }
+
                         if (isManualDistance) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(

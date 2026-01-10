@@ -216,7 +216,38 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
         });
-    }, [splitExpenses, childTransactions.length, draftTransaction?.errors, draftTransaction?.reportID, draftTransaction?.comment?.originalTransactionID, draftTransaction?.comment?.splitExpensesTotal, sumOfSplitExpenses, transactionDetailsAmount, isPerDiem, isCard, isDistance, splitFieldDataFromChildTransactions, allTransactions, allReports, allReportNameValuePairs, searchContext, policyCategories, expenseReportPolicy, policyRecentlyUsedCategories, iouReport, iouActions, isBetaEnabled, currentUserPersonalDetails, transactionViolations, policyRecentlyUsedCurrencies, splitFieldDataFromOriginalTransaction, translate, transactionID, transactionDetails?.currency, quickAction]);
+    }, [
+        splitExpenses,
+        childTransactions.length,
+        draftTransaction?.errors,
+        draftTransaction?.reportID,
+        draftTransaction?.comment?.originalTransactionID,
+        draftTransaction?.comment?.splitExpensesTotal,
+        sumOfSplitExpenses,
+        transactionDetailsAmount,
+        isPerDiem,
+        isCard,
+        isDistance,
+        splitFieldDataFromChildTransactions,
+        allTransactions,
+        allReports,
+        allReportNameValuePairs,
+        searchContext,
+        policyCategories,
+        expenseReportPolicy,
+        policyRecentlyUsedCategories,
+        iouReport,
+        iouActions,
+        isBetaEnabled,
+        currentUserPersonalDetails,
+        transactionViolations,
+        policyRecentlyUsedCurrencies,
+        splitFieldDataFromOriginalTransaction,
+        translate,
+        transactionID,
+        transactionDetails?.currency,
+        quickAction,
+    ]);
 
     const onSplitExpenseValueChange = useCallback(
         (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
@@ -369,7 +400,20 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, isDistance, styles.ph5, styles.pb5, styles.ph1, styles.mb2, styles.w100, errorMessage, translate, onSaveSplitExpense, transactionDetails?.currency]);
+    }, [
+        sumOfSplitExpenses,
+        transactionDetailsAmount,
+        isDistance,
+        styles.ph5,
+        styles.pb5,
+        styles.ph1,
+        styles.mb2,
+        styles.w100,
+        errorMessage,
+        translate,
+        onSaveSplitExpense,
+        transactionDetails?.currency,
+    ]);
 
     const splitDatesTitle = useMemo(() => {
         const startDate = draftTransaction?.comment?.splitsStartDate;
