@@ -1139,6 +1139,11 @@ function openReport(
                 chatReportID: transactionParentReportID,
             },
         });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: null,
+        });
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1148,6 +1153,13 @@ function openReport(
                     ...optimisticIOUAction,
                     childReportID: reportID,
                 },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+            value: {
+                [iouReportActionID]: null,
             },
         });
 
