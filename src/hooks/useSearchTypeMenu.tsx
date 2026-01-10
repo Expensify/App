@@ -183,6 +183,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                         sectionItems.push({
+                            badgeText: item.badgeText,
                             text: translate(item.translationPath),
                             isSelected,
                             icon,
