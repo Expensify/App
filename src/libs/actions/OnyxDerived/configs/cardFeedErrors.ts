@@ -55,7 +55,7 @@ export default createOnyxDerivedValueConfig({
 
             const allFeedsErrors = cardFeedErrors.get(workspaceAccountID) ?? new Map<CardFeed, CardFeedErrors>();
             const feedErrors = allFeedsErrors.get(bankName);
-            const cardErrors = feedErrors?.cardErrors ?? new Map<string, CardErrors>();
+            const cardErrors = feedErrors?.cardErrors ?? ({} as Record<string, CardErrors>);
 
             const hasFeedError = feedName ? !!selectedFeed?.errors : false;
             const isFeedConnectionBroken = isCardConnectionBroken(card);

@@ -112,7 +112,7 @@ type CardFeedErrors = {
     /**
      *
      */
-    cardErrors: Map<string, CardErrors>;
+    cardErrors: Record<string, CardErrors>;
 };
 
 /**
