@@ -9,4 +9,9 @@ const updateUnread: UpdateUnread = (totalCount) => {
     Airship.push.iOS.setBadgeNumber(totalCount);
 };
 
+// Page title management is not applicable on native platforms
+const setPageTitle = () => {};
+const getPageTitle = () => '';
+
 export default updateUnread;
+export {setPageTitle, getPageTitle};
