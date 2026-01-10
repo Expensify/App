@@ -170,7 +170,10 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     }
 
     // for report actions with this type we get an empty array as message by design
-    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED) {
+    if (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS
+    ) {
         return false;
     }
 
@@ -3314,6 +3317,11 @@ function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, rep
     return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportName});
 }
 
+function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate): string {
+    const reportUrl = getReportURLForCurrentContext(reportID);
+    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName});
+}
+
 function getDynamicExternalWorkflowRoutedMessage(
     action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
     translate: LocaleContextProps['translate'],
@@ -3728,6 +3736,7 @@ export {
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
     getHarvestCreatedExpenseReportMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
     isSystemUserMentioned,
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,

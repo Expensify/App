@@ -84,6 +84,11 @@ type HarvestCreatedExpenseReportParams = {
     reportName: string;
 };
 
+type CreatedReportForUnapprovedTransactionsParams = {
+    reportUrl: string;
+    reportName: string;
+};
+
 type MovedTransactionParams = {
     reportUrl: string;
     reportName?: string;
@@ -777,6 +782,7 @@ export type {
     ReportPolicyNameParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     HarvestCreatedExpenseReportParams,
+    CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     MovedTransactionParams,
