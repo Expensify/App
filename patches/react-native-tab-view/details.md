@@ -1,6 +1,6 @@
 # `react-native-tab-view` patches
 
-### [react-native-tab-view+4.1.0+001+fix-tab-animation.patch](react-native-tab-view+4.1.0+001+fix-tab-animation.patch)
+### [react-native-tab-view+4.2.2+001+fix-tab-animation.patch](react-native-tab-view+4.2.2+001+fix-tab-animation.patch)
 
 - Reason: 
 
@@ -13,7 +13,7 @@
 - E/App issue: 🛑
 - PR Introducing Patch: [#39854](https://github.com/Expensify/App/pull/39854)
 
-### [react-native-tab-view+4.1.0+002+fix-glitching-on-initial-load.patch](react-native-tab-view+4.1.0+002+fix-glitching-on-initial-load.patch)
+### [react-native-tab-view+4.2.2+002+fix-glitching-on-initial-load.patch](react-native-tab-view+4.2.2+002+fix-glitching-on-initial-load.patch)
 
 - Reason: 
     ```
@@ -24,7 +24,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/62346
 - PR Introducing Patch: [#63570](https://github.com/Expensify/App/pull/63570)
 
-### [react-native-tab-view+4.1.0+003+fix-web-onTabSelect-on-mount.patch](react-native-tab-view+4.1.0+003+fix-web-onTabSelect-on-mount.patch)
+### [react-native-tab-view+4.2.2+003+fix-web-onTabSelect-on-mount.patch](react-native-tab-view+4.2.2+003+fix-web-onTabSelect-on-mount.patch)
 
 - Reason: 
     ```

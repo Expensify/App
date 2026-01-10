@@ -1,0 +1,78 @@
+diff --git a/node_modules/react-native-tab-view/lib/module/PanResponderAdapter.js b/node_modules/react-native-tab-view/lib/module/PanResponderAdapter.js
+index 22c1705..3122e47 100644
+--- a/node_modules/react-native-tab-view/lib/module/PanResponderAdapter.js
++++ b/node_modules/react-native-tab-view/lib/module/PanResponderAdapter.js
+@@ -79,10 +79,38 @@ export function PanResponderAdapter({
+     onIndexChangeRef.current = onIndexChange;
+     onTabSelectRef.current = onTabSelect;
+   });
++  const [position, setPosition] = React.useState(null);
++  const [translateX, setTranslateX] = React.useState(null);
+   React.useLayoutEffect(() => {
+     const offset = -navigationStateRef.current.index * layout.width;
+     panX.setValue(offset);
+-  }, [layout.width, panX]);
++
++    // layout.width is 0 which means we still waiting for it to be calculated.
++    if (!layout.width) {
++      // Non-null values of these states indicate that we have a proper layout.width
++      // We should make them null again if the layout.width is 0 again to avoid glitching.
++      // This can happen if the component is still mounted but not rendered anymore. e.g. on the screen
++      // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
++      setPosition(null);
++      // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
++      setTranslateX(null);
++      return;
++    }
++
++    // Setting these states in the same useEffect as panX.setValue() prevents visual glitches
++    // that occur when layout.width is known but panX hasn't been recalculated yet (still at 0).
++    // This can happen if we do it in a separate useEffect or use useMemo for setting these values.
++    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
++    setPosition(layout.width ? Animated.divide(panX, -layout.width) : null);
++    const maxTranslate = layout.width * (routes.length - 1);
++
++    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
++    setTranslateX(Animated.multiply(panX.interpolate({
++      inputRange: [-maxTranslate, 0],
++      outputRange: [-maxTranslate, 0],
++      extrapolate: 'clamp'
++    }), layoutDirection === 'rtl' ? -1 : 1));
++  }, [layout.width, panX, routes.length, layoutDirection]);
+   React.useEffect(() => {
+     if (keyboardDismissMode === 'auto') {
+       Keyboard.dismiss();
+@@ -167,19 +195,12 @@ export function PanResponderAdapter({
+     onPanResponderRelease: finishGesture,
+     onPanResponderTerminationRequest: () => true
+   });
+-  const maxTranslate = layout.width * (routes.length - 1);
+-  const translateX = Animated.multiply(panX.interpolate({
+-    inputRange: [-maxTranslate, 0],
+-    outputRange: [-maxTranslate, 0],
+-    extrapolate: 'clamp'
+-  }), layoutDirection === 'rtl' ? -1 : 1);
+-  const position = React.useMemo(() => layout.width ? Animated.divide(panX, -layout.width) : null, [layout.width, panX]);
+   return children({
+     position: position ?? new Animated.Value(index),
+     addEnterListener,
+     jumpTo,
+     render: children => /*#__PURE__*/_jsx(Animated.View, {
+-      style: [styles.sheet, layout.width ? {
++      style: [styles.sheet, translateX ? {
+         width: routes.length * layout.width,
+         transform: [{
+           translateX
+@@ -190,10 +211,10 @@ export function PanResponderAdapter({
+         const route = routes[i];
+         const focused = i === index;
+         return /*#__PURE__*/_jsx(View, {
+-          style: layout.width ? {
++          style: translateX ? {
+             width: layout.width
+           } : focused ? StyleSheet.absoluteFill : null,
+-          children: focused || layout.width ? child : null
++          children: focused || translateX ? child : null
+         }, route.key);
+       })
+     })

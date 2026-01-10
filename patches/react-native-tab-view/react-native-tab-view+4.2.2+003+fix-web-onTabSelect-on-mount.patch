@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-tab-view/lib/module/PanResponderAdapter.js b/node_modules/react-native-tab-view/lib/module/PanResponderAdapter.js
-index fdb8c83729f..7ae690b297f 100644
+index 3122e47..78a6dec 100644
 --- a/node_modules/react-native-tab-view/lib/module/PanResponderAdapter.js
 +++ b/node_modules/react-native-tab-view/lib/module/PanResponderAdapter.js
 @@ -39,6 +39,7 @@ export function PanResponderAdapter({

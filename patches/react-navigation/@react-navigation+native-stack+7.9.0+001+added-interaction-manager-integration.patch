@@ -1,0 +1,54 @@
+diff --git a/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js b/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
+index a9ab3e0..3796e78 100644
+--- a/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
++++ b/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
+@@ -3,7 +3,7 @@
+ import { getDefaultHeaderHeight, getHeaderTitle, HeaderBackContext, HeaderHeightContext, HeaderShownContext, SafeAreaProviderCompat, useFrameSize } from '@react-navigation/elements';
+ import { NavigationContext, NavigationRouteContext, StackActions, usePreventRemoveContext, useTheme } from '@react-navigation/native';
+ import * as React from 'react';
+-import { Animated, Platform, StatusBar, StyleSheet, useAnimatedValue, View } from 'react-native';
++import { Animated, InteractionManager, Platform, StatusBar, StyleSheet, useAnimatedValue, View } from 'react-native';
+ import { useSafeAreaInsets } from 'react-native-safe-area-context';
+ import { compatibilityFlags, ScreenStack, ScreenStackItem } from 'react-native-screens';
+ import { debounce } from "../utils/debounce.js";
+@@ -136,6 +136,31 @@ const SceneView = ({
+   const {
+     preventedRoutes
+   } = usePreventRemoveContext();
++  const interactionHandleRef = React.useRef(undefined);
++  const finishInteraction = React.useCallback(() => {
++    if (interactionHandleRef.current !== undefined) {
++      InteractionManager.clearInteractionHandle(interactionHandleRef.current);
++      interactionHandleRef.current = undefined;
++    }
++  }, []);
++  // this memo acts as a synchronous `useEffect`
++  React.useMemo(() => {
++    if (focused && interactionHandleRef.current === undefined) {
++      interactionHandleRef.current = InteractionManager.createInteractionHandle();
++      // actually transition is highly unlikely to be more than 500ms, but sometimes BottomTabNavigator
++      // can become unfocused and then focused again, and in this case `onAppear` will not be fired an
++      // we will get infinite interaction manager handler. To fix that we are making a running timeout
++      // action that will clear an interaction 100%
++      setTimeout(finishInteraction, 500);
++    }
++  }, [focused]);
++  // in case if screen is unmounted faster than transition finishes, then `onAppear` will not be fired
++  // so we clean up an interaction here
++  React.useEffect(() => finishInteraction, [finishInteraction]);
++  const onAppearCallback = React.useCallback(e => {
++    onAppear?.(e);
++    finishInteraction();
++  }, [onAppear, finishInteraction]);
+   const [headerHeight, setHeaderHeight] = React.useState(defaultHeaderHeight);
+ 
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+@@ -271,7 +296,7 @@ const SceneView = ({
+         transitionDuration: animationDuration,
+         onWillAppear: onWillAppear,
+         onWillDisappear: onWillDisappear,
+-        onAppear: onAppear,
++        onAppear: onAppearCallback,
+         onDisappear: onDisappear,
+         onDismissed: onDismissed,
+         onGestureCancel: onGestureCancel,
