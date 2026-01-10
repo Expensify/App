@@ -3628,6 +3628,9 @@ ${
         features: {
             saveMoney: 'Économisez de l’argent sur vos réservations',
             alerts: 'Recevez des alertes en temps réel si vos plans de voyage changent',
+            easyPayments: 'Des paiements faciles pour vos membres',
+            travelSpendLimits: 'Définir des limites de dépenses de voyage',
+            invoicedMonthlyWeekly: 'Être facturé chaque mois ou chaque semaine',
         },
         bookTravel: 'Réserver un voyage',
         bookDemo: 'Réserver une démo',
@@ -5041,6 +5044,24 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     title: 'Réservez ou gérez votre voyage',
                     subtitle: 'Utilisez Expensify Travel pour obtenir les meilleures offres de voyage et gérez toutes vos dépenses professionnelles en un seul endroit.',
                     ctaText: 'Réserver ou gérer',
+                },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Réservation de voyage',
+                        subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer les déplacements sur cet espace de travail.',
+                        manageTravelLabel: 'Gérer les déplacements',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Facturation centralisée',
+                        subtitle: 'Autorisez vos membres à payer et à facturer les déplacements directement à l’espace de travail',
+                        subsections: {
+                            currentTravelSpendLabel: 'Dépenses de voyage actuelles',
+                            currentTravelSpendCta: 'Payer le solde',
+                            currentTravelLimitLabel: 'Limite de déplacement actuelle',
+                            settlementAccountLabel: 'Compte de règlement',
+                            settlementFrequencyLabel: 'Fréquence de règlement',
+                        },
+                    },
                 },
             },
             expensifyCard: {

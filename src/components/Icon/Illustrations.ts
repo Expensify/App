@@ -13,6 +13,7 @@ import Approval from '@assets/images/simple-illustrations/simple-illustration__a
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
+import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
@@ -27,6 +28,7 @@ import EmailAddress from '@assets/images/simple-illustrations/simple-illustratio
 import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
+import FastMoney from '@assets/images/simple-illustrations/simple-illustration__fastmoney.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
@@ -45,49 +47,51 @@ import ExpensifyApprovedLogo from '@assets/images/subscription-details__approved
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
-    Encryption,
+    Abacus,
+    Alert,
+    Approval,
+    Binoculars,
+    BlueShield,
+    Buildings,
+    CalendarMonthly,
+    Car,
+    CarIce,
     ChatBubbles,
-    Computer,
+    CheckmarkCircle,
     Clock,
+    CommentBubbles,
+    Computer,
+    ConciergeBot,
+    ConciergeBubble,
+    CreditCardEyes,
+    CreditCardsNewGreen,
     EmailAddress,
     EmptyCardState,
+    EmptyShelves,
+    EmptyStateTravel,
+    Encryption,
     EnvelopeReceipt,
+    ExpensifyApprovedLogo,
     ExpensifyCardImage,
-    Mailbox,
-    CreditCardsNewGreen,
+    FastMoney,
+    Filters,
+    Flash,
+    Gears,
+    HeadSet,
+    Hourglass,
+    House,
     LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
+    Lightbulb,
+    LockClosed,
+    LockClosedOrange,
     LockOpen,
     Luggage,
     MagnifyingGlassReceipt,
-    ConciergeBot,
-    ConciergeBubble,
-    HeadSet,
-    Hourglass,
-    CommentBubbles,
-    Puzzle,
-    LockClosed,
-    Gears,
-    Approval,
-    House,
-    Buildings,
-    Alert,
-    Abacus,
-    Binoculars,
-    Car,
+    Mailbox,
     Pencil,
-    CarIce,
-    Lightbulb,
-    ExpensifyApprovedLogo,
-    CheckmarkCircle,
-    CreditCardEyes,
-    LockClosedOrange,
-    Filters,
-    TurtleInShell,
-    Flash,
     PendingTravel,
-    EmptyStateTravel,
-    EmptyShelves,
-    BlueShield,
+    Puzzle,
+    TurtleInShell,
 };

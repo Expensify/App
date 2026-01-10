@@ -3601,6 +3601,9 @@ ${
         features: {
             saveMoney: 'Oszczędzaj pieniądze na swoich rezerwacjach',
             alerts: 'Otrzymuj alerty w czasie rzeczywistym, jeśli Twoje plany podróży się zmienią',
+            easyPayments: 'Łatwe płatności dla Twoich członków',
+            travelSpendLimits: 'Ustaw limity wydatków na podróże',
+            invoicedMonthlyWeekly: 'Otrzymuj faktury co miesiąc lub co tydzień',
         },
         bookTravel: 'Zarezerwuj podróż',
         bookDemo: 'Zarezerwuj demo',
@@ -5002,6 +5005,24 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     title: 'Zarezerwuj lub zarządzaj swoją podróżą',
                     subtitle: 'Użyj Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzaj wszystkimi wydatkami służbowymi w jednym miejscu.',
                     ctaText: 'Rezerwuj lub zarządzaj',
+                },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Rezerwacja podróży',
+                        subtitle: 'Gratulacje! Wszystko gotowe, aby rezerwować i zarządzać podróżami w tym obszarze roboczym.',
+                        manageTravelLabel: 'Zarządzaj podróżami',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Centralne fakturowanie',
+                        subtitle: 'Pozwól członkom rozliczać i fakturować podróże bezpośrednio na przestrzeń roboczą',
+                        subsections: {
+                            currentTravelSpendLabel: 'Aktualne wydatki na podróże',
+                            currentTravelSpendCta: 'Zapłać saldo',
+                            currentTravelLimitLabel: 'Obecny limit podróży',
+                            settlementAccountLabel: 'Konto rozliczeniowe',
+                            settlementFrequencyLabel: 'Częstotliwość rozliczeń',
+                        },
+                    },
                 },
             },
             expensifyCard: {

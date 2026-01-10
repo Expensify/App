@@ -3609,6 +3609,9 @@ ${
         features: {
             saveMoney: 'Risparmia denaro sulle tue prenotazioni',
             alerts: 'Ricevi avvisi in tempo reale se i tuoi piani di viaggio cambiano',
+            easyPayments: 'Pagamenti facili per i tuoi membri',
+            travelSpendLimits: 'Imposta limiti di spesa per i viaggi',
+            invoicedMonthlyWeekly: 'Ricevi fatture mensili o settimanali',
         },
         bookTravel: 'Prenota viaggio',
         bookDemo: 'Prenota demo',
@@ -5020,6 +5023,24 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     title: 'Prenota o gestisci il tuo viaggio',
                     subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestisci tutte le tue spese aziendali in un unico posto.',
                     ctaText: 'Prenota o gestisci',
+                },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Prenotazione di viaggio',
+                        subtitle: 'Complimenti! Ora sei pronto per prenotare e gestire i viaggi in questo spazio di lavoro.',
+                        manageTravelLabel: 'Gestisci viaggi',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Fatturazione centralizzata',
+                        subtitle: 'Consenti ai tuoi membri di pagare e fatturare i viaggi direttamente allo spazio di lavoro',
+                        subsections: {
+                            currentTravelSpendLabel: 'Spesa di viaggio attuale',
+                            currentTravelSpendCta: 'Paga saldo',
+                            currentTravelLimitLabel: 'Limite di viaggio attuale',
+                            settlementAccountLabel: 'Conto di regolamento',
+                            settlementFrequencyLabel: 'Frequenza di regolamento',
+                        },
+                    },
                 },
             },
             expensifyCard: {
