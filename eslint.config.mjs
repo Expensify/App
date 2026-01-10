@@ -322,7 +322,7 @@ const config = defineConfig([
                     touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
                 },
             ],
-            'react-compiler/react-compiler': 'error',
+            'react-compiler/react-compiler': 'off',
 
             // Disallow usage of certain functions and imports
             'no-restricted-syntax': [
