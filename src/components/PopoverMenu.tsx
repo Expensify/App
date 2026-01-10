@@ -399,6 +399,7 @@ function BasePopoverMenu({
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     icon={icon}
+                    role={CONST.ROLE.BUTTON}
                     // Spread other props dynamically
                     {...menuItemProps}
                     hasSubMenuItems={!!subMenuItems?.length}

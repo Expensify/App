@@ -202,6 +202,7 @@ function ToggleSettingOptionRow({
                     <Switch
                         disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}
+                        accessibilityState={subMenuItems ? {expanded: isActive} : undefined}
                         onToggle={(isOn) => {
                             shouldAnimateAccordionSection.set(true);
                             onToggle(isOn);

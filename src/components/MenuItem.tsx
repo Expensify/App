@@ -1,7 +1,7 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {useContext, useMemo, useRef} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -397,6 +397,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
+
+        /** The accessibility role to use for this menu item */
+        role?: Role;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -526,6 +529,7 @@ function MenuItem({
     ref,
     isFocused,
     sentryLabel,
+    role = CONST.ROLE.MENUITEM,
 }: MenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
     const theme = useTheme();
@@ -723,8 +727,9 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={CONST.ROLE.MENUITEM}
+                                role={role}
                                 accessibilityLabel={title ? title.toString() : ''}
+                                accessibilityState={{selected: isSelected}}
                                 accessible
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
