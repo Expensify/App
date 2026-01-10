@@ -77,7 +77,6 @@ function OptionRowLHNData({
             movedFromReport,
             movedToReport,
         });
-
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }

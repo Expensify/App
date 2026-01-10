@@ -512,7 +512,6 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-
             {renderChildren()}
         </>
     );

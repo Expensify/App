@@ -86,7 +86,6 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
             if (lastState === syncLocalWorkletState.get()) {
                 return;
             }
-
             syncLocalWorkletState.set(lastState);
 
             if (lastState === KeyboardState.OPEN) {

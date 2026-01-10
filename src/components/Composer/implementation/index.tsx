@@ -251,7 +251,6 @@ function Composer({
         if (!textInput.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
-
         textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);

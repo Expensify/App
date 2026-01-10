@@ -216,7 +216,6 @@ function AttachmentCarouselView({
                     isPagerScrolling.set(false);
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
                 })
-
                 .withRef(pagerRef as RefObject<GestureType | undefined>),
         [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef, isPagerScrolling],
     );

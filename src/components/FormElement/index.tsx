@@ -17,7 +17,6 @@ const preventFormDefault = (event: SubmitEvent) => {
 
 function FormElement({ref, ...props}: FormElementProps) {
     const formRef = useRef<HTMLFormElement & View>(null);
-
     const mergedRef = mergeRefs(formRef, ref);
 
     useEffect(() => {
