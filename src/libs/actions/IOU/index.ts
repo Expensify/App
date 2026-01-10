@@ -13960,7 +13960,10 @@ function updateSplitTransactions({
 
     const isCreationOfSplits = originalChildTransactions.length === 0;
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
-    const isReverseSplitOperation = splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
+    // Don't revert split if there are orphaned children (reportID '0') - they're still part of the split
+    const allChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID, true);
+    const isReverseSplitOperation =
+        splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
 
     let changesInReportTotal = 0;
     // Validate custom unit rate before proceeding with split
