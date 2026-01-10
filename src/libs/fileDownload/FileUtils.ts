@@ -673,6 +673,11 @@ const getFileValidationErrorText = (
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.protectedPDFNotSupported'),
             };
+        case CONST.FILE_VALIDATION_ERRORS.PDF_LIBRARY_FAILED:
+            return {
+                title: translate('common.error.loadingFailed'),
+                reason: translate('common.error.pdfLibraryLoadFailed'),
+            };
         default:
             return {
                 title: translate('attachmentPicker.attachmentError'),

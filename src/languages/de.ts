@@ -419,6 +419,8 @@ const translations: TranslationDeepObject<typeof en> = {
             lowRateError: 'Der Kurs muss größer als 0 sein',
             email: 'Bitte gib eine gültige E‑Mail‑Adresse ein',
             login: 'Beim Anmelden ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+            pdfLibraryLoadFailed: 'PDF-Modul konnte nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.',
+            loadingFailed: 'Laden fehlgeschlagen',
         },
         comma: 'Komma',
         semicolon: 'Semikolon',
