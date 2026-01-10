@@ -254,6 +254,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dismiss: 'Fermer',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Continuer',
+        unshare: 'Partager',
         yes: 'Oui',
         no: 'Non',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -2120,6 +2121,11 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountEmptyTitle: 'Aucun administrateur disponible',
         shareBankAccountEmptyDescription: "Aucun administrateur d'espace de travail n'est disponible pour partager ce compte bancaire.",
         shareBankAccountNoAdminsSelected: 'Veuillez sélectionner un administrateur avant de continuer',
+        unshareBankAccount: 'Retirer le partage du compte bancaire',
+        unshareBankAccountDescription: 'Toutes les personnes ci-dessous ont accès à ce compte bancaire. Vous pouvez révoquer l’accès à tout moment. Les paiements en cours seront honorés.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perdra l’accès à ce compte bancaire professionnel. Les paiements en cours seront honorés.`,
+        reachOutForHelp: 'Ce compte est utilisé avec la carte Expensify. <concierge-link>Contactez le service de conciergerie</concierge-link> si vous souhaitez le retirer du partage.',
+        unshareErrorModalTitle: 'Impossible de retirer le partage du compte bancaire',
     },
     cardPage: {
         expensifyCard: 'Carte Expensify',
@@ -7924,6 +7930,9 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             addAdmin: 'Ajouter un administrateur',
             invite: 'Inviter',
             addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
+            revokeAdminAccess: 'Révoquer l’accès administrateur',
+            cantRevokeAdminAccess: 'Impossible de révoquer l’accès administrateur au contact technique',
+            error: {removeAdmin: 'Impossible de supprimer cet utilisateur en tant qu’administrateur. Veuillez réessayer.'},
         },
     },
     gps: {

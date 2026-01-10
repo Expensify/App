@@ -254,6 +254,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dismiss: 'Chiudi',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Continua',
+        unshare: 'Non condividere',
         yes: 'Sì',
         no: 'No',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -2110,6 +2111,12 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountEmptyTitle: 'Nessun amministratore disponibile',
         shareBankAccountEmptyDescription: "Non ci sono amministratori dell'area di lavoro con cui puoi condividere questo conto bancario.",
         shareBankAccountNoAdminsSelected: 'Seleziona un amministratore prima di continuare',
+        unshareBankAccount: 'Annulla condivisione conto bancario',
+        unshareBankAccountDescription:
+            "Tutti i seguenti hanno accesso a questo conto bancario. Puoi revocare l'accesso in qualsiasi momento. Completeremo comunque tutti i pagamenti in corso.",
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderà l'accesso a questo conto bancario aziendale. Completeremo comunque tutti i pagamenti in corso.`,
+        reachOutForHelp: 'È in uso con la carta Expensify. <concierge-link>Contatta il Concierge</concierge-link> se devi revocare la condivisione.',
+        unshareErrorModalTitle: 'Impossibile revocare la condivisione del conto bancario',
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -7901,6 +7908,9 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             addAdmin: 'Aggiungi amministratore',
             invite: 'Invita',
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
+            revokeAdminAccess: 'Revoca accesso amministratore',
+            cantRevokeAdminAccess: 'Impossibile revocare i privilegi di amministratore dal referente tecnico',
+            error: {removeAdmin: 'Impossibile rimuovere questo utente come amministratore. Riprova.'},
         },
     },
     gps: {
