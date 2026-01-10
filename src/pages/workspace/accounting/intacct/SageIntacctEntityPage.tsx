@@ -1,6 +1,6 @@
 import React from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +19,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
 
-    const sections = [
+    const options = [
         {
             text: translate('workspace.common.topLevel'),
             value: translate('workspace.common.topLevel'),
@@ -28,7 +28,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
         },
     ];
     for (const entity of policy?.connections?.intacct?.data?.entities ?? []) {
-        sections.push({
+        options.push({
             text: entity.name,
             value: entity.name,
             keyForList: entity.id,
@@ -46,10 +46,10 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctEntityPage"
-            sections={sections ? [{data: sections}] : []}
+            data={options}
             listItem={RadioListItem}
             onSelectRow={saveSelection}
-            initiallyFocusedOptionKey={sections?.find((mode) => mode.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={options?.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.dismissModal()}
             title="workspace.intacct.entity"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}

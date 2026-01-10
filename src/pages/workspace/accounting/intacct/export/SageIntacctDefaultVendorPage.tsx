@@ -100,7 +100,7 @@ function SageIntacctDefaultVendorPage() {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctDefaultVendorPage"
-            sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
+            data={vendorSelectorOptions ?? []}
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}

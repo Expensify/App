@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -83,7 +83,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksInvoiceAccountSelectPage"
-            sections={qboOnlineSelectorOptions.length ? [{data: qboOnlineSelectorOptions}] : []}
+            data={qboOnlineSelectorOptions}
             listItem={RadioListItem}
             headerContent={listHeaderComponent}
             onSelectRow={updateAccount}

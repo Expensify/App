@@ -232,6 +232,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
 
+    /** Boolean whether to display the right icon */
+    shouldShowRightCaret?: boolean;
+
     /** Styles applied for the title */
     titleStyles?: StyleProp<TextStyle>;
 

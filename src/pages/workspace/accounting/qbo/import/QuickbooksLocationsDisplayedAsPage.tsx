@@ -1,11 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -21,7 +21,7 @@ type CardListItem = ListItem & {
 function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const data: CardListItem[] = useMemo(() => {
@@ -58,7 +58,7 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
                     );
                     return;
                 }
-                QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, row.value, qboConfig?.syncLocations);
+                updateQuickbooksOnlineSyncLocations(policyID, row.value, qboConfig?.syncLocations);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID));
         },
@@ -71,7 +71,7 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksLocationsDisplayedAsPage"
-            sections={data.length ? [{data}] : []}
+            data={data}
             listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID))}
             onSelectRow={(selection) => selectDisplayedAs(selection as CardListItem)}
@@ -80,7 +80,7 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
             title="workspace.common.displayedAs"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
+            errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
         />

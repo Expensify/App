@@ -17,10 +17,10 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 // eslint-disable-next-line no-restricted-imports
-import SelectionList from './SelectionListWithSections';
-import type RadioListItem from './SelectionListWithSections/RadioListItem';
-import type TableListItem from './SelectionListWithSections/TableListItem';
-import type {ListItem, SectionListDataType} from './SelectionListWithSections/types';
+import SelectionList from './SelectionList';
+import type RadioListItem from './SelectionList/ListItem/RadioListItem';
+import type TableListItem from './SelectionList/ListItem/TableListItem';
+import type {ListItem} from './SelectionList/types';
 import type UserListItem from './SelectionListWithSections/UserListItem';
 
 type SelectorType<T = string> = ListItem & {
@@ -46,7 +46,7 @@ type SelectionScreenProps<T = string> = {
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
-    sections: Array<SectionListDataType<SelectorType<T>>>;
+    data: Array<SelectorType<T>>;
 
     /** Default renderer for every item in the list */
     listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
@@ -55,10 +55,10 @@ type SelectionScreenProps<T = string> = {
     listItemWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Item `keyForList` to focus initially */
-    initiallyFocusedOptionKey?: string | null | undefined;
+    initiallyFocusedOptionKey?: string | undefined;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (selection: SelectorType<T>) => void;
+    onSelectRow: (item: SelectorType<T>) => void;
 
     /** Callback to fire when back button is pressed */
     onBackButtonPress?: () => void;
@@ -118,7 +118,7 @@ function SelectionScreen<T = string>({
     headerContent,
     listEmptyContent,
     listFooterContent,
-    sections,
+    data,
     listItem,
     listItemWrapperStyle,
     initiallyFocusedOptionKey,
@@ -147,6 +147,12 @@ function SelectionScreen<T = string>({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
+    const textInputOptions = {
+        onChangeText,
+        textInputLabel,
+        textInputValue,
+    };
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -167,26 +173,23 @@ function SelectionScreen<T = string>({
                     pendingAction={pendingAction}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
-                    shouldDisableOpacity={!sections.length}
+                    shouldDisableOpacity={!data.length}
                 >
                     <SelectionList
-                        onSelectRow={onSelectRow}
-                        sections={sections}
+                        data={data}
                         ListItem={listItem}
+                        onSelectRow={onSelectRow}
                         showScrollIndicator
-                        onChangeText={onChangeText}
                         shouldShowTooltips={false}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                        textInputOptions={textInputOptions}
                         listEmptyContent={listEmptyContent}
-                        textInputLabel={textInputLabel}
-                        textInputValue={textInputValue}
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
-                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
+                        style={{listItemWrapperStyle}}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
-                        isAlternateTextMultilineSupported
-                        listItemWrapperStyle={listItemWrapperStyle}
+                        alternateNumberOfSupportedLines={2}
                         addBottomSafeAreaPadding={!errors || isEmptyObject(errors)}
                     >
                         <ErrorMessageRow
