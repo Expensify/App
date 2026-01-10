@@ -160,3 +160,5 @@ modules/*/lib/
 
 # cspell cache
 .cspellcache
+
+my.md
