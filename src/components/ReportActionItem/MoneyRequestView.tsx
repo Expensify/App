@@ -82,6 +82,7 @@ import {
     getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
+    getTaxValue,
     hasMissingSmartscanFields,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
@@ -302,7 +303,9 @@ function MoneyRequestView({
         : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), transactionCurrency);
 
     const taxRatesDescription = taxRates?.name;
-    const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
+    const transactionWithTax = updatedTransaction ?? transaction;
+    const taxRateTitle = transactionWithTax?.taxCode ? getTaxName(policy, transactionWithTax) : '';
+    const isTaxValueChanged = transactionWithTax?.taxCode ? getTaxValue(policy, transactionWithTax, transactionWithTax.taxCode) !== transactionWithTax.taxValue : false;
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
@@ -527,7 +530,7 @@ function MoneyRequestView({
     const decodedCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
-    const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateValue = isTaxValueChanged ? transactionWithTax?.taxValue : (taxRateTitle ?? fallbackTaxRateTitle ?? '');
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
