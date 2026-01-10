@@ -802,9 +802,8 @@ function SearchPage({route}: SearchPageProps) {
                 const parentReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
                 const reportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
                 const parentReportAction =
-                    Object.values(reportActions ?? {}).find(
-                        (action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id,
-                    ) ?? selectedTransactions[id].reportAction;
+                    Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
+                    selectedTransactions[id].reportAction;
 
                 return !!parentReport && canDeleteMoneyRequestReport(parentReport, [transaction as Transaction], parentReportAction ? [parentReportAction] : []);
             });
