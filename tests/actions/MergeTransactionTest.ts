@@ -5,7 +5,7 @@ import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransa
 import {addComment, openReport} from '@libs/actions/Report';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {buildTransactionThread, getReportOrDraftReport} from '@libs/ReportUtils';
+import {buildTransactionThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {

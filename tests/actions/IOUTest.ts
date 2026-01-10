@@ -82,14 +82,7 @@ import {
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
-import {
-    buildOptimisticIOUReport,
-    buildOptimisticIOUReportAction,
-    buildTransactionThread,
-    createDraftTransactionAndNavigateToParticipantSelector,
-    getReportOrDraftReport,
-    isIOUReport,
-} from '@libs/ReportUtils';
+import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread, createDraftTransactionAndNavigateToParticipantSelector, isIOUReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -5968,10 +5961,10 @@ describe('actions/IOU', () => {
 
             // When a comment is added
             let iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
-            const ascentors = [];
-            ascentors.push(...(iouReport && createIOUAction ? [{report: iouReport, reportAction: createIOUAction, shouldDisplayNewMarker: false}] : []));
-            ascentors.push(...(chatReport && iouPreview ? [{report: chatReport, reportAction: iouPreview, shouldDisplayNewMarker: false}] : []));
-            addComment(thread, thread.reportID, ascentors, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+            const ancestors = [];
+            ancestors.push(...(iouReport && createIOUAction ? [{report: iouReport, reportAction: createIOUAction, shouldDisplayNewMarker: false}] : []));
+            ancestors.push(...(chatReport && iouPreview ? [{report: chatReport, reportAction: iouPreview, shouldDisplayNewMarker: false}] : []));
+            addComment(thread, thread.reportID, ancestors, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Then comment details should match the expected report action
@@ -10710,10 +10703,10 @@ describe('actions/IOU', () => {
             const addCommentToThread = async (thread: Report, iouActionID: string, message: string) => {
                 const updatedIouAction = getReportAction(expenseReport.reportID, iouActionID);
                 const updatedPreviewAction = getReportAction(chatReport.reportID, previewActionID);
-                const ascentors = [];
-                ascentors.push(...(updatedIouAction ? [{report: expenseReport, reportAction: updatedIouAction, shouldDisplayNewMarker: false}] : []));
-                ascentors.push(...(updatedPreviewAction ? [{report: chatReport, reportAction: updatedPreviewAction, shouldDisplayNewMarker: false}] : []));
-                addComment(thread, thread.reportID, ascentors, message, CONST.DEFAULT_TIME_ZONE);
+                const ancestors = [];
+                ancestors.push(...(updatedIouAction ? [{report: expenseReport, reportAction: updatedIouAction, shouldDisplayNewMarker: false}] : []));
+                ancestors.push(...(updatedPreviewAction ? [{report: chatReport, reportAction: updatedPreviewAction, shouldDisplayNewMarker: false}] : []));
+                addComment(thread, thread.reportID, ancestors, message, CONST.DEFAULT_TIME_ZONE);
                 await waitForBatchedUpdates();
             };
             await addCommentToThread(transactionThreadReport1, iouAction1ID, 'Testing a comment');
