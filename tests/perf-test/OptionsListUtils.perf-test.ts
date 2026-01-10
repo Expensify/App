@@ -26,6 +26,9 @@ const PERSONAL_DETAILS_COUNT = 1000;
 const SELECTED_OPTIONS_COUNT = 1000;
 const RECENT_REPORTS_COUNT = 100;
 
+const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
+const MOCK_CURRENT_USER_EMAIL = 'testuser@example.com';
+
 const reports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
     (index) => ({
@@ -112,22 +115,40 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining, loginList}));
+        await measureFunction(() =>
+            getSearchOptions({
+                options,
+                betas: mockedBetas,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+            }),
+        );
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, {
+            ...ValidOptionsConfig,
+            currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+            currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+        });
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, {currentUserEmail: MOCK_CURRENT_USER_EMAIL}, MOCK_CURRENT_USER_ACCOUNT_ID);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, {
+            ...ValidOptionsConfig,
+            currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+            currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+        });
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList);
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, {currentUserEmail: MOCK_CURRENT_USER_EMAIL}, MOCK_CURRENT_USER_ACCOUNT_ID);
         });
     });
 
@@ -148,6 +169,8 @@ describe('OptionsListUtils', () => {
                 includeSelfDM: true,
                 searchString: '',
                 includeUserToInvite: false,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
             }),
         );
     });
@@ -155,7 +178,19 @@ describe('OptionsListUtils', () => {
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, loginList, mockedBetas));
+        await measureFunction(() =>
+            getMemberInviteOptions(
+                options.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                mockedBetas,
+                {},
+                false,
+                COUNTRY_CODE,
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                MOCK_CURRENT_USER_EMAIL,
+            ),
+        );
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {
@@ -202,6 +237,9 @@ describe('OptionsListUtils', () => {
                 Object.values(filteredPersonalDetails),
                 mockedPersonalDetails,
                 true,
+                undefined,
+                undefined,
+                MOCK_CURRENT_USER_ACCOUNT_ID,
             ),
         );
     });
@@ -212,6 +250,8 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], mockedPersonalDetails, true));
+        await measureFunction(() =>
+            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], mockedPersonalDetails, true, undefined, undefined, MOCK_CURRENT_USER_ACCOUNT_ID),
+        );
     });
 });

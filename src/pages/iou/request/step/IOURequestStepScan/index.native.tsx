@@ -404,7 +404,7 @@ function IOURequestStepScan({
             }
 
             if (isTestTransaction) {
-                const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+                const managerMcTestParticipant = getManagerMcTestParticipant(currentUserPersonalDetails.accountID) ?? {};
                 let reportIDParam = managerMcTestParticipant.reportID;
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
