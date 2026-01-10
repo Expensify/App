@@ -2717,8 +2717,14 @@ function isPayer(
     iouReport: OnyxEntry<Report>,
     onlyShowPayElsewhere = false,
     reportPolicy?: OnyxInputOrEntry<Policy>,
+    chatReport?: OnyxInputOrEntry<Report>,
 ) {
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
+    if (!policy && isWorkspaceChat(chatReport?.chatType ?? '')) {
+        Log.warn('Missing policy during isPayer check');
+        return false;
+    }
+
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === currentAccountID;
