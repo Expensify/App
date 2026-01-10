@@ -845,7 +845,7 @@ function getLastMessageTextForReport({
     }
 
     // If the last action differs from last original action, it means there's a hidden action (like a whisper), then use getLastVisibleMessage to get the preview text
-    if (!lastMessageTextFromReport && !lastReportAction && !!lastOriginalReportAction) {
+    if (!lastMessageTextFromReport && !lastReportAction && !!lastOriginalReportAction && isWhisperAction(lastOriginalReportAction)) {
         return lastVisibleMessage?.lastMessageText ?? '';
     }
 
