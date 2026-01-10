@@ -3,7 +3,7 @@ import {Keyboard} from 'react-native';
 import BaseSelectionList from './BaseSelectionListWithSections';
 import type {ListItem, SelectionListProps} from './types';
 
-function SelectionListWithSections<TItem extends ListItem>({shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListProps<TItem>) {
+function SelectionListWithSections<TItem extends ListItem>({shouldHideKeyboardOnScroll = true, ref, isRowMultilineSupported = true, ...props}: SelectionListProps<TItem>) {
     return (
         <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -15,7 +15,7 @@ function SelectionListWithSections<TItem extends ListItem>({shouldHideKeyboardOn
                 }
                 Keyboard.dismiss();
             }}
-            isRowMultilineSupported
+            isRowMultilineSupported={isRowMultilineSupported}
         />
     );
 }
