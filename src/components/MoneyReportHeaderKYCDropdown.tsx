@@ -15,11 +15,11 @@ import KYCWall from './KYCWall';
 import type {KYCWallProps} from './KYCWall/types';
 
 type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enablePaymentsRoute'> & {
-    primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
-
-    applicableSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>>;
-
+    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
+    applicableSecondaryActions?: Array<DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>>;
+    options?: Array<DropdownOption<string>>;
     onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
+    customText?: string; // Custom text to display on the button
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -30,6 +30,7 @@ function MoneyReportHeaderKYCDropdown({
     iouReport,
     onPaymentSelect,
     ref,
+    options,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
@@ -38,7 +39,7 @@ function MoneyReportHeaderKYCDropdown({
     const {isOffline} = useNetwork();
 
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
-
+    const optionsShown = applicableSecondaryActions ?? options ?? [];
     return (
         <KYCWall
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -67,11 +68,11 @@ function MoneyReportHeaderKYCDropdown({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
-                    shouldPopoverUseScrollView={applicableSecondaryActions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                    shouldPopoverUseScrollView={optionsShown.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                     customText={translate('common.more')}
-                    options={applicableSecondaryActions}
+                    options={optionsShown}
                     isSplitButton={false}
-                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
+                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && applicableSecondaryActions && styles.flex1, options && styles.w100]}
                     shouldUseModalPaddingStyle
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                 />
