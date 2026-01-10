@@ -9,10 +9,13 @@ function useCanEditSplitExpense(
     transactionReport: Report | undefined,
     splitExpenseTransactionID: string | undefined,
 ): {isEditingSplitExpense: boolean; canEditSplitExpense: boolean | undefined} {
-    const isEditingSplitAmount = useMemo(() => !!Number(splitExpenseTransactionID), [splitExpenseTransactionID]);
+    const isEditingSplitAmount = !!Number(splitExpenseTransactionID);
 
     const isChatReportArchived = useReportIsArchived(transactionReport?.chatReportID);
-    const splitIOUAction = getIOUActionForTransactions([splitExpenseTransactionID], transactionReport?.reportID).at(0);
+    const splitIOUAction = useMemo(
+        () => getIOUActionForTransactions([splitExpenseTransactionID], transactionReport?.reportID).at(0),
+        [splitExpenseTransactionID, transactionReport?.reportID],
+    );
     const canEditSplitAmount = useMemo(() => {
         return canEditFieldOfMoneyRequest(splitIOUAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived);
     }, [splitIOUAction, isChatReportArchived]);
