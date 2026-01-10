@@ -621,6 +621,7 @@ function IOURequestStepConfirmation({
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     allBetas,
+                    quickAction,
                 });
                 existingIOUReport = iouReport;
             }
@@ -631,28 +632,29 @@ function IOURequestStepConfirmation({
             archivedReportsIdSet,
             report,
             currentUserPersonalDetails.login,
-            currentUserPersonalDetails.email,
             currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.email,
             policy,
             policyTags,
-            policyRecentlyUsedTags,
             policyCategories,
             policyRecentlyUsedCategories,
+            policyRecentlyUsedTags,
             action,
+            isManualDistanceRequest,
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
             shouldGenerateTransactionThreadReport,
             backToReport,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            policyRecentlyUsedCurrencies,
+            quickAction,
             viewTourTaskReport,
             viewTourTaskParentReport,
-            isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
             hasOutstandingChildTask,
             parentReportAction,
-            transactionViolations,
-            isManualDistanceRequest,
-            policyRecentlyUsedCurrencies,
             allBetas,
         ],
     );
@@ -701,22 +703,24 @@ function IOURequestStepConfirmation({
                 hasViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 allBetas,
+                quickAction,
             });
         },
         [
-            report,
             transaction,
+            report,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             policy,
             policyTags,
+            policyRecentlyUsedTags,
             policyCategories,
             recentlyUsedDestinations,
             isASAPSubmitBetaEnabled,
             hasViolations,
             policyRecentlyUsedCurrencies,
             allBetas,
-            policyRecentlyUsedTags,
+            quickAction,
         ],
     );
 
@@ -1027,14 +1031,12 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.INVOICE) {
                 const invoiceChatReport =
                     !isEmptyObject(report) && report?.reportID && doesReportReceiverMatchParticipant(report, receiverParticipantAccountID) ? report : existingInvoiceReport;
-                const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
                 sendInvoice({
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     transaction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     invoiceChatReport,
-                    invoiceChatReportID,
                     receiptFile: currentTransactionReceiptFile,
                     policy,
                     policyTagList: policyTags,
@@ -1159,7 +1161,6 @@ function IOURequestStepConfirmation({
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
             allBetas,
-            reportID,
         ],
     );
 

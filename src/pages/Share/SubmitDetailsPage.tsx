@@ -188,6 +188,7 @@ function SubmitDetailsPage({
                 transactionViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 allBetas,
+                quickAction,
             });
         }
     };

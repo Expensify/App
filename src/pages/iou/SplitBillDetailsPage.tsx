@@ -52,6 +52,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(IOUTransactionID)}`, {canBeMissing: true});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
@@ -91,8 +92,18 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, isASAPSubmitBetaEnabled, transactionViolations, allBetas, session?.email);
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, transactionViolations, allBetas]);
+        completeSplitBill(
+            reportID,
+            reportAction,
+            draftTransaction,
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            isASAPSubmitBetaEnabled,
+            quickAction,
+            transactionViolations,
+            allBetas,
+            session?.email,
+        );
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, allBetas]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">

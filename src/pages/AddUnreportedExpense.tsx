@@ -61,6 +61,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
@@ -179,6 +180,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     transactionViolations,
                     policyRecentlyUsedCurrencies ?? [],
                     allBetas,
+                    quickAction,
                 );
             } else {
                 changeTransactionsReport(
