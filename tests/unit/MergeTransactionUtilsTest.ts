@@ -34,10 +34,14 @@ describe('MergeTransactionUtils', () => {
     describe('shouldNavigateToReceiptReview', () => {
         it('should return false when any transaction has no receipt', () => {
             // Given transactions where one has no receipt
-            const transaction1 = createRandomTransaction(0);
-            const transaction2 = createRandomTransaction(1);
-            transaction1.receipt = {receiptID: 123};
-            transaction2.receipt = undefined;
+            const transaction1 = {
+                ...createRandomTransaction(0),
+                receipt: {receiptID: 123},
+            };
+            const transaction2 = {
+                ...createRandomTransaction(1),
+                receipt: undefined,
+            };
             const transactions = [transaction1, transaction2];
 
             // When we check if should navigate to receipt review
@@ -49,10 +53,14 @@ describe('MergeTransactionUtils', () => {
 
         it('should return true when all transactions have receipts with receiptIDs', () => {
             // Given transactions where all have receipts with receiptIDs
-            const transaction1 = createRandomTransaction(0);
-            const transaction2 = createRandomTransaction(1);
-            transaction1.receipt = {receiptID: 123};
-            transaction2.receipt = {receiptID: 456};
+            const transaction1 = {
+                ...createRandomTransaction(0),
+                receipt: {receiptID: 123},
+            };
+            const transaction2 = {
+                ...createRandomTransaction(1),
+                receipt: {receiptID: 456},
+            };
             const transactions = [transaction1, transaction2];
 
             // When we check if should navigate to receipt review
@@ -64,11 +72,14 @@ describe('MergeTransactionUtils', () => {
 
         it('should return false when both transactions are distance requests', () => {
             // Given two distance request transactions (with or without receipts)
-            const distanceTransaction1 = createRandomDistanceRequestTransaction(0);
-            const distanceTransaction2 = createRandomDistanceRequestTransaction(1);
-
-            distanceTransaction1.receipt = {receiptID: 333};
-            distanceTransaction2.receipt = {receiptID: 444};
+            const distanceTransaction1 = {
+                ...createRandomDistanceRequestTransaction(0),
+                receipt: {receiptID: 333},
+            };
+            const distanceTransaction2 = {
+                ...createRandomDistanceRequestTransaction(1),
+                receipt: {receiptID: 444},
+            };
 
             const transactions = [distanceTransaction1, distanceTransaction2];
 
@@ -95,9 +106,11 @@ describe('MergeTransactionUtils', () => {
 
         it('should return merchant value from transaction', () => {
             // Given a transaction with a merchant value
-            const transaction = createRandomTransaction(0);
-            transaction.merchant = 'Test Merchant';
-            transaction.modifiedMerchant = 'Test Merchant';
+            const transaction = {
+                ...createRandomTransaction(0),
+                merchant: 'Test Merchant',
+                modifiedMerchant: 'Test Merchant',
+            };
 
             // When we get the merchant field value
             const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'merchant');
@@ -108,8 +121,10 @@ describe('MergeTransactionUtils', () => {
 
         it('should return category value from transaction', () => {
             // Given a transaction with a category value
-            const transaction = createRandomTransaction(0);
-            transaction.category = 'Food';
+            const transaction = {
+                ...createRandomTransaction(0),
+                category: 'Food',
+            };
 
             // When we get the category field value
             const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'category');
@@ -120,9 +135,11 @@ describe('MergeTransactionUtils', () => {
 
         it('should handle amount field for unreported expense correctly', () => {
             // Given a transaction that is an unreported expense (no reportID or unreported reportID)
-            const transaction = createRandomTransaction(0);
-            transaction.amount = -1000; // Stored as negative
-            transaction.reportID = CONST.REPORT.UNREPORTED_REPORT_ID;
+            const transaction = {
+                ...createRandomTransaction(0),
+                amount: -1000, // Stored as negative
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
 
             // When we get the amount field value
             const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'amount');
@@ -298,6 +315,7 @@ describe('MergeTransactionUtils', () => {
                 reimbursable: true,
                 billable: false,
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 created: '2025-01-01T00:00:00.000Z',
             };
             const sourceTransaction = {
@@ -312,6 +330,7 @@ describe('MergeTransactionUtils', () => {
                 reimbursable: false, // Different
                 billable: undefined, // Undefined value
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 created: '2025-01-02T00:00:00.000Z',
             };
 
@@ -362,6 +381,7 @@ describe('MergeTransactionUtils', () => {
                 amount: 1000,
                 currency: CONST.CURRENCY.AUD,
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
 
             const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
@@ -429,18 +449,26 @@ describe('MergeTransactionUtils', () => {
 
         describe('merge attendees', () => {
             it('should automatically merge attendees when they are the same', () => {
-                const targetTransaction = createRandomTransaction(0);
-                targetTransaction.comment = targetTransaction.comment ?? {};
-                targetTransaction.comment.attendees = [
-                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
-                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
-                ];
-                const sourceTransaction = createRandomTransaction(1);
-                sourceTransaction.comment = sourceTransaction.comment ?? {};
-                sourceTransaction.comment.attendees = [
-                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
-                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
-                ];
+                const targetTransaction = {
+                    ...createRandomTransaction(0),
+                    comment: {
+                        ...createRandomTransaction(0).comment,
+                        attendees: [
+                            {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                            {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                        ],
+                    },
+                };
+                const sourceTransaction = {
+                    ...createRandomTransaction(1),
+                    comment: {
+                        ...createRandomTransaction(1).comment,
+                        attendees: [
+                            {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                            {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                        ],
+                    },
+                };
 
                 const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
@@ -454,18 +482,26 @@ describe('MergeTransactionUtils', () => {
             });
 
             it('should automatically merge attendees when they are same but just order is different', () => {
-                const targetTransaction = createRandomTransaction(0);
-                targetTransaction.comment = targetTransaction.comment ?? {};
-                targetTransaction.comment.attendees = [
-                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
-                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
-                ];
-                const sourceTransaction = createRandomTransaction(1);
-                sourceTransaction.comment = sourceTransaction.comment ?? {};
-                sourceTransaction.comment.attendees = [
-                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
-                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
-                ];
+                const targetTransaction = {
+                    ...createRandomTransaction(0),
+                    comment: {
+                        ...createRandomTransaction(0).comment,
+                        attendees: [
+                            {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                            {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                        ],
+                    },
+                };
+                const sourceTransaction = {
+                    ...createRandomTransaction(1),
+                    comment: {
+                        ...createRandomTransaction(1).comment,
+                        attendees: [
+                            {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                            {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                        ],
+                    },
+                };
 
                 const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
@@ -479,18 +515,26 @@ describe('MergeTransactionUtils', () => {
             });
 
             it('should conflict when attendees are different', () => {
-                const targetTransaction = createRandomTransaction(0);
-                targetTransaction.comment = targetTransaction.comment ?? {};
-                targetTransaction.comment.attendees = [
-                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
-                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
-                ];
-                const sourceTransaction = createRandomTransaction(1);
-                sourceTransaction.comment = sourceTransaction.comment ?? {};
-                sourceTransaction.comment.attendees = [
-                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
-                    {email: 'test3@example.com', displayName: 'Test User 3', avatarUrl: '', login: 'test3'},
-                ];
+                const targetTransaction = {
+                    ...createRandomTransaction(0),
+                    comment: {
+                        ...createRandomTransaction(0).comment,
+                        attendees: [
+                            {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                            {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                        ],
+                    },
+                };
+                const sourceTransaction = {
+                    ...createRandomTransaction(1),
+                    comment: {
+                        ...createRandomTransaction(1).comment,
+                        attendees: [
+                            {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                            {email: 'test3@example.com', displayName: 'Test User 3', avatarUrl: '', login: 'test3'},
+                        ],
+                    },
+                };
 
                 const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
@@ -597,7 +641,8 @@ describe('MergeTransactionUtils', () => {
             const cashTransaction = {
                 ...createRandomTransaction(0),
                 transactionID: 'cash1',
-                managedCard: undefined,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
             const cardTransaction = {
                 ...createRandomTransaction(1),
@@ -622,7 +667,8 @@ describe('MergeTransactionUtils', () => {
             const cashTransaction = {
                 ...createRandomTransaction(1),
                 transactionID: 'cash1',
-                managedCard: undefined,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
 
             const result = selectTargetAndSourceTransactionsForMerge(cardTransaction, cashTransaction);
@@ -637,12 +683,14 @@ describe('MergeTransactionUtils', () => {
             const cashTransaction1 = {
                 ...createRandomTransaction(0),
                 transactionID: 'cash1',
-                managedCard: undefined,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
             const cashTransaction2 = {
                 ...createRandomTransaction(1),
                 transactionID: 'cash2',
-                managedCard: undefined,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
 
             const result = selectTargetAndSourceTransactionsForMerge(cashTransaction1, cashTransaction2);
@@ -657,7 +705,8 @@ describe('MergeTransactionUtils', () => {
             const cashTransaction = {
                 ...createRandomTransaction(1),
                 transactionID: 'cash1',
-                managedCard: undefined,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
             const splitExpenseTransaction = {
                 ...createRandomTransaction(0),
@@ -781,12 +830,16 @@ describe('MergeTransactionUtils', () => {
         });
 
         it('should return correct value for attendees field', () => {
-            const transaction = createRandomTransaction(0);
-            transaction.comment = transaction.comment ?? {};
-            transaction.comment.attendees = [
-                {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
-                {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
-            ];
+            const transaction = {
+                ...createRandomTransaction(0),
+                comment: {
+                    ...createRandomTransaction(0).comment,
+                    attendees: [
+                        {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                        {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    ],
+                },
+            };
             const result = getDisplayValue('attendees', transaction, translateLocal);
 
             expect(result).toBe('Test User 2, Test User 1');
@@ -869,7 +922,9 @@ describe('MergeTransactionUtils', () => {
     describe('getMergeFieldUpdatedValues', () => {
         it('should return updated values with the field value for non-special fields', () => {
             // Given a transaction and a basic field like merchant
-            const transaction = createRandomTransaction(0);
+            const transaction = {
+                ...createRandomTransaction(0),
+            };
             const fieldValue = 'New Merchant Name';
 
             // When we get updated values for merchant field
@@ -1013,7 +1068,9 @@ describe('MergeTransactionUtils', () => {
 
         it('should return false when source transaction is pending delete', () => {
             // Given transactions where source is pending delete
-            const targetTransaction = createRandomTransaction(0);
+            const targetTransaction = {
+                ...createRandomTransaction(0),
+            };
             const sourceTransaction = {
                 ...createRandomTransaction(1),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -1034,6 +1091,7 @@ describe('MergeTransactionUtils', () => {
                 modifiedMerchant: '',
                 category: 'Food & Dining',
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
             const transaction2 = {
@@ -1042,6 +1100,7 @@ describe('MergeTransactionUtils', () => {
                 modifiedMerchant: '',
                 category: 'Food & Dining',
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
 
@@ -1058,6 +1117,7 @@ describe('MergeTransactionUtils', () => {
                 ...createRandomTransaction(0),
                 merchant: 'Starbucks Coffee',
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
             const cardTransaction = {
                 ...createRandomTransaction(1),
@@ -1123,13 +1183,15 @@ describe('MergeTransactionUtils', () => {
             const zeroTransaction = {
                 ...createRandomTransaction(0),
                 amount: 0,
-                managedCard: undefined,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
             const nonZeroTransaction = {
                 ...createRandomTransaction(1),
                 amount: 1000,
-                managedCard: undefined,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
 

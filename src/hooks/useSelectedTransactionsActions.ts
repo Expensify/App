@@ -51,6 +51,7 @@ function useSelectedTransactionsActions({
     onExportOffline,
     policy,
     beginExportWithTemplate,
+    isOnSearch,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -60,6 +61,7 @@ function useSelectedTransactionsActions({
     onExportOffline?: () => void;
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
+    isOnSearch?: boolean;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
@@ -69,6 +71,7 @@ function useSelectedTransactionsActions({
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
@@ -220,7 +223,7 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(id));
+        const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? []));
         const canRejectTransactions =
             selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
         if (canRejectTransactions) {
@@ -296,6 +299,19 @@ function useSelectedTransactionsActions({
             return canMoveExpense;
         });
 
+        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy]);
+        if (canMergeTransaction) {
+            const transactionID = selectedTransactionsList.at(0)?.transactionID;
+            if (transactionID) {
+                options.push({
+                    text: translate('common.merge'),
+                    icon: expensifyIcons.ArrowCollapse,
+                    value: MERGE,
+                    onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, selectedTransactionsList, localeCompare, [], false, isOnSearch),
+                });
+            }
+        }
+
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction && !hasTransactionsFromMultipleOwners) {
             options.push({
@@ -310,15 +326,6 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy]);
-        if (canMergeTransaction) {
-            options.push({
-                text: translate('common.merge'),
-                icon: expensifyIcons.ArrowCollapse,
-                value: MERGE,
-                onSelected: () => setupMergeTransactionDataAndNavigate(selectedTransactionsList, localeCompare),
-            });
-        }
         const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionIDs.at(0)}`];
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
@@ -357,6 +364,7 @@ function useSelectedTransactionsActions({
         }
         return options;
     }, [
+        session?.email,
         selectedTransactionIDs,
         report,
         selectedTransactionsList,
@@ -380,6 +388,7 @@ function useSelectedTransactionsActions({
         allReports,
         session?.accountID,
         showDeleteModal,
+        allTransactionViolations,
         expensifyIcons.Stopwatch,
         expensifyIcons.ThumbsDown,
         expensifyIcons.Table,
@@ -390,6 +399,7 @@ function useSelectedTransactionsActions({
         expensifyIcons.ArrowCollapse,
         expensifyIcons.Trashcan,
         localeCompare,
+        isOnSearch,
     ]);
 
     return {
