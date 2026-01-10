@@ -1,12 +1,12 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
@@ -15,6 +15,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import ListItemRightCaretWithLabel from '@components/SelectionListWithModal/ListItemRightCaretWithLabel';
 import Switch from '@components/Switch';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -65,21 +66,17 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Checkmark', 'Trashcan']);
     const {translate, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const dropdownButtonRef = useRef<View>(null);
-    const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
-
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, orderWeight), [policyTags, orderWeight]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW;
-    const [isCannotMakeAllTagsOptionalModalVisible, setIsCannotMakeAllTagsOptionalModalVisible] = useState(false);
-    const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
-    const [isRequiresMultiLevelTagsModalVisible, setIsRequiresMultiLevelTagsModalVisible] = useState(false);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -141,7 +138,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         accessibilityLabel={translate('workspace.tags.enableTag')}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
-                                setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                                showConfirmModal({
+                                    title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                                    prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    shouldShowCancelButton: false,
+                                });
                                 return;
                             }
                             updateWorkspaceTagEnabled(newValue, tag.name);
@@ -213,16 +215,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         );
     };
 
-    const deleteTags = () => {
-        deletePolicyTags(policyData, selectedTags);
-        setIsDeleteTagsConfirmModalVisible(false);
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedTags([]);
-        });
-    };
-
     const isLoading = !isOffline && policyTags === undefined;
 
     const listHeaderContent =
@@ -248,7 +240,24 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 icon: icons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setIsDeleteTagsConfirmModalVisible(true),
+                onSelected: () => {
+                    showConfirmModal({
+                        title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+                        prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
+                        confirmText: translate('common.delete'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        deletePolicyTags(policyData, selectedTags);
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        InteractionManager.runAfterInteractions(() => {
+                            setSelectedTags([]);
+                        });
+                    });
+                },
             });
         }
 
@@ -280,7 +289,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject)) {
-                        setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                        showConfirmModal({
+                            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
                         return;
                     }
                     setSelectedTags([]);
@@ -356,16 +370,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <ConfirmModal
-                    isVisible={isDeleteTagsConfirmModalVisible}
-                    onConfirm={deleteTags}
-                    onCancel={() => setIsDeleteTagsConfirmModalVisible(false)}
-                    title={translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
-                    prompt={translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
                 {!hasDependentTags && (
                     <View style={[styles.pv4, styles.ph5]}>
                         <ToggleSettingOptionRow
@@ -374,11 +378,21 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             isActive={!!currentPolicyTag?.required}
                             onToggle={(on) => {
                                 if (!isMultiLevelTags) {
-                                    setIsRequiresMultiLevelTagsModalVisible(true);
+                                    showConfirmModal({
+                                        title: translate('workspace.tags.cannotMakeTagListRequired.title'),
+                                        prompt: translate('workspace.tags.cannotMakeTagListRequired.description'),
+                                        confirmText: translate('common.buttonConfirm'),
+                                        shouldShowCancelButton: false,
+                                    });
                                     return;
                                 }
                                 if (isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])) {
-                                    setIsCannotMakeAllTagsOptionalModalVisible(true);
+                                    showConfirmModal({
+                                        title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
+                                        prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
+                                        confirmText: translate('common.buttonConfirm'),
+                                        shouldShowCancelButton: false,
+                                    });
                                     return;
                                 }
                                 setPolicyTagsRequired(policyData, on, orderWeight);
@@ -433,33 +447,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         showScrollIndicator
                     />
                 )}
-                <ConfirmModal
-                    isVisible={isCannotDeleteOrDisableLastTagModalVisible}
-                    onConfirm={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
-                    title={translate('workspace.tags.cannotDeleteOrDisableAllTags.title')}
-                    prompt={translate('workspace.tags.cannotDeleteOrDisableAllTags.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-                <ConfirmModal
-                    isVisible={isCannotMakeAllTagsOptionalModalVisible}
-                    onConfirm={() => setIsCannotMakeAllTagsOptionalModalVisible(false)}
-                    onCancel={() => setIsCannotMakeAllTagsOptionalModalVisible(false)}
-                    title={translate('workspace.tags.cannotMakeAllTagsOptional.title')}
-                    prompt={translate('workspace.tags.cannotMakeAllTagsOptional.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-                <ConfirmModal
-                    isVisible={isRequiresMultiLevelTagsModalVisible}
-                    onConfirm={() => setIsRequiresMultiLevelTagsModalVisible(false)}
-                    onCancel={() => setIsRequiresMultiLevelTagsModalVisible(false)}
-                    title={translate('workspace.tags.cannotMakeTagListRequired.title')}
-                    prompt={translate('workspace.tags.cannotMakeTagListRequired.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
