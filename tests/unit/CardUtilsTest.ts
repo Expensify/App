@@ -6,8 +6,10 @@ import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import {
     checkIfFeedConnectionIsBroken,
+    doesCardFeedExist,
     filterInactiveCards,
     flatAllCardsList,
     formatCardExpiration,
@@ -22,7 +24,9 @@ import {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
+    getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
+    getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
     getMonthFromExpirationDateString,
@@ -46,6 +50,11 @@ import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock
+function translateMock<TPath extends TranslationPaths>(path: TPath, ...phraseParameters: TranslationParameters<TPath>): string {
+    return path;
+}
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
@@ -596,6 +605,101 @@ describe('CardUtils', () => {
             const companyCardNickname = cardFeedsCollection.FAKE_ID_7?.settings?.companyCardNicknames?.[unknownFeed];
             const feedName = getCustomOrFormattedFeedName(unknownFeed, companyCardNickname);
             expect(feedName).toBe(unknownFeed);
+        });
+    });
+
+    describe('doesCardFeedExist', () => {
+        it('Should return true if feed exists in cardFeeds', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(true);
+        });
+
+        it('Should return false if feed has pendingAction delete', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(false);
+        });
+
+        it('Should return false if feed is undefined', () => {
+            const feed = undefined;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(false);
+        });
+
+        it('Should return false if cardFeeds is undefined', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const exists = doesCardFeedExist(feed, undefined);
+            expect(exists).toBe(false);
+        });
+    });
+
+    describe('getCustomFeedNameFromFeeds', () => {
+        it('Should return custom feed name if it exists', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const customName = getCustomFeedNameFromFeeds(cardFeedsCollection, feed);
+            expect(customName).toBe(customFeedName);
+        });
+
+        it('Should return undefined if no custom feed name exists', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const customName = getCustomFeedNameFromFeeds(cardFeedsCollection, feed);
+            expect(customName).toBe(undefined);
+        });
+
+        it('Should return undefined if feed is undefined', () => {
+            const feed = undefined;
+            const customName = getCustomFeedNameFromFeeds(cardFeedsCollection, feed);
+            expect(customName).toBe(undefined);
+        });
+
+        it('Should return undefined if cardFeeds is undefined', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const customName = getCustomFeedNameFromFeeds(undefined, feed);
+            expect(customName).toBe(undefined);
+        });
+    });
+
+    describe('getFeedNameForDisplay', () => {
+        beforeAll(() => {
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
+        });
+
+        it('Should return "Deleted Feed" if feed does not exist', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
+            const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_2: cardFeedsCollection.FAKE_ID_2});
+            expect(feedName).toBe('workspace.companyCards.deletedFeed');
+        });
+
+        it('Should return custom name if provided via parameter', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, customFeedName);
+            expect(feedName).toBe(customFeedName);
+        });
+
+        it('Should return custom name from cardFeeds if no parameter provided', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const feedName = getFeedNameForDisplay(translateMock, feed, cardFeedsCollection);
+            expect(feedName).toBe(customFeedName);
+        });
+
+        it('Should return formatted feed name if no custom name exists', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
+            expect(feedName).toBe('Chase cards');
+        });
+
+        it('Should return undefined if feed is undefined', () => {
+            const feed = undefined;
+            const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
+            expect(feedName).toBe(undefined);
+        });
+
+        it('Should return formatted name without "cards" suffix when shouldAddCardsSuffix is false', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, undefined, false);
+            expect(feedName).toBe('Chase');
         });
     });
 
