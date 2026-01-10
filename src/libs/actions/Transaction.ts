@@ -246,6 +246,7 @@ function getOnyxDataForRouteRequest(transactionID: string, transactionState: Tra
             break;
         case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
             keyPrefix = ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT;
+            break;
         case CONST.TRANSACTION.STATE.BACKUP:
             keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_BACKUP;
             break;
