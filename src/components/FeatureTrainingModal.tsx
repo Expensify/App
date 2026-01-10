@@ -393,8 +393,8 @@ function FeatureTrainingModal({
     const Wrapper = shouldUseScrollView ? ScrollView : View;
 
     const wrapperStyles = useMemo(
-        () => (shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets, isKeyboardActive) : {}),
-        [shouldUseScrollView, StyleUtils, insets, isKeyboardActive],
+        () => (shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets, isKeyboardActive, shouldUseNarrowLayout) : {}),
+        [shouldUseScrollView, StyleUtils, insets, isKeyboardActive, shouldUseNarrowLayout],
     );
 
     return (
