@@ -89,6 +89,7 @@ function IOURequestStepDistanceManual({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
@@ -229,6 +230,7 @@ function IOURequestStepDistanceManual({
                             introSelected,
                             activePolicyID,
                             quickAction,
+                            allBetas,
                         });
                         return;
                     }
@@ -259,6 +261,7 @@ function IOURequestStepDistanceManual({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        allBetas,
                     });
                     return;
                 }
@@ -324,6 +327,7 @@ function IOURequestStepDistanceManual({
             personalPolicy?.autoReporting,
             transactionViolations,
             quickAction,
+            allBetas,
             introSelected,
             activePolicyID,
         ],

@@ -39,7 +39,7 @@ describe('libs/NextStepUtils', () => {
             icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             message: [],
         };
-        const report = buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
+        const report = buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD, [CONST.BETAS.ALL]) as Report;
 
         beforeAll(() => {
             const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
@@ -85,6 +85,7 @@ describe('libs/NextStepUtils', () => {
                     'fake-parent-report-action-id-4',
                     policy,
                     '2025-03-31 13:23:11',
+                    [CONST.BETAS.ALL],
                 );
 
                 optimisticNextStep.message = [

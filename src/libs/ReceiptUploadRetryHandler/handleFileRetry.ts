@@ -1,8 +1,10 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import type Beta from '@src/types/onyx/Beta';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 
-export default function handleFileRetry(message: ReceiptError, file: File, dismissError: () => void, setShouldShowErrorModal: (value: boolean) => void) {
+export default function handleFileRetry(message: ReceiptError, file: File, dismissError: () => void, setShouldShowErrorModal: (value: boolean) => void, allBetas: OnyxEntry<Beta[]>) {
     const retryParams: IOU.ReplaceReceipt | IOU.StartSplitBilActionParams | IOU.CreateTrackExpenseParams | IOU.RequestMoneyInformation =
         typeof message.retryParams === 'string'
             ? (JSON.parse(message.retryParams) as IOU.ReplaceReceipt | IOU.StartSplitBilActionParams | IOU.CreateTrackExpenseParams | IOU.RequestMoneyInformation)
@@ -39,6 +41,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             requestMoneyParams.transactionParams.receipt = file;
             requestMoneyParams.isRetry = true;
             requestMoneyParams.shouldPlaySound = false;
+            requestMoneyParams.allBetas = allBetas;
             IOU.requestMoney(requestMoneyParams);
             break;
         }

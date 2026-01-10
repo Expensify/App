@@ -150,6 +150,7 @@ function IOURequestStepDistance({
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const iouRequestType = getRequestType(transaction);
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -359,6 +360,7 @@ function IOURequestStepDistance({
                         introSelected,
                         activePolicyID,
                         quickAction,
+                        allBetas,
                     });
                     return;
                 }
@@ -390,6 +392,7 @@ function IOURequestStepDistance({
                     transactionViolations,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    allBetas,
                 });
                 return;
             }
@@ -458,6 +461,7 @@ function IOURequestStepDistance({
         transactionViolations,
         currentUserPersonalDetails.accountID,
         quickAction,
+        allBetas,
         introSelected,
         activePolicyID,
     ]);

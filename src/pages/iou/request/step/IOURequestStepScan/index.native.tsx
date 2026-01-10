@@ -116,6 +116,7 @@ function IOURequestStepScan({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -345,6 +346,7 @@ function IOURequestStepScan({
                         introSelected,
                         activePolicyID,
                         quickAction,
+                        allBetas,
                     });
                 } else {
                     requestMoney({
@@ -374,6 +376,7 @@ function IOURequestStepScan({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        allBetas,
                     });
                 }
             }
@@ -393,6 +396,7 @@ function IOURequestStepScan({
             activePolicyID,
             quickAction,
             policyRecentlyUsedCurrencies,
+            allBetas,
         ],
     );
 
