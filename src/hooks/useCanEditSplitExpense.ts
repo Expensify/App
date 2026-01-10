@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import {getIOUActionForTransactions} from '@libs/actions/IOU';
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -10,15 +9,9 @@ function useCanEditSplitExpense(
     splitExpenseTransactionID: string | undefined,
 ): {isEditingSplitExpense: boolean; canEditSplitExpense: boolean | undefined} {
     const isEditingSplitAmount = !!Number(splitExpenseTransactionID);
-
     const isChatReportArchived = useReportIsArchived(transactionReport?.chatReportID);
-    const splitIOUAction = useMemo(
-        () => getIOUActionForTransactions([splitExpenseTransactionID], transactionReport?.reportID).at(0),
-        [splitExpenseTransactionID, transactionReport?.reportID],
-    );
-    const canEditSplitAmount = useMemo(() => {
-        return canEditFieldOfMoneyRequest(splitIOUAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived);
-    }, [splitIOUAction, isChatReportArchived]);
+    const splitIOUAction = getIOUActionForTransactions([splitExpenseTransactionID], transactionReport?.reportID).at(0);
+    const canEditSplitAmount = canEditFieldOfMoneyRequest(splitIOUAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived);
 
     if (isEditingSplitAmount) {
         return {isEditingSplitExpense: true, canEditSplitExpense: canEditSplitAmount};
