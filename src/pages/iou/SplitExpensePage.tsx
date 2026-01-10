@@ -339,9 +339,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const footerContent = useMemo(() => {
         const shouldShowLessThanOriginalWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
-        const shouldShouwGreaterThanOriginalErrorMessage = sumOfSplitExpenses > transactionDetailsAmount;
+        const shouldShowGreaterThanOriginalErrorMessage = sumOfSplitExpenses > transactionDetailsAmount;
         let warningMessage = '';
-        if (shouldShouwGreaterThanOriginalErrorMessage && isDistance) {
+        if (shouldShowGreaterThanOriginalErrorMessage && isDistance) {
             const difference = sumOfSplitExpenses - transactionDetailsAmount;
             warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
         } else if (shouldShowLessThanOriginalWarningMessage) {
@@ -354,7 +354,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError={!!errorMessage}
-                        isInfo={!errorMessage && (shouldShowLessThanOriginalWarningMessage || shouldShouwGreaterThanOriginalErrorMessage)}
+                        isInfo={!errorMessage && (shouldShowLessThanOriginalWarningMessage || shouldShowGreaterThanOriginalErrorMessage)}
                         message={errorMessage || warningMessage}
                     />
                 )}
