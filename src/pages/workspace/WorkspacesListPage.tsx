@@ -51,6 +51,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {
+    getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
     isPendingDeletePolicy,
@@ -272,13 +273,7 @@ function WorkspacesListPage() {
     };
 
     const confirmModalPrompt = () => {
-        const exporters = [
-            policyToLeave?.connections?.intacct?.config?.export?.exporter,
-            policyToLeave?.connections?.quickbooksDesktop?.config?.export?.exporter,
-            policyToLeave?.connections?.quickbooksOnline?.config?.export?.exporter,
-            policyToLeave?.connections?.xero?.config?.export?.exporter,
-            policyToLeave?.connections?.netsuite?.options?.config?.exporter,
-        ];
+        const exporters = getConnectionExporters(policyToLeave);
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
         const technicalContact = policyToLeave?.technicalContact;
         const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);

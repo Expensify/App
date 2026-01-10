@@ -45,7 +45,15 @@ import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyAuditor, isPolicyOwner} from '@libs/PolicyUtils';
+import {
+    getConnectionExporters,
+    getUserFriendlyWorkspaceType,
+    goBackFromInvalidPolicy,
+    isPendingDeletePolicy,
+    isPolicyAdmin as isPolicyAdminPolicyUtils,
+    isPolicyAuditor,
+    isPolicyOwner,
+} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -338,13 +346,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [policy?.achAccount?.reimburser, session?.email]);
 
     const confirmModalPrompt = () => {
-        const exporters = [
-            policy?.connections?.intacct?.config?.export?.exporter,
-            policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
-            policy?.connections?.quickbooksOnline?.config?.export?.exporter,
-            policy?.connections?.xero?.config?.export?.exporter,
-            policy?.connections?.netsuite?.options?.config?.exporter,
-        ];
+        const exporters = getConnectionExporters(policy);
         const policyOwnerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
         const technicalContact = policy?.technicalContact;
         const isCurrentUserReimburser = policy?.achAccount?.reimburser === session?.email;
