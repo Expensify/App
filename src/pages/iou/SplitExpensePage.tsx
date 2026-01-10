@@ -47,7 +47,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {canEditFieldOfMoneyRequest, getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -318,7 +318,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseValueChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-                isEditable: isEditingSplitExpense ? canEditSplitExpense : (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
+                isEditable: isEditingSplitExpense ? !!canEditSplitExpense : (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
             };
         });
 
