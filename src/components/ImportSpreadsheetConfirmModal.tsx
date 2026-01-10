@@ -31,13 +31,20 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
             return;
         }
         const title = spreadsheet.importFinalModal.titleKey ? translate(spreadsheet.importFinalModal.titleKey) : '';
+
+        // Workaround for old data persisted in Onyx after a version update
+        let params: unknown[] = [];
+        if (spreadsheet.importFinalModal.promptKey) {
+            if (Array.isArray(spreadsheet.importFinalModal.promptKeyParams)) {
+                params = spreadsheet.importFinalModal.promptKeyParams;
+            } else if (typeof spreadsheet.importFinalModal.promptKeyParams === 'object') {
+                const legacy = spreadsheet.importFinalModal.promptKeyParams as Record<string, unknown>;
+                params = 'added' in legacy && 'updated' in legacy ? [legacy.added, legacy.updated] : Object.values(legacy);
+            }
+        }
+
         const prompt = spreadsheet.importFinalModal.promptKey
-            ? translate(
-                  spreadsheet.importFinalModal.promptKey,
-                  ...((spreadsheet.importFinalModal.promptKeyParams ? spreadsheet.importFinalModal.promptKeyParams : []) as TranslationParameters<
-                      typeof spreadsheet.importFinalModal.promptKey
-                  >),
-              )
+            ? translate(spreadsheet.importFinalModal.promptKey, ...(params as TranslationParameters<typeof spreadsheet.importFinalModal.promptKey>))
             : '';
         setTitleText(title);
         setPromptText(prompt);
