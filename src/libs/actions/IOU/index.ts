@@ -8753,11 +8753,15 @@ function getCleanUpTransactionThreadReportOnyxData({
     shouldDeleteTransactionThread,
     reportAction,
     isChatIOUReportArchived,
+    updatedReportPreviewAction,
+    shouldAddUpdatedReportPreviewActionToOnyxData = true,
 }: {
     transactionThreadID?: string;
     shouldDeleteTransactionThread: boolean;
     reportAction?: ReportAction;
     isChatIOUReportArchived?: boolean;
+    updatedReportPreviewAction?: ReportAction;
+    shouldAddUpdatedReportPreviewActionToOnyxData?: boolean;
 }) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -8796,7 +8800,7 @@ function getCleanUpTransactionThreadReportOnyxData({
         );
         if (transactionThread) {
             successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
                 value: null,
             });
@@ -8819,7 +8823,7 @@ function getCleanUpTransactionThreadReportOnyxData({
     const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
-    const reportPreviewAction = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+    let reportPreviewAction = updatedReportPreviewAction ?? getReportPreviewAction(chatReport?.reportID, iouReport?.reportID) ?? undefined;
     if (
         reportPreviewAction?.reportActionID &&
         reportPreviewAction?.childVisibleActionCount &&
@@ -8837,43 +8841,48 @@ function getCleanUpTransactionThreadReportOnyxData({
         const lastVisibleAction = getLastVisibleAction(iouReportID, canUserPerformWriteAction);
 
         const {childVisibleActionCount, childCommenterCount, childLastVisibleActionCreated, childOldestFourAccountIDs} = updateOptimisticParentReportAction(
-            reportPreviewAction as ReportAction,
+            reportPreviewAction,
             lastVisibleAction?.childLastVisibleActionCreated ?? lastVisibleAction?.created ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             reportAction.childVisibleActionCount,
         );
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [reportPreviewAction.reportActionID]: {
-                    childVisibleActionCount,
-                    childCommenterCount,
-                    childLastVisibleActionCreated,
-                    childOldestFourAccountIDs,
+        if (shouldAddUpdatedReportPreviewActionToOnyxData) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [reportPreviewAction.reportActionID]: {
+                        childVisibleActionCount,
+                        childCommenterCount,
+                        childLastVisibleActionCreated,
+                        childOldestFourAccountIDs,
+                    },
                 },
-            },
-        });
+            });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [reportPreviewAction.reportActionID]: {
-                    childVisibleActionCount: reportPreviewAction.childVisibleActionCount,
-                    childCommenterCount: reportPreviewAction.childCommenterCount,
-                    childLastVisibleActionCreated: reportPreviewAction.childLastVisibleActionCreated,
-                    childOldestFourAccountIDs: reportPreviewAction.childOldestFourAccountIDs,
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [reportPreviewAction.reportActionID]: {
+                        childVisibleActionCount: reportPreviewAction.childVisibleActionCount,
+                        childCommenterCount: reportPreviewAction.childCommenterCount,
+                        childLastVisibleActionCreated: reportPreviewAction.childLastVisibleActionCreated,
+                        childOldestFourAccountIDs: reportPreviewAction.childOldestFourAccountIDs,
+                    },
                 },
-            },
-        });
+            });
+        }
+
+        reportPreviewAction = {...reportPreviewAction, childVisibleActionCount, childCommenterCount, childLastVisibleActionCreated, childOldestFourAccountIDs};
     }
 
     return {
         optimisticData,
         successData,
         failureData,
+        updatedReportPreviewAction: reportPreviewAction,
     };
 }
 
@@ -12372,17 +12381,21 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
     const cleanUpTransactionThreadReportsOptimisticData = [];
     const cleanUpTransactionThreadReportsSuccessData = [];
     const cleanUpTransactionThreadReportsFailureData = [];
-    for (const iouAction of iouActionsToDelete) {
+    let updatedReportPreviewAction;
+    for (const [index, iouAction] of Object.entries(iouActionsToDelete)) {
         const transactionThreadID = iouAction.childReportID;
         const shouldDeleteTransactionThread = !!transactionThreadID;
         const cleanUpTransactionThreadReportOnyxDataForIouAction = getCleanUpTransactionThreadReportOnyxData({
             transactionThreadID,
             shouldDeleteTransactionThread,
             reportAction: iouAction,
+            updatedReportPreviewAction,
+            shouldAddUpdatedReportPreviewActionToOnyxData: Number(index) === iouActionsToDelete.length - 1,
         });
         cleanUpTransactionThreadReportsOptimisticData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.optimisticData);
         cleanUpTransactionThreadReportsSuccessData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.successData);
         cleanUpTransactionThreadReportsFailureData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.failureData);
+        updatedReportPreviewAction = cleanUpTransactionThreadReportOnyxDataForIouAction.updatedReportPreviewAction;
     }
     const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
 
