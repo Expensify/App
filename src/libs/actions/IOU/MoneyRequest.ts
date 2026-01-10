@@ -468,7 +468,9 @@ function handleMoneyRequestStepDistanceNavigation({
     introSelected,
     activePolicyID,
 }: MoneyRequestStepDistanceNavigationParams) {
-    if (transaction?.splitShares && !manualDistance) {
+    const isManualDistance = manualDistance !== undefined;
+
+    if (transaction?.splitShares && !isManualDistance) {
         resetSplitShares(transaction);
     }
     if (backTo) {
@@ -513,8 +515,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         merchant: translate('iou.fieldPending'),
                         receipt: {},
                         billable: false,
-                        reimbursable: manualDistance ? undefined : true,
-                        validWaypoints: manualDistance ? undefined : getValidWaypoints(waypoints, true),
+                        reimbursable: isManualDistance ? undefined : true,
+                        validWaypoints: isManualDistance ? undefined : getValidWaypoints(waypoints, true),
                         customUnitRateID,
                         attendees: transaction?.comment?.attendees,
                     },
