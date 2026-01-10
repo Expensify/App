@@ -178,6 +178,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Whether to block scrolling to focused item when the user has just selected a row. */
+    shouldBlockScrollOnSelect?: boolean;
 };
 
 type TextInputOptions = {
