@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, Domain, SamlMetadata} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainPendingActions, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
@@ -17,6 +17,8 @@ const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
         : undefined;
 
 const domainNameSelector = (domain: OnyxEntry<Domain>) => (domain?.email ? Str.extractEmailDomain(domain.email) : undefined);
+
+const domainSettingsPrimaryContactSelector = (domainSettings: OnyxEntry<DomainSettings>) => domainSettings?.settings?.technicalContactEmail;
 
 const metaIdentitySelector = (samlMetadata: OnyxEntry<SamlMetadata>) => samlMetadata?.metaIdentity;
 
@@ -55,12 +57,16 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
 
 const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
+const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
+
 export {
     domainMemberSamlSettingsSelector,
+    domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,
     domainNameSelector,
     metaIdentitySelector,
     adminAccountIDsSelector,
     technicalContactSettingsSelector,
     domainEmailSelector,
+    adminPendingActionSelector,
 };

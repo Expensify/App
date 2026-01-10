@@ -254,6 +254,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dismiss: 'Zamknij',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Kontynuuj',
+        unshare: 'Cofnij udostępnianie',
         yes: 'Tak',
         no: 'Nie',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -2105,6 +2106,11 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountEmptyTitle: 'Brak dostępnych administratorów',
         shareBankAccountEmptyDescription: 'Brak administratorów obszaru roboczego, z którymi można udostępnić to konto bankowe.',
         shareBankAccountNoAdminsSelected: 'Wybierz administratora przed kontynuowaniem',
+        unshareBankAccount: 'Anuluj udostępnianie konta bankowego',
+        unshareBankAccountDescription: 'Wszyscy poniżej mają dostęp do tego konta bankowego. Możesz go usunąć w dowolnym momencie. Nadal będziemy realizować wszystkie płatności w toku.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} utraci dostęp do tego firmowego konta bankowego. Nadal będziemy realizować wszystkie płatności w toku.`,
+        reachOutForHelp: 'Jest ono używane z kartą Expensify. <concierge-link>Skontaktuj się z Concierge</concierge-link>, jeśli chcesz je anulować.',
+        unshareErrorModalTitle: 'Nie można anulować udostępniania konta bankowego',
     },
     cardPage: {
         expensifyCard: 'Karta Expensify',
@@ -7871,6 +7877,9 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             addAdmin: 'Dodaj administratora',
             invite: 'Zaproś',
             addAdminError: 'Nie można dodać tego członka jako administratora. Spróbuj ponownie.',
+            revokeAdminAccess: 'Cofnij uprawnienia administratora',
+            cantRevokeAdminAccess: 'Nie można odebrać uprawnień administratora kontaktowi technicznemu',
+            error: {removeAdmin: 'Nie można usunąć tego użytkownika jako administratora. Spróbuj ponownie.'},
         },
     },
     gps: {

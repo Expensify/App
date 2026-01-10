@@ -3073,6 +3073,8 @@ function getColumnsToShow(
     type?: SearchDataTypes,
     groupBy?: SearchGroupBy,
     isExpenseReportViewFromIOUReport = false,
+    shouldShowBillableColumn = false,
+    shouldShowReimbursableColumn = false,
 ): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -3201,6 +3203,8 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
+              [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
           }
