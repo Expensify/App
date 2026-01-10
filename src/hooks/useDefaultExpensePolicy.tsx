@@ -12,7 +12,7 @@ export default function useDefaultExpensePolicy() {
     const {login = ''} = useCurrentUserPersonalDetails();
     const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {canBeMissing: true});
 
-    if (isRestrictedToPreferredPolicy && isPaidGroupPolicy(preferredPolicy)) {
+    if (isRestrictedToPreferredPolicy && isPaidGroupPolicy(preferredPolicy) && isPolicyAccessible(preferredPolicy, login)) {
         return preferredPolicy;
     }
 
