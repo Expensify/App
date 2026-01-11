@@ -324,7 +324,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         errors={getLatestErrorField(loginData, 'addedLogin')}
                         errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
                         onDismiss={() => {
-                            clearContactMethod(contactMethod);
+                            clearContactMethod([contactMethod]);
                             clearUnvalidatedNewContactMethodAction();
                             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
                         }}
@@ -349,7 +349,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             }
                             requestContactMethodValidateCode(contactMethod);
                         }}
-                        descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
+                        descriptionPrimary={translate('contacts.enterMagicCode', formattedContactMethod)}
                         ref={validateCodeFormRef}
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />

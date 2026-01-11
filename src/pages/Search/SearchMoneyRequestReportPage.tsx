@@ -220,7 +220,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         testID="SearchMoneyRequestReportPage"
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
-                        headerGapStyles={styles.searchHeaderGap}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
@@ -254,7 +253,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     testID="SearchMoneyRequestReportPage"
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
-                    headerGapStyles={[styles.searchHeaderGap, styles.h0]}
                 >
                     <View style={[styles.searchSplitContainer, styles.flexColumn, styles.flex1]}>
                         <FullPageNotFoundView
