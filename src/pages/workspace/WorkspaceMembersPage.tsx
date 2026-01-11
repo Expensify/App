@@ -641,6 +641,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         return options;
     };
 
+    const showRequiresInternetModal = () => {
+        showConfirmModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.thisFeatureRequiresInternet'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack: true,
+        });
+    };
+
     const secondaryActions = useMemo(() => {
         if (!isPolicyAdmin) {
             return [];
@@ -656,15 +666,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         return;
                     }
                     if (isOffline) {
-                        close(() => {
-                            showConfirmModal({
-                                title: translate('common.youAppearToBeOffline'),
-                                prompt: translate('common.thisFeatureRequiresInternet'),
-                                confirmText: translate('common.buttonConfirm'),
-                                shouldShowCancelButton: false,
-                                shouldHandleNavigationBack: true,
-                            });
-                        });
+                        close(showRequiresInternetModal);
                         return;
                     }
                     Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID));
@@ -676,15 +678,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
-                        close(() => {
-                            showConfirmModal({
-                                title: translate('common.youAppearToBeOffline'),
-                                prompt: translate('common.thisFeatureRequiresInternet'),
-                                confirmText: translate('common.buttonConfirm'),
-                                shouldShowCancelButton: false,
-                                shouldHandleNavigationBack: true,
-                            });
-                        });
+                        close(showRequiresInternetModal);
                         return;
                     }
 
