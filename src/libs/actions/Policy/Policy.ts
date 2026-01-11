@@ -451,6 +451,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             .filter((p) => p && p.id !== activePolicyID && p.type !== CONST.POLICY.TYPE.PERSONAL && p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .sort((policyA, policyB) => localeCompare(policyB?.created ?? '', policyA?.created ?? ''))
             .at(0);
+
         const newActivePolicyID = mostRecentlyCreatedGroupPolicy?.id ?? personalPolicyID;
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
