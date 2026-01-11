@@ -510,7 +510,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(`${ROUTES.ONBOARDING_WORKSPACES.getRoute()}?backTo=${encodeURIComponent(ROUTES.ONBOARDING_PERSONAL_DETAILS.route)}`, {forceReplace: true});
         });
 
         unmount();
