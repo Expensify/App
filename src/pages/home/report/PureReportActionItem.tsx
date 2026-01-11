@@ -71,6 +71,7 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getDemotedFromWorkspaceMessage,
@@ -1556,6 +1557,14 @@ function PureReportActionItem({
             children = (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
+            const {originalID} = getOriginalMessage(action) ?? {};
+            const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`]);
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionableMentionWhisper(action)) {

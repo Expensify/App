@@ -121,6 +121,7 @@ import {
     buildOptimisticChangeApproverReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
+    buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticDetachReceipt,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticExpenseReport,
@@ -486,6 +487,7 @@ type PerDiemExpenseInformation = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
 };
 
@@ -500,6 +502,7 @@ type PerDiemExpenseInformationParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
 };
 
@@ -524,6 +527,7 @@ type RequestMoneyInformation = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
 };
 
@@ -552,6 +556,7 @@ type MoneyRequestInformationParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
 };
 
@@ -597,6 +602,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -788,6 +794,7 @@ type UpdateSplitTransactionsParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
 };
 
@@ -917,15 +924,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         deprecatedCurrentUserPersonalDetails = value?.[userAccountID] ?? undefined;
-    },
-});
-
-let deprecatedQuickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-Onyx.connect({
-    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-    callback: (value) => {
-        deprecatedQuickAction = value;
     },
 });
 
@@ -1612,6 +1610,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -2143,13 +2142,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 action: newQuickAction,
                 chatReportID: chat.report?.reportID,
-                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
+                isFirstQuickAction: isEmptyObject(quickAction),
             },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: deprecatedQuickAction ?? null,
+            value: quickAction ?? null,
         });
     }
 
@@ -2962,6 +2961,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserAccountIDParam,
         currentUserEmailParam,
         transactionViolations,
+        quickAction,
         policyRecentlyUsedCurrencies,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
@@ -3247,6 +3247,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
     });
 
     return {
@@ -3347,6 +3348,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
         policyRecentlyUsedCurrencies,
     } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
@@ -3557,6 +3559,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
     });
 
     return {
@@ -5481,6 +5484,7 @@ function convertBulkTrackedExpensesToIOU(
     currentUserEmailParam: string,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     policyRecentlyUsedCurrencies: string[],
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
 ) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
 
@@ -5601,6 +5605,7 @@ function convertBulkTrackedExpensesToIOU(
             currentUserAccountIDParam,
             currentUserEmailParam,
             transactionViolations,
+            quickAction,
             policyRecentlyUsedCurrencies,
         });
 
@@ -5828,6 +5833,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         currentUserAccountIDParam,
         currentUserEmailParam,
         transactionViolations,
+        quickAction,
         policyRecentlyUsedCurrencies,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
@@ -5925,6 +5931,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         currentUserAccountIDParam,
         currentUserEmailParam,
         transactionViolations,
+        quickAction,
         policyRecentlyUsedCurrencies,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
@@ -6088,6 +6095,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
         policyRecentlyUsedCurrencies,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
@@ -6133,6 +6141,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
         policyRecentlyUsedCurrencies,
     });
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
@@ -6583,6 +6592,7 @@ function duplicateExpenseTransaction({
         currentUserEmailParam: currentUserEmail,
         transactionViolations: {},
         policyRecentlyUsedCurrencies,
+        quickAction,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -7105,6 +7115,7 @@ function createSplitsAndOnyxData({
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserEmail,
             hasViolations,
+            quickAction,
         });
 
         const individualSplit = {
@@ -7740,6 +7751,7 @@ function completeSplitBill(
     updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
     sessionAccountID: number,
     isASAPSubmitBetaEnabled: boolean,
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     sessionEmail?: string,
 ) {
@@ -7944,6 +7956,7 @@ function completeSplitBill(
                 },
                 policyRecentlyUsed: {},
             },
+            quickAction,
         });
 
         splits.push({
@@ -8199,6 +8212,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             transactionViolations,
+            quickAction,
             policyRecentlyUsedCurrencies,
         });
 
@@ -9206,15 +9220,24 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
     return {holdReportActions, holdTransactions};
 }
 
-function getReportFromHoldRequestsOnyxData(
-    chatReport: OnyxTypes.Report,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    recipient: Participant,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    createdTimestamp?: string,
-): {
+function getReportFromHoldRequestsOnyxData({
+    chatReport,
+    iouReport,
+    recipient,
+    policy,
+    createdTimestamp,
+    isApprovalFlow = false,
+}: {
+    chatReport: OnyxTypes.Report;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    recipient: Participant;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    createdTimestamp?: string;
+    isApprovalFlow?: boolean;
+}): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
+    optimisticCreatedReportForUnapprovedTransactionsActionID: string | undefined;
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
@@ -9260,6 +9283,11 @@ function getReportFromHoldRequestsOnyxData(
         optimisticExpenseReport.reportID,
         newParentReportActionID,
     );
+
+    let optimisticCreatedReportForUnapprovedAction: ReportAction | null = null;
+    if (isApprovalFlow) {
+        optimisticCreatedReportForUnapprovedAction = buildOptimisticCreatedReportForUnapprovedAction(optimisticExpenseReport.reportID, iouReport?.reportID);
+    }
 
     const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
@@ -9445,9 +9473,40 @@ function getReportFromHoldRequestsOnyxData(
         },
     ];
 
+    // add optimistic system message explaining the created report for unapproved transactions
+    if (isApprovalFlow && optimisticCreatedReportForUnapprovedAction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: {
+                [optimisticCreatedReportForUnapprovedAction.reportActionID]: optimisticCreatedReportForUnapprovedAction,
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: {
+                [optimisticCreatedReportForUnapprovedAction.reportActionID]: {
+                    pendingAction: null,
+                    isOptimisticAction: null,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: {
+                [optimisticCreatedReportForUnapprovedAction.reportActionID]: null,
+            },
+        });
+    }
+
     return {
         optimisticData,
         optimisticHoldActionID: optimisticExpenseReportPreview.reportActionID,
+        optimisticCreatedReportForUnapprovedTransactionsActionID: optimisticCreatedReportForUnapprovedAction?.reportActionID,
         failureData,
         successData,
         optimisticHoldReportID: optimisticExpenseReport.reportID,
@@ -9776,7 +9835,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, iouReport, recipient, reportPolicy);
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy});
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
         successData.push(...holdReportOnyxData.successData);
@@ -10027,7 +10086,7 @@ function approveMoneyRequest(
     });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
-    const optimisticReportActionsData: OnyxUpdate = {
+    const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
@@ -10050,13 +10109,13 @@ function approveMoneyRequest(
             nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         },
     };
-    const optimisticIOUReportData: OnyxUpdate = {
+    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: updatedExpenseReport,
     };
 
-    let optimisticChatReportData: OnyxUpdate | undefined;
+    let optimisticChatReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> | undefined;
     if (chatReport) {
         optimisticChatReportData = {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -10067,12 +10126,11 @@ function approveMoneyRequest(
         };
     }
 
-    const optimisticNextStepData: OnyxUpdate = {
+    const optimisticNextStepData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStepDeprecated,
     };
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData, ...(optimisticChatReportData ? [optimisticChatReportData] : [])];
 
@@ -10155,15 +10213,24 @@ function approveMoneyRequest(
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
+    let optimisticCreatedReportForUnapprovedTransactionsActionID;
     if (!full && !!chatReport && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID}, policy, originalCreated);
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
+            chatReport,
+            iouReport: expenseReport,
+            recipient: {accountID: expenseReport.ownerAccountID},
+            policy,
+            createdTimestamp: originalCreated,
+            isApprovalFlow: true,
+        });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
         successData.push(...holdReportOnyxData.successData);
         failureData.push(...holdReportOnyxData.failureData);
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
+        optimisticCreatedReportForUnapprovedTransactionsActionID = holdReportOnyxData.optimisticCreatedReportForUnapprovedTransactionsActionID;
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
     }
 
@@ -10207,6 +10274,7 @@ function approveMoneyRequest(
         optimisticHoldReportID,
         optimisticHoldActionID,
         optimisticHoldReportExpenseActionIDs,
+        optimisticCreatedReportForUnapprovedTransactionsActionID,
     };
 
     playSound(SOUNDS.SUCCESS);
@@ -10253,7 +10321,7 @@ function reopenReport(
         isASAPSubmitBetaEnabled,
         isReopen: true,
     });
-    const optimisticReportActionsData: OnyxUpdate = {
+    const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
@@ -10263,7 +10331,7 @@ function reopenReport(
             },
         },
     };
-    const optimisticIOUReportData: OnyxUpdate = {
+    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
@@ -10281,7 +10349,7 @@ function reopenReport(
         },
     };
 
-    const optimisticNextStepData: OnyxUpdate = {
+    const optimisticNextStepData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStepDeprecated,
@@ -10412,7 +10480,7 @@ function retractReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
     });
-    const optimisticReportActionsData: OnyxUpdate = {
+    const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
@@ -10422,7 +10490,7 @@ function retractReport(
             },
         },
     };
-    const optimisticIOUReportData: OnyxUpdate = {
+    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
@@ -10440,7 +10508,7 @@ function retractReport(
         },
     };
 
-    const optimisticNextStepData: OnyxUpdate = {
+    const optimisticNextStepData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStepDeprecated,
@@ -10589,7 +10657,7 @@ function unapproveExpenseReport(
         isUnapprove: true,
     });
 
-    const optimisticReportActionData: OnyxUpdate = {
+    const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
@@ -10599,7 +10667,7 @@ function unapproveExpenseReport(
             },
         },
     };
-    const optimisticIOUReportData: OnyxUpdate = {
+    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
@@ -10617,7 +10685,7 @@ function unapproveExpenseReport(
         },
     };
 
-    const optimisticNextStepData: OnyxUpdate = {
+    const optimisticNextStepData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStepDeprecated,
@@ -11824,7 +11892,9 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         optimisticData.push(parentActionData);
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -11835,7 +11905,13 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     ];
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -11939,6 +12015,67 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         );
     }
 
+    if (iouReport) {
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const optimisticNextStepDeprecated = buildNextStepNew({
+            report: iouReport,
+            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: true,
+            currentUserAccountIDParam: userAccountID,
+            currentUserEmailParam: currentUserEmail,
+        });
+        const optimisticNextStep = buildOptimisticNextStep({
+            report: iouReport,
+            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: true,
+            currentUserAccountIDParam: userAccountID,
+            currentUserEmailParam: currentUserEmail,
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: optimisticNextStepDeprecated,
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                nextStep: optimisticNextStep,
+                pendingFields: {
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                nextStep: iouReport.nextStep ?? null,
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
+        });
+    }
+
     const params: HoldMoneyRequestParams = {
         transactionID,
         comment,
@@ -11967,15 +12104,22 @@ function putTransactionsOnHold(transactionsID: string[], comment: string, report
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string) {
+function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<OnyxTypes.Policy>) {
     const createdReportAction = buildOptimisticUnHoldReportAction();
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -11997,7 +12141,7 @@ function unholdRequest(transactionID: string, reportID: string) {
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [],
+            value: updatedTransactionViolations,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12022,7 +12166,7 @@ function unholdRequest(transactionID: string, reportID: string) {
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -12036,7 +12180,13 @@ function unholdRequest(transactionID: string, reportID: string) {
     ];
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12069,6 +12219,69 @@ function unholdRequest(transactionID: string, reportID: string) {
             },
         },
     ];
+
+    if (iouReport) {
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const optimisticNextStepDeprecated = buildNextStepNew({
+            report: iouReport,
+            policy,
+            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: updatedTransactionViolations.length > 0,
+            currentUserAccountIDParam: userAccountID,
+            currentUserEmailParam: currentUserEmail,
+        });
+        const optimisticNextStep = buildOptimisticNextStep({
+            report: iouReport,
+            policy,
+            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: updatedTransactionViolations.length > 0,
+            currentUserAccountIDParam: userAccountID,
+            currentUserEmailParam: currentUserEmail,
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: optimisticNextStepDeprecated,
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                nextStep: optimisticNextStep,
+                pendingFields: {
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                nextStep: iouReport.nextStep ?? null,
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
+        });
+    }
 
     API.write(
         WRITE_COMMANDS.UNHOLD_MONEY_REQUEST,
@@ -12179,7 +12392,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
-    const optimisticTransactionData: OnyxUpdate = {
+    const optimisticTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
         value: {
@@ -12197,7 +12410,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         },
     };
 
-    const failureTransactionData: OnyxUpdate = {
+    const failureTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -12245,14 +12458,14 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
     }, 0);
 
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
-    const expenseReportOptimisticData: OnyxUpdate = {
+    const expenseReportOptimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
             total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
         },
     };
-    const expenseReportFailureData: OnyxUpdate = {
+    const expenseReportFailureData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
@@ -12263,7 +12476,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
     const iouActionsToDelete = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
 
     const deletedTime = DateUtils.getDBTime();
-    const expenseReportActionsOptimisticData: OnyxUpdate = {
+    const expenseReportActionsOptimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
         value: iouActionsToDelete.reduce<Record<string, PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>((val, reportAction) => {
@@ -12291,7 +12504,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             return val;
         }, {}),
     };
-    const expenseReportActionsFailureData: OnyxUpdate = {
+    const expenseReportActionsFailureData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
         value: iouActionsToDelete.reduce<Record<string, NullishDeep<PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>>((val, reportAction) => {
@@ -12310,7 +12523,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
     const transactionThreadReportID =
         optimisticTransactionThreadReportID ?? (params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined);
-    const optimisticReportActionData: OnyxUpdate = {
+    const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
@@ -12318,7 +12531,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         },
     };
 
-    const failureReportActionData: OnyxUpdate = {
+    const failureReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
@@ -12439,7 +12652,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
 
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
-    const optimisticTransactionData: OnyxUpdate = {
+    const optimisticTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
         value: {
@@ -12457,7 +12670,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         },
     };
 
-    const failureTransactionData: OnyxUpdate = {
+    const failureTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -12545,7 +12758,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     });
 
-    const optimisticReportActionData: OnyxUpdate = {
+    const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
@@ -12553,7 +12766,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         },
     };
 
-    const failureReportActionData: OnyxUpdate = {
+    const failureReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
@@ -13938,6 +14151,7 @@ function updateSplitTransactions({
     isASAPSubmitBetaEnabled,
     currentUserPersonalDetails,
     transactionViolations,
+    quickAction,
     policyRecentlyUsedCurrencies,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
@@ -14073,6 +14287,7 @@ function updateSplitTransactions({
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
+            quickAction,
             policyRecentlyUsedCurrencies,
         } as MoneyRequestInformationParams;
 
@@ -14114,6 +14329,7 @@ function updateSplitTransactions({
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
+            quickAction,
             shouldGenerateTransactionThreadReport: !isReverseSplitOperation,
             policyRecentlyUsedCurrencies,
         });
