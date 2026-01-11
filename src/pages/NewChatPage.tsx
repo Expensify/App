@@ -3,7 +3,7 @@ import reportsSelector from '@selectors/Attributes';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -250,7 +250,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         areOptionsInitialized,
     } = useOptions();
 
-    const [sections, firstKeyForList] = (() => {
+    const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
@@ -300,7 +300,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         }
 
         return [sectionsList, firstKey];
-    })();
+    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, reportAttributesDerived, translate, userToInvite]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
