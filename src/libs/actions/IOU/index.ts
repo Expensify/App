@@ -9583,7 +9583,7 @@ function getPayMoneyRequestParams({
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, allTransactionViolations),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
@@ -10067,7 +10067,7 @@ function approveMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport, currentUserEmail),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport, currentUserEmail, allTransactionViolations),
             },
         };
     }
@@ -13371,7 +13371,7 @@ function prepareRejectMoneyRequestData(
     // Update hasOutstandingChildRequest on the chat report after all optimistic updates
     if (policyExpenseChat) {
         const excludedReportID = rejectedToReportID ?? reportID;
-        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(policyExpenseChat, excludedReportID, currentUserEmail);
+        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(policyExpenseChat, excludedReportID, currentUserEmail, allTransactionViolations);
 
         if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {
             optimisticData.push({

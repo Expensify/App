@@ -307,7 +307,6 @@ import {
     getTaxAmount,
     getTaxCode,
     getAmount as getTransactionAmount,
-    getTransactionViolationsOfTransaction,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
@@ -2882,7 +2881,7 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
                 if (!transactionID) {
                     return false;
                 }
-                const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? getTransactionViolationsOfTransaction(transactionID);
+                const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
                 return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
             });
         const canSubmit = !hasAutoRejectedTransactionsForManager && canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam);

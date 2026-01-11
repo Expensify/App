@@ -5069,7 +5069,7 @@ function deleteAppReport(
         // 1. Update the transaction and its violations
         if (transactionID) {
             const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const transactionViolations = transactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
 
             optimisticData.push(
                 {

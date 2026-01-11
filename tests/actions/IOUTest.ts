@@ -4754,6 +4754,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived: true,
+                    allTransactionViolations: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -4841,6 +4842,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived: true,
+                    allTransactionViolations: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -4915,6 +4917,7 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    allTransactionViolations: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5017,6 +5020,7 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    allTransactionViolations: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5153,6 +5157,7 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    allTransactionViolations: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5234,6 +5239,7 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    allTransactionViolations: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5393,6 +5399,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived: undefined,
+                    allTransactionViolations: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5498,6 +5505,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived: undefined,
+                    allTransactionViolations: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5587,6 +5595,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isSingleTransactionView: true,
+                    allTransactionViolations: {},
                 });
             }
 
@@ -5642,6 +5651,7 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    allTransactionViolations: {},
                 });
             }
             // Then we expect to navigate to the chat report
@@ -5715,6 +5725,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 transactionIDsPendingDeletion: [],
                 selectedTransactionIDs,
+                allTransactionViolations: {},
             });
             deleteMoneyRequest({
                 transactionID: transaction2.transactionID,
@@ -5725,6 +5736,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 transactionIDsPendingDeletion: [transaction1.transactionID],
                 selectedTransactionIDs,
+                allTransactionViolations: {},
             });
 
             await waitForBatchedUpdates();
