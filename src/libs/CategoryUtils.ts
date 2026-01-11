@@ -37,7 +37,6 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
         return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
     }
 
-    // If policy doesn't have receipt requirement set (disabled or undefined), don't show misleading "$0"
     if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoReceipt === undefined) {
         return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
     }
@@ -57,7 +56,6 @@ function formatRequireItemizedReceiptsOverText(translate: LocaleContextProps['tr
         return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
     }
 
-    // If policy doesn't have itemized receipt requirement set (disabled or undefined), don't show misleading "$0"
     if (policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined) {
         return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
     }

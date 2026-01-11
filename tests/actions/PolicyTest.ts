@@ -1559,8 +1559,8 @@ describe('actions/Policy', () => {
     describe('setPolicyMaxExpenseAmountNoItemizedReceipt', () => {
         it('should set itemized receipt required amount', async () => {
             const fakePolicy = createRandomPolicy(0);
-            const testAmount = '75.00';
-            const expectedBackendAmount = 7500; // $75.00 in cents
+            const testAmount = '50.00';
+            const expectedBackendAmount = 5000; // $50.00 in cents
 
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);

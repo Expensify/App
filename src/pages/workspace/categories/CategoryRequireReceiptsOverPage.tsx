@@ -19,12 +19,12 @@ import type SCREENS from '@src/SCREENS';
 
 type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER>;
 
-function getInitiallyFocusedOptionKey(isAlwaysSelected: boolean, isNeverSelected: boolean): ValueOf<typeof CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS> {
+function getInitiallyFocusedOptionKey(isAlwaysSelected: boolean, isNeverSelected: boolean, isPolicyDisabled: boolean): ValueOf<typeof CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS> {
     if (isAlwaysSelected) {
         return CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.ALWAYS;
     }
 
-    if (isNeverSelected) {
+    if (isNeverSelected || isPolicyDisabled) {
         return CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER;
     }
 
@@ -72,8 +72,7 @@ function CategoryRequireReceiptsOverPage({
         },
     ];
 
-    const initiallyFocusedOptionKey =
-        isPolicyReceiptDisabled && !isAlwaysSelected && !isNeverSelected ? CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER : getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected);
+    const initiallyFocusedOptionKey = getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected, isPolicyReceiptDisabled);
 
     return (
         <AccessOrNotFoundWrapper
