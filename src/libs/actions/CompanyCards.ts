@@ -678,7 +678,7 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
 function updateCardTransactionStartDate(domainOrWorkspaceAccountID: number, cardID: string, newStartDate: string, bankName: CompanyCardFeed, oldStartDate?: string) {
     const authToken = NetworkStore.getAuthToken();
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
@@ -696,7 +696,7 @@ function updateCardTransactionStartDate(domainOrWorkspaceAccountID: number, card
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
@@ -710,7 +710,7 @@ function updateCardTransactionStartDate(domainOrWorkspaceAccountID: number, card
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
@@ -868,7 +868,7 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, b
         feed: bankName,
     };
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
@@ -877,7 +877,7 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, b
                     companyCards: {
                         [bankName]: {
                             errors: {
-                                'Card feed fetch error': 'Could not fetch card feed due to an error',
+                                cardFetchError: 'Could not fetch card feed due to an error',
                             },
                         },
                     },
