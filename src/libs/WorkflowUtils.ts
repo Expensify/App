@@ -137,16 +137,24 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
                 }
             }
 
+            // Only set ADD/UPDATE pending actions on the workflow, not DELETE
+            // When a member is being deleted from the workspace, their DELETE pending action
+            // should not affect the workflow's display state
+            const workflowPendingAction = pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? pendingAction : undefined;
+
             approvalWorkflows[submitsTo] = {
                 members: [],
                 approvers,
                 isDefault: defaultApprover === submitsTo,
-                pendingAction,
+                pendingAction: workflowPendingAction,
             };
         }
 
         approvalWorkflows[submitsTo].members.push(member);
-        if (pendingAction) {
+        // Only propagate ADD/UPDATE pending actions to the workflow, not DELETE
+        // When a member is being deleted from the workspace, their DELETE pending action
+        // should not affect the workflow's display state (e.g., strikethrough styling)
+        if (pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             approvalWorkflows[submitsTo].pendingAction = pendingAction;
         }
     }
@@ -365,6 +373,18 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                     ],
                 };
             }
+
+            const hasOverLimitToRemovedApprover = workflow.approvers.some((item) => item.overLimitForwardsTo === removedApproverEmail);
+            if (hasOverLimitToRemovedApprover) {
+                const approversWithClearedOverLimit = workflow.approvers.map((item) =>
+                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                );
+                return {
+                    ...workflow,
+                    approvers: approversWithClearedOverLimit,
+                };
+            }
+
             return workflow;
         }
 
@@ -417,15 +437,28 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             const updateApproversHasOwner = updateApprovers.some((approver) => approver.email === ownerEmail);
 
             // If the owner is already in the approvers list, return the workflow with the updated approvers
+            // but still clear overLimitForwardsTo if it points to the removed member
             if (updateApproversHasOwner) {
+                const approversWithClearedOverLimit = updateApprovers.map((item) =>
+                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                );
                 return {
                     ...workflow,
-                    approvers: updateApprovers,
+                    approvers: approversWithClearedOverLimit,
                 };
             }
 
-            // Update forwardsTo if necessary and prepare the new approver object
-            const updatedApprovers = updateApprovers.flatMap((item) => (item.forwardsTo === removedApproverEmail ? {...item, forwardsTo: ownerEmail} : item));
+            // Update forwardsTo and overLimitForwardsTo if necessary and prepare the new approver object
+            const updatedApprovers = updateApprovers.flatMap((item) => {
+                let updatedItem = item;
+                if (item.forwardsTo === removedApproverEmail) {
+                    updatedItem = {...updatedItem, forwardsTo: ownerEmail};
+                }
+                if (item.overLimitForwardsTo === removedApproverEmail) {
+                    updatedItem = {...updatedItem, overLimitForwardsTo: '', approvalLimit: null};
+                }
+                return updatedItem;
+            });
 
             const newApprover = {
                 email: ownerEmail ?? '',
@@ -438,6 +471,18 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             return {
                 ...workflow,
                 approvers: [...updatedApprovers, newApprover],
+            };
+        }
+
+        // For any other workflow, check if any approver has overLimitForwardsTo pointing to the removed member
+        const hasOverLimitToRemovedApprover = workflow.approvers.some((item) => item.overLimitForwardsTo === removedApproverEmail);
+        if (hasOverLimitToRemovedApprover) {
+            const approversWithClearedOverLimit = workflow.approvers.map((item) =>
+                item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+            );
+            return {
+                ...workflow,
+                approvers: approversWithClearedOverLimit,
             };
         }
 
@@ -488,12 +533,38 @@ function getApprovalLimitDescription({approver, currency, translate, personalDet
     });
 }
 
+/**
+ * Returns business bank accounts that are:
+ * - It has the same currency as the policy (`bankCurrency === policy.outputCurrency`),
+ * - Its state is `OPEN`
+ * - Its type is `BUSINESS`,
+ * - It's linked to the policy's ACH account.
+ *
+ * @param bankAccountList - list of bank accounts
+ * @param policy - given policy
+ */
+function getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policy: OnyxEntry<Policy> | undefined) {
+    if (!bankAccountList || policy === undefined) {
+        return [];
+    }
+
+    return Object.values(bankAccountList).filter((account) => {
+        return (
+            account.bankCurrency === policy?.outputCurrency &&
+            account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            account?.accountData?.bankAccountID === policy?.achAccount?.bankAccountID
+        );
+    });
+}
+
 export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
     getApprovalLimitDescription,
     getEligibleExistingBusinessBankAccounts,
+    getOpenConnectedToPolicyBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
     updateWorkflowDataOnApproverRemoval,
 };

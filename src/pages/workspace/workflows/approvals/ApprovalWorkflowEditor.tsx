@@ -5,12 +5,12 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as ScrollViewRN} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +44,7 @@ type ApprovalWorkflowEditorProps = {
 };
 
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const styles = useThemeStyles();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -118,6 +119,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         [approvalWorkflow.action, policyID],
     );
 
+    const handleExpensesFromPress = useCallback(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID));
+    }, [policyID]);
+
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
         if (!isControlPolicy(policy) && approverCount > 0) {
@@ -150,7 +155,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     numberOfLinesTitle={4}
                     description={translate('workflowsExpensesFromPage.title')}
                     descriptionTextStyle={!!members && styles.textLabelSupportingNormal}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID))}
+                    onPress={handleExpensesFromPress}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     errorText={approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined}
                     brickRoadIndicator={approvalWorkflow?.errors?.members ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -160,10 +165,9 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
-                    const hintText =
-                        !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email)
-                            ? translate('workflowsPage.approverInMultipleWorkflows')
-                            : getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail});
+                    const isApproverInMultipleWorkflows = !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
+                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail});
+                    const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
 
                     return (
                         <OfflineWithFeedback
@@ -180,7 +184,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 onPress={() => editApprover(approverIndex)}
                                 shouldShowRightIcon
                                 hintText={hintText}
-                                shouldRenderHintAsHTML
                                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={errorText}
                                 shouldRenderErrorAsHTML
@@ -201,7 +204,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 {!!removeApprovalWorkflow && !approvalWorkflow.isDefault && (
                     <MenuItem
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                        icon={Expensicons.Trashcan}
+                        icon={icons.Trashcan}
                         title={translate('common.delete')}
                         onPress={removeApprovalWorkflow}
                     />

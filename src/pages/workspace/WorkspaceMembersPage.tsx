@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -8,16 +7,17 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
 // eslint-disable-next-line no-restricted-imports
-import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
+import {Plus} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -90,7 +90,7 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'User', 'UserEye', 'MakeAdmin', 'RemoveMembers', 'Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'User', 'UserEye', 'MakeAdmin', 'RemoveMembers', 'Table', 'FallbackAvatar']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -101,7 +101,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevIsOffline = usePrevious(isOffline);
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
-    const textInputRef = useRef<TextInput>(null);
+    const textInputRef = useRef<BaseTextInputRef>(null);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -135,7 +135,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler']);
@@ -436,7 +436,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 ),
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: details.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -468,6 +468,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         invitedPrimaryToSecondaryLogins,
         policyOwner,
         currentUserLogin,
+        icons.FallbackAvatar,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
@@ -769,6 +770,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         </>
     );
 
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: shouldUseNarrowLayout ? headerMessage : undefined,
+            ref: textInputRef,
+        }),
+        [headerMessage, shouldUseNarrowLayout],
+    );
+
     return (
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
@@ -802,31 +811,29 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
                     <SelectionListWithModal
+                        data={filteredData}
                         ref={selectionListRef}
-                        canSelectMultiple={canSelectMultiple}
-                        sections={[{data: filteredData, isDisabled: false}]}
-                        selectedItems={selectedEmployees}
                         ListItem={TableListItem}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         turnOnSelectionModeOnLongPress={isPolicyAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldUseUserSkeletonView
-                        headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
                         onSelectRow={openMemberDetails}
-                        shouldSingleExecuteRowSelect={!isPolicyAdmin}
-                        onCheckboxPress={(item) => toggleUser(item.login)}
+                        selectedItems={selectedEmployees}
+                        canSelectMultiple={canSelectMultiple}
                         onSelectAll={filteredData.length > 0 ? () => toggleAllUsers(filteredData) : undefined}
-                        onDismissError={dismissError}
-                        showLoadingPlaceholder={isLoading}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5], listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : [styles.pr3]}}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        textInputRef={textInputRef}
-                        listHeaderContent={headerContent}
-                        shouldShowListEmptyContent={false}
+                        onCheckboxPress={(item) => toggleUser(item.login)}
+                        shouldSingleExecuteRowSelect={!isPolicyAdmin}
                         customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
+                        customListHeaderContent={headerContent}
+                        textInputOptions={textInputOptions}
+                        showLoadingPlaceholder={isLoading}
+                        onDismissError={dismissError}
+                        showListEmptyContent={false}
                         showScrollIndicator={false}
-                        addBottomSafeAreaPadding
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 </>

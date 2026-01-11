@@ -27,7 +27,7 @@ function CardNameStep() {
         const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
         const length = values.cardTitle.length;
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+            addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', length, CONST.STANDARD_LENGTH_LIMIT));
         }
         return errors;
     };
