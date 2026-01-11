@@ -1,54 +1,54 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {PressableWithFeedback} from '@components/Pressable';
+import { PressableWithFeedback } from '@components/Pressable';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
+import type { ConfirmButtonOptions, ListItem } from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
-import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
-import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
+import { readFileAsync } from '@libs/fileDownload/FileUtils';
+import { getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy } from '@libs/PolicyUtils';
+import { getReportFieldsByPolicyID } from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage} from '@userActions/Policy/Policy';
+import { duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage } from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Rate} from '@src/types/onyx/Policy';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from './utils';
+import type { Rate } from '@src/types/onyx/Policy';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import { getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules } from './utils';
 
 type WorkspaceDuplicateFormProps = {
     policyID?: string;
 };
 
-function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateFormProps) {
+function WorkspaceDuplicateSelectFeaturesForm({ policyID }: WorkspaceDuplicateFormProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
     const policy = usePolicy(policyID);
     const isCollect = isCollectPolicy(policy);
-    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
+    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, { canBeMissing: true });
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
     const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
     const allIds = getMemberAccountIDsForWorkspace(policy?.employeeList);
     const totalMembers = Object.keys(allIds).length;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, { canBeMissing: true });
     const taxesLength = Object.keys(policy?.taxRates?.taxes ?? {}).length ?? 0;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, { canBeMissing: true });
     const categoriesCount = Object.keys(policyCategories ?? {}).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const reportFields = Object.keys(getReportFieldsByPolicyID(policyID)).length ?? 0;
     const customUnits = getPerDiemCustomUnit(policy);
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.length;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, { canBeMissing: true });
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
@@ -86,83 +86,89 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             },
             totalMembers > 1
                 ? {
-                      translation: translate('workspace.common.members'),
-                      value: 'members',
-                      alternateText: totalMembers ? `${totalMembers} ${translate('workspace.common.members').toLowerCase()}` : undefined,
-                  }
+                    translation: translate('workspace.common.members'),
+                    value: 'members',
+                    alternateText: totalMembers ? `${totalMembers} ${translate('workspace.common.members').toLowerCase()}` : undefined,
+                }
                 : undefined,
             reportFields > 0
                 ? {
-                      translation: translate('workspace.common.reports'),
-                      value: 'reports',
-                      alternateText: reportFields ? `${reportFields} ${translate('workspace.common.reportFields').toLowerCase()}` : undefined,
-                  }
+                    translation: translate('workspace.common.reports'),
+                    value: 'reports',
+                    alternateText: reportFields ? `${reportFields} ${translate('workspace.common.reportFields').toLowerCase()}` : undefined,
+                }
                 : undefined,
             connectedIntegration && connectedIntegration?.length > 0
                 ? {
-                      translation: translate('workspace.common.accounting'),
-                      value: 'accounting',
-                      alternateText: connectedIntegration.map((connectionName) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]).join(', '),
-                  }
+                    translation: translate('workspace.common.accounting'),
+                    value: 'accounting',
+                    alternateText: connectedIntegration.map((connectionName) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]).join(', '),
+                }
                 : undefined,
             totalTags > 0
                 ? {
-                      translation: translate('workspace.common.tags'),
-                      value: 'tags',
-                      alternateText: totalTags ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined,
-                  }
+                    translation: translate('workspace.common.tags'),
+                    value: 'tags',
+                    alternateText: totalTags ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined,
+                }
                 : undefined,
             categoriesCount > 0
                 ? {
-                      translation: translate('workspace.common.categories'),
-                      value: 'categories',
-                      alternateText: categoriesCount ? `${categoriesCount} ${translate('workspace.duplicateWorkspace.categories').toLowerCase()}` : undefined,
-                  }
+                    translation: translate('workspace.common.categories'),
+                    value: 'categories',
+                    alternateText: categoriesCount ? `${categoriesCount} ${translate('workspace.duplicateWorkspace.categories').toLowerCase()}` : undefined,
+                }
                 : undefined,
             taxesLength > 0
                 ? {
-                      translation: translate('workspace.common.taxes'),
-                      value: 'taxes',
-                      alternateText: taxesLength ? `${taxesLength} ${translate('workspace.common.taxes').toLowerCase()}` : undefined,
-                  }
+                    translation: translate('workspace.common.taxes'),
+                    value: 'taxes',
+                    alternateText: taxesLength ? `${taxesLength} ${translate('workspace.common.taxes').toLowerCase()}` : undefined,
+                }
                 : undefined,
             workflows && workflows?.length > 0
                 ? {
-                      translation: translate('workspace.common.workflows'),
-                      value: 'workflows',
-                      alternateText: workflows?.join(', '),
-                  }
+                    translation: translate('workspace.common.workflows'),
+                    value: 'workflows',
+                    alternateText: workflows?.join(', '),
+                }
                 : undefined,
             rules && rules.length > 0 && !isCollect
                 ? {
-                      translation: translate('workspace.common.rules'),
-                      value: 'rules',
-                      alternateText: rules.length
-                          ? `${rules.length} ${translate('workspace.common.workspace').toLowerCase()} ${translate('workspace.common.rules').toLowerCase()}: ${rules.join(', ')}`
-                          : undefined,
-                  }
+                    translation: translate('workspace.common.rules'),
+                    value: 'rules',
+                    alternateText: rules.length
+                        ? `${rules.length} ${translate('workspace.common.workspace').toLowerCase()} ${translate('workspace.common.rules').toLowerCase()}: ${rules.join(', ')}`
+                        : undefined,
+                }
                 : undefined,
             ratesCount > 0 && policy?.areDistanceRatesEnabled
                 ? {
-                      translation: translate('workspace.common.distanceRates'),
-                      value: 'distanceRates',
-                      alternateText: ratesCount ? `${ratesCount} ${translate('iou.rates').toLowerCase()}` : undefined,
-                  }
+                    translation: translate('workspace.common.distanceRates'),
+                    value: 'distanceRates',
+                    alternateText: ratesCount ? `${ratesCount} ${translate('iou.rates').toLowerCase()}` : undefined,
+                }
                 : undefined,
             allRates > 0
                 ? {
-                      translation: translate('workspace.common.perDiem'),
-                      value: 'perDiem',
-                      alternateText: allRates ? `${allRates} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined,
-                  }
+                    translation: translate('workspace.common.perDiem'),
+                    value: 'perDiem',
+                    alternateText: allRates ? `${allRates} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined,
+                }
                 : undefined,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             policy?.areInvoicesEnabled && ((bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany)
                 ? {
-                      translation: translate('workspace.common.invoices'),
-                      value: 'invoices',
-                      alternateText: bankAccountList ? `${Object.keys(bankAccountList).length} ${translate('common.bankAccounts').toLowerCase()}, ${invoiceCompany}` : invoiceCompany,
-                  }
+                    translation: translate('workspace.common.invoices'),
+                    value: 'invoices',
+                    alternateText: bankAccountList ? `${Object.keys(bankAccountList).length} ${translate('common.bankAccounts').toLowerCase()}, ${invoiceCompany}` : invoiceCompany,
+                }
+                : undefined,
+            policy?.isTravelEnabled
+                ? {
+                    translation: translate('workspace.common.travel'),
+                    value: 'travel',
+                }
                 : undefined,
         ];
 
@@ -228,6 +234,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 invoices: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
                 overview: selectedItems.includes('overview'),
+                travel: selectedItems.includes('travel'),
             },
             file: duplicatedWorkspaceAvatar,
             localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? '',
@@ -352,8 +359,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                             onPress={toggleAllItems}
                             accessibilityLabel={translate('workspace.common.selectAll')}
                             role="button"
-                            accessibilityState={{checked: isSelectAllChecked}}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            accessibilityState={{ checked: isSelectAllChecked }}
+                            dataSet={{ [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true }}
                         >
                             <Text style={[styles.textLabelSupporting, styles.ph3]}>{translate('workspace.common.selectAll')}</Text>
                         </PressableWithFeedback>
