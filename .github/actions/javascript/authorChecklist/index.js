@@ -9070,21 +9070,32 @@ formatters.O = function (v) {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+
 class Deprecation extends Error {
   constructor(message) {
     super(message); // Maintains proper stack trace (only available on V8)
+
     /* istanbul ignore next */
+
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
     }
+
     this.name = 'Deprecation';
   }
+
 }
+
 exports.Deprecation = Deprecation;
+
+
 /***/ }),
+
 /***/ 1621:
 /***/ ((module) => {
+
 "use strict";
+
 module.exports = (flag, argv) => {
 	argv = argv || process.argv;
 	const prefix = flag.startsWith('-') ? '' : (flag.length === 1 ? '-' : '--');
@@ -9092,48 +9103,70 @@ module.exports = (flag, argv) => {
 	const terminatorPos = argv.indexOf('--');
 	return pos !== -1 && (terminatorPos === -1 ? true : pos < terminatorPos);
 };
+
+
 /***/ }),
+
 /***/ 3287:
 /***/ ((__unused_webpack_module, exports) => {
+
 "use strict";
+
+
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+
 /*!
  * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
  *
  * Copyright (c) 2014-2017, Jon Schlinkert.
  * Released under the MIT License.
  */
+
 function isObject(o) {
   return Object.prototype.toString.call(o) === '[object Object]';
 }
+
 function isPlainObject(o) {
   var ctor,prot;
+
   if (isObject(o) === false) return false;
+
   // If has modified constructor
   ctor = o.constructor;
   if (ctor === undefined) return true;
+
   // If has modified prototype
   prot = ctor.prototype;
   if (isObject(prot) === false) return false;
+
   // If constructor does not have an Object-specific method
   if (prot.hasOwnProperty('isPrototypeOf') === false) {
     return false;
   }
+
   // Most likely a plain Object
   return true;
 }
+
 exports.isPlainObject = isPlainObject;
+
+
 /***/ }),
+
 /***/ 1531:
 /***/ ((__unused_webpack_module, exports) => {
+
 // Copyright 2014, 2015, 2016, 2017, 2018 Simon Lydell
 // License: MIT. (See LICENSE.)
+
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }))
+
 // This regex comes from regex.coffee, and is inserted here by generate-index.js
 // (run `npm run build`).
 exports["default"] = /((['"])(?:(?!\2|\\).|\\(?:\r\n|[\s\S]))*(\2)?|`(?:[^`\\$]|\\[\s\S]|\$(?!\{)|\$\{(?:[^{}]|\{[^}]*\}?)*\}?)*(`)?)|(\/\/.*)|(\/\*(?:[^*]|\*(?!\/))*(\*\/)?)|(\/(?!\*)(?:\[(?:(?![\]\\]).|\\.)*\]|(?![\/\]\\]).|\\.)+\/(?:(?!\s*(?:\b|[\u0080-\uFFFF$\\'"~({]|[+\-!](?!=)|\.?\d))|[gmiyus]{1,6}\b(?![\u0080-\uFFFF$\\]|\s*(?:[+\-*%&|^<>!=?({]|\/(?![\/*])))))|(0[xX][\da-fA-F]+|0[oO][0-7]+|0[bB][01]+|(?:\d*\.\d+|\d+\.?)(?:[eE][+-]?\d+)?)|((?!\d)(?:(?!\s)[$\w\u0080-\uFFFF]|\\u[\da-fA-F]{4}|\\u\{[\da-fA-F]+\})+)|(--|\+\+|&&|\|\||=>|\.{3}|(?:[+\-\/%&|^]|\*{1,2}|<{1,2}|>{1,3}|!=?|={1,2})=?|[?~.,:;[\](){}])|(\s+)|(^$|[\s\S])/g
+
 exports.matchToToken = function(match) {
   var token = {type: "invalid", value: match[0], closed: undefined}
        if (match[ 1]) token.type = "string" , token.closed = !!(match[3] || match[4])
@@ -9146,10 +9179,16 @@ exports.matchToToken = function(match) {
   else if (match[12]) token.type = "whitespace"
   return token
 }
+
+
 /***/ }),
+
 /***/ 5733:
 /***/ ((module) => {
+
 "use strict";
+
+
 const object = {};
 const hasOwnProperty = object.hasOwnProperty;
 const forOwn = (object, callback) => {
@@ -9159,6 +9198,7 @@ const forOwn = (object, callback) => {
 		}
 	}
 };
+
 const extend = (destination, source) => {
 	if (!source) {
 		return destination;
@@ -9168,6 +9208,7 @@ const extend = (destination, source) => {
 	});
 	return destination;
 };
+
 const forEach = (array, callback) => {
 	const length = array.length;
 	let index = -1;
@@ -9175,14 +9216,17 @@ const forEach = (array, callback) => {
 		callback(array[index]);
 	}
 };
+
 const fourHexEscape = (hex) => {
 	return '\\u' + ('0000' + hex).slice(-4);
 }
+
 const hexadecimal = (code, lowercase) => {
 	let hexadecimal = code.toString(16);
 	if (lowercase) return hexadecimal;
 	return hexadecimal.toUpperCase();
 };
+
 const toString = object.toString;
 const isArray = Array.isArray;
 const isBuffer = (value) => {
@@ -9212,7 +9256,9 @@ const isMap = (value) => {
 const isSet = (value) => {
 	return toString.call(value) == '[object Set]';
 };
+
 /*--------------------------------------------------------------------------*/
+
 // https://mathiasbynens.be/notes/javascript-escapes#single
 const singleEscapes = {
 	'\\': '\\\\',
@@ -9225,10 +9271,13 @@ const singleEscapes = {
 	// '\v': '\\x0B'
 };
 const regexSingleEscape = /[\\\b\f\n\r\t]/;
+
 const regexDigit = /[0-9]/;
 const regexWhitespace = /[\xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/;
+
 const escapeEverythingRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF])|([\uD800-\uDFFF])|(['"`])|[^]/g;
 const escapeNonAsciiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF])|([\uD800-\uDFFF])|(['"`])|[^ !#-&\(-\[\]-_a-~]/g;
+
 const jsesc = (argument, options) => {
 	const increaseIndentation = () => {
 		oldIndent = indent;
@@ -9284,9 +9333,11 @@ const jsesc = (argument, options) => {
 	const useOctNumbers = options.numbers == 'octal';
 	const useDecNumbers = options.numbers == 'decimal';
 	const useHexNumbers = options.numbers == 'hexadecimal';
+
 	if (json && argument && isFunction(argument.toJSON)) {
 		argument = argument.toJSON();
 	}
+
 	if (!isString(argument)) {
 		if (isMap(argument)) {
 			if (argument.size == 0) {
