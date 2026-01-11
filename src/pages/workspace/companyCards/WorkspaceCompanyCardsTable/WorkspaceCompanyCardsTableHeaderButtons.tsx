@@ -8,7 +8,6 @@ import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
 import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
-import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -153,12 +152,12 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                         fill={theme.danger}
                         additionalStyles={styles.mr1}
                     />
-                    <Text style={[styles.offlineFeedbackText, styles.pr5]}>
+                    <View style={[styles.offlineFeedbackText, styles.pr5, styles.flexRow, styles.w100]}>
                         <RenderHTML
                             html={translate('workspace.companyCards.brokenConnectionError')}
                             onLinkPress={openBankConnection}
                         />
-                    </Text>
+                    </View>
                 </View>
             )}
         </View>
