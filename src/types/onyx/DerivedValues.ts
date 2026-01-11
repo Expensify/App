@@ -116,6 +116,9 @@ type CardFeedErrors = {
     cardErrors: Record<string, CardErrors>;
 };
 
+/**
+ * The ID of a card feed in the errors map/object.
+ */
 type CardFeedId = CardFeed | CompanyCardFeedWithNumber;
 
 /**
