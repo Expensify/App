@@ -4,22 +4,22 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Card feed */
+/** Company card feed name */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
-/** Company card feed with domain ID */
+/** Company card feed name with domain ID */
 type CompanyCardFeedWithDomainID = `${CompanyCardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
 
-/** Custom card feed with a number */
+/** Company card feed name with a number */
 type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}` | CompanyCardFeedWithDomainID;
 
 /**
- *
+ * Either a company card feed name or the Expensify card bank name.
  */
 type CardFeed = CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
 
 /**
- *
+ * Either a company card feed name with domain ID or the Expensify card bank name with domain ID.
  */
 type CardFeedWithDomainID = `${CardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
 
