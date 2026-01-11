@@ -141,7 +141,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         InteractionManager.runAfterInteractions(() => {
             fetchData();
         });
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

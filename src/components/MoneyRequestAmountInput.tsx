@@ -217,7 +217,6 @@ function MoneyRequestAmountInput({
                     // eslint-disable-next-line no-param-reassign
                     ref.current = newRef;
                 }
-
                 textInput.current = newRef;
             }}
             disabled={disabled}

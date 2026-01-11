@@ -118,7 +118,6 @@ export default function useReportUnreadMessageScrollTracking({
 
         // FlatList requires a stable onViewableItemsChanged callback for optimal performance.
         // Therefore, we use a ref to store values instead of adding them as dependencies.
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

@@ -184,7 +184,6 @@ function PolicyDistanceRatesPage({
 
     useEffect(() => {
         fetchDistanceRates();
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

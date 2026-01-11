@@ -27,7 +27,6 @@ function useCancellationType(): CancellationType | undefined {
         }
 
         // There are no new items in the cancellation details NVP
-
         if (previousCancellationDetails.current?.length === cancellationDetails?.length) {
             return;
         }

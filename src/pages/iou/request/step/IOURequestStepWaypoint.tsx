@@ -190,7 +190,6 @@ function IOURequestStepWaypoint({
         if (!isSafari()) {
             return;
         }
-
         textInput.current?.measureInWindow((x, y) => {
             if (y < variables.contentHeaderHeight) {
                 setCaretHidden(true);

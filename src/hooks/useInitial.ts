@@ -8,7 +8,6 @@ import {useRef} from 'react';
  */
 function useInitial<T>(value: T | undefined): T | undefined {
     const initialValueRef = useRef<T | undefined>(undefined);
-
     if (initialValueRef.current === undefined && value !== undefined) {
         initialValueRef.current = value;
     }

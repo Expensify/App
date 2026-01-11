@@ -140,7 +140,6 @@ function ReportActionsView({
             return listOldID;
         }
         const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
-
         listOldID = newID;
 
         return newID;

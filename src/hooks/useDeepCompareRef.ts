@@ -17,10 +17,8 @@ import {useRef} from 'react';
  */
 export default function useDeepCompareRef<T>(value: T): T | undefined {
     const ref = useRef<T | undefined>(undefined);
-
     if (!deepEqual(value, ref.current)) {
         ref.current = value;
     }
-
     return ref.current;
 }

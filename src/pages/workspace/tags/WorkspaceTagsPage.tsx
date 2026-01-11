@@ -134,7 +134,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     useEffect(() => {
         fetchTags();
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

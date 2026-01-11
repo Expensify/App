@@ -346,7 +346,6 @@ function Search({
         }
 
         // We don't want to run the effect on isFocused change as we only need it to early return when it is false.
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
 
@@ -367,7 +366,6 @@ function Search({
         }
 
         // We only want this effect to handle the switching of mobile selection mode state when screen size changes.
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
 
@@ -468,7 +466,6 @@ function Search({
         handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
 
         // We don't need to run the effect on change of isFocused.
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
 

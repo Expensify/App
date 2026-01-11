@@ -204,7 +204,6 @@ function BaseVideoPlayer({
             if (videoResumeTryNumberRef.current === 1) {
                 playVideo();
             }
-
             videoResumeTryNumberRef.current -= 1;
         },
         [playVideo, videoResumeTryNumberRef],

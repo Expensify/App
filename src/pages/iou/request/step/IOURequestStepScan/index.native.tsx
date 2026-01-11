@@ -225,7 +225,6 @@ function IOURequestStepScan({
 
     const tapGesture = Gesture.Tap()
         .enabled(device?.supportsFocus ?? false)
-
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 

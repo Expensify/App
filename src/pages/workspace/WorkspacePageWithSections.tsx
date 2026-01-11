@@ -158,7 +158,6 @@ function WorkspacePageWithSections({
 
     useEffect(() => {
         fetchData(policyID, shouldSkipVBBACall);
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);

@@ -270,7 +270,6 @@ function MagicCodeInput({
      */
     const tapGesture = Gesture.Tap()
         .runOnJS(true)
-
         .onBegin((event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;

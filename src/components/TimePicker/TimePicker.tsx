@@ -804,7 +804,6 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                         onChangeAmount={handleHourChange}
                         ref={(textInputRef) => {
                             updateRefs('hourRef', textInputRef);
-
                             hourInputRef.current = textInputRef as TextInput | null;
                         }}
                         onSelectionChange={(e) => {

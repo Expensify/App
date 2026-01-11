@@ -146,7 +146,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
             onOpen,
             setActivePopoverExtraAnchorRef,
             close: closePopover,
-
             popover: activePopoverRef.current,
             popoverAnchor: activePopoverAnchor,
             isOpen,

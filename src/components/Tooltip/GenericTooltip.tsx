@@ -192,7 +192,6 @@ function GenericTooltip({
                     computeHorizontalShiftForNative={computeHorizontalShiftForNative}
                 />
             )}
-
             {children({isVisible, showTooltip, hideTooltip, updateTargetBounds})}
         </>
     );

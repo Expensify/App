@@ -95,7 +95,6 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-
                 if (shouldShowNotFoundPage && contentShown.current && !isFocused) {
                     return null;
                 }

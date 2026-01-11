@@ -93,7 +93,6 @@ function WorkspaceTaxesPage({
 
     useEffect(() => {
         fetchTaxes();
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

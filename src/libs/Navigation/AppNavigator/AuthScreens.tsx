@@ -170,9 +170,7 @@ function AuthScreens() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
-
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
-
     isLoadingAppRef.current = isLoadingApp;
 
     const handleNetworkReconnect = () => {

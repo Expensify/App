@@ -252,7 +252,6 @@ function MoneyRequestParticipantsSelector({
                 countryCode,
                 participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             availableOptions.personalDetails?.length,

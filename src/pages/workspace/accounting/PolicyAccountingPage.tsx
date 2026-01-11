@@ -312,7 +312,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     if (!popoverAnchorRefs?.current) {
                                         return;
                                     }
-
                                     popoverAnchorRefs.current[integration].current = ref;
                                 }}
                             />

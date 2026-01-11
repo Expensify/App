@@ -87,7 +87,6 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
     return {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         componentToRender: bodyContent.at(screenIndex) as ComponentType<SubStepProps & TProps>,
-
         isEditing: isEditing.current,
         screenIndex,
         prevScreen,
