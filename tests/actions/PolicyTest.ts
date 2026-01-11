@@ -1089,7 +1089,7 @@ describe('actions/Policy', () => {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated -- This test covers legacy NextStep optimistic updates which still use the deprecated type.
                 .mockReturnValue({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]} as never);
 
-            const reportUtils = require('@libs/ReportUtils');
+            const reportUtils = require('@libs/ReportUtils') as typeof import('@libs/ReportUtils');
             const getAllPolicyReportsSpy = jest.spyOn(reportUtils, 'getAllPolicyReports');
             const isExpenseReportSpy = jest.spyOn(reportUtils, 'isExpenseReport');
             const hasViolationsSpy = jest.spyOn(reportUtils, 'hasViolations');
@@ -1158,7 +1158,7 @@ describe('actions/Policy', () => {
 
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew');
-            const reportUtils = require('@libs/ReportUtils');
+            const reportUtils = require('@libs/ReportUtils') as typeof import('@libs/ReportUtils');
             const getAllPolicyReportsSpy = jest.spyOn(reportUtils, 'getAllPolicyReports');
 
             const policyID = Policy.generatePolicyID();
