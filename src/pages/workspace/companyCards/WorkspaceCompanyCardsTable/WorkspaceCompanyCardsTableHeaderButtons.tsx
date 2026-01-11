@@ -16,10 +16,11 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCardFeedErrors';
 import useHasWorkspaceCompanyCardErrors from '@pages/workspace/companyCards/hooks/useHasWorkspaceCompanyCardErrors';
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -69,6 +70,11 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
         if (!feedName) {
             return;
         }
+
+        const institutionId = getPlaidInstitutionId(feedName);
+        const initialStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
+
+        setAssignCardStepAndData({currentStep: initialStep});
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID), feedName));
