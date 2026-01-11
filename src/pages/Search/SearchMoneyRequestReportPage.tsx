@@ -130,7 +130,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
-        // No need to pass personal details when opening an existing report
         openReport(reportIDFromRoute);
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps

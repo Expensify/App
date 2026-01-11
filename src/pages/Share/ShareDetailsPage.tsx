@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, getCurrentUserAccountID, openReport} from '@libs/actions/Report';
+import type {ParticipantInfo} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,7 +35,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, Report as ReportType} from '@src/types/onyx';
+import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 import getFileSize from './getFileSize';
@@ -138,29 +139,28 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             validateFileName,
             (file) => {
                 if (isDraft) {
-                    const participantLogins = displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [];
+                    const participants: ParticipantInfo[] =
+                        displayReport.participantsList
+                            ?.filter((u) => u.accountID !== currentUserID)
+                            .map((u) => ({
+                                login: u.login ?? '',
+                                accountID: u.accountID,
+                                personalDetails: personalDetails?.[u.accountID] ?? undefined,
+                            })) ?? [];
 
-                    // Get personal details for participants and owner
                     const ownerAccountID = report.ownerAccountID;
-                    const participantAccountIDs = displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.accountID) ?? [];
-                    const relevantAccountIDs = ownerAccountID ? [...participantAccountIDs, ownerAccountID] : participantAccountIDs;
-                    const participantPersonalDetails: PersonalDetailsList = {};
-                    relevantAccountIDs.forEach((accountID) => {
-                        if (personalDetails?.[accountID]) {
-                            participantPersonalDetails[accountID] = personalDetails[accountID];
+                    if (ownerAccountID && personalDetails?.[ownerAccountID]) {
+                        const ownerPersonalDetails = personalDetails[ownerAccountID];
+                        if (ownerPersonalDetails?.login) {
+                            participants.push({
+                                login: ownerPersonalDetails.login,
+                                accountID: ownerAccountID,
+                                personalDetails: ownerPersonalDetails,
+                            });
                         }
-                    });
+                    }
 
-                    openReport(
-                        report.reportID,
-                        '',
-                        participantPersonalDetails,
-                        participantLogins,
-                        report,
-                        undefined,
-                        undefined,
-                        undefined,
-                    );
+                    openReport(report.reportID, '', participants, report);
                 }
                 if (report.reportID) {
                     addAttachmentWithComment(report, report.reportID, ancestors, file, message, personalDetail.timezone);

@@ -271,8 +271,7 @@ function openReportFromDeepLink(
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        // No need to pass personal details when opening an existing report
-        openReport(reportID, '', undefined, [], undefined, '0', true);
+        openReport(reportID, '', [], undefined, '0', true);
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {

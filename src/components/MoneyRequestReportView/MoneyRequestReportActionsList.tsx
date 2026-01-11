@@ -614,7 +614,6 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            // No need to pass personal details when opening an existing report
             openReport(report.reportID);
             reportScrollManager.scrollToEnd();
             return;

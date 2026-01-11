@@ -66,7 +66,6 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
                 return;
             }
-            // No need to pass personal details when opening an existing report
             openReport(props.route.params.reportID);
             // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, [shouldUseNarrowLayout, props.route.params.reportID]);

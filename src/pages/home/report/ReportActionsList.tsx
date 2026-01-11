@@ -635,7 +635,6 @@ function ReportActionsList({
             } else {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
             }
-            // No need to pass personal details when opening an existing report
             openReport(report.reportID);
             reportScrollManager.scrollToBottom();
             return;
