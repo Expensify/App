@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderGap from '@components/HeaderGap';
 import ScrollView from '@components/ScrollView';
 import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
@@ -119,7 +118,6 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
     return (
         <>
-            <HeaderGap />
             <HelpHeader
                 title={translate('common.help')}
                 onBackButtonPress={() => closeSidePanel(false)}

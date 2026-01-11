@@ -81,14 +81,14 @@ function ReanimatedModal({
     );
 
     useEffect(() => {
-        if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
+        if (getPlatform() === CONST.PLATFORM.WEB) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
             backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
         }
 
         return () => {
-            if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
+            if (getPlatform() === CONST.PLATFORM.WEB) {
                 document.body.removeEventListener('keyup', handleEscape, {capture: true});
             } else {
                 backHandlerListener.current?.remove();

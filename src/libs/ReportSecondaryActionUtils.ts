@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
@@ -13,14 +13,24 @@ import {
     getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
     getValidConnectedIntegration,
+    hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
+    isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyMember,
     isPreferredExporter,
     isSubmitAndClose,
 } from './PolicyUtils';
-import {getAllReportActions, getIOUActionForTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isPayAction} from './ReportActionsUtils';
+import {
+    getAllReportActions,
+    getIOUActionForTransactionID,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportAction,
+    hasPendingDEWSubmit,
+    isPayAction,
+} from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
@@ -134,19 +144,36 @@ function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<Onyx
     return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isAdmin || isManager;
 }
 
-function isSubmitAction(
-    report: Report,
-    reportTransactions: Transaction[],
-    policy?: Policy,
-    reportNameValuePairs?: ReportNameValuePairs,
-    reportActions?: ReportAction[],
+function isSubmitAction({
+    report,
+    reportTransactions,
+    policy,
+    reportNameValuePairs,
+    reportActions,
+    reportMetadata,
     isChatReportArchived = false,
-    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
-    violations?: OnyxCollection<TransactionViolation[]>,
-    currentUserEmail?: string,
-    currentUserAccountID?: number,
-): boolean {
+    primaryAction,
+    violations,
+    currentUserEmail,
+    currentUserAccountID,
+}: {
+    report: Report;
+    reportTransactions: Transaction[];
+    policy?: Policy;
+    reportNameValuePairs?: ReportNameValuePairs;
+    reportActions?: ReportAction[];
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+    isChatReportArchived?: boolean;
+    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
+    violations?: OnyxCollection<TransactionViolation[]>;
+    currentUserEmail?: string;
+    currentUserAccountID?: number;
+}): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+        return false;
+    }
+
+    if (hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
         return false;
     }
 
@@ -178,7 +205,7 @@ function isSubmitAction(
 
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0)) {
+    if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0) || !isPaidGroupPolicy(policy)) {
         return false;
     }
 
@@ -506,7 +533,7 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     }
 
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy));
+    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy, report));
     let hasAvailablePolicies = availablePolicies.length > 1;
     if (!hasAvailablePolicies && availablePolicies.length === 1) {
         hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
@@ -742,6 +769,7 @@ function getSecondaryReportActions({
     policy,
     reportNameValuePairs,
     reportActions,
+    reportMetadata,
     policies,
     isChatReportArchived = false,
 }: {
@@ -755,6 +783,7 @@ function getSecondaryReportActions({
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
+    reportMetadata?: OnyxEntry<ReportMetadata>;
     policies?: OnyxCollection<Policy>;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
@@ -786,10 +815,25 @@ function getSecondaryReportActions({
         policy,
         reportNameValuePairs,
         reportActions,
+        reportMetadata,
         isChatReportArchived,
     });
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction, violations, currentUserEmail, currentUserAccountID)) {
+    if (
+        isSubmitAction({
+            report,
+            reportTransactions,
+            policy,
+            reportNameValuePairs,
+            reportActions,
+            reportMetadata,
+            isChatReportArchived,
+            primaryAction,
+            violations,
+            currentUserEmail,
+            currentUserAccountID,
+        })
+    ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
