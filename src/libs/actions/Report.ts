@@ -946,7 +946,7 @@ function clearAvatarErrors(reportID: string) {
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
- * @param personalDetails All users' personal details
+ * @param participantPersonalDetails Personal details for participants and owner (only needed when creating a new report)
  * @param reportID The ID of the report to open
  * @param reportActionID The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat.
  * @param participantLoginList The list of users that are included in a new chat, not including the user creating it
@@ -965,7 +965,7 @@ function clearAvatarErrors(reportID: string) {
 function openReport(
     reportID: string | undefined,
     reportActionID?: string,
-    personalDetails = allPersonalDetails,
+    participantPersonalDetails?: OnyxEntry<PersonalDetailsList>,
     participantLoginList: string[] = [],
     newReportObject?: OptimisticChatReport,
     parentReportActionID?: string,
@@ -1254,7 +1254,7 @@ function openReport(
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            emailCreatingAction = personalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
+            emailCreatingAction = participantPersonalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
         }
         const optimisticCreatedAction = buildOptimisticCreatedReportAction(emailCreatingAction);
         optimisticData.push(
@@ -1292,7 +1292,7 @@ function openReport(
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
-            const isOptimisticAccount = !personalDetails?.[accountID];
+            const isOptimisticAccount = !participantPersonalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
                 continue;
@@ -1451,10 +1451,15 @@ function createTransactionThreadReport(
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    // Get personal details for the current user (owner of the transaction thread)
+    const ownerAccountID = optimisticTransactionThread.ownerAccountID;
+    const participantPersonalDetails = ownerAccountID ? {[ownerAccountID.toString()]: allPersonalDetails?.[ownerAccountID] ?? null} : undefined;
+
     openReport(
         optimisticTransactionThreadReportID,
         undefined,
-        allPersonalDetails,
+        participantPersonalDetails,
         currentUserEmail ? [currentUserEmail] : [],
         optimisticTransactionThread,
         iouReportAction?.reportActionID,
@@ -1506,8 +1511,19 @@ function navigateToAndOpenReport(
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             });
         }
+
+        // Get personal details for participants and owner
+        const ownerAccountID = newChat?.ownerAccountID;
+        const relevantAccountIDs = ownerAccountID ? [...participantAccountIDs, ownerAccountID] : participantAccountIDs;
+        const participantPersonalDetails: PersonalDetailsList = {};
+        relevantAccountIDs.forEach((accountID) => {
+            if (personalDetails?.[accountID]) {
+                participantPersonalDetails[accountID] = personalDetails[accountID];
+            }
+        });
+
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', personalDetails, userLogins, newChat, undefined, undefined, undefined, avatarFile);
+        openReport(newChat?.reportID, '', participantPersonalDetails, userLogins, newChat, undefined, undefined, undefined, avatarFile);
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -1542,8 +1558,19 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
         newChat = buildOptimisticChatReport({
             participantList: [...participantAccountIDs, currentUserAccountID],
         });
+
+        // Get personal details for participants and owner
+        const ownerAccountID = newChat?.ownerAccountID;
+        const relevantAccountIDs = ownerAccountID ? [...participantAccountIDs, ownerAccountID] : participantAccountIDs;
+        const participantPersonalDetails: PersonalDetailsList = {};
+        relevantAccountIDs.forEach((accountID) => {
+            if (allPersonalDetails?.[accountID]) {
+                participantPersonalDetails[accountID] = allPersonalDetails[accountID];
+            }
+        });
+
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', allPersonalDetails, [], newChat, '0', false, participantAccountIDs);
+        openReport(newChat?.reportID, '', participantPersonalDetails, [], newChat, '0', false, participantAccountIDs);
     }
     const report = chat ?? newChat;
 
@@ -1581,7 +1608,19 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
 
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', allPersonalDetails, participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
+
+            // Get personal details for participants and owner
+            const ownerAccountID = newChat.ownerAccountID;
+            const participantAccountIDsForDetails = Object.keys(newChat.participants ?? {}).map(Number);
+            const relevantAccountIDs = ownerAccountID ? [...participantAccountIDsForDetails, ownerAccountID] : participantAccountIDsForDetails;
+            const participantPersonalDetails: PersonalDetailsList = {};
+            relevantAccountIDs.forEach((accountID) => {
+                if (allPersonalDetails?.[accountID]) {
+                    participantPersonalDetails[accountID] = allPersonalDetails[accountID];
+                }
+            });
+
+            openReport(newChat.reportID, '', participantPersonalDetails, participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
@@ -2449,7 +2488,8 @@ function toggleSubscribeToChildReport(
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
-        openReport(childReportID, undefined, allPersonalDetails);
+        // No need to pass personal details when opening an existing report
+        openReport(childReportID);
         const parentReportActionID = parentReportAction?.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, parentReportID, parentReportActionID);
@@ -2471,7 +2511,18 @@ function toggleSubscribeToChildReport(
         });
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
-        openReport(newChat.reportID, '', allPersonalDetails, participantLogins, newChat, parentReportAction.reportActionID);
+
+        // Get personal details for participants and owner
+        const ownerAccountID = newChat.ownerAccountID;
+        const relevantAccountIDs = ownerAccountID ? [...participantAccountIDs, ownerAccountID] : participantAccountIDs;
+        const participantPersonalDetails: PersonalDetailsList = {};
+        relevantAccountIDs.forEach((accountID) => {
+            if (allPersonalDetails?.[accountID]) {
+                participantPersonalDetails[accountID] = allPersonalDetails[accountID];
+            }
+        });
+
+        openReport(newChat.reportID, '', participantPersonalDetails, participantLogins, newChat, parentReportAction.reportActionID);
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, parentReportID, parentReportAction?.reportActionID);
     }

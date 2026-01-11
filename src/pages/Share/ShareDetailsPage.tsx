@@ -34,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report as ReportType} from '@src/types/onyx';
+import type {PersonalDetailsList, Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 import getFileSize from './getFileSize';
@@ -138,11 +138,24 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             validateFileName,
             (file) => {
                 if (isDraft) {
+                    const participantLogins = displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [];
+
+                    // Get personal details for participants and owner
+                    const ownerAccountID = report.ownerAccountID;
+                    const participantAccountIDs = displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.accountID) ?? [];
+                    const relevantAccountIDs = ownerAccountID ? [...participantAccountIDs, ownerAccountID] : participantAccountIDs;
+                    const participantPersonalDetails: PersonalDetailsList = {};
+                    relevantAccountIDs.forEach((accountID) => {
+                        if (personalDetails?.[accountID]) {
+                            participantPersonalDetails[accountID] = personalDetails[accountID];
+                        }
+                    });
+
                     openReport(
                         report.reportID,
                         '',
-                        personalDetails,
-                        displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
+                        participantPersonalDetails,
+                        participantLogins,
                         report,
                         undefined,
                         undefined,

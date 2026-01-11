@@ -614,7 +614,8 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport(report.reportID, undefined, personalDetails);
+            // No need to pass personal details when opening an existing report
+            openReport(report.reportID);
             reportScrollManager.scrollToEnd();
             return;
         }
@@ -622,7 +623,7 @@ function MoneyRequestReportActionsList({
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, personalDetails]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {

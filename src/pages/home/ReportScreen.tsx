@@ -560,7 +560,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
         }
 
-        openReport(reportIDFromRoute, reportActionIDFromRoute, personalDetails);
+        // No need to pass personal details when opening an existing report
+        openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
         report,
@@ -569,7 +570,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         transactionThreadReport,
         reportIDFromRoute,
         reportActionIDFromRoute,
-        personalDetails,
         createOneTransactionThreadReport,
         isLoadingApp,
         introSelected,
@@ -688,12 +688,13 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport(reportID, undefined, personalDetails);
+        // No need to pass personal details when opening an existing report
+        openReport(reportID);
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID, personalDetails]);
+    }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.

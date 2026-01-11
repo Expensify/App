@@ -99,7 +99,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const oneTransactionID = reportTransactions.at(0)?.transactionID;
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const reportID = report?.reportID;
 
     // Prevents creating duplicate transaction threads for legacy transactions
@@ -131,7 +130,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
-        openReport(reportIDFromRoute, '', personalDetails, [], undefined, undefined, false, [], undefined);
+        // No need to pass personal details when opening an existing report
+        openReport(reportIDFromRoute);
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportIDFromRoute, transactionThreadReportID]);
