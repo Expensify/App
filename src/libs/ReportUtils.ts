@@ -2853,7 +2853,12 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     return isManager && isExpenseReport(report) && isProcessingReport(report);
 }
 
-function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string, currentUserEmailParam: string, allTransactionViolations: OnyxCollection<TransactionViolations>) {
+function hasOutstandingChildRequest(
+    chatReport: Report,
+    iouReportOrID: OnyxEntry<Report> | string,
+    currentUserEmailParam: string,
+    allTransactionViolations: OnyxCollection<TransactionViolations>,
+) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
