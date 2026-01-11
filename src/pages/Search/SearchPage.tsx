@@ -40,7 +40,6 @@ import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchIn
 import {
     approveMoneyRequestOnSearch,
     bulkDeleteReports,
-    deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     getExportTemplates,
     getLastPolicyBankAccountID,
