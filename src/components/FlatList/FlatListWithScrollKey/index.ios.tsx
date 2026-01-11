@@ -2,8 +2,8 @@ import type {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import React, {forwardRef, useCallback, useRef} from 'react';
 import type {LayoutChangeEvent, FlatList as RNFlatList} from 'react-native';
+import mergeRefs from '@libs/mergeRefs';
 import BaseFlatListWithScrollKey from './BaseFlatListWithScrollKey';
-import mergeRefs from './src/libs/mergeRefs';
 import type {FlatListWithScrollKeyProps} from './types';
 
 /**
