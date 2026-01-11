@@ -822,7 +822,7 @@ type DeleteTrackExpenseParams = {
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
-    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
 };
 
 type DeleteMoneyRequestFunctionParams = {
@@ -837,7 +837,7 @@ type DeleteMoneyRequestFunctionParams = {
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
     hash?: number;
-    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -8797,7 +8797,7 @@ function deleteMoneyRequest({
     isSingleTransactionView = false,
     transactionIDsPendingDeletion,
     selectedTransactionIDs,
-    allTransactionViolations,
+    allTransactionViolationsParam,
     hash,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
@@ -8913,7 +8913,7 @@ function deleteMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, allTransactionViolations),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, allTransactionViolationsParam),
             },
         });
     }
@@ -8932,7 +8932,7 @@ function deleteMoneyRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, allTransactionViolations),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, allTransactionViolationsParam),
                     iouReportID: null,
                     ...optimisticLastReportData,
                 },
@@ -9133,7 +9133,7 @@ function deleteTrackExpense({
     isSingleTransactionView = false,
     isChatReportArchived,
     isChatIOUReportArchived,
-    allTransactionViolations,
+    allTransactionViolationsParam,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -9161,7 +9161,7 @@ function deleteTrackExpense({
             chatReport: chatIOUReport,
             isChatIOUReportArchived,
             isSingleTransactionView,
-            allTransactionViolations,
+            allTransactionViolationsParam,
         });
         return urlToNavigateBack;
     }
