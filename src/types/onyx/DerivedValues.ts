@@ -2,6 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Card, CardFeed} from '.';
+import type {CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -115,15 +116,17 @@ type CardFeedErrors = {
     cardErrors: Record<string, CardErrors>;
 };
 
+type CardFeedId = CardFeed | CompanyCardFeedWithNumber;
+
 /**
  *
  */
-type AllCardFeedErrorsMap = Map<number, Map<CardFeed, CardFeedErrors>>;
+type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, CardFeedErrors>>;
 
 /**
  * The errors of all card feeds.
  */
-type AllCardFeedErrors = Record<number, Record<CardFeed, CardFeedErrors>>;
+type AllCardFeedErrors = Record<number, Record<CardFeedId, CardFeedErrors>>;
 
 /**
  * The derived value for card feed errors.
