@@ -90,7 +90,7 @@ function TableListItem<TItem extends ListItem>({
                             isChecked={!!item.isSelected}
                             onPress={handleCheckboxPress}
                             shouldStopMouseDownPropagation
-                            style={[styles.cursorUnset, item.isDisabledCheckbox && styles.cursorDisabled, item.cursorStyle, styles.p6, styles.mn6, styles.mrn3]}
+                            style={[item.cursorStyle, styles.p6, styles.mn6, styles.mrn3]}
                             containerStyle={[StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}
                             testID={`TableListItemCheckbox-${item.text}`}
                         />
