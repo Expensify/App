@@ -1,6 +1,6 @@
 import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import useCompanyCards from '@hooks/useCompanyCards';
-import useCardFeedErrors from './useCardFeedErrors';
+import useCardFeedErrors from './useCompanyCardFeedErrors';
 
 type UseHasWorkspaceCompanyCardErrorsProps = {
     policyID: string | undefined;

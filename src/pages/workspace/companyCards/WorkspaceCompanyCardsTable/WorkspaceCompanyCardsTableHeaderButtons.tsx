@@ -18,7 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
-import useCardFeedErrors from '@pages/workspace/companyCards/hooks/useCardFeedErrors';
+import useCardFeedErrors from '@pages/workspace/companyCards/hooks/useCompanyCardFeedErrors';
 import useHasWorkspaceCompanyCardErrors from '@pages/workspace/companyCards/hooks/useHasWorkspaceCompanyCardErrors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

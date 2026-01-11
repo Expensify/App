@@ -32,7 +32,7 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
-import useCardFeedErrors from '@pages/workspace/companyCards/hooks/useCardFeedErrors';
+import useCardFeedErrors from '@pages/workspace/companyCards/hooks/useCompanyCardFeedErrors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
