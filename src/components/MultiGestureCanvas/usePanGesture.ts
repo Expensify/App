@@ -122,7 +122,6 @@ const usePanGesture = ({
             // If the (absolute) velocity is 0, we don't need to run an animation
             if (Math.abs(panVelocityX.get()) !== 0) {
                 // Phase out the pan animation
-
                 offsetX.set(
                     withDecay({
                         velocity: panVelocityX.get(),

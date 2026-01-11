@@ -195,7 +195,6 @@ function MultiGestureCanvas({
         onTap,
         shouldDisableTransformationGestures,
     });
-
     const singleTapGesture = baseSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
     const panGestureSimultaneousList = useMemo(
@@ -218,7 +217,6 @@ function MultiGestureCanvas({
         onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
-
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
