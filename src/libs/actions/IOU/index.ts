@@ -13952,8 +13952,9 @@ function updateSplitTransactions({
     const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
-    // List of all child transactions that have been created after split
-    const originalChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID);
+    // Get all children once (including orphaned), then filter for non-orphaned
+    const allChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID, true);
+    const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
@@ -13961,7 +13962,6 @@ function updateSplitTransactions({
     const isCreationOfSplits = originalChildTransactions.length === 0;
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
     // Don't revert split if there are orphaned children (reportID '0') - they're still part of the split
-    const allChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID, true);
     const isReverseSplitOperation =
         splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
 
