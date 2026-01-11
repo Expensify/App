@@ -546,8 +546,8 @@ function handleMoneyRequestStepDistanceNavigation({
                     currency: transaction?.currency ?? 'USD',
                     merchant: translate('iou.fieldPending'),
                     billable: !!policy?.defaultBillable,
-                    reimbursable: manualDistance ? undefined : !!policy?.defaultReimbursable,
-                    validWaypoints: manualDistance ? undefined : getValidWaypoints(waypoints, true),
+                    reimbursable: isManualDistance ? undefined : !!policy?.defaultReimbursable,
+                    validWaypoints: isManualDistance ? undefined : getValidWaypoints(waypoints, true),
                     customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
                     splitShares: transaction?.splitShares,
                     attendees: transaction?.comment?.attendees,
@@ -561,7 +561,7 @@ function handleMoneyRequestStepDistanceNavigation({
             return;
         }
         setMoneyRequestParticipantsFromReport(transactionID, report, currentUserAccountID).then(() => {
-            navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, false, undefined, !!manualDistance);
+            navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, false, undefined, isManualDistance);
         });
         return;
     }
