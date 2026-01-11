@@ -750,6 +750,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
+                            // eslint-disable-next-line no-param-reassign
                             textInputRef.current = element as RNTextInput;
                         }
                     }}
