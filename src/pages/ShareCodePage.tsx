@@ -33,8 +33,7 @@ import {
     getReportName,
     isExpenseReport,
     isMoneyRequestReport,
-    isChatThread,
-    isInvoiceReport,
+    getReportForDisplay,
 } from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -42,8 +41,6 @@ import {getAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
-import {useOnyx} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type ShareCodePageOnyxProps = {
     /** The report currently being looked at */
@@ -103,10 +100,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber]);
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
-    // Calculating the report title with parent report if parent report is invoice and current report is chat thread.
-    const isParentInvoiceAndIsChatThread = useMemo(() => isChatThread(report) && isInvoiceReport(parentReport), [report, parentReport]);
-    const reportForTitle = isParentInvoiceAndIsChatThread ? parentReport : report;
+    const reportForTitle = useMemo(() => getReportForDisplay(report), [report]);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = isReport ? getReportName(reportForTitle) : (currentUserPersonalDetails.displayName ?? '');
