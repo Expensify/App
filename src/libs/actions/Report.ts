@@ -3774,7 +3774,7 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false, skipNavigation = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3880,6 +3880,11 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     if (isWorkspaceMemberLeavingWorkspaceRoom && !isChatThread) {
         return;
     }
+
+    if (skipNavigation) {
+        return;
+    }
+
     // In other cases, the report is deleted and we should move the user to another report.
     navigateToMostRecentReport(report);
 }
