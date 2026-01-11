@@ -222,6 +222,7 @@ import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
+import UserMinus from '@assets/images/user-minus.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
@@ -342,6 +343,7 @@ const Expensicons = {
     LinkCopy,
     Location,
     Lock,
+    UserMinus,
     Luggage,
     MagnifyingGlass,
     Mail,
