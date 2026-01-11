@@ -105,7 +105,6 @@ import {
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
     dismissRejectUseExplanation,
-    duplicateExpenseTransaction as duplicateTransactionAction,
     getNavigationUrlOnMoneyRequestDelete,
     initSplitExpense,
     markRejectViolationAsResolved,
@@ -117,6 +116,7 @@ import {
     submitReport,
     unapproveExpenseReport,
 } from '@userActions/IOU';
+import {duplicateExpenseTransaction as duplicateTransactionAction} from '@userActions/IOU/DuplicateAction';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
