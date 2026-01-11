@@ -814,17 +814,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         data={filteredData}
                         ref={selectionListRef}
                         ListItem={TableListItem}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        turnOnSelectionModeOnLongPress={isPolicyAdmin}
-                        onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
-                        shouldUseUserSkeletonView
                         onSelectRow={openMemberDetails}
                         selectedItems={selectedEmployees}
                         canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress={isPolicyAdmin}
                         onSelectAll={filteredData.length > 0 ? () => toggleAllUsers(filteredData) : undefined}
                         style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5], listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : [styles.pr3]}}
+                        onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onCheckboxPress={(item) => toggleUser(item.login)}
+                        shouldUseDefaultRightHandSideCheckmark={false}
                         shouldSingleExecuteRowSelect={!isPolicyAdmin}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
@@ -833,6 +832,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onDismissError={dismissError}
                         showListEmptyContent={false}
                         showScrollIndicator={false}
+                        shouldUseUserSkeletonView
                         shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
