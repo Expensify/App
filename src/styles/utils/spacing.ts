@@ -175,6 +175,10 @@ export default {
         marginRight: -8,
     },
 
+    mrn3: {
+        marginRight: -12,
+    },
+
     mrn5: {
         marginRight: -20,
     },
