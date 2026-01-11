@@ -1,9 +1,9 @@
 import React from 'react';
 import type {BlurEvent} from 'react-native';
+import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import SplitAmountInput from './SplitExpense/SplitAmountInput';
-import SplitPercentageInput from './SplitExpense/SplitPercentageInput';
-import type {SplitListItemType} from './types';
+import SplitAmountInput from './SplitAmountInput';
+import SplitPercentageInput from './SplitPercentageInput';
 
 type SplitListItemInputProps = {
     /** Whether the list is percentage mode (for scroll offset calculation) */

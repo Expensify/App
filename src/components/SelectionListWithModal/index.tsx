@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
-    ref?: ForwardedRef<SelectionListHandle>;
+    ref?: ForwardedRef<SelectionListHandle<TItem>>;
 };
 
 function SelectionListWithModal<TItem extends ListItem>({
