@@ -332,9 +332,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 return;
             }
             const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-            leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+            leaveRoom(report.reportID, currentUserPersonalDetails.accountID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report]);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
@@ -616,6 +616,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         report={report}
                         policy={policy}
                         participants={participants}
+                        currentUserAccountID={currentUserPersonalDetails.accountID}
                     />
                 </View>
             );
@@ -671,6 +672,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         participants,
         moneyRequestReport?.reportID,
         expensifyIcons.Camera,
+        currentUserPersonalDetails?.accountID,
     ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, !!reportNameValuePairs?.private_isArchived);
@@ -679,7 +681,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const result: PromotedAction[] = [];
 
         if (canJoin) {
-            result.push(PromotedActions.join(report));
+            result.push(PromotedActions.join(report, currentUserPersonalDetails.accountID));
         }
 
         if (report) {
@@ -689,7 +691,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         result.push(PromotedActions.share(report, backTo));
 
         return result;
-    }, [canJoin, report, backTo]);
+    }, [canJoin, report, backTo, currentUserPersonalDetails.accountID]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
