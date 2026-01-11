@@ -5,6 +5,8 @@ import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+// eslint-disable-next-line no-restricted-syntax -- this is needed to allow mocking
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -1089,10 +1091,9 @@ describe('actions/Policy', () => {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated -- This test covers legacy NextStep optimistic updates which still use the deprecated type.
                 .mockReturnValue({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]} as never);
 
-            const reportUtils = require('@libs/ReportUtils') as typeof import('@libs/ReportUtils');
-            const getAllPolicyReportsSpy = jest.spyOn(reportUtils, 'getAllPolicyReports');
-            const isExpenseReportSpy = jest.spyOn(reportUtils, 'isExpenseReport');
-            const hasViolationsSpy = jest.spyOn(reportUtils, 'hasViolations');
+            const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
+            const isExpenseReportSpy = jest.spyOn(ReportUtils, 'isExpenseReport');
+            const hasViolationsSpy = jest.spyOn(ReportUtils, 'hasViolations');
 
             const policyID = Policy.generatePolicyID();
             const fakePolicy: PolicyType = {
@@ -1158,8 +1159,7 @@ describe('actions/Policy', () => {
 
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew');
-            const reportUtils = require('@libs/ReportUtils') as typeof import('@libs/ReportUtils');
-            const getAllPolicyReportsSpy = jest.spyOn(reportUtils, 'getAllPolicyReports');
+            const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
 
             const policyID = Policy.generatePolicyID();
             const fakePolicy: PolicyType = {
