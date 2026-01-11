@@ -292,8 +292,8 @@ describe('getViolationsOnyxData', () => {
             policy.maxExpenseAmountNoReceipt = 2500;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             const violations = result.value as TransactionViolation[];
-            const receiptRequiredViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
-            expect(receiptRequiredViolation).toBeUndefined();
+            const foundReceiptRequiredViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            expect(foundReceiptRequiredViolation).toBeUndefined();
         });
 
         it('should not show regular receiptRequired violation when itemizedReceiptRequired applies', () => {
