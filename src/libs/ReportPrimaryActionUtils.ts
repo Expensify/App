@@ -2,18 +2,20 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getSubmitToAccountID,
     getValidConnectedIntegration,
+    hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPreferredExporter,
 } from './PolicyUtils';
-import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, hasPendingDEWSubmit, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     canAddTransaction as canAddTransactionUtil,
     canHoldUnholdReportAction,
@@ -59,6 +61,7 @@ type GetReportPrimaryActionParams = {
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
+    reportMetadata?: OnyxEntry<ReportMetadata>;
     isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
     isPaidAnimationRunning?: boolean;
@@ -85,6 +88,7 @@ function isSubmitAction(
     violations?: OnyxCollection<TransactionViolation[]>,
     currentUserEmail?: string,
     currentUserAccountID?: number,
+    reportMetadata?: OnyxEntry<ReportMetadata>,
 ) {
     if (isArchivedReport(reportNameValuePairs)) {
         return false;
@@ -93,6 +97,10 @@ function isSubmitAction(
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isOpenReport = isOpenReportUtils(report);
+
+    if (hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
+        return false;
+    }
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
@@ -399,6 +407,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         policy,
         reportNameValuePairs,
         reportActions,
+        reportMetadata,
         isChatReportArchived,
         chatReport,
         invoiceReceiverPolicy,
@@ -406,6 +415,11 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
     } = params;
+
+    // The expense report of personal policy shouldn't have any action
+    if (isExpenseReportUtils(report) && !isPaidGroupPolicy(policy)) {
+        return '';
+    }
 
     // We want to have action displayed for either paid or approved animations
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -443,7 +457,8 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     if (isPrimaryMarkAsResolvedAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, violations, currentUserEmail, currentUserAccountID)) {
+
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, violations, currentUserEmail, currentUserAccountID, reportMetadata)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 

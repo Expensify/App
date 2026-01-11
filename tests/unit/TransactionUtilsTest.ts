@@ -468,6 +468,21 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
+
+        it('returns time when the transaction has a comment with time type', () => {
+            const transaction = generateTransaction({
+                comment: {
+                    type: 'time',
+                    units: {
+                        count: 2,
+                        unit: 'h',
+                        rate: 50,
+                    },
+                },
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.TIME);
+        });
     });
 
     describe('calculateTaxAmount', () => {
@@ -1510,6 +1525,31 @@ describe('TransactionUtils', () => {
                 receipt: {source: 'source'},
             });
             expect(TransactionUtils.shouldReuseInitialTransaction(transactionWithReceiptSource, true, 0, true, [initialTransaction])).toBe(false);
+        });
+    });
+
+    describe('shouldShowExpenseBreakdown', () => {
+        it('should return false when transactions array is undefined', () => {
+            expect(TransactionUtils.shouldShowExpenseBreakdown(undefined)).toBe(false);
+        });
+
+        it('should return false when transactions array is empty', () => {
+            expect(TransactionUtils.shouldShowExpenseBreakdown([])).toBe(false);
+        });
+
+        it('should return false when all transactions are reimbursable', () => {
+            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: true})];
+            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(false);
+        });
+
+        it('should return true when all transactions are non-reimbursable', () => {
+            const transactions = [generateTransaction({reimbursable: false}), generateTransaction({reimbursable: false})];
+            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+        });
+
+        it('should return true when there are both reimbursable and non-reimbursable transactions', () => {
+            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: false})];
+            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
         });
     });
 });
