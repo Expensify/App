@@ -31,6 +31,10 @@ export default {
         margin: 20,
     },
 
+    mn6: {
+        margin: -24,
+    },
+
     mhAuto: {
         marginHorizontal: 'auto',
     },
