@@ -959,7 +959,6 @@ function SearchPage({route}: SearchPageProps) {
                 ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
                 : {};
             bulkDeleteReports(hash, selectedTransactions, currentUserPersonalDetails.email ?? '', reportTransactions, transactionsViolations);
-            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
         });
     };
@@ -971,6 +970,9 @@ function SearchPage({route}: SearchPageProps) {
 
         for (const key of Object.keys(selectedTransactions)) {
             const selectedItem = selectedTransactions[key];
+            if (!selectedItem?.reportID) {
+                continue;
+            }
             if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
                 hasNonOneTransactionReport = true;
                 reportIDs.add(selectedItem.reportID);

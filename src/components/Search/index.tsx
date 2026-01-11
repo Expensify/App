@@ -109,7 +109,7 @@ function mapTransactionItemToSelectedEntry(
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
-    const amount = item.modifiedAmount || item.amount;
+    const amount = item.modifiedAmount ?? item.amount;
 
     return [
         item.keyForList,
