@@ -230,6 +230,21 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         removeMemberAndCloseModal();
     }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, removeMemberAndCloseModal, memberLogin]);
 
+    const showRemoveMemberModal = useCallback(async () => {
+        const result = await showConfirmModal({
+            danger: true,
+            title: translate('workspace.people.removeMemberTitle'),
+            prompt: confirmModalPrompt,
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        removeUser();
+    }, [confirmModalPrompt, removeUser, showConfirmModal]);
+
     const askForConfirmationToRemove = () => {
         if (isReimburser) {
             showConfirmModal({
@@ -242,18 +257,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             });
             return;
         }
-        showConfirmModal({
-            danger: true,
-            title: translate('workspace.people.removeMemberTitle'),
-            prompt: confirmModalPrompt,
-            confirmText: translate('common.remove'),
-            cancelText: translate('common.cancel'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            removeUser();
-        });
+        showRemoveMemberModal();
     };
 
     const navigateToProfile = useCallback(() => {
