@@ -808,7 +808,8 @@
         "DYNAMICEXTERNAL",
         "RNCORE",
         "Wooo",
-        "Splittable"
+        "Splittable",
+        "pgrep"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

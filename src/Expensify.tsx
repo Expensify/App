@@ -233,11 +233,11 @@ function Expensify() {
     useEffect(() => {
         // Initialize Fullstory lib
         FS.init(userMetadata);
-        FS.getSessionId().then((sessionId) => {
-            if (!sessionId) {
+        FS.getSessionURL().then((url) => {
+            if (!url) {
                 return;
             }
-            Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {sessionId});
+            Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {url});
         });
     }, [userMetadata]);
 

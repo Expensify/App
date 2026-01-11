@@ -159,6 +159,14 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(textBeforeLink)).toBeOnTheScreen();
             expect(screen.getByText(linkText)).toBeOnTheScreen();
         });
+
+        it('CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS, {originalID: 'original-report-id'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/created this report for any held expenses from/)).toBeOnTheScreen();
+        });
     });
 
     describe('Manual actions', () => {
