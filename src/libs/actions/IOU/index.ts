@@ -746,34 +746,6 @@ Onyx.connect({
     },
 });
 
-function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
-    return allPersonalDetails;
-}
-
-function getAllTransactions(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
-    return allTransactions;
-}
-
-function getAllTransactionViolations(): NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> {
-    return allTransactionViolations;
-}
-
-function getAllReports(): OnyxCollection<OnyxTypes.Report> {
-    return allReports;
-}
-
-function getAllReportActionsFromIOU(): OnyxCollection<OnyxTypes.ReportActions> {
-    return allReportActions;
-}
-
-function getCurrentUserEmail(): string {
-    return currentUserEmail;
-}
-
-function getUserAccountID(): number {
-    return userAccountID;
-}
-
 type StartSplitBilActionParams = {
     participants: Participant[];
     currentUserLogin: string;
@@ -980,6 +952,34 @@ Onyx.connect({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
     callback: (val) => (recentWaypoints = val ?? []),
 });
+
+function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
+    return allPersonalDetails;
+}
+
+function getAllTransactions(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
+    return allTransactions;
+}
+
+function getAllTransactionViolations(): NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> {
+    return allTransactionViolations;
+}
+
+function getAllReports(): OnyxCollection<OnyxTypes.Report> {
+    return allReports;
+}
+
+function getAllReportActionsFromIOU(): OnyxCollection<OnyxTypes.ReportActions> {
+    return allReportActions;
+}
+
+function getCurrentUserEmail(): string {
+    return currentUserEmail;
+}
+
+function getUserAccountID(): number {
+    return userAccountID;
+}
 
 /**
  * @private
