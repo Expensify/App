@@ -169,6 +169,7 @@ import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
+import PlusMinus from '@assets/images/plus-minus.svg';
 import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
@@ -221,6 +222,7 @@ import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
+import UserMinus from '@assets/images/user-minus.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
@@ -341,6 +343,7 @@ const Expensicons = {
     LinkCopy,
     Location,
     Lock,
+    UserMinus,
     Luggage,
     MagnifyingGlass,
     Mail,
@@ -371,6 +374,7 @@ const Expensicons = {
     Pin,
     Play,
     Plus,
+    PlusMinus,
     Printer,
     Profile,
     QBOSquare,

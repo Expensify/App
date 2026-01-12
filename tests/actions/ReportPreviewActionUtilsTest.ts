@@ -41,6 +41,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
+    isPaidGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 jest.mock('@src/libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn().mockReturnValue({}),
@@ -70,10 +71,18 @@ describe('getReportPreviewAction', () => {
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const policy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
-        expect(getReportPreviewAction({isReportArchived: false, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, currentUserEmail: CURRENT_USER_EMAIL, report, policy, transactions: []})).toBe(
-            CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE,
-        );
+        const policy = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
+        expect(
+            getReportPreviewAction({
+                isReportArchived: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [],
+                bankAccountList: {},
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE);
     });
 
     it('canSubmit should return true for expense preview report with manual submit', async () => {
@@ -110,6 +119,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -149,6 +159,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -191,6 +202,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -242,10 +254,12 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy: undefined,
                 isPaidAnimationRunning: undefined,
                 isApprovedAnimationRunning: undefined,
                 isSubmittingAnimationRunning: undefined,
+                isDEWSubmitPending: undefined,
                 violationsData: violations,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
@@ -284,6 +298,7 @@ describe('getReportPreviewAction', () => {
                     report,
                     policy,
                     transactions: [transaction],
+                    bankAccountList: {},
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
         });
@@ -321,6 +336,7 @@ describe('getReportPreviewAction', () => {
                     report,
                     policy,
                     transactions: [transaction],
+                    bankAccountList: {},
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
@@ -359,6 +375,7 @@ describe('getReportPreviewAction', () => {
                     report,
                     policy,
                     transactions: [transaction],
+                    bankAccountList: {},
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
@@ -396,6 +413,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
     });
@@ -430,6 +448,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -465,6 +484,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -504,6 +524,7 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 invoiceReceiverPolicy,
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -558,6 +579,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
@@ -601,6 +623,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
@@ -639,6 +662,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
@@ -672,7 +696,141 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
+    });
+
+    describe('DEW (Dynamic External Workflow) submit pending', () => {
+        it('should return VIEW action when DEW submit is pending and report is OPEN', async () => {
+            // Given an open expense report with a corporate policy where DEW submit is pending
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+            // When getReportPreviewAction is called with isDEWSubmitPending = true
+            const result = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: '',
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                invoiceReceiverPolicy: undefined,
+                isPaidAnimationRunning: false,
+                isApprovedAnimationRunning: false,
+                isSubmittingAnimationRunning: false,
+                isDEWSubmitPending: true,
+            });
+
+            // Then it should return VIEW because DEW submission is pending offline
+            expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+
+        it('should return SUBMIT action when DEW submit has failed (not pending) and report is OPEN', async () => {
+            // Given an open expense report where DEW submit has failed (returned from backend, not pending offline)
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+            if (policy.harvesting) {
+                policy.harvesting.enabled = false;
+            }
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+            // When getReportPreviewAction is called with isDEWSubmitPending = false (failed, not pending)
+            const result = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: '',
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                invoiceReceiverPolicy: undefined,
+                isPaidAnimationRunning: false,
+                isApprovedAnimationRunning: false,
+                isSubmittingAnimationRunning: false,
+                isDEWSubmitPending: false,
+            });
+
+            // Then it should allow SUBMIT because failed submissions can be retried (not VIEW)
+            expect(result).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+
+        it('should return SUBMIT action when DEW submit has not failed and report is OPEN', async () => {
+            // Given an open expense report where DEW submit has not failed
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+            if (policy.harvesting) {
+                policy.harvesting.enabled = false;
+            }
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+            // When getReportPreviewAction is called with isDEWSubmitPending = false
+            const result = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: '',
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                invoiceReceiverPolicy: undefined,
+                isPaidAnimationRunning: false,
+                isApprovedAnimationRunning: false,
+                isSubmittingAnimationRunning: false,
+                isDEWSubmitPending: false,
+            });
+
+            // Then it should not return VIEW because DEW submit did not fail and regular logic applies
+            expect(result).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
     });
 });
