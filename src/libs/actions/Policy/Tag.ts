@@ -196,11 +196,11 @@ function createPolicyTag(policyData: PolicyData, tagName: string) {
 function importPolicyTags(policyData: PolicyData, tags: PolicyTag[]) {
     const onyxData = updateImportSpreadsheetData(tags.length);
 
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     const optimisticTags = tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}));
 
     const parameters = {
         policyID: policyData.policy?.id,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         tags: JSON.stringify(optimisticTags),
     };
 

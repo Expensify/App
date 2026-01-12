@@ -58,7 +58,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
 
             return errors;
         },
-        [policyTags, translate],
+        [policyTagLists, translate],
     );
 
     const createTag = useCallback(
