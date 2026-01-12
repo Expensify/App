@@ -123,10 +123,10 @@ function BaseSelectionList<TItem extends ListItem>({
                 if (isItemSelected(item) && (canSelectMultiple || acc.selectedOptions.length === 0)) {
                     acc.selectedOptions.push(item);
                 }
-                if (isItemDisabled) {
+                if (isItemDisabled || item?.isDisabledCheckbox) {
                     acc.disabledIndexes.push(idx);
 
-                    if (!item?.isDisabledCheckbox) {
+                    if (isItemDisabled) {
                         acc.disabledArrowKeyIndexes.push(idx);
                     }
                 }
