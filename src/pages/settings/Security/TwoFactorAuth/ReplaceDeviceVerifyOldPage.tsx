@@ -8,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearTwoFactorAuthSecretKey} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,7 +44,7 @@ function ReplaceDeviceVerifyOldPage() {
                     <Text style={[styles.textLabel, styles.mb4]}>{translate('twoFactorAuth.verifyOldDeviceDescription')}</Text>
                     <TwoFactorAuthForm
                         innerRef={formRef}
-                        validateInsteadOfDisable={false}
+                        validateInsteadOfDisable
                         step={CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_OLD}
                     />
                 </View>

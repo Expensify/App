@@ -41,8 +41,15 @@ function TwoFactorAuthSecretDisplay({contactMethod, secretKey, description}: Two
                 />
             </View>
             <Text style={styles.mt5}>{translate('twoFactorAuth.addKey')}</Text>
-            <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                {!!secretKey && <Text fsClass={CONST.FULLSTORY.CLASS.MASK}>{splitSecretInChunks(secretKey)}</Text>}
+            <View style={[styles.twoFactorAuthSecretBox, styles.mt6, styles.p4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                {!!secretKey && (
+                    <Text
+                        style={[styles.textMono]}
+                        fsClass={CONST.FULLSTORY.CLASS.MASK}
+                    >
+                        {splitSecretInChunks(secretKey)}
+                    </Text>
+                )}
                 <PressableWithDelayToggle
                     text={translate('twoFactorAuth.copy')}
                     textChecked={translate('common.copied')}
