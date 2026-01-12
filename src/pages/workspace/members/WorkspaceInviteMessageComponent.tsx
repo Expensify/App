@@ -130,7 +130,7 @@ function WorkspaceInviteMessageComponent({
         // We only want to run this useEffect when the onyx values have loaded
         // We navigate back to the main members screen when the invitation has been sent
         // This is decided when onyx values have loaded and if `invitedEmailsToAccountIDsDraft` is empty
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
     const sendInvitation = () => {
