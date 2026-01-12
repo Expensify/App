@@ -570,6 +570,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -586,6 +587,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     originalMessage: {
                         html: 'Hello world',
@@ -602,6 +604,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         amount: 0,
@@ -619,6 +622,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-10 22:27:01.825',
                     reportActionID: '1609646094152486',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
                     originalMessage: {
                         html: 'Hello world',
@@ -637,6 +641,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
                     originalMessage: {},
                     message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"', type: 'Action type', text: 'Action text'}],
@@ -644,6 +649,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-08 22:27:06.825',
                     reportActionID: '1661970171066216',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
                     originalMessage: {
                         paymentType: 'ACH',
@@ -653,6 +659,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-06 22:27:08.825',
                     reportActionID: '1661970171066220',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
                     originalMessage: {
                         html: 'Hello world',
@@ -675,6 +682,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -691,6 +699,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     originalMessage: {
                         html: 'Hello world',
@@ -707,6 +716,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         amount: 0,
@@ -724,6 +734,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-10 22:27:01.825',
                     reportActionID: '1609646094152486',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
                     originalMessage: {
                         html: 'Hello world',
@@ -742,6 +753,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '1661970171066218',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
                     originalMessage: {
                         policyName: 'default', // change to const
@@ -770,6 +782,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -786,6 +799,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '8401445780099175',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -797,6 +811,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '8401445780099174',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -819,6 +834,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:04:13.728',
                     reportActionID: '1607371725956675966',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '<mention-user accountID="18414674"/>',
@@ -838,6 +854,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:00:14.352',
                     reportActionID: '4655978522337302598',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '#join',
@@ -856,6 +873,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
                     originalMessage: {
                         lastModified: '2024-11-19 08:00:14.353',
@@ -873,6 +891,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
                     originalMessage: {
                         inviteeAccountIDs: [18414674],
@@ -972,6 +991,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
                 created: '2023-08-01 16:00:00',
                 reportActionID: 'action1',
+                reportID: '1',
                 actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
@@ -982,6 +1002,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
                 created: '2023-08-01 18:00:00',
                 reportActionID: 'action2',
+                reportID: '1',
                 actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
