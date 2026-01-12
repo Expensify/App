@@ -125,6 +125,9 @@ const ONYXKEYS = {
     /* Contains meta data for the call to the API to get the joinable policies */
     VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'validateUserAndGetAccessiblePolicies',
 
+    /** Stores details relating to unsharing a given bank account */
+    UNSHARE_BANK_ACCOUNT: 'unshareBankAccount',
+
     /** Information about the current session (authToken, accountID, email, loading, error) */
     SESSION: 'session',
     STASHED_SESSION: 'stashedSession',
@@ -1254,6 +1257,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PURCHASE_LIST]: OnyxTypes.PurchaseList;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.SHARE_BANK_ACCOUNT]: OnyxTypes.ShareBankAccount;
+    [ONYXKEYS.UNSHARE_BANK_ACCOUNT]: OnyxTypes.UnshareBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED]: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: number;

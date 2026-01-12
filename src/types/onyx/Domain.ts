@@ -95,11 +95,10 @@ type SamlMetadata = {
 /** Model of Security Group data */
 type DomainSecurityGroup = SecurityGroup & {
     /**
-     * A map of member account IDs to their permission level within the group.
-     * Key: The accountID of the member.
-     * Value: The permission level (e.g. "read").
+     * A map of member account IDs
+     * Key: The accountID of the member
      */
-    shared: Record<string, string>;
+    shared: Record<string, 'read'>;
 };
 
 export {type SamlMetadata, type DomainSecurityGroup};

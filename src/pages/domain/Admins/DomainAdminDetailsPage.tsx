@@ -11,6 +11,42 @@ type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
 
+    /**
+    const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
+    const {showConfirmModal} = useConfirmModal();
+
+    const handleRevokeAdminAccess = async () => {
+        const confirmResult = await showConfirmModal({
+            title: translate('domain.admins.revokeAdminAccess'),
+            prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+        if (confirmResult.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
+        revokeDomainAdminAccess(route.params.domainAccountID, route.params.accountID);
+        Navigation.dismissModal();
+    };
+
+    {!domainHasOnlyOneAdmin && (
+    <MenuItem
+    disabled={isCurrentUserPrimaryContact}
+    hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
+    style={styles.mb5}
+    title={translate('domain.admins.revokeAdminAccess')}
+    icon={icons.ClosedSign}
+    onPress={handleRevokeAdminAccess}
+    />
+    )}
+
+     */
+
+
     return (
         <BaseDomainMemberDetailsComponent
             domainAccountID={domainAccountID}

@@ -1,9 +1,18 @@
-import {adminAccountIDsSelector, domainEmailSelector, selectMemberIDs, technicalContactSettingsSelector} from '@selectors/Domain';
+import {
+    adminAccountIDsSelector,
+    adminPendingActionSelector,
+    domainEmailSelector,
+    domainSettingsPrimaryContactSelector,
+    memberAccountIDsSelector,
+    technicalContactSettingsSelector,
+} from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {CardFeeds, Domain} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainPendingActions, DomainSettings} from '@src/types/onyx';
 
 describe('domainSelectors', () => {
+    const userID1 = 123;
+    const userID2 = 456;
     describe('adminAccountIDsSelector', () => {
         it('Should return an empty array if the domain object is undefined', () => {
             expect(adminAccountIDsSelector(undefined)).toEqual([]);
@@ -118,14 +127,57 @@ describe('domainSelectors', () => {
             expect(domainEmailSelector(domain)).toBeUndefined();
         });
     });
+
+    describe('domainSettingsPrimaryContactSelector', () => {
+        it.each([
+            ['undefined', undefined, undefined],
+            ['empty object', {} as OnyxEntry<DomainSettings>, undefined],
+            ['settings without technicalContactEmail', {settings: {}} as OnyxEntry<DomainSettings>, undefined],
+        ])('Should return undefined when domainSettings is %s', (_description, domainSettings, expected) => {
+            expect(domainSettingsPrimaryContactSelector(domainSettings)).toBe(expected);
+        });
+
+        it('Should return the technical contact email when it exists', () => {
+            const domainSettings = {
+                settings: {
+                    technicalContactEmail: 'admin@example.com',
+                },
+            } as OnyxEntry<DomainSettings>;
+
+            expect(domainSettingsPrimaryContactSelector(domainSettings)).toBe('admin@example.com');
+        });
+    });
+
+    describe('adminPendingActionSelector', () => {
+        it.each([
+            ['undefined', undefined, {}],
+            ['empty object', {} as OnyxEntry<DomainPendingActions>, {}],
+        ])('Should return empty object when pendingAction is %s', (_description, pendingAction, expected) => {
+            expect(adminPendingActionSelector(pendingAction)).toEqual(expected);
+        });
+
+        it('Should return the admin pending actions when they exist', () => {
+            const pendingAction: OnyxEntry<DomainPendingActions> = {
+                admin: {
+                    [userID1]: {pendingAction: 'update'},
+                    [userID2]: {pendingAction: 'delete'},
+                },
+            };
+
+            expect(adminPendingActionSelector(pendingAction)).toEqual({
+                [userID1]: {pendingAction: 'update'},
+                [userID2]: {pendingAction: 'delete'},
+            });
+        });
+    });
     describe('selectMemberIDs', () => {
         it('Should return an empty array if the domain object is undefined', () => {
-            expect(selectMemberIDs(undefined)).toEqual([]);
+            expect(memberAccountIDsSelector(undefined)).toEqual([]);
         });
 
         it('Should return an empty array if the domain object is empty', () => {
             const domain = {} as OnyxEntry<Domain>;
-            expect(selectMemberIDs(domain)).toEqual([]);
+            expect(memberAccountIDsSelector(domain)).toEqual([]);
         });
 
         it('Should return member IDs when keys start with the security group prefix', () => {
@@ -146,7 +198,7 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            expect(selectMemberIDs(domain).sort()).toEqual([100, 200, 300]);
+            expect(memberAccountIDsSelector(domain).sort()).toEqual([100, 200, 300]);
         });
 
         it('Should return unique member IDs if they appear in multiple security groups', () => {
@@ -165,7 +217,7 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            expect(selectMemberIDs(domain)).toEqual([123]);
+            expect(memberAccountIDsSelector(domain)).toEqual([123]);
         });
 
         it('Should ignore keys that do not start with the security group prefix', () => {
@@ -184,7 +236,7 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            expect(selectMemberIDs(domain)).toEqual([456]);
+            expect(memberAccountIDsSelector(domain)).toEqual([456]);
         });
 
         it('Should ignore groups that do not have a shared property', () => {
@@ -199,7 +251,7 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            expect(selectMemberIDs(domain)).toEqual([111]);
+            expect(memberAccountIDsSelector(domain)).toEqual([111]);
         });
 
         it('Should filter out non-numeric shared keys', () => {
@@ -216,7 +268,7 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            expect(selectMemberIDs(domain).sort()).toEqual([123, 456]);
+            expect(memberAccountIDsSelector(domain).sort()).toEqual([123, 456]);
         });
     });
 });

@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {CardFeeds, Domain, DomainSecurityGroup, SamlMetadata} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
@@ -17,6 +17,8 @@ const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
         : undefined;
 
 const domainNameSelector = (domain: OnyxEntry<Domain>) => (domain?.email ? Str.extractEmailDomain(domain.email) : undefined);
+
+const domainSettingsPrimaryContactSelector = (domainSettings: OnyxEntry<DomainSettings>) => domainSettings?.settings?.technicalContactEmail;
 
 const metaIdentitySelector = (samlMetadata: OnyxEntry<SamlMetadata>) => samlMetadata?.metaIdentity;
 
@@ -61,7 +63,7 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
  * @param domain - The domain object from Onyx
  * @returns An array of unique member account IDs
  */
-function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
+function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     if (!domain) {
         return getEmptyArray<number>();
     }
@@ -87,18 +89,19 @@ function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
     return uniqueIDs.length > 0 ? uniqueIDs : getEmptyArray<number>();
 }
 
-const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => domainMemberSharedNVP?.settings?.technicalContactEmail;
-
 const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
+
+const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 
 export {
     domainMemberSamlSettingsSelector,
+    domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,
     domainNameSelector,
     metaIdentitySelector,
     adminAccountIDsSelector,
-    technicalContactEmailSelector,
-    selectMemberIDs,
+    memberAccountIDsSelector,
     domainEmailSelector,
+    adminPendingActionSelector,
     technicalContactSettingsSelector,
 };

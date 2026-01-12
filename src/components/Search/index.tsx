@@ -58,7 +58,7 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -126,7 +126,7 @@ function mapTransactionItemToSelectedEntry(
             groupExchangeRate: item.groupExchangeRate,
             reportID: item.reportID,
             policyID: item.report?.policyID,
-            amount: hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount,
+            amount: item.modifiedAmount ?? item.amount,
             groupAmount: item.groupAmount,
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
@@ -176,7 +176,8 @@ function prepareTransactionsList(
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
-            amount: Math.abs(hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount),
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            amount: Math.abs(item.modifiedAmount || item.amount),
             groupAmount: item.groupAmount,
             groupCurrency: item.groupCurrency,
             groupExchangeRate: item.groupExchangeRate,
@@ -320,7 +321,7 @@ function Search({
         clearTransactionsAndSetHashAndKey();
 
         // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
@@ -345,7 +346,6 @@ function Search({
         }
 
         // We don't want to run the effect on isFocused change as we only need it to early return when it is false.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
 
@@ -366,19 +366,18 @@ function Search({
         }
 
         // We only want this effect to handle the switching of mobile selection mode state when screen size changes.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        openSearch();
+        openSearch({includePartiallySetupBankAccounts: true});
     }, []);
 
     useEffect(() => {
         if (!prevIsOffline || isOffline) {
             return;
         }
-        openSearch();
+        openSearch({includePartiallySetupBankAccounts: true});
     }, [isOffline, prevIsOffline]);
 
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
@@ -467,7 +466,6 @@ function Search({
         handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
 
         // We don't need to run the effect on change of isFocused.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
 
@@ -536,7 +534,7 @@ function Search({
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
-                        amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
+                        amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                         groupAmount: transactionItem.groupAmount,
                         groupCurrency: transactionItem.groupCurrency,
                         groupExchangeRate: transactionItem.groupExchangeRate,
@@ -589,7 +587,7 @@ function Search({
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
-                    amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
+                    amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                     groupAmount: transactionItem.groupAmount,
                     groupCurrency: transactionItem.groupCurrency,
                     groupExchangeRate: transactionItem.groupExchangeRate,
@@ -606,7 +604,7 @@ function Search({
         setSelectedTransactions(newTransactionList, filteredData);
 
         isRefreshingSelection.current = true;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 
     useEffect(() => {
