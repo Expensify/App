@@ -35,12 +35,13 @@ function ReplaceDeviceVerifyOldPage() {
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_OLD}
             title={translate('twoFactorAuth.replaceDeviceTitle')}
+            shouldEnableViewportOffsetTop
         >
             <ScrollView
                 contentContainerStyle={styles.flexGrow1}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={[styles.mh5, styles.mb4, styles.mt3]}>
+                <View style={[styles.ph5, styles.mb4, styles.mt3]}>
                     <Text style={[styles.textLabel, styles.mb4]}>{translate('twoFactorAuth.verifyOldDeviceDescription')}</Text>
                     <TwoFactorAuthForm
                         innerRef={formRef}

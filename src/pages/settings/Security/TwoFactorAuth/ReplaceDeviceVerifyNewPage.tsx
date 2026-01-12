@@ -37,7 +37,6 @@ function ReplaceDeviceVerifyNewPage() {
         Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.route);
     }, [account, account?.twoFactorAuthSecretKey]);
 
-    // TODO is this necessary?
     const handleInputFocus = () => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -51,6 +50,7 @@ function ReplaceDeviceVerifyNewPage() {
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_NEW}
             title={translate('twoFactorAuth.replaceDeviceTitle')}
+            shouldEnableViewportOffsetTop
         >
             <ScrollView
                 ref={scrollViewRef}
