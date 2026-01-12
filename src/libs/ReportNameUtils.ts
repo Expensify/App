@@ -560,7 +560,7 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
     return undefined;
 }
 
-function computeChatThreadReportName(report: Report, private_isArchived: string, reports: OnyxCollection<Report>, parentReportAction?: ReportAction): string | undefined {
+function computeChatThreadReportName(report: Report, isArchived: string, reports: OnyxCollection<Report>, parentReportAction?: ReportAction): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
     }
@@ -569,7 +569,7 @@ function computeChatThreadReportName(report: Report, private_isArchived: string,
     }
 
     const parentReportActionMessage = getReportActionMessageFromActionsUtils(parentReportAction);
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!private_isArchived);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!isArchived);
 
     if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
         let formattedName = getTransactionReportName({reportAction: parentReportAction});
