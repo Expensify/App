@@ -6,7 +6,6 @@ import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -87,12 +86,12 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
                     fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                     style={styles.flexGrow1}
                 >
-                    <Text style={styles.mt5}>
+                    <View style={styles.mt5}>
                         <RenderHTML html={translate('domain.admins.resetDomainInfo', {contactMethodRoute})} />
-                    </Text>
-                    <Text style={styles.mt5}>
+                    </View>
+                    <View style={styles.mt5}>
                         <RenderHTML html={translate('domain.admins.resetDomainExplanation', {domainName})} />
-                    </Text>
+                    </View>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.DOMAIN_NAME}

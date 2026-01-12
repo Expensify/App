@@ -7891,7 +7891,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Wpisz proszę <strong>${domainName}</strong>, aby potwierdzić reset domeny.`,
             enterDomainName: 'Wpisz tutaj swoją nazwę domeny',
             resetDomainInfo: ({contactMethodRoute}: {contactMethodRoute?: string}) =>
-                `Ta akcja jest <strong>trwała</strong> i następujące dane zostaną usunięte: <br/> <ul><li>Połączenia kart firmowych i wszystkie nierozliczone wydatki z tych kart</li> <li>Ustawienia SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/> Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="${contactMethodRoute}">metod kontaktu</a>.`,
+                `Ta akcja jest <strong>trwała</strong> i następujące dane zostaną usunięte: <br/> <ul><li>Połączenia kart firmowych i wszystkie nierozliczone wydatki z tych kart</li> <li>Ustawienia SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="${contactMethodRoute}">metod kontaktu</a>.`,
         },
     },
     gps: {

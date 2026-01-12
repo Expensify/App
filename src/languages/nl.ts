@@ -7911,7 +7911,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Typ hier <strong>${domainName}</strong> om het resetten van het domein te bevestigen.`,
             enterDomainName: 'Voer hier uw domeinnaam in',
             resetDomainInfo: ({contactMethodRoute}: {contactMethodRoute?: string}) =>
-                `Deze actie is <strong>definitief</strong> en de volgende gegevens worden verwijderd: <br/> <ul><li>Bedrijfskaartverbindingen en niet-ingediende uitgaven van die kaarten</li> <li>SAML- en groepsinstellingen</li> </ul> Alle accounts, werkruimten, rapporten, uitgaven en andere gegevens blijven behouden. <br/><br/> Opmerking: je kunt dit domein uit je domeinenlijst verwijderen door het gekoppelde e-mailadres uit je <a href="${contactMethodRoute}">contactmethoden</a> te verwijderen.`,
+                `Deze actie is <strong>definitief</strong> en de volgende gegevens worden verwijderd: <br/> <ul><li>Bedrijfskaartverbindingen en niet-ingediende uitgaven van die kaarten</li> <li>SAML- en groepsinstellingen</li> </ul> Alle accounts, werkruimten, rapporten, uitgaven en andere gegevens blijven behouden. <br/><br/>Opmerking: je kunt dit domein uit je domeinenlijst verwijderen door het gekoppelde e-mailadres uit je <a href="${contactMethodRoute}">contactmethoden</a> te verwijderen.`,
         },
     },
     gps: {

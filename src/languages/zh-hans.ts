@@ -7711,7 +7711,7 @@ ${reportName}
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `请输入 <strong>${domainName}</strong> 以确认重置该域名。`,
             enterDomainName: '在此输入您的域名',
             resetDomainInfo: ({contactMethodRoute}: {contactMethodRoute?: string}) =>
-                `此操作是<strong>永久性的</strong>，并且以下数据将被删除：<br/> <ul><li>公司卡连接以及这些卡片上所有未报销的费用</li> <li>SAML 和群组设置</li> </ul> 所有账户、工作区、报表、费用以及其他数据将会保留。<br/><br/> 注意：您可以通过从<a href="${contactMethodRoute}">联系方法</a>中移除关联的邮箱，将此域名从您的域名列表中清除。`,
+                `此操作是<strong>永久性的</strong>，并且以下数据将被删除：<br/> <ul><li>公司卡连接以及这些卡片上所有未报销的费用</li> <li>SAML 和群组设置</li> </ul> 所有账户、工作区、报表、费用以及其他数据将会保留。<br/><br/>注意：您可以通过从<a href="${contactMethodRoute}">联系方法</a>中移除关联的邮箱，将此域名从您的域名列表中清除。`,
         },
     },
     gps: {

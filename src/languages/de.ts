@@ -7940,7 +7940,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Bitte geben Sie <strong>${domainName}</strong> ein, um das Zurücksetzen der Domain zu bestätigen.`,
             enterDomainName: 'Geben Sie hier Ihren Domänennamen ein',
             resetDomainInfo: ({contactMethodRoute}: {contactMethodRoute?: string}) =>
-                `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <ul><li>Firmenkarten-Verbindungen und alle nicht eingereichten Ausgaben von diesen Karten</li> <li>SAML- und Gruppeneinstellungen</li> </ul> Alle Konten, Workspaces, Berichte, Ausgaben und anderen Daten bleiben erhalten. <br/><br/> Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="${contactMethodRoute}">Kontaktmethoden</a> löschen.`,
+                `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <ul><li>Firmenkarten-Verbindungen und alle nicht eingereichten Ausgaben von diesen Karten</li> <li>SAML- und Gruppeneinstellungen</li> </ul> Alle Konten, Workspaces, Berichte, Ausgaben und anderen Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="${contactMethodRoute}">Kontaktmethoden</a> löschen.`,
         },
     },
     gps: {

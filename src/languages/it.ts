@@ -7922,7 +7922,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Per favore digita <strong>${domainName}</strong> per confermare il ripristino del dominio.`,
             enterDomainName: 'Inserisci qui il tuo nome di dominio',
             resetDomainInfo: ({contactMethodRoute}: {contactMethodRoute?: string}) =>
-                `Questa azione è <strong>permanente</strong> e i seguenti dati verranno eliminati: <br/> <ul><li>Connessioni alle carte aziendali e tutte le spese non riportate da tali carte</li> <li>Impostazioni SAML e di gruppo</li> </ul> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/> Nota: puoi rimuovere questo dominio dall’elenco dei tuoi domini eliminando l’email associata dalle tue <a href="${contactMethodRoute}">modalità di contatto</a>.`,
+                `Questa azione è <strong>permanente</strong> e i seguenti dati verranno eliminati: <br/> <ul><li>Connessioni alle carte aziendali e tutte le spese non riportate da tali carte</li> <li>Impostazioni SAML e di gruppo</li> </ul> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/>Nota: puoi rimuovere questo dominio dall’elenco dei tuoi domini eliminando l’email associata dalle tue <a href="${contactMethodRoute}">modalità di contatto</a>.`,
         },
     },
     gps: {
