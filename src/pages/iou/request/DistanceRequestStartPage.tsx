@@ -221,18 +221,17 @@ function DistanceRequestStartPage({
                                 )}
                             </TopTab.Screen>
                         )}
-                        {false && (
-                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
-                                {() => (
-                                    <TabScreenWithFocusTrapWrapper>
-                                        <IOURequestStepDistanceOdometer
-                                            route={route}
-                                            navigation={navigation}
-                                        />
-                                    </TabScreenWithFocusTrapWrapper>
-                                )}
-                            </TopTab.Screen>
-                        )}
+                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                            {() => (
+                                <TabScreenWithFocusTrapWrapper>
+                                    <IOURequestStepDistanceOdometer
+                                        route={route}
+                                        navigation={navigation}
+                                        startOfFlow
+                                    />
+                                </TabScreenWithFocusTrapWrapper>
+                            )}
+                        </TopTab.Screen>
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>

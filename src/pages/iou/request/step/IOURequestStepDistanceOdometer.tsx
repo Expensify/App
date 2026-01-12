@@ -55,6 +55,9 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
+
+        /** The flag indicating if this is the start of the flow */
+        startOfFlow?: boolean;
     };
 
 function IOURequestStepDistanceOdometer({
@@ -63,6 +66,7 @@ function IOURequestStepDistanceOdometer({
         params: {action, iouType, reportID, transactionID, backTo, backToReport},
     },
     transaction,
+    startOfFlow = false,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
     const {translate} = useLocalize();
@@ -106,7 +110,8 @@ function IOURequestStepDistanceOdometer({
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isCreatingNewRequest = !(backTo ?? isEditing);
+    const isEditingConfirmation = !startOfFlow && !isEditing;
+    const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -123,6 +128,8 @@ function IOURequestStepDistanceOdometer({
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
+
+    const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport);
 
     // Reset component state when transaction has no odometer data (happens when switching tabs)
     // In Phase 1, we don't persist data from transaction since users can't save and exit
@@ -149,7 +156,7 @@ function IOURequestStepDistanceOdometer({
         const shouldReset =
             hasInitializedRefs.current &&
             !isEditing &&
-            !backToReport &&
+            !isEditingConfirmation &&
             !hasTransactionData &&
             (wasCleared || (prevTransactionStartRef.current === undefined && prevTransactionEndRef.current === undefined));
 
@@ -168,7 +175,7 @@ function IOURequestStepDistanceOdometer({
         // Update refs to track previous values
         prevTransactionStartRef.current = currentStart;
         prevTransactionEndRef.current = currentEnd;
-    }, [isFocused, isEditing, backToReport, transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
+    }, [isFocused, isEditing, isEditingConfirmation, transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
 
     // Initialize initial values refs on mount for DiscardChangesConfirmation
     // These should never be updated after mount - they represent the "baseline" state
@@ -231,7 +238,7 @@ function IOURequestStepDistanceOdometer({
         if (shouldSkipConfirmation) {
             return translate('iou.createExpense');
         }
-        const shouldShowSave = isEditing || backToReport;
+        const shouldShowSave = isEditing || isEditingConfirmation;
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
@@ -286,6 +293,10 @@ function IOURequestStepDistanceOdometer({
     };
 
     const navigateBack = () => {
+        if (confirmationRoute) {
+            Navigation.goBack(confirmationRoute);
+            return;
+        }
         Navigation.goBack(backTo);
     };
 
@@ -331,8 +342,8 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        if (backToReport) {
-            Navigation.goBack(backTo);
+        if (isEditingConfirmation) {
+            Navigation.goBack(confirmationRoute);
             return;
         }
 
@@ -485,7 +496,7 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     };
 
-    const shouldEnableDiscardConfirmation = !backToReport && !shouldSkipConfirmation && !isEditing;
+    const shouldEnableDiscardConfirmation = !isEditingConfirmation && !isEditing;
 
     return (
         <StepScreenWrapper
