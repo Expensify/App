@@ -248,8 +248,8 @@ function peg$parse(input, options) {
   var peg$c62 = "purchase-currency";
   var peg$c63 = "columns";
   var peg$c64 = "per-diem";
-  var peg$c65 = "draft";
-  var peg$c66 = "drafts";
+  var peg$c65 = "drafts";
+  var peg$c66 = "draft";
   var peg$c67 = "original-amount";
   var peg$c68 = "tax";
   var peg$c69 = "policy-name";
@@ -357,8 +357,8 @@ function peg$parse(input, options) {
   var peg$e65 = peg$literalExpectation("purchase-currency", true);
   var peg$e66 = peg$literalExpectation("columns", true);
   var peg$e67 = peg$literalExpectation("per-diem", true);
-  var peg$e68 = peg$literalExpectation("draft", true);
-  var peg$e69 = peg$literalExpectation("drafts", true);
+  var peg$e68 = peg$literalExpectation("drafts", true);
+  var peg$e69 = peg$literalExpectation("draft", true);
   var peg$e70 = peg$literalExpectation("original-amount", true);
   var peg$e71 = peg$literalExpectation("tax", true);
   var peg$e72 = peg$literalExpectation("policy-name", true);
@@ -2235,7 +2235,7 @@ function peg$parse(input, options) {
 
     s0 = peg$parseperDiem();
     if (s0 === peg$FAILED) {
-      s0 = peg$parsedrafts();
+      s0 = peg$parsedraft();
       if (s0 === peg$FAILED) {
         s0 = peg$parseoriginalAmount();
         if (s0 === peg$FAILED) {
@@ -2321,21 +2321,21 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsedrafts() {
+  function peg$parsedraft() {
     var s0, s1;
 
-    s0 = input.substr(peg$currPos, 5);
+    s0 = input.substr(peg$currPos, 6);
     if (s0.toLowerCase() === peg$c65) {
-      peg$currPos += 5;
+      peg$currPos += 6;
     } else {
       s0 = peg$FAILED;
       if (peg$silentFails === 0) { peg$fail(peg$e68); }
     }
     if (s0 === peg$FAILED) {
       s0 = peg$currPos;
-      s1 = input.substr(peg$currPos, 6);
+      s1 = input.substr(peg$currPos, 5);
       if (s1.toLowerCase() === peg$c66) {
-        peg$currPos += 6;
+        peg$currPos += 5;
       } else {
         s1 = peg$FAILED;
         if (peg$silentFails === 0) { peg$fail(peg$e69); }
