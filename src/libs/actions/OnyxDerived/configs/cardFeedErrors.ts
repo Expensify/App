@@ -8,13 +8,6 @@ import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {AllCardFeedErrorsMap, CardErrors, CardFeedErrorsObject, FeedErrors} from '@src/types/onyx/DerivedValues';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-// function getPolicyWorkspaceAccountIDMapping(policyCollection: OnyxCollection<Policy>): Record<string, number> {
-//     return Object.entries(policyCollection ?? {}).reduce<Record<string, number>>((acc, [key, value]) => {
-//         acc[key] = value?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-//         return acc;
-//     }, {});
-// }
-
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.CARD_FEED_ERRORS,
     dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER],
