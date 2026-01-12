@@ -508,6 +508,42 @@ describe('ReportUtils', () => {
 
             mergeSpy.mockRestore();
         });
+
+        it('passes MICRO company size to onboarding task parameters', () => {
+            const title = jest.fn();
+            const description = jest.fn();
+
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE,
+                            title,
+                            description,
+                            autoCompleted: false,
+                            mediaAttributes: {},
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+
+            expect(title).toHaveBeenCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                }),
+            );
+
+            expect(description).toHaveBeenCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                }),
+            );
+        });
     });
 
     describe('getIconsForParticipants', () => {
