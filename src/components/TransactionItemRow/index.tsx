@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport, isSettled} from '@libs/ReportUtils';
+import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -33,6 +33,7 @@ import {
     getMerchant,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    getReimbursable,
     getTaxName,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
@@ -364,7 +365,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
                 >
-                    <Text>{transactionItem.reimbursable ? translate('common.yes') : translate('common.no')}</Text>
+                    <Text>{getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}</Text>
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: (
@@ -685,7 +686,7 @@ function TransactionItemRow({
                     </View>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                         <View style={[styles.flexColumn, styles.flex1]}>
-                            {hasCategoryOrTag && (
+                            {hasCategoryOrTag && !isIOUReport(report) && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
                                     <CategoryCell
                                         transactionItem={transactionItem}
