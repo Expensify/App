@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {closeSearch, openSearch} from './toggleSearch';
 
 type SearchRouterContext = {
     isSearchRouterDisplayed: boolean;
@@ -40,7 +41,6 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
     const searchPageInputRef = useRef<AnimatedTextInputRef | undefined>(undefined);
-
     useEffect(() => {
         if (!canListenPopState) {
             return;
@@ -76,7 +76,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             }
             close(
                 () => {
-                    setIsSearchRouterDisplayed(true);
+                    openSearch(setIsSearchRouterDisplayed);
                     searchRouterDisplayedRef.current = true;
                 },
                 false,
@@ -84,7 +84,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             );
         };
         const closeSearchRouter = () => {
-            setIsSearchRouterDisplayed(false);
+            closeSearch(setIsSearchRouterDisplayed);
             searchRouterDisplayedRef.current = false;
             if (isBrowserWithHistory) {
                 const state = window.history.state as HistoryState | null;
@@ -143,7 +143,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             registerSearchPageInput,
             unregisterSearchPageInput,
         };
-    }, [isSearchRouterDisplayed, setIsSearchRouterDisplayed]);
+    }, [isSearchRouterDisplayed]);
 
     return <Context.Provider value={routerContext}>{children}</Context.Provider>;
 }
