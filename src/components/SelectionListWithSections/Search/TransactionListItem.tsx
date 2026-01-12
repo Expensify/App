@@ -45,7 +45,9 @@ function TransactionListItem<TItem extends ListItem>({
     columns,
     isLoading,
     violations,
+    customCardNames,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -64,10 +66,11 @@ function TransactionListItem<TItem extends ListItem>({
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {canBeMissing: true});
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
-    const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true});
+    const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.reportAction?.reportActionID}`],
         [transactionItem?.reportAction?.reportActionID],
@@ -128,18 +131,20 @@ function TransactionListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleActionButtonPress = useCallback(() => {
-        handleActionButtonPressUtil(
-            currentSearchHash,
-            transactionItem,
-            () => onSelectRow(item, transactionPreviewData),
+        handleActionButtonPressUtil({
+            hash: currentSearchHash,
+            item: transactionItem,
+            goToItem: () => onSelectRow(item, transactionPreviewData),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        );
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
+        });
     }, [
         currentSearchHash,
         transactionItem,
@@ -147,10 +152,12 @@ function TransactionListItem<TItem extends ListItem>({
         snapshotReport,
         snapshotPolicy,
         lastPaymentMethod,
+        personalPolicyID,
         currentSearchKey,
         onSelectRow,
         item,
         onDEWModalOpen,
+        isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
     ]);
@@ -226,6 +233,7 @@ function TransactionListItem<TItem extends ListItem>({
                             violations={transactionViolations}
                             onArrowRightPress={onPress}
                             isHover={hovered}
+                            customCardNames={customCardNames}
                         />
                     </>
                 )}
