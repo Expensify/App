@@ -80,7 +80,6 @@ import {
     isInvoiceReport,
     isMoneyRequest,
     isMoneyRequestReport,
-    isMoneyRequestReportPendingDeletion,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isReportTransactionThread,
@@ -783,13 +782,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 });
             }
             if (prevReport?.parentReportID) {
-                // Prevent navigation to the IOU/Expense Report if it is pending deletion.
-                if (isMoneyRequestReportPendingDeletion(prevReport.parentReportID)) {
-                    return;
-                }
-                Navigation.isNavigationReady().then(() => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
-                });
                 return;
             }
 
