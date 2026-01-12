@@ -266,6 +266,17 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
 
+    const showDeleteWorkspaceModal = useCallback(async () => {
+        await showConfirmModal({
+            title: translate('workspace.common.delete'),
+            prompt: policyLastErrorMessage,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            success: false,
+        });
+        clearDeleteWorkspaceError(policy?.id);
+    }, []);
+
     useEffect(() => {
         if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
             return;
@@ -275,16 +286,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             goBackFromInvalidPolicy();
             return;
         }
-
-        showConfirmModal({
-            title: translate('workspace.common.delete'),
-            prompt: policyLastErrorMessage,
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            success: false,
-        }).then(() => {
-            clearDeleteWorkspaceError(policy?.id);
-        });
+        showDeleteWorkspaceModal();
     }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage, showConfirmModal, translate, policy?.id]);
 
     const onDeleteWorkspace = useCallback(() => {

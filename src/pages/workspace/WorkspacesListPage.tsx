@@ -360,6 +360,21 @@ function WorkspacesListPage() {
         [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login],
     );
 
+    const showDeleteWorkspaceModal = useCallback(async () => {
+        const result = await showConfirmModal({
+            title: translate('workspace.common.delete'),
+            prompt: policyToDeleteLatestErrorMessage,
+            confirmText: translate('common.buttonConfirm'),
+            success: true,
+            shouldShowCancelButton: false,
+        });
+        setPolicyIDToDelete(undefined);
+        if (!policyToDelete) {
+            return;
+        }
+        dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
+    }, []);
+
     useEffect(() => {
         if (!prevIsPendingDelete || isPendingDelete || !policyIDToDelete) {
             return;
@@ -367,20 +382,7 @@ function WorkspacesListPage() {
         if (!isFocused || !policyToDeleteLatestErrorMessage) {
             return;
         }
-
-        showConfirmModal({
-            title: translate('workspace.common.delete'),
-            prompt: policyToDeleteLatestErrorMessage,
-            confirmText: translate('common.buttonConfirm'),
-            success: true,
-            shouldShowCancelButton: false,
-        }).then(() => {
-            setPolicyIDToDelete(undefined);
-            if (!policyToDelete) {
-                return;
-            }
-            dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
-        });
+        showDeleteWorkspaceModal();
     }, [isPendingDelete, prevIsPendingDelete, isFocused, policyToDeleteLatestErrorMessage, policyIDToDelete, showConfirmModal, translate, policyToDelete]);
 
     /**
