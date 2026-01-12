@@ -4438,7 +4438,7 @@ async function completeOnboarding({
     }
 
     // API calls are not chained in this case
-    // eslint-disable-next-line rulesdir/no-multiple-api-calls  in this case
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     return API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
 }
 

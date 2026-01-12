@@ -206,6 +206,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             lastName: currentUserPersonalDetails?.lastName,
             selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
             shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
+            shouldWaitForRHPVariantInitialization: true,
         });
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
