@@ -1814,6 +1814,7 @@ describe('SidebarUtils', () => {
                 };
                 const lastAction: ReportAction = {
                     ...createRandomReportAction(1),
+                    reportID: '1',
                     message: [
                         {
                             type: 'COMMENT',
@@ -1833,6 +1834,7 @@ describe('SidebarUtils', () => {
                 };
                 const deletedAction: ReportAction = {
                     ...createRandomReportAction(2),
+                    reportID: '1',
                     actionName: 'IOU',
                     actorAccountID: 20337430,
                     automatic: false,
@@ -1912,6 +1914,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    lastMessageTextFromReport: 'test action',
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
