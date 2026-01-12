@@ -16,7 +16,15 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {isTransactionPendingDelete} from './TransactionUtils';
+import {getReimbursable, isTransactionPendingDelete} from './TransactionUtils';
+
+function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
+    return !!policy && policy.disabledFields?.defaultBillable !== true;
+}
+
+function hasNonReimbursableTransactions(transactions: Transaction[]): boolean {
+    return transactions.some((transaction) => !getReimbursable(transaction));
+}
 
 /**
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
@@ -176,4 +184,6 @@ export {
     isSingleTransactionReport,
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
+    isBillableEnabledOnPolicy,
+    hasNonReimbursableTransactions,
 };

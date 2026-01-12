@@ -9,7 +9,7 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 // eslint-disable-next-line no-restricted-imports
-import {Plus} from '@components/Icon/Expensicons';
+import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
@@ -136,7 +136,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler']);
@@ -186,7 +186,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return;
         }
         setRemoveMembersConfirmModalVisible(false);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [accountIDs]);
 
     useEffect(() => {
@@ -426,7 +426,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 ),
                 icons: [
                     {
-                        source: details.avatar ?? icons.FallbackAvatar,
+                        source: details.avatar ?? FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -458,7 +458,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         invitedPrimaryToSecondaryLogins,
         policyOwner,
         currentUserLogin,
-        icons.FallbackAvatar,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
