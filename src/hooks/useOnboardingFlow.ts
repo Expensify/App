@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
+import Log from '@libs/Log';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -120,6 +121,7 @@ function useOnboardingFlowRouter() {
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                     startedOnboardingFlowRef.current = true;
+                    Log.info('[Onboarding] Hybrid app onboarding is completed, but NewDot onboarding is not completed, starting NewDot onboarding flow');
                     startOnboardingFlow({
                         onboardingValuesParam: onboardingValues,
                         isUserFromPublicDomain: !!account?.isFromPublicDomain,
@@ -135,6 +137,7 @@ function useOnboardingFlowRouter() {
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                 startedOnboardingFlowRef.current = true;
+                Log.info('[Onboarding] Not a hybrid app, NewDot onboarding is not completed, starting NewDot onboarding flow');
                 startOnboardingFlow({
                     onboardingValuesParam: onboardingValues,
                     isUserFromPublicDomain: !!account?.isFromPublicDomain,

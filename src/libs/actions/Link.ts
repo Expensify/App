@@ -32,6 +32,7 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {isOnboardingFlowCompleted, setOnboardingErrorMessage} from './Welcome';
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from './Welcome/OnboardingFlow';
+import Log from '@libs/Log';
 
 let isNetworkOffline = false;
 let networkStatus: NetworkStatus;
@@ -394,7 +395,8 @@ function openReportFromDeepLink(
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: () =>
+                            onNotCompleted: () => {
+                                Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from deep link');
                                 startOnboardingFlow({
                                     onboardingValuesParam: val,
                                     hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
@@ -403,7 +405,8 @@ function openReportFromDeepLink(
                                     currentOnboardingCompanySize,
                                     onboardingInitialPath,
                                     onboardingValues: val,
-                                }),
+                                });
+                            },
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
