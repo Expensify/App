@@ -972,8 +972,8 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oeps! Je hebt één veld ("${fieldName}") aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
         emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import succesvol',
-        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `Er zijn ${categories} categorieën toegevoegd.` : '1 categorie is toegevoegd.'),
-        importMembersSuccessfulDescription: (added: number, updated: number) => {
+        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `Er zijn ${categories} categorieën toegevoegd.` : '1 categorie is toegevoegd.'),
+        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Er zijn geen leden toegevoegd of bijgewerkt.';
             }
@@ -985,9 +985,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `${added} leden zijn toegevoegd.` : '1 lid is toegevoegd.';
         },
-        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `Er zijn ${tags} tags toegevoegd.` : '1 tag is toegevoegd.'),
+        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `Er zijn ${tags} tags toegevoegd.` : '1 tag is toegevoegd.'),
         importMultiLevelTagsSuccessfulDescription: 'Tags op meerdere niveaus zijn toegevoegd.',
-        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `${rates} dagvergoedingen zijn toegevoegd.` : '1 dagvergoedingstarief is toegevoegd.'),
+        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} dagvergoedingen zijn toegevoegd.` : '1 dagvergoedingstarief is toegevoegd.'),
         importFailedTitle: 'Import mislukt',
         importFailedDescription: 'Zorg ervoor dat alle velden correct zijn ingevuld en probeer het opnieuw. Als het probleem zich blijft voordoen, neem dan contact op met Concierge.',
         importDescription: 'Kies welke velden je wilt koppelen vanuit je spreadsheet door op de vervolgkeuzelijst naast elke geïmporteerde kolom hieronder te klikken.',

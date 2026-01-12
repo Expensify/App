@@ -974,8 +974,8 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
         emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfen Sie es und versuchen Sie es erneut.`,
         importSuccessfulTitle: 'Import erfolgreich',
-        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `${categories} Kategorien wurden hinzugefügt.` : '1 Kategorie wurde hinzugefügt.'),
-        importMembersSuccessfulDescription: (added: number, updated: number) => {
+        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} Kategorien wurden hinzugefügt.` : '1 Kategorie wurde hinzugefügt.'),
+        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Es wurden keine Mitglieder hinzugefügt oder aktualisiert.';
             }
@@ -987,9 +987,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `${added} Mitglieder wurden hinzugefügt.` : '1 Mitglied wurde hinzugefügt.';
         },
-        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `${tags} Tags wurden hinzugefügt.` : '1 Tag wurde hinzugefügt.'),
+        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} Tags wurden hinzugefügt.` : '1 Tag wurde hinzugefügt.'),
         importMultiLevelTagsSuccessfulDescription: 'Hierarchische Tags wurden hinzugefügt.',
-        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `${rates} Übernachtungspauschalen wurden hinzugefügt.` : '1 Pauschale wurde hinzugefügt.'),
+        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} Übernachtungspauschalen wurden hinzugefügt.` : '1 Pauschale wurde hinzugefügt.'),
         importFailedTitle: 'Import fehlgeschlagen',
         importFailedDescription: 'Bitte stelle sicher, dass alle Felder korrekt ausgefüllt sind, und versuche es erneut. Wenn das Problem weiterhin besteht, wende dich bitte an Concierge.',
         importDescription: 'Wählen Sie aus, welche Felder aus Ihrer Tabelle zugeordnet werden sollen, indem Sie auf das Dropdown-Menü neben jeder der importierten Spalten unten klicken.',

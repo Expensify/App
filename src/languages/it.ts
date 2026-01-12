@@ -972,8 +972,8 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ops! Hai associato un singolo campo ("${fieldName}") a più colonne. Controlla e riprova.`,
         emptyMappedField: (fieldName: string) => `Ops! Il campo («${fieldName}») contiene uno o più valori vuoti. Controlla e riprova.`,
         importSuccessfulTitle: 'Importazione riuscita',
-        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `Sono state aggiunte ${categories} categorie.` : '1 categoria è stata aggiunta.'),
-        importMembersSuccessfulDescription: (added: number, updated: number) => {
+        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `Sono state aggiunte ${categories} categorie.` : '1 categoria è stata aggiunta.'),
+        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Nessun membro è stato aggiunto o aggiornato.';
             }
@@ -985,9 +985,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `${added} membri sono stati aggiunti.` : 'È stato aggiunto 1 membro.';
         },
-        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `Sono stati aggiunti ${tags} tag.` : 'È stato aggiunto 1 tag.'),
+        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `Sono stati aggiunti ${tags} tag.` : 'È stato aggiunto 1 tag.'),
         importMultiLevelTagsSuccessfulDescription: 'Sono stati aggiunti i tag multilivello.',
-        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `Sono state aggiunte le tariffe di diaria ${rates}.` : 'È stata aggiunta 1 tariffa di diaria.'),
+        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `Sono state aggiunte le tariffe di diaria ${rates}.` : 'È stata aggiunta 1 tariffa di diaria.'),
         importFailedTitle: 'Importazione non riuscita',
         importFailedDescription: 'Assicurati che tutti i campi siano compilati correttamente e riprova. Se il problema persiste, contatta Concierge.',
         importDescription: 'Scegli quali campi mappare dal tuo foglio di calcolo cliccando il menu a discesa accanto a ciascuna colonna importata qui sotto.',

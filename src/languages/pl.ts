@@ -972,8 +972,8 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Przypisałeś jedno pole („${fieldName}”) do wielu kolumn. Sprawdź ustawienia i spróbuj ponownie.`,
         emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony pomyślnie',
-        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `Dodano ${categories} kategorii.` : 'Dodano 1 kategorię.'),
-        importMembersSuccessfulDescription: (added: number, updated: number) => {
+        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `Dodano ${categories} kategorii.` : 'Dodano 1 kategorię.'),
+        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Nie dodano ani nie zaktualizowano żadnych członków.';
             }
@@ -985,9 +985,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `Dodano ${added} członków.` : 'Dodano 1 członka.';
         },
-        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `Dodano ${tags} tagów.` : 'Dodano 1 tag.'),
+        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `Dodano ${tags} tagów.` : 'Dodano 1 tag.'),
         importMultiLevelTagsSuccessfulDescription: 'Dodano tagi wielopoziomowe.',
-        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `Dodano ${rates} stawek ryczałtowych.` : 'Dodano 1 stawkę diety.'),
+        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `Dodano ${rates} stawek ryczałtowych.` : 'Dodano 1 stawkę diety.'),
         importFailedTitle: 'Import zakończony niepowodzeniem',
         importFailedDescription: 'Upewnij się, że wszystkie pola zostały wypełnione poprawnie i spróbuj ponownie. Jeśli problem będzie się powtarzał, skontaktuj się z Concierge.',
         importDescription: 'Wybierz pola do zmapowania z arkusza kalkulacyjnego, klikając menu rozwijane obok każdej zaimportowanej kolumny poniżej.',

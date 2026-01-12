@@ -971,8 +971,8 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Opa! Você associou um único campo ("${fieldName}") a várias colunas. Revise e tente novamente.`,
         emptyMappedField: (fieldName: string) => `Opa! O campo ("${fieldName}") contém um ou mais valores vazios. Verifique e tente novamente.`,
         importSuccessfulTitle: 'Importação bem-sucedida',
-        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `${categories} categorias foram adicionadas.` : '1 categoria foi adicionada.'),
-        importMembersSuccessfulDescription: (added: number, updated: number) => {
+        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categorias foram adicionadas.` : '1 categoria foi adicionada.'),
+        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Nenhum membro foi adicionado ou atualizado.';
             }
@@ -984,9 +984,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `${added} membros foram adicionados.` : '1 membro foi adicionado.';
         },
-        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `${tags} tags foram adicionadas.` : '1 tag foi adicionada.'),
+        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags foram adicionadas.` : '1 tag foi adicionada.'),
         importMultiLevelTagsSuccessfulDescription: 'Tags em vários níveis foram adicionadas.',
-        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `Foram adicionadas taxas diárias de ${rates}.` : '1 taxa de diária foi adicionada.'),
+        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `Foram adicionadas taxas diárias de ${rates}.` : '1 taxa de diária foi adicionada.'),
         importFailedTitle: 'Falha na importação',
         importFailedDescription: 'Verifique se todos os campos foram preenchidos corretamente e tente novamente. Se o problema persistir, entre em contato com a Concierge.',
         importDescription: 'Escolha quais campos mapear da sua planilha clicando no menu suspenso ao lado de cada coluna importada abaixo.',
