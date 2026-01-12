@@ -624,7 +624,7 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
-function filterInactiveCards(cards: CardList | undefined) {
+function filterAllInactiveCards(cards: CardList | undefined) {
     if (!cards) {
         return {};
     }
@@ -635,9 +635,9 @@ function filterInactiveCards(cards: CardList | undefined) {
     return filteredCards;
 }
 
-function filterInactiveWorkspaceCards(cardsList: WorkspaceCardsList | undefined) {
+function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
     const {cardList, ...assignedCards} = cardsList ?? {};
-    const filteredAssignedCards = filterInactiveCards(assignedCards);
+    const filteredAssignedCards = filterAllInactiveCards(assignedCards);
 
     return {
         ...(cardList ? {cardList} : {}),
@@ -663,7 +663,7 @@ function getAllCardsForWorkspace(
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
         if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
             const {cardList: assignableCards, ...assignedCards} = values ?? {};
-            const filteredCards = filterInactiveWorkspaceCards(assignedCards);
+            const filteredCards = filterInactiveCards(assignedCards);
             Object.assign(cards, filteredCards);
         }
     }
@@ -721,7 +721,7 @@ function filterCardsByNonExpensify(cards: CardList | undefined): CardList {
  * @param workspaceAccountID the workspace account id we want to get cards for
  * @param domainIDs the domain ids we want to get cards for
  */
-function flatCompanyCards(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
+function flattenCompanyCards(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
     if (!allCardsList) {
         return {} as CardList;
     }
@@ -732,7 +732,7 @@ function flatCompanyCards(allCardsList: OnyxCollection<WorkspaceCardsList>, work
             return acc;
         }
         const {cardList, ...feedCards} = cards ?? {};
-        const filteredCards = filterInactiveWorkspaceCards(feedCards);
+        const filteredCards = filterInactiveCards(feedCards);
         Object.assign(acc, filteredCards);
         return acc;
     }, {});
@@ -985,15 +985,15 @@ export {
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
     getFeedType,
-    flatCompanyCards,
+    flattenCompanyCards,
     isCardConnectionBroken,
     checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
-    filterInactiveCards as filterAllInactiveCards,
-    filterInactiveWorkspaceCards as filterInactiveCards,
+    filterAllInactiveCards,
+    filterInactiveCards,
     isCardPendingIssue,
     isCardPendingActivate,
     hasPendingExpensifyCardAction,
