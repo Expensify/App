@@ -39,7 +39,7 @@ type BaseDomainMemberDetailsComponentProps = {
     accountID: number;
 
     /** List of additional fields (e.g., force 2FA) */
-    children: React.ReactNode;
+    children?: React.ReactNode;
 };
 
 function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}: BaseDomainMemberDetailsComponentProps) {
