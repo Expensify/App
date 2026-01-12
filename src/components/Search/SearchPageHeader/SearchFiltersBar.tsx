@@ -308,14 +308,18 @@ function SearchFiltersBar({
                 updatedFilterFormValues.columns = [];
             }
 
-            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
+            // Preserve the current sortBy and sortOrder from queryJSON when updating filters
+            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
+                sortBy: queryJSON.sortBy,
+                sortOrder: queryJSON.sortOrder,
+            });
 
             close(() => {
-                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
                 Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
-        [searchAdvancedFiltersForm],
+        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder],
     );
 
     const openAdvancedFilters = useCallback(() => {
