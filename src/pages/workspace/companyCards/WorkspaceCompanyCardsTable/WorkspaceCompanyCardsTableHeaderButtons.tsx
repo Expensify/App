@@ -16,15 +16,16 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCardFeedErrors';
 import useHasWorkspaceCompanyCardErrors from '@pages/workspace/companyCards/hooks/useHasWorkspaceCompanyCardErrors';
-import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
@@ -62,6 +63,8 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const {hasFeedError, isFeedConnectionBroken} = useCompanyCardFeedErrors({policyID, feedName});
     const hasCompanyCardFeedError = useHasWorkspaceCompanyCardErrors({policyID});
@@ -73,6 +76,16 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
         const institutionId = getPlaidInstitutionId(feedName);
         const initialStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
+
+        // For Plaid feeds, seed selectedCountry so PlaidConnectionStep can start the login flow
+        if (institutionId) {
+            const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+            setAddNewCompanyCardStepAndData({
+                data: {
+                    selectedCountry: country,
+                },
+            });
+        }
 
         setAssignCardStepAndData({currentStep: initialStep});
 
