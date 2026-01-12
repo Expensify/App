@@ -99,10 +99,7 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
             return true;
         }
-        const isDeleted = isDeletedAction(action);
-        const isDeletedParent = isDeletedParentAction(action);
-        const result = !isDeletedParent && (reportActions.length === 0 || !isDeleted);
-        return result;
+        return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
 }
 

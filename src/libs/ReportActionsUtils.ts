@@ -1524,17 +1524,35 @@ const isIOUActionMatchingTransactionList = (
 };
 
 /**
+ * Checks if a transaction has a valid pending action for expense report filtering.
+ * When online, transactions with any pending action are excluded.
+ * When offline, transactions with ADD pending action are included.
+ */
+function hasValidPendingActionForExpenseReport(transaction: Transaction, isOffline: boolean): boolean {
+    return !transaction.pendingAction || (isOffline && transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+}
+
+/**
  * Filters transactions for an expense report and returns their transaction IDs.
+ * When online, excludes transactions with pending actions (except ADD when offline).
+ *
+ * @param allTransactions - Collection of all transactions from Onyx
+ * @param iouReportID - The expense report ID to filter transactions for
+ * @param transactionID - Optional specific transaction ID to include if it matches the report
+ * @param isOffline - Whether the app is currently offline (affects which pending actions are considered valid)
+ * @returns Array of transaction IDs that belong to the expense report
  */
 function getExpenseReportTransactionIDs(allTransactions: OnyxCollection<Transaction>, iouReportID: string, transactionID: string | undefined, isOffline: boolean): string[] {
+    if (!iouReportID) {
+        return [];
+    }
+
     const expenseReportTransactions = Object.values(allTransactions ?? {}).filter((transaction) => {
         if (!transaction) {
             return false;
         }
         const matchesReportID = transaction.reportID === iouReportID;
-        const hasValidPendingAction = !transaction.pendingAction || (isOffline && transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-
-        return matchesReportID && hasValidPendingAction;
+        return matchesReportID && hasValidPendingActionForExpenseReport(transaction, isOffline);
     });
 
     const transactionIDsToCheck = expenseReportTransactions.map((transaction) => transaction?.transactionID).filter((id): id is string => !!id);
@@ -1542,8 +1560,7 @@ function getExpenseReportTransactionIDs(allTransactions: OnyxCollection<Transact
     if (transactionID) {
         const transactionInOnyx = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (transactionInOnyx && transactionInOnyx.reportID === iouReportID && !transactionIDsToCheck.includes(transactionID)) {
-            const hasValidPendingAction = !transactionInOnyx.pendingAction || (isOffline && transactionInOnyx.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            if (hasValidPendingAction) {
+            if (hasValidPendingActionForExpenseReport(transactionInOnyx, isOffline)) {
                 transactionIDsToCheck.push(transactionID);
             }
         }

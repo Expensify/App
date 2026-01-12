@@ -499,9 +499,9 @@ function mergeTransactionRequest({
     if (reportIDChanged && mergeTransaction.reportID) {
         const transactionThreadReportID = getTransactionThreadReportID(targetTransaction);
         const transactionThreadReport = transactionThreadReportID ? getReportOrDraftReport(transactionThreadReportID) : null;
-        const oldReportIDForIOUAction = transactionThreadReport?.parentReportID ?? targetTransaction.reportID;
+        const oldIOUReportID = transactionThreadReport?.parentReportID ?? targetTransaction.reportID;
 
-        const oldIOUAction = getIOUActionForReportID(oldReportIDForIOUAction, targetTransaction.transactionID);
+        const oldIOUAction = getIOUActionForReportID(oldIOUReportID, targetTransaction.transactionID);
         const optimisticMoneyRequestReportActionID = rand64();
         let newIOUAction;
 
@@ -577,10 +577,10 @@ function mergeTransactionRequest({
             },
         });
 
-        if (oldIOUAction && oldReportIDForIOUAction && oldReportIDForIOUAction !== reportIDForIOUAction) {
+        if (oldIOUAction && oldIOUReportID && oldIOUReportID !== reportIDForIOUAction) {
             optimisticTargetReportActionData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportIDForIOUAction}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldIOUReportID}`,
                 value: {
                     [oldIOUAction.reportActionID]: {
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -590,7 +590,7 @@ function mergeTransactionRequest({
 
             finallyTargetReportActionData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportIDForIOUAction}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldIOUReportID}`,
                 value: {
                     [oldIOUAction.reportActionID]: null,
                 },
@@ -606,7 +606,7 @@ function mergeTransactionRequest({
 
             failureTargetReportActionData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportIDForIOUAction}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldIOUReportID}`,
                 value: {
                     [oldIOUAction.reportActionID]: {pendingAction: null},
                 },

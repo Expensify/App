@@ -270,8 +270,12 @@ function ReportActionsView({
         canBeMissing: true,
     });
 
-    const visibleReportActions = useMemo(() => {
-        const filtered = reportActions.filter((reportAction) => {
+    const shouldShowReportAction = useCallback(
+        (
+            reportAction: OnyxTypes.ReportAction,
+            reportTransactionIDs: string[],
+            expenseReportTransactions: Record<string, OnyxCollection<OnyxTypes.Transaction>> | undefined,
+        ): boolean => {
             const passesBasicFilters =
                 (isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
                 shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction);
@@ -290,17 +294,18 @@ function ReportActionsView({
 
             if (isOffline && !transactionsForReport && iouReportID) {
                 const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, reportTransactionIDs, undefined, isOffline);
-                const matches = isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
-                return matches;
+                return isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
             }
 
             const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, reportTransactionIDs, transactionsForReport, isOffline);
-            const matches = isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
-            return matches;
-        });
+            return isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
+        },
+        [isOffline, canPerformWriteAction],
+    );
 
-        return filtered;
-    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, expenseReportTransactions]);
+    const visibleReportActions = useMemo(() => {
+        return reportActions.filter((reportAction) => shouldShowReportAction(reportAction, reportTransactionIDs, expenseReportTransactions));
+    }, [reportActions, reportTransactionIDs, expenseReportTransactions, shouldShowReportAction]);
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
