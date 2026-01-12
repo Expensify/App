@@ -6,6 +6,7 @@ import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/Sub
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 import useTheme from './useTheme';
 
@@ -33,6 +34,10 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
+
+    const {cardFeedErrors} = useCardFeedErrors();
+    const workspaceAccountIDWithErrors = Object.entries(cardFeedErrors ?? {}).find(([, feeds]) => Object.values(feeds).some((feed) => feed.shouldShowRBR))?.[0];
+
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
     // we only care if a single error / info condition exists anywhere.
@@ -53,6 +58,7 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
             fundList,
             billingStatus,
         ),
+        [CONST.INDICATOR_STATUS.HAS_COMPANY_CARD_ERRORS]: !!workspaceAccountIDWithErrors,
     };
 
     const infoChecking: Partial<Record<AccountTabIndicatorStatus, boolean>> = {
