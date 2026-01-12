@@ -127,7 +127,7 @@ describe('WorkspaceMembers', () => {
         await act(async () => {
             await Onyx.clear();
         });
-        jest.restoreAllMocks();
+        jest.clearAllMocks();
     });
 
     describe('Changing roles options', () => {
