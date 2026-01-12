@@ -88,7 +88,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 openReport(props.route.params.reportID);
-                // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+                // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, isOffline, props.route.params.reportID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {

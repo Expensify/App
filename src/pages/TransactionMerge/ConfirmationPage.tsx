@@ -23,7 +23,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import {isExpenseReport} from '@libs/ReportUtils';
+import {findSelfDMReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -68,9 +68,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
-        const reportID = mergeTransaction.reportID;
-        const mergedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const navigationReportID = isExpenseReport(mergedReport) && mergedReport?.chatReportID ? mergedReport.chatReportID : reportID;
+        const reportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? findSelfDMReportID() : mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
         mergeTransactionRequest({
@@ -90,7 +88,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
-        let shouldNavigateToReport = true;
 
         // If we're on search, dismiss the modal and stay on search
         if (!isOnSearch && reportIDToDismiss && reportID !== targetTransaction.reportID) {
@@ -103,17 +100,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     // Navigate to the money request report in search results
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}));
                 });
-                shouldNavigateToReport = false;
             } else {
-                Navigation.dismissModalWithReport({reportID: navigationReportID});
-                shouldNavigateToReport = false;
+                Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
             }
         } else {
             Navigation.dismissModal();
-        }
-
-        if (shouldNavigateToReport && navigationReportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(navigationReportID));
         }
     };
 
