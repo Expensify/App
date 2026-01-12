@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
+import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {isCustomFeed} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,11 +57,7 @@ const useCardFeedsForDisplay = () => {
         return commercialFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
     }, [eligiblePoliciesIDs, activePolicyID, cardFeedsByPolicy, localeCompare]);
 
-    const [allCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
-    const expensifyCards = getCardFeedsForDisplay({}, allCards);
-    const defaultExpensifyCard = Object.values(expensifyCards)?.at(0);
-
-    return {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard};
+    return {defaultCardFeed, cardFeedsByPolicy};
 };
 
 export default useCardFeedsForDisplay;

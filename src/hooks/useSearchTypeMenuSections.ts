@@ -1,6 +1,7 @@
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +44,11 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = () => {
-    const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
+    const [allCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const expensifyCards = useMemo(() => getCardFeedsForDisplay({}, allCards), [allCards]);
+    const defaultExpensifyCard = useMemo(() => Object.values(expensifyCards)?.at(0), [expensifyCards]);
+
+    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
     const icons = useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']);
     const {isOffline} = useNetwork();
