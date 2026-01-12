@@ -134,6 +134,8 @@ function IOURequestStepScan({
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -270,7 +272,7 @@ function IOURequestStepScan({
             removeDraftTransactions(true);
         });
         // We want this hook to run on mounting only
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -295,10 +297,10 @@ function IOURequestStepScan({
                 setIsQueriedPermissionState(true);
             });
         // We only want to get the camera permission status when the component is mounted
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTabActive]);
 
-    // this effect will pre-fetch location in web and desktop if the location permission is already granted to optimize the flow
+    // this effect will pre-fetch location in web if the location permission is already granted to optimize the flow
     useEffect(() => {
         const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
         if (!gpsRequired) {
@@ -393,6 +395,10 @@ function IOURequestStepScan({
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
                         isASAPSubmitBetaEnabled,
+                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                        currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                        introSelected,
+                        activePolicyID,
                         quickAction,
                     });
                 } else {
@@ -420,8 +426,9 @@ function IOURequestStepScan({
                         shouldGenerateTransactionThreadReport,
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                        currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                         transactionViolations,
+                        quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     });
                 }
@@ -430,6 +437,7 @@ function IOURequestStepScan({
         [
             backToReport,
             currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.email,
             currentUserPersonalDetails.login,
             iouType,
             report,
@@ -437,6 +445,8 @@ function IOURequestStepScan({
             shouldGenerateTransactionThreadReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            introSelected,
+            activePolicyID,
             quickAction,
             policyRecentlyUsedCurrencies,
         ],
@@ -605,6 +615,7 @@ function IOURequestStepScan({
             transactionTaxCode,
             transactionTaxAmount,
             quickAction,
+            policyRecentlyUsedCurrencies,
             policy,
             personalPolicy?.autoReporting,
             selfDMReportID,
