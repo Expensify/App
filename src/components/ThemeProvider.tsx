@@ -32,7 +32,7 @@ function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderPr
         DomUtils.addCSS(DomUtils.getAutofilledInputStyle(theme.text), 'autofill-input');
 
         // staticThemePreference as it is a property that does not change we don't need it in the dependency array
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [theme.text]);
 
     return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;

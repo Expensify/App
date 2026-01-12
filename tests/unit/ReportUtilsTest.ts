@@ -19,12 +19,15 @@ import {translate} from '@libs/Localize';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-syntax
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/ReportActionsUtils';
 import {buildReportNameFromParticipantNames, computeReportName, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
+    buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticExpenseReport,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
@@ -187,6 +190,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         })),
     },
 }));
+
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
+    isPaidGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team'),
+}));
+
+const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
@@ -2914,6 +2925,7 @@ describe('ReportUtils', () => {
                         type: CONST.REPORT.TYPE.EXPENSE,
                         ownerAccountID: currentUserAccountID,
                     };
+                    mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -4725,6 +4737,39 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticCreatedReportForUnapprovedAction', () => {
+        it('should build a valid optimistic report action with all required properties', () => {
+            const reportID = '123456';
+            const originalReportID = '789012';
+            const reportAction = buildOptimisticCreatedReportForUnapprovedAction(reportID, originalReportID);
+
+            // Verify action name
+            expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS);
+
+            // Verify reportID and originalReportID
+            expect(reportAction.reportID).toBe(reportID);
+            /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const originalMessage = getOriginalMessage(reportAction);
+            expect(originalMessage?.originalID).toBe(originalReportID);
+            /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+            // Verify empty message array (by design for this action type)
+            expect(reportAction.message).toEqual([]);
+
+            // Verify optimistic properties
+            expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            // Verify Concierge as actor
+            expect(reportAction.actorAccountID).toBeDefined();
+            expect(reportAction.person).toEqual([
+                {
+                    text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE,
+                    type: 'TEXT',
+                },
+            ]);
+        });
+    });
+
     describe('isAllowedToApproveExpenseReport', () => {
         const expenseReport: Report = {
             ...createRandomReport(6, undefined),
@@ -6016,6 +6061,8 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
             // When it's checked if the transactions can be added
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
@@ -6033,6 +6080,8 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID + 1,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
 
             const result = canAddTransaction(report, false);
 
@@ -6077,6 +6126,8 @@ describe('ReportUtils', () => {
             });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
 
             // If the canAddTransaction is used for the case of adding expense into the report
             const result = canAddTransaction(report, isReportArchived.current);
