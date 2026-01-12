@@ -2085,7 +2085,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Dodaj konto bankowe, aby wysyłać lub otrzymywać płatności.',
         addDebitOrCreditCard: 'Dodaj kartę debetową lub kredytową',
         assignedCards: 'Przypisane karty',
-        assignedCardsDescription: 'To są karty przypisane przez administratora przestrzeni roboczej do zarządzania wydatkami firmowymi.',
+        assignedCardsDescription: 'Przypisane karty zaimportują transakcje do Twojego konta.',
         expensifyCard: 'Karta Expensify',
         walletActivationPending: 'Przeglądamy Twoje informacje. Sprawdź ponownie za kilka minut!',
         walletActivationFailed: 'Niestety Twojego portfela nie można teraz włączyć. Skontaktuj się z Concierge, aby uzyskać dalszą pomoc.',
