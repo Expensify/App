@@ -7,7 +7,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
-import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -27,6 +26,8 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getReportOrDraftReport, isExpenseReport, isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from '@libs/ReportUtils';
 import {isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
@@ -43,8 +44,6 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
-import {getReportOrDraftReport, isExpenseReport} from './ReportUtils';
-import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 
@@ -1527,12 +1526,7 @@ const isIOUActionMatchingTransactionList = (
 /**
  * Filters transactions for an expense report and returns their transaction IDs.
  */
-function getExpenseReportTransactionIDs(
-    allTransactions: OnyxCollection<Transaction>,
-    iouReportID: string,
-    transactionID: string | undefined,
-    isOffline: boolean,
-): string[] {
+function getExpenseReportTransactionIDs(allTransactions: OnyxCollection<Transaction>, iouReportID: string, transactionID: string | undefined, isOffline: boolean): string[] {
     const expenseReportTransactions = Object.values(allTransactions ?? {}).filter((transaction) => {
         if (!transaction) {
             return false;
@@ -1543,7 +1537,7 @@ function getExpenseReportTransactionIDs(
         return matchesReportID && hasValidPendingAction;
     });
 
-    let transactionIDsToCheck = expenseReportTransactions.map((transaction) => transaction?.transactionID).filter((id): id is string => Boolean(id));
+    const transactionIDsToCheck = expenseReportTransactions.map((transaction) => transaction?.transactionID).filter((id): id is string => !!id);
 
     if (transactionID) {
         const transactionInOnyx = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -1561,12 +1555,7 @@ function getExpenseReportTransactionIDs(
 /**
  * Determines which transaction IDs should be checked for an IOU action.
  */
-function getTransactionIDsForIOUAction(
-    reportAction: ReportAction,
-    reportTransactionIDs: string[],
-    allTransactions: OnyxCollection<Transaction>,
-    isOffline: boolean,
-): string[] {
+function getTransactionIDsForIOUAction(reportAction: ReportAction, reportTransactionIDs: string[], allTransactions: OnyxCollection<Transaction>, isOffline: boolean): string[] {
     if (!isMoneyRequestAction(reportAction)) {
         return reportTransactionIDs;
     }
@@ -3241,11 +3230,11 @@ function getRemovedConnectionMessage(translate: LocalizedTranslate, reportAction
     return connectionName ? translate('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
-function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {
+function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReportParam: boolean, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translate('newRoomPage.renamedRoomAction', {
         actorName,
-        isExpenseReport,
+        isExpenseReport: isExpenseReportParam,
         oldName: originalMessage?.oldName ?? '',
         newName: originalMessage?.newName ?? '',
     });

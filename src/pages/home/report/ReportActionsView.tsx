@@ -32,7 +32,15 @@ import {
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, getReportOrDraftReport, isExpenseReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {
+    buildOptimisticCreatedReportAction,
+    buildOptimisticIOUReportAction,
+    canUserPerformWriteAction,
+    getReportOrDraftReport,
+    isExpenseReport,
+    isInvoiceReport,
+    isMoneyRequestReport,
+} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -206,9 +214,7 @@ function ReportActionsView({
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
     const reportActions = useMemo(() => {
-        const combined = reportActionsToDisplay
-            ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? [])
-            : [];
+        const combined = reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []) : [];
         return combined;
     }, [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID]);
 
@@ -245,14 +251,14 @@ function ReportActionsView({
                 return {};
             }
             const expenseTransactions: Record<string, OnyxCollection<OnyxTypes.Transaction>> = {};
-            for (const reportID of expenseReportIDs) {
+            for (const expenseReportID of expenseReportIDs) {
                 const filteredTransactions: OnyxCollection<OnyxTypes.Transaction> = {};
                 for (const [key, transaction] of Object.entries(transactions ?? {})) {
-                    if (transaction && transaction.reportID === reportID) {
+                    if (transaction && transaction.reportID === expenseReportID) {
                         filteredTransactions[key] = transaction;
                     }
                 }
-                expenseTransactions[reportID] = filteredTransactions;
+                expenseTransactions[expenseReportID] = filteredTransactions;
             }
             return expenseTransactions;
         },

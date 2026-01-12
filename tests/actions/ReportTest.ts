@@ -901,6 +901,28 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
     });
 
+    it('should return early when offline and report has actions and exists', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const REPORT_ID = 'test-report-123';
+        const reportAction = createRandomReportAction(1);
+        reportAction.reportActionID = 'action-1';
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createRandomReport(1, undefined));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[reportAction.reportActionID]: reportAction});
+        await waitForBatchedUpdates();
+
+        const initialPersistedRequestsCount = PersistedRequests.getAll().length;
+
+        Report.openReport(REPORT_ID);
+
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll().length).toBe(initialPersistedRequestsCount);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
+    });
+
     it('openReport legacy preview fallback stores action under correct Onyx key and preserves existing actions', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 

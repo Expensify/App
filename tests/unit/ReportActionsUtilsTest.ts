@@ -1,5 +1,6 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
@@ -24,8 +25,6 @@ import {
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
-import type {ValueOf} from 'type-fest';
-import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -2623,15 +2622,16 @@ describe('ReportActionsUtils', () => {
         const transactionID3 = 'transaction-3';
         const otherReportID = 'other-report-456';
 
-        const createMockTransaction = (transactionID: string, reportID: string, pendingAction?: string): Transaction => ({
-            transactionID,
-            reportID,
-            amount: 1000,
-            currency: 'USD',
-            comment: {},
-            created: '2024-01-01',
-            pendingAction: pendingAction as ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION> | undefined,
-        } as Transaction);
+        const createMockTransaction = (transactionID: string, reportID: string, pendingAction?: string): Transaction =>
+            ({
+                transactionID,
+                reportID,
+                amount: 1000,
+                currency: 'USD',
+                comment: {},
+                created: '2024-01-01',
+                pendingAction: pendingAction as ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION> | undefined,
+            }) as Transaction;
 
         it('should return transaction IDs that match the expense report ID', () => {
             const allTransactions: Record<string, Transaction> = {
@@ -2729,28 +2729,30 @@ describe('ReportActionsUtils', () => {
         const transactionID = 'transaction-123';
         const reportTransactionIDs = ['default-transaction-1', 'default-transaction-2'];
 
-        const createMockIOUAction = (iouReportID: string, iouTransactionID: string): ReportAction => ({
-            ...createRandomReportAction(0),
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {
-                IOUReportID: iouReportID,
-                IOUTransactionID: iouTransactionID,
-                amount: 1000,
-                currency: 'USD',
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            },
-        } as ReportAction);
+        const createMockIOUAction = (iouReportID: string, iouTransactionID: string): ReportAction =>
+            ({
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: iouReportID,
+                    IOUTransactionID: iouTransactionID,
+                    amount: 1000,
+                    currency: 'USD',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            }) as ReportAction;
 
-        const createMockNonIOUAction = (): ReportAction => ({
-            ...createRandomReportAction(0),
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            originalMessage: {
-                html: 'Test comment',
-            },
-        } as ReportAction);
+        const createMockNonIOUAction = (): ReportAction =>
+            ({
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Test comment',
+                },
+            }) as ReportAction;
 
         beforeEach(() => {
-            jest.spyOn(require('../../src/libs/ReportUtils'), 'getReportOrDraftReport').mockImplementation(((reportID: string) => {
+            jest.spyOn(require('../../src/libs/ReportUtils'), 'getReportOrDraftReport').mockImplementation((reportID: string | undefined) => {
                 if (reportID === expenseReportID) {
                     return {...createRandomReport(0, undefined), reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE};
                 }
@@ -2758,11 +2760,12 @@ describe('ReportActionsUtils', () => {
                     return {...createRandomReport(0, undefined), reportID: regularIOUReportID, type: CONST.REPORT.TYPE.IOU};
                 }
                 return null;
-            }) as any);
+            });
 
-            jest.spyOn(require('../../src/libs/ReportUtils'), 'isExpenseReport').mockImplementation(((report: Report | null) => {
+            jest.spyOn(require('../../src/libs/ReportUtils'), 'isExpenseReport').mockImplementation((reportOrID: Report | string | null) => {
+                const report = typeof reportOrID === 'string' ? null : reportOrID;
                 return report?.reportID === expenseReportID;
-            }) as any);
+            });
         });
 
         afterEach(() => {

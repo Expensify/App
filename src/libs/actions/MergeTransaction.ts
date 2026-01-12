@@ -10,12 +10,14 @@ import {
     areTransactionsEligibleForMerge,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
+    getTransactionThreadReportID,
     MERGE_FIELDS,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage} from '@libs/ReportActionsUtils';
 import {
@@ -24,8 +26,6 @@ import {
     getReportTransactions,
     getTransactionDetails,
     isCurrentUserSubmitter,
-    isExpenseReport,
-    isIOUReport,
     isMoneyRequestReportEligibleForMerge,
     isReportManager,
 } from '@libs/ReportUtils';
@@ -33,7 +33,6 @@ import CONST from '@src/CONST';
 import {getAmount, getTransactionViolationsOfTransaction, isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {rand64} from '@libs/NumberUtils';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
@@ -506,8 +505,6 @@ function mergeTransactionRequest({
         const optimisticMoneyRequestReportActionID = rand64();
         let newIOUAction;
 
-        const targetReport = getReportOrDraftReport(mergeTransaction.reportID);
-        const isTargetExpenseReport = isExpenseReport(targetReport);
         // For expense reports, IOU actions are stored in the expense report itself, not in the parent report
         const reportIDForIOUAction = mergeTransaction.reportID;
 
@@ -614,7 +611,6 @@ function mergeTransactionRequest({
                     [oldIOUAction.reportActionID]: {pendingAction: null},
                 },
             });
-
         }
     }
 
