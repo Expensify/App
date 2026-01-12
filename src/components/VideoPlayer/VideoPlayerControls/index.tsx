@@ -5,7 +5,6 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} fro
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertSecondsToTime} from '@components/VideoPlayer/utils';
@@ -67,7 +66,7 @@ function VideoPlayerControls({
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     reportID,
 }: VideoPlayerControlsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
+    const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Pause', 'Play', 'Fullscreen']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();
@@ -110,7 +109,7 @@ function VideoPlayerControls({
                 <View style={[styles.videoPlayerControlsButtonContainer, !small && styles.mb4]}>
                     <View style={[styles.videoPlayerControlsRow]}>
                         <IconButton
-                            src={isPlaying ? Expensicons.Pause : Expensicons.Play}
+                            src={isPlaying ? icons.Pause : icons.Play}
                             tooltipText={isPlaying ? translate('videoPlayer.pause') : translate('videoPlayer.play')}
                             onPress={togglePlayCurrentVideo}
                             style={styles.mr2}
@@ -128,7 +127,7 @@ function VideoPlayerControls({
                     <View style={[styles.videoPlayerControlsRow]}>
                         <VolumeButton style={iconSpacing} />
                         <IconButton
-                            src={Expensicons.Fullscreen}
+                            src={icons.Fullscreen}
                             tooltipText={translate('videoPlayer.fullscreen')}
                             onPress={enterFullScreenMode}
                             style={iconSpacing}
