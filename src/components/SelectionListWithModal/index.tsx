@@ -10,7 +10,6 @@ import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
@@ -46,16 +45,15 @@ function SelectionListWithModal<TItem extends ListItem>({
     // Debounce the data prop to prevent rapid updates that cause FlashList layout errors
     // This gives FlashList time to properly update its layout cache when searching/filtering
     const [, debouncedData, setDataState] = useDebouncedState<TItem[]>(data, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
-    const previousLength = usePrevious(data.length);
 
-    // Determine if this is a structural change (search/filter) vs selection change
-    const isStructuralChange = data.length !== previousLength;
+    // Determine if this is changed by filtering (to limit multiple rerenders)
+    const isFiltering = data.length < debouncedData.length;
 
     useEffect(() => {
         setDataState(data);
     }, [data, setDataState]);
 
-    const displayData = isStructuralChange ? debouncedData : data;
+    const displayData = isFiltering ? debouncedData : data;
 
     const selectedItems = useMemo(
         () =>
