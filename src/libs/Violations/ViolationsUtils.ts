@@ -236,7 +236,7 @@ const ViolationsUtils = {
         isSelfDM?: boolean,
         iouReport?: OnyxEntry<Report> | null,
         isFromExpenseReport?: boolean,
-    ): OnyxUpdate {
+    ): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
         const isPartialTransaction = TransactionUtils.isPartial(updatedTransaction);

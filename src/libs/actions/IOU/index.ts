@@ -1542,10 +1542,12 @@ type BuildOnyxDataForTestDriveIOUParams = {
     testDriveCommentReportActionID?: string;
 };
 
-function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDriveIOUParams): OnyxData<OnyxKey> {
+function buildOnyxDataForTestDriveIOU(
+    testDriveIOUParams: BuildOnyxDataForTestDriveIOUParams,
+): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT> {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT>> = [];
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
@@ -5263,9 +5265,13 @@ const getConvertTrackedExpenseInformation = (
     resolution: IOUAction,
     isLinkedTrackedExpenseReportArchived: boolean | undefined,
 ) => {
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [];
 
     // Delete the transaction from the track expense report
     const {
@@ -5406,9 +5412,15 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         transactionThreadReportID,
         isLinkedTrackedExpenseReportArchived,
     } = transactionParams;
-    const {optimisticData: convertTransactionOptimisticData = [], successData: convertTransactionSuccessData = [], failureData: convertTransactionFailureData = []} = onyxData;
+    const optimisticData: Array<OnyxUpdate<OnyxKey>> = [];
+    const successData: Array<OnyxUpdate<OnyxKey>> = [];
+    const failureData: Array<OnyxUpdate<OnyxKey>> = [];
 
-    const {optimisticData, successData, failureData, modifiedExpenseReportActionID} = getConvertTrackedExpenseInformation(
+    optimisticData?.push(...(onyxData.optimisticData ?? []));
+    successData?.push(...(onyxData.successData ?? []));
+    failureData?.push(...(onyxData.failureData ?? []));
+
+    const convertTrackedExpenseInformation = getConvertTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
         iouParams.reportID,
@@ -5418,10 +5430,9 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         CONST.IOU.ACTION.SUBMIT,
         isLinkedTrackedExpenseReportArchived,
     );
-
-    optimisticData?.push(...convertTransactionOptimisticData);
-    successData?.push(...convertTransactionSuccessData);
-    failureData?.push(...convertTransactionFailureData);
+    optimisticData?.push(...(convertTrackedExpenseInformation.optimisticData ?? []));
+    successData?.push(...(convertTrackedExpenseInformation.successData ?? []));
+    failureData?.push(...(convertTrackedExpenseInformation.failureData ?? []));
 
     if (workspaceParams) {
         const params = {
@@ -5437,7 +5448,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             moneyRequestReportID: iouParams.reportID,
             moneyRequestCreatedReportActionID: iouParams.createdReportActionID,
             moneyRequestPreviewReportActionID: iouParams.reportActionID,
-            modifiedExpenseReportActionID,
+            modifiedExpenseReportActionID: convertTrackedExpenseInformation.modifiedExpenseReportActionID,
             reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
             ...workspaceParams,
         };
@@ -5464,7 +5475,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         moneyRequestCreatedReportActionID: iouParams.createdReportActionID,
         moneyRequestPreviewReportActionID: iouParams.reportActionID,
         transactionThreadReportID,
-        modifiedExpenseReportActionID,
+        modifiedExpenseReportActionID: convertTrackedExpenseInformation.modifiedExpenseReportActionID,
         reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
     };
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
@@ -5714,7 +5725,15 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         return;
     }
 
+    const optimisticData: Array<OnyxUpdate<OnyxKey>> = [];
+    const successData: Array<OnyxUpdate<OnyxKey>> = [];
+    const failureData: Array<OnyxUpdate<OnyxKey>> = [];
+
     const {optimisticData: shareTrackedExpenseOptimisticData = [], successData: shareTrackedExpenseSuccessData = [], failureData: shareTrackedExpenseFailureData = []} = onyxData ?? {};
+
+    optimisticData?.push(...shareTrackedExpenseOptimisticData);
+    successData?.push(...shareTrackedExpenseSuccessData);
+    failureData?.push(...shareTrackedExpenseFailureData);
 
     const {transactionID} = transactionParams;
     const {
@@ -5729,7 +5748,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         isLinkedTrackedExpenseReportArchived,
     } = reportInformation;
 
-    const {optimisticData, successData, failureData, modifiedExpenseReportActionID} = getConvertTrackedExpenseInformation(
+    const convertTrackedExpenseInformation = getConvertTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
         moneyRequestReportID,
@@ -5740,9 +5759,9 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         isLinkedTrackedExpenseReportArchived,
     );
 
-    optimisticData?.push(...shareTrackedExpenseOptimisticData);
-    successData?.push(...shareTrackedExpenseSuccessData);
-    failureData?.push(...shareTrackedExpenseFailureData);
+    optimisticData?.push(...(convertTrackedExpenseInformation.optimisticData ?? []));
+    successData?.push(...(convertTrackedExpenseInformation.successData ?? []));
+    failureData?.push(...(convertTrackedExpenseInformation.failureData ?? []));
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
     if (!policyEmployeeList?.[accountantEmail]) {
@@ -5785,7 +5804,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         moneyRequestReportID,
         moneyRequestCreatedReportActionID,
         actionableWhisperReportActionID,
-        modifiedExpenseReportActionID,
+        modifiedExpenseReportActionID: convertTrackedExpenseInformation.modifiedExpenseReportActionID,
         reportPreviewReportActionID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
@@ -8842,7 +8861,9 @@ function deleteMoneyRequest({
         value: null,
     });
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,

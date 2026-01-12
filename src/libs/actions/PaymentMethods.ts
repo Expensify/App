@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {KYCWallRef} from '@components/KYCWall/types';
@@ -278,7 +278,7 @@ function addSubscriptionPaymentCard(
  * Calls the API to add a new SCA (GBP or EUR) card.
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
-function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData<OnyxKey> = {}) {
+function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> = {}) {
     API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, onyxData);
 }
 
