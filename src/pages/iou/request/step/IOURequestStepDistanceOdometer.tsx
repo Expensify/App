@@ -293,7 +293,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const navigateBack = () => {
-        if (confirmationRoute) {
+        if (isEditingConfirmation) {
             Navigation.goBack(confirmationRoute);
             return;
         }
