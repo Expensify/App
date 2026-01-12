@@ -2012,7 +2012,10 @@ function handlePreexistingReport(report: Report) {
             return;
         }
 
-        if (isParentOneTransactionReport && (activeRoute.includes(`/r/${parentReportID}`) || activeRoute.includes(`/search/view/${parentReportID}`))) {
+        if (
+            isParentOneTransactionReport &&
+            (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
+        ) {
             callback();
             // We are already on the parent one expense report, so just call the API to fetch report data
             openReport(parentReportID);
