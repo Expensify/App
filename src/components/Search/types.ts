@@ -3,6 +3,7 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -10,9 +11,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type SelectedTransactionInfo = {
     /** Whether the transaction is selected */
     isSelected: boolean;
-
-    /** If the transaction can be deleted */
-    canDelete: boolean;
 
     /** If the transaction can be rejected */
     canReject: boolean;
@@ -39,7 +37,7 @@ type SelectedTransactionInfo = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
     /** The reportID of the transaction */
-    reportID: string;
+    reportID?: string;
 
     /** The policyID tied to the report the transaction is reported on */
     policyID: string | undefined;
@@ -64,6 +62,8 @@ type SelectedTransactionInfo = {
 
     /** Account ID of the report owner */
     ownerAccountID?: number;
+
+    reportAction?: ReportAction;
 };
 
 /** Model of selected transactions */
@@ -71,7 +71,7 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 /** Model of selected reports */
 type SelectedReports = {
-    reportID: string;
+    reportID: string | undefined;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;

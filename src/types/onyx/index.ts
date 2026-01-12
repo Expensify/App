@@ -37,6 +37,7 @@ import type DomainErrors from './DomainErrors';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
@@ -127,6 +128,7 @@ import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
+import type UnshareBankAccount from './UnshareBankAccount';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
@@ -160,6 +162,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
     Download,
@@ -167,6 +170,7 @@ export type {
     WorkspaceCardsList,
     FailedCompanyCardAssignment,
     FailedCompanyCardAssignments,
+    ExpenseRule,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
