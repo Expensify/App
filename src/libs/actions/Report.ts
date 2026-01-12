@@ -4354,6 +4354,7 @@ type CompleteOnboardingProps = {
     shouldSkipTestDriveModal?: boolean;
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
+    shouldWaitForRHPVariantInitialization?: boolean;
 };
 
 async function completeOnboarding({
@@ -4371,6 +4372,7 @@ async function completeOnboarding({
     shouldSkipTestDriveModal,
     isInvitedAccountant,
     onboardingPurposeSelected,
+    shouldWaitForRHPVariantInitialization = false,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -4426,11 +4428,18 @@ async function completeOnboarding({
         });
     }
 
-    // Wait for the workspace to be created before completing the guided setup
-    await waitForWrites(WRITE_COMMANDS.CREATE_WORKSPACE);
+    if (shouldWaitForRHPVariantInitialization) {
+        // Wait for the workspace to be created before completing the guided setup
+        await waitForWrites(WRITE_COMMANDS.CREATE_WORKSPACE);
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+        // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+    }
+
+    // API calls are not chained in this case
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls  in this case
+    return API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
 }
 
 /** Loads necessary data for rendering the RoomMembersPage */

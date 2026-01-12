@@ -55,6 +55,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
     const [width, setWidth] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
 
     const features: Feature[] = useMemo(() => {
         return [
@@ -157,6 +158,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             return;
         }
 
+        setIsLoading(true);
+
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
         const newUserReportedIntegration = selectedFeatures.some((feature) => feature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) ? userReportedIntegration : undefined;
         const featuresMap = features.map((feature) => ({
@@ -222,6 +225,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             // See https://github.com/Expensify/App/issues/57167 for more details
             (session?.email ?? '').includes('+'),
         );
+
+        setIsLoading(false);
     }, [
         isBetaEnabled,
         isSmallScreenWidth,
@@ -366,6 +371,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     text={translate('common.continue')}
                     onPress={handleContinue}
                     isDisabled={isOffline}
+                    isLoading={isLoading}
                     pressOnEnter
                 />
             </FixedFooter>
