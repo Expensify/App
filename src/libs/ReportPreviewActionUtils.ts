@@ -90,7 +90,7 @@ function canPay(
     report: Report,
     isReportArchived: boolean,
     currentUserAccountID: number,
-    currentUserEmail: string,
+    currentUserLogin: string,
     bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
@@ -99,7 +99,7 @@ function canPay(
         return false;
     }
 
-    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, bankAccountList, policy, false);
+    const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
