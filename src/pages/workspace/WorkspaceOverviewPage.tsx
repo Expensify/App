@@ -245,7 +245,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         lastPaymentMethod,
         localeCompare,
         policy,
-        policyId,
         policyName,
         reimbursementAccountError,
         reportsToArchive,

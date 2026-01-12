@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,7 +35,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const policyID = route.params?.policyID;
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
+    const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -66,12 +66,12 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
     };
 
-    const onDowngradeToTeam = () => {
+    const onDowngradeToTeam = async () => {
         if (!canPerformDowngrade || !policy || !policyID) {
             return;
         }
         if (Object.keys(companyFeeds).length > 1) {
-            showConfirmModal({
+            const result = await showConfirmModal({
                 title: translate('workspace.moreFeatures.companyCards.downgradeTitle'),
                 prompt: (
                     <View style={styles.flexRow}>
@@ -83,12 +83,11 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 ),
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
-            }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                dismissModalAndNavigate(policyID);
             });
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            dismissModalAndNavigate(policyID);
             return;
         }
         downgradeToTeam(policy.id);
