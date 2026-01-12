@@ -80,11 +80,10 @@ function SignInPageLayout({
 
     useEffect(() => {
         const isWeb = getPlatform() === CONST.PLATFORM.WEB;
-        const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
-        if (!isWeb && !isDesktop) {
+        if (!isWeb) {
             return;
         }
-        // add css class to body only for web and desktop
+        // add css class to body only for web
         document.body.classList.add(cssClass);
         return () => {
             document.body.classList.remove(cssClass);

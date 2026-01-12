@@ -34,7 +34,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
-import {getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -504,18 +503,6 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     return memberEmailsToExclude;
 }
 
-/**
- * Get excluded users as a Record for use in search selector
- */
-function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boolean> {
-    const ineligibleInvitees = getIneligibleInvitees(employeeList);
-    const result: Record<string, boolean> = {};
-    for (const login of ineligibleInvitees) {
-        result[login] = true;
-    }
-    return result;
-}
-
 function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagLists>): Array<keyof PolicyTagLists> {
     if (isEmptyObject(policyTagList)) {
         return [];
@@ -678,8 +665,8 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false): boolean {
-    if (isPerDiemRequest) {
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false, isTimeRequest = false): boolean {
+    if (isPerDiemRequest || isTimeRequest) {
         return false;
     }
     const distanceUnit = getDistanceRateCustomUnit(policy);
@@ -1249,10 +1236,7 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
         importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
     }
 
-    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, {
-        importFields,
-        importType: translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase(),
-    });
+    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, importFields, translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase());
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 
@@ -1410,12 +1394,6 @@ function goBackWhenEnableFeature(policyID: string) {
 function navigateToExpensifyCardPage(policyID: string) {
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
-    });
-}
-
-function navigateToReceiptPartnersPage(policyID: string) {
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
     });
 }
 
@@ -1631,8 +1609,7 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-function isPreferredExporter(policy: Policy) {
-    const user = getCurrentUserEmail();
+function isPreferredExporter(policy: Policy, currentUserLogin: string) {
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
         policy.connections?.netsuite?.options?.config?.exporter,
@@ -1641,7 +1618,7 @@ function isPreferredExporter(policy: Policy) {
         policy.connections?.xero?.config?.export?.exporter,
     ];
 
-    return exporters.some((exporter) => exporter && exporter === user);
+    return exporters.some((exporter) => exporter && exporter === currentUserLogin);
 }
 
 /**
@@ -1699,7 +1676,6 @@ export {
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
-    getExcludedUsers,
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
@@ -1764,7 +1740,6 @@ export {
     getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
-    navigateToReceiptPartnersPage,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     findSelectedSageVendorWithDefaultSelect,

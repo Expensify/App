@@ -75,6 +75,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref, textIn
     return (
         <SelectionList
             ref={ref}
+            key={selectedDestination}
             sections={sections}
             headerMessage={headerMessage}
             textInputValue={searchValue}
@@ -85,6 +86,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref, textIn
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             shouldHideKeyboardOnScroll={false}
             textInputAutoFocus={textInputAutoFocus}
+            shouldUpdateFocusedIndex
         />
     );
 }

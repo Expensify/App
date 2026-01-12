@@ -14,17 +14,22 @@ import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
+import {compute} from '@libs/Formula';
+import type {FormulaContext} from '@libs/Formula';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-syntax
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/ReportActionsUtils';
 import {buildReportNameFromParticipantNames, computeReportName, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
+    buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticExpenseReport,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
@@ -69,7 +74,6 @@ import {
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
     getReasonAndReportActionThatRequiresAttention,
-    getReportActionActorAccountID,
     getReportIDFromLink,
     getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
@@ -93,7 +97,6 @@ import {
     isSelfDMOrSelfDMThread,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportRouteParams,
-    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
@@ -119,6 +122,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
+    BankAccountList,
     Beta,
     OnyxInputOrEntry,
     PersonalDetailsList,
@@ -188,6 +192,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         })),
     },
 }));
+
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
+    isPaidGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team'),
+}));
+
+const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
@@ -1826,7 +1838,7 @@ describe('ReportUtils', () => {
                         merchant: 'Test Merchant',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
-                    } as Transaction;
+                    };
 
                     const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
                     const transactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction};
@@ -2098,6 +2110,34 @@ describe('ReportUtils', () => {
 
                     expect(reportName).toBe(
                         `there was a problem syncing with QuickBooks ("Sync failed"). Please fix the issue in <a href="https://dev.new.expensify.com:8082/workspaces/1/accounting">workspace settings</a>.`,
+                    );
+                });
+
+                test('should handle concierge company card connection broken action', () => {
+                    const companyCardConnectionBrokenAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+                        originalMessage: {
+                            feedName: 'Regions Bank cards',
+                            policyID: '1',
+                        },
+                    };
+
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: companyCardConnectionBrokenAction.reportActionID,
+                    };
+
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {
+                            [companyCardConnectionBrokenAction.reportActionID]: companyCardConnectionBrokenAction,
+                        },
+                    };
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    expect(reportName).toBe(
+                        `The Regions Bank cards connection is broken. To restore card imports, <a href='https://dev.new.expensify.com:8082/workspaces/1/company-cards'>log into your bank</a>`,
                     );
                 });
             });
@@ -2887,6 +2927,7 @@ describe('ReportUtils', () => {
                         type: CONST.REPORT.TYPE.EXPENSE,
                         ownerAccountID: currentUserAccountID,
                     };
+                    mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -4698,6 +4739,39 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticCreatedReportForUnapprovedAction', () => {
+        it('should build a valid optimistic report action with all required properties', () => {
+            const reportID = '123456';
+            const originalReportID = '789012';
+            const reportAction = buildOptimisticCreatedReportForUnapprovedAction(reportID, originalReportID);
+
+            // Verify action name
+            expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS);
+
+            // Verify reportID and originalReportID
+            expect(reportAction.reportID).toBe(reportID);
+            /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const originalMessage = getOriginalMessage(reportAction);
+            expect(originalMessage?.originalID).toBe(originalReportID);
+            /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+            // Verify empty message array (by design for this action type)
+            expect(reportAction.message).toEqual([]);
+
+            // Verify optimistic properties
+            expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            // Verify Concierge as actor
+            expect(reportAction.actorAccountID).toBeDefined();
+            expect(reportAction.person).toEqual([
+                {
+                    text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE,
+                    type: 'TEXT',
+                },
+            ]);
+        });
+    });
+
     describe('isAllowedToApproveExpenseReport', () => {
         const expenseReport: Report = {
             ...createRandomReport(6, undefined),
@@ -5583,11 +5657,11 @@ describe('ReportUtils', () => {
         afterAll(() => Onyx.clear());
 
         it('should return false for admin of a group policy with reimbursement enabled and report not approved', () => {
-            expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, false)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, undefined, undefined, false)).toBe(false);
         });
 
         it('should return false for non-admin of a group policy', () => {
-            expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, false)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, undefined, undefined, false)).toBe(false);
         });
 
         it('should return true for a reimburser of a group policy on a closed report', async () => {
@@ -5602,7 +5676,86 @@ describe('ReportUtils', () => {
                 policyID: policyTest.id,
             };
 
-            expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, false)).toBe(true);
+            expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, undefined, undefined, false)).toBe(true);
+        });
+
+        it('should return true for admin with bank account access via sharees', () => {
+            const adminEmail = 'admin@test.com';
+            const adminAccountID = 999;
+            const reimburserEmail = 'reimburser@test.com';
+            const bankAccountID = 12345;
+
+            const policyWithAch: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            const bankAccountList = {
+                [bankAccountID]: {
+                    accountData: {
+                        sharees: [reimburserEmail, adminEmail],
+                    },
+                },
+            } as unknown as BankAccountList;
+
+            const report: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                policyID: policyTest.id,
+            };
+
+            expect(isPayer(adminAccountID, adminEmail, report, bankAccountList, policyWithAch, false)).toBe(true);
+        });
+
+        it('should return false for admin without bank account access via sharees', () => {
+            const adminEmail = 'admin@test.com';
+            const adminAccountID = 888;
+            const reimburserEmail = 'reimburser@test.com';
+            const otherAdminEmail = 'other@test.com';
+            const bankAccountID = 12345;
+
+            const policyWithAch: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            const bankAccountList = {
+                [bankAccountID]: {
+                    accountData: {
+                        sharees: [reimburserEmail, otherAdminEmail],
+                    },
+                },
+            } as unknown as BankAccountList;
+
+            const report: Report = {
+                ...createRandomReport(4, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                policyID: policyTest.id,
+            };
+
+            expect(isPayer(adminAccountID, adminEmail, report, bankAccountList, policyWithAch, false)).toBe(false);
         });
     });
     describe('buildReportNameFromParticipantNames', () => {
@@ -5989,6 +6142,8 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
             // When it's checked if the transactions can be added
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
@@ -6006,6 +6161,8 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID + 1,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
 
             const result = canAddTransaction(report, false);
 
@@ -6050,6 +6207,8 @@ describe('ReportUtils', () => {
             });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
 
             // If the canAddTransaction is used for the case of adding expense into the report
             const result = canAddTransaction(report, isReportArchived.current);
@@ -7615,7 +7774,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('populateOptimisticReportFormula', () => {
+    describe('compute (Formula.ts for optimistic report names)', () => {
         const mockPolicy: Policy = {
             id: 'test-policy-id',
             name: 'Test Policy',
@@ -7645,7 +7804,7 @@ describe('ReportUtils', () => {
             errorFields: {},
         };
 
-        const mockReport = {
+        const mockReport: Report = {
             reportID: '123456789',
             reportName: 'Test Report',
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -7661,62 +7820,101 @@ describe('ReportUtils', () => {
             parentReportID: 'chat-123',
         };
 
-        it('should handle NaN total gracefully', () => {
-            const reportWithNaNTotal = {
+        const createFormulaContext = (reportParam: Report, policyParam: Policy, reportTransactions: Record<string, Transaction> = {}): FormulaContext => ({
+            report: reportParam,
+            policy: policyParam,
+            allTransactions: reportTransactions,
+        });
+
+        it('should handle NaN total by falling back to original definition', () => {
+            const reportWithNaNTotal: Report = {
                 ...mockReport,
                 total: NaN,
             };
-
-            const result = populateOptimisticReportFormula('{report:total}', reportWithNaNTotal, mockPolicy);
-            expect(result).toBe('{report:total}');
+            const context = createFormulaContext(reportWithNaNTotal, mockPolicy);
+            const result = compute('{report:total}', context);
+            // NaN gets formatted as "NaN" by formatAmount, which is a non-empty value
+            expect(result).toBe('NaN');
         });
 
         it('should replace {report:total} with formatted amount', () => {
-            const result = populateOptimisticReportFormula('{report:total}', mockReport, mockPolicy);
-            expect(result).toBe('$50.00');
+            const context = createFormulaContext(mockReport, mockPolicy);
+            const result = compute('{report:total}', context);
+            // compute uses convertToDisplayString which includes currency symbol
+            expect(result).toBe('50.00');
         });
 
         it('should replace {report:id} with base62 report ID', () => {
-            const result = populateOptimisticReportFormula('{report:id}', mockReport, mockPolicy);
+            const context = createFormulaContext(mockReport, mockPolicy);
+            const result = compute('{report:id}', context);
             expect(result).toBe(getBase62ReportID(Number(mockReport.reportID)));
         });
 
         it('should replace multiple placeholders correctly', () => {
             const formula = 'Report {report:id} has total {report:total}';
-            const result = populateOptimisticReportFormula(formula, mockReport, mockPolicy);
+            const context = createFormulaContext(mockReport, mockPolicy);
+            const result = compute(formula, context);
             const expectedId = getBase62ReportID(Number(mockReport.reportID));
-            expect(result).toBe(`Report ${expectedId} has total $50.00`);
+            expect(result).toBe(`Report ${expectedId} has total 50.00`);
         });
 
-        it('should handle undefined total gracefully', () => {
-            const reportWithUndefinedTotal = {
+        it('should handle undefined total by falling back to original definition', () => {
+            const reportWithUndefinedTotal: Report = {
                 ...mockReport,
                 total: undefined,
             };
-
-            const result = populateOptimisticReportFormula('{report:total}', reportWithUndefinedTotal, mockPolicy);
+            const context = createFormulaContext(reportWithUndefinedTotal, mockPolicy);
+            const result = compute('{report:total}', context);
+            // compute returns the original definition when the value is empty (undefined total)
             expect(result).toBe('{report:total}');
         });
 
         it('should handle complex formula with multiple placeholders and some invalid values', () => {
             const formula = 'ID: {report:id}, Total: {report:total}, Type: {report:type}';
-            const reportWithNaNTotal = {
+            const reportWithNaNTotal: Report = {
                 ...mockReport,
                 total: NaN,
             };
+            const context = createFormulaContext(reportWithNaNTotal, mockPolicy);
             const expectedId = getBase62ReportID(Number(mockReport.reportID));
-            const result = populateOptimisticReportFormula(formula, reportWithNaNTotal, mockPolicy);
-            expect(result).toBe(`ID: ${expectedId}, Total: , Type: Expense Report`);
+            const result = compute(formula, context);
+            // NaN gets formatted as "NaN" which is a non-empty value
+            expect(result).toBe(`ID: ${expectedId}, Total: NaN, Type: Expense Report`);
         });
 
         it('should handle missing total gracefully', () => {
-            const reportWithMissingTotal = {
+            const reportWithMissingTotal: Report = {
                 ...mockReport,
                 total: undefined,
             };
-
-            const result = populateOptimisticReportFormula('{report:total}', reportWithMissingTotal, mockPolicy);
+            const context = createFormulaContext(reportWithMissingTotal, mockPolicy);
+            const result = compute('{report:total}', context);
+            // compute returns the original definition when the value is empty (undefined total)
             expect(result).toBe('{report:total}');
+        });
+
+        it('should replace {report:policyname} with policy name', () => {
+            const context = createFormulaContext(mockReport, mockPolicy);
+            const result = compute('{report:policyname}', context);
+            expect(result).toBe('Test Policy');
+        });
+
+        it('should replace {report:workspacename} with policy name', () => {
+            const context = createFormulaContext(mockReport, mockPolicy);
+            const result = compute('{report:workspacename}', context);
+            expect(result).toBe('Test Policy');
+        });
+
+        it('should replace {report:status} with human-readable status', () => {
+            const context = createFormulaContext(mockReport, mockPolicy);
+            const result = compute('{report:status}', context);
+            expect(result).toBe('Open');
+        });
+
+        it('should replace {report:currency} with currency code', () => {
+            const context = createFormulaContext(mockReport, mockPolicy);
+            const result = compute('{report:currency}', context);
+            expect(result).toBe('USD');
         });
     });
     describe('canSeeDefaultRoom', () => {
@@ -8673,192 +8871,6 @@ describe('ReportUtils', () => {
                 };
                 expect(isSelfDMOrSelfDMThread(expenseReport)).toBe(false);
             });
-        });
-    });
-
-    describe('getReportActionActorAccountID', () => {
-        it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(10);
-        });
-
-        it('should return report manager account id if action is REPORTPREVIEW and report is not a policy expense chat', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, undefined),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: undefined,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(20);
-        });
-
-        it('should return admin account id if action is SUBMITTED taken by an admin on behalf the submitter', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                adminAccountID: 30,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(30);
-        });
-
-        it('should return report owner account id if action is SUBMITTED taken by the submitter himself', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(10);
-        });
-
-        it('should return admin account id if action is SUBMITTED_AND_CLOSED taken by an admin on behalf the submitter', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-                adminAccountID: 30,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(30);
-        });
-
-        it('should return report owner account id if action is SUBMITTED_AND_CLOSED taken by the submitter himself', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(10);
-        });
-
-        it('should return original actor account id if action is ADDCOMMENT', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID: 123,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(123);
-        });
-
-        it('returns CONCIERGE for CREATED action when report is harvest-created', async () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                actorAccountID: 9999,
-            };
-
-            const iouReport: Report = {...createRandomReport(0, undefined)};
-            const report: Report = {
-                ...createRandomReport(1, undefined),
-                reportID: 'harvest-report-1',
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {
-                origin: 'harvest',
-                originalID: 'orig-123',
-            });
-            await waitForBatchedUpdates();
-
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
-        });
-
-        it('returns reportAction.actorAccountID for CREATED action when not harvest-created', async () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                actorAccountID: 9999,
-            };
-
-            const iouReport: Report = {...createRandomReport(0, undefined)};
-            const report: Report = {
-                ...createRandomReport(2, undefined),
-                reportID: 'normal-report-2',
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {});
-            await waitForBatchedUpdates();
-
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toBe(9999);
         });
     });
 
@@ -10314,6 +10326,22 @@ describe('ReportUtils', () => {
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
         });
+        it('should return expense report name when isCopyAction is true', async () => {
+            const report = LHNTestUtils.getFakeReport();
+            report.reportName = 'Expense Report 2025-01-15';
+            const reportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: report.reportName,
+                childMoneyRequestCount: 0,
+            };
+
+            // When we call getReportPreviewMessage with isCopyAction = true
+            const result = getReportPreviewMessage(report, reportAction, false, false, undefined, false, reportAction, true);
+
+            // Then it should return the childReportName instead of "payer owes $0"
+            expect(result).toBe('Expense Report 2025-01-15');
+        });
     });
 
     describe('getAvailableReportFields', () => {
@@ -10444,7 +10472,6 @@ describe('ReportUtils', () => {
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });
-
     describe('P2P Wallet Activation - GBR and Wallet Indicator', () => {
         const friendAccountID = 42;
 
@@ -10729,6 +10756,254 @@ describe('ReportUtils', () => {
             expect(missingPaymentMethod).not.toBe('wallet');
 
             await Onyx.clear();
+        });
+    });
+
+    describe('getAllReportActionsErrorsAndReportActionThatRequiresAttention for DEW', () => {
+        it('should return error for DEW_SUBMIT_FAILED action on OPEN report', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'DEW submit failed',
+                    },
+                ],
+                originalMessage: {
+                    message: 'This report contains an Airfare expense that is missing the Flight Destination tag.',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeDefined();
+            expect(reportAction).toEqual(dewSubmitFailedAction);
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED if there is a more recent SUBMITTED action', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const submittedAction = {
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 13:00:00',
+                shouldShow: true,
+                originalMessage: {},
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+                [submittedAction.reportActionID]: submittedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+        });
+
+        it('should return error for DEW_SUBMIT_FAILED if it is more recent than SUBMITTED action', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const submittedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'submitted',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(2),
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 13:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'DEW submit failed',
+                    },
+                ],
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [submittedAction.reportActionID]: submittedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeDefined();
+            expect(reportAction).toEqual(dewSubmitFailedAction);
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED on non-OPEN report', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+
+            const dewSubmitFailedAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED on archived report', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+        });
+
+        it('should NOT return DEW error when a more recent SUBMITTED action exists after the failure (multiple submits)', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const firstSubmittedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 10:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'first submit',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(2),
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 10:05:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'DEW submit failed',
+                    },
+                ],
+                originalMessage: {
+                    message: 'This report contains an Airfare expense that is missing the Flight Destination tag.',
+                },
+            };
+
+            const secondSubmittedAction = {
+                ...createRandomReportAction(3),
+                reportActionID: '3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 10:10:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'second submit',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const reportActions = {
+                [firstSubmittedAction.reportActionID]: firstSubmittedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+                [secondSubmittedAction.reportActionID]: secondSubmittedAction,
+            };
+
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+            expect(reportAction).not.toEqual(dewSubmitFailedAction);
         });
     });
 });
