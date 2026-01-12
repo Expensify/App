@@ -64,6 +64,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
 
     const getUnreportedTransactions = useCallback(
         (transactions: OnyxCollection<Transaction>) => {
@@ -181,16 +182,17 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     quickAction,
                 );
             } else {
-                changeTransactionsReport(
-                    [...selectedIds],
+                changeTransactionsReport({
+                    transactionIDs: [...selectedIds],
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    reportToConfirm,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    newReport: reportToConfirm,
                     policy,
                     reportNextStep,
                     policyCategories,
-                );
+                    allTransactionsCollection: allTransactions,
+                });
             }
         });
         setErrorMessage('');
@@ -202,11 +204,13 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         session?.accountID,
         session?.email,
         transactionViolations,
+        policyRecentlyUsedCurrencies,
+        quickAction,
         reportToConfirm,
         policy,
         reportNextStep,
         policyCategories,
-        policyRecentlyUsedCurrencies,
+        allTransactions,
     ]);
 
     const footerContent = useMemo(() => {
