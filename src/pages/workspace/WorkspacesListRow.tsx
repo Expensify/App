@@ -210,7 +210,7 @@ function WorkspacesListRow({
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
                     <ThreeDotsMenu
-                        isFocused={isFocused}
+                        isContainerFocused={isFocused}
                         shouldSelfPosition
                         menuItems={menuItems}
                         anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
