@@ -41,6 +41,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
+    isPaidGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 jest.mock('@src/libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn().mockReturnValue({}),
@@ -70,10 +71,18 @@ describe('getReportPreviewAction', () => {
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const policy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
-        expect(getReportPreviewAction({isReportArchived: false, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, currentUserEmail: CURRENT_USER_EMAIL, report, policy, transactions: []})).toBe(
-            CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE,
-        );
+        const policy = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
+        expect(
+            getReportPreviewAction({
+                isReportArchived: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [],
+                bankAccountList: {},
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE);
     });
 
     it('canSubmit should return true for expense preview report with manual submit', async () => {
@@ -110,6 +119,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -149,6 +159,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -191,6 +202,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -242,6 +254,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy: undefined,
                 isPaidAnimationRunning: undefined,
                 isApprovedAnimationRunning: undefined,
@@ -285,6 +298,7 @@ describe('getReportPreviewAction', () => {
                     report,
                     policy,
                     transactions: [transaction],
+                    bankAccountList: {},
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
         });
@@ -322,6 +336,7 @@ describe('getReportPreviewAction', () => {
                     report,
                     policy,
                     transactions: [transaction],
+                    bankAccountList: {},
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
@@ -360,6 +375,7 @@ describe('getReportPreviewAction', () => {
                     report,
                     policy,
                     transactions: [transaction],
+                    bankAccountList: {},
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
@@ -397,6 +413,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
     });
@@ -431,6 +448,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -466,6 +484,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -505,6 +524,7 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 invoiceReceiverPolicy,
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -559,6 +579,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
@@ -602,6 +623,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
@@ -640,6 +662,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
@@ -673,6 +696,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
@@ -707,6 +731,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy: undefined,
                 isPaidAnimationRunning: false,
                 isApprovedAnimationRunning: false,
@@ -751,6 +776,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy: undefined,
                 isPaidAnimationRunning: false,
                 isApprovedAnimationRunning: false,
@@ -795,6 +821,7 @@ describe('getReportPreviewAction', () => {
                 report,
                 policy,
                 transactions: [transaction],
+                bankAccountList: {},
                 invoiceReceiverPolicy: undefined,
                 isPaidAnimationRunning: false,
                 isApprovedAnimationRunning: false,

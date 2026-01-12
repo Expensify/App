@@ -81,6 +81,20 @@ function removeWideRHPRoute(route: NavigationRoute, setAllRHPRouteKeys: React.Di
     setAllRHPRouteKeys((prev) => (prev.includes(keyToRemove) ? prev.filter((key) => key !== keyToRemove) : prev));
 }
 
+// Set the rhp width based on the super wide / wide rhp route keys
+function setExpandedRHPProgress(superWideRHPRouteKeys: string[], wideRHPRouteKeys: string[]) {
+    const numberOfSuperWideRoutes = superWideRHPRouteKeys.length;
+    const numberOfWideRoutes = wideRHPRouteKeys.length;
+
+    if (numberOfSuperWideRoutes > 0) {
+        expandedRHPProgress.setValue(2);
+    } else if (numberOfWideRoutes > 0) {
+        expandedRHPProgress.setValue(1);
+    } else {
+        expandedRHPProgress.setValue(0);
+    }
+}
+
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
     // We have a separate containers for allWideRHPRouteKeys and wideRHPRouteKeys because we may have two or more RHPs on the stack.
     // For convenience and proper overlay logic wideRHPRouteKeys will show only the keys existing in the last RHP.
@@ -112,6 +126,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         return !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
     }, [focusedRoute?.key, allWideRHPRouteKeys]);
 
+    const isSuperWideRHPFocused = useMemo(() => {
+        return !!focusedRoute?.key && allSuperWideRHPRouteKeys.includes(focusedRoute.key);
+    }, [focusedRoute?.key, allSuperWideRHPRouteKeys]);
+
     const isRHPFocused = focusedNavigator === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 
     // Whether Wide RHP is displayed below the currently displayed screen
@@ -122,11 +140,13 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         const {visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys} = getVisibleRHPKeys(allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
         setWideRHPRouteKeys(visibleWideRHPRouteKeys);
         setSuperWideRHPRouteKeys(visibleSuperWideRHPRouteKeys);
+        setExpandedRHPProgress(visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys);
     }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys]);
 
     const clearWideRHPKeys = useCallback(() => {
         setWideRHPRouteKeys([]);
         setSuperWideRHPRouteKeys([]);
+        expandedRHPProgress.setValue(0);
     }, []);
 
     // Once we have updated the array of all Super Wide RHP keys, we should sync it with the array of RHP keys visible on the screen
@@ -156,21 +176,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * Effect that manages the tertiary overlay animation and rendering state.
      */
     const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && isWideRHPBelow && isSuperWideRHPBelow, thirdOverlayProgress);
-
-    /**
-     * Effect that shows/hides the expanded RHP progress based on the number of wide RHP routes.
-     */
-    useEffect(() => {
-        const numberOfSuperWideRoutes = superWideRHPRouteKeys.length;
-        const numberOfWideRoutes = wideRHPRouteKeys.length;
-        if (numberOfSuperWideRoutes > 0) {
-            expandedRHPProgress.setValue(2);
-        } else if (numberOfWideRoutes > 0) {
-            expandedRHPProgress.setValue(1);
-        } else {
-            expandedRHPProgress.setValue(0);
-        }
-    }, [superWideRHPRouteKeys.length, wideRHPRouteKeys.length]);
 
     /**
      * Removes a route from the super wide RHP route keys list, disabling wide RHP display for that route.
@@ -325,6 +330,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
+            isSuperWideRHPFocused,
             syncRHPKeys,
             clearWideRHPKeys,
         }),
@@ -345,6 +351,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
+            isSuperWideRHPFocused,
             syncRHPKeys,
             clearWideRHPKeys,
         ],
