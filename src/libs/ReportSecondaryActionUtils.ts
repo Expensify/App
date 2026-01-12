@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, ExportTemplate, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
@@ -339,7 +339,14 @@ function isUnapproveAction(currentUserLogin: string, report: Report, policy?: Po
     return isReportApprover;
 }
 
-function isCancelPaymentAction(currentAccountID: number, currentUserEmail: string, report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isCancelPaymentAction(
+    currentAccountID: number,
+    currentUserEmail: string,
+    report: Report,
+    reportTransactions: Transaction[],
+    bankAccountList: OnyxEntry<BankAccountList>,
+    policy?: Policy,
+): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport) {
@@ -347,7 +354,7 @@ function isCancelPaymentAction(currentAccountID: number, currentUserEmail: strin
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, false, policy);
+    const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
 
     if (!isAdmin || !isPayer) {
         return false;
@@ -394,7 +401,7 @@ function isCancelPaymentAction(currentAccountID: number, currentUserEmail: strin
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(currentAccountID: number, currentUserEmail: string, report: Report, policy?: Policy): boolean {
+function isExportAction(currentAccountID: number, currentUserEmail: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -418,7 +425,7 @@ function isExportAction(currentAccountID: number, currentUserEmail: string, repo
     }
 
     const isReportApproved = isReportApprovedUtils({report});
-    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, false, policy);
+    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
@@ -436,7 +443,7 @@ function isExportAction(currentAccountID: number, currentUserEmail: string, repo
     return isAdmin && isReportFinished && syncEnabled;
 }
 
-function isMarkAsExportedAction(currentAccountID: number, currentUserEmail: string, report: Report, policy?: Policy): boolean {
+function isMarkAsExportedAction(currentAccountID: number, currentUserEmail: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -459,7 +466,7 @@ function isMarkAsExportedAction(currentAccountID: number, currentUserEmail: stri
         return false;
     }
 
-    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, false, policy);
+    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -779,6 +786,7 @@ function getSecondaryReportActions({
     reportTransactions,
     originalTransaction,
     violations,
+    bankAccountList,
     policy,
     reportNameValuePairs,
     reportActions,
@@ -793,6 +801,7 @@ function getSecondaryReportActions({
     reportTransactions: Transaction[];
     originalTransaction: OnyxEntry<Transaction>;
     violations: OnyxCollection<TransactionViolation[]>;
+    bankAccountList: OnyxEntry<BankAccountList>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
@@ -808,7 +817,7 @@ function getSecondaryReportActions({
     const didExportFail = !isExported && hasExportError;
 
     if (
-        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) &&
+        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) &&
         (hasOnlyHeldExpenses(report?.reportID) || didExportFail)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
@@ -825,6 +834,7 @@ function getSecondaryReportActions({
         chatReport,
         reportTransactions,
         violations,
+        bankAccountList,
         policy,
         reportNameValuePairs,
         reportActions,
@@ -858,7 +868,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(currentUserAccountID, currentUserEmail, report, reportTransactions, policy)) {
+    if (isCancelPaymentAction(currentUserAccountID, currentUserEmail, report, reportTransactions, bankAccountList, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
@@ -924,15 +934,16 @@ function getSecondaryExportReportActions(
     currentUserAccountID: number,
     currentUserEmail: string,
     report: Report,
+    bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
     exportTemplates: ExportTemplate[] = [],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
-    if (isExportAction(currentUserAccountID, currentUserEmail, report, policy)) {
+    if (isExportAction(currentUserAccountID, currentUserEmail, report, bankAccountList, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
-    if (isMarkAsExportedAction(currentUserAccountID, currentUserEmail, report, policy)) {
+    if (isMarkAsExportedAction(currentUserAccountID, currentUserEmail, report, bankAccountList, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
 
