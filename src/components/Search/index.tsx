@@ -100,7 +100,6 @@ function mapTransactionItemToSelectedEntry(
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
-
     return [
         item.keyForList,
         {
@@ -109,7 +108,7 @@ function mapTransactionItemToSelectedEntry(
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
@@ -161,7 +160,7 @@ function prepareTransactionsList(
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
@@ -245,7 +244,7 @@ function Search({
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {accountID, email, login} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
@@ -520,7 +519,7 @@ function Search({
                         canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
                         canUnhold: canUnholdRequest,
-                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, transactionItem.policy),
+                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', transactionItem.policy),
                         hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                         canChangeReport: canEditFieldOfMoneyRequest(
                             transactionItem.reportAction,
@@ -573,7 +572,7 @@ function Search({
                     canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
                     canUnhold: canUnholdRequest,
-                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, transactionItem.policy),
+                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', transactionItem.policy),
                     hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                     canChangeReport: canEditFieldOfMoneyRequest(
                         transactionItem.reportAction,
