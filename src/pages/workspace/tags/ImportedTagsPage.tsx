@@ -35,14 +35,12 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const policyData = usePolicyData(policyID);
+    const {policy, tags: policyTags} = policyData;
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
-    const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED;
-
     const {setIsClosing} = useCloseImportPage();
-    const policyData = usePolicyData(policyID);
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
