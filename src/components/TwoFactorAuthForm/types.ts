@@ -14,7 +14,7 @@ type TwoFactorAuthFormProps = {
     onSubmit: (code: string) => void;
 
     /** Callback called when text changes in either input */
-    onInputChange?: (value: string) => void;
+    onInputChange?: () => void;
 
     /** External error message to display */
     errorMessage?: string;
@@ -22,9 +22,10 @@ type TwoFactorAuthFormProps = {
     /** Whether to auto-focus the input (logic differs for mobile) */
     shouldAutoFocus?: boolean;
 
-    /** Callback for when the input is focused */
+    /** Callback that is called when the text input is focused */
     onFocus?: () => void;
 
+    /** Reference to the outer element */
     ref: Ref<BaseTwoFactorAuthFormRef>;
 };
 

@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -42,7 +42,7 @@ function BaseTwoFactorAuthForm({
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
     const recoveryInputRef = useRef<BaseTextInputRef | null>(null);
 
-    const focusRecoveryInput = useCallback(() => {
+    const focusRecoveryInput = () => {
         if (!recoveryInputRef.current) {
             return;
         }
@@ -50,27 +50,21 @@ function BaseTwoFactorAuthForm({
         if ('focus' in recoveryInputRef.current && typeof recoveryInputRef.current.focus === 'function') {
             recoveryInputRef.current.focus();
         }
-    }, []);
+    };
 
-    const onTwoFactorCodeInput = useCallback(
-        (text: string) => {
-            setTwoFactorAuthCode(text);
-            setFormError((prev) => ({...prev, twoFactorAuthCode: undefined}));
-            onInputChange?.(text);
-        },
-        [onInputChange],
-    );
+    const onTwoFactorCodeInput = (text: string) => {
+        setTwoFactorAuthCode(text);
+        setFormError((prev) => ({...prev, twoFactorAuthCode: undefined}));
+        onInputChange?.();
+    };
 
-    const onRecoveryCodeInput = useCallback(
-        (text: string) => {
-            setRecoveryCode(text);
-            setFormError((prev) => ({...prev, recoveryCode: undefined}));
-            onInputChange?.(text);
-        },
-        [onInputChange],
-    );
+    const onRecoveryCodeInput = (text: string) => {
+        setRecoveryCode(text);
+        setFormError((prev) => ({...prev, recoveryCode: undefined}));
+        onInputChange?.();
+    };
 
-    const validateAndSubmitAuthAppCode = useCallback(() => {
+    const validateAndSubmitAuthAppCode = () => {
         if (inputRef.current) {
             inputRef.current.blur();
         }
@@ -87,9 +81,9 @@ function BaseTwoFactorAuthForm({
 
         setFormError({});
         onSubmit(sanitizedTwoFactorCode);
-    }, [twoFactorAuthCode, translate, onSubmit]);
+    };
 
-    const validateAndSubmitRecoveryCode = useCallback(() => {
+    const validateAndSubmitRecoveryCode = () => {
         if (recoveryInputRef.current && 'blur' in recoveryInputRef.current && typeof recoveryInputRef.current.blur === 'function') {
             recoveryInputRef.current.blur();
         }
@@ -107,15 +101,18 @@ function BaseTwoFactorAuthForm({
 
         setFormError({});
         onSubmit(sanitizedRecoveryCode);
-    }, [recoveryCode, translate, onSubmit]);
+    };
 
-    const validateAndSubmitForm = useCallback(() => {
+    /**
+     * Check that all the form fields are valid, then trigger the submit callback
+     */
+    const validateAndSubmitForm = () => {
         if (shouldAllowRecoveryCode && isUsingRecoveryCode) {
             validateAndSubmitRecoveryCode();
             return;
         }
         validateAndSubmitAuthAppCode();
-    }, [isUsingRecoveryCode, shouldAllowRecoveryCode, validateAndSubmitAuthAppCode, validateAndSubmitRecoveryCode]);
+    };
 
     useImperativeHandle(ref, () => ({
         validateAndSubmitForm,
@@ -137,37 +134,38 @@ function BaseTwoFactorAuthForm({
         },
     }));
 
-    useFocusEffect(
-        useCallback(() => {
-            if (shouldAllowRecoveryCode && isUsingRecoveryCode) {
-                if (!recoveryInputRef.current || (isMobile && !shouldAutoFocus)) {
-                    return;
-                }
-
-                if (!isMobileSafari()) {
-                    setTimeout(() => {
-                        focusRecoveryInput();
-                    }, CONST.ANIMATED_TRANSITION);
-                } else {
-                    focusRecoveryInput();
-                }
-
+    useFocusEffect(() => {
+        if (shouldAllowRecoveryCode && isUsingRecoveryCode) {
+            if (!recoveryInputRef.current || (isMobile && !shouldAutoFocus)) {
                 return;
             }
-            if (!inputRef.current || (isMobile && !shouldAutoFocus)) {
-                return;
-            }
+
+            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+            // This is the same condition as in BaseValidateCodeForm
             if (!isMobileSafari()) {
                 setTimeout(() => {
-                    inputRef.current?.focusLastSelected();
+                    focusRecoveryInput();
                 }, CONST.ANIMATED_TRANSITION);
             } else {
-                inputRef.current?.focusLastSelected();
+                focusRecoveryInput();
             }
-        }, [focusRecoveryInput, isUsingRecoveryCode, shouldAllowRecoveryCode, shouldAutoFocus]),
-    );
 
-    const handleToggleInputType = useCallback(() => {
+            return;
+        }
+        if (!inputRef.current || (isMobile && !shouldAutoFocus)) {
+            return;
+        }
+        // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+        if (!isMobileSafari()) {
+            setTimeout(() => {
+                inputRef.current?.focusLastSelected();
+            }, CONST.ANIMATED_TRANSITION);
+        } else {
+            inputRef.current?.focusLastSelected();
+        }
+    });
+
+    const handleToggleInputType = () => {
         if (!shouldAllowRecoveryCode) {
             return;
         }
@@ -183,8 +181,8 @@ function BaseTwoFactorAuthForm({
         });
 
         setFormError({});
-        onInputChange?.('');
-    }, [shouldAllowRecoveryCode, onInputChange]);
+        onInputChange?.();
+    };
 
     const toggleLabelKey = isUsingRecoveryCode ? 'recoveryCodeForm.use2fa' : 'recoveryCodeForm.useRecoveryCode';
 
@@ -201,7 +199,7 @@ function BaseTwoFactorAuthForm({
                     value={recoveryCode}
                     onChangeText={onRecoveryCodeInput}
                     onFocus={onFocus}
-                    autoFocus={shouldAutoFocus && shouldAllowRecoveryCode && isUsingRecoveryCode && (!isMobile || shouldAutoFocus)}
+                    autoFocus={shouldAllowRecoveryCode && isUsingRecoveryCode && (!isMobile || shouldAutoFocus)}
                     autoCapitalize="characters"
                     label={translate('recoveryCodeForm.recoveryCode')}
                     maxLength={CONST.FORM_CHARACTER_LIMIT}

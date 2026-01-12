@@ -33,19 +33,6 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
 
     const baseTwoFactorAuthRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
-    const onSubmit = (code: string) => {
-        if (!domainName) {
-            return;
-        }
-
-        toggleTwoFactorAuthRequiredForDomain(domainAccountID, domainName, false, code);
-        Navigation.goBack(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID));
-    };
-
-    const validateAndSubmitForm = () => {
-        baseTwoFactorAuthRef.current?.validateAndSubmitForm();
-    };
-
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
@@ -69,7 +56,14 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
                         <TwoFactorAuthForm
                             ref={baseTwoFactorAuthRef}
                             shouldAllowRecoveryCode
-                            onSubmit={onSubmit}
+                            onSubmit={(code: string) => {
+                                if (!domainName) {
+                                    return;
+                                }
+
+                                toggleTwoFactorAuthRequiredForDomain(domainAccountID, domainName, false, code);
+                                Navigation.goBack(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID));
+                            }}
                             shouldAutoFocus={false}
                         />
                     </View>
@@ -80,7 +74,7 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
                         large
                         text={translate('common.disable')}
                         isLoading={account?.isLoading}
-                        onPress={validateAndSubmitForm}
+                        onPress={() => baseTwoFactorAuthRef.current?.validateAndSubmitForm()}
                     />
                 </FixedFooter>
             </ScreenWrapper>
