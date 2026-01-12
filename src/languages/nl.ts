@@ -5021,7 +5021,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     travelBookingSection: {title: 'Reisboeking', subtitle: 'Gefeliciteerd! Je kunt nu reizen boeken en beheren in deze werkruimte.', manageTravelLabel: 'Reizen beheren'},
                     centralInvoicingSection: {
                         title: 'Centrale facturatie',
-                        subtitle: 'Sta je leden toe om reizen rechtstreeks via de workspace te betalen en te factureren',
+                        subtitle: 'Sta je leden toe om reizen rechtstreeks via de workspace te betalen en te factureren.',
                         subsections: {
                             currentTravelSpendLabel: 'Huidige reiskosten',
                             currentTravelSpendCta: 'Saldo betalen',

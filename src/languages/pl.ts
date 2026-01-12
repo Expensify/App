@@ -5011,7 +5011,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     },
                     centralInvoicingSection: {
                         title: 'Centralne fakturowanie',
-                        subtitle: 'Pozwól członkom rozliczać i fakturować podróże bezpośrednio na przestrzeń roboczą',
+                        subtitle: 'Pozwól członkom rozliczać i fakturować podróże bezpośrednio na przestrzeń roboczą.',
                         subsections: {
                             currentTravelSpendLabel: 'Aktualne wydatki na podróże',
                             currentTravelSpendCta: 'Zapłać saldo',

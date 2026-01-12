@@ -4677,7 +4677,7 @@ ${amount} para ${merchant} - ${date}`,
                     },
                     centralInvoicingSection: {
                         title: 'Facturación centralizada',
-                        subtitle: 'Permite que tus miembros paguen y facturen los viajes directamente al espacio de trabajo',
+                        subtitle: 'Permite que tus miembros paguen y facturen los viajes directamente al espacio de trabajo.',
                         subsections: {
                             currentTravelSpendLabel: 'Gasto actual en viajes',
                             currentTravelSpendCta: 'Pagar saldo',

@@ -5000,7 +5000,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     },
                     centralInvoicingSection: {
                         title: '中央請求書管理',
-                        subtitle: 'メンバーが出張費をワークスペースに直接請求および支払いできるようにする',
+                        subtitle: 'メンバーが出張費をワークスペースに直接請求および支払いできるようにする。',
                         subsections: {
                             currentTravelSpendLabel: '現在の出張費用',
                             currentTravelSpendCta: '残高を支払う',

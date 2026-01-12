@@ -4918,7 +4918,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     travelBookingSection: {title: '旅行预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', manageTravelLabel: '管理差旅'},
                     centralInvoicingSection: {
                         title: '集中开票',
-                        subtitle: '允许您的成员直接向工作区支付和开具差旅费用',
+                        subtitle: '允许您的成员直接向工作区支付和开具差旅费用。',
                         subsections: {
                             currentTravelSpendLabel: '当前差旅行支出',
                             currentTravelSpendCta: '支付余额',

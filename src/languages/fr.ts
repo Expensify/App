@@ -5050,7 +5050,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     },
                     centralInvoicingSection: {
                         title: 'Facturation centralisée',
-                        subtitle: 'Autorisez vos membres à payer et à facturer les déplacements directement à l’espace de travail',
+                        subtitle: 'Autorisez vos membres à payer et à facturer les déplacements directement à l’espace de travail.',
                         subsections: {
                             currentTravelSpendLabel: 'Dépenses de voyage actuelles',
                             currentTravelSpendCta: 'Payer le solde',

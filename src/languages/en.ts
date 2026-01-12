@@ -4946,7 +4946,7 @@ const translations = {
                     },
                     centralInvoicingSection: {
                         title: 'Central invoicing',
-                        subtitle: 'Allow your members to pay and bill travel directly to the workspace',
+                        subtitle: 'Allow your members to pay and bill travel directly to the workspace.',
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendCta: 'Pay balance',

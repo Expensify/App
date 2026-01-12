@@ -5012,7 +5012,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     },
                     centralInvoicingSection: {
                         title: 'Faturamento centralizado',
-                        subtitle: 'Permita que seus membros paguem e cobrem viagens diretamente para o espaço de trabalho',
+                        subtitle: 'Permita que seus membros paguem e cobrem viagens diretamente para o espaço de trabalho.',
                         subsections: {
                             currentTravelSpendLabel: 'Gasto atual com viagens',
                             currentTravelSpendCta: 'Pagar saldo',

@@ -5029,7 +5029,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     },
                     centralInvoicingSection: {
                         title: 'Fatturazione centralizzata',
-                        subtitle: 'Consenti ai tuoi membri di pagare e fatturare i viaggi direttamente allo spazio di lavoro',
+                        subtitle: 'Consenti ai tuoi membri di pagare e fatturare i viaggi direttamente allo spazio di lavoro.',
                         subsections: {
                             currentTravelSpendLabel: 'Spesa di viaggio attuale',
                             currentTravelSpendCta: 'Paga saldo',

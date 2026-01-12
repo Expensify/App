@@ -5044,7 +5044,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     },
                     centralInvoicingSection: {
                         title: 'Zentrale Rechnungsstellung',
-                        subtitle: 'Ermöglichen Sie Ihren Mitgliedern, Reisen direkt über den Workspace zu bezahlen und abzurechnen',
+                        subtitle: 'Ermöglichen Sie Ihren Mitgliedern, Reisen direkt über den Workspace zu bezahlen und abzurechnen.',
                         subsections: {
                             currentTravelSpendLabel: 'Aktuelle Reisekosten',
                             currentTravelSpendCta: 'Saldo bezahlen',
