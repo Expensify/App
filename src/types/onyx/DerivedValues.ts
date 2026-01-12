@@ -93,7 +93,7 @@ type CardErrors = {
 /**
  * The errors of a card feed.
  */
-type CardFeedErrors = {
+type FeedErrors = {
     /**
      *
      */
@@ -124,17 +124,47 @@ type CardFeedId = CardFeed | CompanyCardFeedWithNumber;
 /**
  *
  */
-type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, CardFeedErrors>>;
+type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
 
 /**
  * The errors of all card feeds.
  */
-type AllCardFeedErrors = Record<number, Record<CardFeedId, CardFeedErrors>>;
+type CardFeedErrorsObject = Record<number, Record<CardFeedId, FeedErrors>>;
+
+/**
+ *
+ */
+type CardFeedErrors = {
+    /**
+     * The errors of all card feeds.
+     */
+    cardFeedErrors: CardFeedErrorsObject;
+    /**
+     * Whether to show the RBR for all feeds.
+     */
+    shouldShowRBRForAllFeeds: boolean;
+    /**
+     * Whether to show the RBR for each workspace account ID.
+     */
+    shouldShowRBRPerWorkspaceAccountID: Record<number, boolean>;
+    /**
+     * Whether some feed connection is broken.
+     */
+    isSomeFeedConnectionBroken: boolean;
+    /**
+     * Whether some feed has errors.
+     */
+    hasSomeFeedErrors: boolean;
+    /**
+     * Whether some failed card assignments.
+     */
+    hasSomeFailedCardAssignments: boolean;
+};
 
 /**
  * The derived value for card feed errors.
  */
-type CardFeedErrorsDerivedValue = AllCardFeedErrors;
+type CardFeedErrorsDerivedValue = CardFeedErrors;
 
 export default ReportAttributesDerivedValue;
 export type {
@@ -145,7 +175,8 @@ export type {
     OutstandingReportsByPolicyIDDerivedValue,
     CardFeedErrorsDerivedValue,
     AllCardFeedErrorsMap,
-    AllCardFeedErrors,
+    CardFeedErrorsObject,
+    FeedErrors,
     CardFeedErrors,
     CardErrors,
 };
