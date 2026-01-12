@@ -2,13 +2,12 @@ import React from 'react';
 import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
 import type {TwoFactorAuthFormProps} from './types';
 
-function TwoFactorAuthForm({innerRef, validateInsteadOfDisable, shouldAutoFocusOnMobile}: TwoFactorAuthFormProps) {
+function TwoFactorAuthForm(props: TwoFactorAuthFormProps) {
     return (
         <BaseTwoFactorAuthForm
-            ref={innerRef}
             autoComplete="sms-otp"
-            validateInsteadOfDisable={validateInsteadOfDisable}
-            shouldAutoFocusOnMobile={shouldAutoFocusOnMobile}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
         />
     );
 }
