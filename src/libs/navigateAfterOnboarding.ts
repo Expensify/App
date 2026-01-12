@@ -6,6 +6,7 @@ import ROUTES from '@src/ROUTES';
 import type {OnboardingRHPVariant} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
+import getPlatform from './getPlatform';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
@@ -88,7 +89,10 @@ function navigateAfterOnboarding(
     const isMicroCompany = onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
     const isRHPConciergeDM = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
     const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
-    if (isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom)) {
+    // Side Panel is only supported on web, so we don't navigate to the RHP variant on other platforms
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+
+    if (isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom) && isWeb) {
         handleRHPVariantNavigation(onboardingPolicyID);
         return;
     }
