@@ -126,27 +126,30 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
     return onyxData;
 }
 
-function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTagLists = {}) {
-    const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
+function createPolicyTag(policyData: PolicyData, tagName: string) {
+    const {policy, tags} = policyData;
+    const policyID = policy?.id;
+    const tagList = PolicyUtils.getTagLists(tags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
-
+    const tagListsOptimisticData = {
+        [tagList.name]: {
+            tags: {
+                [newTagName]: {
+                    name: newTagName,
+                    enabled: true,
+                    errors: null,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+    };
+    
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                value: {
-                    [policyTag.name]: {
-                        tags: {
-                            [newTagName]: {
-                                name: newTagName,
-                                enabled: true,
-                                errors: null,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            },
-                        },
-                    },
-                },
+                value: tagListsOptimisticData,
             },
         ],
         successData: [
@@ -154,7 +157,7 @@ function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTa
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [policyTag.name]: {
+                    [tagList.name]: {
                         tags: {
                             [newTagName]: {
                                 errors: null,
@@ -170,7 +173,7 @@ function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTa
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [policyTag.name]: {
+                    [tagList.name]: {
                         tags: {
                             [newTagName]: {
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
@@ -190,14 +193,22 @@ function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTa
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 }
 
-function importPolicyTags(policyID: string, tags: PolicyTag[]) {
+function importPolicyTags(policyData: PolicyData, tags: PolicyTag[]) {
     const onyxData = updateImportSpreadsheetData(tags.length);
 
+    const optimisticTags = tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}));
+
     const parameters = {
-        policyID,
+        policyID: policyData.policy?.id,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        tags: JSON.stringify(tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}))),
+        tags: JSON.stringify(optimisticTags),
     };
+
+    const optimisticTagLists = Object.fromEntries(
+        optimisticTags.map((tag) => [tag.name, {tags: {[tag.name]: tag}}])
+    );
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, optimisticTagLists);
 
     API.write(WRITE_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters, onyxData);
 }

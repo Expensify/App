@@ -21,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import usePolicyData from '@hooks/usePolicyData';
 
 type ImportedTagsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>
@@ -41,6 +42,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED;
 
     const {setIsClosing} = useCloseImportPage();
+    const policyData = usePolicyData(policyID);
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -113,9 +115,9 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
 
         if (tags) {
             setIsImportingTags(true);
-            importPolicyTags(policyID, tags);
+            importPolicyTags(policyData, tags);
         }
-    }, [validate, spreadsheet, containsHeader, policyTagLists, policyID]);
+    }, [validate, spreadsheet, containsHeader, policyTagLists, policyData]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;

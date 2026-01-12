@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
+import usePolicyData from '@hooks/usePolicyData';
 
 type WorkspaceCreateTagPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>
@@ -59,9 +60,11 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         [policyTags, translate],
     );
 
+    const policyData = usePolicyData(policyID);
+
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            createPolicyTag(policyID, values.tagName.trim(), policyTags);
+            createPolicyTag(policyData, values.tagName.trim());
             Keyboard.dismiss();
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
         },
