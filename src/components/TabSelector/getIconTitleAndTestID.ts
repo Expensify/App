@@ -9,7 +9,21 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
-const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = ['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil', 'ReceiptScan', 'Receipt', 'MoneyCircle', 'Percent', 'Crosshair'] as const;
+const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = [
+    'CalendarSolid',
+    'UploadAlt',
+    'User',
+    'Car',
+    'Hashtag',
+    'Map',
+    'Pencil',
+    'ReceiptScan',
+    'Receipt',
+    'MoneyCircle',
+    'Percent',
+    'Crosshair',
+    'Meter',
+] as const;
 
 function getIconTitleAndTestID(
     icons: Record<TupleToUnion<typeof MEMOIZED_LAZY_TAB_SELECTOR_ICONS>, IconAsset>,
@@ -24,7 +38,7 @@ function getIconTitleAndTestID(
         case CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING:
             return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding'};
         case CONST.TAB_REQUEST.MANUAL:
-            return {icon: icons.Pencil, title: 'Odometer longer', testID: 'manual'};
+            return {icon: icons.Meter, title: 'Odometer', testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
             return {icon: icons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
         case CONST.TAB.NEW_CHAT:
@@ -40,11 +54,11 @@ function getIconTitleAndTestID(
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: icons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         case CONST.TAB_REQUEST.DISTANCE_MAP:
-            return {icon: icons.Map, title: 'Map longer', testID: 'distanceMap'};
+            return {icon: icons.Map, title: 'Map', testID: 'distanceMap'};
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
-            return {icon: icons.Pencil, title: 'Manual longer tab name', testID: 'distanceManual'};
+            return {icon: icons.Pencil, title: 'Manual', testID: 'distanceManual'};
         case CONST.TAB_REQUEST.DISTANCE_GPS:
-            return {icon: icons.Crosshair, title: 'GPS longer tab name', testID: 'distanceGPS'};
+            return {icon: icons.Crosshair, title: 'GPS', testID: 'distanceGPS'};
         case CONST.TAB.SPLIT.AMOUNT:
             return {icon: icons.MoneyCircle, title: translate('iou.amount'), testID: 'split-amount'};
         case CONST.TAB.SPLIT.PERCENTAGE:
