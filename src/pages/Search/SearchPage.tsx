@@ -800,12 +800,15 @@ function SearchPage({route}: SearchPageProps) {
                 }
                 const parentReportID = transaction.reportID;
                 const parentReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
+                if (!parentReport) {
+                    return false;
+                }
                 const reportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
                 const parentReportAction =
                     Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                     selectedTransactions[id].reportAction;
 
-                return !!parentReport && canDeleteMoneyRequestReport(parentReport, [transaction as Transaction], parentReportAction ? [parentReportAction] : []);
+                return canDeleteMoneyRequestReport(parentReport, [transaction as Transaction], parentReportAction ? [parentReportAction] : []);
             });
 
         if (shouldShowDeleteOption) {
