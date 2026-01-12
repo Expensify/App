@@ -1,7 +1,13 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddAdminToDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams, ToggleTwoFactorAuthRequiredForDomainParams} from '@libs/API/parameters';
+import type {
+    AddAdminToDomainParams,
+    RemoveDomainAdminParams,
+    SetTechnicalContactEmailParams,
+    ToggleConsolidatedDomainBillingParams,
+    ToggleTwoFactorAuthRequiredForDomainParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getAuthToken} from '@libs/Network/NetworkStore';
@@ -808,5 +814,5 @@ export {
     clearAdminError,
     revokeDomainAdminAccess,
     toggleTwoFactorAuthRequiredForDomain,
-    clearToggleTwoFactorAuthRequiredForDomainError
+    clearToggleTwoFactorAuthRequiredForDomainError,
 };

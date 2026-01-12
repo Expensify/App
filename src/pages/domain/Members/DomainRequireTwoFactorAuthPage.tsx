@@ -1,32 +1,31 @@
-import { domainNameSelector } from '@selectors/Domain';
-import React, { useRef, useState } from 'react';
-import { View } from 'react-native';
+import {domainNameSelector} from '@selectors/Domain';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
-import type { MagicCodeInputHandle } from '@components/MagicCodeInput';
+import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type { BaseTextInputRef } from '@components/TextInput/BaseTextInput/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { isValidRecoveryCode, isValidTwoFactorCode } from '@libs/ValidationUtils';
+import {isValidRecoveryCode, isValidTwoFactorCode} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
-import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
-import type { SettingsNavigatorParamList } from '@navigation/types';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import { toggleTwoFactorAuthRequiredForDomain } from '@userActions/Domain';
+import {toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {TranslationPaths} from '@src/languages/types';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-
 
 type DomainRequireTwoFactorAuthPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH>;
 
@@ -109,9 +108,9 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
     };
 
     const onRecoveryCodeInput = (text: string) => {
-            setRecoveryCode(text);
-            setFormError((prev) => ({...prev, recoveryCode: undefined}));
-        };
+        setRecoveryCode(text);
+        setFormError((prev) => ({...prev, recoveryCode: undefined}));
+    };
 
     const toggleLabelKey = isUsingRecoveryCode ? 'recoveryCodeForm.use2fa' : 'recoveryCodeForm.useRecoveryCode';
 
