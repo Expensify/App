@@ -66,12 +66,13 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [],
                 violations: {},
+                bankAccountList: {},
                 policy: {} as Policy,
                 isChatReportArchived: false,
             }),
@@ -96,12 +97,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -130,12 +132,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -164,12 +167,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -199,12 +203,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -237,12 +242,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -273,12 +279,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -314,12 +321,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy,
                 invoiceReceiverPolicy,
                 isChatReportArchived: false,
@@ -356,12 +364,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy,
                 invoiceReceiverPolicy,
                 isChatReportArchived: false,
@@ -387,12 +396,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -426,12 +436,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -463,12 +474,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -500,12 +512,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 reportNameValuePairs: {},
                 reportActions,
@@ -565,12 +578,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy,
                 isChatReportArchived: false,
             }),
@@ -623,12 +637,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -682,12 +697,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -722,12 +738,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -759,12 +776,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -797,12 +815,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -835,12 +854,13 @@ describe('getPrimaryAction', () => {
         // Then the getReportPrimaryAction should return the empty string
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport: invoiceChatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                 policy: policy as Policy,
                 isChatReportArchived: isChatReportArchived.current,
@@ -1094,12 +1114,13 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -1133,12 +1154,13 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as Transaction;
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: {} as Policy,
                 invoiceReceiverPolicy: invoiceReceiverPolicy as Policy,
                 isChatReportArchived: false,
@@ -1173,12 +1195,13 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as Transaction;
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: {} as Policy,
                 invoiceReceiverPolicy: invoiceReceiverPolicy as Policy,
                 isChatReportArchived: false,
