@@ -8344,7 +8344,7 @@ describe('actions/IOU', () => {
         it('should initialize split expense with correct transaction details', async () => {
             const transaction: Transaction = {
                 transactionID: '123',
-                amount: 100,
+                amount: -100,
                 currency: 'USD',
                 merchant: 'Test Merchant',
                 comment: {
@@ -8428,7 +8428,7 @@ describe('actions/IOU', () => {
         it('should initialize split expense with correct VND currency amounts', async () => {
             const transaction: Transaction = {
                 transactionID: '123',
-                amount: 1700,
+                amount: -1700,
                 currency: 'VND',
                 merchant: 'Test Merchant',
                 comment: {
