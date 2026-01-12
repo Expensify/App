@@ -42,7 +42,7 @@ export default createOnyxDerivedValueConfig({
             const feedErrors = allFeedsErrors.get(bankName);
             const cardErrors = feedErrors?.cardErrors ?? ({} as Record<string, CardErrors>);
 
-            const hasFeedError = feedName ? !!selectedFeed?.errors : false;
+            const hasFeedError = feedNameWithDomainID ? !!selectedFeed?.errors : false;
             const isFeedConnectionBroken = isCardConnectionBroken(card);
             const shouldShowRBR = hasFailedCardAssignments || hasFeedError || isFeedConnectionBroken;
 
