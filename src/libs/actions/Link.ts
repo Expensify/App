@@ -9,6 +9,7 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -32,7 +33,6 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {isOnboardingFlowCompleted, setOnboardingErrorMessage} from './Welcome';
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from './Welcome/OnboardingFlow';
-import Log from '@libs/Log';
 
 let isNetworkOffline = false;
 let networkStatus: NetworkStatus;

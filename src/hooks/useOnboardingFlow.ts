@@ -4,6 +4,7 @@ import {emailSelector} from '@selectors/Session';
 import {useEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
@@ -16,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
-import Log from '@libs/Log';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
