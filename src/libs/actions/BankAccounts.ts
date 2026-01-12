@@ -269,7 +269,13 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  *
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account: Partial<PlaidBankAccount & PersonalBankAccountForm>, policyID?: string, source?: string, lastPaymentMethod?: LastPaymentMethodType | string | undefined, personalPolicy?: Policy) {
+function addPersonalBankAccount(
+    account: Partial<PlaidBankAccount & PersonalBankAccountForm>,
+    policyID?: string,
+    source?: string,
+    lastPaymentMethod?: LastPaymentMethodType | string | undefined,
+    personalPolicy?: Policy,
+) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL ? `${account?.legalFirstName} ${account?.legalLastName}` : account.addressName,
         routingNumber: account?.routingNumber,
