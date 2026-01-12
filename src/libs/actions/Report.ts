@@ -1488,6 +1488,7 @@ function createTransactionThreadReport(
         deprecatedCurrentUserLogin && ownerAccountID
             ? [
                   {
+                      // eslint-disable-next-line @typescript-eslint/no-deprecated
                       login: deprecatedCurrentUserLogin,
                       accountID: ownerAccountID,
                       personalDetails: allPersonalDetails?.[ownerAccountID] ?? undefined,
