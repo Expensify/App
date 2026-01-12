@@ -6906,19 +6906,12 @@ function getMovedTransactionMessage(action: ReportAction) {
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(report) ?? report?.reportName ?? '';
-    let reportUrl = getReportURLForCurrentContext(report?.reportID);
+    const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.movedTransactionTo', {
             reportUrl,
             reportName,
-        });
-    }
-    if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.movedUnreportedTransaction', {
-            reportUrl,
         });
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -7420,9 +7413,7 @@ function buildOptimisticTransactionAction(
     const isFromPersonalSpace = originalReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`]?.reportName ?? '';
     const url = isFromPersonalSpace ? getReportURLForCurrentContext(findSelfDMReportID()) : getReportURLForCurrentContext(originalReportID);
-    const [actionText, messageHtml] = isFromPersonalSpace
-        ? ['moved this expense from your personal space', `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>your personal space</a>`]
-        : [`moved this expense from ${reportName}`, `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
+    const [actionText, messageHtml] = [`moved this expense from ${reportName}`, `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
     return {
         actionName: type,

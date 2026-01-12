@@ -1128,7 +1128,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moveu esta despesa do seu <a href="${reportUrl}">espaço pessoal</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moveu esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {

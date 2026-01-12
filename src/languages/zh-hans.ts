@@ -1114,7 +1114,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔报销${reportName ? `来自 ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `已移动此报销${reportName ? `到 <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `已移动此报销${reportName ? `来自 <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用从您的<a href="${reportUrl}">个人空间</a>中移出`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此报销移动到你的<a href="${reportUrl}">个人空间</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
