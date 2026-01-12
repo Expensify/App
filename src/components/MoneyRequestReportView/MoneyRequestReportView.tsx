@@ -159,6 +159,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         }
                         Navigation.goBack(backToRoute);
                     }}
+                    reportPendingAction={reportPendingAction}
                 />
             ),
         [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
@@ -236,7 +237,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
                             showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
-                            reportPendingAction={reportPendingAction}
                         />
                     ) : (
                         <ReportActionsView

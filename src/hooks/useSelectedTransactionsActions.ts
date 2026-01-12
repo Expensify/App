@@ -1,4 +1,5 @@
 import {useCallback, useMemo, useState} from 'react';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
@@ -52,6 +53,7 @@ function useSelectedTransactionsActions({
     policy,
     beginExportWithTemplate,
     isOnSearch,
+    reportLevelActions,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -62,6 +64,7 @@ function useSelectedTransactionsActions({
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     isOnSearch?: boolean;
+    reportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>>;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
@@ -167,6 +170,9 @@ function useSelectedTransactionsActions({
             return [];
         }
         const options = [];
+        if (allTransactionsLength === selectedTransactionIDs.length && !!reportLevelActions) {
+            options.push(...reportLevelActions);
+        }
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
@@ -400,6 +406,8 @@ function useSelectedTransactionsActions({
         expensifyIcons.Trashcan,
         localeCompare,
         isOnSearch,
+        expensifyIcons,
+        reportLevelActions,
     ]);
 
     return {

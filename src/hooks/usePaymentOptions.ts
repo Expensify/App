@@ -167,7 +167,13 @@ function usePaymentOptions({
                     text: formattedPaymentMethod?.title ?? '',
                     description: formattedPaymentMethod?.description ?? '',
                     icon: formattedPaymentMethod?.icon,
-                    onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType),
+                    onSelected: () =>
+                        onPress({
+                            paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                            payAsBusiness,
+                            methodID: formattedPaymentMethod.methodID,
+                            paymentMethod: formattedPaymentMethod.accountType,
+                        }),
                     iconStyles: formattedPaymentMethod?.iconStyles,
                     iconHeight: formattedPaymentMethod?.iconSize,
                     iconWidth: formattedPaymentMethod?.iconSize,
@@ -194,7 +200,7 @@ function usePaymentOptions({
                             text: translate('iou.payElsewhere', {formattedAmount: ''}),
                             icon: icons.Cash,
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                            onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}),
                         },
                         ...(isCurrencySupported ? [addBankAccountItem] : []),
                     ],
@@ -213,7 +219,7 @@ function usePaymentOptions({
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: icons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),
+                        onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: true}),
                     },
                 ],
             });
