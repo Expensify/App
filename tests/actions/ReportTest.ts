@@ -1987,7 +1987,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policyID);
+        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy);
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
