@@ -272,7 +272,7 @@ function IOURequestStepScan({
             removeDraftTransactions(true);
         });
         // We want this hook to run on mounting only
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -297,10 +297,10 @@ function IOURequestStepScan({
                 setIsQueriedPermissionState(true);
             });
         // We only want to get the camera permission status when the component is mounted
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTabActive]);
 
-    // this effect will pre-fetch location in web and desktop if the location permission is already granted to optimize the flow
+    // this effect will pre-fetch location in web if the location permission is already granted to optimize the flow
     useEffect(() => {
         const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
         if (!gpsRequired) {
@@ -428,6 +428,7 @@ function IOURequestStepScan({
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                         currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                         transactionViolations,
+                        quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     });
                 }

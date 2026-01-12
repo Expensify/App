@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
@@ -26,7 +26,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import {clearAddAdminError} from '@userActions/Domain';
+import {clearAdminError} from '@userActions/Domain';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,13 +54,21 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
+
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        canBeMissing: true,
+    });
+
+    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminPendingActionSelector,
+    });
+
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
         selector: technicalContactSettingsSelector,
     });
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
-    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true});
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
@@ -69,6 +77,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     for (const accountID of adminAccountIDs ?? []) {
         const details = personalDetails?.[accountID];
         const isPrimaryContact = technicalContactSettings?.technicalContactEmail === details?.login;
+        const isPendingActionDelete = domainPendingAction?.[accountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         data.push({
             keyForList: String(accountID),
             accountID,
@@ -85,7 +94,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             ],
             rightElement: isPrimaryContact && <Badge text={translate('domain.admins.primaryContact')} />,
             errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
-            pendingAction: domainPendingActions?.admin?.[accountID]?.pendingAction,
+            pendingAction: domainPendingAction?.[accountID]?.pendingAction,
+            isInteractive: !isPendingActionDelete,
+            isDisabled: isPendingActionDelete,
         });
     }
 
@@ -183,7 +194,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
                     customListHeader={getCustomListHeader()}
-                    onDismissError={(item: AdminOption) => clearAddAdminError(domainAccountID, item.accountID)}
+                    onDismissError={(item: AdminOption) => clearAdminError(domainAccountID, item.accountID)}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
