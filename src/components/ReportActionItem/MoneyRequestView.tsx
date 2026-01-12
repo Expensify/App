@@ -558,7 +558,6 @@ function MoneyRequestView({
                                     iouType,
                                     transaction.transactionID,
                                     transactionThreadReport.reportID,
-                                    getReportRHPActiveRoute(),
                                 ),
                             );
                             return;
