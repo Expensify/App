@@ -361,7 +361,7 @@ function WorkspacesListPage() {
     );
 
     const showDeleteWorkspaceModal = useCallback(async () => {
-        const result = await showConfirmModal({
+        await showConfirmModal({
             title: translate('workspace.common.delete'),
             prompt: policyToDeleteLatestErrorMessage,
             confirmText: translate('common.buttonConfirm'),
@@ -373,7 +373,7 @@ function WorkspacesListPage() {
             return;
         }
         dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
-    }, []);
+    }, [policyToDelete, policyToDeleteLatestErrorMessage, showConfirmModal, translate]);
 
     useEffect(() => {
         if (!prevIsPendingDelete || isPendingDelete || !policyIDToDelete) {
@@ -383,7 +383,7 @@ function WorkspacesListPage() {
             return;
         }
         showDeleteWorkspaceModal();
-    }, [isPendingDelete, prevIsPendingDelete, isFocused, policyToDeleteLatestErrorMessage, policyIDToDelete, showConfirmModal, translate, policyToDelete]);
+    }, [isPendingDelete, prevIsPendingDelete, isFocused, policyToDeleteLatestErrorMessage, policyIDToDelete, showConfirmModal, translate, policyToDelete, showDeleteWorkspaceModal]);
 
     /**
      * Gets the menu item for each workspace
