@@ -932,6 +932,9 @@ describe('actions/Report', () => {
         const CHILD_REPORT_ID = '9999';
         const TXN_ID = 'txn_123';
 
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+
         // Sign in and set personal details
         await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
         await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
