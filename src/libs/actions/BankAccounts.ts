@@ -1235,7 +1235,7 @@ function unshareBankAccount(bankAccountID: number, ownerEmail: string) {
         ownerEmail,
     };
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.UNSHARE_BANK_ACCOUNT> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
