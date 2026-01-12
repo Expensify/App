@@ -9054,11 +9054,14 @@ function shouldHideReport(
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
-    const reportID = report?.reportID ?? '';
-    const isChildReportHasComment = Object.values(reportActions ?? {})?.some(
-        (reportAction) =>
-            (reportAction?.childVisibleActionCount ?? 0) > 0 && isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData),
-    );
+    const reportID = report?.reportID;
+    const isChildReportHasComment =
+        !!reportID &&
+        Object.values(reportActions ?? {})?.some(
+            (reportAction) =>
+                (reportAction?.childVisibleActionCount ?? 0) > 0 &&
+                isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData),
+        );
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
@@ -10108,8 +10111,8 @@ function navigateToLinkedReportAction(
     // Pop the thread report screen before navigating to the chat report.
     Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
 
-    const reportID = ancestor.report.reportID ?? '';
-    const isVisibleAction = isReportActionVisible(ancestor.reportAction, reportID, canUserPerformWrite, visibleReportActionsData);
+    const reportID = ancestor.report.reportID;
+    const isVisibleAction = !!reportID && isReportActionVisible(ancestor.reportAction, reportID, canUserPerformWrite, visibleReportActionsData);
 
     if (isVisibleAction && !isOffline) {
         // Pop the chat report screen before navigating to the linked report action.
