@@ -117,7 +117,10 @@ function extractAttachments(
         return attachments.reverse();
     }
 
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID;
+    if (!reportID) {
+        return attachments.reverse();
+    }
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...getSortedReportActions(Object.values(reportActions ?? {}))];
     for (const action of actions) {
         if (!isReportActionVisible(action, reportID, canUserPerformAction, visibleReportActionsData) || isMoneyRequestAction(action)) {

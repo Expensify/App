@@ -666,7 +666,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
-        const iouReportID = iouReport?.reportID ?? '';
+        const iouReportID = iouReport?.reportID;
         const lastIOUMoneyReportAction = iouReportID
             ? allSortedReportActions[iouReportID]?.find(
                   (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>

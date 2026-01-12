@@ -326,6 +326,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isScreenFocused,
             localeCompare,
             translate,
+            visibleReportActionsData,
         ],
     );
 

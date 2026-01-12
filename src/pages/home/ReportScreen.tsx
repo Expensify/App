@@ -456,10 +456,16 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
-    const isLinkedActionDeleted = useMemo(
-        () => !!linkedAction && !isReportActionVisible(linkedAction, linkedAction.reportID ?? reportID ?? '', canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData),
-        [linkedAction, report, isReportArchived, reportID, visibleReportActionsData],
-    );
+    const isLinkedActionDeleted = useMemo(() => {
+        if (!linkedAction) {
+            return false;
+        }
+        const actionReportID = linkedAction.reportID ?? reportID;
+        if (!actionReportID) {
+            return true;
+        }
+        return !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
+    }, [linkedAction, report, isReportArchived, reportID, visibleReportActionsData]);
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 

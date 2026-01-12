@@ -1152,8 +1152,11 @@ function isReportActionVisible(
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
 ): boolean {
+    if (!reportAction?.reportActionID) {
+        return false;
+    }
     if (visibleReportActions) {
-        const staticVisibility = visibleReportActions[reportID]?.[reportAction?.reportActionID ?? ''] ?? true;
+        const staticVisibility = visibleReportActions[reportID]?.[reportAction.reportActionID] ?? true;
         if (!staticVisibility) {
             return false;
         }
@@ -1162,7 +1165,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction?.reportActionID ?? '', canUserPerformWriteAction);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
 }
 
 /**
@@ -1182,7 +1185,10 @@ function isReportActionVisibleAsLastAction(
         return false;
     }
 
-    const reportID = reportAction.reportID ?? '';
+    const reportID = reportAction.reportID;
+    if (!reportID) {
+        return false;
+    }
 
     return (
         isReportActionVisible(reportAction, reportID, canUserPerformWriteAction, visibleReportActions) &&
@@ -1376,7 +1382,10 @@ function getSortedReportActionsForDisplay(
     } else {
         filteredReportActions = Object.entries(reportActions)
             .filter(([, reportAction]) => {
-                const reportID = reportAction?.reportID ?? '';
+                const reportID = reportAction?.reportID;
+                if (!reportID) {
+                    return false;
+                }
                 return isReportActionVisible(reportAction, reportID, canUserPerformWriteAction, visibleReportActionsData);
             })
             .map(([, reportAction]) => reportAction);
