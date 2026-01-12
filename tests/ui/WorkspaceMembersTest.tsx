@@ -25,26 +25,6 @@ jest.unmock('react-native-worklets');
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-jest.mock('@libs/WorkflowUtils', () => {
-    // eslint-disable-next-line
-    const actual = jest.requireActual('@libs/WorkflowUtils');
-    // eslint-disable-next-line
-    return {
-        ...actual,
-        updateWorkflowDataOnApproverRemoval: jest.fn(() => [{members: [], approvers: [], isDefault: false, removeApprovalWorkflow: true}]),
-    };
-});
-
-jest.mock('@libs/actions/Workflow', () => {
-    // eslint-disable-next-line
-    const actual = jest.requireActual('@libs/actions/Workflow');
-    // eslint-disable-next-line
-    return {
-        ...actual,
-        removeApprovalWorkflow: jest.fn(),
-    };
-});
-
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
