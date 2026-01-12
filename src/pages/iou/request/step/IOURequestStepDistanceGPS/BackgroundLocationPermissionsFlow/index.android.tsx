@@ -66,7 +66,7 @@ async function checkPermissions({
             return;
         }
 
-        if (granted && android?.accuracy === 'fine' && bgGranted) {
+        if (granted && bgGranted && android?.accuracy === 'fine') {
             onGrant();
             return;
         }
