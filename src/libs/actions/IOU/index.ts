@@ -4080,6 +4080,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // Step 2: Get all the collections being updated
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
+    const iouReportID = newTransactionReportID ?? transactionThread?.parentReportID;
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
+
     const isTransactionOnHold = isOnHold(transaction);
     const isFromExpenseReport = isExpenseReport(iouReport);
     const updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction
@@ -4207,6 +4210,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         updatedMoneyRequestReport = {
             ...iouReport,
             total: iouReport.total - diff,
+            type: iouReport.type ?? CONST.REPORT.TYPE.EXPENSE,
         };
         if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
             updatedMoneyRequestReport.nonReimbursableTotal -= diff;
@@ -4235,6 +4239,13 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             true,
             isTransactionOnHold,
         );
+        // Set default type for reports with parentReportID and chatReportID but no type
+        if (!updatedMoneyRequestReport?.type && iouReport?.parentReportID && iouReport?.chatReportID) {
+            updatedMoneyRequestReport = {
+                ...updatedMoneyRequestReport,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+        }
     }
 
     optimisticData.push(

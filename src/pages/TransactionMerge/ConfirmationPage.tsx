@@ -24,6 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {findSelfDMReportID} from '@libs/ReportUtils';
+import {openReport} from '@libs/actions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -68,7 +69,16 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
+
         const reportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? findSelfDMReportID() : mergeTransaction.reportID;
+
+        // Ensure expense report exists in Onyx before merge (required by getUpdateMoneyRequestParams)
+        if (reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+            const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            if (!expenseReport) {
+                openReport(reportID);
+            }
+        }
 
         setIsMergingExpenses(true);
         mergeTransactionRequest({

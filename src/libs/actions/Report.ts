@@ -993,13 +993,17 @@ function openReport(
     }
 
     let optimisticReport: Partial<Report> = {};
-    if (!reportActionsExist(reportID)) {
+    const existingReportFromAllReports = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    if (reportExists) {
+        // Skip to avoid overwriting existing report data
+    } else if (!reportActionsExist(reportID)) {
         optimisticReport = {
-            reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+            reportName: existingReportFromAllReports?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
         };
     } else if (isOffline && !reportExists) {
         optimisticReport = {
-            reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+            reportName: existingReportFromAllReports?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
             reportID,
         };
     }
@@ -1019,10 +1023,14 @@ function openReport(
     ];
 
     if (Object.keys(optimisticReport).length > 0) {
+        // Preserve existing report data when creating optimistic report
+        const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        const optimisticReportWithExistingData = existingReport ? {...existingReport, ...optimisticReport} : optimisticReport;
+
         optimisticData.unshift({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: optimisticReport,
+            value: optimisticReportWithExistingData,
         });
     }
 

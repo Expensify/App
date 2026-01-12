@@ -397,16 +397,17 @@ function mergeTransactionRequest({
         },
     ];
     const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
-    const optimisticSourceReportData: OnyxUpdate[] =
-        transactionsOfSourceReport.length === 1
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
-                      value: null,
-                  },
-              ]
-            : [];
+    // Only delete source report if it differs from target and has one transaction
+    const shouldDeleteSourceReport = sourceTransaction.reportID !== mergeTransaction.reportID && transactionsOfSourceReport.length === 1;
+    const optimisticSourceReportData: OnyxUpdate[] = shouldDeleteSourceReport
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                  value: null,
+              },
+          ]
+        : [];
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureSourceReportData: OnyxUpdate[] =
