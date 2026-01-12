@@ -296,6 +296,7 @@ function Search({
     });
 
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
@@ -320,7 +321,7 @@ function Search({
         clearTransactionsAndSetHashAndKey();
 
         // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
@@ -345,7 +346,6 @@ function Search({
         }
 
         // We don't want to run the effect on isFocused change as we only need it to early return when it is false.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
 
@@ -366,7 +366,6 @@ function Search({
         }
 
         // We only want this effect to handle the switching of mobile selection mode state when screen size changes.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
 
@@ -424,6 +423,7 @@ function Search({
             currentUserEmail: email ?? '',
             translate,
             formatPhoneNumber,
+            bankAccountList,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: searchKey,
@@ -448,6 +448,7 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        bankAccountList,
     ]);
 
     useEffect(() => {
@@ -467,7 +468,6 @@ function Search({
         handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
 
         // We don't need to run the effect on change of isFocused.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
 
@@ -606,7 +606,7 @@ function Search({
         setSelectedTransactions(newTransactionList, filteredData);
 
         isRefreshingSelection.current = true;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 
     useEffect(() => {

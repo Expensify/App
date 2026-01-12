@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -920,6 +921,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'jako kopilot dla',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `utworzył ten raport, aby zawrzeć wszystkie wydatki z <a href="${reportUrl}">${reportName}</a>, które nie mogły zostać przesłane zgodnie z wybraną przez ciebie częstotliwością`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `utworzył ten raport dla wszystkich wstrzymanych wydatków z <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Powiadom wszystkich w tej konwersacji',
@@ -1125,7 +1128,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniesiono wydatek${reportName ? `z ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `przeniósł ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `przeniósł ten wydatek${reportName ? `z <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek z twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek do twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -7881,6 +7883,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             cantRevokeAdminAccess: 'Nie można odebrać uprawnień administratora kontaktowi technicznemu',
             error: {removeAdmin: 'Nie można usunąć tego użytkownika jako administratora. Spróbuj ponownie.'},
         },
+        members: {title: 'Członkowie', findMember: 'Znajdź członka'},
     },
     gps: {
         tooltip: 'Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.',

@@ -12,6 +12,7 @@ export default function useTodos() {
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const {login = '', accountID} = useCurrentUserPersonalDetails();
 
     return useMemo(() => {
@@ -50,7 +51,7 @@ export default function useTodos() {
             if (isApproveAction(report, reportTransactions, policy)) {
                 reportsToApprove.push(report);
             }
-            if (isPrimaryPayAction(report, accountID, login, policy, reportNameValuePair)) {
+            if (isPrimaryPayAction(report, accountID, login, bankAccountList, policy, reportNameValuePair)) {
                 reportsToPay.push(report);
             }
             if (isExportAction(report, login, policy, reportActions)) {
@@ -59,5 +60,5 @@ export default function useTodos() {
         }
 
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
-    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, accountID, login]);
+    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, accountID, login, bankAccountList]);
 }

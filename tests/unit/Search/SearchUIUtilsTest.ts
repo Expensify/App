@@ -1650,15 +1650,15 @@ describe('SearchUIUtils', () => {
     });
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
-            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -1681,10 +1681,10 @@ describe('SearchUIUtils', () => {
                     managerID: adminAccountID,
                 },
             };
-            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0)).toStrictEqual(
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0)).toStrictEqual(
                 CONST.SEARCH.ACTION_TYPES.VIEW,
             );
-            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0)).toStrictEqual(
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0)).toStrictEqual(
                 CONST.SEARCH.ACTION_TYPES.VIEW,
             );
         });
@@ -1704,7 +1704,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1728,7 +1728,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1744,7 +1744,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
@@ -1762,13 +1762,13 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
         });
 
         test('Should return `View` action for non-money request reports', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -1782,7 +1782,7 @@ describe('SearchUIUtils', () => {
                     reportID: 'non_existent_report',
                 },
             };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
@@ -1800,14 +1800,14 @@ describe('SearchUIUtils', () => {
                     reportID: multiTransactionReportID,
                 },
             };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `Pay` action for an IOU report ready to be paid', async () => {
             Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             await waitForBatchedUpdates();
             const iouReportKey = `report_${reportID3}`;
-            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
 
@@ -1880,7 +1880,7 @@ describe('SearchUIUtils', () => {
                 },
             ] as OnyxTypes.ReportAction[];
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', dewReportActions).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}, dewReportActions).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -1917,7 +1917,7 @@ describe('SearchUIUtils', () => {
                 },
             ] as OnyxTypes.ReportAction[];
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', dewReportActions).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}, dewReportActions).at(0);
             expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -1956,7 +1956,7 @@ describe('SearchUIUtils', () => {
                 },
             ] as OnyxTypes.ReportAction[];
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${nonDewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', nonDewReportActions).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${nonDewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}, nonDewReportActions).at(0);
             expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
@@ -2004,6 +2004,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             });
             expect(filteredReportActions).toStrictEqual(reportActionListItems);
             expect(allReportActionsLength).toBe(6);
@@ -2018,6 +2019,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
+                    bankAccountList: {},
                 })[0],
             ).toEqual(transactionsListItems);
         });
@@ -2043,6 +2045,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             })[0] as TransactionListItemType[];
 
             const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
@@ -2075,6 +2078,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             })[0] as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
@@ -2097,6 +2101,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
+                    bankAccountList: {},
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
         });
@@ -2137,6 +2142,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             })[0];
             const resultReportFirst = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -2145,6 +2151,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             })[0];
 
             expect(resultTransactionFirst).toBeDefined();
@@ -2166,6 +2173,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
+                    bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 })[0],
             ).toStrictEqual(transactionMemberGroupListItems);
@@ -2180,6 +2188,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
+                    bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);
@@ -2194,6 +2203,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
+                    bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
@@ -2217,6 +2227,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
             }) as [TransactionWithdrawalIDGroupListItemType[], number];
 
@@ -2738,10 +2749,10 @@ describe('SearchUIUtils', () => {
         Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
         searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
         return waitForBatchedUpdates().then(() => {
-            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
-            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
@@ -2854,7 +2865,7 @@ describe('SearchUIUtils', () => {
             },
         };
         return waitForBatchedUpdates().then(() => {
-            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
     });

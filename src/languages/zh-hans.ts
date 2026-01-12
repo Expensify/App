@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -912,6 +913,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: '作为副驾驶用于',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `创建了此报表以汇总 <a href="${reportUrl}">${reportName}</a> 中无法按您选择的频率提交的所有费用`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `为来自 <a href="${reportUrl}">${reportName}</a> 的所有暂挂报销创建了此报表`,
     },
     mentionSuggestions: {
         hereAlternateText: '通知此对话中的所有人',
@@ -1111,7 +1114,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔报销${reportName ? `来自 ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `已移动此报销${reportName ? `到 <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `已移动此报销${reportName ? `来自 <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用从您的<a href="${reportUrl}">个人空间</a>中移出`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此报销移动到你的<a href="${reportUrl}">个人空间</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -7705,6 +7707,7 @@ ${reportName}
             cantRevokeAdminAccess: '无法撤销技术联系人的管理员访问权限',
             error: {removeAdmin: '无法将此用户移除管理员角色。请重试。'},
         },
+        members: {title: '成员', findMember: '查找成员'},
     },
     gps: {
         tooltip: 'GPS 跟踪进行中！完成后，请在下方停止跟踪。',

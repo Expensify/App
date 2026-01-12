@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -919,6 +920,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'のコパイロットとして',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `選択した頻度では提出できなかった <a href="${reportUrl}">${reportName}</a> のすべての経費をまとめるためにこのレポートを作成しました`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `<a href="${reportUrl}">${reportName}</a> から保留中の経費のためにこのレポートを作成しました`,
     },
     mentionSuggestions: {
         hereAlternateText: 'この会話の全員に通知',
@@ -1127,7 +1130,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `経費を移動しました${reportName ? `${reportName} から` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> へ` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> から` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費を<a href="${reportUrl}">個人スペース</a>から移動しました`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費はあなたの<a href="${reportUrl}">パーソナルスペース</a>に移動されました`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -7850,6 +7852,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             cantRevokeAdminAccess: '技術連絡先から管理者アクセス権を取り消すことはできません',
             error: {removeAdmin: 'このユーザーを管理者として削除できません。もう一度お試しください。'},
         },
+        members: {title: 'メンバー', findMember: 'メンバーを検索'},
     },
     gps: {
         tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',

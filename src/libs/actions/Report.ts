@@ -182,6 +182,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    BankAccountList,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -3034,6 +3035,19 @@ function buildNewReportOptimisticData(
                 data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
             },
         });
+    } else if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`]: {[reportPreviewReportActionID]: {...optimisticReportPreview, reportID: parentReport?.reportID}},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`]: parentReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData,
+                },
+            },
+        });
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
@@ -4957,6 +4971,7 @@ function deleteAppReport(
     currentUserEmailParam: string,
     reportTransactions: Record<string, Transaction>,
     transactionsViolations: Record<string, TransactionViolations>,
+    bankAccountList: OnyxEntry<BankAccountList>,
 ) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
@@ -5295,7 +5310,7 @@ function deleteAppReport(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID, currentUserEmailParam)},
+            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID, currentUserEmailParam, bankAccountList)},
         });
     }
 
