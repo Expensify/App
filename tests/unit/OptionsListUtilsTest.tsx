@@ -2969,9 +2969,9 @@ describe('OptionsListUtils', () => {
 
         it('should return option with correct workspace name when policy is provided', async () => {
             const reportID = '101';
-            const policyID = 'policy123';
+            const testPolicyID = 'policy123';
             const policy: Policy = {
-                id: policyID,
+                id: testPolicyID,
                 name: 'Test Workspace',
                 role: 'admin',
                 type: CONST.POLICY.TYPE.TEAM,
@@ -2984,17 +2984,17 @@ describe('OptionsListUtils', () => {
                 reportID,
                 reportName: 'Test Report',
                 type: CONST.REPORT.TYPE.CHAT,
-                policyID,
+                policyID: testPolicyID,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
             await waitForBatchedUpdates();
 
             const participant = {
                 reportID,
-                policyID,
+                policyID: testPolicyID,
                 isPolicyExpenseChat: true,
             };
 
@@ -3007,11 +3007,11 @@ describe('OptionsListUtils', () => {
 
         it('should show submits to info when policy has approval workflow', async () => {
             const reportID = '102';
-            const policyID = 'policy124';
+            const testPolicyID = 'policy124';
             const ownerAccountID = 8888;
             const approverAccountID = 9999;
             const policy: Policy = {
-                id: policyID,
+                id: testPolicyID,
                 name: 'Test Workspace with Submit',
                 role: 'user',
                 type: CONST.POLICY.TYPE.TEAM,
@@ -3024,7 +3024,7 @@ describe('OptionsListUtils', () => {
                 reportID,
                 reportName: 'Test Report',
                 type: CONST.REPORT.TYPE.EXPENSE,
-                policyID,
+                policyID: testPolicyID,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 ownerAccountID,
             };
@@ -3044,12 +3044,12 @@ describe('OptionsListUtils', () => {
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
             await waitForBatchedUpdates();
 
             const participant = {
                 reportID,
-                policyID,
+                policyID: testPolicyID,
                 isPolicyExpenseChat: true,
             };
 
@@ -3126,12 +3126,12 @@ describe('OptionsListUtils', () => {
 
         it('should handle invoice rooms correctly', async () => {
             const reportID = '105';
-            const policyID = 'policy125';
+            const testPolicyID = 'policy125';
             const report: Report = {
                 reportID,
                 reportName: 'Invoice Room',
                 type: CONST.REPORT.TYPE.INVOICE,
-                policyID,
+                policyID: testPolicyID,
                 chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
                 invoiceReceiver: {
                     type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
