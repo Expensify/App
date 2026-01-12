@@ -2234,6 +2234,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
                 shouldSkipActionFiltering: true,
             })[0] as TransactionGroupListItemType[];
 
@@ -2248,6 +2249,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
                 shouldSkipActionFiltering: false,
             })[0] as TransactionGroupListItemType[];
 
@@ -2262,6 +2264,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             })[0] as TransactionGroupListItemType[];
 
             expect(result.length).toBe(2); // Default behavior applies filtering
