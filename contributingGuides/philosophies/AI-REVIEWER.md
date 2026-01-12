@@ -30,8 +30,8 @@ These are recommendations for working effectively with AI reviewers, not strict 
 ### Treat AI feedback as suggestions
 AI reviewers provide automated feedback to assist human reviewers, but their output is not infallible. Contributors and reviewers should evaluate each piece of feedback on its merits rather than blindly accepting or rejecting it.
 
-### Validate AI feedback before requesting changes
-When AI reviewers flag potential issues, human reviewers should verify the feedback is accurate and applicable before asking contributors to make changes. This prevents unnecessary work from false positives.
+### Discuss on vague feedback
+When AI feedback is unclear or ambiguous, contributors will benefit from discussing it first with C+ reviewers before jumping to implementation. As mentioned in the first principle, reviewer feedback should be treated as suggestions only.
 
 ### Report false positives to maintainers
 When AI feedback is incorrect or not applicable, reach out to the AI reviewer maintainers to help improve the system. You can either tag them directly in a reply to the reviewer's comment or reach out through Slack. This feedback helps refine the reviewers and prevents the same issues from recurring.
@@ -44,7 +44,7 @@ When adding or modifying rules in AI reviewer agent files, the corresponding doc
 ### Available AI Reviewers
 
 **code-inline-reviewer (Smart Linter)**
-- Reviews source code PRs for specific, predefined performance violations
+- Reviews source code PRs for specific, predefined violations
 - Creates inline comments on lines that violate rules
 - See `.claude/agents/code-inline-reviewer.md` for current rule definitions
 
@@ -119,7 +119,7 @@ flowchart TD
 
 Code PRs benefit from the **two-reviewer approach**:
 
-1. **Smart Linter (code-inline-reviewer)**: Catches specific, well-defined performance anti-patterns with consistent, rule-based feedback
+1. **Smart Linter (code-inline-reviewer)**: Catches specific, well-defined anti-patterns with consistent, rule-based feedback
 2. **Holistic Reviewer**: Catches general code quality issues, design concerns, and anything not covered by specific rules
 
 Together they balance precision (rules) with coverage (holistic review).
