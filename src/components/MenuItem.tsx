@@ -156,6 +156,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Overrides the icon for shouldShowRightIcon */
         iconRight?: IconAsset;
 
+        /** Should use normal icon size for the right icon */
+        shouldUseNormalIconSizeForRightIcon?: boolean;
+
         /** Should render component on the right */
         shouldShowRightComponent?: boolean;
 
@@ -443,6 +446,7 @@ function MenuItem({
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
+    shouldUseNormalIconSizeForRightIcon = false,
     iconRight,
     furtherDetailsIcon,
     furtherDetails,
@@ -978,9 +982,13 @@ function MenuItem({
                                                     >
                                                         <Icon
                                                             src={iconRight ?? icons.ArrowRight}
-                                                            fill={theme.icon}
-                                                            width={variables.iconSizeSmall}
-                                                            height={variables.iconSizeSmall}
+                                                            fill={
+                                                                shouldUseNormalIconSizeForRightIcon
+                                                                    ? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))
+                                                                    : theme.icon
+                                                            }
+                                                            width={shouldUseNormalIconSizeForRightIcon ? variables.iconSizeNormal : variables.iconSizeSmall}
+                                                            height={shouldUseNormalIconSizeForRightIcon ? variables.iconSizeNormal : variables.iconSizeSmall}
                                                         />
                                                     </View>
                                                 )}

@@ -167,6 +167,9 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
 
     /** Used to locate the component in the tests */
     testID?: string;
+
+    /** Whether to use normal icon size for the right icon */
+    shouldUseNormalIconSizeForRightIcon?: boolean;
 };
 
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
@@ -283,6 +286,7 @@ function BasePopoverMenu({
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
     testID,
+    shouldUseNormalIconSizeForRightIcon = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -385,6 +389,7 @@ function BasePopoverMenu({
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     shouldCheckActionAllowedOnPress={false}
                     iconRight={item.rightIcon}
+                    shouldUseNormalIconSizeForRightIcon={shouldUseNormalIconSizeForRightIcon}
                     shouldShowRightIcon={!!item.rightIcon}
                     onFocus={() => {
                         if (!shouldUpdateFocusedIndex) {
