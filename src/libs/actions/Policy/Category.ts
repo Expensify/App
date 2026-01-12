@@ -274,7 +274,9 @@ function updateImportSpreadsheetData(categoriesLength: number) {
                     importFinalModal: {
                         titleKey: 'spreadsheet.importSuccessfulTitle',
                         promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
-                        promptKeyParams: [categoriesLength],
+                        promptKeyParams: {
+                            categories: categoriesLength,
+                        },
                     },
                 },
             },
