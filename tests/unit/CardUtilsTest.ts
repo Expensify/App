@@ -32,7 +32,6 @@ import {
     getSelectedFeed,
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
-    isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
@@ -497,63 +496,6 @@ describe('CardUtils', () => {
         test.each(directFeedBanks)('Should return false for the direct feed %s', (directFeed) => {
             const isCustomFeed = isCustomFeedCardUtils(directFeed);
             expect(isCustomFeed).toBe(false);
-        });
-    });
-
-    describe('isCSVFeedOrExpensifyCard', () => {
-        it('Should return true for feed key starting with "csv" (lowercase)', () => {
-            expect(isCSVFeedOrExpensifyCard('csv123')).toBe(true);
-        });
-
-        it('Should return true for feed key starting with "CSV" (uppercase)', () => {
-            expect(isCSVFeedOrExpensifyCard('CSV123')).toBe(true);
-        });
-
-        it('Should return true for feed key starting with "Csv" (mixed case)', () => {
-            expect(isCSVFeedOrExpensifyCard('Csv123')).toBe(true);
-        });
-
-        it('Should return true for feed key starting with "ccupload" (lowercase)', () => {
-            expect(isCSVFeedOrExpensifyCard('ccupload123')).toBe(true);
-        });
-
-        it('Should return true for feed key starting with "CCUPLOAD" (uppercase)', () => {
-            expect(isCSVFeedOrExpensifyCard('CCUPLOAD123')).toBe(true);
-        });
-
-        it('Should return true for feed key starting with "Ccupload" (mixed case)', () => {
-            expect(isCSVFeedOrExpensifyCard('Ccupload123')).toBe(true);
-        });
-
-        it('Should return true for feed key containing "ccupload"', () => {
-            expect(isCSVFeedOrExpensifyCard('prefix-ccupload-suffix')).toBe(true);
-        });
-
-        it('Should return true for feed key containing CONST.COMPANY_CARD.FEED_BANK_NAME.CSV', () => {
-            expect(isCSVFeedOrExpensifyCard(`prefix-${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}-suffix`)).toBe(true);
-        });
-
-        it('Should return true for "Expensify Card" feed key', () => {
-            expect(isCSVFeedOrExpensifyCard('Expensify Card')).toBe(true);
-        });
-
-        it('Should return false for regular feed keys', () => {
-            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA)).toBe(false);
-            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)).toBe(false);
-            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX)).toBe(false);
-            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE)).toBe(false);
-        });
-
-        it('Should return false for feed keys that contain "csv" but do not start with it', () => {
-            expect(isCSVFeedOrExpensifyCard('vcf-csv-feed')).toBe(false);
-        });
-
-        it('Should return true for feed keys that contain "ccupload" anywhere (not just at start)', () => {
-            expect(isCSVFeedOrExpensifyCard('prefix-ccupload-suffix')).toBe(true);
-        });
-
-        it('Should return false for empty string', () => {
-            expect(isCSVFeedOrExpensifyCard('')).toBe(false);
         });
     });
 
