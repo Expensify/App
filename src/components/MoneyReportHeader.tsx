@@ -209,6 +209,7 @@ function MoneyReportHeader({
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`, {canBeMissing: true}) ?? null;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
@@ -385,8 +386,8 @@ function MoneyReportHeader({
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
-        [moneyRequestReport, chatReport, policy, transaction],
+        (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
+        [moneyRequestReport, chatReport, policy, bankAccountList, transaction],
     );
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
@@ -537,6 +538,7 @@ function MoneyReportHeader({
                     paymentMethodType: type,
                     chatReport,
                     invoiceReport: moneyRequestReport,
+                    invoiceReportCurrentNextStepDeprecated: nextStep,
                     introSelected,
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',
@@ -548,7 +550,7 @@ function MoneyReportHeader({
                 });
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy, policy);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, nextStep, undefined, true, activePolicy, policy);
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
@@ -569,17 +571,18 @@ function MoneyReportHeader({
             showDelegateNoAccessModal,
             startAnimation,
             moneyRequestReport,
+            nextStep,
             introSelected,
+            accountID,
+            email,
             existingB2BInvoiceReport,
-            shouldCalculateTotals,
             activePolicy,
             policy,
             currentSearchQueryJSON,
-            currentSearchKey,
             isOffline,
+            currentSearchKey,
+            shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
-            accountID,
-            email,
         ],
     );
 
@@ -765,6 +768,7 @@ function MoneyReportHeader({
             chatReport,
             reportTransactions: transactions,
             violations,
+            bankAccountList,
             policy,
             reportNameValuePairs,
             reportActions,
@@ -791,6 +795,7 @@ function MoneyReportHeader({
         invoiceReceiverPolicy,
         currentUserLogin,
         accountID,
+        bankAccountList,
     ]);
 
     const confirmExport = useCallback(() => {
@@ -1075,6 +1080,7 @@ function MoneyReportHeader({
             reportTransactions: transactions,
             originalTransaction: originalIOUTransaction,
             violations,
+            bankAccountList,
             policy,
             reportNameValuePairs,
             reportActions,
@@ -1096,14 +1102,15 @@ function MoneyReportHeader({
         reportMetadata,
         policies,
         isChatReportArchived,
+        bankAccountList,
     ]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, policy, exportTemplates);
-    }, [moneyRequestReport, accountID, email, policy, exportTemplates]);
+        return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, bankAccountList, policy, exportTemplates);
+    }, [moneyRequestReport, accountID, email, policy, exportTemplates, bankAccountList]);
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
     const unapproveWarningText = useMemo(
@@ -1407,7 +1414,7 @@ function MoneyReportHeader({
                 Navigation.goBack(backToRoute);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', reportTransactions, violations);
+                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', reportTransactions, violations, bankAccountList);
                 });
             },
         },
@@ -1503,7 +1510,6 @@ function MoneyReportHeader({
         }
         clearSelectedTransactions(true);
         // We don't need to run the effect on change of clearSelectedTransactions since it can cause the infinite loop.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionThreadReportID]);
 
