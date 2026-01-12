@@ -70,36 +70,53 @@ When adding or modifying rules in AI reviewer agent files, the corresponding doc
 - Posts findings and recommendations on the issue
 - See `.claude/agents/deploy-blocker-investigator.md` for investigation process
 
-### When to Use Each Reviewer
+### Triggers and When Reviewers Run
+
+AI reviewers are triggered automatically based on contribution type and file changes. The diagram below shows the reviewer pipeline:
 
 ```mermaid
 flowchart TD
-    subgraph trigger [Reviewer pipeline]
-        A{Contribution Type}
+    subgraph triggers [GitHub Events]
+        T1[PR opened/ready_for_review]
+        T2[workflow_dispatch]
     end
 
-    A -->|Code PR| B[Smart Linter]
-    A -->|Code PR| C[Holistic Reviewer]
-    A -->|HelpDot PR| D[helpdot-inline-reviewer]
-    A -->|HelpDot PR| E[helpdot-summary-reviewer]
-    A -->|Deploy Blocker Issue| F[deploy-blocker-investigator]
-
-    subgraph code [Code Review]
-        B -->|Rule-based| G[Inline comments for violations]
-        C -->|General| H[Quality feedback]
+    subgraph filters [Path Filters]
+        T1 --> F1{src/** changed?}
+        T1 --> F2{docs/**/*.md changed?}
     end
 
-    subgraph docs [Documentation Review]
-        D -->|Inline| I[Line-specific feedback]
-        E -->|Summary| J[Scores and recommendations]
+    F1 -->|Yes| B[Smart Linter]
+    F1 -->|Yes| C[Holistic Reviewer]
+    F2 -->|Yes| D[helpdot-inline-reviewer]
+    F2 -->|Yes| E[helpdot-summary-reviewer]
+    T2 -->|Manual trigger| F[deploy-blocker-investigator]
+
+    subgraph code [Code Review Output]
+        B --> G[Inline comments for violations]
+        C --> H[Quality feedback]
     end
 
-    subgraph deploy [Issue Investigation]
+    subgraph docs [Documentation Review Output]
+        D --> I[Line-specific feedback]
+        E --> J[Scores and recommendations]
+    end
+
+    subgraph deploy [Issue Investigation Output]
         F --> K[Identify causing PR]
     end
 ```
 
 #### Code PRs
+
+**Trigger conditions:**
+- PR is opened or marked ready for review
+- PR modifies files in `src/**`
+- PR is not a draft
+- PR title does not contain "Revert"
+
+**How to re-run it?** Convert your PR to draft, then mark it ready for review again.
+
 Code PRs benefit from the **two-reviewer approach**:
 
 1. **Smart Linter (code-inline-reviewer)**: Catches specific, well-defined performance anti-patterns with consistent, rule-based feedback
@@ -108,13 +125,30 @@ Code PRs benefit from the **two-reviewer approach**:
 Together they balance precision (rules) with coverage (holistic review).
 
 #### Documentation PRs
+
+**Trigger conditions:**
+- PR is opened or marked ready for review
+- PR modifies files in `docs/**/*.md` or `docs/**/*.csv`
+- PR is not a draft
+- PR title does not contain "Revert"
+
+**How to re-run it?** Convert your PR to draft, then mark it ready for review again.
+
 Documentation PRs in the HelpDot system use two complementary reviewers:
 
 1. **helpdot-inline-reviewer**: Line-specific feedback on violations
 2. **helpdot-summary-reviewer**: Overall quality assessment with scores
 
 #### Deploy Blocker Issues
-When a deploy blocker issue is created:
+
+**Trigger conditions:**
+- Manually triggered via `workflow_dispatch`
+- Issue must have the `DeployBlockerCash` label
+- Actor must have write access to the repository
+
+**How to re-run it?** Navigate to Actions → "Investigate Deploy Blocker" workflow → Run workflow with the issue URL.
+
+When a deploy blocker issue needs investigation:
 
 1. **deploy-blocker-investigator**: Analyzes the issue, identifies the likely causing PR, and recommends resolution
 
