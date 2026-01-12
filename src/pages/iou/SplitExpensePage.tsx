@@ -100,7 +100,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
-
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
@@ -282,6 +281,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const isSettled = isSettledReportUtils(currentItemReport?.reportID);
             const isCancelled = currentItemReport && currentItemReport?.isCancelledIOU;
             const percentage = adjustedPercentages.at(index) ?? 0;
+            const isEditable =
+                !currentTransaction ||
+                canEditFieldOfMoneyRequest(getIOUActionForTransactions([currentTransaction?.transactionID], currentItemReport?.reportID).at(0), CONST.EDIT_REQUEST_FIELD.AMOUNT);
 
             const date = DateUtils.formatWithUTCTimeZone(
                 item.created,
@@ -315,15 +317,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseValueChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-                isEditable: isEditingSplitExpense ? canEditSplitExpense : (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
+                isEditable,
             };
         });
 
         return items;
     }, [
         transaction,
-        isEditingSplitExpense,
-        canEditSplitExpense,
         draftTransaction?.comment?.splitExpenses,
         draftTransaction?.currency,
         allTransactions,
