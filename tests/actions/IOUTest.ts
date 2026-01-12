@@ -5011,7 +5011,7 @@ describe('actions/IOU', () => {
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participants = userLogins.map((login, index) => ({
                 login,
-                accountID: participantAccountIDs[index],
+                accountID: participantAccountIDs.at(index),
                 personalDetails: allPersonalDetails?.[participantAccountIDs[index]] ?? undefined,
             }));
             openReport(thread.reportID, '', participants, thread, createIOUAction?.reportActionID);
@@ -5108,7 +5108,7 @@ describe('actions/IOU', () => {
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participants = userLogins.map((login, index) => ({
                 login,
-                accountID: participantAccountIDs[index],
+                accountID: participantAccountIDs.at(index),
                 personalDetails: allPersonalDetails?.[participantAccountIDs[index]] ?? undefined,
             }));
             openReport(thread.reportID, '', participants, thread, createIOUAction?.reportActionID);
@@ -5225,7 +5225,7 @@ describe('actions/IOU', () => {
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participants = userLogins.map((login, index) => ({
                 login,
-                accountID: participantAccountIDs[index],
+                accountID: participantAccountIDs.at(index),
                 personalDetails: allPersonalDetails?.[participantAccountIDs[index]] ?? undefined,
             }));
             openReport(thread.reportID, '', participants, thread, createIOUAction?.reportActionID);
@@ -5332,7 +5332,7 @@ describe('actions/IOU', () => {
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participants = userLogins.map((login, index) => ({
                 login,
-                accountID: participantAccountIDs[index],
+                accountID: participantAccountIDs.at(index),
                 personalDetails: allPersonalDetails?.[participantAccountIDs[index]] ?? undefined,
             }));
             openReport(thread.reportID, '', participants, thread, createIOUAction?.reportActionID);
@@ -5609,7 +5609,7 @@ describe('actions/IOU', () => {
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participants = userLogins.map((login, index) => ({
                 login,
-                accountID: participantAccountIDs[index],
+                accountID: participantAccountIDs.at(index),
                 personalDetails: allPersonalDetails?.[participantAccountIDs[index]] ?? undefined,
             }));
             openReport(thread.reportID, '', participants, thread, createIOUAction?.reportActionID);
