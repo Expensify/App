@@ -168,11 +168,11 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
 
 function filterCardsHiddenFromSearch(cardList: CardList | undefined) {
     const filteredCardList: CardList = {};
-    for (const currentCard of Object.values(cardList ?? {})) {
-        if (isCardHiddenFromSearch(currentCard)) {
+    for (const card of Object.values(cardList ?? {})) {
+        if (!isCard(card) || isCardHiddenFromSearch(card)) {
             continue;
         }
-        filteredCardList[currentCard.cardID] = currentCard;
+        filteredCardList[card.cardID] = card;
     }
     return filteredCardList;
 }
