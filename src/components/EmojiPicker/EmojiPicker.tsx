@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
