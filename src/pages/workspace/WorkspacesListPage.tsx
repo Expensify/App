@@ -271,6 +271,7 @@ function WorkspacesListPage() {
         reportsToArchive,
         showConfirmModal,
         transactionViolations,
+        personalPolicyID,
         translate,
     ]);
 

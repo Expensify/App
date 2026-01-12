@@ -251,6 +251,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         reportsToArchive,
         showConfirmModal,
         transactionViolations,
+        personalPolicyID,
         translate,
     ]);
 
