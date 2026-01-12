@@ -531,7 +531,7 @@ function savePolicyDraftByNewWorkspace({
         makeMeAdmin,
         policyName,
         policyID,
-        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        engagementChoice: introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ? CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE : CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
         currency,
         file,
         lastUsedPaymentMethod,

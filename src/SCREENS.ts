@@ -166,6 +166,7 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_ReportVirtualCardFraud_ConfirmMagicCode',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+            UNSHARE_BANK_ACCOUNT: 'Settings_Wallet_Unshare_Bank_Account',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
             SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
         },
@@ -223,6 +224,7 @@ const SCREENS = {
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         TWO_FACTOR_AUTH: 'TwoFactorAuth',
+        SEARCH_ROUTER: 'Search_Router',
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
@@ -331,6 +333,7 @@ const SCREENS = {
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
         STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
+        STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
     },
 
@@ -874,6 +877,7 @@ const SCREENS = {
         ADMINS_SETTINGS: 'Admins_Settings',
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
         ADD_ADMIN: 'Domain_Add_Admin',
+        MEMBERS: 'Domain_Members',
     },
 } as const;
 

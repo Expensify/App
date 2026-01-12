@@ -96,12 +96,18 @@ Technical explanation of what went wrong in the code.
 
 ## Commands
 
+**Important**:
+- Do not use heredocs, temp files, or shell redirects. Pass the comment body directly to `gh issue comment --body`.
+- Call scripts by name only (e.g., `removeDeployBlockerLabel.sh`), not with full paths. The `.claude/scripts/` directory is in PATH.
+
 ```bash
 # Check which labels are on the issue first:
 gh issue view "$ISSUE_URL" --json labels --jq '.labels[].name'
 
-# Post your findings as a comment:
-gh issue comment "$ISSUE_URL" --body "YOUR_COMMENT_HERE"
+# Post your findings as a comment (use single quotes for the body to handle special characters):
+gh issue comment "$ISSUE_URL" --body '## 🔍 Investigation Summary
+...your comment here...
+'
 
 # Remove label ONLY if it exists on the issue:
 # For backend bugs - remove DeployBlockerCash (if present)

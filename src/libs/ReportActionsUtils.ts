@@ -170,7 +170,10 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     }
 
     // for report actions with this type we get an empty array as message by design
-    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED) {
+    if (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS
+    ) {
         return false;
     }
 
@@ -1049,9 +1052,14 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         const movedTransactionOriginalMessage = getOriginalMessage(reportAction);
         const toReportID = movedTransactionOriginalMessage?.toReportID;
         const fromReportID = movedTransactionOriginalMessage?.fromReportID;
+
+        if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return false;
+        }
+
         const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-        const fromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
-        return fromReport || !!toReport;
+        const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+        return !!fromReport || !!toReport;
     }
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
@@ -1854,23 +1862,37 @@ function getTravelUpdateMessage(
 
     switch (details?.operation) {
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED:
-            return translate(
-                'travel.updates.bookingTicketed',
-                details.route?.airlineCode ?? '',
-                details.start.shortName ?? '',
-                details.end?.shortName ?? '',
-                formattedStartDate,
-                details.confirmations?.at(0)?.value,
-            );
+            return translate('travel.updates.bookingTicketed', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+                confirmationID: details.confirmations?.at(0)?.value,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TICKET_VOIDED:
-            return translate('travel.updates.ticketVoided', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
+            return translate('travel.updates.ticketVoided', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TICKET_REFUNDED:
-            return translate('travel.updates.ticketRefunded', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
+            return translate('travel.updates.ticketRefunded', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CANCELLED:
-            return translate('travel.updates.flightCancelled', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
+            return translate('travel.updates.flightCancelled', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SCHEDULE_CHANGE_PENDING:
             return translate('travel.updates.flightScheduleChangePending', details.route?.airlineCode ?? '');
@@ -1879,7 +1901,12 @@ function getTravelUpdateMessage(
             return translate('travel.updates.flightScheduleChangeClosed', details.route?.airlineCode ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CHANGED:
-            return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
+            return translate('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CABIN_CHANGED:
             return translate('travel.updates.flightCabinChanged', details.route?.airlineCode ?? '', details.route?.class ?? '');
@@ -1932,8 +1959,12 @@ function getTravelUpdateMessage(
                     startDate: formattedStartDate,
                 });
             }
-            return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
-
+            return translate('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_OTHER_UPDATE:
             if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
                 return translate('travel.updates.defaultUpdate', {
@@ -1947,7 +1978,12 @@ function getTravelUpdateMessage(
                     startDate: formattedStartDate,
                 });
             }
-            return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
+            return translate('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.REFUND:
             return translate('travel.updates.railTicketRefund', {
@@ -3283,7 +3319,12 @@ function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.T
 
 function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate) {
     const reportUrl = getReportURLForCurrentContext(reportID);
-    return translate('reportAction.harvestCreatedExpenseReport', reportUrl, reportName);
+    return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportName});
+}
+
+function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate): string {
+    const reportUrl = getReportURLForCurrentContext(reportID);
+    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName});
 }
 
 function getDynamicExternalWorkflowRoutedMessage(
@@ -3463,6 +3504,15 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
         label,
         errorMessage,
         workspaceAccountingLink,
+    });
+}
+
+function getCompanyCardConnectionBrokenMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const {feedName, policyID} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN>) ?? {feedName: '', policyID: ''};
+    const workspaceCompanyCardRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}`;
+    return translate('report.actions.type.companyCardConnectionBroken', {
+        feedName,
+        workspaceCompanyCardRoute,
     });
 }
 
@@ -3680,6 +3730,7 @@ export {
     isReopenedAction,
     isRetractedAction,
     getIntegrationSyncFailedMessage,
+    getCompanyCardConnectionBrokenMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,
     getVacationer,
@@ -3690,6 +3741,7 @@ export {
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
     getHarvestCreatedExpenseReportMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
     isSystemUserMentioned,
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,
