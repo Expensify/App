@@ -167,7 +167,7 @@ type DomainSettings = {
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
-    settings?: {
+    settings: {
         /** User-friendly feed nicknames */
         companyCardNicknames?: CompanyCardNicknames;
 

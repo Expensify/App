@@ -148,6 +148,10 @@ type CardFeedErrors = {
      */
     shouldShowRBRPerWorkspaceAccountID: Record<number, boolean>;
     /**
+     * Whether to show the RBR for each feed name with domain ID.
+     */
+    shouldShowRBRPerFeedNameWithDomainID: Record<string, boolean>;
+    /**
      * Whether some feed connection is broken.
      */
     isSomeFeedConnectionBroken: boolean;

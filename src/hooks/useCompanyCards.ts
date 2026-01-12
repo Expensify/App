@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
 import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed, CombinedCardFeeds} from './useCardFeeds';
@@ -21,7 +21,7 @@ type UseCompanyCardsProps = {
 
 type UseCompanyCardsResult = Partial<{
     cardFeedType: CardFeedType;
-    bankName: CompanyCardFeed;
+    bankName: CompanyCardFeedWithNumber;
     feedName: CompanyCardFeedWithDomainID;
     cardList: AssignableCardsList;
     assignedCards: CardList;

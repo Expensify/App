@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useCompanyCards from '@hooks/useCompanyCards';
@@ -30,15 +31,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
-import useCompanyCardFeedErrors from './hooks/useCompanyCardFeedErrors';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 type CardFeedListItem = ListItem & {
     /** Combined feed key */
     value: CompanyCardFeedWithDomainID;
 
     /** Card feed value */
-    feed: CompanyCardFeed;
+    feed: CompanyCardFeedWithNumber;
 };
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
@@ -56,14 +56,14 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
-    const {getCardFeedErrors} = useCompanyCardFeedErrors({policyID, feedName: selectedFeedName});
+    const {shouldShowRBRPerFeedNameWithDomainID} = useCardFeedErrors();
 
     const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
         const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
         const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
         const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
 
-        const {shouldShowRBR} = getCardFeedErrors(feedName);
+        const shouldShowRBR = shouldShowRBRPerFeedNameWithDomainID[feedName];
 
         return {
             value: feedName,

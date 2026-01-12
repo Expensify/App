@@ -6,6 +6,7 @@ const DEFAULT_CARD_FEED_ERRORS: CardFeedErrors = {
     cardFeedErrors: {},
     shouldShowRBRForAllFeeds: false,
     shouldShowRBRPerWorkspaceAccountID: {},
+    shouldShowRBRPerFeedNameWithDomainID: {},
     isSomeFeedConnectionBroken: false,
     hasSomeFeedErrors: false,
     hasSomeFailedCardAssignments: false,

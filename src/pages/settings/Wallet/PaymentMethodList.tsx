@@ -12,6 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,6 +24,7 @@ import {
     filterPersonalCards,
     getAssignedCardSortKey,
     getCardFeedIcon,
+    getCompanyCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
     isExpensifyCard,
     isExpensifyCardPendingAction,
@@ -32,12 +34,12 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
-import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCompanyCardFeedErrors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -181,7 +183,7 @@ function PaymentMethodList({
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
-    const {getCardFeedErrors} = useCompanyCardFeedErrors({policyID});
+    const {shouldShowRBRPerFeedNameWithDomainID} = useCardFeedErrors();
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -198,8 +200,15 @@ function PaymentMethodList({
 
                 let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
-                const cardFeedErrors = getCardFeedErrors(card.bank as CompanyCardFeedWithDomainID);
-                if (cardFeedErrors.shouldShowRBR) {
+                let shouldShowRBR = false;
+                if (card.fundID) {
+                    const feedNameWithDomainID = getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeedWithNumber, card.fundID);
+                    shouldShowRBR = shouldShowRBRPerFeedNameWithDomainID[feedNameWithDomainID];
+                } else {
+                    shouldShowRBR = true;
+                }
+
+                if (shouldShowRBR) {
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors) {
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -391,7 +400,7 @@ function PaymentMethodList({
         cardList,
         illustrations,
         companyCardFeedIcons,
-        getCardFeedErrors,
+        shouldShowRBRPerFeedNameWithDomainID,
         privatePersonalDetails,
         onPress,
         shouldShowRightIcon,

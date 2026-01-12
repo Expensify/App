@@ -8,6 +8,7 @@ import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
 import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -16,10 +17,9 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
-import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCompanyCardFeedErrors';
-import useHasWorkspaceCompanyCardErrors from '@pages/workspace/companyCards/hooks/useHasWorkspaceCompanyCardErrors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,15 +55,19 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const feed = getCompanyCardFeed(feedName);
     const formattedFeedName = feedName ? getCustomOrFormattedFeedName(feed, cardFeeds?.[feedName]?.customFeedName) : undefined;
-    const isCommercialFeed = isCustomFeed(feedName);
+    const isCommercialFeed = isCustomFeed(feed);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
 
-    const {hasFeedError, isFeedConnectionBroken} = useCompanyCardFeedErrors({policyID, feedName});
-    const hasCompanyCardFeedError = useHasWorkspaceCompanyCardErrors({policyID});
+    const {cardFeedErrors} = useCardFeedErrors();
+    const workspaceCardFeedErrors = cardFeedErrors[workspaceAccountID]?.[feed];
+    const hasFeedError = workspaceCardFeedErrors?.hasFeedError;
+    const isFeedConnectionBroken = workspaceCardFeedErrors?.isFeedConnectionBroken;
+    const shouldShowRBR = workspaceCardFeedErrors?.shouldShowRBR;
 
     const openBankConnection = () => {
         if (!feedName) {
@@ -114,7 +118,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                         CardFeedIcon={CardFeedIcon}
                         feedName={formattedFeedName}
                         supportingText={supportingText}
-                        shouldShowRBR={hasCompanyCardFeedError}
+                        shouldShowRBR={shouldShowRBR}
                     />
                 )}
 

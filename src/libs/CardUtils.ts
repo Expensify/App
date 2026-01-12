@@ -344,7 +344,11 @@ function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalD
     );
 }
 
-function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
+function getCardFeedIcon(
+    cardFeed: CompanyCardFeedWithNumber | typeof CONST.EXPENSIFY_CARD.BANK,
+    illustrations: IllustrationsType,
+    companyCardIllustrations: CompanyCardFeedIcons,
+): IconAsset {
     const feedIcons = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: companyCardIllustrations.VisaCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: companyCardIllustrations.AmexCardCompanyCardDetailLarge,
@@ -368,8 +372,9 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
         return Illustrations.ExpensifyCardImage;
     }
 
-    if (feedIcons[cardFeed]) {
-        return feedIcons[cardFeed];
+    const feedIcon = feedIcons[cardFeed as CompanyCardFeed];
+    if (feedIcon) {
+        return feedIcon;
     }
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, cdfbmo
@@ -422,7 +427,7 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
     );
 }
 
-function getBankName(feedType: CompanyCardFeed): string {
+function getBankName(feedType: CompanyCardFeedWithNumber): string {
     const feedNamesMapping = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Mastercard',
@@ -470,7 +475,7 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
-function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, customFeedName?: string, shouldAddCardsSuffix = true): string | undefined {
+function getCustomOrFormattedFeedName(feed?: CompanyCardFeedWithNumber, customFeedName?: string, shouldAddCardsSuffix = true): string | undefined {
     if (!feed) {
         return;
     }
