@@ -246,8 +246,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     /**
      * Show the modal to confirm removal of the selected members
      */
-    const askForConfirmationToRemove = () => {
-        showConfirmModal({
+    const askForConfirmationToRemove = async () => {
+        const result = await showConfirmModal({
             danger: true,
             title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
             prompt: confirmModalPrompt,
@@ -262,13 +262,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     textInputRef.current.focus();
                 });
             },
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            removeUsers();
         });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
+        removeUsers();
     };
 
     /**

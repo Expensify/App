@@ -31,7 +31,7 @@ type ApprovalWorkflowEditorProps = {
     approvalWorkflow: ApprovalWorkflowOnyx;
 
     /** Function to remove the approval workflow */
-    removeApprovalWorkflow?: () => void;
+    removeApprovalWorkflow?: () => void | Promise<void>;
 
     /** The policy for the current route */
     policy: OnyxEntry<Policy>;

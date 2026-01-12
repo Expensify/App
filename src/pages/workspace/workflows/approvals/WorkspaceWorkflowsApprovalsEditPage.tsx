@@ -152,19 +152,18 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
-                                removeApprovalWorkflow={() => {
-                                    showConfirmModal({
+                                removeApprovalWorkflow={async () => {
+                                    const result = await showConfirmModal({
                                         title: translate('workflowsEditApprovalsPage.deleteTitle'),
                                         prompt: translate('workflowsEditApprovalsPage.deletePrompt'),
                                         confirmText: translate('common.delete'),
                                         cancelText: translate('common.cancel'),
                                         danger: true,
-                                    }).then((result) => {
-                                        if (result.action !== ModalActions.CONFIRM) {
-                                            return;
-                                        }
-                                        removeApprovalWorkflowCallback();
                                     });
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
+                                    removeApprovalWorkflowCallback();
                                 }}
                                 policy={policy}
                                 policyID={route.params.policyID}
