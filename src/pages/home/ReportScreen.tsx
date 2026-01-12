@@ -500,25 +500,34 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const currentReportIDFormRoute = route.params?.reportID;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
-        (): boolean => {
-            if (shouldShowNotFoundLinkedAction) {
-                return true;
-            }
+    const shouldShowNotFoundPage = useMemo((): boolean => {
+        const isLoading = !!isLoadingApp || !!isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
+        const reportExists = !!reportID || !!isOptimisticDelete || !!userLeavingStatus;
+        const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
 
-            if (isLoadingApp !== false) {
-                return false;
-            }
+        if (shouldShowNotFoundLinkedAction) {
+            return true;
+        }
 
-            if (!prevReport?.reportID && !firstRender && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
-                return true;
-            }
+        if (isLoading) {
+            return false;
+        }
 
-            return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
-    );
+        if (!reportExists) {
+            return true;
+        }
+
+        return isInvalidReportPath;
+    }, [
+        shouldShowNotFoundLinkedAction,
+        isLoadingApp,
+        isLoadingReportData,
+        reportMetadata?.isLoadingInitialReportActions,
+        reportID,
+        isOptimisticDelete,
+        userLeavingStatus,
+        currentReportIDFormRoute,
+    ]);
 
     const createOneTransactionThreadReport = useCallback(() => {
         const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
