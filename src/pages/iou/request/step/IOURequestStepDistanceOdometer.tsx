@@ -115,6 +115,7 @@ function IOURequestStepDistanceOdometer({
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
 
     const shouldUseDefaultExpensePolicy = useMemo(
         () =>
@@ -130,6 +131,10 @@ function IOURequestStepDistanceOdometer({
     const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
 
     const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport);
+
+    useEffect(() => {
+        setShouldEnableDiscardConfirmation(!isEditingConfirmation && !isEditing);
+    }, [isEditing, isEditingConfirmation]);
 
     // Reset component state when transaction has no odometer data (happens when switching tabs)
     // In Phase 1, we don't persist data from transaction since users can't save and exit
@@ -358,6 +363,7 @@ function IOURequestStepDistanceOdometer({
             });
 
             if (shouldSkipConfirmation) {
+                setShouldEnableDiscardConfirmation(false);
                 setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
                 setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
 
@@ -495,8 +501,6 @@ function IOURequestStepDistanceOdometer({
         // When validation passes, call navigateToNextPage
         navigateToNextPage();
     };
-
-    const shouldEnableDiscardConfirmation = !isEditingConfirmation && !isEditing;
 
     return (
         <StepScreenWrapper
