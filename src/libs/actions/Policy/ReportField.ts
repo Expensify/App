@@ -194,7 +194,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         isTax: false,
     };
 
-    const optimisticData = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             onyxMethod: Onyx.METHOD.MERGE,
@@ -205,18 +205,20 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 errorFields: null,
             },
         },
-        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                fieldList: {
-                    [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        ...(policyExpenseReportIDs ?? []).map(
+            (reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    },
                 },
-            },
-        })),
-    ] as Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>>;
+            }),
+        ),
+    ];
 
-    const failureData = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             onyxMethod: Onyx.METHOD.MERGE,
@@ -229,16 +231,18 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 },
             },
         },
-        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                fieldList: {
-                    [fieldKey]: null,
+        ...(policyExpenseReportIDs ?? []).map(
+            (reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: null,
+                    },
                 },
-            },
-        })),
-    ] as Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>>;
+            }),
+        ),
+    ];
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT> = {
         optimisticData,
