@@ -7901,6 +7901,20 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             confirm: 'Odrzuć śledzenie dystansu',
         },
         zeroDistanceTripModal: {title: 'Nie można utworzyć wydatku', prompt: 'Nie możesz utworzyć wydatku z tym samym miejscem początkowym i końcowym.'},
+
+        locationRequiredModal: {
+            title: 'Wymagany dostęp do lokalizacji',
+            prompt: 'Aby rozpocząć śledzenie dystansu GPS, zezwól na dostęp do lokalizacji w ustawieniach swojego urządzenia.',
+            allow: 'Zezwól',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Wymagany dostęp do lokalizacji w tle',
+            prompt: 'Zezwól aplikacji na dostęp do lokalizacji w tle w ustawieniach urządzenia (opcja „Zawsze zezwalaj”), aby rozpocząć śledzenie dystansu GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Wymagane dokładne położenie',
+            prompt: 'Włącz proszę „dokładną lokalizację” w ustawieniach swojego urządzenia, aby rozpocząć śledzenie dystansu GPS.',
+        },
         desktop: {
             title: 'Śledź dystans na swoim telefonie',
             subtitle: 'Automatycznie rejestruj mile lub kilometry za pomocą GPS i natychmiast zamieniaj podróże w wydatki.',

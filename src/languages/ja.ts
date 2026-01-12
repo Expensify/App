@@ -7866,6 +7866,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         stopGpsTrackingModal: {title: 'GPS追跡を停止', prompt: '本当に終了しますか？現在のジャーニーが終了します。', cancel: '追跡を再開', confirm: 'GPS追跡を停止'},
         discardDistanceTrackingModal: {title: '距離の追跡を破棄', prompt: '本当に実行しますか？現在の行程が破棄され、元に戻すことはできません。', confirm: '距離の追跡を破棄'},
         zeroDistanceTripModal: {title: '経費を作成できません', prompt: '開始地点と終了地点が同じ経路では経費を作成できません。'},
+        locationRequiredModal: {title: '位置情報へのアクセスが必要です', prompt: 'GPS で距離を追跡するには、デバイスの設定で位置情報へのアクセスを許可してください。', allow: '許可'},
+        androidBackgroundLocationRequiredModal: {
+            title: 'バックグラウンド位置情報へのアクセスが必要です',
+            prompt: 'GPS距離の追跡を開始するには、デバイスの設定でバックグラウンドの位置情報アクセスを許可し（「常に許可」オプション）、有効にしてください。',
+        },
+        preciseLocationRequiredModal: {title: '正確な位置情報が必要です', prompt: 'GPS距離の追跡を開始するには、デバイスの設定で「正確な位置情報」を有効にしてください。'},
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
     },
 };

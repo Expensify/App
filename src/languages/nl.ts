@@ -7926,6 +7926,17 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             confirm: 'Afstandstracking negeren',
         },
         zeroDistanceTripModal: {title: 'Kan geen uitgave aanmaken', prompt: 'Je kunt geen uitgave aanmaken met dezelfde begin- en eindlocatie.'},
+
+        locationRequiredModal: {
+            title: 'Locatietoegang vereist',
+            prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om GPS-afstandsregistratie te starten.',
+            allow: 'Toestaan',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Toegang tot locatie op de achtergrond vereist',
+            prompt: 'Sta achtergrondlocatietoegang toe in de instellingen van je apparaat (de optie “Altijd toestaan”) om het bijhouden van de GPS-afstand te starten.',
+        },
+        preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
     },
 };

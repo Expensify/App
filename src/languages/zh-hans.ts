@@ -7721,6 +7721,10 @@ ${reportName}
         stopGpsTrackingModal: {title: '停止 GPS 追踪', prompt: '你确定吗？这将结束你当前的旅程。', cancel: '恢复追踪', confirm: '停止 GPS 追踪'},
         discardDistanceTrackingModal: {title: '丢弃距离跟踪', prompt: '您确定吗？这将放弃您当前的流程，且无法撤销。', confirm: '丢弃距离跟踪'},
         zeroDistanceTripModal: {title: '无法创建报销', prompt: '你不能创建起点和终点相同的报销。'},
+
+        locationRequiredModal: {title: '需要访问位置信息', prompt: '请在设备设置中允许位置访问以开始 GPS 距离跟踪。', allow: '允许'},
+        androidBackgroundLocationRequiredModal: {title: '需要后台位置访问权限', prompt: '请在设备设置中允许应用使用“始终允许”位置访问权限，以开始 GPS 距离跟踪。'},
+        preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},
         desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
     },
 };

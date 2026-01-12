@@ -7937,6 +7937,19 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             confirm: 'Scarta monitoraggio distanza',
         },
         zeroDistanceTripModal: {title: 'Impossibile creare la spesa', prompt: 'Non puoi creare una spesa con la stessa località di partenza e di arrivo.'},
+        locationRequiredModal: {
+            title: 'Accesso alla posizione richiesto',
+            prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per avviare il tracciamento della distanza GPS.',
+            allow: 'Consenti',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Accesso alla posizione in background richiesto',
+            prompt: 'Consenti l’accesso alla posizione in background nelle impostazioni del dispositivo (opzione “Consenti sempre”) per avviare il tracciamento della distanza tramite GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Posizione precisa richiesta',
+            prompt: 'Per favore, abilita la “posizione precisa” nelle impostazioni del dispositivo per avviare il tracciamento della distanza GPS.',
+        },
         desktop: {
             title: 'Tieni traccia della distanza sul tuo telefono',
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',

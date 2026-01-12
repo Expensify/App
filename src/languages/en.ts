@@ -7042,6 +7042,19 @@ const translations = {
             title: "Can't create expense",
             prompt: "You can't create an expense with the same start and stop location.",
         },
+        locationRequiredModal: {
+            title: 'Location access required',
+            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+            allow: 'Allow',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Background location access required',
+            prompt: 'Please allow background location access in your device settings ("Allow all the time" option) to start GPS distance tracking.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Precise location required',
+            prompt: 'Please enable "precise location" in your device settings to start GPS distance tracking.',
+        },
         desktop: {
             title: 'Track distance on your phone',
             subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',

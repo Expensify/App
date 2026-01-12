@@ -7955,6 +7955,19 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             confirm: 'Entfernungsverfolgung verwerfen',
         },
         zeroDistanceTripModal: {title: 'Ausgabe kann nicht erstellt werden', prompt: 'Sie können keine Ausgabe mit demselben Start- und Zielort erstellen.'},
+        locationRequiredModal: {
+            title: 'Standortzugriff erforderlich',
+            prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
+            allow: 'Erlauben',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Zugriff auf den Standort im Hintergrund erforderlich',
+            prompt: 'Bitte erlaube den Zugriff auf den Standort im Hintergrund in den Geräteeinstellungen (Option „Immer zulassen“), um die GPS-Distanzverfolgung zu starten.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Genaue Position erforderlich',
+            prompt: 'Bitte aktiviere „genaue Standortbestimmung“ in den Einstellungen deines Geräts, um die GPS‑Streckenverfolgung zu starten.',
+        },
         desktop: {
             title: 'Entfernung auf deinem Handy verfolgen',
             subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
