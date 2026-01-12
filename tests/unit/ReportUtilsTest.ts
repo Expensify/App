@@ -27,6 +27,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
+    buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticExpenseReport,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
@@ -4733,6 +4734,39 @@ describe('ReportUtils', () => {
                 isPersonalTrackingExpense: true,
             });
             expect(getOriginalMessage(iouAction as ReportAction<'IOU'>)?.IOUReportID).toBe(undefined);
+        });
+    });
+
+    describe('buildOptimisticCreatedReportForUnapprovedAction', () => {
+        it('should build a valid optimistic report action with all required properties', () => {
+            const reportID = '123456';
+            const originalReportID = '789012';
+            const reportAction = buildOptimisticCreatedReportForUnapprovedAction(reportID, originalReportID);
+
+            // Verify action name
+            expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS);
+
+            // Verify reportID and originalReportID
+            expect(reportAction.reportID).toBe(reportID);
+            /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const originalMessage = getOriginalMessage(reportAction);
+            expect(originalMessage?.originalID).toBe(originalReportID);
+            /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+            // Verify empty message array (by design for this action type)
+            expect(reportAction.message).toEqual([]);
+
+            // Verify optimistic properties
+            expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            // Verify Concierge as actor
+            expect(reportAction.actorAccountID).toBeDefined();
+            expect(reportAction.person).toEqual([
+                {
+                    text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE,
+                    type: 'TEXT',
+                },
+            ]);
         });
     });
 
