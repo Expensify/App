@@ -31,6 +31,10 @@ export default {
         margin: 20,
     },
 
+    mn5: {
+        margin: -20,
+    },
+
     mn6: {
         margin: -24,
     },
@@ -169,6 +173,10 @@ export default {
 
     mr10: {
         marginRight: 40,
+    },
+
+    mrn1: {
+        marginRight: -4,
     },
 
     mrn2: {
