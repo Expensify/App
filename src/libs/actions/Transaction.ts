@@ -714,7 +714,7 @@ function changeTransactionsReport({
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    const transactions = transactionIDs.map((id) => allTransactionsCollection?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
+    const transactions = transactionIDs.map((id) => allTransactionsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
