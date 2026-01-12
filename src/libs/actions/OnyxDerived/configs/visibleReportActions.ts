@@ -6,9 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
-// DEBUG: Counter to track compute calls - remove after debugging
-let computeCallCount = 0;
-
 function getOrCreateReportVisibilityRecord(result: VisibleReportActionsDerivedValue, reportID: string): Record<string, boolean> {
     if (!result[reportID]) {
         // eslint-disable-next-line no-param-reassign
@@ -31,14 +28,6 @@ export default createOnyxDerivedValueConfig({
     // shouldReportActionBeVisible uses global Onyx-connected variables internally.
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.SESSION],
     compute: ([allReportActions], {sourceValues, currentValue}): VisibleReportActionsDerivedValue => {
-        // DEBUG: Log compute calls - remove after debugging
-        computeCallCount++;
-        // eslint-disable-next-line no-console
-        console.log(`[DERIVED COMPUTE] visibleReportActions #${computeCallCount}`, {
-            trigger: sourceValues ? Object.keys(sourceValues).join(', ') : 'INITIAL',
-            timestamp: new Date().toISOString(),
-        });
-
         if (!allReportActions) {
             return {};
         }
