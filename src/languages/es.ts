@@ -1180,6 +1180,8 @@ const translations: TranslationDeepObject<typeof en> = {
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hora' : 'horas'} a ${rate} / hora`,
             hrs: 'h',
+            hours: 'Horas',
+            ratePreview: (rate: string) => `${rate} / hora`,
         },
     },
     transactionMerge: {
