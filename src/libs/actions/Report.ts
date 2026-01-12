@@ -4430,7 +4430,7 @@ async function completeOnboarding({
 
     if (shouldWaitForRHPVariantInitialization) {
         // Wait for the workspace to be created before completing the guided setup
-        await waitForWrites(WRITE_COMMANDS.CREATE_WORKSPACE);
+        await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP);
 
         // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
