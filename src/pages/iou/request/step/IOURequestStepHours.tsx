@@ -3,7 +3,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
-import ScrollView from '@components/ScrollView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -63,6 +62,7 @@ function IOURequestStepHours({
     const [formError, setFormError] = useState('');
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setFormError('');
         moneyRequestTimeInputRef.current?.updateNumber(`${transaction?.comment?.units?.count ?? ''}`);
     }, [selectedTab, transaction?.comment?.units?.count]);
@@ -80,11 +80,12 @@ function IOURequestStepHours({
     const navigateBack = () =>
         Navigation.goBack(isCreatingNewRequest ? undefined : ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
 
-    const saveTime = (count: number) => {
+    const saveTime = () => {
         if (rate === undefined) {
             return;
         }
 
+        const count = parseFloat(moneyRequestTimeInputRef.current?.getNumber() ?? '');
         if (Number.isNaN(count) || count <= 0) {
             setFormError(translate('iou.error.quantityGreaterThanZero'));
             return;
@@ -114,38 +115,36 @@ function IOURequestStepHours({
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
-            <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <NumberWithSymbolForm
-                    symbol={translate('iou.timeTracking.hrs')}
-                    symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
-                    isSymbolPressable={false}
-                    decimals={CONST.HOURS_DECIMAL_PLACES}
-                    autoGrowExtraSpace={variables.w80}
-                    shouldShowBigNumberPad={canUseTouchScreen}
-                    ref={textInputRef}
-                    numberFormRef={moneyRequestTimeInputRef}
-                    style={styles.iouAmountTextInput}
-                    containerStyle={styles.iouAmountTextInputContainer}
-                    errorText={formError}
-                    onInputChange={() => {
-                        if (!formError) {
-                            return;
-                        }
-                        setFormError('');
-                    }}
-                    footer={
-                        <Button
-                            success
-                            pressOnEnter
-                            medium={isExtraSmallScreenHeight}
-                            large={!isExtraSmallScreenHeight}
-                            style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                            onPress={() => saveTime(parseFloat(moneyRequestTimeInputRef.current?.getNumber() ?? ''))}
-                            text={translate(isCreatingNewRequest ? 'common.next' : 'common.save')}
-                        />
+            <NumberWithSymbolForm
+                symbol={translate('iou.timeTracking.hrs')}
+                symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
+                isSymbolPressable={false}
+                decimals={CONST.HOURS_DECIMAL_PLACES}
+                autoGrowExtraSpace={variables.w80}
+                shouldShowBigNumberPad={canUseTouchScreen}
+                ref={textInputRef}
+                numberFormRef={moneyRequestTimeInputRef}
+                style={styles.iouAmountTextInput}
+                containerStyle={styles.iouAmountTextInputContainer}
+                errorText={formError}
+                onInputChange={() => {
+                    if (!formError) {
+                        return;
                     }
-                />
-            </ScrollView>
+                    setFormError('');
+                }}
+                footer={
+                    <Button
+                        success
+                        pressOnEnter
+                        medium={isExtraSmallScreenHeight}
+                        large={!isExtraSmallScreenHeight}
+                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
+                        onPress={saveTime}
+                        text={translate(isCreatingNewRequest ? 'common.next' : 'common.save')}
+                    />
+                }
+            />
         </StepScreenWrapper>
     );
 }

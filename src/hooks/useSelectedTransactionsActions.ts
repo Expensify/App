@@ -216,7 +216,7 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action?.childReportID);
+                        unholdRequest(transactionID, action?.childReportID, policy);
                     }
                     clearSelectedTransactions(true);
                 },
