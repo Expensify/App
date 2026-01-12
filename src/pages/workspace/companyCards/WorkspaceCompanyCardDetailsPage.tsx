@@ -1,6 +1,6 @@
 import {format, parseISO} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
@@ -56,6 +56,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
+    const isUnassigningCard = useRef(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -70,6 +71,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
     const card = allBankCards?.[cardID];
+    const isCardPendingDelete = card?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -84,6 +86,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
         if (card) {
+            isUnassigningCard.current = true;
             unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         }
         Navigation.goBack();
@@ -100,7 +103,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         return format(getLocalDateFromDatetime(card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
 
-    if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
+    if ((!card && !isLoadingOnyxValue(allBankCardsMetadata)) || (isCardPendingDelete && !isUnassigningCard.current)) {
         return <NotFoundPage />;
     }
 
