@@ -6540,7 +6540,7 @@ ${amount} para ${merchant} - ${date}`,
                     nonReimbursableLink: 'gastos de la tarjeta de empresa',
                     pending: (label) => `comenzó a exportar este informe a ${label}...`,
                 },
-                integrationsMessage: (label, errorMessage, linkText, linkURL) =>
+                integrationsMessage: (errorMessage, label, linkText, linkURL) =>
                     `no se pudo exportar este informe a ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó un recibo`,
