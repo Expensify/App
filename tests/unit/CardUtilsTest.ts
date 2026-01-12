@@ -885,7 +885,7 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('flatAllCardsList', () => {
+    describe('flattenCompanyCards', () => {
         it('should return the flattened list of non-Expensify cards related to the provided workspaceAccountID', () => {
             const workspaceAccountID = 11111111;
             const flattenedCardsList = flattenCompanyCards(allCardsList, workspaceAccountID);
