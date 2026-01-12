@@ -58,18 +58,18 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
                         onError={() => setIsBrokenImage(true)}
                         onLoadEnd={() => setLoading(false)}
                     />
-                    {loading ? (
-                        useSkeletonLoader ? (
-                            <CardIconSkeleton
-                                width={iconWidth}
-                                height={iconHeight}
-                            />
-                        ) : (
-                            <View style={[styles.justifyContentCenter, {width: iconWidth, height: iconHeight}]}>
-                                <ActivityIndicator size={isSmall ? 10 : 20} />
-                            </View>
-                        )
-                    ) : (
+                    {loading && useSkeletonLoader && (
+                        <CardIconSkeleton
+                            width={iconWidth}
+                            height={iconHeight}
+                        />
+                    )}
+                    {loading && !useSkeletonLoader && (
+                        <View style={[styles.justifyContentCenter, {width: iconWidth, height: iconHeight}]}>
+                            <ActivityIndicator size={isSmall ? 10 : 20} />
+                        </View>
+                    )}
+                    {!loading && (
                         <Icon
                             src={isLarge ? companyCardFeedIcons.PlaidCompanyCardDetailLarge : companyCardBankIcons.PlaidCompanyCardDetail}
                             height={iconHeight}
