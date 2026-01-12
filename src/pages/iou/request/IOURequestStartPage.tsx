@@ -143,7 +143,6 @@ function IOURequestStartPage({
         }
         setSelectedTab(lastSelectedTab);
         // We only want to set the selected tab when selectedTab is not set yet, don't want to run this effect again when lastSelectedTab changes
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingSelectedTab, selectedTab]);
 
