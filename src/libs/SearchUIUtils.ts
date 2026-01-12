@@ -3406,12 +3406,11 @@ function getTableMinWidth(columns: SearchColumnType[]) {
 type ShouldShowSearchPageFooterParams = {
     isSavedSearch: boolean;
     resultsCount?: number;
-    isDefaultExpensesSearch: boolean;
     selectedTransactionsCount: number;
 };
 
-function shouldShowSearchPageFooter({isSavedSearch, resultsCount, isDefaultExpensesSearch, selectedTransactionsCount}: ShouldShowSearchPageFooterParams) {
-    return isSavedSearch || (!!resultsCount && !isDefaultExpensesSearch) || selectedTransactionsCount > 0;
+function shouldShowSearchPageFooter({isSavedSearch, resultsCount, selectedTransactionsCount}: ShouldShowSearchPageFooterParams) {
+    return isSavedSearch || !!resultsCount || selectedTransactionsCount > 0;
 }
 
 export {

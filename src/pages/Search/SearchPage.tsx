@@ -78,7 +78,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldShowSearchPageFooter} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
@@ -1011,12 +1011,10 @@ function SearchPage({route}: SearchPageProps) {
     const {resetVideoPlayerData} = usePlaybackContext();
 
     const metadata = searchResults?.search;
-    const isDefaultExpensesSearch = queryJSON ? isDefaultExpensesQuery(queryJSON) : false;
     const isSavedSearch = queryJSON?.hash != undefined && String(queryJSON.hash) in (savedSearches ?? {});
     const shouldShowFooter = shouldShowSearchPageFooter({
         isSavedSearch,
         resultsCount: metadata?.count,
-        isDefaultExpensesSearch,
         selectedTransactionsCount: selectedTransactionsKeys.length,
     });
 

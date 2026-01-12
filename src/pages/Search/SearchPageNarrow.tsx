@@ -31,7 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded, shouldShowSearchPageFooter} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
@@ -182,12 +182,10 @@ function SearchPageNarrow({
         );
     }
 
-    const isDefaultExpensesSearch = queryJSON ? isDefaultExpensesQuery(queryJSON) : false;
     const isSavedSearch = queryJSON?.hash != undefined && String(queryJSON.hash) in (savedSearches ?? {});
     const shouldShowFooter = shouldShowSearchPageFooter({
         isSavedSearch,
         resultsCount: metadata?.count,
-        isDefaultExpensesSearch,
         selectedTransactionsCount: Object.keys(selectedTransactions).length,
     });
 

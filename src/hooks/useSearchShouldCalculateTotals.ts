@@ -1,11 +1,10 @@
 import {useMemo} from 'react';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
-function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, similarSearchHash: number | undefined, enabled: boolean) {
+function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, queryHash: number | undefined, enabled: boolean) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
 
     const shouldCalculateTotals = useMemo(() => {
@@ -13,9 +12,11 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, simila
             return false;
         }
 
-        const savedSearchValues = Object.values(savedSearches ?? {});
+        if (queryHash != undefined && String(queryHash) in (savedSearches ?? {})) {
+            return true;
+        }
 
-        if (!savedSearchValues.length && !searchKey) {
+        if (!searchKey) {
             return false;
         }
 
@@ -30,19 +31,8 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, simila
             CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
         ];
 
-        if (eligibleSearchKeys.includes(searchKey)) {
-            return true;
-        }
-
-        for (const savedSearch of savedSearchValues) {
-            const searchData = buildSearchQueryJSON(savedSearch.query);
-            if (searchData && searchData.similarSearchHash === similarSearchHash) {
-                return true;
-            }
-        }
-
-        return false;
-    }, [enabled, savedSearches, searchKey, similarSearchHash]);
+        return eligibleSearchKeys.includes(searchKey);
+    }, [enabled, savedSearches, searchKey, queryHash]);
 
     return shouldCalculateTotals;
 }
