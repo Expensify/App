@@ -5,7 +5,6 @@ import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCo
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import useOnyx from '@hooks/useOnyx';
-import desktopLoginRedirect from '@libs/desktopLoginRedirect';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {handleExitToNavigation, initAutoAuthState, signInWithValidateCode} from '@userActions/Session';
@@ -58,11 +57,7 @@ function ValidateLoginPage({
         // The user has initiated the sign in process on the same browser, in another tab.
         signInWithValidateCode(Number(accountID), validateCode, preferredLocale);
 
-        // Since on Desktop we don't have multi-tab functionality to handle the login flow,
-        // we need to `popToTop` the stack after `signInWithValidateCode` in order to
-        // perform login for both 2FA and non-2FA accounts.
-        desktopLoginRedirect(autoAuthStateWithDefault, isSignedIn);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
