@@ -24,7 +24,7 @@ type UseCompanyCardFeedErrorsResult = CardFeedErrors & {
     getCardFeedErrors: (feedName: CompanyCardFeedWithDomainID) => CardFeedErrors;
 };
 
-function useCardFeedErrors({policyID, feedName, shouldExcludeExpensifyCards = false}: UseCardFeedErrorsProps): UseCompanyCardFeedErrorsResult {
+function useCompanyCardFeedErrors({policyID, feedName, shouldExcludeExpensifyCards = false}: UseCardFeedErrorsProps): UseCompanyCardFeedErrorsResult {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {companyCardFeeds} = useCompanyCards({policyID, feedName});
@@ -62,4 +62,4 @@ function useCardFeedErrors({policyID, feedName, shouldExcludeExpensifyCards = fa
     };
 }
 
-export default useCardFeedErrors;
+export default useCompanyCardFeedErrors;

@@ -31,7 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
-import useCardFeedErrors from './hooks/useCompanyCardFeedErrors';
+import useCompanyCardFeedErrors from './hooks/useCompanyCardFeedErrors';
 
 type CardFeedListItem = ListItem & {
     /** Combined feed key */
@@ -56,7 +56,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
-    const {getCardFeedErrors} = useCardFeedErrors({policyID, feedName: selectedFeedName});
+    const {getCardFeedErrors} = useCompanyCardFeedErrors({policyID, feedName: selectedFeedName});
 
     const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
         const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);

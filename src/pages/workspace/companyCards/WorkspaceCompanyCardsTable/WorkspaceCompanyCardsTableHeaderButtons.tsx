@@ -18,7 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
-import useCardFeedErrors from '@pages/workspace/companyCards/hooks/useCompanyCardFeedErrors';
+import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCompanyCardFeedErrors';
 import useHasWorkspaceCompanyCardErrors from '@pages/workspace/companyCards/hooks/useHasWorkspaceCompanyCardErrors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,7 +62,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
 
-    const {hasFeedError, isFeedConnectionBroken} = useCardFeedErrors({policyID, feedName});
+    const {hasFeedError, isFeedConnectionBroken} = useCompanyCardFeedErrors({policyID, feedName});
     const hasCompanyCardFeedError = useHasWorkspaceCompanyCardErrors({policyID});
 
     const openBankConnection = () => {
