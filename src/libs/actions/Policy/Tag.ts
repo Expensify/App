@@ -143,7 +143,7 @@ function createPolicyTag(policyData: PolicyData, tagName: string) {
             },
         },
     };
-    
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -204,9 +204,7 @@ function importPolicyTags(policyData: PolicyData, tags: PolicyTag[]) {
         tags: JSON.stringify(optimisticTags),
     };
 
-    const optimisticTagLists = Object.fromEntries(
-        optimisticTags.map((tag) => [tag.name, {tags: {[tag.name]: tag}}])
-    );
+    const optimisticTagLists = Object.fromEntries(optimisticTags.map((tag) => [tag.name, {tags: {[tag.name]: tag}}]));
 
     pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, optimisticTagLists);
 

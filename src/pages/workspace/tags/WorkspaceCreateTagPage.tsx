@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
-import usePolicyData from '@hooks/usePolicyData';
 
 type WorkspaceCreateTagPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>
@@ -60,7 +60,6 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         },
         [policyTags, translate],
     );
-
 
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {

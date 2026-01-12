@@ -8,6 +8,7 @@ import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import {importPolicyTags} from '@libs/actions/Policy/Tag';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import usePolicyData from '@hooks/usePolicyData';
 
 type ImportedTagsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>
