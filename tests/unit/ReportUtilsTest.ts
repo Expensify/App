@@ -27,6 +27,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
+    buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticExpenseReport,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
@@ -120,6 +121,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
+    BankAccountList,
     Beta,
     OnyxInputOrEntry,
     PersonalDetailsList,
@@ -4736,6 +4738,39 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticCreatedReportForUnapprovedAction', () => {
+        it('should build a valid optimistic report action with all required properties', () => {
+            const reportID = '123456';
+            const originalReportID = '789012';
+            const reportAction = buildOptimisticCreatedReportForUnapprovedAction(reportID, originalReportID);
+
+            // Verify action name
+            expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS);
+
+            // Verify reportID and originalReportID
+            expect(reportAction.reportID).toBe(reportID);
+            /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const originalMessage = getOriginalMessage(reportAction);
+            expect(originalMessage?.originalID).toBe(originalReportID);
+            /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+            // Verify empty message array (by design for this action type)
+            expect(reportAction.message).toEqual([]);
+
+            // Verify optimistic properties
+            expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            // Verify Concierge as actor
+            expect(reportAction.actorAccountID).toBeDefined();
+            expect(reportAction.person).toEqual([
+                {
+                    text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE,
+                    type: 'TEXT',
+                },
+            ]);
+        });
+    });
+
     describe('isAllowedToApproveExpenseReport', () => {
         const expenseReport: Report = {
             ...createRandomReport(6, undefined),
@@ -5621,11 +5656,11 @@ describe('ReportUtils', () => {
         afterAll(() => Onyx.clear());
 
         it('should return false for admin of a group policy with reimbursement enabled and report not approved', () => {
-            expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, false)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, undefined, undefined, false)).toBe(false);
         });
 
         it('should return false for non-admin of a group policy', () => {
-            expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, false)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, undefined, undefined, false)).toBe(false);
         });
 
         it('should return true for a reimburser of a group policy on a closed report', async () => {
@@ -5640,7 +5675,86 @@ describe('ReportUtils', () => {
                 policyID: policyTest.id,
             };
 
-            expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, false)).toBe(true);
+            expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, undefined, undefined, false)).toBe(true);
+        });
+
+        it('should return true for admin with bank account access via sharees', () => {
+            const adminEmail = 'admin@test.com';
+            const adminAccountID = 999;
+            const reimburserEmail = 'reimburser@test.com';
+            const bankAccountID = 12345;
+
+            const policyWithAch: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            const bankAccountList = {
+                [bankAccountID]: {
+                    accountData: {
+                        sharees: [reimburserEmail, adminEmail],
+                    },
+                },
+            } as unknown as BankAccountList;
+
+            const report: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                policyID: policyTest.id,
+            };
+
+            expect(isPayer(adminAccountID, adminEmail, report, bankAccountList, policyWithAch, false)).toBe(true);
+        });
+
+        it('should return false for admin without bank account access via sharees', () => {
+            const adminEmail = 'admin@test.com';
+            const adminAccountID = 888;
+            const reimburserEmail = 'reimburser@test.com';
+            const otherAdminEmail = 'other@test.com';
+            const bankAccountID = 12345;
+
+            const policyWithAch: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            const bankAccountList = {
+                [bankAccountID]: {
+                    accountData: {
+                        sharees: [reimburserEmail, otherAdminEmail],
+                    },
+                },
+            } as unknown as BankAccountList;
+
+            const report: Report = {
+                ...createRandomReport(4, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                policyID: policyTest.id,
+            };
+
+            expect(isPayer(adminAccountID, adminEmail, report, bankAccountList, policyWithAch, false)).toBe(false);
         });
     });
     describe('buildReportNameFromParticipantNames', () => {
