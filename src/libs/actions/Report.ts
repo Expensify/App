@@ -2006,13 +2006,13 @@ function handlePreexistingReport(report: Report) {
                     // a thread under any comment,
                     // or transaction thread report under an IOU report action that its parent IOU report is not a one expense report,
                     // we need to navigate to the preexisting report chat
-                    // because we cleared the optimistically created report in the callback
+                    // because we will clear the optimistically created report in the currCallback
                     Navigation.setParams({reportID: preexistingReportID.toString()});
                 } else {
                     // We are in a transaction thread report under an IOU report action where the parent IOU report is a one transaction report
                     // We need to navigate to the one expense report screen instead of the preexisting report chat
-                    // because we cleared the optimistically created transaction thread report in the callback
-                    // and the one transaction should be accessed via the one expense report screen
+                    // because we will clear the optimistically created transaction thread report in the currCallback
+                    // and the one transaction should be accessed via the one expense report screen and not the preexisting report chat
                     Navigation.setParams({reportID: parentReportID});
                 }
                 currCallback();
