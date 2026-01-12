@@ -104,10 +104,10 @@ type MoneyRequestConfirmationListFooterProps = {
     iouMerchant: string | undefined;
 
     /** The hours count of the time request */
-    iouHours: number | undefined;
+    iouTimeCount: number | undefined;
 
     /** The hourly rate of the time request */
-    iouRate: number | undefined;
+    iouTimeRate: number | undefined;
 
     /** The type of the IOU */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -241,8 +241,8 @@ function MoneyRequestConfirmationListFooter({
     iouIsBillable,
     iouMerchant,
     iouType,
-    iouHours,
-    iouRate,
+    iouTimeCount,
+    iouTimeRate,
     isCategoryRequired,
     isDistanceRequest,
     isManualDistanceRequest,
@@ -602,7 +602,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('iou.timeTracking.hours')}
                     shouldShowRightIcon={!isReadOnly}
-                    title={`${iouHours}`}
+                    title={`${iouTimeCount}`}
                     description={translate('iou.timeTracking.hours')}
                     style={styles.moneyRequestMenuItem}
                     titleStyle={styles.flex1}
@@ -623,7 +623,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={`time_${translate('common.rate')}`}
                     shouldShowRightIcon={!isReadOnly}
-                    title={translate('iou.timeTracking.ratePreview', convertToDisplayString(iouRate, iouCurrencyCode))}
+                    title={translate('iou.timeTracking.ratePreview', convertToDisplayString(iouTimeRate, iouCurrencyCode))}
                     description={translate('common.rate')}
                     style={styles.moneyRequestMenuItem}
                     titleStyle={styles.flex1}
@@ -1161,5 +1161,7 @@ export default memo(
         prevProps.transaction === nextProps.transaction &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.unit === nextProps.unit &&
-        prevProps.isTimeRequest === nextProps.isTimeRequest,
+        prevProps.isTimeRequest === nextProps.isTimeRequest &&
+        prevProps.iouTimeCount === nextProps.iouTimeCount &&
+        prevProps.iouTimeRate === nextProps.iouTimeRate,
 );

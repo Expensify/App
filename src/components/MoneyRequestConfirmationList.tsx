@@ -117,10 +117,10 @@ type MoneyRequestConfirmationListProps = {
     iouIsBillable?: boolean;
 
     /** Time expense's hour count */
-    iouHours?: number;
+    iouTimeCount?: number;
 
     /** Time expense's hourly rate */
-    iouRate?: number;
+    iouTimeRate?: number;
 
     /** Callback to toggle the billable state */
     onToggleBillable?: (isOn: boolean) => void;
@@ -259,8 +259,8 @@ function MoneyRequestConfirmationList({
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
     isTimeRequest = false,
-    iouHours,
-    iouRate,
+    iouTimeCount,
+    iouTimeRate,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -1154,8 +1154,8 @@ function MoneyRequestConfirmationList({
             iouIsBillable={iouIsBillable}
             iouMerchant={iouMerchant}
             iouType={iouType}
-            iouHours={iouHours}
-            iouRate={iouRate}
+            iouTimeCount={iouTimeCount}
+            iouTimeRate={iouTimeRate}
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
             isManualDistanceRequest={isManualDistanceRequest}
@@ -1249,5 +1249,7 @@ export default memo(
         prevProps.reportActionID === nextProps.reportActionID &&
         prevProps.action === nextProps.action &&
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
-        prevProps.isTimeRequest === nextProps.isTimeRequest,
+        prevProps.isTimeRequest === nextProps.isTimeRequest &&
+        prevProps.iouTimeCount === nextProps.iouTimeCount &&
+        prevProps.iouTimeRate === nextProps.iouTimeRate,
 );
