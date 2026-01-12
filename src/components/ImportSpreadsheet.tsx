@@ -115,13 +115,13 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                         const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
                         const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
-                        setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
-                            .then(() => {
-                                Navigation.navigate(goTo);
-                            })
-                            .catch(() => {
-                                setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
-                            });
+                        return setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false);
+                    })
+                    .then(() => {
+                        Navigation.navigate(goTo);
+                    })
+                    .catch(() => {
+                        setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
                     })
                     .finally(() => {
                         setIsReadingFile(false);
