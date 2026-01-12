@@ -723,7 +723,7 @@ function filterCardsByNonExpensify(cards: CardList | undefined): CardList {
  */
 function flattenCompanyCards(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
     if (!allCardsList) {
-        return {} as CardList;
+        return undefined;
     }
 
     return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
