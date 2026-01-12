@@ -21,7 +21,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -90,7 +90,7 @@ function IOURequestStepParticipants({
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, optimisticTransactions]);
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
@@ -408,20 +408,12 @@ function IOURequestStepParticipants({
             numberOfParticipants.current = 0;
         }
         // We don't want to clear out participants every time the transactions change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, action]);
 
     const isWorkspacesOnly = useMemo(() => {
-        if (isDistanceRequest(initialTransaction)) {
-            // For distance requests, only restrict to workspaces if a route exists and the distance is 0
-            // If no route exists yet, the distance hasn't been calculated and we should allow P2P
-            if (!hasRoute(initialTransaction, true)) {
-                return false;
-            }
-            return initialTransaction?.comment?.customUnit?.quantity === 0;
-        }
-        return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
-    }, [initialTransaction]);
+        return !!(initialTransaction?.amount && initialTransaction?.amount < 0);
+    }, [initialTransaction?.amount]);
 
     return (
         <StepScreenWrapper
