@@ -28,4 +28,5 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, inverted, ...re
     );
 }
 
+// eslint-disable-next-line no-restricted-syntax
 export default React.forwardRef(KeyboardDismissibleFlatList);

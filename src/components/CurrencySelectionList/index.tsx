@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import SelectableListItem from '@components/SelectionListWithSections/SelectableListItem';

@@ -8,7 +8,6 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
-import HeaderGap from '@components/HeaderGap';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useEnvironment from '@hooks/useEnvironment';
@@ -21,7 +20,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RootNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -50,7 +49,10 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
          *
          * This is required because transitionEnd event doesn't trigger in the testing environment.
          */
-        navigation?: PlatformStackNavigationProp<RootNavigatorParamList> | PlatformStackNavigationProp<ReportsSplitNavigatorParamList> | PlatformStackNavigationProp<SearchReportParamList>;
+        navigation?:
+            | PlatformStackNavigationProp<RootNavigatorParamList>
+            | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>
+            | PlatformStackNavigationProp<RightModalNavigatorParamList>;
 
         /** A unique ID to find the screen wrapper in tests */
         testID: string;
@@ -60,9 +62,6 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
 
         /** Additional styles to add */
         style?: StyleProp<ViewStyle>;
-
-        /** Additional styles for header gap */
-        headerGapStyles?: StyleProp<ViewStyle>;
 
         /** Whether to disable the safe area padding for (nested) offline indicators */
         disableOfflineIndicatorSafeAreaPadding?: boolean;
@@ -79,7 +78,6 @@ function ScreenWrapper({
     children,
     style,
     bottomContent,
-    headerGapStyles,
     offlineIndicatorStyle,
     disableOfflineIndicatorSafeAreaPadding,
     shouldShowOfflineIndicator: shouldShowSmallScreenOfflineIndicator,
@@ -186,7 +184,7 @@ function ScreenWrapper({
             onEntryTransitionEnd?.();
         }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
 
-        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
+        const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
             // Prevent firing the prop callback when user is exiting the page.
             if (event?.data?.closing) {
                 return;
@@ -219,7 +217,7 @@ function ScreenWrapper({
             }
         };
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const ChildrenContent = useMemo(() => {
@@ -244,7 +242,6 @@ function ScreenWrapper({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restContainerProps}
             >
-                <HeaderGap styles={headerGapStyles} />
                 {isDevelopment && <CustomDevMenu />}
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                     <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>

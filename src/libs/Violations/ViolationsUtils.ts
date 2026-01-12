@@ -40,7 +40,7 @@ function getTagViolationsForSingleLevelTags(
     if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
-        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}});
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
     }
 
     // Remove 'tagOutOfPolicy' violation if tag is in policy
@@ -116,6 +116,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         newTransactionViolations.push({
             name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
             type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
             data: {
                 errorIndexes,
             },
@@ -130,12 +131,12 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
                     data: {
                         tagName: policyTagKeys.at(i),
                     },
                 });
                 hasInvalidTag = true;
-                break;
             }
         }
         if (!hasInvalidTag) {
@@ -282,7 +283,7 @@ const ViolationsUtils = {
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && !isCategoryMissing(categoryKey) && !isCategoryInPolicy) {
-                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION});
+                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
@@ -302,7 +303,7 @@ const ViolationsUtils = {
         }
 
         // Calculate client-side tag violations
-        const policyRequiresTags = !!policy.requiresTag && !isSelfDM;
+        const policyRequiresTags = (!!policy.requiresTag || !!updatedTransaction?.tag) && !isSelfDM;
         if (policyRequiresTags) {
             newTransactionViolations =
                 Object.keys(policyTagList).length === 1
@@ -335,11 +336,11 @@ const ViolationsUtils = {
         // const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
-        const hasMissingAttendeesViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
         const isDistanceRequest = TransactionUtils.isDistanceRequest(updatedTransaction);
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
-        const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest);
+        const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
+        const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -383,19 +384,6 @@ const ViolationsUtils = {
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment = !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy;
-
-        const attendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees ?? [];
-        const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
-        // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
-        const ownerAccountID = iouReport?.ownerAccountID;
-        const attendeesMinusOwnerCount = attendees.filter((a) => a?.accountID !== ownerAccountID).length;
-        const shouldShowMissingAttendees =
-            !isInvoiceTransaction &&
-            isAttendeeTrackingEnabled &&
-            policyCategories?.[categoryName ?? '']?.areAttendeesRequired &&
-            isControlPolicy &&
-            (attendees.length === 0 || attendeesMinusOwnerCount === 0);
-
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
         if (!hasFutureDateViolation && shouldDisplayFutureDateViolation) {
@@ -478,20 +466,8 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
-        if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
-            newTransactionViolations.push({
-                name: CONST.VIOLATIONS.MISSING_ATTENDEES,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-                showInReview: true,
-            });
-        }
-
-        if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
-        }
-
         if (isPolicyTrackTaxEnabled && !hasTaxOutOfPolicyViolation && !isTaxInPolicy) {
-            newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
+            newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
         }
 
         if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {
@@ -559,8 +535,6 @@ const ViolationsUtils = {
                 return translate('violations.missingCategory');
             case 'missingComment':
                 return translate('violations.missingComment');
-            case 'missingAttendees':
-                return translate('violations.missingAttendees');
             case 'missingTag':
                 return translate('violations.missingTag', {tagName});
             case 'modifiedAmount':
@@ -691,7 +665,7 @@ const ViolationsUtils = {
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
-                    shouldShowViolation(report, policy, violation.name, currentUserEmail)
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
                 );
             });
         });
