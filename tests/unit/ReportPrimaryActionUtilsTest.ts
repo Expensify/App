@@ -5,7 +5,14 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isMarkAsResolvedAction, isPrimaryMarkAsResolvedAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
+import {
+    getReportPrimaryAction,
+    getTransactionThreadPrimaryAction,
+    isApproveAction,
+    isMarkAsResolvedAction,
+    isPrimaryMarkAsResolvedAction,
+    isReviewDuplicatesAction,
+} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -283,6 +290,34 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: false,
             }),
         ).toBe('');
+    });
+
+    it('should return false from isApproveAction when DEW approval is pending', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        // Without DEW pending, isApproveAction should return true
+        expect(isApproveAction(report, [transaction], policy, undefined)).toBe(true);
+
+        // With DEW pending, isApproveAction should return false
+        expect(isApproveAction(report, [transaction], policy, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE})).toBe(false);
     });
 
     it('should return PAY for submitted invoice report  if paid as personal', async () => {

@@ -335,7 +335,7 @@ function getMostRecentActiveDEWApproveFailedAction(reportActions: OnyxEntry<Repo
         return undefined;
     }
 
-    // Find the most recent APPROVED or FORWARDED action (successful approval supersedes the DEW failure)
+    // Find the most recent APPROVED or FORWARDED action
     const mostRecentApprovalAction = actionsArray
         .filter((action): action is ReportAction => isApprovedAction(action) || isForwardedAction(action))
         .reduce<ReportAction | undefined>((latest, current) => {

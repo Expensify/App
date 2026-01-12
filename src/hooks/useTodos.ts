@@ -12,6 +12,7 @@ export default function useTodos() {
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: false});
     const {email = '', accountID} = useCurrentUserPersonalDetails();
 
     return useMemo(() => {
@@ -43,11 +44,12 @@ export default function useTodos() {
             const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
             const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
             const reportTransactions = transactionsByReportID[report.reportID] ?? [];
+            const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
 
-            if (isSubmitAction(report, reportTransactions, policy, reportNameValuePair)) {
+            if (isSubmitAction(report, reportTransactions, policy, reportNameValuePair, undefined, email, accountID, reportMetadata)) {
                 reportsToSubmit.push(report);
             }
-            if (isApproveAction(report, reportTransactions, policy)) {
+            if (isApproveAction(report, reportTransactions, policy, reportMetadata)) {
                 reportsToApprove.push(report);
             }
             if (isPrimaryPayAction(report, accountID, email, policy, reportNameValuePair)) {
@@ -59,5 +61,5 @@ export default function useTodos() {
         }
 
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
-    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, accountID, email]);
+    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, allReportMetadata, accountID, email]);
 }
