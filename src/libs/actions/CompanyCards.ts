@@ -32,6 +32,7 @@ import type {
     CardFeedDetails,
     CompanyCardFeed,
     CompanyCardFeedWithDomainID,
+    CompanyCardFeedWithNumber,
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
@@ -861,11 +862,11 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, finallyData});
 }
 
-function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, bankName: CompanyCardFeed) {
+function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, feed: CompanyCardFeedWithNumber) {
     const parameters: OpenPolicyCompanyCardsFeedParams = {
         domainAccountID,
         policyID,
-        feed: bankName,
+        feed,
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);

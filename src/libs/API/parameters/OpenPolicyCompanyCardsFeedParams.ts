@@ -1,9 +1,9 @@
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 type OpenPolicyCompanyCardsFeedParams = {
     domainAccountID?: number;
     policyID: string;
-    feed: CompanyCardFeed;
+    feed: CompanyCardFeedWithNumber;
 };
 
 export default OpenPolicyCompanyCardsFeedParams;
