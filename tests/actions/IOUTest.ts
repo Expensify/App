@@ -67,6 +67,8 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getOriginalMessage,
     getReportActionHtml,
@@ -89,7 +91,7 @@ import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
-import type {Accountant, Attendee} from '@src/types/onyx/IOU';
+import type {Accountant, Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -173,6 +175,12 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
         buildCannedSearchQuery: jest.fn(),
     };
 });
+
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    isPaidGroupPolicy: jest.fn().mockReturnValue(true),
+    isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
+}));
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -953,6 +961,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -1198,7 +1207,7 @@ describe('actions/IOU', () => {
                             attendees: [],
                             currency: CONST.CURRENCY.USD,
                             created: '',
-                            merchant: '(none)',
+                            merchant: '',
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
@@ -1207,6 +1216,7 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: 123,
                         currentUserEmailParam: 'existing@example.com',
                         policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1434,6 +1444,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             policyRecentlyUsedCurrencies: [],
+                            quickAction: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1517,7 +1528,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction?.reportID).toBe(iouReportID);
                                     expect(newTransaction?.amount).toBe(amount);
                                     expect(newTransaction?.comment?.comment).toBe(comment);
-                                    expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                    expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
                                     expect(newTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
@@ -1597,6 +1608,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
             return (
                 waitForBatchedUpdates()
@@ -1696,7 +1708,7 @@ describe('actions/IOU', () => {
                                         expect(transaction?.reportID).toBe(iouReportID);
                                         expect(transaction?.amount).toBe(amount);
                                         expect(transaction?.comment?.comment).toBe(comment);
-                                        expect(transaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                        expect(transaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                         // The transactionID on the iou action should match the one from the transactions collection
@@ -2105,6 +2117,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2131,6 +2144,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -2174,6 +2188,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 policyRecentlyUsedCurrencies: [],
                 currentUserEmailParam: 'existing@example.com',
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2212,6 +2227,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2276,6 +2292,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
             waitForBatchedUpdates();
 
@@ -3424,7 +3441,7 @@ describe('actions/IOU', () => {
             expect(iouAction).toBeTruthy();
 
             // Complete this split bill without changing the description
-            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, {}, RORY_EMAIL);
+            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, RORY_EMAIL);
 
             await waitForBatchedUpdates();
 
@@ -3573,6 +3590,7 @@ describe('actions/IOU', () => {
                 currentUserPersonalDetails,
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3680,6 +3698,7 @@ describe('actions/IOU', () => {
                 currentUserPersonalDetails,
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3800,6 +3819,7 @@ describe('actions/IOU', () => {
                 currentUserPersonalDetails,
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3849,6 +3869,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -4095,6 +4116,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            quickAction: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4236,6 +4258,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            quickAction: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4552,6 +4575,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            quickAction: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4658,6 +4682,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -4901,6 +4926,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -5470,6 +5496,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
                 });
             }
 
@@ -5542,6 +5569,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -5807,6 +5835,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            quickAction: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5933,6 +5962,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: initialCurrencies,
+                            quickAction: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6002,6 +6032,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            quickAction: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6037,8 +6068,8 @@ describe('actions/IOU', () => {
                                     });
                                     resolve();
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                 },
                             });
                         }),
@@ -6058,8 +6089,8 @@ describe('actions/IOU', () => {
                                     expect(expenseReport?.stateNum).toBe(0);
                                     expect(expenseReport?.statusNum).toBe(0);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                 },
                             });
                         }),
@@ -6086,8 +6117,8 @@ describe('actions/IOU', () => {
                                     expect(expenseReport?.stateNum).toBe(2);
                                     expect(expenseReport?.statusNum).toBe(2);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                 },
                             });
                         }),
@@ -6129,8 +6160,8 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                     resolve();
                                 },
                             });
@@ -6197,6 +6228,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            quickAction: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6231,8 +6263,8 @@ describe('actions/IOU', () => {
                                         stateNum: 0,
                                     });
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                     resolve();
                                 },
                             });
@@ -6277,8 +6309,8 @@ describe('actions/IOU', () => {
                                     // Report was submitted with some fail
                                     expect(expenseReport?.stateNum).toBe(0);
                                     expect(expenseReport?.statusNum).toBe(0);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                     resolve();
                                 },
                             });
@@ -6365,6 +6397,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: RORY_EMAIL,
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            quickAction: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6626,7 +6659,14 @@ describe('actions/IOU', () => {
 
     describe('unHoldRequest', () => {
         test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added unhold report action created timestamp", () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const policyID = '577';
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+            };
+            const iouReport: Report = {
+                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD'),
+                policyID,
+            };
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -6664,7 +6704,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     // When an expense is unhold
-                    unholdRequest(transaction.transactionID, transactionThread.reportID);
+                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -6692,7 +6732,14 @@ describe('actions/IOU', () => {
         });
 
         test('should rollback unhold request on API failure', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const policyID = '577';
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+            };
+            const iouReport: Report = {
+                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD'),
+                policyID,
+            };
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -6731,7 +6778,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch.fail();
                     mockFetch?.resume?.();
-                    unholdRequest(transaction.transactionID, transactionThread.reportID);
+                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -6766,12 +6813,12 @@ describe('actions/IOU', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver.policyID}`, {id: invoiceReceiver.policyID, role: CONST.POLICY.ROLE.ADMIN});
 
-            expect(canIOUBePaid(iouReport, chatReport, policy, [], true)).toBe(true);
-            expect(canIOUBePaid(iouReport, chatReport, policy, [], false)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], true)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], false)).toBe(true);
 
             // When the invoice is archived
-            expect(canIOUBePaid(iouReport, chatReport, policy, [], true, chatReportRNVP)).toBe(false);
-            expect(canIOUBePaid(iouReport, chatReport, policy, [], false, chatReportRNVP)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], true, chatReportRNVP)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], false, chatReportRNVP)).toBe(false);
         });
     });
 
@@ -7319,6 +7366,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -7451,7 +7499,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(0),
                 reportID,
                 amount: 0,
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -7463,7 +7511,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -7513,7 +7561,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -7646,7 +7694,7 @@ describe('actions/IOU', () => {
                 isWaitingOnBankAccount: true,
                 managerID: RORY_ACCOUNT_ID,
             };
-            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID})).toBeTruthy();
+            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID}, undefined)).toBeTruthy();
         });
     });
 
@@ -7676,8 +7724,8 @@ describe('actions/IOU', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], true)).toBeTruthy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, [], false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, [], true)).toBeTruthy();
         });
     });
 
@@ -7808,7 +7856,7 @@ describe('actions/IOU', () => {
             reportID: fakeReport.reportID,
             transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             isFromGlobalCreate: true,
-            merchant: 'Expense',
+            merchant: '(none)',
         };
 
         const currentDate = '2025-04-01';
@@ -7861,7 +7909,6 @@ describe('actions/IOU', () => {
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
                         ...transactionResult,
-                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     });
                 });
@@ -8021,7 +8068,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            expect(updatedTransaction?.modifiedAmount).toBe('');
+            expect(updatedTransaction?.modifiedAmount).toBe(0);
         });
     });
 
@@ -8160,6 +8207,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -8254,6 +8302,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -9154,6 +9203,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -9252,6 +9302,7 @@ describe('actions/IOU', () => {
                     currentUserPersonalDetails,
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -9309,6 +9360,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -9407,6 +9459,7 @@ describe('actions/IOU', () => {
                     currentUserPersonalDetails,
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -9469,6 +9522,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -9576,6 +9630,7 @@ describe('actions/IOU', () => {
                     currentUserPersonalDetails,
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -10306,6 +10361,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'payee@example.com',
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: initialCurrencies,
+                quickAction: undefined,
             });
 
             expect(result.onyxData).toBeDefined();
@@ -10393,6 +10449,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
 
             // Then: Verify the result structure and key values
@@ -10524,6 +10581,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
 
             // Then: Verify the result uses existing chat report
@@ -10609,6 +10667,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
             });
 
             // Then: Verify policy expense chat handling
@@ -10675,6 +10734,7 @@ describe('actions/IOU', () => {
                     policy: {...createRandomPolicy(1)},
                     policyRecentlyUsedTags,
                 },
+                quickAction: undefined,
             });
 
             waitForBatchedUpdates();
@@ -10887,6 +10947,58 @@ describe('actions/IOU', () => {
                     }),
                 ]),
             );
+        });
+
+        it('should the createdIOUReportActionID parameter not be undefined when rejecting an expense to an open report', async () => {
+            // Mock API.write for this test
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            const openingReport = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                total: 0,
+                currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: policy?.id,
+                chatReportID: chatReport?.reportID,
+            };
+
+            const secondTransaction = {
+                ...createRandomTransaction(2),
+                reportID: iouReport?.reportID,
+                amount,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Test Merchant',
+                transactionID: '2',
+            };
+
+            // Given: An expense report (not IOU)
+            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE, total: amount * 2};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openingReport.reportID}`, openingReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
+            await waitForBatchedUpdates();
+
+            // When: Reject the money request
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy);
+            await waitForBatchedUpdates();
+
+            // Then: createdIOUReportActionID shouldn't be undefined
+            expect(writeSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.not.objectContaining({
+                    createdIOUReportActionID: undefined,
+                }),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
         });
     });
 
@@ -11672,13 +11784,19 @@ describe('actions/IOU', () => {
         it('should return timestamp from CREATED action when it exists', async () => {
             const createdTimestamp = '2024-01-15 12:00:00.000';
             const report = createRandomReport(1, undefined);
-            const reportAction1 = createRandomReportAction(1);
-            const reportAction2 = {
-                ...createRandomReportAction(2),
+            const reportAction1 = {
+                ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 created: createdTimestamp,
             };
-            const reportAction3 = createRandomReportAction(3);
+            const reportAction2 = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            const reportAction3 = {
+                ...createRandomReportAction(3),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
@@ -11700,7 +11818,10 @@ describe('actions/IOU', () => {
                 ...createRandomReport(1, undefined),
                 created: reportCreatedTimestamp,
             };
-            const reportAction1 = createRandomReportAction(1);
+            const reportAction1 = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
@@ -11712,6 +11833,288 @@ describe('actions/IOU', () => {
 
             const result = getReportOriginalCreationTimestamp(report);
             expect(result).toBe(reportCreatedTimestamp);
+        });
+    });
+
+    describe('Report Totals Calculation for Split Expenses', () => {
+        function calculateReportTotalsForSplitExpenses(
+            expenseReport: Report | undefined,
+            splitExpenses: SplitExpense[],
+            allReportsList: Record<string, Report> | undefined,
+            changesInReportTotal: number,
+        ): Map<string, number> {
+            const reportTotals = new Map<string, number>();
+            const expenseReportID = expenseReport?.reportID;
+
+            if (expenseReportID) {
+                const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`;
+                const expenseReportTotal = allReportsList?.[expenseReportKey]?.total ?? expenseReport?.total ?? 0;
+                reportTotals.set(expenseReportID, expenseReportTotal - changesInReportTotal);
+            }
+
+            for (const expense of splitExpenses) {
+                const splitExpenseReportID = expense.reportID;
+                if (!splitExpenseReportID || reportTotals.has(splitExpenseReportID)) {
+                    continue;
+                }
+
+                const splitExpenseReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpenseReportID}`];
+                reportTotals.set(splitExpenseReportID, splitExpenseReport?.total ?? 0);
+            }
+
+            return reportTotals;
+        }
+
+        it('should calculate expense report total minus changes when expense report ID exists', () => {
+            const expenseReport: Report = {
+                reportID: 'report1',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [];
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
+                    reportID: 'report1',
+                    total: 10000,
+                } as Report,
+            };
+            const changesInReportTotal = 2000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(1);
+            expect(result.get('report1')).toBe(8000); // 10000 - 2000
+        });
+
+        it('should use expense report total directly when not in allReportsList', () => {
+            const expenseReport: Report = {
+                reportID: 'report1',
+                total: 15000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [];
+            const allReportsList = {}; // Empty, so should fall back to expenseReport.total
+            const changesInReportTotal = 3000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(1);
+            expect(result.get('report1')).toBe(12000); // 15000 - 3000
+        });
+
+        it('should use allReportsList total when it differs from expense report total', () => {
+            const expenseReport: Report = {
+                reportID: 'report1',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [];
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
+                    reportID: 'report1',
+                    total: 12000, // Different from expenseReport.total
+                } as Report,
+            };
+            const changesInReportTotal = 2000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(1);
+            expect(result.get('report1')).toBe(10000); // 12000 - 2000 (uses allReportsList value)
+        });
+
+        it('should add split expenses from different reports to the map', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [
+                {
+                    reportID: 'splitReport1',
+                    amount: 2000,
+                } as SplitExpense,
+                {
+                    reportID: 'splitReport2',
+                    amount: 3000,
+                } as SplitExpense,
+            ];
+
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}splitReport1`]: {
+                    reportID: 'splitReport1',
+                    total: 5000,
+                } as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}splitReport2`]: {
+                    reportID: 'splitReport2',
+                    total: 7000,
+                } as Report,
+            };
+            const changesInReportTotal = 1000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(3);
+            expect(result.get('mainReport')).toBe(9000); // 10000 - 1000
+            expect(result.get('splitReport1')).toBe(5000);
+            expect(result.get('splitReport2')).toBe(7000);
+        });
+
+        it('should skip split expenses without reportID', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [
+                {
+                    reportID: undefined,
+                    amount: 2000,
+                } as SplitExpense,
+                {
+                    reportID: 'splitReport1',
+                    amount: 3000,
+                } as SplitExpense,
+            ];
+
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}splitReport1`]: {
+                    reportID: 'splitReport1',
+                    total: 5000,
+                } as Report,
+            };
+            const changesInReportTotal = 1000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(2); // Only mainReport and splitReport1
+            expect(result.get('mainReport')).toBe(9000);
+            expect(result.get('splitReport1')).toBe(5000);
+        });
+
+        it('should skip split expenses that are already in reportTotals', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            // Two split expenses with the same reportID
+            const splitExpenses: SplitExpense[] = [
+                {
+                    reportID: 'splitReport1',
+                    amount: 2000,
+                } as SplitExpense,
+                {
+                    reportID: 'splitReport1', // Duplicate reportID
+                    amount: 3000,
+                } as SplitExpense,
+                {
+                    reportID: 'splitReport2',
+                    amount: 1500,
+                } as SplitExpense,
+            ];
+
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}splitReport1`]: {
+                    reportID: 'splitReport1',
+                    total: 5000,
+                } as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}splitReport2`]: {
+                    reportID: 'splitReport2',
+                    total: 3000,
+                } as Report,
+            };
+            const changesInReportTotal = 1000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(3);
+            expect(result.get('mainReport')).toBe(9000);
+            expect(result.get('splitReport1')).toBe(5000); // Should only be added once
+            expect(result.get('splitReport2')).toBe(3000);
+        });
+
+        it('should default split expense report total to 0 when not found in allReportsList', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [
+                {
+                    reportID: 'splitReport1',
+                    amount: 2000,
+                } as SplitExpense,
+            ];
+
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+                // splitReport1 is NOT in allReportsList
+            };
+            const changesInReportTotal = 1000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(2);
+            expect(result.get('mainReport')).toBe(9000);
+            expect(result.get('splitReport1')).toBe(0); // Defaults to 0
+        });
+
+        it('should handle empty split expenses array', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [];
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+            };
+            const changesInReportTotal = 2000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(1);
+            expect(result.get('mainReport')).toBe(8000);
+        });
+
+        it('should handle negative changesInReportTotal', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [];
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+            };
+            const changesInReportTotal = -2000; // Negative change
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(1);
+            expect(result.get('mainReport')).toBe(12000); // 10000 - (-2000) = 12000
         });
     });
 });

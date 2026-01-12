@@ -23,6 +23,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import {findSelfDMReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,6 +43,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        canBeMissing: false,
+    });
 
     const policyID = targetTransactionReport?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -60,13 +64,14 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
-        const reportID = mergeTransaction.reportID;
+        const reportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? findSelfDMReportID() : mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
         mergeTransactionRequest({
             mergeTransactionID: transactionID,
             mergeTransaction,
             targetTransaction,
+            allTransactionViolations,
             sourceTransaction,
             policy,
             policyTags,
