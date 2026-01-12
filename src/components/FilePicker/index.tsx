@@ -34,7 +34,6 @@ function FilePicker({children, acceptableFileTypes = ''}: FilePickerProps): Reac
 
                     // Cleanup after selecting a file to start from a fresh state
                     if (fileInput.current) {
-                        // eslint-disable-next-line react-compiler/react-compiler
                         fileInput.current.value = '';
                     }
                 }}
@@ -65,7 +64,6 @@ function FilePicker({children, acceptableFileTypes = ''}: FilePickerProps): Reac
                 }}
                 accept={acceptableFileTypes}
             />
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
                     onPicked.current = newOnPicked;
