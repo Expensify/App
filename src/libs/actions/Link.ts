@@ -7,10 +7,12 @@ import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
+import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NetworkStatus} from '@libs/NetworkConnection';
@@ -184,11 +186,39 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
+/**
+ * Normalizes a route by replacing route path variables with a generic placeholder(:id). For example /report/12345 becomes /report/:id
+ */
+function getNormalizedRoute(route: string) {
+    const routeWithoutParams = route.split('?').at(0) ?? '';
+    const segments = routeWithoutParams.split('/').filter((segment) => segment !== '');
+    const normalizedSegments = segments.map((segment) => {
+        // Check if segment is a number, UUID, or likely a dynamic ID and return :id for that
+        if (/^[\d]+$/.test(segment) || /^[a-f0-9-]{20,}$/i.test(segment) || /^[A-Z0-9]{8,}$/i.test(segment)) {
+            return ':id';
+        }
+        return segment;
+    });
+
+    return normalizedSegments.join('/');
+}
+
 function openLink(href: string, environmentURL: string, isAttachment = false) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
     const internalExpensifyPath = getInternalExpensifyPath(href);
+
+    const isNarrowLayout = getIsNarrowLayout();
+    const currentState = navigationRef.getRootState();
+    const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    let shouldCloseRHP = false;
+    if (!isNarrowLayout && isRHPOpen) {
+        const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+        const currentRoute = Navigation.getActiveRoute();
+        const willOpenSameRoute = getNormalizedRoute(currentRoute) === getNormalizedRoute(internalNewExpensifyPath);
+        shouldCloseRHP = !willOpenInRHP || !willOpenSameRoute;
+    }
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
     // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
@@ -198,6 +228,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+        if (shouldCloseRHP) {
+            Navigation.closeRHPFlow();
+        }
         Navigation.navigate(reportRoute);
         return;
     }
@@ -208,6 +241,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
             return;
+        }
+        if (shouldCloseRHP) {
+            Navigation.closeRHPFlow();
         }
         Navigation.navigate(internalNewExpensifyPath as Route);
         return;
