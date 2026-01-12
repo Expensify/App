@@ -75,6 +75,11 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
+type CreatedReportForUnapprovedTransactionsParams = {
+    reportUrl: string;
+    reportName: string;
+};
+
 type MovedTransactionParams = {
     reportUrl: string;
     reportName?: string;
@@ -682,6 +687,7 @@ export type {
     ReportArchiveReasonsMergedParams,
     ReportPolicyNameParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
+    CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     MovedTransactionParams,

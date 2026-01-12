@@ -2,6 +2,7 @@ import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
@@ -11,12 +12,14 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     getCardIssuedMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
     isIOUActionMatchingTransactionList,
 } from '../../src/libs/ReportActionsUtils';
+import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -1294,6 +1297,11 @@ describe('ReportActionsUtils', () => {
             };
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
+
+        it('should return false for CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action with empty message array', () => {
+            const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
     });
 
     describe('getRenamedAction', () => {
@@ -1562,6 +1570,22 @@ describe('ReportActionsUtils', () => {
             const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, reportName);
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
+    });
+
+    describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
+        it('should return the correct message with a valid report ID and report name', () => {
+            const reportID = '67890';
+            const reportName = 'Original Report';
+            const reportUrl = getReportURLForCurrentContext(reportID);
+            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
+                reportUrl,
+                reportName,
+            });
+
+            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
 
             expect(result).toBe(expectedMessage);
         });
