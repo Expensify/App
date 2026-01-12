@@ -16,7 +16,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {navigateToParticipantPage} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -31,6 +31,8 @@ import {
     setDraftSplitTransaction,
     setMoneyRequestAmount,
     setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
     setSplitShares,
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
@@ -120,6 +122,8 @@ function IOURequestStepAmount({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
+    console.log({policy});
+
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
     const shouldSkipConfirmation: boolean = useMemo(() => {
@@ -173,6 +177,16 @@ function IOURequestStepAmount({
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, shouldKeepUserInput);
+
+        if (isMovingTransactionFromTrackExpense(action)) {
+            const taxCode = selectedCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            if (taxCode) {
+                setMoneyRequestTaxRate(transactionID, taxCode);
+                const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD));
+                setMoneyRequestTaxAmount(transactionID, taxAmount);
+            }
+        }
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -322,6 +336,7 @@ function IOURequestStepAmount({
         }
 
         if (!isEditing) {
+            console.log('here1');
             navigateToNextPage({amount, paymentMethod});
             return;
         }
@@ -329,6 +344,7 @@ function IOURequestStepAmount({
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         const transactionCurrency = getCurrency(currentTransaction);
         if (newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
+            console.log('here');
             navigateBack();
             return;
         }
@@ -345,6 +361,8 @@ function IOURequestStepAmount({
             navigateBack();
             return;
         }
+
+        console.log(taxAmount, taxCode);
 
         updateMoneyRequestAmountAndCurrency({
             transactionID,
