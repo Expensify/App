@@ -2,12 +2,14 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, PointerSensor, useSensor} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {Fragment} from 'react';
+import React, {Fragment, useCallback} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
 
@@ -22,6 +24,7 @@ function DraggableList<T>({
     renderItem,
     keyExtractor,
     onDragEnd: onDragEndCallback,
+    onSelectRow,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
     disableScroll,
@@ -40,6 +43,17 @@ function DraggableList<T>({
         maxIndex: data.length - 1,
         disabledIndexes: disabledArrowKeyIndexes,
         isActive: true,
+    });
+
+    const selectFocusedOption = useCallback(() => {
+        const focusedItem = data.at(focusedIndex);
+        if (focusedItem && onSelectRow) {
+            onSelectRow(focusedItem);
+        }
+    }, [data, focusedIndex, onSelectRow]);
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
+        isActive: focusedIndex >= 0,
     });
 
     /**

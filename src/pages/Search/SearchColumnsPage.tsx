@@ -220,6 +220,7 @@ function SearchColumnsPage() {
                                 data={groupColumnsList}
                                 keyExtractor={(item) => item.value}
                                 onDragEnd={onGroupDragEnd}
+                                onSelectRow={onSelectItem}
                                 renderItem={renderItem}
                             />
 
@@ -236,6 +237,7 @@ function SearchColumnsPage() {
                         data={typeColumnsList}
                         keyExtractor={(item) => item.value}
                         onDragEnd={onTypeDragEnd}
+                        onSelectRow={onSelectItem}
                         renderItem={renderItem}
                     />
                 </ScrollView>

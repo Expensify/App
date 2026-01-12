@@ -19,6 +19,9 @@ type DraggableListProps<T> = {
     /** Called after the animation has been completed. Returns updated ordering of data  */
     onDragEnd?: (params: DraggableListData<T>) => void;
 
+    /** Called when a row is selected via Enter key */
+    onSelectRow?: (item: T) => void;
+
     /** Rendered at the bottom of all the items. Just like in the FlatList. */
     ListFooterComponent?: React.ReactElement;
 
