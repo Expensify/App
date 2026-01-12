@@ -273,8 +273,8 @@ function ReportActionsView({
     const shouldShowReportAction = useCallback(
         (
             reportAction: OnyxTypes.ReportAction,
-            reportTransactionIDs: string[],
-            expenseReportTransactions: Record<string, OnyxCollection<OnyxTypes.Transaction>> | undefined,
+            transactionIDs: string[],
+            expenseTransactions: Record<string, OnyxCollection<OnyxTypes.Transaction>> | undefined,
         ): boolean => {
             const passesBasicFilters =
                 (isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
@@ -290,14 +290,14 @@ function ReportActionsView({
 
             const originalMessage = getOriginalMessage(reportAction);
             const iouReportID = originalMessage && 'IOUReportID' in originalMessage ? (originalMessage as OnyxTypes.OriginalMessageIOU).IOUReportID : undefined;
-            const transactionsForReport = iouReportID ? expenseReportTransactions?.[iouReportID] : undefined;
+            const transactionsForReport = iouReportID ? expenseTransactions?.[iouReportID] : undefined;
 
             if (isOffline && !transactionsForReport && iouReportID) {
-                const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, reportTransactionIDs, undefined, isOffline);
+                const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, transactionIDs, undefined, isOffline);
                 return isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
             }
 
-            const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, reportTransactionIDs, transactionsForReport, isOffline);
+            const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, transactionIDs, transactionsForReport, isOffline);
             return isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
         },
         [isOffline, canPerformWriteAction],
