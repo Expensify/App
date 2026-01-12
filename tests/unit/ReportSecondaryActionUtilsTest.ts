@@ -531,6 +531,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations,
+            bankAccountList: {},
             policy,
         });
         expect(resultWithoutPending.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
@@ -544,6 +545,7 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations,
+            bankAccountList: {},
             policy,
             reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
         });
