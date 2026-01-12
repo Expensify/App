@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
-import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CombinedCardFeed, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
@@ -511,7 +511,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
     return cardFeedsForDisplayPerPolicy;
 }
 
-function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | undefined) {
+function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | undefined, includeFeedPredicate?: (feed: CombinedCardFeed) => boolean) {
     return Object.entries(allFeeds ?? {}).reduce<CombinedCardFeeds>((acc, [onyxKey, feeds]) => {
         const domainID = Number(onyxKey.split('_').at(-1));
 
@@ -526,21 +526,25 @@ function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | 
             const oAuthAccountDetails = feeds?.settings.oAuthAccountDetails?.[feedName];
             const customFeedName = feeds?.settings.companyCardNicknames?.[feedName];
 
-            const shouldAddFeed = domainID && feedSettings?.preferredPolicy;
-
-            if (!shouldAddFeed) {
+            if (!domainID) {
                 continue;
             }
 
-            const combinedFeedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
-
-            acc[combinedFeedKey] = {
+            const combinedCardFeed = {
                 ...feedSettings,
                 ...oAuthAccountDetails,
                 customFeedName,
                 domainID,
                 feed: feedName,
             };
+
+            if (includeFeedPredicate && !includeFeedPredicate(combinedCardFeed)) {
+                continue;
+            }
+
+            const combinedFeedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
+
+            acc[combinedFeedKey] = combinedCardFeed;
         }
 
         return acc;
