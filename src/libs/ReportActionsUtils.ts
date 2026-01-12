@@ -1034,7 +1034,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     const actionName = reportAction.actionName;
-    const childVisibleActionCount = reportAction.childVisibleActionCount;
 
     if (isReportActionDeprecated(reportAction, key)) {
         return false;
@@ -1075,7 +1074,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (isPendingRemove(reportAction) && !childVisibleActionCount) {
+    if (isPendingRemove(reportAction) && !reportAction.childVisibleActionCount) {
         return false;
     }
 
