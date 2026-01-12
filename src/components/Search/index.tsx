@@ -451,6 +451,7 @@ function Search({
         isActionLoadingSet,
         cardFeeds,
         bankAccountList,
+        violations,
     ]);
 
     useEffect(() => {

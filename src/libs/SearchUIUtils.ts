@@ -2102,7 +2102,18 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, translate, formatPhoneNumber, isActionLoadingSet, allTransactionViolations, bankAccountList, reportActions);
+        return getReportSections(
+            data,
+            currentSearch,
+            currentAccountID,
+            currentUserEmail,
+            translate,
+            formatPhoneNumber,
+            isActionLoadingSet,
+            allTransactionViolations,
+            bankAccountList,
+            reportActions,
+        );
     }
 
     if (groupBy) {
