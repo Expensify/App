@@ -14,6 +14,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {emailSelector} from '@src/selectors/Session';
 import type {SidePanel} from '@src/types/onyx';
 
 type SidePanelContextProps = {
@@ -64,12 +65,15 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const [onboardingRHPVariant] = useOnyx(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {
+        canBeMissing: true,
+        selector: emailSelector,
+    });
 
     const reportID = useMemo(() => {
         const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
-        const isUserAdmin = isPolicyAdmin(activePolicy, session?.email);
-        const isPolicyActive = shouldShowPolicy(activePolicy, false, session?.email ?? '');
+        const isUserAdmin = isPolicyAdmin(activePolicy, sessionEmail);
+        const isPolicyActive = shouldShowPolicy(activePolicy, false, sessionEmail ?? '');
         const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
         if (isRHPAdminsRoom && isUserAdmin && isPolicyActive && adminsChatReportID) {
@@ -77,7 +81,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         }
 
         return conciergeReportID;
-    }, [onboardingRHPVariant, activePolicy, session?.email, conciergeReportID]);
+    }, [onboardingRHPVariant, activePolicy, sessionEmail, conciergeReportID]);
 
     useEffect(() => {
         setIsSidePanelTransitionEnded(false);
