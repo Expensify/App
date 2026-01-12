@@ -1,9 +1,18 @@
-import {adminAccountIDsSelector, domainEmailSelector, memberAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {
+    adminAccountIDsSelector,
+    adminPendingActionSelector,
+    domainEmailSelector,
+    domainSettingsPrimaryContactSelector,
+    memberAccountIDsSelector,
+    technicalContactSettingsSelector,
+} from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {CardFeeds, Domain} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainPendingActions, DomainSettings} from '@src/types/onyx';
 
 describe('domainSelectors', () => {
+    const userID1 = 123;
+    const userID2 = 456;
     describe('adminAccountIDsSelector', () => {
         it('Should return an empty array if the domain object is undefined', () => {
             expect(adminAccountIDsSelector(undefined)).toEqual([]);
@@ -116,6 +125,49 @@ describe('domainSelectors', () => {
             const domain = {} as OnyxEntry<Domain>;
 
             expect(domainEmailSelector(domain)).toBeUndefined();
+        });
+    });
+
+    describe('domainSettingsPrimaryContactSelector', () => {
+        it.each([
+            ['undefined', undefined, undefined],
+            ['empty object', {} as OnyxEntry<DomainSettings>, undefined],
+            ['settings without technicalContactEmail', {settings: {}} as OnyxEntry<DomainSettings>, undefined],
+        ])('Should return undefined when domainSettings is %s', (_description, domainSettings, expected) => {
+            expect(domainSettingsPrimaryContactSelector(domainSettings)).toBe(expected);
+        });
+
+        it('Should return the technical contact email when it exists', () => {
+            const domainSettings = {
+                settings: {
+                    technicalContactEmail: 'admin@example.com',
+                },
+            } as OnyxEntry<DomainSettings>;
+
+            expect(domainSettingsPrimaryContactSelector(domainSettings)).toBe('admin@example.com');
+        });
+    });
+
+    describe('adminPendingActionSelector', () => {
+        it.each([
+            ['undefined', undefined, {}],
+            ['empty object', {} as OnyxEntry<DomainPendingActions>, {}],
+        ])('Should return empty object when pendingAction is %s', (_description, pendingAction, expected) => {
+            expect(adminPendingActionSelector(pendingAction)).toEqual(expected);
+        });
+
+        it('Should return the admin pending actions when they exist', () => {
+            const pendingAction: OnyxEntry<DomainPendingActions> = {
+                admin: {
+                    [userID1]: {pendingAction: 'update'},
+                    [userID2]: {pendingAction: 'delete'},
+                },
+            };
+
+            expect(adminPendingActionSelector(pendingAction)).toEqual({
+                [userID1]: {pendingAction: 'update'},
+                [userID2]: {pendingAction: 'delete'},
+            });
         });
     });
     describe('selectMemberIDs', () => {

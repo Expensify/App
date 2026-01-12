@@ -41,6 +41,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
+    isPaidGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 jest.mock('@src/libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn().mockReturnValue({}),
@@ -70,7 +71,7 @@ describe('getReportPreviewAction', () => {
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const policy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
+        const policy = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
         expect(getReportPreviewAction({isReportArchived: false, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, currentUserEmail: CURRENT_USER_EMAIL, report, policy, transactions: []})).toBe(
             CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE,
         );
