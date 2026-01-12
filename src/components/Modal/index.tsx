@@ -34,7 +34,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         handlePopStateRef.current = () => {
             rest.onClose?.();
         };
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rest.onClose]);
 

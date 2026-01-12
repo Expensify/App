@@ -38,7 +38,7 @@ function OnboardingCurrencyPicker({label, value, errorText, style, onInputChange
         if (draftValues?.currency) {
             onInputChange?.(draftValues.currency);
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [draftValues?.currency]);
 
     useEffect(() => {

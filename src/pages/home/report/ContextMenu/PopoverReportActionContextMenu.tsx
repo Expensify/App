@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 /* eslint-disable no-restricted-imports */
@@ -370,7 +369,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived);
+                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
             });
         }
 
@@ -386,10 +385,10 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         isChatIOUReportArchived,
         deleteTransactions,
         currentSearchHash,
-        isOriginalReportArchived,
         email,
         reportTransactions,
         violations,
+        isOriginalReportArchived,
     ]);
 
     const hideDeleteModal = () => {

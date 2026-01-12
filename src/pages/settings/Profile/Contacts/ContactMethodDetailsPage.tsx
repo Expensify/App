@@ -77,7 +77,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const loginDataRef = useRef<Login | undefined>(undefined);
     const loginData = useMemo(() => {
-        // eslint-disable-next-line react-compiler/react-compiler
         loginDataRef.current = loginList?.[contactMethod];
         return loginList?.[contactMethod];
     }, [loginList, contactMethod]);
@@ -166,7 +165,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
     }, [contactMethod, loginData?.partnerUserID, loginData?.validatedDate]);
 
     const getThreeDotsMenuItems = useCallback(() => {
@@ -324,7 +323,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         errors={getLatestErrorField(loginData, 'addedLogin')}
                         errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
                         onDismiss={() => {
-                            clearContactMethod(contactMethod);
+                            clearContactMethod([contactMethod]);
                             clearUnvalidatedNewContactMethodAction();
                             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
                         }}
@@ -349,7 +348,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             }
                             requestContactMethodValidateCode(contactMethod);
                         }}
-                        descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
+                        descriptionPrimary={translate('contacts.enterMagicCode', formattedContactMethod)}
                         ref={validateCodeFormRef}
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
