@@ -338,6 +338,7 @@
         "jsSrcsDir",
         "Kearny",
         "keyalg",
+        "keycap",
         "keycommand",
         "keyevent",
         "keypass",
@@ -736,6 +737,8 @@
         "Venmo",
         "viewability",
         "viewport",
+        "Unsharing",
+        "unsharing",
         "viewports",
         "VMPD",
         "voidings",
@@ -781,6 +784,7 @@
         "Yema",
         "yourcompany",
         "yourname",
+        "yalc",
         "YYMM",
         "zencdn",
         "Zenefit",
@@ -804,7 +808,8 @@
         "DYNAMICEXTERNAL",
         "RNCORE",
         "Wooo",
-        "Splittable"
+        "Splittable",
+        "pgrep"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

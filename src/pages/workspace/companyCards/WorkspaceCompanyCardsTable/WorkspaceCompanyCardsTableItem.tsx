@@ -126,7 +126,7 @@ function WorkspaceCompanyCardTableItem({
 
     return (
         <OfflineWithFeedback
-            errorRowStyles={styles.ph5}
+            errorRowStyles={[styles.ph5, styles.mb4]}
             errors={errors}
             pendingAction={pendingAction}
             onClose={resetFailedCompanyCardAssignment}
@@ -230,7 +230,7 @@ function WorkspaceCompanyCardTableItem({
                                 <Button
                                     success
                                     small={shouldUseNarrowTableLayout}
-                                    text={translate('workspace.companyCards.assign')}
+                                    text={shouldUseNarrowTableLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
                                     onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}
                                 />

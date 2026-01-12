@@ -248,6 +248,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const report = useMemo(
         () =>
             reportOnyx && {
+                created: reportOnyx.created,
                 hasParentAccess: reportOnyx.hasParentAccess,
                 lastReadTime: reportOnyx.lastReadTime,
                 reportID: reportOnyx.reportID,
@@ -461,7 +462,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const lastReportActionIDFromRoute = usePrevious(!firstRenderRef.current ? reportActionIDFromRoute : undefined);
 
     const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
@@ -508,15 +508,13 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 return false;
             }
 
-            // eslint-disable-next-line react-compiler/react-compiler
             if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
-                // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
 
             return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
     );
 
@@ -659,7 +657,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         };
 
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -667,7 +665,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // There should be only one openReport execution per page start or navigating
         fetchReport();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
     const prevReportActions = usePrevious(reportActions);
@@ -690,7 +688,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID]);
 
     useEffect(() => {
@@ -725,6 +723,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             (prevDeletedParentAction && !deletedParentAction)
         ) {
             const currentRoute = navigationRef.getCurrentRoute();
+            const topmostReportIDInSearchRHP = Navigation.getTopmostReportIDInSearchRHP();
+            const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
+            const isHoldScreenOpenInRHP =
+                currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
             const isReportDetailOpenInRHP =
                 isTopMostReportId &&
                 reportDetailScreens.find((r) => r === currentRoute?.name) &&
@@ -734,7 +736,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 reportIDFromRoute === currentRoute.params.reportID;
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
             // Prevent auto navigation for report in RHP
-            if ((!isFocused && !isReportDetailOpenInRHP) || isInNarrowPaneModal) {
+            if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {
                 return;
             }
             Navigation.dismissModal();
@@ -769,9 +771,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         }
 
         setShouldShowComposeInput(true);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
-        route,
+        route.name,
         report,
         prevReport?.reportID,
         prevUserLeavingStatus,
@@ -1047,6 +1049,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 reportTransactions={reportTransactions}
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
+                                                isInSidePanel={isInSidePanel}
                                             />
                                         ) : null}
                                     </View>
