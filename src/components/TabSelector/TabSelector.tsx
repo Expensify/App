@@ -1,5 +1,5 @@
 import {TabActions} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -21,19 +21,15 @@ function TabSelector({
     const icons = useMemoizedLazyExpensifyIcons(MEMOIZED_LAZY_TAB_SELECTOR_ICONS);
     const {translate} = useLocalize();
 
-    const tabs: TabSelectorBaseItem[] = useMemo(
-        () =>
-            state.routes.map((route) => {
-                const {icon, title, testID} = getIconTitleAndTestID(icons, route.name, translate);
-                return {
-                    key: route.name,
-                    icon,
-                    title,
-                    testID,
-                };
-            }),
-        [icons, state.routes, translate],
-    );
+    const tabs: TabSelectorBaseItem[] = state.routes.map((route) => {
+        const {icon, title, testID} = getIconTitleAndTestID(icons, route.name, translate);
+        return {
+            key: route.name,
+            icon,
+            title,
+            testID,
+        };
+    });
 
     const activeRouteName = state.routes[state.index]?.name ?? '';
 

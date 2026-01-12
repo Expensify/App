@@ -1,19 +1,21 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, Platform} from 'react-native';
+import type {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, View} from 'react-native';
+import {Animated} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import TabIcon from '@components/TabSelector/TabIcon';
+import TabLabel from '@components/TabSelector/TabLabel';
+import type {TabSelectorItemProps} from '@components/TabSelector/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import TabIcon from './TabIcon';
-import TabLabel from './TabLabel';
-import type {TabSelectorItemProps} from './types';
+import {ScrollableTabSelectorContext} from './ScrollableTabSelectorContext';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
 function ScrollableTabSelectorItem({
     icon,
+    tabKey,
     title = '',
     onPress = () => {},
     backgroundColor = '',
@@ -23,60 +25,29 @@ function ScrollableTabSelectorItem({
     shouldShowLabelWhenInactive = true,
     testID,
     equalWidth = false,
-    scrollViewRef,
-    parentX,
-    parentWidth,
-}: TabSelectorItemProps & {scrollViewRef: React.RefObject<RNScrollView | null>; parentX: number; parentWidth: number}) {
+}: TabSelectorItemProps & {tabKey: string}) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
 
-    const childRef = useRef<HTMLDivElement | View | null>(null);
-    const [x, setX] = useState(0);
-    const [width, setWidth] = useState(0);
-
-    const scrollToTab = (animated = true) => {
-        if (Platform.OS === 'web' && childRef.current && 'scrollIntoView' in childRef.current) {
-            childRef.current.scrollIntoView({block: 'nearest', behavior: 'smooth'});
-            return;
-        }
-
-        const leftSideCut = parentX > x;
-        const rightSideCut = x + width >= parentX + parentWidth - 20;
-        if (!leftSideCut && !rightSideCut) {
-            return;
-        }
-
-        if (rightSideCut) {
-            const rightSideCutLength = x + width - (parentWidth + parentX);
-            scrollViewRef.current?.scrollTo({x: parentX + rightSideCutLength + 20, animated});
-            return;
-        }
-
-        scrollViewRef.current?.scrollTo({x: x - 20, animated});
-    };
-
-    useEffect(() => {
-        if (!parentWidth || !isActive) {
-            return;
-        }
-
-        scrollToTab(false);
-    }, [parentWidth, isActive]);
+    const {onTabLayout, registerTab, scrollToTab} = useContext(ScrollableTabSelectorContext);
 
     return (
         <AnimatedPressableWithFeedback
-            ref={childRef}
+            ref={(ref: HTMLDivElement | View | null) => {
+                if (!ref) {
+                    return;
+                }
+
+                registerTab(tabKey, ref);
+            }}
             accessibilityLabel={title}
             style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
             wrapperStyle={[equalWidth ? styles.flex1 : styles.flexGrow1]}
             onPress={() => {
-                scrollToTab();
+                scrollToTab(tabKey);
                 onPress();
             }}
-            onWrapperLayout={(event) => {
-                setX(event.nativeEvent.layout.x);
-                setWidth(event.nativeEvent.layout.width);
-            }}
+            onWrapperLayout={(event) => onTabLayout(tabKey, event)}
             onHoverIn={() => setIsHovered(true)}
             onHoverOut={() => setIsHovered(false)}
             role={CONST.ROLE.BUTTON}

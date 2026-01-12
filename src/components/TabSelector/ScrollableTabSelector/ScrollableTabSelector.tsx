@@ -1,11 +1,12 @@
 import {TabActions} from '@react-navigation/native';
 import React from 'react';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
+import {getIconTitleAndTestID, MEMOIZED_LAZY_TAB_SELECTOR_ICONS} from '@components/TabSelector/getIconTitleAndTestID';
+import type {TabSelectorBaseItem, TabSelectorProps} from '@components/TabSelector/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import {getIconTitleAndTestID, MEMOIZED_LAZY_TAB_SELECTOR_ICONS} from './getIconTitleAndTestID';
 import ScrollableTabSelectorBase from './ScrollableTabSelectorBase';
-import type {TabSelectorBaseItem, TabSelectorProps} from './types';
+import ScrollableTabSelectorContextProvider from './ScrollableTabSelectorContext';
 
 function ScrollableTabSelector({
     state,
@@ -57,14 +58,16 @@ function ScrollableTabSelector({
 
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
-            <ScrollableTabSelectorBase
-                tabs={tabs}
-                activeTabKey={activeRouteName}
-                onTabPress={handleTabPress}
-                position={position}
-                shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                equalWidth={equalWidth}
-            />
+            <ScrollableTabSelectorContextProvider activeTabKey={activeRouteName}>
+                <ScrollableTabSelectorBase
+                    tabs={tabs}
+                    activeTabKey={activeRouteName}
+                    onTabPress={handleTabPress}
+                    position={position}
+                    shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
+                    equalWidth={equalWidth}
+                />
+            </ScrollableTabSelectorContextProvider>
         </FocusTrapContainerElement>
     );
 }

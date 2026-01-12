@@ -1,13 +1,14 @@
-import React, {useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
+import React, {useContext, useState} from 'react';
 import ScrollView from '@components/ScrollView';
+import getBackgroundColor from '@components/TabSelector/getBackground';
+import getOpacity from '@components/TabSelector/getOpacity';
+import type {TabSelectorBaseProps} from '@components/TabSelector/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getBackgroundColor from './getBackground';
-import getOpacity from './getOpacity';
+import {ScrollableTabSelectorContext} from './ScrollableTabSelectorContext';
 import ScrollableTabSelectorItem from './ScrollableTabSelectorItem';
-import type {TabSelectorBaseProps} from './types';
+
+const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
 
 /**
  * Navigation-agnostic tab selector UI that renders a row of ScrollableTabSelectorItem components.
@@ -27,29 +28,24 @@ function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, p
 
     const activeIndex = tabs.findIndex((tab) => tab.key === activeTabKey);
 
-    const scrollViewRef = useRef<RNScrollView>(null);
-
-    const [parentX, setParentX] = useState(0);
-    const [parentWidth, setParentWidth] = useState(0);
+    const {containerRef, onContainerLayout, onContainerScroll} = useContext(ScrollableTabSelectorContext);
 
     return (
         <ScrollView
-            onLayout={(event) => {
-                const width = event.nativeEvent.layout.width;
-                setParentWidth(width);
-            }}
-            scrollEventThrottle={16}
-            onScroll={(event) => {
-                const x = event.nativeEvent.contentOffset.x;
-                setParentX(x);
-            }}
-            ref={scrollViewRef}
+            scrollEventThrottle={MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+            onLayout={onContainerLayout}
+            onScroll={onContainerScroll}
+            ref={containerRef}
             style={styles.scrollableTabSelector}
             contentContainerStyle={{
                 paddingBottom: 12,
                 paddingHorizontal: 20,
             }}
             horizontal
+            contentOffset={{
+                x: 300,
+                y: 0,
+            }}
             showsHorizontalScrollIndicator={false}
         >
             {tabs.map((tab, index) => {
@@ -91,6 +87,7 @@ function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, p
                 return (
                     <ScrollableTabSelectorItem
                         key={tab.key}
+                        tabKey={tab.key}
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
@@ -98,12 +95,9 @@ function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, p
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
                         isActive={isActive}
-                        scrollViewRef={scrollViewRef}
                         testID={tab.testID}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                         equalWidth={equalWidth}
-                        parentX={parentX}
-                        parentWidth={parentWidth}
                     />
                 );
             })}
