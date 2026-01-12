@@ -159,6 +159,7 @@ import {
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
     isIOUReportUsingReport,
+    isMoneyRequest,
     isMoneyRequestReport,
     isOpenExpenseReport,
     isProcessingReport,
@@ -1940,7 +1941,7 @@ function handlePreexistingReport(report: Report) {
     }
 
     // Handle cleanup of stale optimistic IOU report and its report preview separately
-    if (isMoneyRequestReport(report) && parentReportActionID) {
+    if ((isMoneyRequestReport(report) || isMoneyRequest(report)) && parentReportActionID) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
             [parentReportActionID]: null,
         });
