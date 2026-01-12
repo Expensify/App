@@ -58,7 +58,7 @@ type HideContextMenu = (params?: HideContextMenuParams) => void;
 type ReportActionContextMenu = {
     showContextMenu: ShowContextMenu;
     hideContextMenu: HideContextMenu;
-    showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => Promise<void>;
+    showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
     hideDeleteModal: () => void;
     isActiveReportAction: (accountID: string | number) => boolean;
     instanceIDRef: RefObject<string>;
