@@ -6073,8 +6073,8 @@ describe('actions/IOU', () => {
                                     });
                                     resolve();
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                 },
                             });
                         }),
@@ -6094,8 +6094,8 @@ describe('actions/IOU', () => {
                                     expect(expenseReport?.stateNum).toBe(0);
                                     expect(expenseReport?.statusNum).toBe(0);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                 },
                             });
                         }),
@@ -6122,8 +6122,8 @@ describe('actions/IOU', () => {
                                     expect(expenseReport?.stateNum).toBe(2);
                                     expect(expenseReport?.statusNum).toBe(2);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                 },
                             });
                         }),
@@ -6165,8 +6165,8 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                     resolve();
                                 },
                             });
@@ -6268,8 +6268,8 @@ describe('actions/IOU', () => {
                                         stateNum: 0,
                                     });
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                     resolve();
                                 },
                             });
@@ -6314,8 +6314,8 @@ describe('actions/IOU', () => {
                                     // Report was submitted with some fail
                                     expect(expenseReport?.stateNum).toBe(0);
                                     expect(expenseReport?.statusNum).toBe(0);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
                                     resolve();
                                 },
                             });
@@ -6818,12 +6818,12 @@ describe('actions/IOU', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver.policyID}`, {id: invoiceReceiver.policyID, role: CONST.POLICY.ROLE.ADMIN});
 
-            expect(canIOUBePaid(iouReport, chatReport, policy, [], true)).toBe(true);
-            expect(canIOUBePaid(iouReport, chatReport, policy, [], false)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], true)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], false)).toBe(true);
 
             // When the invoice is archived
-            expect(canIOUBePaid(iouReport, chatReport, policy, [], true, chatReportRNVP)).toBe(false);
-            expect(canIOUBePaid(iouReport, chatReport, policy, [], false, chatReportRNVP)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], true, chatReportRNVP)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], false, chatReportRNVP)).toBe(false);
         });
     });
 
@@ -7699,7 +7699,7 @@ describe('actions/IOU', () => {
                 isWaitingOnBankAccount: true,
                 managerID: RORY_ACCOUNT_ID,
             };
-            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID})).toBeTruthy();
+            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID}, undefined)).toBeTruthy();
         });
     });
 
@@ -7729,8 +7729,8 @@ describe('actions/IOU', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], true)).toBeTruthy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, [], false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, [], true)).toBeTruthy();
         });
     });
 
@@ -11789,13 +11789,19 @@ describe('actions/IOU', () => {
         it('should return timestamp from CREATED action when it exists', async () => {
             const createdTimestamp = '2024-01-15 12:00:00.000';
             const report = createRandomReport(1, undefined);
-            const reportAction1 = createRandomReportAction(1);
-            const reportAction2 = {
-                ...createRandomReportAction(2),
+            const reportAction1 = {
+                ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 created: createdTimestamp,
             };
-            const reportAction3 = createRandomReportAction(3);
+            const reportAction2 = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            const reportAction3 = {
+                ...createRandomReportAction(3),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
@@ -11817,7 +11823,10 @@ describe('actions/IOU', () => {
                 ...createRandomReport(1, undefined),
                 created: reportCreatedTimestamp,
             };
-            const reportAction1 = createRandomReportAction(1);
+            const reportAction1 = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,

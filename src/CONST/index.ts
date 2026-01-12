@@ -1313,6 +1313,7 @@ const CONST = {
                     DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
                     DELETE_BUDGET: 'POLICYCHANGELOG_DELETE_BUDGET',
                     DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
+                    DELETE_CATEGORIES: 'POLICYCHANGELOG_DELETE_CATEGORIES',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
                     DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
                     DELETE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_SUB_RATE',
@@ -1714,6 +1715,10 @@ const CONST = {
         },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
+        ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',
+        ATTRIBUTE_IS_TRANSACTION_THREAD: 'is_transaction_thread',
+        ATTRIBUTE_REPORT_TYPE: 'report_type',
+        ATTRIBUTE_CHAT_TYPE: 'chat_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
@@ -7906,6 +7911,13 @@ const CONST = {
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
         },
+    },
+
+    DOMAIN: {
+        /** Onyx prefix for domain admin account IDs */
+        EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
+        /** Onyx prefix for domain security groups */
+        DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
     },
 } as const;
 

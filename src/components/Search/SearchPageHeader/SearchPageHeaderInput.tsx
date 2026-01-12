@@ -97,7 +97,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             return;
         }
         textInputRef.current.blur();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
 
@@ -126,7 +125,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             return;
         }
         setShowPopupButton(true);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
 
@@ -134,7 +132,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         onSearchRouterFocus?.();
         listRef.current?.updateAndScrollToFocusedIndex(0);
         setShowPopupButton(false);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

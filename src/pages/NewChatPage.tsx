@@ -323,6 +323,20 @@ function NewChatPage({ref}: NewChatPageProps) {
             selectionListRef.current?.focusTextInput();
         }
         setSelectedOptions(newSelectedOptions);
+
+        if (personalData?.login && personalData?.accountID) {
+            const participants: SelectedParticipant[] = [
+                ...newSelectedOptions.map((selectedOption) => ({
+                    login: selectedOption.login,
+                    accountID: selectedOption.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                })),
+                {
+                    login: personalData.login,
+                    accountID: personalData.accountID,
+                },
+            ];
+            setGroupDraft({participants});
+        }
     };
 
     /**
