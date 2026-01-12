@@ -13,10 +13,10 @@ type ListItemRightCaretWithLabelProps = {
 };
 
 function ListItemRightCaretWithLabel({labelText, shouldShowCaret = false}: ListItemRightCaretWithLabelProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     return (
         <View style={styles.flexRow}>
