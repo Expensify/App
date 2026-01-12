@@ -17,7 +17,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.CARD_FEED_ERRORS,
     dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER],
-    compute: ([globalCardList, allWorkspaceCards, failedCompanyCardAssignmentsPerFeed, companyCardFeedsPerWorkspaceAccountID]) => {
+    compute: ([globalCardList, allWorkspaceCards, failedCompanyCardAssignmentsPerFeed, cardFeeds]) => {
         // const [policyWorkspaceAccountIDMapping] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector: getPolicyWorkspaceAccountIDMapping});
 
         // const companyCardFeeds = new Map<{workspaceAccountID: number, feedName: CardFeed}, CardFeedData>();
@@ -46,7 +46,7 @@ export default createOnyxDerivedValueConfig({
 
             // const companyCardFeeds = companyCardFeedsPerWorkspaceAccountID?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
 
-            const combinedCompanyCardFeeds = getCombinedCardFeedsFromAllFeeds(companyCardFeedsPerWorkspaceAccountID);
+            const combinedCompanyCardFeeds = getCombinedCardFeedsFromAllFeeds(cardFeeds);
             const selectedFeed = combinedCompanyCardFeeds?.[feedName];
 
             const hasFailedCardAssignments = !isEmptyObject(

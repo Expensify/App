@@ -5,7 +5,8 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
@@ -18,7 +19,6 @@ import {
     isCard,
     isCardClosed,
     isCardHiddenFromSearch,
-    splitCompanyCardFeedWithDomainID,
 } from './CardUtils';
 import type {CompanyCardFeedIcons} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
@@ -511,43 +511,36 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
     return cardFeedsForDisplayPerPolicy;
 }
 
-function combineCardFeeds(feedName: CompanyCardFeedWithDomainID, feeds: CardFeeds | undefined) {
-    const {feedName: bankName, domainID} = splitCompanyCardFeedWithDomainID(feedName);
+function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | undefined) {
+    return Object.entries(allFeeds ?? {}).reduce<CombinedCardFeeds>((acc, [onyxKey, feeds]) => {
+        const domainID = Number(onyxKey.split('_').at(-1));
 
-    const feedSettings = feeds?.settings.companyCards?.[bankName];
+        const companyCards = feeds?.settings?.companyCards;
 
-    const shouldAddFeed = domainID && feedSettings?.preferredPolicy;
-
-    if (!shouldAddFeed) {
-        return undefined;
-    }
-
-    return {
-        ...feedSettings,
-        ...feeds?.settings.oAuthAccountDetails?.[bankName],
-        customFeedName: feeds?.settings.companyCardNicknames?.[bankName],
-        domainID: Number(domainID),
-        feed: bankName,
-    };
-}
-
-function getCombinedCardFeedsFromAllFeeds(allFeeds: Record<string, CardFeeds | undefined> | undefined) {
-    return Object.entries(allFeeds ?? {}).reduce<CombinedCardFeeds>((acc, [onyxKey, feed]) => {
-        if (!feed?.settings?.companyCards) {
+        if (!companyCards) {
             return acc;
         }
 
-        for (const key of Object.keys(feed.settings.companyCards)) {
-            const bankName = key as CompanyCardFeed;
-            const domainID = Number(onyxKey.split('_').at(-1));
-            const feedName = getCompanyCardFeedWithDomainID(bankName, domainID);
+        for (const feedName of Object.keys(companyCards) as CompanyCardFeedWithNumber[]) {
+            const feedSettings = companyCards?.[feedName];
+            const oAuthAccountDetails = feeds?.settings.oAuthAccountDetails?.[feedName];
+            const customFeedName = feeds?.settings.companyCardNicknames?.[feedName];
 
-            const newCardFeed = combineCardFeeds(key as CompanyCardFeedWithDomainID, feed);
-            if (!newCardFeed) {
+            const shouldAddFeed = domainID && feedSettings?.preferredPolicy;
+
+            if (!shouldAddFeed) {
                 continue;
             }
 
-            acc[feedName] = newCardFeed;
+            const combinedFeedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
+
+            acc[combinedFeedKey] = {
+                ...feedSettings,
+                ...oAuthAccountDetails,
+                customFeedName,
+                domainID,
+                feed: feedName,
+            };
         }
 
         return acc;
@@ -568,6 +561,5 @@ export {
     getDomainFeedData,
     getCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
-    combineCardFeeds,
     getCombinedCardFeedsFromAllFeeds,
 };

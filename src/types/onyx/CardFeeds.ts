@@ -7,11 +7,11 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Company card feed name */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
-/** Company card feed name with domain ID */
-type CompanyCardFeedWithDomainID = `${CompanyCardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
-
 /** Company card feed name with a number */
-type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}` | CompanyCardFeedWithDomainID;
+type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}`;
+
+/** Company card feed name with domain ID */
+type CompanyCardFeedWithDomainID = `${CompanyCardFeedWithNumber}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
 
 /**
  * Either a company card feed name or the Expensify card bank name.
@@ -144,7 +144,7 @@ type CardFeedData = CustomCardFeedData | DirectCardFeedData;
 type CompanyFeeds = Partial<Record<CompanyCardFeed, CardFeedData>>;
 
 /** Custom feed names */
-type CompanyCardNicknames = Partial<Record<CompanyCardFeed, string>>;
+type CompanyCardNicknames = Partial<Record<CompanyCardFeedWithNumber, string>>;
 
 /** Domain settings model */
 type DomainSettings = {
@@ -167,15 +167,15 @@ type DomainSettings = {
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
-    settings: {
+    settings?: {
         /** User-friendly feed nicknames */
         companyCardNicknames?: CompanyCardNicknames;
 
         /** Company cards feeds */
-        companyCards?: Partial<Record<CompanyCardFeed, CustomCardFeedData>>;
+        companyCards?: Partial<Record<CompanyCardFeedWithNumber, CustomCardFeedData>>;
 
         /** Account details */
-        oAuthAccountDetails?: Partial<Record<CompanyCardFeed, DirectCardFeedData>>;
+        oAuthAccountDetails?: Partial<Record<CompanyCardFeedWithNumber, DirectCardFeedData>>;
 
         /** Email address of the technical contact for the domain */
         technicalContactEmail?: string;
@@ -258,7 +258,7 @@ type CombinedCardFeed = CustomCardFeedData &
         customFeedName?: string;
 
         /** Feed name */
-        feed: CompanyCardFeed;
+        feed: CompanyCardFeedWithNumber;
     };
 
 /** Card feeds combined by domain ID into one object */
