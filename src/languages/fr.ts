@@ -1466,7 +1466,12 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `Du ${startDate} au ${endDate} (${count} jours)`,
         splitByDate: 'Scinder par date',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapport acheminé vers ${to} en raison d'un workflow d'approbation personnalisé`,
-        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} heures @ ${rate} / heure`, hrs: 'h', hours: 'Heures', ratePreview: (rate: string) => `${rate} / heure`},
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'heure' : 'heures'} @ ${rate} / heure`,
+            hrs: 'h',
+            hours: 'Heures',
+            ratePreview: (rate: string) => `${rate} / heure`,
+        },
     },
     transactionMerge: {
         listPage: {
