@@ -442,7 +442,7 @@ function MoneyRequestConfirmationList({
     // Clear the missingAttendees violation when category or attendees change (user fixed the issue)
     useEffect(() => {
         clearFormErrors(['violations.missingAttendees']);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want to run this when iouCategory or iouAttendees changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this when iouCategory or iouAttendees changes
     }, [iouCategory, iouAttendees]);
 
     useEffect(() => {
