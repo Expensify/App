@@ -2020,6 +2020,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.DOMAIN.ADMINS]: {
                     path: ROUTES.DOMAIN_ADMINS.route,
                 },
+                [SCREENS.DOMAIN.MEMBERS]: {
+                    path: ROUTES.DOMAIN_MEMBERS.route,
+                },
             },
         },
 

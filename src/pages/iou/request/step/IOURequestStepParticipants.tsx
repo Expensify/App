@@ -90,7 +90,7 @@ function IOURequestStepParticipants({
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, optimisticTransactions]);
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
@@ -408,7 +408,7 @@ function IOURequestStepParticipants({
             numberOfParticipants.current = 0;
         }
         // We don't want to clear out participants every time the transactions change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, action]);
 
     const isWorkspacesOnly = useMemo(() => {

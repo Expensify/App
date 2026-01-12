@@ -2714,10 +2714,11 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 
 function isPayer(
     currentAccountID: number | undefined,
-    currentUserEmailParm: string | undefined,
+    currentUserEmailParam: string | undefined,
     iouReport: OnyxEntry<Report>,
-    onlyShowPayElsewhere = false,
+    bankAccountList: OnyxEntry<BankAccountList>,
     reportPolicy?: OnyxInputOrEntry<Policy>,
+    onlyShowPayElsewhere = false,
 ) {
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
@@ -2731,9 +2732,15 @@ function isPayer(
                 return isAdmin;
             }
 
-            // If we are the reimburser and the report is approved or we are the manager then we can pay it.
-            const isReimburser = currentUserEmailParm === policy?.achAccount?.reimburser;
-            return isReimburser;
+            // If user is the reimburser, or a policy admin with access to the business bank account via sharees, they can pay.
+            const isReimburser = currentUserEmailParam === policy?.achAccount?.reimburser;
+
+            // Check if the current user has access to the bank account via sharees
+            const bankAccountID = policy?.achAccount?.bankAccountID;
+            const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
+            const hasAccessToBankAccount = currentUserEmailParam && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(currentUserEmailParam) : false;
+
+            return isReimburser || (isAdmin && hasAccessToBankAccount);
         }
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
             return isAdmin;
@@ -2860,7 +2867,7 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     return isManager && isExpenseReport(report) && isProcessingReport(report);
 }
 
-function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string, currentUserEmailParam: string) {
+function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string, currentUserEmailParam: string, bankAccountList: OnyxEntry<BankAccountList>) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2892,7 +2899,7 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
                 return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
             });
         const canSubmit = !hasAutoRejectedTransactionsForManager && canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam);
-        return canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmit;
+        return canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmit;
     });
 }
 
@@ -6906,19 +6913,12 @@ function getMovedTransactionMessage(action: ReportAction) {
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(report) ?? report?.reportName ?? '';
-    let reportUrl = getReportURLForCurrentContext(report?.reportID);
+    const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.movedTransactionTo', {
             reportUrl,
             reportName,
-        });
-    }
-    if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.movedUnreportedTransaction', {
-            reportUrl,
         });
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -7420,9 +7420,7 @@ function buildOptimisticTransactionAction(
     const isFromPersonalSpace = originalReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`]?.reportName ?? '';
     const url = isFromPersonalSpace ? getReportURLForCurrentContext(findSelfDMReportID()) : getReportURLForCurrentContext(originalReportID);
-    const [actionText, messageHtml] = isFromPersonalSpace
-        ? ['moved this expense from your personal space', `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>your personal space</a>`]
-        : [`moved this expense from ${reportName}`, `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
+    const [actionText, messageHtml] = [`moved this expense from ${reportName}`, `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
     return {
         actionName: type,
