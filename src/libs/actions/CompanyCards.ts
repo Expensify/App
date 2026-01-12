@@ -868,24 +868,6 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, b
         feed: bankName,
     };
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
-            value: {
-                settings: {
-                    companyCards: {
-                        [bankName]: {
-                            errors: {
-                                cardFetchError: 'Could not fetch card feed due to an error',
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters, {failureData});
 }
 
