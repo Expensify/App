@@ -1,20 +1,55 @@
+import { adminAccountIDsSelector, domainSettingsPrimaryContactSelector } from '@selectors/Domain';
 import React from 'react';
-import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@navigation/types';
+import type { OnyxEntry } from 'react-native-onyx';
+import MenuItem from '@components/MenuItem';
+import { ModalActions } from '@components/Modal/Global/ModalContext';
+import useConfirmModal from '@hooks/useConfirmModal';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import { getDisplayNameOrDefault } from '@libs/PersonalDetailsUtils';
+import Navigation from '@navigation/Navigation';
+import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
+import type { SettingsNavigatorParamList } from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
-import type {MemberDetailsMenuItem} from '@pages/domain/BaseDomainMemberDetailsComponent';
+import { revokeDomainAdminAccess } from '@userActions/Domain';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
+import type {PersonalDetailsList} from '@src/types/onyx';
+
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
 
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
 
-    /**
-    const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
-    const {showConfirmModal} = useConfirmModal();
+    const styles = useThemeStyles();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign'] as const);
 
+    const [primaryContact] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+        selector: domainSettingsPrimaryContactSelector,
+        canBeMissing: true,
+    });
+
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminAccountIDsSelector,
+    });
+
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const [adminPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
+    });
+
+    const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(adminPersonalDetails));
+    const memberLogin = adminPersonalDetails?.login ?? '';
+    const isCurrentUserPrimaryContact = primaryContact === memberLogin;
+
+    const {showConfirmModal} = useConfirmModal();
     const handleRevokeAdminAccess = async () => {
         const confirmResult = await showConfirmModal({
             title: translate('domain.admins.revokeAdminAccess'),
@@ -33,26 +68,22 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         Navigation.dismissModal();
     };
 
-    {!domainHasOnlyOneAdmin && (
-    <MenuItem
-    disabled={isCurrentUserPrimaryContact}
-    hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
-    style={styles.mb5}
-    title={translate('domain.admins.revokeAdminAccess')}
-    icon={icons.ClosedSign}
-    onPress={handleRevokeAdminAccess}
-    />
-    )}
-
-     */
-
-
     return (
         <BaseDomainMemberDetailsComponent
             domainAccountID={domainAccountID}
             accountID={accountID}
-            menuItems={getEmptyArray<MemberDetailsMenuItem>()}
-        />
+        >
+            {!domainHasOnlyOneAdmin && (
+                <MenuItem
+                    disabled={isCurrentUserPrimaryContact}
+                    hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
+                    style={styles.mb5}
+                    title={translate('domain.admins.revokeAdminAccess')}
+                    icon={icons.ClosedSign}
+                    onPress={handleRevokeAdminAccess}
+                />
+            )}
+        </BaseDomainMemberDetailsComponent>
     );
 }
 

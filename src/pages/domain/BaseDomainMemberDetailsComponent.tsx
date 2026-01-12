@@ -39,10 +39,10 @@ type BaseDomainMemberDetailsComponentProps = {
     accountID: number;
 
     /** List of additional fields (e.g., force 2FA) */
-    menuItems: MemberDetailsMenuItem[];
+    children: React.ReactNode;
 };
 
-function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems}: BaseDomainMemberDetailsComponentProps) {
+function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}: BaseDomainMemberDetailsComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info'] as const);
@@ -101,15 +101,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
                         copyable
                     />
 
-                    {menuItems.map((item) => (
-                        <MenuItem
-                            key={item.key}
-                            icon={item.icon}
-                            title={item.title}
-                            onPress={item.onPress}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                        />
-                    ))}
+                    {children}
 
                     <MenuItem
                         style={styles.mb5}
