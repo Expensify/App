@@ -22,7 +22,7 @@ import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
-import {filterPersonalCards, getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {filterCardsHiddenFromSearch, getCardDescription} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
@@ -255,10 +255,10 @@ function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, poli
         .join(', ');
 }
 
-function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList, translate: LocaleContextProps['translate']) {
+function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList | undefined, translate: LocaleContextProps['translate']) {
     const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
     const feedFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
-    const workspaceCardFeeds = Object.entries(cards).reduce<Record<string, WorkspaceCardsList>>((workspaceCardsFeed, [cardID, card]) => {
+    const workspaceCardFeeds = Object.entries(cards ?? {}).reduce<Record<string, WorkspaceCardsList>>((workspaceCardsFeed, [cardID, card]) => {
         const feedKey = `${createCardFeedKey(card.fundID, card.bank)}`;
         const workspaceFeedKey = getWorkspaceCardFeedKey(feedKey);
         /* eslint-disable no-param-reassign */
@@ -273,7 +273,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
         translate,
     });
 
-    const cardNames = Object.values(cards)
+    const cardNames = Object.values(cards ?? {})
         .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank)))
         .map((card) => getCardDescription(card));
 
@@ -542,9 +542,7 @@ function AdvancedSearchFilters() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: false});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
+    const [allCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: filterCardsHiddenFromSearch});
     const personalDetails = usePersonalDetails();
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -561,7 +559,7 @@ function AdvancedSearchFilters() {
         searchTerm: '',
         localeCompare,
     });
-
+    
     const {currentType, typeFiltersKeys} = useAdvancedSearchFilters();
 
     const queryString = useMemo(() => buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);

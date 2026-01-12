@@ -38,7 +38,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
 import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
-import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -105,9 +104,8 @@ function SearchFiltersBar({
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading} = useSearchContext();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [allCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
@@ -138,7 +136,6 @@ function SearchFiltersBar({
             }));
     }, [workspaces]);
 
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const hasMultipleOutputCurrency = useMemo(() => {
         const policies = Object.values(allPolicies ?? {}).filter((policy): policy is Policy => isPaidGroupPolicy(policy));

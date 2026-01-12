@@ -145,10 +145,10 @@ function isCardClosed(card: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
 }
 
-function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldExcludeCardHiddenFromSearch = false) {
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined) {
     const feedCards: CardList = {};
     for (const card of Object.values(cardList ?? {})) {
-        if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
+        if (!isCard(card)) {
             continue;
         }
 
@@ -157,13 +157,24 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
 
     for (const currentCardFeed of Object.values(workspaceFeeds ?? {})) {
         for (const card of Object.values(currentCardFeed ?? {})) {
-            if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
+            if (!isCard(card)) {
                 continue;
             }
             feedCards[card.cardID] = card;
         }
     }
     return feedCards;
+}
+
+function filterCardsHiddenFromSearch(cardList: CardList | undefined) {
+    const filteredCardList: CardList = {};
+    for (const currentCard of Object.values(cardList ?? {})) {
+        if (isCardHiddenFromSearch(currentCard)) {
+            continue;
+        }
+        filteredCardList[currentCard.cardID] = currentCard;
+    }
+    return filteredCardList;
 }
 
 /**
@@ -969,6 +980,7 @@ export {
     isMaskedCardNumberEqual,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
+    filterCardsHiddenFromSearch,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};

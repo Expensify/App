@@ -32,7 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {filterPersonalCards, getCompanyCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -227,9 +227,7 @@ function MoneyRequestView({
     const targetPolicyID = updatedTransaction?.reportID ? parentReport?.policyID : policyID;
     const allPolicyTags = usePolicyTags();
     const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
-    const [companyCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(companyCardList ?? CONST.EMPTY_OBJECT, cardList), [companyCardList, cardList]);
+    const [allCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);

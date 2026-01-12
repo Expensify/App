@@ -747,7 +747,7 @@ function buildFilterFormValuesFromQuery(
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    cardList: OnyxTypes.CardList,
+    cardList: OnyxTypes.CardList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
 ) {
@@ -793,7 +793,7 @@ function buildFilterFormValuesFromQuery(
             );
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList[card]);
+            filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList?.[card]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
             filtersForm[key as typeof filterKey] = filterValues.filter((feed) => feed);
@@ -1017,7 +1017,7 @@ function getFilterDisplayValue(
     filterValue: string,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
-    cardList: OnyxTypes.CardList,
+    cardList: OnyxTypes.CardList | undefined,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
@@ -1066,7 +1066,7 @@ function getDisplayQueryFiltersForKey(
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
-    cardList: OnyxTypes.CardList,
+    cardList: OnyxTypes.CardList | undefined,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
@@ -1197,7 +1197,7 @@ function buildUserReadableQueryString(
     PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
-    cardList: OnyxTypes.CardList,
+    cardList: OnyxTypes.CardList | undefined,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
