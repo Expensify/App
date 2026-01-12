@@ -1,4 +1,5 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useContext, useMemo, useState} from 'react';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
@@ -65,6 +66,7 @@ function useSelectedTransactionsActions({
     isOnSearch?: boolean;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -213,6 +215,11 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.Stopwatch,
                 value: UNHOLD,
                 onSelected: () => {
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+
                     for (const transactionID of selectedTransactionIDs) {
                         const action = getIOUActionForTransactionID(reportActions, transactionID);
                         if (!action?.childReportID) {
@@ -403,6 +410,8 @@ function useSelectedTransactionsActions({
         localeCompare,
         isOnSearch,
         login,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
     ]);
 
     return {
