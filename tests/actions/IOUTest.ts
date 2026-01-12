@@ -11784,13 +11784,19 @@ describe('actions/IOU', () => {
         it('should return timestamp from CREATED action when it exists', async () => {
             const createdTimestamp = '2024-01-15 12:00:00.000';
             const report = createRandomReport(1, undefined);
-            const reportAction1 = createRandomReportAction(1);
-            const reportAction2 = {
-                ...createRandomReportAction(2),
+            const reportAction1 = {
+                ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 created: createdTimestamp,
             };
-            const reportAction3 = createRandomReportAction(3);
+            const reportAction2 = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            const reportAction3 = {
+                ...createRandomReportAction(3),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
@@ -11812,7 +11818,10 @@ describe('actions/IOU', () => {
                 ...createRandomReport(1, undefined),
                 created: reportCreatedTimestamp,
             };
-            const reportAction1 = createRandomReportAction(1);
+            const reportAction1 = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
