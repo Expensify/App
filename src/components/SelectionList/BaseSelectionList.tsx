@@ -74,6 +74,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUseUserSkeletonView,
     shouldShowTooltips = true,
     shouldIgnoreFocus = false,
+    shouldShowRightCaret = false,
     shouldStopPropagation = false,
     shouldHeaderBeInsideList = false,
     shouldScrollToFocusedIndex = true,
@@ -123,10 +124,10 @@ function BaseSelectionList<TItem extends ListItem>({
                 if (isItemSelected(item) && (canSelectMultiple || acc.selectedOptions.length === 0)) {
                     acc.selectedOptions.push(item);
                 }
-                if (isItemDisabled) {
+                if (isItemDisabled || item?.isDisabledCheckbox) {
                     acc.disabledIndexes.push(idx);
 
-                    if (!item?.isDisabledCheckbox) {
+                    if (isItemDisabled) {
                         acc.disabledArrowKeyIndexes.push(idx);
                     }
                 }
@@ -375,6 +376,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
                     shouldStopMouseLeavePropagation={false}
+                    shouldShowRightCaret={shouldShowRightCaret}
                 />
             </View>
         );
@@ -453,7 +455,7 @@ function BaseSelectionList<TItem extends ListItem>({
             return;
         }
         setFocusedIndex(selectedItemIndex);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedItemIndex]);
 
     const prevSearchValue = usePrevious(textInputOptions?.value);
