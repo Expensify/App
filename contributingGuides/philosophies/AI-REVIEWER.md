@@ -7,6 +7,22 @@ This philosophy guides our approach to AI-assisted code and documentation review
 - **Smart Linter** - The code-inline-reviewer; a rule-based reviewer with predefined patterns
 - **Rule Violation** - Specific pattern that triggers rule-based reviewer feedback
 
+## Why We Use AI Reviewers
+
+AI reviewers serve several key purposes in our development workflow:
+
+### Scale human reviewer capacity
+With a high volume of PRs, human reviewers can't catch every detail. AI reviewers provide consistent, automated first-pass review that catches common issues before human review, allowing human reviewers to focus on architectural decisions, business logic, and nuanced feedback.
+
+### Enforce institutional knowledge consistently
+Performance patterns, coding standards, and documentation guidelines are often tribal knowledge. AI reviewers codify this knowledge into repeatable checks, ensuring every PR benefits from the same expertise regardless of which human reviewer is assigned.
+
+### Reduce review turnaround time
+Contributors get immediate feedback on common issues without waiting for human reviewer availability. This enables faster iteration cycles and reduces the back-and-forth that slows down PR merges.
+
+### Maintain quality at scale
+As the codebase and contributor base grow, AI reviewers help maintain consistent quality standards without linearly increasing human reviewer burden.
+
 ## Guiding Principles
 
 These are recommendations for working effectively with AI reviewers, not strict requirements.
