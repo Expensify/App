@@ -464,7 +464,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const lastReportActionIDFromRoute = usePrevious(!firstRender ? reportActionIDFromRoute : undefined);
 
     const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
@@ -511,9 +510,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 return false;
             }
 
-            // eslint-disable-next-line react-compiler/react-compiler
             if (!prevReport?.reportID && !firstRender && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
-                // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
 
