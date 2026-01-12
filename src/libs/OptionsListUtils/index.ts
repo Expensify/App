@@ -1966,7 +1966,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
-function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
+function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, policies: OnyxCollection<Policy>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
@@ -2046,7 +2046,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
             newReportOption.alternateText = translateLocal('workspace.common.workspace');
 
             if (report?.policyID) {
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
                 const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
@@ -2201,7 +2201,7 @@ function getValidOptions(
         [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
 
         if (selfDMChats.length > 0) {
-            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, {
+            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, policies, {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
@@ -2214,7 +2214,7 @@ function getValidOptions(
         if (maxRecentReportElements) {
             recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
         }
-        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, {
+        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, policies, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
@@ -2223,7 +2223,7 @@ function getValidOptions(
             shouldShowGBR,
         });
 
-        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, {
+        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policies, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
