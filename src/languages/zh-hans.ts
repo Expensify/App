@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -260,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         ok: 'OK',
         notNow: '现在不要',
         noThanks: '不用，谢谢',
+        unshare: '取消分享',
         learnMore: '了解更多',
         buttonConfirm: '明白了',
         name: '名称',
@@ -911,6 +913,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: '作为副驾驶用于',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `创建了此报表以汇总 <a href="${reportUrl}">${reportName}</a> 中无法按您选择的频率提交的所有费用`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `为来自 <a href="${reportUrl}">${reportName}</a> 的所有暂挂报销创建了此报表`,
     },
     mentionSuggestions: {
         hereAlternateText: '通知此对话中的所有人',
@@ -2078,6 +2082,11 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountEmptyTitle: '暂无管理员可用',
         shareBankAccountEmptyDescription: '没有可与您共享此银行账户的工作区管理员。',
         shareBankAccountNoAdminsSelected: '请先选择一位管理员再继续',
+        unshareBankAccount: '取消共享银行账户',
+        unshareBankAccountDescription: '以下所有用户均可访问此银行账户。您可以随时取消访问权限。我们仍将完成所有正在进行的付款。',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} 将失去对此企业银行账户的访问权限。我们仍将完成所有正在进行的付款。`,
+        reachOutForHelp: '此账户正在与 Expensify 卡一起使用。如果您需要取消共享，请联系礼宾部。',
+        unshareErrorModalTitle: '无法取消共享银行账户',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -7695,6 +7704,9 @@ ${reportName}
             addAdmin: '添加管理员',
             invite: '邀请',
             addAdminError: '无法将此成员添加为管理员。请重试。',
+            revokeAdminAccess: '撤销管理员访问权限',
+            cantRevokeAdminAccess: '无法撤销技术联系人的管理员访问权限',
+            error: {removeAdmin: '无法将此用户移除管理员角色。请重试。'},
         },
         members: {title: '成员', findMember: '查找成员'},
     },
