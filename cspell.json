@@ -784,6 +784,7 @@
         "Yema",
         "yourcompany",
         "yourname",
+        "yalc",
         "YYMM",
         "zencdn",
         "Zenefit",
@@ -807,7 +808,8 @@
         "DYNAMICEXTERNAL",
         "RNCORE",
         "Wooo",
-        "Splittable"
+        "Splittable",
+        "pgrep"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
