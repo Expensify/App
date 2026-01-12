@@ -32,7 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {getCompanyCardDescription} from '@libs/CardUtils';
+import {filterPersonalCards, getCompanyCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -51,14 +51,16 @@ import {
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
+    isExpenseReport,
     isInvoiceReport,
     isPaidGroupPolicy,
     isReportApproved,
@@ -74,6 +76,7 @@ import {
     getDescription,
     getDistanceInMeters,
     getFormattedCreated,
+    getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
     getTagArrayFromName,
@@ -87,8 +90,10 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
+    isTimeRequest as isTimeRequestTransactionUtils,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -193,6 +198,7 @@ function MoneyRequestView({
     }
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const isTimeRequest = isTimeRequestTransactionUtils(transaction);
 
     const [policiesWithPerDiem] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: perDiemPoliciesSelector,
@@ -221,7 +227,9 @@ function MoneyRequestView({
     const targetPolicyID = updatedTransaction?.reportID ? parentReport?.policyID : policyID;
     const allPolicyTags = usePolicyTags();
     const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [companyCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(companyCardList ?? CONST.EMPTY_OBJECT, cardList), [companyCardList, cardList]);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -262,13 +270,13 @@ function MoneyRequestView({
         billable: transactionBillable,
         category: transactionCategory,
         tag: transactionTag,
-        originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
     } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {};
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction, !!mergeTransactionID);
+    const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
@@ -282,9 +290,10 @@ function MoneyRequestView({
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
     const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (actualAttendees?.length ?? 1), actualCurrency) : '';
 
+    const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isManagedCardTransaction = isCardTransactionTransactionUtils(transaction);
-    const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);
+    const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, allCards);
     const shouldShowCard = isManagedCardTransaction && cardProgramName;
 
     const taxRates = policy?.taxRates;
@@ -298,7 +307,7 @@ function MoneyRequestView({
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
 
-    const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
+    const isSettled = isSettledReportUtils(moneyRequestReport);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const pendingAction = transaction?.pendingAction;
@@ -363,7 +372,7 @@ function MoneyRequestView({
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -443,26 +452,15 @@ function MoneyRequestView({
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
-    } else {
-        if (!isDistanceRequest && !isPerDiemRequest) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
-        }
-        if (isCancelled) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
-        } else if (isApproved) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (shouldShowPaid) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
-        }
+    } else if (isCancelled) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
+    } else if (isApproved) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
+    } else if (shouldShowPaid) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
     }
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
-    }
-    if (currency !== moneyRequestReport?.currency && !isManagedCardTransaction) {
-        const convertedAmount = isPaidGroupPolicy(moneyRequestReport) ? -(transaction?.convertedAmount ?? 0) : (transaction?.convertedAmount ?? 0);
-        if (convertedAmount) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(convertedAmount, moneyRequestReport?.currency)}`;
-        }
     }
 
     if (isFromMergeTransaction) {
@@ -548,8 +546,21 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit) {
+                        if (isExpenseSplit && isSplitAvailable) {
                             initSplitExpense(allTransactions, allReports, transaction);
+                            return;
+                        }
+
+                        if (isOdometerDistanceRequest) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    iouType,
+                                    transaction.transactionID,
+                                    transactionThreadReport.reportID,
+                                    getReportRHPActiveRoute(),
+                                ),
+                            );
                             return;
                         }
 
@@ -592,7 +603,7 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit) {
+                        if (isExpenseSplit && isSplitAvailable) {
                             initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
@@ -723,6 +734,7 @@ function MoneyRequestView({
         );
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
@@ -781,7 +793,7 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (isExpenseSplit) {
+                            if (isExpenseSplit && isSplitAvailable) {
                                 initSplitExpense(allTransactions, allReports, transaction);
                                 return;
                             }
@@ -831,7 +843,7 @@ function MoneyRequestView({
                         copyable={!!descriptionCopyValue}
                     />
                 </OfflineWithFeedback>
-                {isManualDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
+                {isManualDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>

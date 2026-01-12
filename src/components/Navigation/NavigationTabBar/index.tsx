@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FloatingCameraButton from '@components/FloatingCameraButton';
-import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
 // import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -252,7 +251,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     style={styles.leftNavigationTabBarContainer}
                     testID="NavigationTabBar"
                 >
-                    <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
                             accessibilityRole={CONST.ROLE.BUTTON}
