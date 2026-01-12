@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
@@ -61,7 +60,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     };
 
     const getCustomRowProps = (accountID: number) => ({
-        errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
+        errors: domainErrors?.adminErrors?.[accountID]?.errors,
         pendingAction: domainPendingAction?.[accountID]?.pendingAction,
     });
 
@@ -84,11 +83,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             />
         </>
     ) : null;
-
-    // const isPendingActionDelete = domainPendingAction?.[accountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    // pendingAction: domainPendingAction?.[accountID]?.pendingAction,
-    //             isInteractive: !isPendingActionDelete,
-    //             isDisabled: isPendingActionDelete,
 
     return (
         <BaseDomainMembersPage
