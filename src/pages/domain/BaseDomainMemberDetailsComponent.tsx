@@ -20,16 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
-
-type MemberDetailsMenuItem = {
-    key: string;
-    title: string;
-    icon: IconAsset;
-    onPress: () => void | Promise<void>;
-    shouldShowRightIcon?: boolean;
-};
 
 type BaseDomainMemberDetailsComponentProps = {
     /** Domain ID */
@@ -118,5 +109,4 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}
 
 BaseDomainMemberDetailsComponent.displayName = 'BaseDomainMemberDetailsComponent';
 
-export type {MemberDetailsMenuItem};
 export default BaseDomainMemberDetailsComponent;
