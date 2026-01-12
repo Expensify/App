@@ -7707,6 +7707,7 @@ ${reportName}
             cantRevokeAdminAccess: '无法撤销技术联系人的管理员访问权限',
             error: {removeAdmin: '无法将此用户移除管理员角色。请重试。'},
         },
+        members: {title: '成员', findMember: '查找成员'},
     },
     gps: {
         tooltip: 'GPS 跟踪进行中！完成后，请在下方停止跟踪。',

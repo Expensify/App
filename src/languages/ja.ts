@@ -7852,6 +7852,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             cantRevokeAdminAccess: '技術連絡先から管理者アクセス権を取り消すことはできません',
             error: {removeAdmin: 'このユーザーを管理者として削除できません。もう一度お試しください。'},
         },
+        members: {title: 'メンバー', findMember: 'メンバーを検索'},
     },
     gps: {
         tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',

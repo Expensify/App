@@ -7890,6 +7890,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             cantRevokeAdminAccess: 'Não é possível revogar o acesso de administrador do contato técnico',
             error: {removeAdmin: 'Não foi possível remover este usuário como Administrador. Tente novamente.'},
         },
+        members: {title: 'Membros', findMember: 'Encontrar membro'},
     },
     gps: {
         tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',

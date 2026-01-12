@@ -7883,6 +7883,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             cantRevokeAdminAccess: 'Nie można odebrać uprawnień administratora kontaktowi technicznemu',
             error: {removeAdmin: 'Nie można usunąć tego użytkownika jako administratora. Spróbuj ponownie.'},
         },
+        members: {title: 'Członkowie', findMember: 'Znajdź członka'},
     },
     gps: {
         tooltip: 'Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.',

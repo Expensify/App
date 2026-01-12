@@ -7936,6 +7936,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             cantRevokeAdminAccess: 'Impossible de révoquer l’accès administrateur au contact technique',
             error: {removeAdmin: 'Impossible de supprimer cet utilisateur en tant qu’administrateur. Veuillez réessayer.'},
         },
+        members: {title: 'Membres', findMember: 'Rechercher un membre'},
     },
     gps: {
         tooltip: 'Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.',

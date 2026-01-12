@@ -7903,6 +7903,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             cantRevokeAdminAccess: 'Kan de beheerdersrechten niet intrekken van de technische contactpersoon',
             error: {removeAdmin: 'Kan deze gebruiker niet als beheerder verwijderen. Probeer het opnieuw.'},
         },
+        members: {title: 'Leden', findMember: 'Lid zoeken'},
     },
     gps: {
         tooltip: 'GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.',

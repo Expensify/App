@@ -8008,6 +8008,10 @@ ${amount} para ${merchant} - ${date}`,
             cantRevokeAdminAccess: 'No se puede revocar el acceso de administrador del contacto técnico',
             error: {removeAdmin: 'No se pudo eliminar a este usuario como administrador. Por favor, inténtalo de nuevo.'},
         },
+        members: {
+            title: 'Miembros',
+            findMember: 'Buscar miembro',
+        },
     },
     gps: {
         tooltip: '¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.',

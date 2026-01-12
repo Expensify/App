@@ -7932,6 +7932,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             cantRevokeAdminAccess: 'Adminzugriff kann dem technischen Ansprechpartner nicht entzogen werden',
             error: {removeAdmin: 'Dieser Benutzer kann nicht als Admin entfernt werden. Bitte versuchen Sie es erneut.'},
         },
+        members: {title: 'Mitglieder', findMember: 'Mitglied suchen'},
     },
     gps: {
         tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',
