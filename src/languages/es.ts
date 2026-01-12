@@ -861,7 +861,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}) => `movió este gasto${reportName ? ` desde <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}) => `movió este gasto desde tu <a href="${reportUrl}">espacio personal</a>`,
         unreportedTransaction: ({reportUrl}) => `movió este gasto a tu <a href="${reportUrl}">espacio personal</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}) => {
             if (shouldHideMovedReportUrl) {
@@ -8009,6 +8008,10 @@ ${amount} para ${merchant} - ${date}`,
             cantRevokeAdminAccess: 'No se puede revocar el acceso de administrador del contacto técnico',
             error: {removeAdmin: 'No se pudo eliminar a este usuario como administrador. Por favor, inténtalo de nuevo.'},
         },
+        members: {
+            title: 'Miembros',
+            findMember: 'Buscar miembro',
+        },
     },
     gps: {
         tooltip: '¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.',
@@ -8036,6 +8039,19 @@ ${amount} para ${merchant} - ${date}`,
         zeroDistanceTripModal: {
             title: 'No se puede crear el gasto',
             prompt: 'No puedes crear un gasto con la misma ubicación de inicio y fin.',
+        },
+        locationRequiredModal: {
+            title: 'Se requiere acceso a la ubicación',
+            prompt: 'Por favor, permite el acceso a la ubicación en la configuración de tu dispositivo para iniciar el seguimiento de distancia por GPS.',
+            allow: 'Permitir',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Se requiere acceso a la ubicación en segundo plano',
+            prompt: 'Por favor, permite el acceso a la ubicación en segundo plano en la configuración de tu dispositivo (opción "Permitir solo con la app en uso") para iniciar el seguimiento de distancia por GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Se requiere ubicación precisa',
+            prompt: 'Por favor, habilita la "ubicación precisa" en la configuración de tu dispositivo para iniciar el seguimiento de distancia por GPS.',
         },
         desktop: {
             title: 'Registra la distancia en tu teléfono',
