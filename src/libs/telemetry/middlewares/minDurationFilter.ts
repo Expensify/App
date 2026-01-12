@@ -1,15 +1,24 @@
 import CONST from '@src/CONST';
 import type {TelemetryBeforeSend} from './index';
 
+function isValidMinDuration(value: unknown): value is number {
+    return typeof value === 'number' && !Number.isNaN(value);
+}
+
+function calculateDuration(startTimestamp: number, endTimestamp: number): number {
+    return (endTimestamp - startTimestamp) * 1000;
+}
+
 const minDurationFilter: TelemetryBeforeSend = (event) => {
     // Check if the transaction (event) itself has a min_duration requirement
-    const eventMinDuration = event.contexts?.trace?.data?.[CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION] as number;
-    if (eventMinDuration && !Number.isNaN(eventMinDuration)) {
-        if (event.timestamp && event.start_timestamp) {
-            const eventDuration = (event.timestamp - event.start_timestamp) * 1000;
-            if (eventDuration < eventMinDuration) {
-                return null; // Drop the entire event
-            }
+    const eventMinDuration = event.contexts?.trace?.data?.[CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION] as number | undefined;
+
+    if (isValidMinDuration(eventMinDuration)) {
+        const eventDuration = calculateDuration(event.start_timestamp ?? 0, event.timestamp ?? 0);
+
+        // if the main transaction (event) has min_duration requirements, it means that this is a root span, and we should filter it out if it's too short
+        if (eventDuration < eventMinDuration) {
+            return null;
         }
     }
 
@@ -17,20 +26,22 @@ const minDurationFilter: TelemetryBeforeSend = (event) => {
         return event;
     }
 
-    // Check if transaction's spans have a min_duration requirement
+    // Filter spans based on their individual min_duration requirements
     const spans = event.spans.filter((span) => {
         const minDuration = span.data?.[CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION];
-        if (!minDuration || typeof minDuration !== 'number' || Number.isNaN(minDuration)) {
+
+        if (!isValidMinDuration(minDuration)) {
             return true;
         }
+
         if (!span.timestamp) {
             return true;
         }
-
-        const duration = (span.timestamp - span.start_timestamp) * 1000;
+        const duration = calculateDuration(span.start_timestamp, span.timestamp);
 
         return duration >= minDuration;
     });
+
     return {...event, spans};
 };
 
