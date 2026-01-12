@@ -1561,25 +1561,33 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  */
 function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
-    if (childReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
-    } else {
-        const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(parentReportAction.actorAccountID)])];
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-        // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
-        const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
-        const newChat = buildOptimisticChatReport({
-            participantList: participantAccountIDs,
-            reportName: ReportActionsUtils.getReportActionText(parentReportAction),
-            chatType: childReportChatType,
-            policyID: parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
-            ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-            oldPolicyName: parentReport?.policyName ?? '',
-            notificationPreference: getChildReportNotificationPreference(parentReportAction),
-            parentReportActionID: parentReportAction.reportActionID,
-            parentReportID,
-            optimisticReportID: childReportID,
-        });
+    const reportID = childReport?.reportID ?? buildOptimisticChildReport(childReportID, parentReportAction, parentReportID).reportID;
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, Navigation.getActiveRoute()));
+}
+
+/**
+ * Builds an optimistic child report and returns it without checking for existing reports.
+ *
+ * If childReportID is not provided, this function creates an optimistic report and calls
+ * openReport() so the optimistic data is available when navigating to the thread.
+ */
+function buildOptimisticChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string): Report {
+    const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(parentReportAction.actorAccountID)])];
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
+    const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
+    const newChat = buildOptimisticChatReport({
+        participantList: participantAccountIDs,
+        reportName: ReportActionsUtils.getReportActionText(parentReportAction),
+        chatType: childReportChatType,
+        policyID: parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
+        ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        oldPolicyName: parentReport?.policyName ?? '',
+        notificationPreference: getChildReportNotificationPreference(parentReportAction),
+        parentReportActionID: parentReportAction.reportActionID,
+        parentReportID,
+        optimisticReportID: childReportID,
+    });
 
     if (!childReportID) {
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
