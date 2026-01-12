@@ -312,7 +312,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     if (!popoverAnchorRefs?.current) {
                                         return;
                                     }
-                                    // eslint-disable-next-line react-compiler/react-compiler
                                     popoverAnchorRefs.current[integration].current = ref;
                                 }}
                             />
@@ -577,7 +576,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 <FormHelpMessage
                                     isError
                                     style={styles.menuItemError}
-                                    message={translate('workspace.accounting.errorODIntegration', {oldDotPolicyConnectionsURL})}
+                                    message={translate('workspace.accounting.errorODIntegration', oldDotPolicyConnectionsURL)}
                                     shouldRenderMessageAsHTML
                                 />
                             )}

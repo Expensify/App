@@ -63,6 +63,6 @@ export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: G
         return () => {
             unsubscribe();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isActive, callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers.join(), shortcut.shortcutKey, shouldBubble, shouldPreventDefault]);
 }
