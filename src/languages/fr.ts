@@ -1133,7 +1133,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `a déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `a déplacé cette dépense${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `a déplacé cette dépense depuis votre <a href="${reportUrl}">espace personnel</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `a déplacé cette dépense dans votre <a href="${reportUrl}">espace personnel</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -7937,6 +7936,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             cantRevokeAdminAccess: 'Impossible de révoquer l’accès administrateur au contact technique',
             error: {removeAdmin: 'Impossible de supprimer cet utilisateur en tant qu’administrateur. Veuillez réessayer.'},
         },
+        members: {title: 'Membres', findMember: 'Rechercher un membre'},
     },
     gps: {
         tooltip: 'Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.',
@@ -7959,6 +7959,19 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             confirm: 'Ignorer le suivi de la distance',
         },
         zeroDistanceTripModal: {title: 'Impossible de créer la dépense', prompt: 'Vous ne pouvez pas créer une dépense avec le même lieu de départ et d’arrivée.'},
+        locationRequiredModal: {
+            title: 'Accès à la localisation requis',
+            prompt: 'Veuillez autoriser l’accès à la localisation dans les paramètres de votre appareil pour lancer le suivi de distance GPS.',
+            allow: 'Autoriser',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Accès à la position en arrière-plan requis',
+            prompt: 'Veuillez autoriser l’accès à la localisation en arrière-plan dans les paramètres de votre appareil (option « Autoriser tout le temps ») pour démarrer le suivi de distance par GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Emplacement précis requis',
+            prompt: 'Veuillez activer la « localisation précise » dans les paramètres de votre appareil pour commencer le suivi de distance GPS.',
+        },
         desktop: {
             title: 'Suivez la distance sur votre téléphone',
             subtitle: 'Enregistrez automatiquement les miles ou kilomètres avec le GPS et transformez instantanément vos trajets en dépenses.',
