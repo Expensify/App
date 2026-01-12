@@ -696,11 +696,6 @@ function getZWNJCursorOffset(text: string, cursorPosition: number | undefined | 
     return textWithZWNJBeforeCursor.length - textBeforeCursor.length;
 }
 
-function isEmojiOnSeparateLine(line: string) {
-    const trimmed = line.replaceAll(/<br\s*\/?>/gi, '').trim();
-    return /^<emoji>.*<\/emoji>$/.test(trimmed);
-}
-
 export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
@@ -730,5 +725,4 @@ export {
     processFrequentlyUsedEmojis,
     insertZWNJBetweenDigitAndEmoji,
     getZWNJCursorOffset,
-    isEmojiOnSeparateLine,
 };

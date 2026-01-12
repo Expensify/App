@@ -5,7 +5,6 @@ import {AttachmentContext} from '@components/AttachmentContext';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,6 +15,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -46,6 +46,7 @@ type TaskViewProps = {
 };
 
 function TaskView({report, parentReport, action}: TaskViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -159,7 +160,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 <View style={styles.taskRightIconContainer}>
                                                     <Icon
                                                         additionalStyles={[styles.alignItemsCenter]}
-                                                        src={Expensicons.ArrowRight}
+                                                        src={icons.ArrowRight}
                                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
                                                     />
                                                 </View>

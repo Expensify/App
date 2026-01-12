@@ -6,7 +6,7 @@ import {setSupportAuthToken} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
- * This is used to inject development/debugging utilities into the window object on web and desktop.
+ * This is used to inject development/debugging utilities into the window object on web.
  * We do this only on non-production builds - these should not be used in any application code.
  */
 export default function addUtilsToWindow() {

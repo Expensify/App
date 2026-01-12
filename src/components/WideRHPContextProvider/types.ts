@@ -32,7 +32,7 @@ type WideRHPContextType = {
     removeSuperWideRHPRouteKey: (route: NavigationRoute) => void;
 
     // Mark reportID as expense before condition check
-    markReportIDAsExpense: (reportID: string) => void;
+    markReportIDAsExpense: (reportID?: string) => void;
 
     // Mark reportID as multi-transaction expense before condition check
     markReportIDAsMultiTransactionExpense: (reportID: string) => void;
@@ -48,6 +48,9 @@ type WideRHPContextType = {
 
     // Whether the currently focused route is inside the wide RHP set
     isWideRHPFocused: boolean;
+
+    // Whether the currently focused route is inside the super wide RHP set
+    isSuperWideRHPFocused: boolean;
 
     // Sync super wide and wide RHP keys with the visible RHP screens
     syncRHPKeys: () => void;
