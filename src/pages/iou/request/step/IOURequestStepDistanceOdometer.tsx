@@ -63,7 +63,7 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepDistanceOdometer({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo, backToReport},
+        params: {action, iouType, reportID, transactionID, backToReport},
     },
     transaction,
     startOfFlow = false,
@@ -297,7 +297,7 @@ function IOURequestStepDistanceOdometer({
             Navigation.goBack(confirmationRoute);
             return;
         }
-        Navigation.goBack(backTo);
+        Navigation.goBack();
     };
 
     // Navigate to next page following Manual tab pattern
