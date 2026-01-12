@@ -312,7 +312,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     if (!popoverAnchorRefs?.current) {
                                         return;
                                     }
-                                    // eslint-disable-next-line react-compiler/react-compiler
                                     popoverAnchorRefs.current[integration].current = ref;
                                 }}
                             />
@@ -515,7 +514,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [chatTextLink, chatReportID] = useMemo(() => {
         // If they have an onboarding specialist assigned display the following and link to the #admins room with the setup specialist.
         if (policy?.chatReportIDAdmins) {
-            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins];
+            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins?.toString()];
         }
 
         // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
@@ -577,7 +576,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 <FormHelpMessage
                                     isError
                                     style={styles.menuItemError}
-                                    message={translate('workspace.accounting.errorODIntegration', {oldDotPolicyConnectionsURL})}
+                                    message={translate('workspace.accounting.errorODIntegration', oldDotPolicyConnectionsURL)}
                                     shouldRenderMessageAsHTML
                                 />
                             )}

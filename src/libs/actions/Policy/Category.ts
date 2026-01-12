@@ -11,7 +11,6 @@ import type {
     OpenPolicyCategoriesPageParams,
     RemovePolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryApproverParams,
-    SetPolicyCategoryAttendeesRequiredParams,
     SetPolicyCategoryDescriptionRequiredParams,
     SetPolicyCategoryMaxAmountParams,
     SetPolicyCategoryReceiptsRequiredParams,
@@ -487,68 +486,6 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED, parameters, onyxData);
-}
-
-function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: string, areAttendeesRequired: boolean, policyCategories: PolicyCategories = {}) {
-    const policyCategoryToUpdate = policyCategories?.[categoryName];
-    const originalAreAttendeesRequired = policyCategoryToUpdate?.areAttendeesRequired;
-
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        pendingFields: {
-                            areAttendeesRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        areAttendeesRequired,
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        pendingAction: null,
-                        pendingFields: {
-                            areAttendeesRequired: null,
-                        },
-                        areAttendeesRequired,
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                        pendingAction: null,
-                        pendingFields: {
-                            areAttendeesRequired: null,
-                        },
-                        areAttendeesRequired: originalAreAttendeesRequired,
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters: SetPolicyCategoryAttendeesRequiredParams = {
-        policyID,
-        categoryName,
-        areAttendeesRequired,
-    };
-
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ATTENDEES_REQUIRED, parameters, onyxData);
 }
 
 function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoReceipt: number) {
@@ -1245,7 +1182,7 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
 }
 
 function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: string, oldCategory: string | undefined, category: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1260,7 +1197,7 @@ function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: stri
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1274,7 +1211,7 @@ function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: stri
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1597,7 +1534,6 @@ export {
     removePolicyCategoryReceiptsRequired,
     renamePolicyCategory,
     setPolicyCategoryApprover,
-    setPolicyCategoryAttendeesRequired,
     setPolicyCategoryDescriptionRequired,
     buildOptimisticPolicyWithExistingCategories,
     setPolicyCategoryGLCode,

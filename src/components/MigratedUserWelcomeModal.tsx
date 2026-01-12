@@ -3,7 +3,7 @@ import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
-// import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,6 +26,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
@@ -38,7 +39,7 @@ function MigratedUserWelcomeModal() {
     const [isModalDisabled, setIsModalDisabled] = useState(true);
     const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
-    // const illustrations = useMemoizedLazyIllustrations(['MagnifyingGlassReceipt', 'ConciergeBot', 'ChatBubbles']);
+    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
@@ -52,11 +53,11 @@ function MigratedUserWelcomeModal() {
                 translationKey: 'migratedUserWelcomeModal.features.concierge',
             },
             {
-                icon: Illustrations.ChatBubbles,
+                icon: illustrations.ChatBubbles,
                 translationKey: 'migratedUserWelcomeModal.features.chat',
             },
         ],
-        [],
+        [illustrations.ChatBubbles],
     );
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
@@ -113,6 +114,7 @@ function MigratedUserWelcomeModal() {
             contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
             modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
             isModalDisabled={isModalDisabled}
+            shouldUseScrollView
         >
             <View
                 style={[styles.gap3, styles.pt1, styles.pl1]}

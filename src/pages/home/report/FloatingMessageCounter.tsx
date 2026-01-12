@@ -3,8 +3,8 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +25,7 @@ const MARKER_INACTIVE_TRANSLATE_Y = -40;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
 function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMessages}: FloatingMessageCounterProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -71,7 +72,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <Icon
                                 small
-                                src={Expensicons.DownArrow}
+                                src={icons.DownArrow}
                                 fill={hasNewMessages ? theme.textLight : theme.icon}
                             />
 
@@ -88,5 +89,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
         </Animated.View>
     );
 }
+
+FloatingMessageCounter.displayName = 'FloatingMessageCounter';
 
 export default React.memo(FloatingMessageCounter);

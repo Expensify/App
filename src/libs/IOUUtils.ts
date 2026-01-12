@@ -32,6 +32,9 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
         case CONST.IOU.REQUEST_TYPE.DISTANCE_GPS:
             Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
             break;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER:
+            Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            break;
         case CONST.IOU.REQUEST_TYPE.SCAN:
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
             break;
@@ -97,13 +100,18 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
  * Calculate a split amount in backend cents from a percentage of the original amount.
  * - Clamps percentage to [0, 100]
  * - Preserves decimal precision in percentage (supports 0.1 precision)
- * - Uses absolute value of the total amount (cents)
+ * - Preserves the sign of the original amount (negative amounts stay negative)
  */
 function calculateSplitAmountFromPercentage(totalInCents: number, percentage: number): number {
     const totalAbs = Math.abs(totalInCents);
     // Clamp percentage to [0, 100] without rounding to preserve decimal precision
     const clamped = Math.min(100, Math.max(0, percentage));
-    return Math.round((totalAbs * clamped) / 100);
+    const amount = Math.round((totalAbs * clamped) / 100);
+    // Return 0 for zero amounts to avoid -0
+    if (amount === 0) {
+        return 0;
+    }
+    return totalInCents < 0 ? -amount : amount;
 }
 
 /**
