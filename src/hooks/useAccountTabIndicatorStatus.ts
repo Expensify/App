@@ -36,7 +36,7 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
 
     const {cardFeedErrors} = useCardFeedErrors();
-    const workspaceAccountIDWithErrors = Object.entries(cardFeedErrors ?? {}).find(([, feeds]) => Object.values(feeds).some((feed) => feed.shouldShowRBR))?.[0];
+    const hasCompanyCardErrors = Object.entries(cardFeedErrors ?? {}).find(([, feeds]) => Object.values(feeds).some((feed) => feed.shouldShowRBR)) !== undefined;
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
@@ -58,7 +58,7 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
             fundList,
             billingStatus,
         ),
-        [CONST.INDICATOR_STATUS.HAS_COMPANY_CARD_ERRORS]: !!workspaceAccountIDWithErrors,
+        [CONST.INDICATOR_STATUS.HAS_COMPANY_CARD_ERRORS]: hasCompanyCardErrors,
     };
 
     const infoChecking: Partial<Record<AccountTabIndicatorStatus, boolean>> = {
