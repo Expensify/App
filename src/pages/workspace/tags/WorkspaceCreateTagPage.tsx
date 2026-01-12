@@ -31,7 +31,8 @@ type WorkspaceCreateTagPageProps =
 
 function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const policyID = route.params.policyID;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const policyData = usePolicyData(policyID);
+    const {tags: policyTagLists} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -42,7 +43,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = escapeTagName(values.tagName.trim());
-            const {tags} = getTagList(policyTags, 0);
+            const {tags} = getTagList(policyTagLists, 0);
 
             if (!isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
@@ -60,7 +61,6 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         [policyTags, translate],
     );
 
-    const policyData = usePolicyData(policyID);
 
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -68,7 +68,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             Keyboard.dismiss();
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
         },
-        [policyID, policyTags, isQuickSettingsFlow, backTo],
+        [policyID, policyData, isQuickSettingsFlow, backTo],
     );
 
     return (

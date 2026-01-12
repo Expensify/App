@@ -24,12 +24,13 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {PolicyData} from '@hooks/usePolicyData/types';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import PolicyData from '@hooks/usePolicyData/types';
 
 OnyxUpdateManager();
 
