@@ -28,17 +28,13 @@ export default createOnyxDerivedValueConfig({
         function addErrorsForCard(card: Card) {
             const bankName = card.bank as CompanyCardFeedWithNumber;
             const workspaceAccountID = Number(card.fundID);
-            const feedName = getCompanyCardFeedWithDomainID(bankName, workspaceAccountID);
-
-            // const cardFeedCards = allWorkspaceCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`];
-
-            // const companyCardFeeds = companyCardFeedsPerWorkspaceAccountID?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
+            const feedNameWithDomainID = getCompanyCardFeedWithDomainID(bankName, workspaceAccountID);
 
             const combinedCompanyCardFeeds = getCombinedCardFeedsFromAllFeeds(cardFeeds);
-            const selectedFeed = combinedCompanyCardFeeds?.[feedName];
+            const selectedFeed = combinedCompanyCardFeeds?.[feedNameWithDomainID];
 
             const hasFailedCardAssignments = !isEmptyObject(
-                failedCompanyCardAssignmentsPerFeed?.[`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${workspaceAccountID}_${feedName}`],
+                failedCompanyCardAssignmentsPerFeed?.[`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${workspaceAccountID}_${feedNameWithDomainID}`],
             );
 
             const allFeedsErrors = cardFeedErrors.get(workspaceAccountID) ?? new Map<CardFeed, FeedErrors>();
