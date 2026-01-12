@@ -215,7 +215,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
         const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
 

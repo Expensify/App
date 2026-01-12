@@ -6,10 +6,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -112,20 +112,22 @@ function ExpenseRulesPage() {
             )}
             {hasRules && (
                 <SelectionListWithModal
+                    data={rulesList}
+                    onSelectRow={() => {}}
+                    ListItem={TableListItem}
                     addBottomSafeAreaPadding
                     canSelectMultiple={false}
                     customListHeader={getCustomListHeader()}
-                    listHeaderContent={headerContent}
-                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                    ListItem={TableListItem}
-                    onSelectRow={() => {}}
-                    sections={[{data: rulesList, isDisabled: true}]}
+                    customListHeaderContent={headerContent}
+                    style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    shouldShowListEmptyContent={false}
-                    shouldShowRightCaret={false}
                     shouldUseDefaultRightHandSideCheckmark={false}
-                    showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress={false}
+                    showListEmptyContent={false}
+                    shouldShowRightCaret={false}
+                    showScrollIndicator={false}
+                    shouldHeaderBeInsideList
+                    isDisabled
                 />
             )}
         </ScreenWrapper>

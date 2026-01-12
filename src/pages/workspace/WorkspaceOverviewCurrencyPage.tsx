@@ -51,7 +51,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             if (isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType)) {
                 const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, item.currencyCode, true).length > 0;
                 if (hasValidExistingAccounts) {
-                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(policy.id));
+                    Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy.id));
                     return;
                 }
                 navigateToBankAccountRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id), {forceReplace: true});
