@@ -1102,12 +1102,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
-    const pendingAction = reportAction.pendingAction;
-    if (pendingAction) {
-        return true;
-    }
-
-    return !isDeletedAction(reportAction) || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
+    return !!reportAction.pendingAction || !isDeletedAction(reportAction) || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
 /**
