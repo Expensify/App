@@ -6,6 +6,7 @@ import type TransactionListItem from '@components/SelectionListWithSections/Sear
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
@@ -171,19 +172,15 @@ type SearchWithdrawalIDGroup = {
     state: number;
 };
 
-/**
- * A utility type that creates a record where all keys are strings that start with a specified prefix.
- */
-type PrefixedRecord<Prefix extends string, ValueType> = Record<`${Prefix}${string}`, ValueType>;
-
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
     search: SearchResultsInfo;
 
     /** Search results data */
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
-        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
+        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
