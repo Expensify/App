@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, ViewToken} from 'react-native';
@@ -97,7 +96,6 @@ const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) =>
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
-    newTransactionIDs,
     chatReportID,
     action,
     containerStyles,
@@ -158,7 +156,7 @@ function MoneyRequestReportPreviewContent({
             hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
         }),
         // When transactions get updated these values may have changed, so that is a case where we also want to recompute them
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [transactions, iouReportID, action],
     );
 
@@ -173,13 +171,14 @@ function MoneyRequestReportPreviewContent({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const getCanIOUBePaid = useCallback(
-        (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, transactions, shouldShowOnlyPayElsewhere),
-        [iouReport, chatReport, policy, transactions],
+        (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, shouldShowOnlyPayElsewhere),
+        [iouReport, chatReport, policy, bankAccountList, transactions],
     );
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
@@ -221,7 +220,6 @@ function MoneyRequestReportPreviewContent({
     const currentReportName = iouReport?.reportID ? reportAttributes?.[iouReport.reportID]?.reportName : undefined;
     const reportPreviewName = useMemo(() => {
         return getMoneyReportPreviewName(action, iouReport, isInvoice, reportAttributes);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [action, iouReport, isInvoice, currentReportName]);
 
@@ -403,7 +401,7 @@ function MoneyRequestReportPreviewContent({
             }),
         );
         // We only want to animate the text when the text changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [previewMessage, previewMessageOpacity]);
 
     useEffect(() => {
@@ -422,7 +420,7 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    const carouselTransactions = useMemo(() => (shouldShowAccessPlaceHolder ? [] : transactions.slice(0, 11)), [shouldShowAccessPlaceHolder, transactions]);
+    const carouselTransactions = shouldShowAccessPlaceHolder ? [] : transactions.slice(0, 11);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
@@ -448,49 +446,7 @@ function MoneyRequestReportPreviewContent({
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 100};
     }, []);
-    const numberOfScrollToIndexFailed = useRef(0);
-    const onScrollToIndexFailed: (info: {index: number; highestMeasuredFrameIndex: number; averageItemLength: number}) => void = ({index}) => {
-        // There is a probability of infinite loop so we want to make sure that it is not called more than 5 times.
-        if (numberOfScrollToIndexFailed.current > 4) {
-            return;
-        }
 
-        // Sometimes scrollToIndex might be called before the item is rendered so we will re-call scrollToIndex after a small delay.
-        setTimeout(() => {
-            carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
-        }, 100);
-        numberOfScrollToIndexFailed.current++;
-    };
-
-    const carouselTransactionsRef = useRef(carouselTransactions);
-
-    useEffect(() => {
-        carouselTransactionsRef.current = carouselTransactions;
-    }, [carouselTransactions]);
-
-    useFocusEffect(
-        useCallback(() => {
-            const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.includes(transaction.transactionID));
-
-            if (index < 0) {
-                return;
-            }
-            const newTransaction = carouselTransactions.at(index);
-            setTimeout(() => {
-                // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
-                // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
-                if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
-                    return;
-                }
-                numberOfScrollToIndexFailed.current = 0;
-                carouselRef.current?.scrollToIndex({index, viewOffset: 2 * styles.gap2.gap, animated: true});
-            }, CONST.ANIMATED_TRANSITION);
-
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        }, [newTransactionIDs]),
-    );
-
-    // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
         if (typeof newIndex === 'number') {
@@ -561,6 +517,7 @@ function MoneyRequestReportPreviewContent({
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
+
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
@@ -570,10 +527,11 @@ function MoneyRequestReportPreviewContent({
         return getReportPreviewAction({
             isReportArchived: isIouReportArchived || isChatReportArchived,
             currentUserAccountID: currentUserDetails.accountID,
-            currentUserEmail: currentUserDetails.email ?? '',
+            currentUserLogin: currentUserDetails.login ?? '',
             report: iouReport,
             policy,
             transactions,
+            bankAccountList,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
@@ -582,10 +540,11 @@ function MoneyRequestReportPreviewContent({
             violationsData: transactionViolations,
         });
     }, [
+        bankAccountList,
         isIouReportArchived,
         isChatReportArchived,
         currentUserDetails.accountID,
-        currentUserDetails.email,
+        currentUserDetails.login,
         iouReport,
         policy,
         transactions,
@@ -861,7 +820,6 @@ function MoneyRequestReportPreviewContent({
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
                                             <FlatList
-                                                onScrollToIndexFailed={onScrollToIndexFailed}
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
                                                 snapToInterval={reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap}

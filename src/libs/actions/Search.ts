@@ -10,7 +10,7 @@ import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports,
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
-import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, OpenSearchPageParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -376,8 +376,8 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchPage() {
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
+function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParams) {
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
 }
 
 function search({
@@ -1219,7 +1219,7 @@ function getTotalFormattedAmount(selectedReports: SelectedReports[], selectedTra
  * Note: we don't create anything new, we just optimistically generate the data that we know will be returned by API.
  */
 function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData, IOUTransactionID?: string) {
-    const {reportID, report, amount, currency, transactionID, created, policyID} = item;
+    const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
     const moneyRequestReportActionID = item?.reportAction?.reportActionID;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
     const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
@@ -1249,6 +1249,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
             linkedExpenseReportAction: {childReportID: IOUTransactionID} as ReportAction,
         });
         optimisticIOUAction.pendingAction = undefined;
+        optimisticIOUAction.actorAccountID = from?.accountID;
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
