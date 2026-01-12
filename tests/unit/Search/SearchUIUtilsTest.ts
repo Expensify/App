@@ -398,7 +398,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Expense',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -427,7 +427,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Expense',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -457,7 +457,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             merchant: '(none)',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -486,7 +486,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             merchant: '(none)',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -773,7 +773,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: '',
+        formattedMerchant: 'Expense',
         formattedTo: '',
         formattedTotal: 5000,
         from: {
@@ -785,14 +785,14 @@ const transactionsListItems = [
         hasEReceipt: false,
         keyForList: '1',
         merchant: 'Expense',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         reportID: '123456789',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -832,7 +832,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: '',
+        formattedMerchant: 'Expense',
         formattedTo: 'Admin',
         formattedTotal: 5000,
         from: {
@@ -844,13 +844,13 @@ const transactionsListItems = [
         hasEReceipt: false,
         keyForList: '2',
         merchant: 'Expense',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         reportID: '11111',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -901,7 +901,7 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -926,7 +926,7 @@ const transactionsListItems = [
         formattedTotal: 1200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -965,7 +965,7 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -990,7 +990,7 @@ const transactionsListItems = [
         formattedTotal: 3200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -1067,7 +1067,7 @@ const transactionReportGroupListItems = [
                 date: '2024-12-21',
                 exported: '',
                 formattedFrom: 'Admin',
-                formattedMerchant: '',
+                formattedMerchant: 'Expense',
                 formattedTo: '',
                 formattedTotal: 5000,
                 from: {
@@ -1079,14 +1079,14 @@ const transactionReportGroupListItems = [
                 hasEReceipt: false,
                 keyForList: '1',
                 merchant: 'Expense',
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 reportID: '123456789',
-                shouldShowMerchant: false,
+                shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1172,7 +1172,7 @@ const transactionReportGroupListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
-                formattedMerchant: '',
+                formattedMerchant: 'Expense',
                 formattedTo: 'Admin',
                 formattedTotal: 5000,
                 from: {
@@ -1190,13 +1190,13 @@ const transactionReportGroupListItems = [
                 ],
                 keyForList: '2',
                 merchant: 'Expense',
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 reportID: '11111',
-                shouldShowMerchant: false,
+                shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1293,7 +1293,7 @@ const transactionReportGroupListItems = [
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: '',
@@ -1318,7 +1318,7 @@ const transactionReportGroupListItems = [
                 formattedTotal: 1200,
                 formattedMerchant: '',
                 date: '2025-03-05',
-                shouldShowMerchant: false,
+                shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1354,7 +1354,7 @@ const transactionReportGroupListItems = [
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: '',
@@ -1379,7 +1379,7 @@ const transactionReportGroupListItems = [
                 formattedTotal: 3200,
                 formattedMerchant: '',
                 date: '2025-03-05',
-                shouldShowMerchant: false,
+                shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -3090,6 +3090,71 @@ describe('SearchUIUtils', () => {
             // From/To columns should not exist in expense report view
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
+        });
+
+        test('Should conditionally include Billable and Reimbursable columns in expense report view when enabled', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const reimbursableTransaction = {
+                ...baseTransaction,
+                transactionID: 'reimbursableTx',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                billable: true,
+            };
+            const nonReimbursableTransaction = {
+                ...baseTransaction,
+                transactionID: 'nonReimbursableTx',
+                merchant: 'Test Merchant 2',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                reimbursable: false,
+                billable: false,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [reimbursableTransaction, nonReimbursableTransaction], [], true, undefined, undefined, false, true, true);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.BILLABLE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE);
+
+            // Column order: after Tag and before Amount (and before Comments)
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TAG)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE));
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.BILLABLE));
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
+        });
+
+        test('Should not include Reimbursable column in expense report view when all expenses are reimbursable', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const reimbursableTransaction1 = {
+                ...baseTransaction,
+                transactionID: 'reimbursableTx1',
+                merchant: 'Test Merchant 1',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                reimbursable: true,
+                billable: false,
+            };
+            const reimbursableTransaction2 = {
+                ...baseTransaction,
+                transactionID: 'reimbursableTx2',
+                merchant: 'Test Merchant 2',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                billable: true,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [reimbursableTransaction1, reimbursableTransaction2], [], true, undefined, undefined, false, true, false);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.BILLABLE);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE);
         });
 
         test('Should handle modifiedMerchant and empty category/tag values correctly', () => {

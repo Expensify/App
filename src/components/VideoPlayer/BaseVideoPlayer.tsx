@@ -303,7 +303,6 @@ function BaseVideoPlayer({
             }
             if (currentVideoPlayerRef.current) {
                 currentVideoPlayerRef.current.pause();
-                // eslint-disable-next-line react-compiler/react-compiler
                 currentVideoPlayerRef.current.currentTime = 0;
                 currentVideoPlayerRef.current = null;
             }

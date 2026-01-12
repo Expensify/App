@@ -88,7 +88,7 @@ function VideoPlayerControls({
             if (!videoPlayerRef.current) {
                 return;
             }
-            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
+            // eslint-disable-next-line no-param-reassign
             videoPlayerRef.current.currentTime = newPosition;
         },
         [videoPlayerRef],
