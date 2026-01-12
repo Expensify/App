@@ -2,6 +2,7 @@ import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
@@ -11,12 +12,14 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     getCardIssuedMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
     isIOUActionMatchingTransactionList,
 } from '../../src/libs/ReportActionsUtils';
+import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -667,6 +670,40 @@ describe('ReportActionsUtils', () => {
             expect(result).toStrictEqual(expectedOutput);
         });
 
+        it('should not show moved transaction system message when expense is moved from personal space', () => {
+            const movedTransactionAction: ReportAction = {
+                created: '2022-11-13 22:27:01.825',
+                reportActionID: '8401445780099177',
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    toReportID: '123',
+                },
+            };
+
+            const addCommentAction: ReportAction = {
+                created: '2022-11-12 22:27:01.825',
+                reportActionID: '6401435781022176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        type: 'Action type',
+                        text: 'Action text',
+                    },
+                ],
+            };
+
+            const input: ReportAction[] = [movedTransactionAction, addCommentAction];
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
+
+            expect(result).toStrictEqual([addCommentAction]);
+        });
+
         it('should filter out closed actions', () => {
             const input: ReportAction[] = [
                 {
@@ -1294,6 +1331,11 @@ describe('ReportActionsUtils', () => {
             };
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
+
+        it('should return false for CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action with empty message array', () => {
+            const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
     });
 
     describe('getRenamedAction', () => {
@@ -1432,7 +1474,7 @@ describe('ReportActionsUtils', () => {
                 created: '2025-09-29',
                 originalMessage: {
                     toReportID: report.reportID,
-                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    fromReportID: '1',
                 },
             };
 
@@ -1567,6 +1609,408 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
 
             expect(result).toBe(expectedMessage);
+        });
+    });
+
+    describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
+        it('should return the correct message with a valid report ID and report name', () => {
+            const reportID = '67890';
+            const reportName = 'Original Report';
+            const reportUrl = getReportURLForCurrentContext(reportID);
+            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
+                reportUrl,
+                reportName,
+            });
+
+            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
+    });
+
+    describe('isDynamicExternalWorkflowSubmitFailedAction', () => {
+        it('should return true for DEW_SUBMIT_FAILED action type', () => {
+            // Given a report action with DEW_SUBMIT_FAILED action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    message: 'This report contains an Airfare expense that is missing the Flight Destination tag.',
+                    automaticAction: true,
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a DEW submit failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(action);
+
+            // Then it should return true because the action type is DEW_SUBMIT_FAILED
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-DEW_SUBMIT_FAILED action type', () => {
+            // Given a report action with SUBMITTED action type (not DEW_SUBMIT_FAILED)
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a DEW submit failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(action);
+
+            // Then it should return false because the action type is not DEW_SUBMIT_FAILED
+            expect(result).toBe(false);
+        });
+
+        it('should return false for null action', () => {
+            // Given a null action
+
+            // When checking if the action is a DEW submit failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(null);
+
+            // Then it should return false because the action is null
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('getMostRecentActiveDEWSubmitFailedAction', () => {
+        it('should return the DEW action when DEW_SUBMIT_FAILED exists and no SUBMITTED action exists', () => {
+            // Given report actions containing only a DEW_SUBMIT_FAILED action
+            const actionId1 = '1';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+            };
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return the DEW action because there's no subsequent SUBMITTED action
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe(actionId1);
+        });
+
+        it('should return the DEW action when DEW_SUBMIT_FAILED is more recent than SUBMITTED', () => {
+            // Given report actions where DEW_SUBMIT_FAILED occurred after SUBMITTED
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+                [actionId2]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId2,
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+            };
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return the DEW action because it's more recent than the SUBMITTED action
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe(actionId2);
+        });
+
+        it('should return undefined when SUBMITTED is more recent than DEW_SUBMIT_FAILED', () => {
+            // Given report actions where SUBMITTED occurred after DEW_SUBMIT_FAILED
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+                [actionId2]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId2,
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+            };
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return undefined because a successful SUBMITTED action supersedes the DEW failure
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when no DEW_SUBMIT_FAILED action exists', () => {
+            // Given report actions containing only a SUBMITTED action (no DEW failures)
+            const actionId1 = '1';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+            };
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return undefined because there are no DEW failures
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined for empty report actions', () => {
+            // Given an empty report actions object
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction({});
+
+            // Then it should return undefined because there are no actions
+            expect(result).toBeUndefined();
+        });
+
+        it('should handle array input and return the DEW action when it is most recent', () => {
+            // Given an array of report actions where DEW_SUBMIT_FAILED is more recent
+            const reportActionsArray: ReportAction[] = [
+                {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: '1',
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+                {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: '2',
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+            ];
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActionsArray);
+
+            // Then it should return the DEW action because it's the most recent
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe('2');
+        });
+
+        it('should return the most recent DEW action when multiple DEW failures and submissions exist', () => {
+            // Given report actions with multiple DEW failures and submissions, where the latest DEW failure is most recent
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const actionId3 = '3';
+            const actionId4 = '4';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 08:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {amount: 10000, currency: 'USD'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+                [actionId2]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: actionId2,
+                    originalMessage: {message: 'First DEW failure'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+                [actionId3]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId3,
+                    originalMessage: {amount: 10000, currency: 'USD'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+                [actionId4]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 11:00:00',
+                    reportActionID: actionId4,
+                    originalMessage: {message: 'Second DEW failure'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+            };
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return the most recent DEW action (11:00) because it's after the most recent SUBMITTED (10:00)
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe(actionId4);
+        });
+
+        it('should return undefined when most recent SUBMITTED is after all DEW failures', () => {
+            // Given report actions where SUBMITTED is more recent than all DEW failures
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const actionId3 = '3';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 08:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {message: 'First DEW failure'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+                [actionId2]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: actionId2,
+                    originalMessage: {message: 'Second DEW failure'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+                [actionId3]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId3,
+                    originalMessage: {amount: 10000, currency: 'USD'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+            };
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return undefined because the successful submission supersedes all prior DEW failures
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe('hasPendingDEWSubmit', () => {
+        it('should return true when pendingExpenseAction is SUBMIT and isDEWPolicy is true', () => {
+            // Given reportMetadata with pendingExpenseAction SUBMIT and isDEWPolicy is true
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+            };
+
+            // When checking if there's a pending DEW submit
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportMetadata, true);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return false when pendingExpenseAction is SUBMIT but isDEWPolicy is false', () => {
+            // Given reportMetadata with pendingExpenseAction SUBMIT but isDEWPolicy is false
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+            };
+
+            // When checking if there's a pending DEW submit with isDEWPolicy false
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportMetadata, false);
+
+            // Then it should return false because the policy is not DEW
+            expect(result).toBe(false);
+        });
+
+        it('should return false when pendingExpenseAction is not SUBMIT', () => {
+            // Given reportMetadata with pendingExpenseAction APPROVE (not SUBMIT)
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+            };
+
+            // When checking if there's a pending DEW submit
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportMetadata, true);
+
+            // Then it should return false because pendingExpenseAction is APPROVE, not SUBMIT
+            expect(result).toBe(false);
+        });
+
+        it('should return false when pendingExpenseAction is undefined', () => {
+            // Given reportMetadata without pendingExpenseAction
+            const reportMetadata = {};
+
+            // When checking if there's a pending DEW submit
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportMetadata, true);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false when reportMetadata is undefined', () => {
+            // Given undefined reportMetadata
+
+            // When checking if there's a pending DEW submit
+            const result = ReportActionsUtils.hasPendingDEWSubmit(undefined, true);
+
+            // Then it should return false
+            expect(result).toBe(false);
         });
     });
 
@@ -1871,6 +2315,114 @@ describe('ReportActionsUtils', () => {
             // Then it should return the routed due to DEW message with the correct "to" value
             const expected = translateLocal('iou.routedDueToDEW', {to});
             expect(actual).toBe(expected);
+        });
+    });
+
+    describe('getWorkspaceCustomUnitRateUpdatedMessage', () => {
+        it('should return the correct message when a rate is enabled', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'enabled',
+                    oldValue: false,
+                    newValue: true,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('enabled the Distance rate "Default Rate"');
+        });
+
+        it('should return the correct message when a rate is disabled', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'enabled',
+                    oldValue: true,
+                    newValue: false,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('disabled the Distance rate "Default Rate"');
+        });
+    });
+
+    describe('didMessageMentionCurrentUser', () => {
+        const currentUserEmail = 'currentuser@example.com';
+        const otherUserEmail = 'otheruser@example.com';
+        const otherUserAccountID = 456;
+
+        it('should return true when email matches', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                        type: 'COMMENT',
+                        text: `@${currentUserEmail}`,
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when message includes mention-here', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: 'Hello <mention-here>',
+                        type: 'COMMENT',
+                        text: 'Hello @here',
+                    },
+                ],
+                originalMessage: {
+                    html: 'Hello <mention-here>',
+                    whisperedTo: [],
+                    mentionedAccountIDs: [],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when user is not mentioned', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: `<mention-user>@${otherUserEmail}</mention-user>`,
+                        type: 'COMMENT',
+                        text: `@${otherUserEmail}`,
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user>@${otherUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [otherUserAccountID],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(false);
         });
     });
 

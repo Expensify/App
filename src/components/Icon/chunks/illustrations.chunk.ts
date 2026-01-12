@@ -36,7 +36,6 @@ import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 // Other Images
 import Hand from '@assets/images/hand.svg';
-import LaptopOnDeskDeprecated from '@assets/images/laptop-on-desk-deprecated.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
@@ -157,6 +156,7 @@ import TrashCan from '@assets/images/simple-illustrations/simple-illustration__t
 import TravelAlerts from '@assets/images/simple-illustrations/simple-illustration__travelalerts.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
+import UserShield from '@assets/images/simple-illustrations/simple-illustration__user-shield.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
@@ -328,9 +328,9 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     ShieldYellow,
-    LaptopOnDeskDeprecated,
     Clock,
     Members,
+    UserShield,
 };
 
 /**
