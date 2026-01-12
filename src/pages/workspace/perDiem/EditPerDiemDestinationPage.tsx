@@ -96,9 +96,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.pb4}>
-                        <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>
-                            {translate('workspace.perDiem.editDestinationSubtitle', {destination: selectedRate?.name ?? ''})}
-                        </Text>
+                        <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.perDiem.editDestinationSubtitle', selectedRate?.name ?? '')}</Text>
                     </View>
                     <InputWrapper
                         ref={inputCallbackRef}

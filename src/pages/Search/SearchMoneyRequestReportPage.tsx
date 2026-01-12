@@ -133,7 +133,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
         // We don't want this hook to re-run on the every report change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportIDFromRoute, transactionThreadReportID]);
 
     useEffect(() => {
@@ -200,15 +200,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 return false;
             }
 
-            // eslint-disable-next-line react-compiler/react-compiler
             if (!reportID && !reportMetadata?.isLoadingInitialReportActions) {
-                // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
 
             return !!reportID && !isValidReportIDFromPath(reportID);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportID, reportMetadata?.isLoadingInitialReportActions],
     );
 
@@ -220,7 +218,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         testID="SearchMoneyRequestReportPage"
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
-                        headerGapStyles={styles.searchHeaderGap}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
@@ -254,7 +251,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     testID="SearchMoneyRequestReportPage"
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
-                    headerGapStyles={[styles.searchHeaderGap, styles.h0]}
                 >
                     <View style={[styles.searchSplitContainer, styles.flexColumn, styles.flex1]}>
                         <FullPageNotFoundView
