@@ -147,6 +147,10 @@ const SCREENS = {
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
         },
 
+        RULES: {
+            ROOT: 'Settings_Rules',
+        },
+
         WALLET: {
             ROOT: 'Settings_Wallet',
             VERIFY_ACCOUNT: 'Settings_Wallet_VerifyAccount',
@@ -162,6 +166,7 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_ReportVirtualCardFraud_ConfirmMagicCode',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+            UNSHARE_BANK_ACCOUNT: 'Settings_Wallet_Unshare_Bank_Account',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
             SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
         },
@@ -217,6 +222,7 @@ const SCREENS = {
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         TWO_FACTOR_AUTH: 'TwoFactorAuth',
+        SEARCH_ROUTER: 'Search_Router',
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
@@ -274,9 +280,6 @@ const SCREENS = {
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
-    SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
-    SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
-    DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
     REQUIRE_TWO_FACTOR_AUTH: 'RequireTwoFactorAuth',
@@ -321,12 +324,14 @@ const SCREENS = {
         STEP_REPORT: 'Money_Request_Report',
         EDIT_REPORT: 'Money_Request_Edit_Report',
         SPLIT_EXPENSE: 'Money_Request_Split_Expense',
+        SPLIT_EXPENSE_SEARCH: 'Money_Request_Split_Expense_Search',
         SPLIT_EXPENSE_CREATE_DATE_RANGE: 'Money_Request_Split_Expense_Create_Date_Range',
         SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
         STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
+        STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
     },
 
@@ -666,9 +671,11 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_EDIT: 'Workspace_Approvals_Edit',
         WORKFLOWS_APPROVALS_EXPENSES_FROM: 'Workspace_Workflows_Approvals_Expenses_From',
         WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
+        WORKFLOWS_APPROVALS_APPROVER_CHANGE: 'Workspace_Workflows_Approvals_Approver_Change',
+        WORKFLOWS_APPROVALS_APPROVAL_LIMIT: 'Workspace_Workflows_Approvals_Approval_Limit',
+        WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: 'Workspace_Workflows_Approvals_Over_Limit_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
-        WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: 'Workspace_Workflows_Connect_Existing_Bank_Account',
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
@@ -794,6 +801,7 @@ const SCREENS = {
     ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root',
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
     REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT: 'Reimbursement_Account_Verify_Account',
+    CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT: 'Connect_Existing_Business_Bank_Account_Root',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
@@ -867,6 +875,7 @@ const SCREENS = {
         ADMINS_SETTINGS: 'Admins_Settings',
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
         ADD_ADMIN: 'Domain_Add_Admin',
+        MEMBERS: 'Domain_Members',
     },
 } as const;
 

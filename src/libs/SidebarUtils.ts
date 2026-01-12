@@ -31,6 +31,7 @@ import {
     getAddedConnectionMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCompanyCardConnectionBrokenMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getForwardsToUpdateMessage,
@@ -256,7 +257,7 @@ function getReportsToDisplayInLHN(
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
     for (const [reportID, report] of Object.entries(allReportsDictValues)) {
-        if (!report?.reportID && report?.pendingFields?.reportID !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!report) {
             continue;
         }
 
@@ -310,7 +311,7 @@ function updateReportsToDisplayInLHN({
     const displayedReportsCopy = {...displayedReports};
     for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
-        if (!report?.reportID && report?.pendingFields?.reportID !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!report) {
             delete displayedReportsCopy[reportID];
             continue;
         }
@@ -769,6 +770,7 @@ function getOptionData({
         hasMultipleParticipants,
         localeCompare,
         formatPhoneNumberPhoneUtils,
+        undefined,
         isSelfDM(report),
     );
 
@@ -807,7 +809,7 @@ function getOptionData({
         if (isRenamedAction(lastAction)) {
             result.alternateText = getRenamedAction(translate, lastAction, isExpense, lastActorDisplayName);
         } else if (isTaskAction(lastAction)) {
-            result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(lastAction).text);
+            result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(translate, lastAction).text);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
             const actionMessage = getReportActionMessageText(lastAction);
             result.alternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
@@ -860,6 +862,8 @@ function getOptionData({
             result.alternateText = translate('workspaceActions.downgradedWorkspace');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
             result.alternateText = Parser.htmlToText(getIntegrationSyncFailedMessage(translate, lastAction, report?.policyID));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
+            result.alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
         } else if (
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||

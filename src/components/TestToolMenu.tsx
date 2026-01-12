@@ -2,6 +2,7 @@ import React from 'react';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
@@ -23,6 +24,7 @@ function TestToolMenu() {
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {clearLHNCache} = useSidebarOrderedReports();
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -70,6 +72,15 @@ function TestToolMenu() {
                             small
                             text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
                             onPress={() => expireSessionWithDelay()}
+                        />
+                    </TestToolRow>
+
+                    {/* Clears the useSidebarOrderedReports cache to re-compute from latest onyx values */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.leftHandNavCache')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}
+                            onPress={clearLHNCache}
                         />
                     </TestToolRow>
                 </>
