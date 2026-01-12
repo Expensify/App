@@ -362,6 +362,7 @@ type GetSectionsParams = {
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+    shouldSkipActionFiltering?: boolean;
 };
 
 /**
@@ -1710,6 +1711,7 @@ function getReportSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
+    shouldSkipActionFiltering = false,
 ): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -1776,7 +1778,7 @@ function getReportSections(
                 }
                 const actionFromQuery = queryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)?.filters?.at(0)?.value;
 
-                if (actionFromQuery && isValidActionFilter(actionFromQuery)) {
+                if (!shouldSkipActionFiltering && actionFromQuery && isValidActionFilter(actionFromQuery)) {
                     shouldShow = shouldShow && actionFilterMapping[actionFromQuery](reportItem);
                 }
             }
@@ -2083,6 +2085,7 @@ function getSections({
     queryJSON,
     isActionLoadingSet,
     cardFeeds,
+    shouldSkipActionFiltering,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -2092,7 +2095,18 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, translate, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions);
+        return getReportSections(
+            data,
+            currentSearch,
+            currentAccountID,
+            currentUserEmail,
+            translate,
+            formatPhoneNumber,
+            isActionLoadingSet,
+            bankAccountList,
+            reportActions,
+            shouldSkipActionFiltering,
+        );
     }
 
     if (groupBy) {
