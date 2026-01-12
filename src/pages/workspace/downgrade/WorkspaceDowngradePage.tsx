@@ -36,7 +36,6 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -68,7 +67,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     };
 
     const onDowngradeToTeam = () => {
-        if (!canPerformDowngrade || !policy) {
+        if (!canPerformDowngrade || !policy || !policyID) {
             return;
         }
         if (Object.keys(companyFeeds).length > 1) {
@@ -85,7 +84,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
             }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM || !policyID) {
+                if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
                 dismissModalAndNavigate(policyID);
