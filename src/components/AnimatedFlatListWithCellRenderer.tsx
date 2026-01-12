@@ -69,7 +69,6 @@ function FlatListForwardRefRender<Item = any>(props: AnimatedFlatListWithCellRen
     // We set it to 1, so we have peace until
     // there are 960 fps screens.
     if (!('scrollEventThrottle' in restProps)) {
-        // eslint-disable-next-line react-compiler/react-compiler
         restProps.scrollEventThrottle = 1;
     }
 
