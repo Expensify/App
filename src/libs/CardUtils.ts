@@ -394,7 +394,7 @@ function getCardFeedIcon(
 /**
  * Verify if the feed is a custom feed. Those are also referred to as commercial feeds.
  */
-function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
+function isCustomFeed(feed: CompanyCardFeedWithNumber | CompanyCardFeedWithDomainID | undefined): boolean {
     if (!feed) {
         return false;
     }
