@@ -559,7 +559,7 @@ function AdvancedSearchFilters() {
         searchTerm: '',
         localeCompare,
     });
-    
+
     const {currentType, typeFiltersKeys} = useAdvancedSearchFilters();
 
     const queryString = useMemo(() => buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);

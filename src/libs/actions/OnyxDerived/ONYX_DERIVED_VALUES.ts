@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
-import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCardList';
 import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPolicyID';
+import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCardList';
 import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
 import type {OnyxDerivedValueConfig} from './types';
