@@ -2710,7 +2710,6 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         policyCategories && isCategoriesOptionSelected ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories) : defaultOptimisticCategoriesData;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2817,7 +2816,6 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     ];
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2894,7 +2892,6 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     ];
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

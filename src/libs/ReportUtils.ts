@@ -11823,7 +11823,9 @@ function prepareOnboardingOnyxData({
         });
     }
 
-    const successData: Array<TupleToUnion<typeof tasksForSuccessData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [...tasksForSuccessData];
+    const successData: Array<
+        TupleToUnion<typeof tasksForSuccessData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_ONBOARDING>
+    > = [...tasksForSuccessData];
 
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
