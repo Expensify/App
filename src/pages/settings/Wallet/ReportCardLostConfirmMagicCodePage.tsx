@@ -75,7 +75,7 @@ function ReportCardLostConfirmMagicCodePage({
             >
                 <HeaderWithBackButton
                     title={translate('common.success')}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(newCardID))}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(newCardID))}
                 />
                 <SuccessReportCardLost cardID={newCardID} />
             </ScreenWrapper>

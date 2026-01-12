@@ -57,7 +57,7 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
                             Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID));
                             return;
                         }
-                        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+                        Navigation.goBack(ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(cardID));
                     }}
                 />
                 <View style={[styles.flex1, styles.justifyContentBetween]}>
