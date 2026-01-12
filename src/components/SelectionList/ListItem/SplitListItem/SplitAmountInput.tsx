@@ -1,7 +1,7 @@
 import React from 'react';
 import type {BlurEvent} from 'react-native';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
-import type {SplitListItemType} from '@components/SelectionListWithSections/types';
+import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import SplitAmountDisplay from './SplitAmountDisplay';
