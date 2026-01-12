@@ -271,11 +271,7 @@ function ReportActionsView({
     });
 
     const shouldShowReportAction = useCallback(
-        (
-            reportAction: OnyxTypes.ReportAction,
-            transactionIDs: string[],
-            expenseTransactions: Record<string, OnyxCollection<OnyxTypes.Transaction>> | undefined,
-        ): boolean => {
+        (reportAction: OnyxTypes.ReportAction, transactionIDs: string[], expenseTransactions: Record<string, OnyxCollection<OnyxTypes.Transaction>> | undefined): boolean => {
             const passesBasicFilters =
                 (isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
                 shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction);
