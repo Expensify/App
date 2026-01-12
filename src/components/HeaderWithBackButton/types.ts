@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/params';
@@ -13,7 +14,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
-    icon: IconAsset;
+    icon: IconAsset | Extract<ExpensifyIconName, 'ChatBubbles' | 'CommentBubbles'>;
 
     /** Translation key for the label */
     translationKey: TranslationPaths;

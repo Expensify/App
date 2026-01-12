@@ -99,7 +99,6 @@ function ConsolePage() {
             .reverse();
     }, [capturedLogs, shouldStoreLogs]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const logsList = useMemo(() => getLogs(), [getLogs]);
 
     const filteredLogsList = useMemo(() => logsList.filter((log) => log.message.includes(activeFilterIndex)), [activeFilterIndex, logsList]);
@@ -119,7 +118,7 @@ function ConsolePage() {
     const saveLogs = () => {
         const logsWithParsedMessages = parseStringifiedMessages(filteredLogsList);
 
-        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
+        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2), translate);
     };
 
     const shareLogs = () => {
