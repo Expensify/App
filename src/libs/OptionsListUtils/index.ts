@@ -1966,7 +1966,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
-function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, policies: OnyxCollection<Policy>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
+function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, policiesCollection: OnyxCollection<Policy>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
@@ -2046,7 +2046,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, po
             newReportOption.alternateText = translateLocal('workspace.common.workspace');
 
             if (report?.policyID) {
-                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
                 const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
@@ -2108,7 +2108,7 @@ function getRestrictedLogins(
  */
 function getValidOptions(
     options: OptionList,
-    policies: OnyxCollection<Policy>,
+    policiesCollection: OnyxCollection<Policy>,
     draftComments: OnyxCollection<string> | undefined,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     loginList: OnyxEntry<Login>,
@@ -2177,7 +2177,7 @@ function getValidOptions(
         };
 
         const filteringFunction = (report: SearchOption<Report>) => {
-            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+            const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
             if (!isSearchTermsFound(report)) {
                 return false;
             }
@@ -2201,7 +2201,7 @@ function getValidOptions(
         [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
 
         if (selfDMChats.length > 0) {
-            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, policies, {
+            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, policiesCollection, {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
@@ -2214,7 +2214,7 @@ function getValidOptions(
         if (maxRecentReportElements) {
             recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
         }
-        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, policies, {
+        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, policiesCollection, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
@@ -2223,7 +2223,7 @@ function getValidOptions(
             shouldShowGBR,
         });
 
-        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policies, {
+        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policiesCollection, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,

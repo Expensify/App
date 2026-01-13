@@ -3045,9 +3045,9 @@ describe('OptionsListUtils', () => {
         });
 
         it('should pass policies to filtering logic', () => {
-            const policyID = 'test-policy-123';
+            const testPolicyID = 'test-policy-123';
             const policy: Policy = {
-                id: policyID,
+                id: testPolicyID,
                 name: 'Test Workspace',
                 role: 'admin',
                 type: CONST.POLICY.TYPE.TEAM,
@@ -3058,7 +3058,7 @@ describe('OptionsListUtils', () => {
                 areCategoriesEnabled: true,
             };
 
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy};
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`]: policy};
 
             // Verify function works with policies parameter
             const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, policies, undefined, nvpDismissedProductTraining, loginList, {

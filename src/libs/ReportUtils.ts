@@ -9839,7 +9839,7 @@ function getMoneyRequestOptions(
     }
 
     if (isInvoiceRoom(report)) {
-        if (canSendInvoiceFromWorkspace(policy?.id) && isPolicyAdmin(report?.policyID, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`])) {
+        if (canSendInvoiceFromWorkspace(policy?.id) && isPolicyAdmin(report?.policyID, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`])) {
             return [CONST.IOU.TYPE.INVOICE];
         }
         return [];
