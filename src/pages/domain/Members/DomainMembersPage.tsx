@@ -1,4 +1,4 @@
-import {selectMemberIDs} from '@selectors/Domain';
+import {memberAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,7 +20,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: selectMemberIDs,
+        selector: memberAccountIDsSelector,
     });
 
     return (

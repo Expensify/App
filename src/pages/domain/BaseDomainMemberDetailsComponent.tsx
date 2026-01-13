@@ -22,16 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Domain, PersonalDetailsList} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
-
-type MemberDetailsMenuItem = {
-    key: string;
-    title: string;
-    icon: IconAsset;
-    onPress: () => void | Promise<void>;
-    shouldShowRightIcon?: boolean;
-};
 
 type BaseDomainMemberDetailsComponentProps = {
     /** Domain ID */
@@ -41,14 +32,16 @@ type BaseDomainMemberDetailsComponentProps = {
     accountID: number;
 
     /** List of additional fields (e.g., force 2FA) */
-    menuItems: MemberDetailsMenuItem[];
+    children?: React.ReactNode;
 };
 
-function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems}: BaseDomainMemberDetailsComponentProps) {
+function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}: BaseDomainMemberDetailsComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Info'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Info']);
 
+    // The selector depends on the dynamic `accountID`, so it cannot be extracted
+    // to a static function outside the component.
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
@@ -99,47 +92,37 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
                                 </Text>
                             )}
                         </View>
+                        <View style={styles.w100}>
+                            <MenuItemWithTopDescription
+                                title={copyableName}
+                                copyValue={copyableName}
+                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                interactive={false}
+                                copyable
+                            />
+                            {children}
+                            <OfflineWithFeedback
+                                errorRowStyles={[styles.ph5]}
+                                // pendingAction={domainPendingActions?.technicalContactEmail}
+                                // errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
+                                // onClose={() => clearSetPrimaryContactError(domainAccountID)}
+                            >
+                                <MenuItemWithTopDescription
+                                    description={translate('domain.common.vacationDelegate')}
+                                    title={vacationDelegate?.delegate}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
+                                />
+                            </OfflineWithFeedback>
+                            <MenuItem
+                                style={styles.mb5}
+                                title={translate('common.profile')}
+                                icon={icons.Info}
+                                onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
+                                shouldShowRightIcon
+                            />
+                        </View>
                     </View>
-
-                    <MenuItemWithTopDescription
-                        title={copyableName}
-                        copyValue={copyableName}
-                        description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                        interactive={false}
-                        copyable
-                    />
-
-                    {menuItems.map((item) => (
-                        <MenuItem
-                            key={item.key}
-                            icon={item.icon}
-                            title={item.title}
-                            onPress={item.onPress}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                        />
-                    ))}
-
-                    <OfflineWithFeedback
-                        errorRowStyles={[styles.ph5]}
-                        // pendingAction={domainPendingActions?.technicalContactEmail}
-                        // errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
-                        // onClose={() => clearSetPrimaryContactError(domainAccountID)}
-                    >
-                        <MenuItemWithTopDescription
-                            description={translate('domain.common.vacationDelegate')}
-                            title={vacationDelegate?.delegate}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
-                        />
-                    </OfflineWithFeedback>
-
-                    <MenuItem
-                        style={styles.mb5}
-                        title={translate('common.profile')}
-                        icon={icons.Info}
-                        onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
-                        shouldShowRightIcon
-                    />
                 </ScrollView>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
@@ -148,5 +131,4 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
 
 BaseDomainMemberDetailsComponent.displayName = 'BaseDomainMemberDetailsComponent';
 
-export type {MemberDetailsMenuItem};
 export default BaseDomainMemberDetailsComponent;

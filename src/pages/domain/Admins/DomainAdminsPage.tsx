@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -7,12 +7,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
-import {clearAddAdminError} from '@userActions/Domain';
+import {clearAdminError} from '@userActions/Domain';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,28 +31,37 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
+
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        canBeMissing: true,
+    });
+
+    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminPendingActionSelector,
+    });
+
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
         selector: technicalContactSettingsSelector,
     });
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
-    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true});
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     const getCustomRightElement = (accountID: number) => {
+        const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
         const login = personalDetails?.[accountID]?.login;
-        if (technicalContactSettings?.technicalContactEmail !== login) {
+        if (!technicalContactEmail || !login || technicalContactEmail !== login) {
             return null;
         }
         return <Badge text={translate('domain.admins.primaryContact')} />;
     };
 
     const getCustomRowProps = (accountID: number) => ({
-        errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
-        pendingAction: domainPendingActions?.admin?.[accountID]?.pendingAction,
+        errors: domainErrors?.adminErrors?.[accountID]?.errors,
+        pendingAction: domainPendingAction?.[accountID]?.pendingAction,
     });
 
     const headerContent = isAdmin ? (
@@ -86,7 +94,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             headerContent={headerContent}
             getCustomRightElement={getCustomRightElement}
             getCustomRowProps={getCustomRowProps}
-            onDismissError={(item) => clearAddAdminError(domainAccountID, item.accountID)}
+            onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
         />
     );
