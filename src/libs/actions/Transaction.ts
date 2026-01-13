@@ -335,8 +335,10 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
     let command;
     switch (routeType) {
         case CONST.TRANSACTION.STATE.DRAFT:
-        case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
             command = READ_COMMANDS.GET_ROUTE_FOR_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
+            command = READ_COMMANDS.GET_ROUTE_FOR_SPLIT_DRAFT;
             break;
         case CONST.TRANSACTION.STATE.CURRENT:
             command = READ_COMMANDS.GET_ROUTE;
