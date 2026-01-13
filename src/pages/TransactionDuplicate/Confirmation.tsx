@@ -18,13 +18,13 @@ import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
+import {mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/DuplicateAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import * as IOU from '@src/libs/actions/IOU';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import {generateReportID} from '@src/libs/ReportUtils';
@@ -73,17 +73,17 @@ function Confirmation() {
     );
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
-    const mergeDuplicates = useCallback(() => {
+    const handleMergeDuplicates = useCallback(() => {
         const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
         if (!reportAction?.childReportID) {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
-        IOU.mergeDuplicates(transactionsMergeParams);
+        mergeDuplicates(transactionsMergeParams);
         Navigation.dismissModal();
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
-    const resolveDuplicates = useCallback(() => {
-        IOU.resolveDuplicates(transactionsMergeParams);
+    const handleResolveDuplicates = useCallback(() => {
+        resolveDuplicates(transactionsMergeParams);
         Navigation.dismissModal();
     }, [transactionsMergeParams]);
 
@@ -156,10 +156,10 @@ function Confirmation() {
                             success
                             onPress={() => {
                                 if (!isReportOwner) {
-                                    resolveDuplicates();
+                                    handleResolveDuplicates();
                                     return;
                                 }
-                                mergeDuplicates();
+                                handleMergeDuplicates();
                             }}
                             large
                         />
