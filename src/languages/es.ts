@@ -1029,6 +1029,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Tasa no válida para este espacio de trabajo. Por favor, selecciona una tasa disponible en el espacio de trabajo.',
             endDateBeforeStartDate: 'La fecha de finalización no puede ser anterior a la fecha de inicio',
             endDateSameAsStartDate: 'La fecha de finalización no puede ser la misma que la fecha de inicio',
+            manySplitsProvided: `La cantidad máxima de divisiones permitidas es ${CONST.IOU.SPLITS_LIMIT}.`,
+            dateRangeExceedsMaxDays: `El rango de fechas no puede exceder los ${CONST.IOU.SPLITS_LIMIT} días.`,
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
@@ -1176,6 +1178,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         chooseWorkspace: 'Elige un espacio de trabajo',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `informe enviado a ${to} debido a un flujo de aprobación personalizado`,
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hora' : 'horas'} a ${rate} / hora`,
+            hrs: 'h',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -5197,6 +5203,21 @@ ${amount} para ${merchant} - ${date}`,
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'
                 }? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
+            claimOffer: {
+                badgeText: '¡Oferta disponible!',
+                xero: {
+                    headline: '¡Obtén Xero gratis por 6 meses!',
+                    description:
+                        '<muted-text><centered-text>¿Nuevo en Xero? Los clientes de Expensify obtienen 6 meses gratis. Reclama tu oferta a continuación.</centered-text></muted-text>',
+                    connectButton: 'Conectar con Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Obtén 5% de descuento en viajes de Uber',
+                    description: `<muted-text><centered-text>Activa Uber for Business a través de Expensify y ahorra 5% en todos los viajes de negocios hasta junio. <a href="${CONST.UBER_TERMS_LINK}">Aplican términos.</a></centered-text></muted-text>`,
+                    connectButton: 'Conectar con Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}) => {
                     switch (stage) {
@@ -5950,6 +5971,8 @@ ${amount} para ${merchant} - ${date}`,
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `cambió la dirección de la empresa a "${newAddress}" (anteriormente "${previousAddress}")` : `estableció la dirección de la empresa en "${newAddress}"`,
         addApprovalRule: (approverEmail, approverName, field, name) => `añadió a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
         deleteApprovalRule: (approverEmail, approverName, field, name) => `eliminó a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}) => {
@@ -8039,6 +8062,19 @@ ${amount} para ${merchant} - ${date}`,
         zeroDistanceTripModal: {
             title: 'No se puede crear el gasto',
             prompt: 'No puedes crear un gasto con la misma ubicación de inicio y fin.',
+        },
+        locationRequiredModal: {
+            title: 'Se requiere acceso a la ubicación',
+            prompt: 'Por favor, permite el acceso a la ubicación en la configuración de tu dispositivo para iniciar el seguimiento de distancia por GPS.',
+            allow: 'Permitir',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Se requiere acceso a la ubicación en segundo plano',
+            prompt: 'Por favor, permite el acceso a la ubicación en segundo plano en la configuración de tu dispositivo (opción "Permitir solo con la app en uso") para iniciar el seguimiento de distancia por GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Se requiere ubicación precisa',
+            prompt: 'Por favor, habilita la "ubicación precisa" en la configuración de tu dispositivo para iniciar el seguimiento de distancia por GPS.',
         },
         desktop: {
             title: 'Registra la distancia en tu teléfono',
