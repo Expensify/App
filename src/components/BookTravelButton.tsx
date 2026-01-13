@@ -86,7 +86,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
     const bookATrip = useCallback(() => {
         setErrorMessage('');
 
-        debugger;
         if (isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)) {
             setPreventionModalVisibility(true);
             return;
