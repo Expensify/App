@@ -100,8 +100,8 @@ describe('ContactMethodsPage', () => {
         await waitFor(() => {
             node = screen.getByTestId(`menu-${otherEmail}`);
 
-            // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
-            expect(node).toHaveTextContent('none-brickRoadIndicator');
+            // ContactMethodsPage sets brickRoadIndicator to 'error' when errorFields are present
+            expect(node).toHaveTextContent('error-brickRoadIndicator');
         });
     });
 
@@ -145,7 +145,7 @@ describe('ContactMethodsPage', () => {
             node = screen.getByTestId(`menu-${otherEmail}`);
 
             // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
-            expect(node).toHaveTextContent('none-brickRoadIndicator');
+            expect(node).toHaveTextContent('info-brickRoadIndicator');
         });
     });
 });
