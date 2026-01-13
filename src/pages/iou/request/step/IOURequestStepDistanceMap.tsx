@@ -34,6 +34,7 @@ import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransac
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicy} from '@libs/PolicyUtils';
@@ -73,6 +74,7 @@ function IOURequestStepDistanceMap({
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
@@ -258,7 +260,7 @@ function IOURequestStepDistanceMap({
             }
             openReport(transaction?.reportID);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = useCallback(() => {
@@ -406,7 +408,8 @@ function IOURequestStepDistanceMap({
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
                     transactionID: transaction?.transactionID,
-                    transactionThreadReportID: report?.reportID,
+                    transactionThreadReport: report,
+                    parentReport,
                     waypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
@@ -423,24 +426,25 @@ function IOURequestStepDistanceMap({
 
         navigateToNextStep();
     }, [
-        navigateBack,
-        duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
-        hasRouteError,
-        isLoadingRoute,
-        isLoading,
-        isCreatingNewRequest,
-        isEditing,
-        navigateToNextStep,
-        transactionBackup,
-        waypoints,
-        transaction?.transactionID,
-        transaction?.routes,
-        report?.reportID,
-        policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        duplicateWaypointsError,
+        hasRouteError,
         isASAPSubmitBetaEnabled,
+        isCreatingNewRequest,
+        isEditing,
+        isLoading,
+        isLoadingRoute,
+        navigateBack,
+        navigateToNextStep,
+        parentReport,
+        policy,
+        report,
+        transaction?.routes,
+        transaction?.transactionID,
+        transactionBackup,
+        waypoints,
     ]);
 
     const renderItem = useCallback(
