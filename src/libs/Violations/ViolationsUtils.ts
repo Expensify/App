@@ -487,7 +487,14 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true, tags?: PolicyTagLists, companyCardPageURL?: string): string {
+    getViolationTranslation(
+        violation: TransactionViolation,
+        translate: LocaleContextProps['translate'],
+        canEdit = true,
+        tags?: PolicyTagLists,
+        companyCardPageURL?: string,
+        connectionLink?: string,
+    ): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -569,6 +576,7 @@ const ViolationsUtils = {
                     member,
                     rterType,
                     companyCardPageURL,
+                    connectionLink,
                 });
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});
@@ -616,6 +624,7 @@ const ViolationsUtils = {
         transactionThreadActions?: ReportAction[],
         tags?: PolicyTagLists,
         companyCardPageURL?: string,
+        connectionLink?: string,
     ): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
 
@@ -625,7 +634,7 @@ const ViolationsUtils = {
             // Some violations end with a period already so lets make sure the connected messages have only single period between them
             // and end with a single dot.
             ...transactionViolations.map((violation) => {
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL);
+                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink);
                 if (!message) {
                     return;
                 }

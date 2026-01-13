@@ -20,6 +20,7 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2064,6 +2065,11 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'カードの追加中にエラーが発生しました。もう一度お試しください。',
             password: 'Expensify のパスワードを入力してください',
         },
+    },
+    personalCard: {
+        brokenConnection: 'カード接続が切断されました',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `${cardName} カードの接続が切断されました。<a href="${connectionLink}">銀行にログイン</a>してカードを修復してください。`,
     },
     walletPage: {
         balance: '残高',
@@ -7209,7 +7215,7 @@ ${reportName}
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'レビューが必要',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '銀行連携の不具合により、領収書を自動照合できません';
             }
@@ -7220,6 +7226,11 @@ ${reportName}
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `${member} に現金としてマークするよう依頼するか、7日間待ってからもう一度お試しください` : 'カード取引との統合を待機中です。';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_PERSONAL_CARD_CONNECTION) {
+                return isAdmin
+                    ? `カード接続が切断されているため、レシートを自動照合できません。現金としてマークして無視するか、レシートと一致するように<a href="${connectionLink}">カードを修正</a>してください。`
+                    : 'カード接続が切断されているため、領収書を自動照合できません。';
             }
             return '';
         },

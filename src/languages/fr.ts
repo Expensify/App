@@ -20,6 +20,7 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2077,6 +2078,11 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Une erreur s’est produite lors de l’ajout de votre carte. Veuillez réessayer.',
             password: 'Veuillez saisir votre mot de passe Expensify',
         },
+    },
+    personalCard: {
+        brokenConnection: 'La connexion de votre carte est interrompue.',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `La connexion à votre carte ${cardName} est interrompue. <a href="${connectionLink}">Connectez-vous à votre banque</a> pour rétablir la connexion.`,
     },
     walletPage: {
         balance: 'Solde',
@@ -7290,7 +7296,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Révision requise',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Impossible de faire correspondre automatiquement le reçu en raison d’une connexion bancaire défectueuse';
             }
@@ -7301,6 +7307,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Demandez à ${member} de marquer comme espèce ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_PERSONAL_CARD_CONNECTION) {
+                return isAdmin
+                    ? `Impossible de faire correspondre automatiquement le reçu en raison d'une connexion carte défaillante. Marquez-le comme paiement en espèces pour l'ignorer, ou <a href="${connectionLink}">réparez la carte</a> pour faire correspondre le reçu.`
+                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion carte défaillante.";
             }
             return '';
         },
