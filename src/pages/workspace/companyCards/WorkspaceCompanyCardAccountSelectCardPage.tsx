@@ -48,6 +48,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const currentConnectionName = getCurrentConnectionName(policy);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
+    const defaultVendor = translate('workspace.accounting.defaultVendor');
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
@@ -78,13 +79,13 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             if (!exportMenuItem?.exportType) {
                 return;
             }
-            const isDefaultCardSelected = value === defaultCard;
-            const exportValue = isDefaultCardSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
+            const isDefaultSelected = value === defaultCard || value === defaultVendor;
+            const exportValue = isDefaultSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
             setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
 
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID));
+            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo));
         },
-        [exportMenuItem?.exportType, domainOrWorkspaceAccountID, cardID, policyID, feed, defaultCard],
+        [exportMenuItem?.exportType, domainOrWorkspaceAccountID, cardID, policyID, feed, defaultCard, defaultVendor, backTo],
     );
 
     return (
@@ -110,14 +111,14 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             }
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
             displayName="WorkspaceCompanyCardAccountSelectCardPage"
-            sections={[{data: searchedListOptions ?? []}]}
+            data={searchedListOptions ?? []}
             listItem={RadioListItem}
             textInputLabel={translate('common.search')}
             textInputValue={searchText}
             onChangeText={setSearchText}
             onSelectRow={updateExportAccount}
             initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo), {compareParams: false})}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo))}
             headerTitleAlreadyTranslated={exportMenuItem?.description}
             listEmptyContent={listEmptyContent}
             connectionName={connectedIntegration}
