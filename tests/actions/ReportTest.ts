@@ -86,6 +86,17 @@ jest.mock('@libs/Sound', () => ({
     SOUNDS: {DONE: 'DONE'},
 }));
 
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    dismissModalWithReport: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('@libs/actions/Welcome', () => ({
+    ...jest.requireActual('@libs/actions/Welcome'),
+    onServerDataReady: jest.fn(() => Promise.resolve()),
+}));
+
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
 describe('actions/Report', () => {
@@ -3233,6 +3244,149 @@ describe('actions/Report', () => {
             const reportsCollectionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}`);
 
             expect(reportsCollectionAfter).toBeUndefined();
+        });
+    });
+
+    describe('navigateToConciergeChat', () => {
+        const CONCIERGE_REPORT_ID = '123456';
+        const mockNavigation = jest.requireMock('@libs/Navigation/Navigation');
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            mockNavigation.navigate.mockClear();
+            mockNavigation.dismissModalWithReport.mockClear();
+            await Onyx.clear();
+            return waitForBatchedUpdates();
+        });
+
+        it('should navigate to concierge chat with provided conciergeReportID', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(false, CONCIERGE_REPORT_ID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should navigate with shouldDismissModal=true when provided', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(true, CONCIERGE_REPORT_ID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.dismissModalWithReport).toHaveBeenCalled();
+        });
+
+        it('should handle undefined conciergeReportID gracefully', async () => {
+            // Don't set CONCIERGE_REPORT_ID to simulate undefined state
+            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await waitForBatchedUpdates();
+
+            // When conciergeReportID is undefined, the function uses onServerDataReady()
+            // which is async. We're testing that it doesn't throw and handles the case properly.
+            expect(() => {
+                Report.navigateToConciergeChat(false, undefined);
+            }).not.toThrow();
+        });
+
+        it('should navigate with reportActionID when provided', async () => {
+            const reportActionID = 'action789';
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(true, CONCIERGE_REPORT_ID, undefined, undefined, reportActionID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.dismissModalWithReport).toHaveBeenCalledWith({
+                reportID: CONCIERGE_REPORT_ID,
+                reportActionID,
+            });
+        });
+
+        it('should navigate with linkToOptions when provided', async () => {
+            const linkToOptions = {forceReplace: true};
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(false, CONCIERGE_REPORT_ID, undefined, linkToOptions);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.navigate).toHaveBeenCalledWith(expect.any(String), linkToOptions);
+        });
+
+        it('should respect checkIfCurrentPageActive callback when creating new concierge chat', async () => {
+            const checkIfCurrentPageActive = jest.fn(() => false);
+            const navigateToAndOpenReportSpy = jest.spyOn(Report, 'navigateToAndOpenReport');
+
+            // Don't set CONCIERGE_REPORT_ID to simulate undefined state
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(false, undefined, checkIfCurrentPageActive);
+
+            await waitForBatchedUpdates();
+
+            // Should not navigate if checkIfCurrentPageActive returns false
+            expect(navigateToAndOpenReportSpy).not.toHaveBeenCalled();
+        });
+
+        it('should handle null conciergeReportID gracefully', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            // When conciergeReportID is undefined (or null passed as undefined),
+            // it should handle it gracefully
+            expect(() => {
+                Report.navigateToConciergeChat(false, undefined);
+            }).not.toThrow();
+        });
+
+        it('should handle empty string conciergeReportID gracefully', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '');
+            await waitForBatchedUpdates();
+
+            // Empty string is falsy in JavaScript, so it should trigger the undefined path
+            expect(() => {
+                Report.navigateToConciergeChat(false, '');
+            }).not.toThrow();
+        });
+
+        it('should work with all optional parameters provided', async () => {
+            const reportActionID = 'action123';
+            const linkToOptions = {forceReplace: true};
+            const checkIfCurrentPageActive = jest.fn(() => true);
+
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(true, CONCIERGE_REPORT_ID, checkIfCurrentPageActive, linkToOptions, reportActionID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.dismissModalWithReport).toHaveBeenCalledWith({
+                reportID: CONCIERGE_REPORT_ID,
+                reportActionID,
+            });
+        });
+
+        it('should prioritize provided conciergeReportID over Onyx value', async () => {
+            const onyxConciergeReportID = 'onyx-report-id';
+            const providedConciergeReportID = 'provided-report-id';
+
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, onyxConciergeReportID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(false, providedConciergeReportID);
+
+            await waitForBatchedUpdates();
+
+            // Should use the provided ID, not the Onyx ID
+            expect(mockNavigation.navigate).toHaveBeenCalledWith(expect.stringContaining(providedConciergeReportID), undefined);
         });
     });
 });
