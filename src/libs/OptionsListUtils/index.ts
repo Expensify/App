@@ -199,10 +199,10 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetailsOnyxConnect: OnyxEntry<PersonalDetailsList>;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => (allPersonalDetailsOnyxConnect = isEmptyObject(value) ? {} : value),
+    callback: (value) => (allPersonalDetails = isEmptyObject(value) ? {} : value),
 });
 
 const policies: OnyxCollection<Policy> = {};
@@ -995,7 +995,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
 
     const option = createOption(
         visibleParticipantAccountIDs,
-        allPersonalDetailsOnyxConnect ?? {},
+        allPersonalDetails ?? {},
         !isEmptyObject(report) ? report : undefined,
         {
             showChatPreviewLine: false,
@@ -1009,7 +1009,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, allPersonalDetailsOnyxConnect, undefined);
+        option.text = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, allPersonalDetails, undefined);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
@@ -1020,7 +1020,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
         if (report?.policyID) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
             const submitToAccountID = getSubmitToAccountID(policy, report);
-            const submitsToAccountDetails = allPersonalDetailsOnyxConnect?.[submitToAccountID];
+            const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
             const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
             if (subtitle) {
@@ -1093,7 +1093,7 @@ function getPolicyExpenseReportOption(participant: Participant | SearchOptionDat
 
     const option = createOption(
         visibleParticipantAccountIDs,
-        allPersonalDetailsOnyxConnect ?? {},
+        allPersonalDetails ?? {},
         !isEmptyObject(expenseReport) ? expenseReport : null,
         {
             showChatPreviewLine: false,
@@ -1258,7 +1258,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
         }
     }
 
-    const allPersonalDetailsOnyxConnectOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
+    const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
         item: personalDetail,
         ...createOption(
             [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
@@ -1272,14 +1272,14 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     }));
 
     span.setAttributes({
-        personalDetails: allPersonalDetailsOnyxConnectOptions.length,
+        personalDetails: allPersonalDetailsOptions.length,
         reports: allReportOptions.length,
     });
     span.end();
 
     return {
         reports: allReportOptions,
-        personalDetails: allPersonalDetailsOnyxConnectOptions as Array<SearchOption<PersonalDetails>>,
+        personalDetails: allPersonalDetailsOptions as Array<SearchOption<PersonalDetails>>,
     };
 }
 
@@ -1708,7 +1708,7 @@ function getUserToInviteOption({
     // Generates an optimistic account ID for new users not yet saved in Onyx
     const optimisticAccountID = generateAccountID(searchValue);
     const personalDetailsExtended = {
-        ...allPersonalDetailsOnyxConnect,
+        ...allPersonalDetails,
         [optimisticAccountID]: {
             accountID: optimisticAccountID,
             login: searchValue,
@@ -2063,7 +2063,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
             if (report?.policyID) {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
-                const submitsToAccountDetails = allPersonalDetailsOnyxConnect?.[submitToAccountID];
+                const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
                 if (subtitle) {
@@ -2947,10 +2947,10 @@ function shouldUseBoldText(report: SearchOptionData): boolean {
 }
 
 function getManagerMcTestParticipant(): Participant | undefined {
-    const managerMcTestPersonalDetails = Object.values(allPersonalDetailsOnyxConnect ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
+    const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
     const managerMcTestReport =
         managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
-    return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetailsOnyxConnect), reportID: managerMcTestReport?.reportID} : undefined;
+    return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
 }
 
 function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
