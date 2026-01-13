@@ -15029,4 +15029,5 @@ export type {
     PerDiemExpenseTransactionParams,
     UpdateMoneyRequestData,
     BasePolicyParams,
+    RejectMoneyRequestData,
 };

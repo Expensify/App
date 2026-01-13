@@ -52,6 +52,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import type {RejectMoneyRequestData} from './IOU';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
@@ -762,10 +763,10 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 }
 
 function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[], hash?: number) {
-    const optimisticData: OnyxUpdate[] = [];
+    const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const successData: RejectMoneyRequestData['successData'] = [];
+    const failureData: RejectMoneyRequestData['failureData'] = [];
 
     const loadingData = hash !== undefined ? getOnyxLoadingData(hash) : {optimisticData: undefined, finallyData: undefined};
     optimisticData.push(...(loadingData.optimisticData ?? []));
