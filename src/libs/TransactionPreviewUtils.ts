@@ -43,6 +43,7 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
+    isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 
@@ -292,6 +293,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     } else if (isPerDiemRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.perDiem'}];
+    } else if (isTimeRequest(transaction)) {
+        previewHeaderText = [{translationPath: 'iou.time'}];
     } else if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
