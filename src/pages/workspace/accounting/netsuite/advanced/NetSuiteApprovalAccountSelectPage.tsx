@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -30,7 +30,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
     const netsuiteApprovalAccountOptions = useMemo<SelectorType[]>(
         () => getNetSuiteApprovalAccountOptions(policy ?? undefined, config?.approvalAccount, translate),
         // The default option will be language dependent, so we need to recompute the options when the language changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [config?.approvalAccount, policy, translate],
     );
 
@@ -76,7 +76,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteApprovalAccountSelectPage"
             headerContent={headerContent}
-            sections={netsuiteApprovalAccountOptions.length ? [{data: netsuiteApprovalAccountOptions}] : []}
+            data={netsuiteApprovalAccountOptions}
             listItem={RadioListItem}
             onSelectRow={updateCollectionAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
