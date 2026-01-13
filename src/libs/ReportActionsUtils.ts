@@ -1525,11 +1525,15 @@ const isIOUActionMatchingTransactionList = (
 
 /**
  * Checks if a transaction has a valid pending action for expense report filtering.
- * When online, transactions with any pending action are excluded.
+ * When online, transactions with ADD or UPDATE pending action are included (to keep them visible during optimistic edits).
  * When offline, transactions with ADD pending action are included.
  */
 function hasValidPendingActionForExpenseReport(transaction: Transaction, isOffline: boolean): boolean {
-    return !transaction.pendingAction || (isOffline && transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    return (
+        !transaction.pendingAction ||
+        transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        (!isOffline && transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE)
+    );
 }
 
 /**
