@@ -924,10 +924,6 @@ type OutstandingChildRequest = {
 };
 
 type ParsingDetails = {
-    /**
-     * Currently there are no calls/reference that use this param
-     * This should be removed after https://github.com/Expensify/App/issues/50724 as a followup
-     */
     reportID?: string;
     policyID?: string;
 };
