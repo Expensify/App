@@ -178,6 +178,7 @@ function BaseDomainMembersPage({
                     shouldHeaderBeInsideList
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={listHeaderContent}
+                    disableMaintainingScrollPosition
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
