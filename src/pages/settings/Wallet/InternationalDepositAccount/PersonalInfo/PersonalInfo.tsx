@@ -28,6 +28,7 @@ function PersonalInfoPage() {
     const [personalBankAccount] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
 
@@ -48,7 +49,7 @@ function PersonalInfoPage() {
             ...bankAccountWithToken,
             phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
         };
-        addPersonalBankAccount(accountData);
+        addPersonalBankAccount(accountData, personalPolicyID);
     };
 
     const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails);
