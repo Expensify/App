@@ -4545,6 +4545,7 @@ function canEditMoneyRequest(
         return false;
     }
 
+    // Domain admins can report unreported managed card transactions
     if (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isManagedCardTransaction(transaction)) {
         return true;
     }
