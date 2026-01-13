@@ -254,7 +254,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionViolations,
         policyRecentlyUsedCurrencies,
         quickAction,
-        iouReportNextStep
+        iouReportNextStep,
     ]);
 
     const onSplitExpenseValueChange = useCallback(
