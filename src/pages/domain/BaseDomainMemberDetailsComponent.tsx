@@ -84,25 +84,24 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}
                                 </Text>
                             )}
                         </View>
+                        <View style={styles.w100}>
+                            <MenuItemWithTopDescription
+                                title={copyableName}
+                                copyValue={copyableName}
+                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                interactive={false}
+                                copyable
+                            />
+                            {children}
+                            <MenuItem
+                                style={styles.mb5}
+                                title={translate('common.profile')}
+                                icon={icons.Info}
+                                onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
+                                shouldShowRightIcon
+                            />
+                        </View>
                     </View>
-
-                    <MenuItemWithTopDescription
-                        title={copyableName}
-                        copyValue={copyableName}
-                        description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                        interactive={false}
-                        copyable
-                    />
-
-                    {children}
-
-                    <MenuItem
-                        style={styles.mb5}
-                        title={translate('common.profile')}
-                        icon={icons.Info}
-                        onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
-                        shouldShowRightIcon
-                    />
                 </ScrollView>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
