@@ -1,5 +1,4 @@
 type UpdateCompanyCard = {
-    authToken?: string | null;
     cardID: number;
 };
 
