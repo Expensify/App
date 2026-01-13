@@ -1191,6 +1191,7 @@ function openReport(
                 introSelected,
                 engagementChoice: choice,
                 onboardingMessage,
+                companySize: introSelected?.companySize as OnboardingCompanySize,
             });
 
             if (onboardingData) {
