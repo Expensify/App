@@ -20,8 +20,8 @@ import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
 import type RadioListItem from './SelectionList/ListItem/RadioListItem';
 import type TableListItem from './SelectionList/ListItem/TableListItem';
+import type UserListItem from './SelectionList/ListItem/UserListItem';
 import type {ListItem} from './SelectionList/types';
-import type UserListItem from './SelectionListWithSections/UserListItem';
 
 type SelectorType<T = string> = ListItem & {
     value: T;
