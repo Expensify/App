@@ -429,7 +429,7 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                markCommentAsUnread(REPORT_ID, createdReportAction);
+                markCommentAsUnread(REPORT_ID, createdReportAction, USER_A_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -528,7 +528,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                markCommentAsUnread(REPORT_ID, createdReportAction);
+                markCommentAsUnread(REPORT_ID, createdReportAction, USER_A_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -612,7 +612,7 @@ describe('Unread Indicators', () => {
         const firstNewReportAction = reportActions ? lastItem(reportActions) : undefined;
 
         if (firstNewReportAction) {
-            markCommentAsUnread(REPORT_ID, firstNewReportAction);
+            markCommentAsUnread(REPORT_ID, firstNewReportAction, USER_A_ACCOUNT_ID);
 
             await waitForBatchedUpdates();
 
@@ -755,7 +755,7 @@ describe('Unread Indicators', () => {
             lastVisibleActionCreated: reportAction11CreatedDate,
         });
 
-        markCommentAsUnread(REPORT_ID, {reportActionID: -1} as unknown as ReportAction); // Marking the chat as unread from LHN passing a dummy reportActionID
+        markCommentAsUnread(REPORT_ID, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID); // Marking the chat as unread from LHN passing a dummy reportActionID
 
         await waitForBatchedUpdates();
         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');

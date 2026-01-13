@@ -71,22 +71,21 @@ function ProfilePage({route}: ProfilePageProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector, canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const isCurrentUser = session?.accountID === accountID;
+    const isCurrentUser = currentUserAccountID === accountID;
     const reportKey = useMemo(() => {
-        const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
+        const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
 
         if (isAnonymousUserSession() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, isCurrentUser, reports, session?.accountID]);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    }, [accountID, isCurrentUser, reports, currentUserAccountID]);
     const [report] = useOnyx(reportKey, {canBeMissing: true});
 
     const styles = useThemeStyles();
@@ -272,7 +271,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={expensifyIcons.Pencil}
-                                onPress={() => navigateToPrivateNotes(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, navigateBackTo)}
+                                onPress={() => navigateToPrivateNotes(report, currentUserAccountID, navigateBackTo)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

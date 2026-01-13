@@ -9,7 +9,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import type Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
 import HeaderView from '@pages/home/HeaderView';
-import * as Report from '@userActions/Report';
+import {joinRoom} from '@userActions/Report';
+// eslint-disable-next-line no-restricted-syntax
+import type * as ReportType from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
@@ -25,10 +27,12 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
-jest.mock('@userActions/Report');
+jest.mock('@userActions/Report', () => ({
+    ...jest.requireActual<typeof ReportType>('@userActions/Report'),
+    joinRoom: jest.fn(),
+}));
 
 const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
-const mockJoinRoom = jest.spyOn(Report, 'joinRoom');
 const currentUserAccountID = 1;
 
 describe('HeaderView', () => {
@@ -125,7 +129,7 @@ describe('HeaderView', () => {
 
         // Then the joinRoom action should be called when the user presses the Join button
         fireEvent.press(joinButton);
-        expect(mockJoinRoom).toHaveBeenCalledWith(report, currentUserAccountID);
+        expect(joinRoom).toHaveBeenCalledWith(report, currentUserAccountID);
     });
 
     it('should display correct title for report with CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS parent action', async () => {
