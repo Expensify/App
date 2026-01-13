@@ -115,7 +115,6 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             shouldBeBlocked={false}
         >
             <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={ClaimOfferPage.displayName}
