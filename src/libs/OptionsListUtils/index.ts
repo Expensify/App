@@ -42,6 +42,7 @@ import {
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getLastVisibleMessage,
+    getMarkedReimbursedMessage,
     getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
@@ -681,7 +682,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = translateLocal('parentReportAction.hiddenMessage');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        lastMessageTextFromReport = translateLocal('iou.paidElsewhere');
+        lastMessageTextFromReport = getMarkedReimbursedMessage(lastReportAction);
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
@@ -697,9 +698,11 @@ function getLastMessageTextForReport({
     } else if (isMovedTransactionAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(lastReportAction));
     } else if (isTaskAction(lastReportAction)) {
-        lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translateLocal, lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
-        lastMessageTextFromReport = getTaskCreatedMessage(lastReportAction, getReportOrDraftReport(lastReportAction?.childReportID));
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = getTaskCreatedMessage(translateLocal, lastReportAction, getReportOrDraftReport(lastReportAction?.childReportID));
     } else if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
@@ -1686,7 +1689,10 @@ function getUserToInviteOption({
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
     const isInOptionToExclude = loginsToExclude[addSMSDomainIfPhoneNumber(searchValue).toLowerCase()];
 
-    if (isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
+    // Angle brackets are not valid characters for user names
+    const hasInvalidCharacters = shouldAcceptName && (searchValue.includes('<') || searchValue.includes('>'));
+
+    if (isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude || hasInvalidCharacters) {
         return null;
     }
 
@@ -1703,7 +1709,7 @@ function getUserToInviteOption({
         showChatPreviewLine,
     });
     userToInvite.isOptimisticAccount = true;
-    userToInvite.login = isValidEmail || isValidPhoneNumber ? searchValue : '';
+    userToInvite.login = searchValue;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     userToInvite.text = userToInvite.text || searchValue;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2125,6 +2131,7 @@ function getValidOptions(
         maxElements,
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
+        shouldAcceptName = false,
         ...config
     }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
@@ -2311,6 +2318,7 @@ function getValidOptions(
             countryCode,
             {
                 excludeLogins: loginsToExclude,
+                shouldAcceptName,
             },
         );
     }
@@ -2444,7 +2452,7 @@ function getFilteredRecentAttendees(personalDetails: OnyxEntry<PersonalDetailsLi
         .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
         .map((attendee) => ({
             ...attendee,
-            login: attendee.email ?? attendee.displayName,
+            login: attendee.email ? attendee.email : attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
         .map((attendee) => getParticipantsOption(attendee, personalDetails));

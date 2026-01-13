@@ -69,7 +69,6 @@ const usePinchGesture = ({
     useAnimatedReaction(
         () => [pinchTranslateX.get(), pinchTranslateY.get(), pinchBounceTranslateX.get(), pinchBounceTranslateY.get()],
         ([translateX, translateY, bounceX, bounceY]) => {
-            // eslint-disable-next-line react-compiler/react-compiler
             totalPinchTranslateX.set(translateX + bounceX);
             totalPinchTranslateY.set(translateY + bounceY);
         },
