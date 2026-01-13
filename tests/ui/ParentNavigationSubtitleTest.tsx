@@ -8,8 +8,9 @@ jest.mock('@libs/Navigation/Navigation');
 
 const mockUseRootNavigationState = jest.fn();
 jest.mock('@src/hooks/useRootNavigationState', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
-    default: (selector?: (state: unknown) => unknown) => mockUseRootNavigationState(selector),
+    default: (selector?: (state: unknown) => unknown) => mockUseRootNavigationState(selector) as unknown,
 }));
 
 const mockUseRoute = jest.fn();
