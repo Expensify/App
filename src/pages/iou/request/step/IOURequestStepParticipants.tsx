@@ -241,7 +241,7 @@ function IOURequestStepParticipants({
             const firstParticipantReportID = val.at(0)?.reportID;
             const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
             const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
-            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
+            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
             numberOfParticipants.current = val.length;
 
             // Use transactions array if available, otherwise use initialTransactionID directly
@@ -284,8 +284,12 @@ function IOURequestStepParticipants({
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             // We use || to be sure that if the first participant doesn't have a reportID, we generate a new one.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            selectedReportID.current = firstParticipantReportID || generateReportID();
+            if (isInvoice) {
+                selectedReportID.current = firstParticipantReportID && isInvoiceRoomWithID(firstParticipantReportID) ? firstParticipantReportID : generateReportID();
+            } else {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                selectedReportID.current = firstParticipantReportID || generateReportID();
+            }
 
             // IOUs are always reported. non-CREATE actions require a report
             if (!isPolicyExpenseChat || action !== CONST.IOU.ACTION.CREATE) {
