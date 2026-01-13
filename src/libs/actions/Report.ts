@@ -993,19 +993,15 @@ function openReport(
         return;
     }
 
-    let optimisticReport: Partial<Report> = {};
-
-    if (reportExists) {
-        // Skip to avoid overwriting existing report data
-    } else if (!hasReportActions) {
+    // Create optimistic report if it doesn't exist yet and we need it for UI rendering
+    let optimisticReport: Partial<Report> | undefined;
+    if (!reportExists && (!hasReportActions || isOffline)) {
         optimisticReport = {
-            reportName: report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
         };
-    } else if (isOffline) {
-        optimisticReport = {
-            reportName: report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
-            reportID,
-        };
+        if (isOffline) {
+            optimisticReport.reportID = reportID;
+        }
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -1022,14 +1018,11 @@ function openReport(
         },
     ];
 
-    if (Object.keys(optimisticReport).length > 0) {
-        // Preserve existing report data when creating optimistic report
-        const optimisticReportWithExistingData = report ? {...report, ...optimisticReport} : optimisticReport;
-
+    if (optimisticReport) {
         optimisticData.unshift({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: optimisticReportWithExistingData,
+            value: optimisticReport,
         });
     }
 
