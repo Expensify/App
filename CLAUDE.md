@@ -240,6 +240,38 @@ npm run android
 npm run web
 ```
 
+## Browser Testing with Playwright MCP
+
+Claude can interact with the running App dev server using Playwright MCP for testing and debugging:
+
+### Setup
+1. Verify dev server is running
+2. Dev server runs at `https://dev.new.expensify.com:8082/`
+3. Ask Claude to open the URL in Playwright browser
+2. **IF MCP NOT AVAILABLE**: Guide user to install it before proceeding
+
+### MCP Installation
+If Playwright MCP connection fails, guide user to install:
+```bash
+claude mcp add playwright npx '@playwright/mcp@latest'
+```
+
+### Testing Workflow (MCP Required)
+1. Verify App dev server is running: `pgrep webpack`
+2. Use Playwright MCP tools to navigate to `https://dev.new.expensify.com:8082/`
+3. Use MCP tools to interact with the browser (click, type, screenshot, etc.)
+
+### Dev Server Requirements
+- **Location**: Runs on HOST machine (not in VM)
+- **URL**: `https://dev.new.expensify.com:8082/`
+- **Start command**: `npm run web`
+- **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
+
+### Dev Environment Sign-In Credentials
+- **Email**: Generate a random Gmail address (e.g., `user+<random-numbers>@gmail.com`)
+- **Magic code**: Always `000000` for dev environment
+- **Onboarding**: Always skip optional steps
+
 ## Architecture Decisions
 
 ### React Native New Architecture

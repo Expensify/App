@@ -183,7 +183,10 @@ function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersL
                     importFinalModal: {
                         titleKey: 'spreadsheet.importSuccessfulTitle',
                         promptKey: 'spreadsheet.importMembersSuccessfulDescription',
-                        promptKeyParams: [addedMembersLength, updatedMembersLength],
+                        promptKeyParams: {
+                            added: addedMembersLength,
+                            updated: updatedMembersLength,
+                        },
                     },
                 },
             },
@@ -896,7 +899,6 @@ function buildAddMembersToWorkspaceOnyxData(
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
-            pendingAction: null,
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
         };
     }
