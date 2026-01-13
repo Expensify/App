@@ -1,5 +1,5 @@
-import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React, {useCallback} from 'react';
+import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import React from 'react';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -11,11 +11,11 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import {clearAdminError} from '@userActions/Domain';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
 
@@ -26,14 +26,21 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['Members']);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Gear', 'Plus']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        canBeMissing: true,
+    });
 
+    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminPendingActionSelector,
+    });
+
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
         selector: technicalContactSettingsSelector,
@@ -42,25 +49,38 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
-    const getCustomRightElement = useCallback(
-        (accountID: number) => {
-            const login = personalDetails?.[accountID]?.login;
-            if (technicalContactSettings?.technicalContactEmail !== login) {
-                return null;
+    const getCustomRightElement = (accountID: number) => {
+        const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
+        const login = personalDetails?.[accountID]?.login;
+        if (!technicalContactEmail || !login || technicalContactEmail !== login) {
+            return null;
         }
-            return <Badge text={translate('domain.admins.primaryContact')} />;
-        },
-        [personalDetails, technicalContactSettings?.technicalContactEmail, translate],
-    );
+        return <Badge text={translate('domain.admins.primaryContact')} />;
+    };
+
+    const getCustomRowProps = (accountID: number) => ({
+        errors: domainErrors?.adminErrors?.[accountID]?.errors,
+        pendingAction: domainPendingAction?.[accountID]?.pendingAction,
+    });
 
     const headerContent = isAdmin ? (
-        <Button
-            onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
-            text={translate('domain.admins.settings')}
-            icon={icons.Gear}
-            innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-            style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
-        />
+        <>
+            <Button
+                success
+                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
+                text={translate('domain.admins.addAdmin')}
+                icon={icons.Plus}
+                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+            />
+            <Button
+                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
+                text={translate('domain.admins.settings')}
+                icon={icons.Gear}
+                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+            />
+        </>
     ) : null;
 
     return (
@@ -69,9 +89,11 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             accountIDs={adminAccountIDs ?? []}
             headerTitle={translate('domain.admins.title')}
             searchPlaceholder={translate('domain.admins.findAdmin')}
-            headerIcon={illustrations.Members}
+            headerIcon={illustrations.UserShield}
             headerContent={headerContent}
             getCustomRightElement={getCustomRightElement}
+            getCustomRowProps={getCustomRowProps}
+            onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
             isLoading={isLoadingOnyxValue(domainMetadata)}
         />

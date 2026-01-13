@@ -1,9 +1,19 @@
-import {adminAccountIDsSelector, domainEmailSelector, selectMemberIDs, technicalContactSettingsSelector} from '@selectors/Domain';
+import {
+    adminAccountIDsSelector,
+    adminPendingActionSelector,
+    domainEmailSelector,
+    domainSettingsPrimaryContactSelector,
+    memberAccountIDsSelector,
+    technicalContactSettingsSelector,
+    selectMemberIDs,
+} from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, Domain} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import type {CardFeeds, Domain, DomainPendingActions, DomainSettings} from '@src/types/onyx';
 
 describe('domainSelectors', () => {
+    const userID1 = 123;
+    const userID2 = 456;
     describe('adminAccountIDsSelector', () => {
         it('Should return an empty array if the domain object is undefined', () => {
             expect(adminAccountIDsSelector(undefined)).toEqual([]);
@@ -11,8 +21,8 @@ describe('domainSelectors', () => {
 
         it('Should return an array of admin IDs when keys start with the admin access prefix', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 321,
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}321`]: 123,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 321,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}321`]: 123,
             } as unknown as OnyxEntry<Domain>;
 
             expect(adminAccountIDsSelector(domain)).toEqual([321, 123]);
@@ -20,7 +30,7 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the admin access prefix', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 321,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 321,
                 somOtherProperty: 'value',
             } as unknown as OnyxEntry<Domain>;
 
@@ -29,9 +39,9 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys with falsy values even if they have the correct prefix', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 123,
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: undefined,
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}999`]: null,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 123,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: undefined,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}999`]: null,
             } as unknown as OnyxEntry<Domain>;
 
             expect(adminAccountIDsSelector(domain)).toEqual([123]);

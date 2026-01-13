@@ -1,4 +1,5 @@
 import {selectMemberIDs} from '@selectors/Domain';
+import {memberAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -7,6 +8,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
+import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -18,11 +20,11 @@ type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParam
 function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Members']);
+    const illustrations = useMemoizedLazyIllustrations(['Profile']);
 
     const [memberIDs, memberMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: selectMemberIDs,
+        selector: memberAccountIDsSelector,
     });
 
     const openMemberDetails = (item: MemberOption) => {
@@ -34,7 +36,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     return (
         <BaseDomainMembersPage
             domainAccountID={domainAccountID}
-            isLoading={isLoadingOnyxValue(memberMetadata)}
             accountIDs={memberIDs ?? []}
             headerTitle={translate('domain.members.title')}
             searchPlaceholder={translate('domain.members.findMember')}

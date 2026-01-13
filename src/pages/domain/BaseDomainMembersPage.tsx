@@ -1,10 +1,11 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -14,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -21,10 +23,14 @@ import Navigation from '@navigation/Navigation';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
+    /** Member accountID */
     accountID: number;
+    /** Member login */
     login: string;
 };
 
@@ -53,8 +59,11 @@ type BaseDomainMembersPageProps = {
     /** Function to render a custom right element for a row */
     getCustomRightElement?: (accountID: number) => React.ReactNode;
 
-    /** Whether the data is still loading */
-    isLoading?: boolean;
+    /** Function to return additional row-specific properties like errors or pending actions */
+    getCustomRowProps?: (accountID: number) => {errors?: Errors; pendingAction?: PendingAction};
+
+    /** Callback fired when the user dismisses an error message for a specific row */
+    onDismissError?: (item: MemberOption) => void;
 };
 
 function BaseDomainMembersPage({
@@ -66,7 +75,8 @@ function BaseDomainMembersPage({
     onSelectRow,
     headerIcon,
     getCustomRightElement,
-    isLoading = false,
+    getCustomRowProps,
+    onDismissError,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -74,39 +84,40 @@ function BaseDomainMembersPage({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
-    const data: MemberOption[] = useMemo(() => {
-        const options: MemberOption[] = [];
+    const data: MemberOption[] = accountIDs.map((accountID) => {
+        const details = personalDetails?.[accountID];
+        const login = details?.login ?? '';
+        const customProps = getCustomRowProps?.(accountID);
+        const isPendingActionDelete = customProps?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-        for (const accountID of accountIDs) {
-            const details = personalDetails?.[accountID];
-            const login = details?.login ?? '';
+        return {
+            keyForList: String(accountID),
+            accountID,
+            login,
+            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+            alternateText: formatPhoneNumber(login),
+            icons: [
+                {
+                    source: details?.avatar ?? icons.FallbackAvatar,
+                    name: formatPhoneNumber(login),
+                    type: CONST.ICON_TYPE_AVATAR,
+                    id: accountID,
+                },
+            ],
+            rightElement: getCustomRightElement?.(accountID),
+            errors: getLatestError(customProps?.errors),
+            pendingAction: customProps?.pendingAction,
+            isInteractive: !isPendingActionDelete,
+            isDisabled: isPendingActionDelete,
+        };
+    });
 
-            options.push({
-                keyForList: String(accountID),
-                accountID,
-                login,
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(login),
-                icons: [
-                    {
-                        source: details?.avatar ?? icons.FallbackAvatar,
-                        name: formatPhoneNumber(login),
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: accountID,
-                    },
-                ],
-                rightElement: getCustomRightElement?.(accountID),
-            });
-        }
-        return options;
-    }, [accountIDs, personalDetails, formatPhoneNumber, icons.FallbackAvatar, getCustomRightElement]);
-
-    const filterMember = (option: MemberOption, searchQuery: string) => {
-        const results = tokenizedSearch([option], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
+    const filterMember = (memberOption: MemberOption, searchQuery: string) => {
+        const results = tokenizedSearch([memberOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
     };
 
-    const sortMembers = useCallback((options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare), [localeCompare]);
+    const sortMembers = (options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare);
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
@@ -131,10 +142,6 @@ function BaseDomainMembersPage({
                 shouldShowEmptyState={!filteredData.length}
             />
         ) : null;
-
-    if (isLoading) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -163,8 +170,9 @@ function BaseDomainMembersPage({
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     ListItem={TableListItem}
                     onSelectRow={onSelectRow}
+                    onDismissError={onDismissError}
                     shouldShowListEmptyContent={false}
-                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
+                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : styles.pr3}
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
                     customListHeader={getCustomListHeader()}
@@ -176,6 +184,5 @@ function BaseDomainMembersPage({
 }
 
 BaseDomainMembersPage.displayName = 'BaseDomainMembersPage';
-
 export type {MemberOption};
 export default BaseDomainMembersPage;
