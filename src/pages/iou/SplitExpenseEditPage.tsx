@@ -5,7 +5,6 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -140,43 +139,17 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const distanceRequestFields = isDistance ? (
         <>
-            <OfflineWithFeedback>
-                <MenuItemWithTopDescription
-                    description={translate('common.distance')}
-                    title={distanceToDisplay}
-                    interactive
-                    shouldShowRightIcon
-                    titleStyle={styles.flex1}
-                    style={[styles.moneyRequestMenuItem]}
-                    onPress={() => {
-                        if (isOdometerDistance) {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                    reportID,
-                                    Navigation.getActiveRoute(),
-                                ),
-                            );
-                            return;
-                        }
-
-                        if (isManualDistance) {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                    reportID,
-                                    Navigation.getActiveRoute(),
-                                ),
-                            );
-                            return;
-                        }
-
+            <MenuItemWithTopDescription
+                description={translate('common.distance')}
+                title={distanceToDisplay}
+                interactive
+                shouldShowRightIcon
+                titleStyle={styles.flex1}
+                style={[styles.moneyRequestMenuItem]}
+                onPress={() => {
+                    if (isOdometerDistance) {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(
                                 CONST.IOU.ACTION.EDIT,
                                 CONST.IOU.TYPE.SPLIT_EXPENSE,
                                 CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
@@ -184,20 +157,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 Navigation.getActiveRoute(),
                             ),
                         );
-                    }}
-                />
-            </OfflineWithFeedback>
-            <OfflineWithFeedback>
-                <MenuItemWithTopDescription
-                    description={translate('common.rate')}
-                    title={rateToDisplay}
-                    interactive
-                    shouldShowRightIcon
-                    titleStyle={styles.flex1}
-                    style={[styles.moneyRequestMenuItem]}
-                    onPress={() => {
+                        return;
+                    }
+
+                    if (isManualDistance) {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
                                 CONST.IOU.ACTION.EDIT,
                                 CONST.IOU.TYPE.SPLIT_EXPENSE,
                                 CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
@@ -205,9 +170,39 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 Navigation.getActiveRoute(),
                             ),
                         );
-                    }}
-                />
-            </OfflineWithFeedback>
+                        return;
+                    }
+
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.SPLIT_EXPENSE,
+                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                            reportID,
+                            Navigation.getActiveRoute(),
+                        ),
+                    );
+                }}
+            />
+            <MenuItemWithTopDescription
+                description={translate('common.rate')}
+                title={rateToDisplay}
+                interactive
+                shouldShowRightIcon
+                titleStyle={styles.flex1}
+                style={[styles.moneyRequestMenuItem]}
+                onPress={() => {
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.SPLIT_EXPENSE,
+                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                            reportID,
+                            Navigation.getActiveRoute(),
+                        ),
+                    );
+                }}
+            />
         </>
     ) : null;
 
