@@ -13,7 +13,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
 import type {
     JoinWorkspaceResolution,
     OriginalMessageChangeLog,
@@ -27,7 +27,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {isCardPendingActivate} from './CardUtils';
+import {getBankName, getPlaidInstitutionId, isCardPendingActivate, isPersonalCardBrokenConnection} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -360,6 +360,10 @@ function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportActi
 
 function isHoldAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.HOLD);
+}
+
+function isCardBrokenConnectionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_CONNECTION_BROKEN> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_CONNECTION_BROKEN);
 }
 
 function isReimbursementDirectionInformationRequiredAction(
@@ -3496,6 +3500,16 @@ function getCardIssuedMessage({
     }
 }
 
+function getCardConnectionBrokenMessage(reportAction: OnyxEntry<ReportAction>, card: Card | undefined, translate: LocaleContextProps['translate']) {
+    if (!isCardBrokenConnectionAction(reportAction) || !isPersonalCardBrokenConnection(card)) {
+        return '';
+    }
+    const cardName = card?.cardName;
+    const isPlaid = !!getPlaidInstitutionId(card?.bank);
+    const personalCardName = isPlaid && cardName ? cardName : getBankName(card?.bank as CompanyCardFeed);
+    return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink: ''});
+}
+
 function getRoomChangeLogMessage(translate: LocalizedTranslate, reportAction: ReportAction) {
     if (!isInviteOrRemovedAction(reportAction)) {
         return '';
@@ -3714,6 +3728,8 @@ export {
     isHoldAction,
     isWhisperAction,
     isSubmittedAction,
+    isCardBrokenConnectionAction,
+    getCardConnectionBrokenMessage,
     isSubmittedAndClosedAction,
     isDynamicExternalWorkflowSubmitAction,
     isMarkAsClosedAction,

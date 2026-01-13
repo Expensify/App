@@ -1227,6 +1227,7 @@ const CONST = {
                 CARD_REPLACED_VIRTUAL: 'CARDREPLACEDVIRTUAL',
                 CARD_REPLACED: 'CARDREPLACED',
                 CARD_ASSIGNED: 'CARDASSIGNED',
+                CARD_CONNECTION_BROKEN: 'CARDCONNECTIONBROKEN',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
                 CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS: 'CREATEDREPORTFORUNAPPROVEDTRANSACTIONS',
@@ -5783,6 +5784,7 @@ const CONST = {
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
+        BROKEN_PERSONAL_CARD_CONNECTION: 'brokenPersonalCardConnection',
         BROKEN_CARD_CONNECTION_530: 'brokenCardConnection530',
         SEVEN_DAY_HOLD: 'sevenDayHold',
     },
