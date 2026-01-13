@@ -39,8 +39,8 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     let navigationRoute: Route;
     let tnodeClone: typeof tnode | undefined;
 
-    if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
-        const user = personalDetails[htmlAttribAccountID];
+    if (!isEmpty(htmlAttribAccountID)) {
+        const user = personalDetails?.[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
         mentionDisplayText = formatPhoneNumber(user?.login ?? '') || getDisplayNameOrDefault(user);
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
