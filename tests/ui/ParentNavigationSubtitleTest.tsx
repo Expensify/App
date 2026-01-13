@@ -7,15 +7,10 @@ import ParentNavigationSubtitle from '../../src/components/ParentNavigationSubti
 jest.mock('@libs/Navigation/Navigation');
 
 const mockUseRootNavigationState = jest.fn();
-jest.mock('@src/hooks/useRootNavigationState', () => {
-    return jest.fn((selector?: (state: unknown) => unknown) => {
-        const mockRoute = {name: 'ReportsSplitNavigator'};
-        if (selector) {
-            return selector({routes: [mockRoute]});
-        }
-        return mockRoute;
-    });
-});
+jest.mock('@src/hooks/useRootNavigationState', () => ({
+    __esModule: true,
+    default: (selector?: (state: unknown) => unknown) => mockUseRootNavigationState(selector),
+}));
 
 const mockUseRoute = jest.fn();
 jest.mock('@react-navigation/native', () => {
