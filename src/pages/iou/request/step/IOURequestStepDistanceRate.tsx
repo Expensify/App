@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -44,7 +43,7 @@ function IOURequestStepDistanceRate({
     report,
     reportDraft,
     route: {
-        params: {action, backTo, transactionID, iouType, reportActionID},
+        params: {action, reportID, backTo, transactionID, iouType, reportActionID},
     },
     transaction,
 }: IOURequestStepDistanceRateProps) {
@@ -53,8 +52,6 @@ function IOURequestStepDistanceRate({
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
@@ -121,8 +118,7 @@ function IOURequestStepDistanceRate({
             if (isEditing && transaction?.transactionID) {
                 updateMoneyRequestDistanceRate({
                     transactionID: transaction.transactionID,
-                    transactionThreadReport: report,
-                    parentReport,
+                    transactionThreadReportID: reportID,
                     rateID: customUnitRateID,
                     policy,
                     policyTagList: policyTags,

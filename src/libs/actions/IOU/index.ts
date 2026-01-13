@@ -4017,7 +4017,7 @@ function calculateDiffAmount(
 
 type GetUpdateMoneyRequestParamsType = {
     transactionID: string | undefined;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReportID: string | undefined;
     transactionChanges: TransactionChanges;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>;
@@ -4028,7 +4028,6 @@ type GetUpdateMoneyRequestParamsType = {
     hash?: number;
     allowNegative?: boolean;
     newTransactionReportID?: string | undefined;
-    iouReport: OnyxEntry<OnyxTypes.Report>;
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -4039,7 +4038,7 @@ type GetUpdateMoneyRequestParamsType = {
 function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData {
     const {
         transactionID,
-        transactionThreadReport,
+        transactionThreadReportID,
         transactionChanges,
         policy,
         policyTagList,
@@ -4050,7 +4049,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         hash,
         allowNegative,
         newTransactionReportID,
-        iouReport,
         shouldBuildOptimisticModifiedExpenseReportAction = true,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -4078,9 +4076,11 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')]));
 
     // Step 2: Get all the collections being updated
+    const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     const isTransactionOnHold = isOnHold(transaction);
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${newTransactionReportID ?? transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = isExpenseReport(iouReport);
     const updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction
         ? getUpdatedTransaction({
@@ -4141,35 +4141,35 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
-        ? buildOptimisticModifiedExpenseReportAction(transactionThreadReport, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative)
+        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative)
         : null;
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
                 [updatedReportAction.reportActionID]: updatedReportAction as OnyxTypes.ReportAction,
             },
         });
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
             value: {
                 lastReadTime: updatedReportAction.created,
             },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
             value: {
-                lastReadTime: transactionThreadReport?.lastReadTime,
+                lastReadTime: transactionThread?.lastReadTime,
             },
         });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
                 [updatedReportAction.reportActionID]: {pendingAction: null},
             },
@@ -4181,7 +4181,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
                 [updatedReportAction.reportActionID]: isDistanceTransaction
                     ? null
@@ -4249,7 +4249,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             value: getOutstandingChildRequest(updatedMoneyRequestReport),
         },
     );
-    if (updatedReportAction && isOneTransactionThread(transactionThreadReport ?? undefined, iouReport ?? undefined, undefined)) {
+    if (updatedReportAction && isOneTransactionThread(transactionThread ?? undefined, iouReport ?? undefined, undefined)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -4275,10 +4275,10 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         },
     });
 
-    if (updatedReportAction && transactionThreadReport?.reportID) {
+    if (updatedReportAction) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
             value: {
                 lastActorAccountID: updatedReportAction.actorAccountID,
             },
@@ -4286,12 +4286,12 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     }
 
     if (isScanning(transaction) && ('amount' in transactionChanges || 'currency' in transactionChanges)) {
-        if (transactionThreadReport?.parentReportActionID) {
+        if (transactionThread?.parentReportActionID) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                 value: {
-                    [transactionThreadReport?.parentReportActionID]: {
+                    [transactionThread?.parentReportActionID]: {
                         originalMessage: {
                             whisperedTo: [],
                         },
@@ -4570,13 +4570,11 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     }
 
     // Reset the transaction thread to its original state
-    if (transactionThreadReport?.reportID) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
-            value: transactionThreadReport,
-        });
-    }
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+        value: transactionThread,
+    });
 
     return {
         params: apiParams,
@@ -4767,8 +4765,7 @@ function getUpdateTrackExpenseParams(
 
 type UpdateMoneyRequestDateParams = {
     transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReportID: string;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     value: string;
@@ -4783,8 +4780,7 @@ type UpdateMoneyRequestDateParams = {
 /** Updates the created date of an expense */
 function updateMoneyRequestDate({
     transactionID,
-    transactionThreadReport,
-    parentReport,
+    transactionThreadReportID,
     transactions,
     transactionViolations,
     value,
@@ -4798,15 +4794,16 @@ function updateMoneyRequestDate({
     const transactionChanges: TransactionChanges = {
         created: value,
     };
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
+            transactionThreadReportID,
             transactionChanges,
             policy,
             policyTagList: policyTags,
@@ -4824,8 +4821,7 @@ function updateMoneyRequestDate({
 /** Updates the billable field of an expense */
 function updateMoneyRequestBillable(
     transactionID: string | undefined,
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
-    parentReport: OnyxEntry<OnyxTypes.Report>,
+    transactionThreadReportID: string | undefined,
     value: boolean,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
@@ -4834,7 +4830,7 @@ function updateMoneyRequestBillable(
     currentUserEmailParam: string,
     isASAPSubmitBetaEnabled: boolean,
 ) {
-    if (!transactionID || !transactionThreadReport?.reportID) {
+    if (!transactionID || !transactionThreadReportID) {
         return;
     }
     const transactionChanges: TransactionChanges = {
@@ -4842,8 +4838,7 @@ function updateMoneyRequestBillable(
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
+        transactionThreadReportID,
         transactionChanges,
         policy,
         policyTagList,
@@ -4857,8 +4852,7 @@ function updateMoneyRequestBillable(
 
 function updateMoneyRequestReimbursable(
     transactionID: string | undefined,
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
-    parentReport: OnyxEntry<OnyxTypes.Report>,
+    transactionThreadReportID: string | undefined,
     value: boolean,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
@@ -4867,7 +4861,7 @@ function updateMoneyRequestReimbursable(
     currentUserEmailParam: string,
     isASAPSubmitBetaEnabled: boolean,
 ) {
-    if (!transactionID || !transactionThreadReport?.reportID) {
+    if (!transactionID || !transactionThreadReportID) {
         return;
     }
     const transactionChanges: TransactionChanges = {
@@ -4875,8 +4869,7 @@ function updateMoneyRequestReimbursable(
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
+        transactionThreadReportID,
         transactionChanges,
         policy,
         policyTagList,
@@ -4891,8 +4884,7 @@ function updateMoneyRequestReimbursable(
 /** Updates the merchant field of an expense */
 function updateMoneyRequestMerchant(
     transactionID: string,
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
-    parentReport: OnyxEntry<OnyxTypes.Report>,
+    transactionThreadReportID: string,
     value: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
@@ -4904,15 +4896,16 @@ function updateMoneyRequestMerchant(
     const transactionChanges: TransactionChanges = {
         merchant: value,
     };
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
+            transactionThreadReportID,
             transactionChanges,
             policy,
             policyTagList,
@@ -4927,38 +4920,24 @@ function updateMoneyRequestMerchant(
 }
 
 /** Updates the attendees list of an expense */
-function updateMoneyRequestAttendees({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    attendees,
-    policy,
-    policyTagList,
-    policyCategories,
-    violations,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-}: {
-    transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    attendees: Attendee[];
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    violations: OnyxEntry<OnyxTypes.TransactionViolations> | undefined;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-}) {
+function updateMoneyRequestAttendees(
+    transactionID: string,
+    transactionThreadReportID: string,
+    attendees: Attendee[],
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    violations: OnyxEntry<OnyxTypes.TransactionViolations> | undefined,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    isASAPSubmitBetaEnabled: boolean,
+) {
     const transactionChanges: TransactionChanges = {
         attendees,
     };
     const data = getUpdateMoneyRequestParams({
         transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
+        transactionThreadReportID,
         transactionChanges,
         policy,
         policyTagList,
@@ -4974,8 +4953,7 @@ function updateMoneyRequestAttendees({
 
 type UpdateMoneyRequestTagParams = {
     transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReportID: string | undefined;
     tag: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -4990,8 +4968,7 @@ type UpdateMoneyRequestTagParams = {
 /** Updates the tag of an expense */
 function updateMoneyRequestTag({
     transactionID,
-    transactionThreadReport,
-    parentReport,
+    transactionThreadReportID,
     tag,
     policy,
     policyTagList,
@@ -5007,8 +4984,7 @@ function updateMoneyRequestTag({
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
+        transactionThreadReportID,
         transactionChanges,
         policy,
         policyTagList,
@@ -5025,8 +5001,7 @@ function updateMoneyRequestTag({
 /** Updates the created tax amount of an expense */
 function updateMoneyRequestTaxAmount(
     transactionID: string,
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
-    parentReport: OnyxEntry<OnyxTypes.Report>,
+    optimisticReportActionID: string | undefined,
     taxAmount: number,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
@@ -5040,8 +5015,7 @@ function updateMoneyRequestTaxAmount(
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
+        transactionThreadReportID: optimisticReportActionID,
         transactionChanges,
         policy,
         policyTagList,
@@ -5055,8 +5029,7 @@ function updateMoneyRequestTaxAmount(
 
 type UpdateMoneyRequestTaxRateParams = {
     transactionID: string | undefined;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
+    optimisticReportActionID: string | undefined;
     taxCode: string;
     taxAmount: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -5070,8 +5043,7 @@ type UpdateMoneyRequestTaxRateParams = {
 /** Updates the created tax rate of an expense */
 function updateMoneyRequestTaxRate({
     transactionID,
-    transactionThreadReport,
-    parentReport,
+    optimisticReportActionID,
     taxCode,
     taxAmount,
     policy,
@@ -5087,8 +5059,7 @@ function updateMoneyRequestTaxRate({
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
+        transactionThreadReportID: optimisticReportActionID,
         transactionChanges,
         policy,
         policyTagList,
@@ -5103,8 +5074,7 @@ function updateMoneyRequestTaxRate({
 
 type UpdateMoneyRequestDistanceParams = {
     transactionID: string | undefined;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReportID: string | undefined;
     waypoints?: WaypointCollection;
     distance?: number;
     routes?: Routes;
@@ -5122,8 +5092,7 @@ type UpdateMoneyRequestDistanceParams = {
 /** Updates the waypoints of a distance expense */
 function updateMoneyRequestDistance({
     transactionID,
-    transactionThreadReport,
-    parentReport,
+    transactionThreadReportID,
     waypoints,
     distance,
     routes = undefined,
@@ -5144,15 +5113,16 @@ function updateMoneyRequestDistance({
         ...(odometerStart !== undefined && {odometerStart}),
         ...(odometerEnd !== undefined && {odometerEnd}),
     };
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
+            transactionThreadReportID,
             transactionChanges,
             policy,
             policyTagList,
@@ -5219,8 +5189,7 @@ function updateMoneyRequestDistance({
 /** Updates the category of an expense */
 function updateMoneyRequestCategory({
     transactionID,
-    transactionThreadReport,
-    parentReport,
+    transactionThreadReportID,
     category,
     policy,
     policyTagList,
@@ -5232,8 +5201,7 @@ function updateMoneyRequestCategory({
     hash,
 }: {
     transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReportID: string;
     category: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -5250,8 +5218,7 @@ function updateMoneyRequestCategory({
 
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
+        transactionThreadReportID,
         transactionChanges,
         policy,
         policyTagList,
@@ -5268,8 +5235,7 @@ function updateMoneyRequestCategory({
 /** Updates the description of an expense */
 function updateMoneyRequestDescription(
     transactionID: string,
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
-    parentReport: OnyxEntry<OnyxTypes.Report>,
+    transactionThreadReportID: string,
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
@@ -5282,15 +5248,16 @@ function updateMoneyRequestDescription(
     const transactionChanges: TransactionChanges = {
         comment: parsedComment,
     };
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
+            transactionThreadReportID,
             transactionChanges,
             policy,
             policyTagList,
@@ -5308,8 +5275,7 @@ function updateMoneyRequestDescription(
 /** Updates the distance rate of an expense */
 function updateMoneyRequestDistanceRate({
     transactionID,
-    transactionThreadReport,
-    parentReport,
+    transactionThreadReportID,
     rateID,
     policy,
     policyTagList,
@@ -5321,8 +5287,7 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode,
 }: {
     transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReportID: string;
     rateID: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -5338,6 +5303,8 @@ function updateMoneyRequestDistanceRate({
         ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
         ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
     };
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (transaction) {
@@ -5353,12 +5320,11 @@ function updateMoneyRequestDistanceRate({
     let data: UpdateMoneyRequestData;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
+            transactionThreadReportID,
             transactionChanges,
             policy,
             policyTagList,
@@ -8339,8 +8305,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
     transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReportID: string;
     currency: string;
     amount: number;
     taxAmount: number;
@@ -8360,8 +8325,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
 /** Updates the amount and currency fields of an expense */
 function updateMoneyRequestAmountAndCurrency({
     transactionID,
-    transactionThreadReport,
-    parentReport,
+    transactionThreadReportID,
     currency,
     amount,
     taxAmount,
@@ -8384,15 +8348,16 @@ function updateMoneyRequestAmountAndCurrency({
         taxAmount,
     };
 
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
+            transactionThreadReportID,
             transactionChanges,
             policy,
             policyTagList: policyTagList ?? null,
@@ -14040,12 +14005,9 @@ function updateSplitTransactions({
             }
 
             if (Object.keys(transactionChanges).length > 0) {
-                const transactionThreadReport = allReports?.[`${isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID}`];
-                const transactionIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense?.reportID ?? transactionThreadReport?.parentReportID}`];
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     transactionID: existingTransactionID,
-                    transactionThreadReport,
-                    iouReport: transactionIOUReport,
+                    transactionThreadReportID: isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID,
                     transactionChanges,
                     policy,
                     policyTagList: policyTags ?? null,

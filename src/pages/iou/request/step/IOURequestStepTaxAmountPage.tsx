@@ -9,7 +9,6 @@ import usePermissions from '@hooks/usePermissions';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {setDraftSplitTransaction, setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, updateMoneyRequestTaxAmount} from '@libs/actions/IOU';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {calculateTaxAmount, getAmount, getDefaultTaxCode, getTaxValue, getTaxAmount as getTransactionTaxAmount} from '@libs/TransactionUtils';
@@ -56,8 +55,6 @@ function IOURequestStepTaxAmountPage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -106,8 +103,7 @@ function IOURequestStepTaxAmountPage({
             }
             updateMoneyRequestTaxAmount(
                 transactionID,
-                report,
-                parentReport,
+                report?.reportID,
                 taxAmountInSmallestCurrencyUnits,
                 policy,
                 policyTags,

@@ -46,7 +46,6 @@ import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransac
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -87,8 +86,6 @@ function IOURequestStepDistance({
     const {isBetaEnabled} = usePermissions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
@@ -441,7 +438,6 @@ function IOURequestStepDistance({
         reportNameValuePairs,
         iouType,
         defaultExpensePolicy,
-        currentUserPersonalDetails.accountID,
         setDistanceRequestData,
         shouldSkipConfirmation,
         transactionID,
@@ -455,15 +451,15 @@ function IOURequestStepDistance({
         lastSelectedDistanceRates,
         backToReport,
         isASAPSubmitBetaEnabled,
-        transactionViolations,
-        quickAction,
-        policyRecentlyUsedCurrencies,
         customUnitRateID,
-        introSelected,
-        activePolicyID,
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
+        transactionViolations,
+        currentUserPersonalDetails.accountID,
+        quickAction,
+        introSelected,
+        activePolicyID,
     ]);
 
     const getError = () => {
@@ -534,8 +530,7 @@ function IOURequestStepDistance({
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
                     transactionID: transaction?.transactionID,
-                    transactionThreadReport: report,
-                    parentReport,
+                    transactionThreadReportID: report?.reportID,
                     waypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
@@ -552,21 +547,20 @@ function IOURequestStepDistance({
 
         navigateToNextStep();
     }, [
+        navigateBack,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
         isLoadingRoute,
-        isEditing,
         isLoading,
         isCreatingNewRequest,
+        isEditing,
         navigateToNextStep,
         transactionBackup,
         waypoints,
-        transaction?.routes,
         transaction?.transactionID,
-        report,
-        navigateBack,
-        parentReport,
+        transaction?.routes,
+        report?.reportID,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
