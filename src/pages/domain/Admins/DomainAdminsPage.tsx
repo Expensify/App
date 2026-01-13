@@ -23,8 +23,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Members']);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Gear', 'Plus']);
+    const illustrations = useMemoizedLazyIllustrations(['UserShield']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
@@ -95,7 +95,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             getCustomRowProps={getCustomRowProps}
             onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
-            isLoading={isLoadingOnyxValue(domainMetadata)}
         />
     );
 }

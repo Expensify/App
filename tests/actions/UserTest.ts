@@ -578,4 +578,39 @@ describe('actions/User', () => {
             });
         });
     });
+
+    describe('lockAccount', () => {
+        it('should execute with explicit accountID ', async () => {
+            const accountID = 123456;
+            UserActions.lockAccount(accountID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(
+                'LockAccount',
+                {accountID},
+                expect.objectContaining({
+                    optimisticData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    successData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    failureData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                }),
+            );
+        });
+
+        it('should execute without accountID (uses current user)', async () => {
+            UserActions.lockAccount();
+
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(
+                'LockAccount',
+                {accountID: 0},
+                expect.objectContaining({
+                    optimisticData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    successData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    failureData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                }),
+            );
+        });
+    });
 });
