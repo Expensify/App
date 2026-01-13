@@ -3,7 +3,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ErrorMessageRow from '@components/ErrorMessageRow';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Table from '@components/Table';
@@ -58,7 +57,6 @@ function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, compa
         feedName,
         cardList,
         assignedCards,
-        allCardFeeds,
         cardFeedsStatus,
         cardNames,
         cardFeedType,
