@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, Domain, DomainPendingActions, SamlMetadata} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
@@ -17,6 +17,8 @@ const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
         : undefined;
 
 const domainNameSelector = (domain: OnyxEntry<Domain>) => (domain?.email ? Str.extractEmailDomain(domain.email) : undefined);
+
+const domainSettingsPrimaryContactSelector = (domainSettings: OnyxEntry<DomainSettings>) => domainSettings?.settings?.technicalContactEmail;
 
 const metaIdentitySelector = (samlMetadata: OnyxEntry<SamlMetadata>) => samlMetadata?.metaIdentity;
 
@@ -35,7 +37,7 @@ function adminAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
 
     return (
         Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
-            if (!key.startsWith(ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX) || value === undefined || value === null) {
+            if (!key.startsWith(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX) || value === undefined || value === null) {
                 return acc;
             }
 
@@ -57,70 +59,54 @@ const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
 /**
  * Extracts a list of member IDs (accountIDs) from the domain object.
- * * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
+ * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
  * and returns a unique list of numbers.
  *
  * @param domain - The domain object from Onyx
  * @returns An array of unique member account IDs
  */
-function selectMemberIDs(domain: Domain | undefined): number[] {
+function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     if (!domain) {
-        return [];
+        return getEmptyArray<number>();
     }
 
-    const memberIDs = Object.entries(domain)
-        .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP))
-        .flatMap(([, value]) => {
-            const groupData = value as {shared?: Record<string, string>};
-            if (!groupData?.shared) {
-                return [];
+    const memberIDs = Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
+        if (key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX)) {
+            const securityGroup = value as DomainSecurityGroup;
+
+            const sharedMembers = securityGroup?.shared ?? {};
+
+            for (const id of Object.keys(sharedMembers)) {
+                const accountID = Number(id);
+                if (!Number.isNaN(accountID)) {
+                    acc.push(accountID);
+                }
             }
-            return Object.keys(groupData.shared);
-        })
-        .map((id) => Number(id))
-        .filter((id) => !Number.isNaN(id));
-    return [...new Set(memberIDs)];
-}
+        }
+        return acc;
+    }, []);
 
-/**
- * Gets all security group IDs for a given account ID.
- * It searches through all security groups in the domain and returns the group IDs
- * where the account ID appears in the 'shared' property.
- *
- * @param domain - The domain object from Onyx
- * @param accountID - The account ID to search for
- * @returns An array of security group IDs (as strings) that the account belongs to
- */
-function selectSecurityGroupIDsForAccount(domain: Domain | undefined, accountID: number): number[] {
-    if (!domain) {
-        return [];
-    }
+    const uniqueIDs = [...new Set(memberIDs)];
 
-    const accountIDStr = String(accountID);
-
-    return Object.entries(domain)
-        .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP))
-        .filter(([, value]) => {
-            const groupData = value as {shared?: Record<string, string>};
-            return groupData?.shared && accountIDStr in groupData.shared;
-        })
-        .map(([key]) => {
-            // Extract the group ID from the key: "expensify_securityGroup_<groupID>" -> "<groupID>"
-            return parseInt(key.replace(`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP}_`, ''), 10);
-        });
+    return uniqueIDs.length > 0 ? uniqueIDs : getEmptyArray<number>();
 }
 
 const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.members ?? {};
 
+const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
+
 export {
     domainMemberSamlSettingsSelector,
+    domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,
     domainNameSelector,
     metaIdentitySelector,
     adminAccountIDsSelector,
+    memberAccountIDsSelector,
+    domainEmailSelector,
+    adminPendingActionSelector,
     technicalContactSettingsSelector,
     selectMemberIDs,
     selectSecurityGroupIDsForAccount,
     memberPendingActionSelector,
-    domainEmailSelector,
 };

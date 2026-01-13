@@ -2,6 +2,7 @@ import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
@@ -11,12 +12,14 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     getCardIssuedMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
     isIOUActionMatchingTransactionList,
 } from '../../src/libs/ReportActionsUtils';
+import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -667,6 +670,40 @@ describe('ReportActionsUtils', () => {
             expect(result).toStrictEqual(expectedOutput);
         });
 
+        it('should not show moved transaction system message when expense is moved from personal space', () => {
+            const movedTransactionAction: ReportAction = {
+                created: '2022-11-13 22:27:01.825',
+                reportActionID: '8401445780099177',
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    toReportID: '123',
+                },
+            };
+
+            const addCommentAction: ReportAction = {
+                created: '2022-11-12 22:27:01.825',
+                reportActionID: '6401435781022176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        type: 'Action type',
+                        text: 'Action text',
+                    },
+                ],
+            };
+
+            const input: ReportAction[] = [movedTransactionAction, addCommentAction];
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
+
+            expect(result).toStrictEqual([addCommentAction]);
+        });
+
         it('should filter out closed actions', () => {
             const input: ReportAction[] = [
                 {
@@ -1294,6 +1331,11 @@ describe('ReportActionsUtils', () => {
             };
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
+
+        it('should return false for CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action with empty message array', () => {
+            const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
     });
 
     describe('getRenamedAction', () => {
@@ -1432,7 +1474,7 @@ describe('ReportActionsUtils', () => {
                 created: '2025-09-29',
                 originalMessage: {
                     toReportID: report.reportID,
-                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    fromReportID: '1',
                 },
             };
 
@@ -1565,6 +1607,22 @@ describe('ReportActionsUtils', () => {
             });
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
+    });
+
+    describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
+        it('should return the correct message with a valid report ID and report name', () => {
+            const reportID = '67890';
+            const reportName = 'Original Report';
+            const reportUrl = getReportURLForCurrentContext(reportID);
+            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
+                reportUrl,
+                reportName,
+            });
+
+            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
 
             expect(result).toBe(expectedMessage);
         });
@@ -2257,6 +2315,114 @@ describe('ReportActionsUtils', () => {
             // Then it should return the routed due to DEW message with the correct "to" value
             const expected = translateLocal('iou.routedDueToDEW', {to});
             expect(actual).toBe(expected);
+        });
+    });
+
+    describe('getWorkspaceCustomUnitRateUpdatedMessage', () => {
+        it('should return the correct message when a rate is enabled', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'enabled',
+                    oldValue: false,
+                    newValue: true,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('enabled the Distance rate "Default Rate"');
+        });
+
+        it('should return the correct message when a rate is disabled', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'enabled',
+                    oldValue: true,
+                    newValue: false,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('disabled the Distance rate "Default Rate"');
+        });
+    });
+
+    describe('didMessageMentionCurrentUser', () => {
+        const currentUserEmail = 'currentuser@example.com';
+        const otherUserEmail = 'otheruser@example.com';
+        const otherUserAccountID = 456;
+
+        it('should return true when email matches', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                        type: 'COMMENT',
+                        text: `@${currentUserEmail}`,
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when message includes mention-here', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: 'Hello <mention-here>',
+                        type: 'COMMENT',
+                        text: 'Hello @here',
+                    },
+                ],
+                originalMessage: {
+                    html: 'Hello <mention-here>',
+                    whisperedTo: [],
+                    mentionedAccountIDs: [],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when user is not mentioned', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: `<mention-user>@${otherUserEmail}</mention-user>`,
+                        type: 'COMMENT',
+                        text: `@${otherUserEmail}`,
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user>@${otherUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [otherUserAccountID],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(false);
         });
     });
 

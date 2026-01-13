@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,15 +23,19 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {memberPendingActionSelector} from '@src/selectors/Domain';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
+    /** Member accountID */
     accountID: number;
+    /** Member login */
     login: string;
 };
 
 type BaseDomainMembersPageProps = {
-    /** The accountID for the domain */
+    /** The ID of the domain used for the not found wrapper */
     domainAccountID: number;
 
     /** The list of accountIDs to display */
@@ -49,10 +53,31 @@ type BaseDomainMembersPageProps = {
     /** Callback fired when a row is selected */
     onSelectRow: (item: MemberOption) => void;
 
-    hederIcon: IconAsset;
+    /** Icon displayed in the header of the tab */
+    headerIcon?: IconAsset;
+
+    /** Function to render a custom right element for a row */
+    getCustomRightElement?: (accountID: number) => React.ReactNode;
+
+    /** Function to return additional row-specific properties like errors or pending actions */
+    getCustomRowProps?: (accountID: number) => {errors?: Errors; pendingAction?: PendingAction};
+
+    /** Callback fired when the user dismisses an error message for a specific row */
+    onDismissError?: (item: MemberOption) => void;
 };
 
-function BaseDomainMembersPage({domainAccountID, accountIDs, headerTitle, searchPlaceholder, headerContent, onSelectRow, hederIcon}: BaseDomainMembersPageProps) {
+function BaseDomainMembersPage({
+    domainAccountID,
+    accountIDs,
+    headerTitle,
+    searchPlaceholder,
+    headerContent,
+    onSelectRow,
+    headerIcon,
+    getCustomRightElement,
+    getCustomRowProps,
+    onDismissError,
+}: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
@@ -69,35 +94,38 @@ function BaseDomainMembersPage({domainAccountID, accountIDs, headerTitle, search
         selector: memberPendingActionSelector,
     });
 
-    const data: MemberOption[] = useMemo(() => {
-        const options: MemberOption[] = [];
-        for (const accountID of accountIDs) {
-            const details = personalDetails?.[accountID];
-            options.push({
-                keyForList: String(accountID),
-                accountID,
-                login: details?.login ?? '',
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(details?.login ?? ''),
-                icons: [
-                    {
-                        source: details?.avatar ?? icons.FallbackAvatar,
-                        name: formatPhoneNumber(details?.login ?? ''),
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: accountID,
-                    },
-                ],
-                errors: getLatestError(domainErrors?.memberErrors?.[accountID]?.errors),
-                pendingAction: domainPendingAction?.[accountID],
-            });
-        }
-        return options;
-    }, [accountIDs, personalDetails, formatPhoneNumber, icons.FallbackAvatar, domainErrors?.memberErrors, domainPendingAction]);
+    const data: MemberOption[] = accountIDs.map((accountID) => {
+        const details = personalDetails?.[accountID];
+        const login = details?.login ?? '';
+        const customProps = getCustomRowProps?.(accountID);
+        const isPendingActionDelete = customProps?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    const filterMember = useCallback((option: MemberOption, searchQuery: string) => {
-        const results = tokenizedSearch([option], searchQuery, (item) => [item.text ?? '', item.alternateText ?? '']);
+        return {
+            keyForList: String(accountID),
+            accountID,
+            login,
+            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+            alternateText: formatPhoneNumber(login),
+            icons: [
+                {
+                    source: details?.avatar ?? icons.FallbackAvatar,
+                    name: formatPhoneNumber(login),
+                    type: CONST.ICON_TYPE_AVATAR,
+                    id: accountID,
+                },
+            ],
+            rightElement: getCustomRightElement?.(accountID),
+            errors: getLatestError(customProps?.errors) ?? getLatestError(domainErrors?.memberErrors?.[accountID]?.errors),
+            pendingAction: customProps?.pendingAction ?? domainPendingAction?.[accountID],
+            isInteractive: !isPendingActionDelete,
+            isDisabled: isPendingActionDelete,
+        };
+    });
+
+    const filterMember = (memberOption: MemberOption, searchQuery: string) => {
+        const results = tokenizedSearch([memberOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
-    }, []);
+    };
 
     const sortMembers = useCallback((options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare), [localeCompare]);
 
@@ -156,14 +184,12 @@ function BaseDomainMembersPage({domainAccountID, accountIDs, headerTitle, search
                 showScrollIndicator={false}
                 addBottomSafeAreaPadding
                 customListHeader={getCustomListHeader()}
-                containerStyle={styles.flex1}
-                onDismissError={(item: MemberOption) => clearDomainMemberError(domainAccountID, item.accountID)}
+                containerStyle={[styles.flex1]}
             />
         </ScreenWrapper>
     );
 }
 
 BaseDomainMembersPage.displayName = 'BaseDomainMembersPage';
-
 export type {MemberOption};
 export default BaseDomainMembersPage;

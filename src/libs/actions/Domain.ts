@@ -1,12 +1,13 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddAdminToDomainParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
+import type {AddAdminToDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getAuthToken} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
 
@@ -353,7 +354,7 @@ function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
 }
 
-function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
+function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>
     > = [
@@ -425,11 +426,9 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID
         },
     ];
 
-    const authToken = getAuthToken();
     const params: SetTechnicalContactEmailParams = {
-        authToken,
         domainAccountID,
-        technicalContactAccountID: newTechnicalContactAccountID,
+        technicalContactEmail: newTechnicalContactEmail,
     };
 
     API.write(WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL, params, {optimisticData, successData, failureData});
@@ -509,9 +508,7 @@ function toggleConsolidatedDomainBilling(domainAccountID: number, domainName: st
         },
     ];
 
-    const authToken = getAuthToken();
     const params: ToggleConsolidatedDomainBillingParams = {
-        authToken,
         domainAccountID,
         domainName,
         enabled: useTechnicalContactBillingCard,
@@ -527,7 +524,7 @@ function clearToggleConsolidatedDomainBillingErrors(domainAccountID: number) {
 }
 
 function addAdminToDomain(domainAccountID: number, accountID: number, targetEmail: string, domainName: string) {
-    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
+    const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -535,7 +532,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
                 [PERMISSION_KEY]: accountID,
-            },
+            } as PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -625,15 +622,9 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
 }
 
 /**
- * Removes an error after trying to add admin
+ * Removes an error and pending actions after trying to add admin
  */
-function clearAddAdminError(domainAccountID: number, accountID: number) {
-    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        [PERMISSION_KEY]: null,
-    });
-
+function clearAdminError(domainAccountID: number, accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         adminErrors: {
             [accountID]: null,
@@ -645,6 +636,66 @@ function clearAddAdminError(domainAccountID: number, accountID: number) {
             [accountID]: null,
         },
     });
+}
+/**
+ * Removes admin access for a domain member
+ */
+function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {errors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.error.removeAdmin')},
+                },
+            },
+        },
+    ];
+
+    const parameters: RemoveDomainAdminParams = {
+        domainAccountID,
+        targetAccountID: accountID,
+    };
+
+    API.write(WRITE_COMMANDS.REMOVE_DOMAIN_ADMIN, parameters, {optimisticData, successData, failureData});
 }
 
 /** Sends a request to remove user from a domain and close their account */
@@ -743,7 +794,8 @@ export {
     toggleConsolidatedDomainBilling,
     clearToggleConsolidatedDomainBillingErrors,
     addAdminToDomain,
-    clearAddAdminError,
+    clearAdminError,
+    revokeDomainAdminAccess,
     closeUserAccount,
     clearDomainMemberError,
 };
