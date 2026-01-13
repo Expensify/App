@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Badge from '@components/Badge';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
