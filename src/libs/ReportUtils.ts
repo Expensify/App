@@ -1058,6 +1058,13 @@ Onyx.connectWithoutView({
     callback: (value) => (allPolicyDrafts = value),
 });
 
+let allReportDraftComments: Record<string, string | undefined> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportDraftComments = value ?? {}),
+});
+
 let allReports: OnyxCollection<Report>;
 let reportsByPolicyID: ReportByPolicyMap;
 Onyx.connectWithoutView({
@@ -1075,7 +1082,7 @@ Onyx.connectWithoutView({
                 return acc;
             }
 
-            handlePreexistingReport(report);
+            handlePreexistingReport(report, allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]);
 
             // Get all reports, which are the ones that are:
             // - Owned by the same user

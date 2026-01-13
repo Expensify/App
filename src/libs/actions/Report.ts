@@ -354,13 +354,6 @@ Onyx.connect({
     callback: (val) => (introSelected = val),
 });
 
-let allReportDraftComments: Record<string, string | undefined> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReportDraftComments = value),
-});
-
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
     environment = env;
@@ -1938,7 +1931,7 @@ function broadcastUserIsLeavingRoom(reportID: string) {
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
-function handlePreexistingReport(report: Report) {
+function handlePreexistingReport(report: Report, draftReportComment: string | undefined) {
     const {reportID, preexistingReportID, parentReportID, parentReportActionID} = report;
 
     if (!reportID || !preexistingReportID) {
@@ -1992,7 +1985,6 @@ function handlePreexistingReport(report: Report) {
 
         // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
         // after that clear the optimistically created report
-        const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
         if (!draftReportComment) {
             callback();
             return;
