@@ -27,6 +27,7 @@ import {
     getPersonalDetailSearchTerms,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
+    getUserToInviteOption,
     getValidOptions,
     optionsOrderBy,
     orderOptions,
@@ -2714,7 +2715,7 @@ describe('OptionsListUtils', () => {
         it('MOVED_TRANSACTION action', async () => {
             const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
-            const report: Report = createRandomReport(0, undefined);
+            const report: Report = createRandomReport(2, undefined);
             const report2: Report = {
                 ...createRandomReport(1, undefined),
                 reportName: 'Expense Report #123',
@@ -3068,6 +3069,26 @@ describe('OptionsListUtils', () => {
 
             expect(results.recentReports).toBeDefined();
             expect(Array.isArray(results.recentReports)).toBe(true);
+        });
+    });
+
+    describe('getUserToInviteOption', () => {
+        it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
+            const result = getUserToInviteOption({
+                searchValue: 'Jeff Amazon',
+                loginList: {},
+            });
+            expect(result).toBeNull();
+        });
+
+        it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
+            const result = getUserToInviteOption({
+                searchValue: 'Jeff Amazon',
+                shouldAcceptName: true,
+                loginList: {},
+            });
+            expect(result).not.toBeNull();
+            expect(result?.login).toBe('Jeff Amazon');
         });
     });
 });
