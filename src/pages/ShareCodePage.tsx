@@ -33,7 +33,7 @@ import {
     getReportName,
     isExpenseReport,
     isMoneyRequestReport,
-    getReportForDisplay,
+    getReportForHeader,
 } from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -100,7 +100,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber]);
 
-    const reportForTitle = useMemo(() => getReportForDisplay(report), [report]);
+    const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = isReport ? getReportName(reportForTitle) : (currentUserPersonalDetails.displayName ?? '');

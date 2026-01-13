@@ -1,17 +1,17 @@
 import reportsSelector from '@selectors/Attributes';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -23,7 +23,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -102,7 +101,7 @@ import {
     navigateToPrivateNotes,
     shouldDisableRename as shouldDisableRenameUtil,
     shouldUseFullTitleToDisplay,
-    getReportForDisplay,
+    getReportForHeader,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isDemoTransaction} from '@libs/TransactionUtils';
@@ -184,7 +183,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {showConfirmModal} = useConfirmModal();
+    const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
@@ -216,7 +216,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
         const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
 
@@ -309,6 +309,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
     useEffect(() => {
+        if (canDeleteRequest) {
+            return;
+        }
+
+        setIsDeleteModalVisible(false);
+    }, [canDeleteRequest]);
+
+    useEffect(() => {
         // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
         if (isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
             return;
@@ -329,24 +337,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         });
     }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report]);
 
-    const showLastMemberLeavingModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('groupChat.lastMemberTitle'),
-            prompt: translate('groupChat.lastMemberWarning'),
-            confirmText: translate('common.leave'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then(({action}) => {
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            leaveChat();
-        });
-    }, [showConfirmModal, translate, leaveChat]);
-
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
-    const reportForHeader = useMemo(() => getReportForDisplay(report), [report]);
+    const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
     const reportName = isGroupChat ? getReportNameFromReportNameUtils(reportForHeader, reportAttributes) : Parser.htmlToText(getReportNameFromReportNameUtils(reportForHeader, reportAttributes));
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
@@ -534,7 +527,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isAnonymousAction: true,
                 action: () => {
                     if (getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
-                        showLastMemberLeavingModal();
+                        setIsLastMemberLeavingGroupModalVisible(true);
                         return;
                     }
 
@@ -588,7 +581,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
-        showLastMemberLeavingModal,
         isSmallScreenWidth,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
@@ -927,22 +919,20 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
     }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
 
-    const showDeleteModal = useCallback(() => {
-        showConfirmModal({
-            title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1}),
-            prompt: caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1}),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-            shouldEnableNewFocusManagement: true,
-        }).then(({action}) => {
-            if (action !== ModalActions.CONFIRM) {
+    // A flag to indicate whether the user chose to delete the transaction or not
+    const isTransactionDeleted = useRef<boolean>(false);
+
+    useEffect(() => {
+        return () => {
+            // Perform the actual deletion after the details page is unmounted. This prevents the [Deleted ...] text from briefly appearing when dismissing the modal.
+            if (!isTransactionDeleted.current) {
                 return;
             }
+            isTransactionDeleted.current = false;
             navigateToTargetUrl();
             deleteTransaction();
-        });
-    }, [showConfirmModal, caseID, translate, navigateToTargetUrl, deleteTransaction]);
+        };
+    }, [deleteTransaction, navigateToTargetUrl]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
@@ -1025,10 +1015,37 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={expensifyIcons.Trashcan}
                             title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
-                            onPress={showDeleteModal}
+                            onPress={() => setIsDeleteModalVisible(true)}
                         />
                     )}
                 </ScrollView>
+                <ConfirmModal
+                    danger
+                    title={translate('groupChat.lastMemberTitle')}
+                    isVisible={isLastMemberLeavingGroupModalVisible}
+                    onConfirm={() => {
+                        setIsLastMemberLeavingGroupModalVisible(false);
+                        leaveChat();
+                    }}
+                    onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
+                    prompt={translate('groupChat.lastMemberWarning')}
+                    confirmText={translate('common.leave')}
+                    cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
+                    isVisible={isDeleteModalVisible}
+                    onConfirm={() => {
+                        setIsDeleteModalVisible(false);
+                        isTransactionDeleted.current = true;
+                    }}
+                    onCancel={() => setIsDeleteModalVisible(false)}
+                    prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                    shouldEnableNewFocusManagement
+                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

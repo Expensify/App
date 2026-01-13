@@ -135,7 +135,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = getPersonalDetailsForAccountIDs(participants, personalDetails);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber, isSelfDM);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber, undefined, isSelfDM);
 
     const isChatThread = isChatThreadReportUtils(report);
     const isChatRoom = isChatRoomReportUtils(report);
@@ -218,7 +218,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
     const shouldShowDiscount = useMemo(
         () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID) && !isReportArchived,
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan, userBillingFundID],
     );
