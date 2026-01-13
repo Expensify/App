@@ -430,7 +430,6 @@ describe('TransactionUtils', () => {
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     },
                 },
-                merchant: '(none)',
             });
 
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.DISTANCE);
@@ -607,7 +606,7 @@ describe('TransactionUtils', () => {
         it('should return (none) if transaction has no merchant', () => {
             const transaction = generateTransaction();
             const merchant = TransactionUtils.getMerchant(transaction);
-            expect(merchant).toBe('Expense');
+            expect(merchant).toBe('(none)');
         });
 
         it('should return modified merchant if transaction has modified merchant', () => {
@@ -1551,6 +1550,29 @@ describe('TransactionUtils', () => {
         it('should return true when there are both reimbursable and non-reimbursable transactions', () => {
             const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: false})];
             expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+        });
+    });
+
+    describe('getConvertedAmount', () => {
+        it('should return the absolute amount if transaction is not from expense report, tracked expense and allowNegative is false', () => {
+            const transaction = generateTransaction({
+                convertedAmount: -100,
+            });
+            expect(TransactionUtils.getConvertedAmount(transaction)).toBe(100);
+        });
+
+        it('should return the opposite sign amount if the transaction is from the expense report and disableOppositeConversion is false', () => {
+            const transaction = generateTransaction({
+                convertedAmount: -100,
+            });
+            expect(TransactionUtils.getConvertedAmount(transaction, true, false, false, false)).toBe(100);
+        });
+
+        it('should return the current converted amount if the transaction is from the expense report and disableOppositeConversion is true', () => {
+            const transaction = generateTransaction({
+                convertedAmount: -100,
+            });
+            expect(TransactionUtils.getConvertedAmount(transaction, true, false, false, true)).toBe(-100);
         });
     });
 });

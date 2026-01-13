@@ -149,7 +149,7 @@ function ExpenseReportListItemRow({
                     <UserInfoCell
                         accountID={item.from.accountID}
                         avatar={item.from.avatar}
-                        displayName={item.from.displayName ?? item.from.login ?? ''}
+                        displayName={item.formattedFrom ?? ''}
                     />
                 )}
             </View>
@@ -160,7 +160,7 @@ function ExpenseReportListItemRow({
                     <UserInfoCell
                         accountID={item.to.accountID}
                         avatar={item.to.avatar}
-                        displayName={item.to.displayName ?? item.to.login ?? ''}
+                        displayName={item.formattedTo ?? ''}
                     />
                 )}
             </View>
