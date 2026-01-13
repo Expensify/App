@@ -397,11 +397,14 @@ function mergeTransactionRequest({
     // Remove ACTIONABLE_TRACK_EXPENSE_WHISPER when target transaction is moved to expense report
     const isTargetUnreported = !targetTransaction.reportID || targetTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const targetReport = isTargetUnreported ? null : getReportOrDraftReport(targetTransaction.reportID);
-    const targetChatReportID = isTargetUnreported
-        ? findSelfDMReportID()
-        : targetReport && isChatReport(targetReport)
-          ? targetTransaction.reportID
-          : targetReport?.chatReportID;
+    let targetChatReportID: string | undefined;
+    if (isTargetUnreported) {
+        targetChatReportID = findSelfDMReportID();
+    } else if (targetReport && isChatReport(targetReport)) {
+        targetChatReportID = targetTransaction.reportID;
+    } else {
+        targetChatReportID = targetReport?.chatReportID;
+    }
     const isTargetMovingToExpenseReport = mergeTransaction.reportID && mergeTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && mergeTransaction.reportID !== targetTransaction.reportID;
     const actionableWhisperAction = getTrackExpenseActionableWhisper(targetTransaction.transactionID, targetChatReportID);
     
