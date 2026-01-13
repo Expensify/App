@@ -71,7 +71,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             }),
         ]).start(() => setIsSidePanelTransitionEnded(true));
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- sidePanelWidth dependency caused the help panel content to slide in on window resize
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- sidePanelWidth dependency caused the help panel content to slide in on window resize
     }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
 
     const closeSidePanel = useCallback(
