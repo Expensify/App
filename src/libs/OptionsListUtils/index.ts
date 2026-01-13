@@ -2126,6 +2126,7 @@ function getValidOptions(
         maxElements,
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
+        shouldAcceptName = false,
         ...config
     }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
@@ -2312,6 +2313,7 @@ function getValidOptions(
             countryCode,
             {
                 excludeLogins: loginsToExclude,
+                shouldAcceptName,
             },
         );
     }
@@ -2441,11 +2443,24 @@ function getFilteredRecentAttendees(personalDetails: OnyxEntry<PersonalDetailsLi
         });
     }
 
-    const filteredRecentAttendees = recentAttendees
+    // Deduplicate recentAttendees: use email for regular users, displayName for name-only attendees
+    const seenAttendees = new Set<string>();
+    const deduplicatedRecentAttendees = recentAttendees.filter((attendee) => {
+        const key = attendee.email || attendee.displayName || '';
+        if (seenAttendees.has(key)) {
+            return false;
+        }
+        seenAttendees.add(key);
+        return true;
+    });
+
+    const filteredRecentAttendees = deduplicatedRecentAttendees
         .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
         .map((attendee) => ({
             ...attendee,
-            login: attendee.email ?? attendee.displayName,
+            // Use || instead of ?? to handle empty string email for name-only attendees
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            login: attendee.email || attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
         .map((attendee) => getParticipantsOption(attendee, personalDetails));
