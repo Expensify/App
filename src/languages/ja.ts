@@ -1305,6 +1305,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'このワークスペースでは無効なレートです。ワークスペースから利用可能なレートを選択してください。',
             endDateBeforeStartDate: '終了日は開始日より前にはできません',
             endDateSameAsStartDate: '終了日は開始日と同じにはできません',
+            manySplitsProvided: `許可される最大分割数は${CONST.IOU.SPLITS_LIMIT}です。`,
+            dateRangeExceedsMaxDays: `期間は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             invalidReadings: '開始と終了の両方の読みを入力してください',
             negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
         },
@@ -1458,6 +1460,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`, hrs: '時間'},
     },
     transactionMerge: {
         listPage: {
@@ -6284,6 +6287,8 @@ ${reportName}
         billcom: 'Bill.com',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `会社住所を「${newAddress}」（以前は「${previousAddress}」）に変更しました` : `会社の住所を「${newAddress}」に設定`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `${field}「${name}」の承認者として${approverName}（${approverEmail}）を追加しました`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `${field}「${name}」の承認者として${approverName}（${approverEmail}）を削除しました`,
