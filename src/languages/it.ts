@@ -1440,9 +1440,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Non puoi spostare le spese per diaria su report in altri workspace, perché le tariffe per diaria possono differire tra workspace.',
         changeApprover: {
             title: 'Cambia approvatore',
-            subtitle: "Scegli un'opzione per cambiare l'approvatore di questo report.",
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Puoi anche modificare in modo permanente l'approvatore per tutti i report nelle tue <a href="${workflowSettingLink}">impostazioni del flusso di lavoro</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Scegli un'opzione per modificare l'approvatore di questo report. (Aggiorna le <a href="${workflowSettingLink}">impostazioni dell'area di lavoro</a> per modificare questa impostazione in modo permanente per tutti i report.)`,
             changedApproverMessage: (managerID: number) => `ha cambiato l'approvatore in <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Aggiungi approvatore',

@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -52,6 +52,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
+    const hasAutoAppliedRef = useRef(false);
 
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
@@ -99,6 +100,21 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         return data;
     }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
 
+    // Auto-select first option if none selected
+    useEffect(() => {
+        if (selectedApproverType === undefined && approverTypes.length > 0) {
+            setSelectedApproverType(approverTypes.at(0)?.keyForList);
+        }
+    }, [approverTypes, selectedApproverType]);
+
+    // Skip dialog if only one option
+    useEffect(() => {
+        if (!isLoadingReportData && !hasAutoAppliedRef.current && approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList) {
+            hasAutoAppliedRef.current = true;
+            changeApprover();
+        }
+    }, [approverTypes, selectedApproverType, changeApprover, isLoadingReportData]);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
 
@@ -113,12 +129,13 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
 
     const listHeader = useMemo(
         () => (
-            <>
-                <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.subtitle')}</Text>
-                <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML html={translate('iou.changeApprover.description', {workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`})} />
-                </View>
-            </>
+            <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
+                <RenderHTML
+                    html={translate('iou.changeApprover.header', {
+                        workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`,
+                    })}
+                />
+            </View>
         ),
         [environmentURL, policy?.id, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],
     );
@@ -151,6 +168,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 confirmButtonOptions={confirmButtonOptions}
                 shouldUpdateFocusedIndex
                 customListHeader={listHeader}
+                initiallyFocusedItemKey={selectedApproverType}
             >
                 {hasError && (
                     <FormHelpMessage
