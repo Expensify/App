@@ -76,6 +76,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT;
 
     // If viewing a to-do search, use live data from useTodos, otherwise return the snapshot data
+    // We do this so that we can show the counters for the to-do search results without visiting the specific to-do page, e.g. show `Approve [3]` while viewing the `Submit` to-do search.
     const currentSearchResults = useMemo((): SearchResults | undefined => {
         if (isTodoSearch && currentSearchKey) {
             const liveData = todoSearchResultsData[currentSearchKey];
