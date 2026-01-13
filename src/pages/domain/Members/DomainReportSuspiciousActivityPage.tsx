@@ -1,6 +1,5 @@
 import React from 'react';
 import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,11 +23,7 @@ function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActiv
 
     const confirmModalPrompt = translate('domain.members.reportSuspiciousActivityConfirmationPrompt');
 
-    const lockAccountPagePrompt = (
-        <Text>
-            <RenderHTML html={translate('domain.members.reportSuspiciousActivityPrompt', memberLogin)} />
-        </Text>
-    );
+    const lockAccountPagePrompt = <RenderHTML html={translate('domain.members.reportSuspiciousActivityPrompt', memberLogin)} />;
 
     const handleLockRequestFinish = () => {
         Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));

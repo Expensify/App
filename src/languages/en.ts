@@ -7867,7 +7867,7 @@ const translations = {
                 removeAdmin: 'Unable to remove this user as an Admin. Please try again.',
             },
         },
-        members:  {
+        members: {
             title: 'Members',
             findMember: 'Find member',
             closeAccount: 'Close account',

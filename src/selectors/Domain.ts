@@ -89,34 +89,6 @@ function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     return uniqueIDs.length > 0 ? uniqueIDs : getEmptyArray<number>();
 }
 
-/**
- * Extracts a list of member IDs (accountIDs) from the domain object.
- * * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
- * and returns a unique list of numbers.
- *
- * @param domain - The domain object from Onyx
- * @returns An array of unique member account IDs
- */
-function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
-    if (!domain) {
-        return [];
-    }
-
-    const memberIDs = Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
-        if (key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX)) {
-            const securityGroup = value as DomainSecurityGroup;
-            const sharedMembers = securityGroup?.shared ?? {};
-
-            for (const id of Object.keys(sharedMembers)) {
-                acc.push(Number(id));
-            }
-        }
-        return acc;
-    }, []);
-
-    return [...new Set(memberIDs)].filter((id) => !Number.isNaN(id)) ?? getEmptyArray<number>();
-}
-
 const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
@@ -132,5 +104,4 @@ export {
     domainEmailSelector,
     adminPendingActionSelector,
     technicalContactSettingsSelector,
-    selectMemberIDs,
 };

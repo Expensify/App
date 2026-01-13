@@ -23,9 +23,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['UserShield']);
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
