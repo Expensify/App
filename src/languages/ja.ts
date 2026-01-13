@@ -7894,6 +7894,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
         },
+        fabGpsTripExplained: 'Go to GPS screen (Floating action)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
