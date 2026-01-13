@@ -25,6 +25,7 @@ import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,6 +47,10 @@ jest.mock('@userActions/Report', () => ({
 jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
     setOptimisticDataForTransactionThreadPreview: jest.fn(),
+}));
+jest.mock('@src/libs/SearchQueryUtils', () => ({
+    ...jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils'),
+    getCurrentSearchQueryJSON: jest.fn(),
 }));
 
 const adminAccountID = 18439984;
@@ -1811,6 +1816,42 @@ describe('SearchUIUtils', () => {
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
 
+        test('Should return EXPORT_TO_ACCOUNTING action when report is approved and policy has verified accounting integration', () => {
+            const exportReportID = 'report_export';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`policy_${policyID}`]: {
+                    ...searchResults.data[`policy_${policyID}`],
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    exporter: adminEmail,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: true,
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as Connections,
+                },
+                [`report_${exportReportID}`]: {
+                    ...searchResults.data[`report_${reportID2}`],
+                    reportID: exportReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+            };
+
+            const actions = SearchUIUtils.getActions(localSearchResults, {}, `report_${exportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, {});
+
+            expect(actions).toContain(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
+        });
+
         test('Should return `Submit` action when report has DEW_SUBMIT_FAILED action and is still OPEN', async () => {
             const dewReportID = '999';
             const dewTransactionID = '9999';
@@ -2196,6 +2237,73 @@ describe('SearchUIUtils', () => {
             }) as [TransactionWithdrawalIDGroupListItemType[], number];
 
             expect(result).toHaveLength(0);
+        });
+    });
+
+    describe('Test getSections with shouldSkipActionFiltering option', () => {
+        beforeEach(() => {
+            // Mock getCurrentSearchQueryJSON to return a query with action filter
+            (SearchQueryUtils.getCurrentSearchQueryJSON as jest.Mock).mockReturnValue({
+                type: 'expense-report',
+                filters: {
+                    operator: 'and',
+                    left: {operator: 'eq', left: 'action', right: 'approve'},
+                },
+                flatFilters: [
+                    {
+                        key: 'action',
+                        filters: [{operator: 'eq', value: 'approve'}],
+                    },
+                ],
+            });
+        });
+
+        afterEach(() => {
+            (SearchQueryUtils.getCurrentSearchQueryJSON as jest.Mock).mockClear();
+        });
+
+        it('should return all expense reports when shouldSkipActionFiltering is true', () => {
+            const result = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: searchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                shouldSkipActionFiltering: true,
+            })[0] as TransactionGroupListItemType[];
+
+            expect(result.length).toBe(4); // All expense reports returned
+        });
+
+        it('should return only filtered expense reports when shouldSkipActionFiltering is false', () => {
+            const result = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: searchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                shouldSkipActionFiltering: false,
+            })[0] as TransactionGroupListItemType[];
+
+            expect(result.length).toBe(2); // Only filtered expense reports returned
+        });
+
+        it('should apply default filtering behavior when shouldSkipActionFiltering is undefined', () => {
+            const result = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: searchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+            })[0] as TransactionGroupListItemType[];
+
+            expect(result.length).toBe(2); // Default behavior applies filtering
         });
     });
 
