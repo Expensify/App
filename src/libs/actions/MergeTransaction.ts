@@ -393,7 +393,7 @@ function mergeTransactionRequest({
     const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
     // Only delete source report if it differs from target and has one transaction
     const shouldDeleteSourceReport = sourceTransaction.reportID !== mergeTransaction.reportID && transactionsOfSourceReport.length === 1;
-    
+
     // Remove ACTIONABLE_TRACK_EXPENSE_WHISPER when target transaction is moved to expense report
     const isTargetUnreported = !targetTransaction.reportID || targetTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const targetReport = isTargetUnreported ? null : getReportOrDraftReport(targetTransaction.reportID);
@@ -405,9 +405,10 @@ function mergeTransactionRequest({
     } else {
         targetChatReportID = targetReport?.chatReportID;
     }
-    const isTargetMovingToExpenseReport = mergeTransaction.reportID && mergeTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && mergeTransaction.reportID !== targetTransaction.reportID;
+    const isTargetMovingToExpenseReport =
+        mergeTransaction.reportID && mergeTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && mergeTransaction.reportID !== targetTransaction.reportID;
     const actionableWhisperAction = getTrackExpenseActionableWhisper(targetTransaction.transactionID, targetChatReportID);
-    
+
     const optimisticSourceReportData: OnyxUpdate[] = shouldDeleteSourceReport
         ? [
               {
@@ -417,7 +418,7 @@ function mergeTransactionRequest({
               },
           ]
         : [];
-    
+
     if (actionableWhisperAction && targetChatReportID && isTargetMovingToExpenseReport) {
         optimisticSourceReportData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -439,7 +440,7 @@ function mergeTransactionRequest({
                   },
               ]
             : [];
-    
+
     if (actionableWhisperAction && targetChatReportID && isTargetMovingToExpenseReport) {
         failureSourceReportData.push({
             onyxMethod: Onyx.METHOD.MERGE,
