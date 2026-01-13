@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, technicalContactEmailSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -54,20 +54,29 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     });
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
-        selector: technicalContactEmailSelector,
+        selector: technicalContactSettingsSelector,
     });
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
 
     let technicalContactEmailKey: string | undefined;
     const data: AdminOption[] = [];
     for (const accountID of adminAccountIDs ?? []) {
+        // Don't show admins with errors
+        const adminErrors = domainErrors?.adminErrors?.[accountID] ?? {};
+        if (Object.keys(adminErrors).length !== 0) {
+            continue;
+        }
+
         const details = personalDetails?.[accountID];
-        if (details?.login === technicalContactEmail) {
+        let isSelected = false;
+        if (!!details?.login && !!technicalContactSettings?.technicalContactEmail && details.login === technicalContactSettings.technicalContactEmail) {
             technicalContactEmailKey = String(accountID);
+            isSelected = true;
         }
         data.push({
-            isSelected: details?.login === technicalContactEmail,
+            isSelected,
             keyForList: String(accountID),
             accountID,
             login: details?.login ?? '',
@@ -104,8 +113,8 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                         if (!option.login || !option.accountID) {
                             return;
                         }
-                        if (option.login !== technicalContactEmail) {
-                            setPrimaryContact(domainAccountID, option.accountID, option.login, technicalContactEmail);
+                        if (option.login !== technicalContactSettings?.technicalContactEmail) {
+                            setPrimaryContact(domainAccountID, option.login, technicalContactSettings?.technicalContactEmail);
                         }
                         Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
                     }}

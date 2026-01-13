@@ -31,6 +31,9 @@ type ExportWithDropdownMenuProps = {
     dropdownAnchorAlignment?: AnchorAlignment;
 
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 function ExportWithDropdownMenu({
@@ -42,6 +45,7 @@ function ExportWithDropdownMenu({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
     wrapperStyle,
+    sentryLabel,
 }: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
@@ -83,7 +87,7 @@ function ExportWithDropdownMenu({
         }
         return options;
         // We do not include exportMethods not to re-render the component when the preferred export method changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canBeExported, iconToDisplay, connectionName, report?.policyID, translate]);
 
     const confirmExport = useCallback(() => {
@@ -131,6 +135,7 @@ function ExportWithDropdownMenu({
                 style={[shouldUseNarrowLayout && styles.flexGrow1]}
                 wrapperStyle={flattenedWrapperStyle}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                sentryLabel={sentryLabel}
             />
             <ConfirmModal
                 title={translate('workspace.exportAgainModal.title')}

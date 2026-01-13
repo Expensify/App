@@ -108,7 +108,6 @@ function ImportSpreadsheetColumns({
                     shouldDisplayErrorAbove
                     errors={errors}
                     errorRowStyles={styles.mv2}
-                    canDismissError={false}
                 >
                     <Button
                         text={translate('common.import')}
