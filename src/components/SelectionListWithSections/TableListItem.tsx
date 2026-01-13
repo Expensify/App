@@ -1,11 +1,11 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +33,7 @@ function TableListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
@@ -44,13 +45,13 @@ function TableListItem<TItem extends ListItem>({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const handleCheckboxPress = useCallback(() => {
+    const handleCheckboxPress = () => {
         if (onCheckboxPress) {
             onCheckboxPress(item);
         } else {
             onSelectRow(item);
         }
-    }, [item, onCheckboxPress, onSelectRow]);
+    };
 
     return (
         <BaseListItem
@@ -100,7 +101,7 @@ function TableListItem<TItem extends ListItem>({
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}>
                                 {!!item.isSelected && (
                                     <Icon
-                                        src={Expensicons.Checkmark}
+                                        src={icons.Checkmark}
                                         fill={theme.textLight}
                                         height={14}
                                         width={14}
