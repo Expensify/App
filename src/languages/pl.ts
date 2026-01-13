@@ -7936,6 +7936,10 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Automatycznie rejestruj mile lub kilometry za pomocą GPS i natychmiast zamieniaj podróże w wydatki.',
             button: 'Pobierz aplikację',
         },
+        notification: {
+            title: 'GPS tracking in progress',
+            body: 'Go to the app to finish',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

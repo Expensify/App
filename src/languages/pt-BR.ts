@@ -7948,6 +7948,10 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             subtitle: 'Registre milhas ou quilômetros automaticamente com o GPS e transforme viagens em despesas instantaneamente.',
             button: 'Baixar o app',
         },
+        notification: {
+            title: 'GPS tracking in progress',
+            body: 'Go to the app to finish',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

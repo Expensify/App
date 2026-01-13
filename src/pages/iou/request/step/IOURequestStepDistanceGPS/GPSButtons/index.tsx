@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {initGpsDraft, resetGPSDraftDetails, setEndAddress, setIsTracking} from '@libs/actions/GPSDraftDetails';
 import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
-import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import addressFromGpsPoint from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/addressFromGpsPoint';
 import coordinatesToString from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/coordinatesToString';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,7 +67,10 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
 
     const startGpsTrip = async () => {
         try {
-            await startLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME, BACKGROUND_LOCATION_TASK_OPTIONS);
+            await startLocationUpdatesAsync(
+                BACKGROUND_LOCATION_TRACKING_TASK_NAME,
+                getBackgroundLocationTaskOptions(translate('gps.notification.title'), translate('gps.notification.body')),
+            );
         } catch (error) {
             console.error('[GPS distance request] Failed to start location tracking', error);
             setShouldShowStartError(true);

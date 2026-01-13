@@ -7076,6 +7076,10 @@ const translations = {
             subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',
             button: 'Download the app',
         },
+        notification: {
+            title: 'GPS tracking in progress',
+            body: 'Go to the app to finish',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',

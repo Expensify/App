@@ -7971,6 +7971,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
             button: 'Scarica l’app',
         },
+        notification: {
+            title: 'GPS tracking in progress',
+            body: 'Go to the app to finish',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
