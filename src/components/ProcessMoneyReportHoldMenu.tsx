@@ -41,13 +41,10 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Callback for displaying payment animation on IOU preview component */
     startAnimation?: () => void;
-
-    /** Whether the report has non held expenses */
-    hasNonHeldExpenses?: boolean;
 };
 
 function ProcessMoneyReportHoldMenu({
-    nonHeldAmount = '0',
+    nonHeldAmount,
     fullAmount,
     onClose,
     isVisible,
@@ -56,7 +53,6 @@ function ProcessMoneyReportHoldMenu({
     moneyRequestReport,
     transactionCount,
     startAnimation,
-    hasNonHeldExpenses,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
@@ -78,7 +74,7 @@ function ProcessMoneyReportHoldMenu({
         onClose();
     };
 
-    const promptText = hasNonHeldExpenses ? translate('iou.confirmPayAmount') : translate('iou.confirmPayAllHoldAmount', {count: transactionCount});
+    const promptText = nonHeldAmount ? translate('iou.confirmPayAmount') : translate('iou.confirmPayAllHoldAmount', {count: transactionCount});
 
     return (
         <DecisionModal
@@ -86,7 +82,7 @@ function ProcessMoneyReportHoldMenu({
             onClose={onClose}
             isVisible={isVisible}
             prompt={promptText}
-            firstOptionText={hasNonHeldExpenses ? `${translate('iou.payOnly')} ${nonHeldAmount}` : undefined}
+            firstOptionText={nonHeldAmount ? `${translate('iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate('iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
