@@ -1,8 +1,21 @@
 import CONST from '@src/CONST';
 import type {TelemetryBeforeSend} from './index';
 
-function isValidMinDuration(value: unknown): value is number {
-    return typeof value === 'number' && !Number.isNaN(value);
+function getValidMinDuration(value: unknown): number | undefined {
+    if (typeof value === 'number' && !Number.isNaN(value)) {
+        return value;
+    }
+
+    if (typeof value === 'string') {
+        const parsed = Number(value);
+        if (Number.isNaN(parsed)) {
+            return undefined;
+        }
+
+        return parsed;
+    }
+
+    return undefined;
 }
 
 function calculateDuration(startTimestamp: number, endTimestamp: number): number {
@@ -11,9 +24,9 @@ function calculateDuration(startTimestamp: number, endTimestamp: number): number
 
 const minDurationFilter: TelemetryBeforeSend = (event) => {
     // Check if the transaction (event) itself has a min_duration requirement
-    const eventMinDuration = event.contexts?.trace?.data?.[CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION] as number | undefined;
+    const eventMinDuration = getValidMinDuration(event.contexts?.trace?.data?.[CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION]);
 
-    if (isValidMinDuration(eventMinDuration)) {
+    if (eventMinDuration !== undefined) {
         if (!event.timestamp || !event.start_timestamp) {
             return event;
         }
@@ -32,15 +45,16 @@ const minDurationFilter: TelemetryBeforeSend = (event) => {
 
     // Filter spans based on their individual min_duration requirements
     const spans = event.spans.filter((span) => {
-        const minDuration = span.data?.[CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION];
+        const minDuration = getValidMinDuration(span.data?.[CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION]);
 
-        if (!isValidMinDuration(minDuration)) {
+        if (minDuration === undefined) {
             return true;
         }
 
         if (!span.timestamp) {
             return true;
         }
+
         const duration = calculateDuration(span.start_timestamp, span.timestamp);
 
         return duration >= minDuration;
