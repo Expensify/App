@@ -46,7 +46,7 @@ function DeepLinkHandler({initialUrl, isAuthenticated}: DeepLinkHandlerProps) {
         return () => {
             linkingChangeListener.current?.remove();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return null;
