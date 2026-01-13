@@ -2,6 +2,8 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import CardFeedIcon from '@components/CardFeedIcon';
+import ErrorMessageRow from '@components/ErrorMessageRow';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Table from '@components/Table';
@@ -21,6 +23,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
@@ -55,6 +58,8 @@ function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, compa
         feedName,
         cardList,
         assignedCards,
+        allCardFeeds,
+        cardFeedsStatus,
         cardNames,
         cardFeedType,
         selectedFeed,
@@ -72,10 +77,14 @@ function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, compa
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || isLoadingOnyxValue(lastSelectedFeedMetadata);
+
+    const isFeedsError = !isEmptyObject(cardFeedsStatus?.errors);
+
     const isLoadingCards = cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
+
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata));
-    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed;
-    const showTableControls = showCards && !!selectedFeed && !isLoadingCards;
+    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed && !isFeedsError;
+    const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !isFeedsError;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
@@ -104,25 +113,26 @@ function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, compa
         },
     ];
 
-    const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
-        ? []
-        : (cardNames?.map((cardName) => {
-              const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
+    const cardsData: WorkspaceCompanyCardTableItemData[] =
+        isLoadingCards || isFeedsError
+            ? []
+            : (cardNames?.map((cardName) => {
+                  const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
 
-              const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
+                  const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
 
-              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardName];
+                  const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardName];
 
-              const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
+                  const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
-              const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
+                  const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
 
-              const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                  const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-              const isAssigned = !!assignedCard;
+                  const isAssigned = !!assignedCard;
 
-              return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, failedCompanyCardAssignment};
-          }) ?? []);
+                  return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, failedCompanyCardAssignment};
+              }) ?? []);
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
 
@@ -303,6 +313,13 @@ function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, compa
                         </View>
                     )}
                 </ScrollView>
+            )}
+
+            {isFeedsError && (
+                <ErrorMessageRow
+                    errors={cardFeedsStatus?.errors}
+                    errorRowStyles={[styles.mh5]}
+                />
             )}
 
             {showCards && (
