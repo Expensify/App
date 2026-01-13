@@ -71,7 +71,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             {} as Record<string, number>,
         );
         // getAccountIDsByLogins function uses the personalDetails data from the connection, so we need to re-run this logic when the personal detail is changed.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newMembers, personalDetails]);
 
