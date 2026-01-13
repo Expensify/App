@@ -31,6 +31,7 @@ import {
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -91,6 +92,7 @@ function IOURequestStepDistanceManual({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -171,7 +173,8 @@ function IOURequestStepDistanceManual({
                 if (distance !== distanceAsFloat) {
                     updateMoneyRequestDistance({
                         transactionID: transaction?.transactionID,
-                        transactionThreadReportID: reportID,
+                        transactionThreadReport: report,
+                        parentReport,
                         distance: distanceAsFloat,
                         // Not required for manual distance request
                         transactionBackup: undefined,
@@ -307,25 +310,27 @@ function IOURequestStepDistanceManual({
             shouldUseDefaultExpensePolicy,
             distance,
             transaction,
-            reportID,
+            parentReport,
             policy,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
             translate,
-            currentUserEmailParam,
-            currentUserAccountIDParam,
             lastSelectedDistanceRates,
             backToReport,
-            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            quickAction,
+            policyRecentlyUsedCurrencies,
             customUnitRateID,
+            introSelected,
+            activePolicyID,
             navigateToConfirmationPage,
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
-            transactionViolations,
-            quickAction,
-            introSelected,
-            activePolicyID,
+            reportID,
         ],
     );
 
