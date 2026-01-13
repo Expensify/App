@@ -2646,7 +2646,7 @@ describe('ReportActionsUtils', () => {
             expect(result).not.toContain(transactionID3);
         });
 
-        it('should exclude transactions with pending actions when online', () => {
+        it('should exclude transactions with DELETE pending action when online, but include UPDATE pending action', () => {
             const allTransactions: Record<string, Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID1}`]: createMockTransaction(transactionID1, expenseReportID),
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]: createMockTransaction(transactionID2, expenseReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
@@ -2655,9 +2655,8 @@ describe('ReportActionsUtils', () => {
 
             const result = getExpenseReportTransactionIDs(allTransactions, expenseReportID, undefined, false);
 
-            expect(result).toEqual([transactionID1]);
+            expect(result).toEqual([transactionID1, transactionID3]);
             expect(result).not.toContain(transactionID2);
-            expect(result).not.toContain(transactionID3);
         });
 
         it('should include transactions with ADD pending action when offline', () => {
