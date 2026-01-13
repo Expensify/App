@@ -85,7 +85,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={DomainAdminDetailsPage.displayName}
+                testID="DomainAdminDetailsPage"
             >
                 <HeaderWithBackButton title={displayName} />
                 <ScrollView addBottomSafeAreaPadding>
@@ -143,7 +143,5 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         </DomainNotFoundPageWrapper>
     );
 }
-
-DomainAdminDetailsPage.displayName = 'DomainAdminDetailsPage';
 
 export default DomainAdminDetailsPage;

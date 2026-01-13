@@ -106,7 +106,5 @@ export {
     domainEmailSelector,
     adminPendingActionSelector,
     technicalContactSettingsSelector,
-    selectMemberIDs,
-    selectSecurityGroupIDsForAccount,
     memberPendingActionSelector,
 };

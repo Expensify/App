@@ -14,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDomainMemberError} from '@libs/actions/Domain';
 import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -22,7 +21,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {memberPendingActionSelector} from '@src/selectors/Domain';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
@@ -80,19 +78,9 @@ function BaseDomainMembersPage({
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
-
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        canBeMissing: true,
-    });
-
-    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        canBeMissing: true,
-        selector: memberPendingActionSelector,
-    });
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const data: MemberOption[] = accountIDs.map((accountID) => {
         const details = personalDetails?.[accountID];
@@ -115,8 +103,8 @@ function BaseDomainMembersPage({
                 },
             ],
             rightElement: getCustomRightElement?.(accountID),
-            errors: getLatestError(customProps?.errors) ?? getLatestError(domainErrors?.memberErrors?.[accountID]?.errors),
-            pendingAction: customProps?.pendingAction ?? domainPendingAction?.[accountID],
+            errors: getLatestError(customProps?.errors),
+            pendingAction: customProps?.pendingAction,
             isInteractive: !isPendingActionDelete,
             isDisabled: isPendingActionDelete,
         };
@@ -127,7 +115,7 @@ function BaseDomainMembersPage({
         return results.length > 0;
     };
 
-    const sortMembers = useCallback((options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare), [localeCompare]);
+    const sortMembers = (options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare);
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
@@ -154,39 +142,42 @@ function BaseDomainMembersPage({
         ) : null;
 
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
-            testID={BaseDomainMembersPage.displayName}
-        >
-            <HeaderWithBackButton
-                title={headerTitle}
-                onBackButtonPress={Navigation.popToSidebar}
-                icon={hederIcon}
-                shouldShowBackButton={shouldUseNarrowLayout}
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+                shouldShowOfflineIndicatorInWideScreen
+                testID={BaseDomainMembersPage.displayName}
             >
-                {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
-            </HeaderWithBackButton>
+                <HeaderWithBackButton
+                    title={headerTitle}
+                    onBackButtonPress={Navigation.popToSidebar}
+                    icon={headerIcon}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                >
+                    {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                </HeaderWithBackButton>
 
-            {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
 
-            <SelectionList
-                sections={[{data: filteredData}]}
-                shouldShowRightCaret
-                canSelectMultiple={false}
-                listHeaderContent={listHeaderContent}
-                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                ListItem={TableListItem}
-                onSelectRow={onSelectRow}
-                shouldShowListEmptyContent={false}
-                listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
-                showScrollIndicator={false}
-                addBottomSafeAreaPadding
-                customListHeader={getCustomListHeader()}
-                containerStyle={[styles.flex1]}
-            />
-        </ScreenWrapper>
+                <SelectionList
+                    sections={[{data: filteredData}]}
+                    shouldShowRightCaret
+                    canSelectMultiple={false}
+                    listHeaderContent={listHeaderContent}
+                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    ListItem={TableListItem}
+                    onSelectRow={onSelectRow}
+                    onDismissError={onDismissError}
+                    shouldShowListEmptyContent={false}
+                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : styles.pr3}
+                    showScrollIndicator={false}
+                    addBottomSafeAreaPadding
+                    customListHeader={getCustomListHeader()}
+                    containerStyle={styles.flex1}
+                />
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
 

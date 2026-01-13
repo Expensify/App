@@ -7,6 +7,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getAuthToken} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DomainSecurityGroup} from '@src/types/onyx';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
@@ -700,10 +701,9 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
 
 /** Sends a request to remove user from a domain and close their account */
 function closeUserAccount(domainAccountID: number, securityGroupIDs: number[], accountID: number, force = false) {
-    const optimisticValue: OnyxMergeInput<`domain_${string}`> = {};
+    const optimisticValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
     for (const groupID of securityGroupIDs) {
-        // @ts-expect-error
-        optimisticValue[`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP}_${groupID}`] = {
+        optimisticValue[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`] = {
             shared: {
                 [accountID]: null,
             },
@@ -772,6 +772,10 @@ function clearDomainMemberError(domainAccountID: number, accountID: number) {
         memberErrors: {
             [accountID]: null,
         },
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        members: {[accountID]: null},
     });
 }
 

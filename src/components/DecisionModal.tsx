@@ -6,7 +6,6 @@ import Button from './Button';
 import Header from './Header';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
-import Text from './Text';
 
 type DecisionModalProps = {
     /** Title describing purpose of modal */
@@ -81,9 +80,7 @@ function DecisionModal({
                             containerStyles={styles.alignItemsCenter}
                         />
                     </View>
-                    <Text>
-                        <RenderHTML html={prompt} />
-                    </Text>
+                    <RenderHTML html={prompt} />
                 </View>
                 {!!firstOptionText && (
                     <Button

@@ -761,9 +761,6 @@ const ONYXKEYS = {
         /** SAML login metadata for a domain */
         SAML_METADATA: 'saml_metadata_',
 
-        /** Stores domain admin account ID */
-        EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
-
         /** Stores domain security group */
         DOMAIN_SECURITY_GROUP: 'expensify_securityGroup',
 

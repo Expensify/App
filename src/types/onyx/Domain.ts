@@ -98,7 +98,7 @@ type DomainSecurityGroup = SecurityGroup & {
      * A map of member account IDs
      * Key: The accountID of the member
      */
-    shared: Record<string, 'read'>;
+    shared: Record<string, 'read' | null>;
 };
 
 export {type SamlMetadata, type DomainSecurityGroup};
