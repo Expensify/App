@@ -213,10 +213,10 @@ function ReportActionsView({
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
-    const reportActions = useMemo(() => {
-        const combined = reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []) : [];
-        return combined;
-    }, [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID]);
+    const reportActions = useMemo(
+        () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []) : []),
+        [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID],
+    );
 
     const parentReportActionForTransactionThread = useMemo(
         () =>
