@@ -4678,7 +4678,7 @@ const translations = {
             addCards: 'Add cards',
             selectCards: 'Select cards',
             error: {
-                feedCouldNotBeLoaded: 'An error occurred while loading the feed. Please try again.',
+                feedsCouldNotBeLoaded: 'An error occurred while loading the feeds. Please try again or contact your administrator.',
             },
             addNewCard: {
                 other: 'Other',

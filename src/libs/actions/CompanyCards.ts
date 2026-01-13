@@ -869,7 +869,7 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
             value: {
                 isLoading: false,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.error.feedCouldNotBeLoaded'),
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.error.feedsCouldNotBeLoaded'),
             },
         },
     ];
