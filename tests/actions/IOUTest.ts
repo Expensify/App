@@ -7001,7 +7001,7 @@ describe('actions/IOU', () => {
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
-                // When updating a money re9quest category
+                // When updating a money request category
                 updateMoneyRequestCategory({
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
