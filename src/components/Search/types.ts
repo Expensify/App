@@ -238,11 +238,11 @@ type SearchQueryAST = {
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
-    columns?: SearchCustomColumnIds[];
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];
     rawFilterList?: RawQueryFilter[];
+    columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
 };
 
 type SearchQueryJSON = {

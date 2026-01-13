@@ -138,7 +138,7 @@ function IOURequestStepConfirmation({
     }, [initialTransaction, optimisticTransactions]);
     const hasMultipleTransactions = transactions.length > 1;
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
     // We will use setCurrentTransactionID later to switch between transactions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -180,7 +180,10 @@ function IOURequestStepConfirmation({
     const canUseReport = !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
 
     const shouldUseTransactionReport = !!transactionReport && (canUseReport || !reportWithDraftFallback);
-
+    const isTransactionReportDifferentFromRoute = useMemo(
+        () => !!transaction?.reportID && !!reportWithDraftFallback?.reportID && transaction.reportID !== reportWithDraftFallback.reportID,
+        [reportWithDraftFallback?.reportID, transaction?.reportID],
+    );
     const report = useMemo(() => {
         if (isUnreported) {
             return undefined;
@@ -188,8 +191,11 @@ function IOURequestStepConfirmation({
         if (shouldUseTransactionReport) {
             return transactionReport;
         }
+        if (isTransactionReportDifferentFromRoute) {
+            return undefined;
+        }
         return reportWithDraftFallback;
-    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback]);
+    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback, isTransactionReportDifferentFromRoute]);
 
     const policy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : (policyReal ?? policyDraft);
     const policyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(transaction, report);
@@ -245,6 +251,7 @@ function IOURequestStepConfirmation({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
     const {
         taskReport: viewTourTaskReport,
@@ -372,7 +379,7 @@ function IOURequestStepConfirmation({
             // for all of the routes in the creation flow.
             reportID ?? generateReportID(),
         );
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoadingTransaction]);
 
     useEffect(() => {
@@ -391,7 +398,7 @@ function IOURequestStepConfirmation({
             }
         }
         // We don't want to clear out category every time the transactions change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy?.id, policyCategories, transactionsCategories]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -405,7 +412,7 @@ function IOURequestStepConfirmation({
             setMoneyRequestCategory(item.transactionID, defaultCategory, policy);
         }
         // Prevent resetting to default when unselect category
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
@@ -426,6 +433,9 @@ function IOURequestStepConfirmation({
             }
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, initialTransactionID, reportID));
             return;
+        }
+        if (isTimeRequest) {
+            return Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.getRoute(action, iouType, initialTransactionID, reportID));
         }
 
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
@@ -468,6 +478,7 @@ function IOURequestStepConfirmation({
         isMovingTransactionFromTrackExpense,
         participantsAutoAssignedFromRoute,
         backTo,
+        isTimeRequest,
     ]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -610,6 +621,9 @@ function IOURequestStepConfirmation({
                         originalTransactionID: item.comment?.originalTransactionID,
                         source: item.comment?.source,
                         isLinkedTrackedExpenseReportArchived,
+                        ...(isTimeRequest
+                            ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR}
+                            : {}),
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport,
@@ -653,6 +667,7 @@ function IOURequestStepConfirmation({
             isViewTourTaskParentReportArchived,
             hasOutstandingChildTask,
             parentReportAction,
+            isTimeRequest,
         ],
     );
 
@@ -1413,6 +1428,7 @@ function IOURequestStepConfirmation({
                         onToggleReimbursable={setReimbursable}
                         expensesNumber={transactions.length}
                         isReceiptEditable
+                        isTimeRequest={isTimeRequest}
                     />
                 </View>
             </DragAndDropProvider>
