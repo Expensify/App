@@ -155,19 +155,7 @@ function TransactionListItem<TItem extends ListItem>({
             policy?.type === CONST.POLICY.TYPE.CORPORATE,
         );
         return attendeeOnyxViolations;
-    }, [
-        onyxPolicy,
-        snapshotPolicy,
-        policyCategories,
-        snapshotReport,
-        transactionItem,
-        violations,
-        currentUserDetails.email,
-        currentUserDetails.accountID,
-        currentUserDetails,
-        transaction?.category,
-        transaction?.comment?.attendees,
-    ]);
+    }, [onyxPolicy, snapshotPolicy, policyCategories, snapshotReport, transactionItem, violations, currentUserDetails, transaction?.category, transaction?.comment?.attendees]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 

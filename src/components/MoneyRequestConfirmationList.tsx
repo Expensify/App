@@ -439,15 +439,15 @@ function MoneyRequestConfirmationList({
         // that can only be fixed by changing the underlying data
         if (!formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
             setFormError('');
+            return;
+        }
+        // Clear missingAttendees violation if user fixed it by changing category or attendees
+        const isMissingAttendeesViolation = getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
+        if (formError === 'violations.missingAttendees' && !isMissingAttendeesViolation) {
+            setFormError('');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
-    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
-
-    // Clear the missingAttendees violation when category or attendees change (user fixed the issue)
-    useEffect(() => {
-        clearFormErrors(['violations.missingAttendees']);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this when iouCategory or iouAttendees changes
-    }, [iouCategory, iouAttendees]);
+    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, iouCategory, iouAttendees, policyCategories, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled]);
 
     useEffect(() => {
         // We want this effect to run only when the transaction is moving from Self DM to a expense chat
