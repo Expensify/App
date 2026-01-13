@@ -132,11 +132,13 @@ function WorkspaceCompanyCardTableItem({
             onClose={resetFailedCompanyCardAssignment}
         >
             <PressableWithFeedback
-                role={CONST.ROLE.BUTTON}
+                role={isAssigned ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 style={[styles.mh5, styles.flexRow, styles.br3, styles.mb2, styles.highlightBG, styles.overflowHidden]}
                 accessibilityLabel="row"
-                hoverStyle={styles.hoveredComponentBG}
+                hoverStyle={isAssigned && styles.hoveredComponentBG}
                 disabled={isCardDeleted}
+                interactive={isAssigned}
+                pressDimmingValue={isAssigned ? undefined : 1}
                 onPress={() => {
                     if (!assignedCard) {
                         assignCard();
