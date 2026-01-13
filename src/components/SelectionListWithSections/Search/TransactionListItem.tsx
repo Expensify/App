@@ -65,7 +65,7 @@ function TransactionListItem<TItem extends ListItem>({
         return (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
     }, [currentSearchResults, transactionItem.policyID]);
 
-    const reportActions = useMemo(() => {
+    const exportedReportActions = useMemo(() => {
         const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
         return actionsData ? Object.values(actionsData) : [];
     }, [currentSearchResults, transactionItem.reportID]);
@@ -238,7 +238,7 @@ function TransactionListItem<TItem extends ListItem>({
                             onArrowRightPress={onPress}
                             isHover={hovered}
                             customCardNames={customCardNames}
-                            reportActions={reportActions}
+                            reportActions={exportedReportActions}
                         />
                     </>
                 )}
