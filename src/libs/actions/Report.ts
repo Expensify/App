@@ -3152,7 +3152,7 @@ function createNewReport(
             reportID: optimisticReportID,
             reportActionID,
             reportPreviewReportActionID,
-            reportCreatorEmail: creatorPersonalDetails.login,
+            ownerEmail: creatorPersonalDetails.login,
             ...(shouldDismissEmptyReportsConfirmation ? {shouldDismissEmptyReportsConfirmation} : {}),
         },
         {optimisticData, successData, failureData},
