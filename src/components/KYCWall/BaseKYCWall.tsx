@@ -180,11 +180,16 @@ function KYCWall({
                 // Setup is in progress in 2 cases:
                 // - account already present on policy is partially setup
                 // - account is being connected 'on the spot' while trying to pay for an expense (it won't be linked to policy yet but will appear as reimbursementAccount)
-                if (policy !== undefined && (isBankAccountPartiallySetup(policy?.achAccount?.state) || isBankAccountPartiallySetup(reimbursementAccount?.achData?.state))) {
+                if (
+                    policy !== undefined &&
+                    (isBankAccountPartiallySetup(policy?.achAccount?.state) ||
+                        (isBankAccountPartiallySetup(reimbursementAccount?.achData?.state) && policy?.id === reimbursementAccount?.achData?.policyID))
+                ) {
                     navigateToBankAccountRoute(policy.id);
                     return;
                 }
 
+                console.log(canLinkExistingBusinessBankAccount);
                 // If user has existing bank accounts that he can connect we show the list of these accounts
                 if (policy !== undefined && canLinkExistingBusinessBankAccount) {
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy?.id));

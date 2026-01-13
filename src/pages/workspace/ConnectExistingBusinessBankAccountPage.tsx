@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -14,6 +14,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
+import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -34,6 +35,10 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    useEffect(() => {
+        openReimbursementAccountPage('', '', '', policyID);
+    }, [policyID]);
 
     const handleAddBankAccountPress = () => {
         navigateToBankAccountRoute(policyID);
