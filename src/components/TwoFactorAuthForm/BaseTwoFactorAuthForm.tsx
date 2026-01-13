@@ -22,7 +22,7 @@ type BaseTwoFactorAuthFormProps = {
 const isMobile = !canFocusInputOnScreenFocus();
 
 function BaseTwoFactorAuthForm({
-    autoComplete = 'one-time-code',
+    autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
     shouldAllowRecoveryCode = false,
     onSubmit,
     onInputChange,

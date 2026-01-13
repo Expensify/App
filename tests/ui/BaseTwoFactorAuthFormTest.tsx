@@ -3,9 +3,11 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import React, {createRef} from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import BaseTwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/BaseTwoFactorAuthForm';
-import type {BaseTwoFactorAuthFormRef} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
+import BaseTwoFactorAuthForm from '@components/TwoFactorAuthForm/BaseTwoFactorAuthForm';
+import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
+import ToggleTwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/ToggleTwoFactorAuthForm';
 import {toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -65,9 +67,8 @@ const renderForm = () => {
 
     render(
         <OnyxListItemProvider>
-            <BaseTwoFactorAuthForm
+            <ToggleTwoFactorAuthForm
                 ref={formRef}
-                autoComplete="one-time-code"
                 validateInsteadOfDisable={false}
                 shouldAutoFocusOnMobile={false}
             />

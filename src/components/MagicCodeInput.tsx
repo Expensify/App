@@ -4,6 +4,7 @@ import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,7 +56,7 @@ const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, o
     }, [inputRef, onChangeText]);
 };
 
-type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
+type AutoCompleteVariant = ValueOf<typeof CONST.AUTO_COMPLETE_VARIANTS>;
 
 type MagicCodeInputProps = {
     /** Name attribute for the input */
