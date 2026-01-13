@@ -122,7 +122,13 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
     const shouldUseSplitDraft = !isDraft && !!splitDraftTransaction;
 
     // Get existing waypoints to preserve them when updating
-    const existingTransaction = shouldUseSplitDraft ? splitDraftTransaction : isDraft ? allTransactionDrafts?.[transactionID] : allTransactions?.[transactionID];
+    let existingTransaction: OnyxEntry<Transaction> = allTransactions?.[transactionID];
+    if (isDraft) {
+        existingTransaction = allTransactionDrafts?.[transactionID];
+    }
+    if (shouldUseSplitDraft) {
+        existingTransaction = splitDraftTransaction;
+    }
     const existingWaypoints = existingTransaction?.comment?.waypoints ?? {};
 
     const waypointUpdate = {
@@ -224,7 +230,7 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(currentTransaction as Transaction),
+        ...currentTransaction,
         comment: {
             ...currentTransaction?.comment,
             waypoints: reIndexedWaypoints,
