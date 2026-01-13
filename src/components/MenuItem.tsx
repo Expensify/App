@@ -87,6 +87,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the badge should be shown as success */
         badgeSuccess?: boolean;
 
+        /** Callback to fire when the badge is pressed */
+        onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+
         /** Used to apply offline styles to child text components */
         style?: StyleProp<ViewStyle>;
 
@@ -397,6 +400,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
+
+        /** Whether to show the badge in a separate row */
+        shouldShowBadgeInSeparateRow?: boolean;
+
+        /** Whether to show the badge below the title */
+        shouldShowBadgeBelow?: boolean;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -416,6 +425,9 @@ function MenuItem({
     badgeText,
     badgeIcon,
     badgeSuccess,
+    onBadgePress,
+    shouldShowBadgeInSeparateRow = false,
+    shouldShowBadgeBelow = false,
     style,
     wrapperStyle,
     titleWrapperStyle,
@@ -914,18 +926,30 @@ function MenuItem({
                                                                 </Text>
                                                             </View>
                                                         )}
+                                                        {!!badgeText && shouldShowBadgeBelow && (
+                                                            <Badge
+                                                                text={badgeText}
+                                                                icon={badgeIcon}
+                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2]}
+                                                                success={badgeSuccess}
+                                                                onPress={onBadgePress}
+                                                                pressable={!!onBadgePress}
+                                                            />
+                                                        )}
                                                         {furtherDetailsComponent}
                                                         {titleComponent}
                                                     </View>
                                                 </View>
                                             </View>
                                             <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
-                                                {!!badgeText && (
+                                                {!!badgeText && !shouldShowBadgeInSeparateRow && !shouldShowBadgeBelow && (
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
                                                         badgeStyles={badgeStyle}
                                                         success={badgeSuccess}
+                                                        onPress={onBadgePress}
+                                                        pressable={!!onBadgePress}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -1007,6 +1031,16 @@ function MenuItem({
                                                 )}
                                             </View>
                                         </View>
+                                        {!!badgeText && shouldShowBadgeInSeparateRow && (
+                                            <Badge
+                                                text={badgeText}
+                                                icon={badgeIcon}
+                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2]}
+                                                success={badgeSuccess}
+                                                onPress={onBadgePress}
+                                                pressable={!!onBadgePress}
+                                            />
+                                        )}
                                         {!!errorText && (
                                             <FormHelpMessage
                                                 isError
