@@ -9,6 +9,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -206,7 +207,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             lastName: currentUserPersonalDetails?.lastName,
             selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
             shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
-            shouldWaitForRHPVariantInitialization: true,
+            shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
         });
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
