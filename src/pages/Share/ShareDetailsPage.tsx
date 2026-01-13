@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import reportsSelector from '@selectors/Attributes';
-import {privateIsArchivedSelector} from '@selectors/ReportNameValuePairs';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -15,6 +14,7 @@ import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -62,7 +62,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
-    const [privateIsArchived] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true, selector: privateIsArchivedSelector});
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const privateIsArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const ancestors = useAncestors(report);
     const displayReport = useMemo(
         () => getReportDisplayOption(report, unknownUserDetails, privateIsArchived, reportAttributesDerived),

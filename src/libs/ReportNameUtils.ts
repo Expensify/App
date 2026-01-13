@@ -34,6 +34,7 @@ import {
     getActionableCardFraudAlertResolutionMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCompanyCardConnectionBrokenMessage,
     getIntegrationSyncFailedMessage,
     getJoinRequestMessage,
     getMarkedReimbursedMessage,
@@ -539,6 +540,11 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
         return getIntegrationSyncFailedMessage(translateLocal, parentReportAction, report?.policyID);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getCompanyCardConnectionBrokenMessage(translateLocal, parentReportAction);
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getTravelUpdateMessage(translateLocal, parentReportAction);
@@ -560,7 +566,7 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
     return undefined;
 }
 
-function computeChatThreadReportName(report: Report, isArchived: string, reports: OnyxCollection<Report>, parentReportAction?: ReportAction): string | undefined {
+function computeChatThreadReportName(report: Report, isArchived: boolean, reports: OnyxCollection<Report>, parentReportAction?: ReportAction): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
     }
@@ -569,7 +575,7 @@ function computeChatThreadReportName(report: Report, isArchived: string, reports
     }
 
     const parentReportActionMessage = getReportActionMessageFromActionsUtils(parentReportAction);
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!isArchived);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, isArchived);
 
     if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
         let formattedName = getTransactionReportName({reportAction: parentReportAction});
@@ -653,16 +659,16 @@ function computeReportName(
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
-    reportNameValuePair?: OnyxEntry<ReportNameValuePairs>,
+    isArchived?: boolean,
 ): string {
     if (!report || !report.reportID) {
         return '';
     }
 
-    const reportNameValuePairs = reportNameValuePair ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+    const privateIsArchived = isArchived ?? !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, privateIsArchived);
 
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
@@ -677,7 +683,7 @@ function computeReportName(
         return Parser.htmlToText(report?.reportName ?? '').trim();
     }
 
-    const chatThreadReportName = computeChatThreadReportName(report, reportNameValuePairs?.private_isArchived ?? '', reports ?? {}, parentReportAction);
+    const chatThreadReportName = computeChatThreadReportName(report, privateIsArchived, reports ?? {}, parentReportAction);
     if (chatThreadReportName) {
         return chatThreadReportName;
     }

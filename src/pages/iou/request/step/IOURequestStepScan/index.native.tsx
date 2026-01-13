@@ -225,7 +225,6 @@ function IOURequestStepScan({
 
     const tapGesture = Gesture.Tap()
         .enabled(device?.supportsFocus ?? false)
-        // eslint-disable-next-line react-compiler/react-compiler
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
@@ -372,6 +371,7 @@ function IOURequestStepScan({
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                         currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                         transactionViolations,
+                        quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     });
                 }
@@ -434,7 +434,7 @@ function IOURequestStepScan({
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     return participantAccountID
                         ? getParticipantsOption(participant, personalDetails)
-                        : getReportOption(participant, reportNameValuePairs?.private_isArchived, reportAttributesDerived);
+                        : getReportOption(participant, !!reportNameValuePairs?.private_isArchived, reportAttributesDerived);
                 });
 
                 if (shouldSkipConfirmation) {

@@ -190,7 +190,6 @@ function IOURequestStepWaypoint({
         if (!isSafari()) {
             return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler
         textInput.current?.measureInWindow((x, y) => {
             if (y < variables.contentHeaderHeight) {
                 setCaretHidden(true);

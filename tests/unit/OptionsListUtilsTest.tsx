@@ -29,6 +29,7 @@ import {
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
+    getUserToInviteOption,
     getValidOptions,
     optionsOrderBy,
     orderOptions,
@@ -2678,7 +2679,7 @@ describe('OptionsListUtils', () => {
         it('MOVED_TRANSACTION action', async () => {
             const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
-            const report: Report = createRandomReport(0, undefined);
+            const report: Report = createRandomReport(2, undefined);
             const report2: Report = {
                 ...createRandomReport(1, undefined),
                 reportName: 'Expense Report #123',
@@ -2989,7 +2990,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe('3');
@@ -3020,7 +3021,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived);
 
             expect(option.text).toBeDefined();
         });
@@ -3047,7 +3048,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived);
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -3085,7 +3086,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived);
 
             expect(option.isSelfDM).toBe(true);
             expect(option.alternateText).toBe(translateLocal('reportActionsView.yourSpace'));
@@ -3127,7 +3128,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived);
 
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.alternateText).toBe(translateLocal('workspace.common.invoices'));
@@ -3168,7 +3169,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived);
 
             expect(option.text).toBe(POLICY.name);
             expect(option.alternateText).toBeTruthy();
@@ -3212,7 +3213,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, undefined, draftReports);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, undefined, draftReports);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -3234,12 +3235,12 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, !!reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
             expect(option.private_isArchived).toBeDefined();
-            expect(!!option.private_isArchived).toBe(true);
+            expect(option.private_isArchived).toBe(true);
             expect(option.isDisabled).toBe(true);
             expect(option.isSelected).toBe(false);
         });
@@ -3257,11 +3258,11 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, !!reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
-            expect(option.private_isArchived).toBeUndefined();
+            expect(option.private_isArchived).toBe(false);
             expect(option.isDisabled).toBe(true);
             expect(option.isSelected).toBe(false);
         });
@@ -3301,13 +3302,13 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, !!reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.private_isArchived).toBeDefined();
-            expect(!!option.private_isArchived).toBe(true);
+            expect(option.private_isArchived).toBe(true);
         });
 
         it('should use reportNameValuePair for self DM reports', async () => {
@@ -3325,11 +3326,31 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, !!reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
             expect(option.isSelfDM).toBe(true);
+        });
+    });
+
+    describe('getUserToInviteOption', () => {
+        it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
+            const result = getUserToInviteOption({
+                searchValue: 'Jeff Amazon',
+                loginList: {},
+            });
+            expect(result).toBeNull();
+        });
+
+        it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
+            const result = getUserToInviteOption({
+                searchValue: 'Jeff Amazon',
+                shouldAcceptName: true,
+                loginList: {},
+            });
+            expect(result).not.toBeNull();
+            expect(result?.login).toBe('Jeff Amazon');
         });
     });
 });

@@ -1,5 +1,4 @@
 import reportsSelector from '@selectors/Attributes';
-import {privateIsArchivedSelector} from '@selectors/ReportNameValuePairs';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -139,7 +138,7 @@ function IOURequestStepConfirmation({
     }, [initialTransaction, optimisticTransactions]);
     const hasMultipleTransactions = transactions.length > 1;
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
     // We will use setCurrentTransactionID later to switch between transactions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -181,7 +180,10 @@ function IOURequestStepConfirmation({
     const canUseReport = !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
 
     const shouldUseTransactionReport = !!transactionReport && (canUseReport || !reportWithDraftFallback);
-
+    const isTransactionReportDifferentFromRoute = useMemo(
+        () => !!transaction?.reportID && !!reportWithDraftFallback?.reportID && transaction.reportID !== reportWithDraftFallback.reportID,
+        [reportWithDraftFallback?.reportID, transaction?.reportID],
+    );
     const report = useMemo(() => {
         if (isUnreported) {
             return undefined;
@@ -189,8 +191,11 @@ function IOURequestStepConfirmation({
         if (shouldUseTransactionReport) {
             return transactionReport;
         }
+        if (isTransactionReportDifferentFromRoute) {
+            return undefined;
+        }
         return reportWithDraftFallback;
-    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback]);
+    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback, isTransactionReportDifferentFromRoute]);
 
     const policy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : (policyReal ?? policyDraft);
     const policyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(transaction, report);
@@ -206,7 +211,6 @@ function IOURequestStepConfirmation({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [privateIsArchived] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true, selector: privateIsArchivedSelector});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
@@ -299,9 +303,10 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
+                const privateIsArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`);
                 return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, reportAttributesDerived, reportDrafts);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchived],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, archivedReportsIdSet],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
@@ -374,7 +379,7 @@ function IOURequestStepConfirmation({
             // for all of the routes in the creation flow.
             reportID ?? generateReportID(),
         );
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoadingTransaction]);
 
     useEffect(() => {
@@ -393,7 +398,7 @@ function IOURequestStepConfirmation({
             }
         }
         // We don't want to clear out category every time the transactions change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy?.id, policyCategories, transactionsCategories]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -407,7 +412,7 @@ function IOURequestStepConfirmation({
             setMoneyRequestCategory(item.transactionID, defaultCategory, policy);
         }
         // Prevent resetting to default when unselect category
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
@@ -621,6 +626,7 @@ function IOURequestStepConfirmation({
                     currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    quickAction,
                 });
                 existingIOUReport = iouReport;
             }
@@ -631,28 +637,29 @@ function IOURequestStepConfirmation({
             archivedReportsIdSet,
             report,
             currentUserPersonalDetails.login,
-            currentUserPersonalDetails.email,
             currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.email,
             policy,
             policyTags,
-            policyRecentlyUsedTags,
             policyCategories,
             policyRecentlyUsedCategories,
+            policyRecentlyUsedTags,
             action,
+            isManualDistanceRequest,
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
             shouldGenerateTransactionThreadReport,
             backToReport,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            policyRecentlyUsedCurrencies,
+            quickAction,
             viewTourTaskReport,
             viewTourTaskParentReport,
-            isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
             hasOutstandingChildTask,
             parentReportAction,
-            transactionViolations,
-            isManualDistanceRequest,
-            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -699,21 +706,23 @@ function IOURequestStepConfirmation({
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                quickAction,
             });
         },
         [
-            report,
             transaction,
+            report,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             policy,
             policyTags,
+            policyRecentlyUsedTags,
             policyCategories,
             recentlyUsedDestinations,
             isASAPSubmitBetaEnabled,
             hasViolations,
             policyRecentlyUsedCurrencies,
-            policyRecentlyUsedTags,
+            quickAction,
         ],
     );
 
@@ -1018,14 +1027,12 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.INVOICE) {
                 const invoiceChatReport =
                     !isEmptyObject(report) && report?.reportID && doesReportReceiverMatchParticipant(report, receiverParticipantAccountID) ? report : existingInvoiceReport;
-                const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
                 sendInvoice({
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     transaction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     invoiceChatReport,
-                    invoiceChatReportID,
                     receiptFile: currentTransactionReceiptFile,
                     policy,
                     policyTagList: policyTags,
@@ -1149,7 +1156,6 @@ function IOURequestStepConfirmation({
             userLocation,
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
-            reportID,
         ],
     );
 
