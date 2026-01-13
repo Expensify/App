@@ -7917,7 +7917,6 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             confirm: 'Odrzuć śledzenie dystansu',
         },
         zeroDistanceTripModal: {title: 'Nie można utworzyć wydatku', prompt: 'Nie możesz utworzyć wydatku z tym samym miejscem początkowym i końcowym.'},
-
         locationRequiredModal: {
             title: 'Wymagany dostęp do lokalizacji',
             prompt: 'Aby rozpocząć śledzenie dystansu GPS, zezwól na dostęp do lokalizacji w ustawieniach swojego urządzenia.',
@@ -7936,10 +7935,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Automatycznie rejestruj mile lub kilometry za pomocą GPS i natychmiast zamieniaj podróże w wydatki.',
             button: 'Pobierz aplikację',
         },
-        notification: {
-            title: 'GPS tracking in progress',
-            body: 'Go to the app to finish',
-        },
+        notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby zakończyć'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
