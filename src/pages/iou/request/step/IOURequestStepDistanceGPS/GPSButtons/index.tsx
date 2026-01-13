@@ -80,6 +80,14 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
         initGpsDraft();
     };
 
+    const onNext = () => {
+        if (gpsDraftDetails?.distanceInMeters === 0) {
+            setShowZeroDistanceModal(true);
+        }
+
+        navigateToNextStep();
+    };
+
     return (
         <>
             {isTripCaptured ? (
@@ -93,7 +101,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                         text={translate('gps.discard')}
                     />
                     <Button
-                        onPress={navigateToNextStep}
+                        onPress={onNext}
                         success
                         allowBubble
                         pressOnEnter
