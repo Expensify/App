@@ -673,8 +673,8 @@ function insertZWNJBetweenDigitAndEmoji(input: string): string {
         return input;
     }
 
-    // Fix corrupted keycaps that Safari created (keycap followed by emoji indicates corruption)
-    // Only fix keycaps that are immediately followed by another emoji, preserving legitimate standalone keycaps
+    // Fix corrupted key caps that Safari created (key cap followed by emoji indicates corruption)
+    // Only fix key caps that are immediately followed by another emoji, preserving legitimate standalone key caps
     let result = input.replaceAll(/([\d#*])\uFE0F?\u20E3([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu, '$1\u200C$2');
     // Ensure exactly one space before * and # when they come after emojis (normalize multiple spaces to one)
     result = result.replaceAll(/([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])\s*([#*])/gu, '$1 $2');
