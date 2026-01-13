@@ -77,8 +77,7 @@ function IOURequestStepHours({
         };
     });
 
-    const navigateBack = () =>
-        Navigation.goBack(isCreatingNewRequest ? undefined : ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+    const navigateBack = () => Navigation.goBack(isCreatingNewRequest ? undefined : ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID));
 
     const saveTime = () => {
         if (rate === undefined) {
