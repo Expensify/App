@@ -114,12 +114,21 @@ type SaveWaypointProps = {
     waypoint: RecentWaypoint | null;
     isDraft?: boolean;
     recentWaypointsList?: RecentWaypoint[];
+    splitDraftTransaction?: OnyxEntry<Transaction>;
 };
 
-function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWaypointsList = []}: SaveWaypointProps) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWaypointsList = [], splitDraftTransaction}: SaveWaypointProps) {
+    // Check if there's a split draft transaction for editing split expenses
+    const shouldUseSplitDraft = !isDraft && !!splitDraftTransaction;
+
+    // Get existing waypoints to preserve them when updating
+    const existingTransaction = shouldUseSplitDraft ? splitDraftTransaction : isDraft ? allTransactionDrafts?.[transactionID] : allTransactions?.[transactionID];
+    const existingWaypoints = existingTransaction?.comment?.waypoints ?? {};
+
+    const waypointUpdate = {
         comment: {
             waypoints: {
+                ...existingWaypoints,
                 [`waypoint${index}`]: waypoint,
             },
             customUnit: {
@@ -144,7 +153,15 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
                 },
             },
         },
-    });
+    };
+
+    if (shouldUseSplitDraft) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, waypointUpdate);
+    } else if (isDraft) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, waypointUpdate);
+    } else {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, waypointUpdate);
+    }
 
     // You can save offline waypoints without verifying the address (we will geocode it on the backend)
     // We're going to prevent saving those addresses in the recent waypoints though since they could be invalid addresses
@@ -167,13 +184,21 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
     }
 }
 
-function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void | void[]> {
+function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean, splitDraftTransaction?: OnyxEntry<Transaction>): Promise<void | void[]> {
+    // Check if there's a split draft transaction for editing split expenses
+    const shouldUseSplitDraft = !isDraft && !!splitDraftTransaction;
+    const currentTransaction = shouldUseSplitDraft ? splitDraftTransaction : transaction;
+
+    if (!currentTransaction?.transactionID) {
+        return Promise.resolve();
+    }
+
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return Promise.resolve();
     }
-    const existingWaypoints = transaction?.comment?.waypoints ?? {};
+    const existingWaypoints = currentTransaction?.comment?.waypoints ?? {};
     const totalWaypoints = Object.keys(existingWaypoints).length;
 
     const waypointValues = Object.values(existingWaypoints);
@@ -199,12 +224,12 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as Transaction),
+        ...(currentTransaction as Transaction),
         comment: {
-            ...transaction?.comment,
+            ...currentTransaction?.comment,
             waypoints: reIndexedWaypoints,
             customUnit: {
-                ...transaction?.comment?.customUnit,
+                ...currentTransaction?.comment?.customUnit,
                 quantity: null,
             },
         },
@@ -232,10 +257,13 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
             },
         };
     }
-    if (isDraft) {
-        return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+    if (shouldUseSplitDraft) {
+        return Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${currentTransaction?.transactionID}` as const, newTransaction);
     }
-    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
+    if (isDraft) {
+        return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${currentTransaction?.transactionID}` as const, newTransaction);
+    }
+    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${currentTransaction?.transactionID}` as const, newTransaction);
 }
 
 function getOnyxDataForRouteRequest(transactionID: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): OnyxData {

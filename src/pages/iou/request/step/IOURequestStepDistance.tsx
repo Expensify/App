@@ -56,6 +56,7 @@ import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyE
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, hasRoute, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -259,7 +260,7 @@ function IOURequestStepDistance({
     // original transaction, letting the user modify the current transaction, and then if the user ever
     // cancels out of the modal without saving changes, the original transaction is restored from the backup.
     useEffect(() => {
-        if (isCreatingNewRequest) {
+        if (isCreatingNewRequest || isEditingSplit) {
             return () => {};
         }
         const isDraft = shouldUseTransactionDraft(action);
@@ -294,11 +295,15 @@ function IOURequestStepDistance({
      */
     const navigateToWaypointEditPage = useCallback(
         (index: number) => {
+            let iouWaypointType = CONST.IOU.TYPE.SUBMIT as IOUType;
+            if (isEditingSplit) {
+                iouWaypointType = CONST.IOU.TYPE.SPLIT_EXPENSE;
+            }
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID ?? reportID, index.toString(), Navigation.getActiveRoute()),
+                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, iouWaypointType, transactionID, report?.reportID ?? reportID, index.toString(), Navigation.getActiveRoute()),
             );
         },
-        [action, transactionID, report?.reportID, reportID],
+        [action, transactionID, report?.reportID, reportID, isEditingSplit],
     );
 
     const navigateToConfirmationPage = useCallback(() => {
@@ -531,7 +536,7 @@ function IOURequestStepDistance({
         if (isEditing) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {waypoints}, policy);
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {waypoints, routes: currentTransaction?.routes}, policy);
                 navigateBack();
                 return;
             }
@@ -575,18 +580,19 @@ function IOURequestStepDistance({
         isLoading,
         isCreatingNewRequest,
         navigateToNextStep,
+        isEditingSplit,
+        transaction,
         transactionBackup,
         waypoints,
-        transaction,
         report,
         navigateBack,
-        parentReport,
+        splitDraftTransaction,
+        currentTransaction?.routes,
         policy,
+        parentReport,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
-        isEditingSplit,
-        splitDraftTransaction,
     ]);
 
     const renderItem = useCallback(

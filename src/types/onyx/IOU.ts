@@ -4,7 +4,7 @@ import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {Icon} from './OnyxCommon';
 import type Report from './Report';
-import type {TransactionCustomUnit, WaypointCollection} from './Transaction';
+import type {Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
 
 /** Model of IOU participant */
 type Participant = {
@@ -172,6 +172,9 @@ type SplitExpense = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** Existing routes */
+    routes?: Routes;
 };
 
 /** Model of IOU request */
