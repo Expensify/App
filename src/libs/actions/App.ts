@@ -110,6 +110,16 @@ Onyx.connectWithoutView({
     },
 });
 
+let preservedAccount: OnyxTypes.Account | undefined;
+
+// We called `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PRESERVED_ACCOUNT,
+    callback: (value) => {
+        preservedAccount = value;
+    },
+});
+
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
@@ -124,6 +134,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
+    ONYXKEYS.PRESERVED_ACCOUNT,
     ONYXKEYS.HYBRID_APP,
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
@@ -645,6 +656,10 @@ function setPreservedUserSession(session: OnyxTypes.Session) {
     Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, session);
 }
 
+function setPreservedAccount(account: OnyxTypes.Account) {
+    Onyx.set(ONYXKEYS.PRESERVED_ACCOUNT, account);
+}
+
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
@@ -671,6 +686,11 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             if (preservedUserSession) {
                 Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
                 Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
+            }
+
+            if (preservedAccount) {
+                Onyx.set(ONYXKEYS.ACCOUNT, preservedAccount);
+                Onyx.set(ONYXKEYS.PRESERVED_ACCOUNT, null);
             }
         })
         .then(() => {
@@ -727,5 +747,6 @@ export {
     clearSupportalPermissionDenied,
     showSupportalPermissionDenied,
     setPreservedUserSession,
+    setPreservedAccount,
     KEYS_TO_PRESERVE,
 };
