@@ -5,10 +5,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
 import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
-import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {CardFeedsStatus, CombinedCardFeeds, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCardFeeds from './useCardFeeds';
-import type {CombinedCardFeed, CombinedCardFeeds} from './useCardFeeds';
+import type {CombinedCardFeed} from './useCardFeeds';
 import useCardsList from './useCardsList';
 import useOnyx from './useOnyx';
 
@@ -27,6 +27,7 @@ type UseCompanyCardsResult = Partial<{
     assignedCards: CardList;
     cardNames: string[];
     allCardFeeds: CombinedCardFeeds;
+    cardFeedsStatus: CardFeedsStatus;
     companyCardFeeds: CompanyFeeds;
     selectedFeed: CombinedCardFeed;
 }> & {
@@ -48,7 +49,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
     const policyIDKey = policyID || CONST.DEFAULT_MISSING_ID;
 
     const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDKey}`, {canBeMissing: true});
-    const [allCardFeeds, allCardFeedsMetadata] = useCardFeeds(policyID);
+    const [allCardFeeds, allCardFeedsMetadata, defaultFeed, cardFeedsStatus] = useCardFeeds(policyID);
 
     const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);
     const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
@@ -86,6 +87,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
 
     return {
         allCardFeeds,
+        cardFeedsStatus,
         feedName,
         companyCardFeeds,
         cardList,

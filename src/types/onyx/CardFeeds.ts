@@ -164,6 +164,14 @@ type DomainSettings = {
     };
 };
 
+type CardFeedsStatus = {
+    /** Whether we are loading the data via the API */
+    isLoading?: boolean;
+
+    /** Collection of errors coming from BE */
+    errors?: OnyxCommon.Errors;
+};
+
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
@@ -183,10 +191,8 @@ type CardFeeds = {
         /** Whether to use the technical contact's billing card */
         useTechnicalContactBillingCard?: boolean;
     };
-
-    /** Whether we are loading the data via the API */
-    isLoading?: boolean;
-} & DomainSettings;
+} & CardFeedsStatus &
+    DomainSettings;
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
@@ -276,6 +282,7 @@ export type {
     DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
+    CardFeedsStatus,
     CompanyFeeds,
     CompanyCardFeedWithDomainID,
     CustomCardFeedData,

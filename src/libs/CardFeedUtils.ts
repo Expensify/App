@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
-import type {CombinedCardFeed, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CardFeedsStatus, CombinedCardFeed, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
@@ -511,11 +511,27 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
     return cardFeedsForDisplayPerPolicy;
 }
 
-function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | undefined, includeFeedPredicate?: (feed: CombinedCardFeed) => boolean) {
+function getCardFeedStatus(feed: CardFeeds | undefined): CardFeedsStatus {
+    return {
+        errors: feed?.errors,
+        isLoading: feed?.isLoading,
+    };
+}
+
+function getAllCardFeedsStatus(allFeeds: OnyxCollection<CardFeeds> | undefined): CardFeedsStatus {
+    return Object.entries(allFeeds ?? {}).reduce<CardFeedsStatus>((acc, [onyxKey, feeds]) => {
+        const {errors, isLoading} = feeds ?? ({} as CardFeeds);
+        acc = getCardFeedStatus(feeds);
+        return acc;
+    }, {});
+}
+
+function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | undefined, includeFeedPredicate?: (feed: CombinedCardFeed) => boolean): CombinedCardFeeds {
     return Object.entries(allFeeds ?? {}).reduce<CombinedCardFeeds>((acc, [onyxKey, feeds]) => {
         const domainID = Number(onyxKey.split('_').at(-1));
 
-        const companyCards = feeds?.settings?.companyCards;
+        const {settings: feedSettings, ...feedStatus} = feeds ?? ({} as CardFeeds);
+        const companyCards = feedSettings?.companyCards;
 
         if (!companyCards) {
             return acc;
@@ -566,4 +582,6 @@ export {
     getCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
     getCombinedCardFeedsFromAllFeeds,
+    getCardFeedStatus,
+    getAllCardFeedsStatus,
 };
