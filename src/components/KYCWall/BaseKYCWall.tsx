@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
