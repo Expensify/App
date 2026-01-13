@@ -207,7 +207,7 @@ function SidebarOrderedReportsContextProvider({
 
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         getUpdatedReports,
         chatReports,
@@ -232,7 +232,7 @@ function SidebarOrderedReportsContextProvider({
     const getOrderedReportIDs = useCallback(
         () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [deepComparedReportsToDisplayInLHN, localeCompare, deepComparedReportsDrafts],
     );
 

@@ -57,6 +57,7 @@ function BaseGenericTooltip({
     const {rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             StyleUtils.getTooltipStyles({
+                // eslint-disable-next-line react-compiler/react-compiler
                 tooltip: rootWrapper.current,
                 windowWidth,
                 xOffset,

@@ -4,6 +4,7 @@ import expensifyConfig from 'eslint-config-expensify';
 import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
+import reactCompiler from 'eslint-plugin-react-compiler';
 import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
 import testingLibrary from 'eslint-plugin-testing-library';
 import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
@@ -179,6 +180,7 @@ const config = defineConfig([
             'react-native-a11y': reactNativeA11Y,
             react,
             'testing-library': testingLibrary,
+            'react-compiler': reactCompiler,
             lodash,
         },
 
@@ -320,6 +322,7 @@ const config = defineConfig([
                     touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
                 },
             ],
+            'react-compiler/react-compiler': 'error',
 
             // Disallow usage of certain functions and imports
             'no-restricted-syntax': [
@@ -603,7 +606,6 @@ const config = defineConfig([
         'web/gtm.js',
         '**/.expo/**/*',
         '**/.rock/**/*',
-        '**/.yalc/**/*',
         'src/libs/SearchParser/searchParser.js',
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',

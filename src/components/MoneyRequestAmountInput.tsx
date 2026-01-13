@@ -184,7 +184,7 @@ function MoneyRequestAmountInput({
         }
 
         // we want to re-initialize the state only when the amount changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [amount, shouldKeepUserInput]);
 
     const formatAmount = useCallback(() => {
@@ -217,6 +217,7 @@ function MoneyRequestAmountInput({
                     // eslint-disable-next-line no-param-reassign
                     ref.current = newRef;
                 }
+                // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = newRef;
             }}
             disabled={disabled}
@@ -224,7 +225,7 @@ function MoneyRequestAmountInput({
                 if (typeof moneyRequestAmountInputRef === 'function') {
                     moneyRequestAmountInputRef(newRef);
                 } else if (moneyRequestAmountInputRef && 'current' in moneyRequestAmountInputRef) {
-                    // eslint-disable-next-line no-param-reassign
+                    // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
                     moneyRequestAmountInputRef.current = newRef;
                 }
                 numberFormRef.current = newRef;

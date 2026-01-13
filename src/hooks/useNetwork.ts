@@ -12,6 +12,7 @@ type UseNetwork = {isOffline: boolean; lastOfflineAt?: string};
 
 export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {}): UseNetwork {
     const callback = useRef(onReconnect);
+    // eslint-disable-next-line react-compiler/react-compiler
     callback.current = onReconnect;
 
     const [network] = useOnyx(ONYXKEYS.NETWORK, {

@@ -27,6 +27,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const {orderedReports, currentReportID} = useSidebarOrderedReports('SidebarLinksData');
 
     const currentReportIDRef = useRef(currentReportID);
+    // eslint-disable-next-line react-compiler/react-compiler
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
 

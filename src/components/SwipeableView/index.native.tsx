@@ -7,6 +7,7 @@ function SwipeableView({children, onSwipeDown}: SwipeableViewProps) {
     const minimumPixelDistance = CONST.COMPOSER_MAX_HEIGHT;
     const oldYRef = useRef(0);
     const panResponder = useRef(
+        // eslint-disable-next-line react-compiler/react-compiler
         PanResponder.create({
             // The PanResponder gets focus only when the y-axis movement is over minimumPixelDistance & swipe direction is downwards
             onMoveShouldSetPanResponderCapture: (_event, gestureState) => {
@@ -22,7 +23,7 @@ function SwipeableView({children, onSwipeDown}: SwipeableViewProps) {
         }),
     ).current;
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
+    // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
     return <View {...panResponder.panHandlers}>{children}</View>;
 }
 

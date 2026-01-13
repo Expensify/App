@@ -170,7 +170,9 @@ function AuthScreens() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
+    // eslint-disable-next-line react-compiler/react-compiler
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
+    // eslint-disable-next-line react-compiler/react-compiler
     isLoadingAppRef.current = isLoadingApp;
 
     const handleNetworkReconnect = () => {
@@ -188,7 +190,7 @@ function AuthScreens() {
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
         initializePusher();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [session]);
 
     useAutoUpdateTimezone();
@@ -322,7 +324,7 @@ function AuthScreens() {
         };
 
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

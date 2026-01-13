@@ -1,3 +1,4 @@
+/* eslint-disable react-compiler/react-compiler */
 import {cloneElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import mergeRefs from '@libs/mergeRefs';

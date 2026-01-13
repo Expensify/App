@@ -321,6 +321,7 @@ function AttachmentPicker({
      * @param onCanceledHandler A callback that will be called without a selected attachment
      */
     const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
+        // eslint-disable-next-line react-compiler/react-compiler
         completeAttachmentSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
         onClosed.current = onClosedHandler;
@@ -497,6 +498,7 @@ function AttachmentPicker({
                 }}
                 isVisible={isVisible}
                 anchorRef={popoverRef}
+                // eslint-disable-next-line react-compiler/react-compiler
                 onModalHide={() => onModalHide.current?.()}
             >
                 <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
@@ -512,6 +514,7 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
+            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {renderChildren()}
         </>
     );

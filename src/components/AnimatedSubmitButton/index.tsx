@@ -107,6 +107,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
         return () => clearTimeout(timer);
     }, [isAnimationRunning, isShowingLoading]);
 
+    // eslint-disable-next-line react-compiler/react-compiler
     const showLoading = isShowingLoading || (!viewRef.current && isAnimationRunning);
 
     return (

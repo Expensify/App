@@ -22,6 +22,7 @@ function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
     const dropZone = useRef<HTMLDivElement | View>(null);
 
     const {isDraggingOver} = useDragAndDrop({
+        // eslint-disable-next-line react-compiler/react-compiler
         dropZone: htmlDivElementRef(dropZone),
         onDrop: () => {},
     });
@@ -51,6 +52,7 @@ function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
         <View
             onPointerDown={handlePointerDown}
             style={[styles.fullScreen, isDraggingOver && styles.dNone]}
+            // eslint-disable-next-line react-compiler/react-compiler
             ref={viewRef(dropZone)}
         >
             <PressableWithoutFeedback

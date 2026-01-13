@@ -1,3 +1,4 @@
+/* eslint-disable react-compiler/react-compiler */
 import React, {useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';

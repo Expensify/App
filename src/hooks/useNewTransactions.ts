@@ -24,6 +24,7 @@ function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, tra
         }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
         // Depending only on transactions is enough because prevTransactions is a helper object.
+        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactions]);
 
