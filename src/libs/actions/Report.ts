@@ -986,24 +986,24 @@ function openReport(
 
     const isOffline = NetworkStore.isOffline();
     const hasReportActions = reportActionsExist(reportID);
-    const reportExists = !!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportExists = !!report;
 
     if (isOffline && hasReportActions && reportExists) {
         return;
     }
 
     let optimisticReport: Partial<Report> = {};
-    const existingReportFromAllReports = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (reportExists) {
         // Skip to avoid overwriting existing report data
-    } else if (!reportActionsExist(reportID)) {
+    } else if (!hasReportActions) {
         optimisticReport = {
-            reportName: existingReportFromAllReports?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+            reportName: report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
         };
-    } else if (isOffline && !reportExists) {
+    } else if (isOffline) {
         optimisticReport = {
-            reportName: existingReportFromAllReports?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+            reportName: report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
             reportID,
         };
     }
@@ -1024,8 +1024,7 @@ function openReport(
 
     if (Object.keys(optimisticReport).length > 0) {
         // Preserve existing report data when creating optimistic report
-        const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const optimisticReportWithExistingData = existingReport ? {...existingReport, ...optimisticReport} : optimisticReport;
+        const optimisticReportWithExistingData = report ? {...report, ...optimisticReport} : optimisticReport;
 
         optimisticData.unshift({
             onyxMethod: Onyx.METHOD.MERGE,
