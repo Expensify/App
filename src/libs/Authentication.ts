@@ -208,6 +208,21 @@ function reauthenticate(command = ''): Promise<boolean> {
             });
 
             return true;
+        }).catch((error) => {
+            // Ensure we always unblock the network queue, even on unexpected errors
+            setIsAuthenticating(false);
+
+            trackAuthenticationError(error as Error, {
+                errorType: 'unexpected_error',
+                functionName: 'reauthenticate',
+                command,
+            });
+
+            Log.alert('Reauthenticate - Unexpected error during authentication', {
+                error: (error as Error).message,
+                command,
+            });
+            throw error;
         });
     });
 }
