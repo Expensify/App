@@ -102,14 +102,16 @@ type SelectionScreenProps<T = string> = {
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
-    /** Label for the text input */
-    textInputLabel?: string;
+    textInputOptions?: {
+        /** Label for the text input */
+        label?: string;
 
-    /** Value for the text input */
-    textInputValue?: string;
+        /** Value for the text input */
+        value?: string;
 
-    /** Callback to fire when the text input changes */
-    onChangeText?: (text: string) => void;
+        /** Callback to fire when the text input changes */
+        onChangeText?: (text: string) => void;
+    };
 };
 
 function SelectionScreen<T = string>({
@@ -135,10 +137,8 @@ function SelectionScreen<T = string>({
     onClose,
     shouldSingleExecuteRowSelect,
     headerTitleAlreadyTranslated,
-    textInputLabel,
-    textInputValue,
-    onChangeText,
     shouldShowTextInput,
+    textInputOptions,
     shouldUpdateFocusedIndex = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
@@ -146,12 +146,6 @@ function SelectionScreen<T = string>({
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
-
-    const textInputOptions = {
-        onChangeText,
-        textInputLabel,
-        textInputValue,
-    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -179,6 +173,7 @@ function SelectionScreen<T = string>({
                         data={data}
                         ListItem={listItem}
                         onSelectRow={onSelectRow}
+                        showListEmptyContent={false}
                         showScrollIndicator
                         shouldShowTooltips={false}
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
