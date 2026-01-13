@@ -100,6 +100,7 @@ function IOURequestStepAttendees({
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
+        parentReportNextStep,
     ]);
 
     const navigateBack = () => {
