@@ -228,7 +228,6 @@ function DistanceRequestStartPage({
                                         <IOURequestStepDistanceOdometer
                                             route={route}
                                             navigation={navigation}
-                                            startOfFlow
                                         />
                                     </TabScreenWithFocusTrapWrapper>
                                 )}

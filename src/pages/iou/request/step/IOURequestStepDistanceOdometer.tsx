@@ -43,7 +43,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type Transaction from '@src/types/onyx/Transaction';
 import DiscardChangesConfirmation from './DiscardChangesConfirmation';
@@ -56,18 +56,15 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
-
-        /** The flag indicating if this is the start of the flow */
-        startOfFlow?: boolean;
     };
 
 function IOURequestStepDistanceOdometer({
     report,
     route: {
         params: {action, iouType, reportID, transactionID, backToReport},
+        name: routeName,
     },
     transaction,
-    startOfFlow = false,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
     const {translate} = useLocalize();
@@ -111,6 +108,7 @@ function IOURequestStepDistanceOdometer({
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
+    const startOfFlow = routeName === SCREENS.MONEY_REQUEST.DISTANCE_CREATE;
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingConfirmation = !startOfFlow && !isEditing;
     const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
