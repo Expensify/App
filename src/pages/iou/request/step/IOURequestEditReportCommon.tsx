@@ -80,6 +80,7 @@ function IOURequestEditReportCommon({
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -131,7 +132,6 @@ function IOURequestEditReportCommon({
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
             return [];
         }
-        const personalPolicyID = getPersonalPolicy()?.id;
         if (!selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport)) {
             return Object.values(allPoliciesID ?? {})
                 .filter((policyID) => personalPolicyID !== policyID)
@@ -157,7 +157,7 @@ function IOURequestEditReportCommon({
             reportNameValuePairs,
             isEditing,
         );
-    }, [outstandingReportsByPolicyID, resolvedReportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing]);
+    }, [personalPolicyID, outstandingReportsByPolicyID, resolvedReportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
