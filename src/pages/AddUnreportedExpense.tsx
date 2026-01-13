@@ -150,6 +150,22 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         }));
     }, [filteredTransactions, selectedIds]);
 
+    const footerContent = useMemo(
+        () => (
+            <AddUnreportedExpenseFooter
+                selectedIds={selectedIds}
+                report={report}
+                reportToConfirm={reportToConfirm}
+                reportNextStep={reportNextStep}
+                policy={policy}
+                policyCategories={policyCategories}
+                errorMessage={errorMessage}
+                setErrorMessage={setErrorMessage}
+            />
+        ),
+        [selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage],
+    );
+
     const headerMessage = useMemo(() => {
         if (debouncedSearchValue.trim() && unreportedExpenses?.length === 0) {
             return translate('common.noResultsFound');
@@ -276,18 +292,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 onEndReachedThreshold={0.75}
                 addBottomSafeAreaPadding
                 listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
-                footerContent={
-                    <AddUnreportedExpenseFooter
-                        selectedIds={selectedIds}
-                        report={report}
-                        reportToConfirm={reportToConfirm}
-                        reportNextStep={reportNextStep}
-                        policy={policy}
-                        policyCategories={policyCategories}
-                        errorMessage={errorMessage}
-                        setErrorMessage={setErrorMessage}
-                    />
-                }
+                footerContent={footerContent}
                 disableMaintainingScrollPosition
             />
         </ScreenWrapper>
