@@ -1283,6 +1283,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: '此汇率对该工作区无效。请选择此工作区中的可用汇率。',
             endDateBeforeStartDate: '结束日期不能早于开始日期',
             endDateSameAsStartDate: '结束日期不能与开始日期相同',
+            manySplitsProvided: `允许的最大拆分数为${CONST.IOU.SPLITS_LIMIT}。`,
+            dateRangeExceedsMaxDays: `日期范围不能超过${CONST.IOU.SPLITS_LIMIT}天。`,
             invalidReadings: '请输入起始读数和结束读数',
             negativeDistanceNotAllowed: '结束读数必须大于开始读数',
         },
@@ -1433,6 +1435,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} 至 ${endDate}（${count} 天）`,
         splitByDate: '按日期拆分',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `报告因自定义审批工作流而转发至 ${to}`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'} @ ${rate} / 小时`, hrs: '小时'},
     },
     transactionMerge: {
         listPage: {
@@ -6182,6 +6185,8 @@ ${reportName}
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `将公司地址更改为“${newAddress}”（原为“${previousAddress}”）` : `将公司地址设置为“${newAddress}”`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `已将 ${approverName}（${approverEmail}）添加为字段 ${field}“${name}”的审批人`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `已将 ${approverName}（${approverEmail}）从 ${field}“${name}”的审批人中移除`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {

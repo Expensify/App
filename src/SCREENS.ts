@@ -222,7 +222,6 @@ const SCREENS = {
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         TWO_FACTOR_AUTH: 'TwoFactorAuth',
-        SEARCH_ROUTER: 'Search_Router',
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
@@ -877,6 +876,7 @@ const SCREENS = {
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
         ADD_ADMIN: 'Domain_Add_Admin',
         MEMBERS: 'Domain_Members',
+        MEMBER_DETAILS: 'Member_Details',
     },
 } as const;
 
