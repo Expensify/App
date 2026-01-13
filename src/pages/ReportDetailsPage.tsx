@@ -328,7 +328,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
-        Navigation.dismissToSuperWideRHP();
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
                 leaveGroupChat(report.reportID, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID);

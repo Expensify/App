@@ -3722,8 +3722,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
         const topmostSuperWideRHP = Navigation.getTopmostSuperWideRHPReportID();
 
         if (lastAccessedReportID === topmostSuperWideRHP && !getIsNarrowLayout()) {
-            const lastAccessedReportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: lastAccessedReportID});
-            Navigation.goBack(lastAccessedReportRoute);
+            Navigation.dismissToSuperWideRHP();
         } else {
             const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
             Navigation.goBack(lastAccessedReportRoute);
