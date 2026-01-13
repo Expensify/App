@@ -10,7 +10,6 @@ function calculateDuration(startTimestamp: number, endTimestamp: number): number
 }
 
 const minDurationFilter: TelemetryBeforeSend = (event) => {
-    console.log('morwa minDurationFilter');
     // Check if the transaction (event) itself has a min_duration requirement
     const eventMinDuration = event.contexts?.trace?.data?.[CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION] as number | undefined;
 
