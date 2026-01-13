@@ -1,4 +1,17 @@
-import React, {useMemo} from 'react';
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import Avatar from '@components/Avatar';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -8,8 +21,9 @@ import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtil
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
-import type {MemberDetailsMenuItem} from '@pages/domain/BaseDomainMemberDetailsComponent';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@src/selectors/Domain';
@@ -66,25 +80,67 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         revokeDomainAdminAccess(route.params.domainAccountID, route.params.accountID);
         Navigation.dismissModal();
     };
-    const menuItems = useMemo(
-        (): MemberDetailsMenuItem[] => [
-            {
-                key: 'profile',
-                title: translate('common.profile'),
-                icon: icons.Info,
-                onPress: () => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute())),
-                shouldShowRightIcon: true,
-            },
-        ],
-        [accountID, icons.Info, translate],
-    );
 
     return (
-        <BaseDomainMemberDetailsComponent
-            domainAccountID={domainAccountID}
-            accountID={accountID}
-            menuItems={menuItems}
-        />
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID={DomainAdminDetailsPage.displayName}
+            >
+                <HeaderWithBackButton title={displayName} />
+                <ScrollView addBottomSafeAreaPadding>
+                    <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
+                        <View style={[styles.avatarSectionWrapper, styles.pb0]}>
+                            <OfflineWithFeedback pendingAction={adminPersonalDetails?.pendingFields?.avatar}>
+                                <Avatar
+                                    containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
+                                    imageStyles={[styles.avatarXLarge]}
+                                    source={adminPersonalDetails?.avatar}
+                                    avatarID={accountID}
+                                    type={CONST.ICON_TYPE_AVATAR}
+                                    size={CONST.AVATAR_SIZE.X_LARGE}
+                                    fallbackIcon={fallbackIcon}
+                                />
+                            </OfflineWithFeedback>
+                            {!!displayName && (
+                                <Text
+                                    style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
+                                    numberOfLines={1}
+                                >
+                                    {displayName}
+                                </Text>
+                            )}
+                        </View>
+                        <View style={styles.w100}>
+                            <MenuItemWithTopDescription
+                                title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
+                                copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
+                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                interactive={false}
+                                copyable
+                            />
+                            {!domainHasOnlyOneAdmin && (
+                                <MenuItem
+                                    disabled={isCurrentUserPrimaryContact}
+                                    hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
+                                    style={styles.mb5}
+                                    title={translate('domain.admins.revokeAdminAccess')}
+                                    icon={icons.ClosedSign}
+                                    onPress={handleRevokeAdminAccess}
+                                />
+                            )}
+                            <MenuItem
+                                style={styles.mb5}
+                                title={translate('common.profile')}
+                                icon={icons.Info}
+                                onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
+                                shouldShowRightIcon
+                            />
+                        </View>
+                    </View>
+                </ScrollView>
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
 
