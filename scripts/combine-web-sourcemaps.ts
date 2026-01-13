@@ -42,13 +42,12 @@ async function mergeSourceMaps() {
         });
 
         // Add the sources content
-        // eslint-disable-next-line unicorn/no-array-for-each
-        consumer.sources.forEach((sourceFile: string) => {
+        for (const sourceFile of consumer.sources) {
             const content = consumer.sourceContentFor(sourceFile);
             if (content) {
                 mergedGenerator.setSourceContent(sourceFile, content);
             }
-        });
+        }
 
         consumer.destroy();
     }

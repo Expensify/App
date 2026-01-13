@@ -29,7 +29,9 @@ type WithPolicyConnectionsProps = WithPolicyProps & {
 function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>, shouldBlockView = true) {
     function WithPolicyConnections(props: TProps) {
         const {isOffline} = useNetwork();
-        const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '-1'}`);
+        const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id}`, {
+            canBeMissing: true,
+        });
         const isOnyxDataLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
         const isConnectionDataFetchNeeded =
             !isOnyxDataLoading && !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
@@ -49,6 +51,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
             if (!isConnectionDataFetchNeeded || !props.policy?.id) {
+                setIsFetchingData(false);
                 return;
             }
             setIsFetchingData(true);

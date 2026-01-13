@@ -32,6 +32,4 @@ function UnreadActionIndicator({reportActionID, shouldHideThreadDividerLine}: Un
     );
 }
 
-UnreadActionIndicator.displayName = 'UnreadActionIndicator';
-
 export default UnreadActionIndicator;

@@ -14,11 +14,11 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {isMobile} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -27,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates, getPerDiemCustomUnit, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -51,7 +51,7 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 };
 
 const platform = getPlatform(true);
-const isWeb = ([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP, CONST.PLATFORM.MOBILE_WEB] as Platform[]).includes(platform);
+const isWeb = ([CONST.PLATFORM.WEB, CONST.PLATFORM.MOBILE_WEB] as Platform[]).includes(platform);
 
 function IOURequestStartPage({
     route,
@@ -65,13 +65,16 @@ function IOURequestStartPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const personalPolicy = usePersonalPolicy();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
+    const [lastSelectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
+    const [selectedTab, setSelectedTab] = useState(lastSelectedTab);
+
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
+    const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
+    const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -82,6 +85,7 @@ function IOURequestStartPage({
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -133,29 +137,18 @@ function IOURequestStartPage({
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
     }, []);
 
+    useEffect(() => {
+        if (isLoadingSelectedTab || selectedTab) {
+            return;
+        }
+        setSelectedTab(lastSelectedTab);
+        // We only want to set the selected tab when selectedTab is not set yet, don't want to run this effect again when lastSelectedTab changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoadingSelectedTab, selectedTab]);
+
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
-
-    // This useEffect is used to initialize the money request, so that currency will be reset to default currency on page reload.
-    useEffect(() => {
-        if (transaction?.amount !== 0) {
-            return;
-        }
-        initMoneyRequest({
-            reportID,
-            policy,
-            isFromGlobalCreate,
-            currentIouRequestType: transaction?.iouRequestType,
-            newIouRequestType: transaction?.iouRequestType,
-            report,
-            parentReport,
-            currentDate,
-            lastSelectedDistanceRates,
-            currentUserPersonalDetails,
-        });
-        // eslint-disable-next-line
-    }, []);
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
@@ -167,6 +160,7 @@ function IOURequestStartPage({
             initMoneyRequest({
                 reportID,
                 policy,
+                personalPolicy,
                 isFromGlobalCreate: transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
@@ -175,6 +169,7 @@ function IOURequestStartPage({
                 currentDate,
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
+                hasOnlyPersonalPolicies,
             });
         },
         [
@@ -182,24 +177,34 @@ function IOURequestStartPage({
             transaction?.isFromGlobalCreate,
             reportID,
             policy,
+            personalPolicy,
             isFromGlobalCreate,
             report,
             parentReport,
             currentDate,
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
         ],
+    );
+
+    const onTabSelected = useCallback(
+        (newIouType: IOURequestType) => {
+            setSelectedTab(newIouType);
+            resetIOUTypeIfChanged(newIouType);
+        },
+        [resetIOUTypeIfChanged],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
     useFocusEffect(
         useCallback(() => {
             // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
-            if (transaction?.reportID === reportID || isLoadingSelectedTab || !transactionRequestType || prevTransactionReportID !== transaction?.reportID) {
+            if (transaction?.reportID === reportID || isLoadingTransaction || isLoadingSelectedTab || !transactionRequestType || prevTransactionReportID !== transaction?.reportID) {
                 return;
             }
             resetIOUTypeIfChanged(transactionRequestType);
-        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
+        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID, isLoadingTransaction]),
     );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
@@ -248,14 +253,10 @@ function IOURequestStartPage({
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
                 shouldEnableMinHeight={canUseTouchScreen()}
-                headerGapStyles={isDraggingOver ? styles.dropWrapper : []}
-                testID={IOURequestStartPage.displayName}
+                testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
-                <DragAndDropProvider
-                    setIsDraggingOver={setIsDraggingOver}
-                    isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
-                >
+                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}>
                     <View style={styles.flex1}>
                         <FocusTrapContainerElement
                             onContainerElementChanged={setHeaderWithBackButtonContainerElement}
@@ -271,7 +272,7 @@ function IOURequestStartPage({
                             <OnyxTabNavigator
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
-                                onTabSelected={resetIOUTypeIfChanged}
+                                onTabSelected={onTabSelected}
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
@@ -279,8 +280,6 @@ function IOURequestStartPage({
                                 shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                                 renderProductTrainingTooltip={renderProductTrainingTooltip}
                                 lazyLoadEnabled
-                                // We're disabling swipe on mWeb fo the Per Diem tab because the keyboard will hang on the other tab after switching
-                                disableSwipe={(isMultiScanEnabled && selectedTab === CONST.TAB_REQUEST.SCAN) || (selectedTab === CONST.TAB_REQUEST.PER_DIEM && isMobile())}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -361,7 +360,5 @@ function IOURequestStartPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-IOURequestStartPage.displayName = 'IOURequestStartPage';
 
 export default IOURequestStartPage;

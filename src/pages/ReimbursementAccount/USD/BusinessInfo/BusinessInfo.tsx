@@ -55,7 +55,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
             ...lodashPick(reimbursementAccountDraft, ...fieldNames),
         }),
-        [reimbursementAccount, reimbursementAccountDraft],
+        [reimbursementAccount?.achData, reimbursementAccountDraft],
     );
 
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -77,7 +77,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
                 isConfirmPage,
             );
         },
-        [reimbursementAccount, values, getBankAccountFields, policyID],
+        [reimbursementAccount?.achData?.bankAccountID, values, getBankAccountFields, policyID],
     );
 
     const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
@@ -108,7 +108,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BusinessInfo.displayName}
+            wrapperID="BusinessInfo"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('businessInfoStep.businessInfo')}
@@ -124,7 +124,5 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-BusinessInfo.displayName = 'BusinessInfo';
 
 export default BusinessInfo;

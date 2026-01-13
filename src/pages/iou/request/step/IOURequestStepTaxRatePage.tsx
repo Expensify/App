@@ -1,10 +1,13 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxName, getTaxValue} from '@libs/TransactionUtils';
@@ -42,6 +45,8 @@ function IOURequestStepTaxRatePage({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
@@ -49,6 +54,11 @@ function IOURequestStepTaxRatePage({
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const taxRates = policy?.taxRates;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -77,12 +87,16 @@ function IOURequestStepTaxRatePage({
             const newTaxCode = taxes.code;
             updateMoneyRequestTaxRate({
                 transactionID: currentTransaction?.transactionID,
-                optimisticReportActionID: report?.reportID,
+                transactionThreadReport: report,
+                parentReport,
                 taxCode: newTaxCode,
                 taxAmount: convertToBackendAmount(taxAmount ?? 0),
                 policy,
                 policyTagList: policyTags,
                 policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
             });
             navigateBack();
             return;
@@ -104,7 +118,7 @@ function IOURequestStepTaxRatePage({
             headerTitle={translate('iou.taxRate')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepTaxRatePage.displayName}
+            testID="IOURequestStepTaxRatePage"
         >
             <TaxPicker
                 selectedTaxRate={taxRateTitle}
@@ -118,8 +132,6 @@ function IOURequestStepTaxRatePage({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepTaxRatePage.displayName = 'IOURequestStepTaxRatePage';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);

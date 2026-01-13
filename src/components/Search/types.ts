@@ -4,6 +4,7 @@ import type {ReportActionListItemType, TaskListItemType, TransactionGroupListIte
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -15,11 +16,17 @@ type SelectedTransactionInfo = {
     /** Whether the transaction is selected */
     isSelected: boolean;
 
-    /** If the transaction can be deleted */
-    canDelete: boolean;
+    /** If the transaction can be rejected */
+    canReject: boolean;
 
     /** If the transaction can be put on hold */
     canHold: boolean;
+
+    /** If the transaction can be splitted */
+    canSplit: boolean;
+
+    /** If the transaction has been splitted */
+    hasBeenSplit: boolean;
 
     /** If the transaction can be moved to other report */
     canChangeReport: boolean;
@@ -34,7 +41,7 @@ type SelectedTransactionInfo = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
     /** The reportID of the transaction */
-    reportID: string;
+    reportID?: string;
 
     /** The policyID tied to the report the transaction is reported on */
     policyID: string | undefined;
@@ -42,20 +49,25 @@ type SelectedTransactionInfo = {
     /** The transaction amount */
     amount: number;
 
-    /** The converted transaction amount into either group currency, or the active policy currency */
-    convertedAmount: number;
-
-    /** The currency that the converted amount is in */
-    convertedCurrency: string;
-
     /** The transaction currency */
     currency: string;
+
+    /** The transaction converted amount in `groupCurrency` currency */
+    groupAmount?: number;
+
+    /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+    groupCurrency?: string;
+
+    /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+    groupExchangeRate?: number;
 
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
 
     /** Account ID of the report owner */
     ownerAccountID?: number;
+
+    reportAction?: ReportAction;
 };
 
 /** Model of selected transactions */
@@ -63,7 +75,7 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 /** Model of selected reports */
 type SelectedReports = {
-    reportID: string;
+    reportID: string | undefined;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
@@ -105,6 +117,13 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
+
+type SearchCustomColumnIds =
+    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>
+    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>;
 
 type SearchContextData = {
     currentSearchHash: number;
@@ -194,7 +213,8 @@ type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
@@ -204,6 +224,15 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
+type RawFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+
+type RawQueryFilter = {
+    key: RawFilterKey;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    value: string | string[];
+    isDefault?: boolean;
+};
+
 type SearchQueryString = string;
 
 type SearchQueryAST = {
@@ -211,9 +240,11 @@ type SearchQueryAST = {
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
+    columns?: SearchCustomColumnIds[];
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];
+    rawFilterList?: RawQueryFilter[];
 };
 
 type SearchQueryJSON = {
@@ -244,6 +275,7 @@ type SearchParams = {
     offset: number;
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
+    isLoading: boolean;
 };
 
 type BankAccountMenuItem = {
@@ -274,6 +306,8 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
+    RawFilterKey,
+    RawQueryFilter,
     SearchFilterKey,
     UserFriendlyKey,
     ExpenseSearchStatus,
@@ -295,4 +329,5 @@ export type {
     SelectedReports,
     SearchTextFilterKeys,
     BankAccountMenuItem,
+    SearchCustomColumnIds,
 };

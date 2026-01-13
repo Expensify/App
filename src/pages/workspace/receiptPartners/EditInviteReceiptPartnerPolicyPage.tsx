@@ -7,12 +7,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -45,7 +45,8 @@ type UberEmployeeStatus = ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPL
 function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['SewerDino'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const illustrations = useMemoizedLazyIllustrations(['SewerDino']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -179,7 +180,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 accountID: personalDetail?.accountID,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
@@ -200,7 +201,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
         }
         return sortAlphabetically(list, 'text', localeCompare);
-    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend]);
+    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend, icons.FallbackAvatar]);
 
     const applyTabStatusFilter = useCallback(
         (tab: ReceiptPartnersTab, data: MemberForList[]) => {
@@ -247,17 +248,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         [applyTabStatusFilter, getSearchStateForTab, members],
     );
 
-    const buildSections = useCallback(
-        (data: MemberForList[]) => [
-            {
-                title: undefined,
-                data,
-                shouldShow: true,
-            },
-        ],
-        [],
-    );
-
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
@@ -281,7 +271,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID={EditInviteReceiptPartnerPolicyPage.displayName}>
+            <ScreenWrapper testID="EditInviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.manageInvites')}
                     onBackButtonPress={() => {
@@ -317,20 +307,21 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                 return (
                                     <TabScreenWithFocusTrapWrapper>
                                         <SelectionList
+                                            data={filteredMembers}
                                             ListItem={UserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
-                                            listItemWrapperStyle={styles.cursorDefault}
+                                            style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}
                                             addBottomSafeAreaPadding
                                             shouldShowTextInput={shouldShowTextInput}
-                                            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-                                            textInputValue={searchTerm}
-                                            onChangeText={setSearchTerm}
-                                            headerMessage={currentHeaderMessage}
-                                            sections={buildSections(filteredMembers)}
+                                            textInputOptions={{
+                                                label: shouldShowTextInput ? translate('common.search') : undefined,
+                                                value: searchTerm,
+                                                onChangeText: setSearchTerm,
+                                                headerMessage: currentHeaderMessage,
+                                            }}
                                             listEmptyContent={listEmptyContent}
-                                            shouldShowListEmptyContent={shouldShowListEmptyContent}
-                                            sectionListStyle={styles.pt3}
+                                            showListEmptyContent={shouldShowListEmptyContent}
                                         />
                                     </TabScreenWithFocusTrapWrapper>
                                 );
@@ -342,7 +333,5 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditInviteReceiptPartnerPolicyPage.displayName = 'EditInviteReceiptPartnerPolicyPage';
 
 export default EditInviteReceiptPartnerPolicyPage;

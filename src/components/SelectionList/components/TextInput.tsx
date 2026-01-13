@@ -45,9 +45,6 @@ type TextInputProps = {
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
 
-    /** Function to update the focused index in the list */
-    setFocusedIndex: (index: number) => void;
-
     /** Function to focus text input component */
     focusTextInput: () => void;
 };
@@ -64,7 +61,6 @@ function TextInput({
     showLoadingPlaceholder,
     isLoadingNewOptions,
     shouldShowTextInput,
-    setFocusedIndex,
     focusTextInput,
 }: TextInputProps) {
     const styles = useThemeStyles();
@@ -72,7 +68,7 @@ function TextInput({
     const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef} = options ?? {};
     const resultsFound = headerMessage !== translate('common.noResultsFound');
     const noData = dataLength === 0 && !showLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || !noData);
+    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || noData);
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -80,9 +76,8 @@ function TextInput({
     const handleTextInputChange = useCallback(
         (text: string) => {
             onChangeText?.(text);
-            setFocusedIndex(0);
         },
-        [onChangeText, setFocusedIndex],
+        [onChangeText],
     );
 
     useFocusEffect(
@@ -150,7 +145,5 @@ function TextInput({
         </>
     );
 }
-
-TextInput.displayName = 'TextInput';
 
 export default TextInput;

@@ -5,8 +5,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -33,8 +31,9 @@ type WorkspaceDuplicateFormProps = {
 };
 
 function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask']);
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera']);
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);
@@ -50,7 +49,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
             } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
                 // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             return errors;
@@ -100,7 +99,6 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                 </View>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     avatarID={policyID}
                     source={stashedLocalAvatarImage}
                     onImageSelected={(image) => {
@@ -113,7 +111,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                     }}
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
-                    editIcon={Expensicons.Camera}
+                    editIcon={expensifyIcons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
@@ -158,7 +156,5 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
         </>
     );
 }
-
-WorkspaceDuplicateForm.displayName = 'WorkspaceDuplicateForm';
 
 export default WorkspaceDuplicateForm;

@@ -31,6 +31,7 @@ import {
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -86,14 +87,31 @@ function IOURequestStepDistanceManual({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
 
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+
+    const shouldUseDefaultExpensePolicy = useMemo(
+        () =>
+            iouType === CONST.IOU.TYPE.CREATE &&
+            isPaidGroupPolicy(defaultExpensePolicy) &&
+            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
+        [iouType, defaultExpensePolicy],
+    );
 
     const customUnitRateID = getRateID(transaction);
-    const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
+    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
     const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -155,11 +173,15 @@ function IOURequestStepDistanceManual({
                 if (distance !== distanceAsFloat) {
                     updateMoneyRequestDistance({
                         transactionID: transaction?.transactionID,
-                        transactionThreadReportID: reportID,
+                        transactionThreadReport: report,
+                        parentReport,
                         distance: distanceAsFloat,
                         // Not required for manual distance request
                         transactionBackup: undefined,
                         policy,
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -172,7 +194,7 @@ function IOURequestStepDistanceManual({
             }
 
             if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-                const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
+                const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountIDParam);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
@@ -186,8 +208,8 @@ function IOURequestStepDistanceManual({
                             report,
                             isDraftPolicy: false,
                             participantParams: {
-                                payeeEmail: currentUserPersonalDetails.login,
-                                payeeAccountID: currentUserPersonalDetails.accountID,
+                                payeeEmail: currentUserEmailParam,
+                                payeeAccountID: currentUserAccountIDParam,
                                 participant,
                             },
                             policyParams: {
@@ -205,6 +227,11 @@ function IOURequestStepDistanceManual({
                                 attendees: transaction?.comment?.attendees,
                             },
                             isASAPSubmitBetaEnabled,
+                            currentUserAccountIDParam,
+                            currentUserEmailParam,
+                            introSelected,
+                            activePolicyID,
+                            quickAction,
                         });
                         return;
                     }
@@ -214,8 +241,8 @@ function IOURequestStepDistanceManual({
                     createDistanceRequest({
                         report,
                         participants,
-                        currentUserLogin: currentUserPersonalDetails.login,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserLogin: currentUserEmailParam,
+                        currentUserAccountID: currentUserAccountIDParam,
                         iouType,
                         existingTransaction: transaction,
                         transactionParams: {
@@ -232,10 +259,13 @@ function IOURequestStepDistanceManual({
                         },
                         backToReport,
                         isASAPSubmitBetaEnabled,
+                        transactionViolations,
+                        quickAction,
+                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     });
                     return;
                 }
-                setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+                setMoneyRequestParticipantsFromReport(transactionID, report, currentUserAccountIDParam).then(() => {
                     navigateToConfirmationPage();
                 });
                 return;
@@ -243,13 +273,8 @@ function IOURequestStepDistanceManual({
 
             // If there was no reportID, then that means the user started this flow from the global menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (
-                iouType === CONST.IOU.TYPE.CREATE &&
-                isPaidGroupPolicy(defaultExpensePolicy) &&
-                defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-                !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
-            ) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+            if (shouldUseDefaultExpensePolicy) {
+                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
                 const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
                 const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
@@ -260,7 +285,7 @@ function IOURequestStepDistanceManual({
                 });
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setCustomUnitRateID(transactionID, rateID);
-                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserAccountIDParam).then(() => {
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                             CONST.IOU.ACTION.CREATE,
@@ -282,23 +307,30 @@ function IOURequestStepDistanceManual({
             report,
             reportNameValuePairs,
             iouType,
-            defaultExpensePolicy,
+            shouldUseDefaultExpensePolicy,
             distance,
             transaction,
-            reportID,
+            parentReport,
             policy,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
             translate,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
             lastSelectedDistanceRates,
             backToReport,
-            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            quickAction,
+            policyRecentlyUsedCurrencies,
             customUnitRateID,
+            introSelected,
+            activePolicyID,
             navigateToConfirmationPage,
+            defaultExpensePolicy,
             personalPolicy?.autoReporting,
+            reportID,
         ],
     );
 
@@ -323,7 +355,7 @@ function IOURequestStepDistanceManual({
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepDistanceManual.displayName}
+            testID="IOURequestStepDistanceManual"
             shouldShowNotFoundPage={false}
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
@@ -365,8 +397,6 @@ function IOURequestStepDistanceManual({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDistanceManual.displayName = 'IOURequestStepDistanceManual';
 
 const IOURequestStepDistanceManualWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceManual);
 // eslint-disable-next-line rulesdir/no-negated-variables

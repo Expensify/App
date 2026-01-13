@@ -75,6 +75,4 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
     );
 }
 
-BaseLocationErrorMessage.displayName = 'BaseLocationErrorMessage';
-
 export default BaseLocationErrorMessage;

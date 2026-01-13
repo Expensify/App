@@ -25,14 +25,15 @@ function useTransactionsAndViolationsForReport(reportID?: string) {
 
                 // This is our accumulator, it's okay to reassign
                 // eslint-disable-next-line no-param-reassign
-                filteredTransactionViolations[transactionViolationKey] = getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', report, policy) ?? [];
+                filteredTransactionViolations[transactionViolationKey] =
+                    getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, report, policy) ?? [];
                 return filteredTransactionViolations;
             },
             {} as Record<string, TransactionViolations>,
         );
 
         return {transactions, violations: filteredViolations};
-    }, [transactions, violations, currentUserDetails?.email, report, policy]);
+    }, [transactions, violations, currentUserDetails?.email, currentUserDetails?.accountID, report, policy]);
 
     return transactionsAndViolations;
 }

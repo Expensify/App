@@ -1,10 +1,10 @@
 import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import {CompanyCardsPendingState} from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 function WorkspaceCompanyCardsFeedPendingPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {CompanyCardsPendingState} = useMemoizedLazyIllustrations(['CompanyCardsPendingState']);
 
     return (
         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
@@ -34,7 +35,5 @@ function WorkspaceCompanyCardsFeedPendingPage() {
         </ScrollView>
     );
 }
-
-WorkspaceCompanyCardsFeedPendingPage.displayName = 'WorkspaceCompanyCardsFeedPendingPage';
 
 export default WorkspaceCompanyCardsFeedPendingPage;

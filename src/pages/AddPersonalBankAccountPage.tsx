@@ -27,6 +27,7 @@ function AddPersonalBankAccountPage() {
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
     const kycWallRef = useContext(KYCWallContext);
@@ -59,9 +60,9 @@ function AddPersonalBankAccountPage() {
                       ...selectedPlaidBankAccount,
                       plaidAccessToken: plaidData?.plaidAccessToken ?? '',
                   };
-            addPersonalBankAccount(bankAccountWithToken, policyID, source);
+            addPersonalBankAccount(bankAccountWithToken, personalPolicyID, policyID, source);
         }
-    }, [plaidData, selectedPlaidAccountId, personalBankAccount]);
+    }, [plaidData?.bankAccounts, plaidData?.plaidAccessToken, selectedPlaidAccountId, personalPolicyID, personalBankAccount?.policyID, personalBankAccount?.source]);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
@@ -76,7 +77,7 @@ function AddPersonalBankAccountPage() {
                 goBack();
             }
         },
-        [personalBankAccount, goBack, kycWallRef],
+        [personalBankAccount?.exitReportID, personalBankAccount?.onSuccessFallbackRoute, goBack, kycWallRef],
     );
 
     useEffect(() => clearPersonalBankAccount, []);
@@ -86,7 +87,7 @@ function AddPersonalBankAccountPage() {
             includeSafeAreaPaddingBottom={shouldShowSuccess}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator={false}
-            testID={AddPersonalBankAccountPage.displayName}
+            testID="AddPersonalBankAccountPage"
         >
             <FullPageNotFoundView>
                 <HeaderWithBackButton
@@ -132,6 +133,5 @@ function AddPersonalBankAccountPage() {
         </ScreenWrapper>
     );
 }
-AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default AddPersonalBankAccountPage;

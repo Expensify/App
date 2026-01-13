@@ -165,11 +165,9 @@ function MagicCodeInput({
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
 
-    useMagicCodePaste(inputRef, onChangeTextProp);
-
     useEffect(() => {
         lastValue.current = input.length;
-    }, [input]);
+    }, [input.length]);
 
     useEffect(() => {
         // Note: there are circumstances where the value state isn't updated yet
@@ -184,7 +182,7 @@ function MagicCodeInput({
             return;
         }
         setWasSubmitted(false);
-    }, [value, maxLength]);
+    }, [value.length, maxLength]);
 
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();
@@ -251,7 +249,7 @@ function MagicCodeInput({
         // We have not added:
         // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // + the onFulfill as the dependency because onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, shouldSubmitOnComplete]);
 
     /**
@@ -272,7 +270,6 @@ function MagicCodeInput({
      */
     const tapGesture = Gesture.Tap()
         .runOnJS(true)
-        // eslint-disable-next-line react-compiler/react-compiler
         .onBegin((event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;
@@ -327,6 +324,8 @@ function MagicCodeInput({
         onChangeTextProp(finalInput);
         valueRef.current = finalInput;
     };
+
+    useMagicCodePaste(inputRef, onChangeText);
 
     /**
      * Handles logic related to certain key presses.
@@ -434,14 +433,14 @@ function MagicCodeInput({
 
         // We have not added:
         // + the onChangeText and onKeyPress as the dependencies because we only want to run this when lastPressedDigit changes.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastPressedDigit, isDisableKeyboard]);
 
     const cursorOpacity = useSharedValue(1);
 
     useEffect(() => {
         cursorOpacity.set(withRepeat(withSequence(withDelay(500, withTiming(0, {duration: 0})), withDelay(500, withTiming(1, {duration: 0}))), -1, false));
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animatedCursorStyle = useAnimatedStyle(() => ({
@@ -538,8 +537,6 @@ function MagicCodeInput({
         </>
     );
 }
-
-MagicCodeInput.displayName = 'MagicCodeInput';
 
 export default MagicCodeInput;
 export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};

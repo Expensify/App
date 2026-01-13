@@ -17,6 +17,7 @@ import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     adjustRemainingSplitShares,
     computePerDiemExpenseAmount,
+    isValidPerDiemExpenseAmount,
     resetSplitShares,
     setCustomUnitRateID,
     setIndividualShare,
@@ -73,6 +74,7 @@ import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import type {SectionListDataType} from './SelectionListWithSections/types';
 import UserListItem from './SelectionListWithSections/UserListItem';
@@ -150,6 +152,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is a manual distance expense */
     isManualDistanceRequest: boolean;
 
+    /** Whether the expense is an odometer distance expense */
+    isOdometerDistanceRequest?: boolean;
+
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
@@ -211,6 +216,7 @@ function MoneyRequestConfirmationList({
     iouAmount,
     isDistanceRequest,
     isManualDistanceRequest,
+    isOdometerDistanceRequest = false,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
@@ -346,11 +352,11 @@ function MoneyRequestConfirmationList({
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
     useEffect(() => {
-        if (!transactionID || isReadOnly) {
+        if (!transactionID || isReadOnly || !shouldShowTax) {
             return;
         }
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-    }, [defaultTaxCode, transactionID, isReadOnly]);
+    }, [defaultTaxCode, transactionID, isReadOnly, shouldShowTax]);
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
@@ -426,8 +432,8 @@ function MoneyRequestConfirmationList({
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
+    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
         // We want this effect to run only when the transaction is moving from Self DM to a expense chat
@@ -453,7 +459,18 @@ function MoneyRequestConfirmationList({
 
         // If none of the above conditions are met, display the rate error
         setFormError(errorKey);
-    }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
+    }, [
+        isDistanceRequest,
+        isPolicyExpenseChat,
+        transactionID,
+        mileageRate.rate,
+        mileageRate.unit,
+        customUnitRateID,
+        policy,
+        isMovingTransactionFromTrackExpense,
+        setFormError,
+        clearFormErrors,
+    ]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isFirstUpdatedDistanceAmount = useRef(false);
@@ -494,11 +511,11 @@ function MoneyRequestConfirmationList({
     const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!transactionID || isReadOnly) {
+        if (!transactionID || isReadOnly || !shouldShowTax) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly]);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -512,7 +529,7 @@ function MoneyRequestConfirmationList({
     const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
         if (expensesNumber > 1) {
-            text = translate('iou.createExpenses', {expensesNumber});
+            text = translate('iou.createExpenses', expensesNumber);
         } else if (isTypeInvoice) {
             if (hasInvoicingDetails(policy)) {
                 text = translate('iou.sendInvoice', {amount: formattedAmount});
@@ -565,7 +582,7 @@ function MoneyRequestConfirmationList({
             const amountInCents = convertToBackendAmount(value);
             setIndividualShare(transaction?.transactionID, accountID, amountInCents);
         },
-        [transaction],
+        [transaction?.transactionID],
     );
 
     useEffect(() => {
@@ -823,9 +840,9 @@ function MoneyRequestConfirmationList({
         if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy?.id);
+        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy);
         // Keep 'transaction' out to ensure that we auto select the option only once
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
 
     // Auto select the tag if there is only one enabled tag and it is required
@@ -850,7 +867,7 @@ function MoneyRequestConfirmationList({
             setMoneyRequestTag(transactionID, updatedTagsString);
         }
         // Keep 'transaction' out to ensure that we auto select the option only once
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policyTagLists, policyTags]);
 
     /**
@@ -891,6 +908,11 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
+            if (iouCategory && policyCategories && (!policyCategories[iouCategory] || !policyCategories[iouCategory]?.enabled)) {
+                setFormError('violations.categoryOutOfPolicy');
+                return;
+            }
+
             const transactionTag = getTag(transaction);
             if (transactionTag.length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
                 setFormError('iou.error.invalidTagLength');
@@ -913,6 +935,13 @@ function MoneyRequestConfirmationList({
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
                     setFormError('common.error.invalidAmount');
                     return;
+                }
+
+                if (isPerDiemRequest) {
+                    if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, iouCurrencyCode)) {
+                        setFormError('iou.error.invalidQuantity');
+                        return;
+                    }
                 }
 
                 if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {
@@ -953,7 +982,6 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
-            iouCategory.length,
             policyTags,
             isPerDiemRequest,
             reportID,
@@ -967,6 +995,8 @@ function MoneyRequestConfirmationList({
             isDelegateAccessRestricted,
             onSendMoney,
             showDelegateNoAccessModal,
+            iouCategory,
+            policyCategories,
         ],
     );
 
@@ -1115,6 +1145,7 @@ function MoneyRequestConfirmationList({
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
             isManualDistanceRequest={isManualDistanceRequest}
+            isOdometerDistanceRequest={isOdometerDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
@@ -1170,12 +1201,10 @@ function MoneyRequestConfirmationList({
     );
 }
 
-MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
-
 export default memo(
     MoneyRequestConfirmationList,
     (prevProps, nextProps) =>
-        deepEqual(prevProps.transaction, nextProps.transaction) &&
+        prevProps.transaction === nextProps.transaction &&
         prevProps.onSendMoney === nextProps.onSendMoney &&
         prevProps.onConfirm === nextProps.onConfirm &&
         prevProps.iouType === nextProps.iouType &&
@@ -1188,8 +1217,9 @@ export default memo(
         prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
         prevProps.iouCurrencyCode === nextProps.iouCurrencyCode &&
         prevProps.iouMerchant === nextProps.iouMerchant &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- selectedParticipants is derived with .map() which creates new array references
         deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
-        deepEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
+        prevProps.payeePersonalDetails === nextProps.payeePersonalDetails &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
         prevProps.policyID === nextProps.policyID &&
         prevProps.reportID === nextProps.reportID &&
@@ -1202,6 +1232,6 @@ export default memo(
         prevProps.onToggleBillable === nextProps.onToggleBillable &&
         prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
         prevProps.reportActionID === nextProps.reportActionID &&
-        deepEqual(prevProps.action, nextProps.action) &&
+        prevProps.action === nextProps.action &&
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt,
 );

@@ -56,14 +56,17 @@ describe('FeatureTrainingModal', () => {
             expect(screen.getByTestId(CONST.VIDEO_PLAYER_TEST_ID)).toBeOnTheScreen();
         });
         it('renders svg image', () => {
-            const illustrations = useMemoizedLazyIllustrations(['HoldExpense'] as const);
-            render(
-                <FeatureTrainingModal
-                    confirmText={CONFIRM_TEXT}
-                    image={illustrations.HoldExpense}
-                />,
-            );
+            function Component() {
+                const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
+                return (
+                    <FeatureTrainingModal
+                        confirmText={CONFIRM_TEXT}
+                        image={illustrations.HoldExpense}
+                    />
+                );
+            }
 
+            render(<Component />);
             expect(screen.getByTestId(CONST.IMAGE_SVG_TEST_ID)).toBeOnTheScreen();
         });
         it('renders non-svg image', () => {

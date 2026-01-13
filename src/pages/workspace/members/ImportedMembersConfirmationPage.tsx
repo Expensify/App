@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -31,6 +31,7 @@ import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/Workspace
 import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
@@ -70,7 +71,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             {} as Record<string, number>,
         );
         // getAccountIDsByLogins function uses the personalDetails data from the connection, so we need to re-run this logic when the personal detail is changed.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newMembers, personalDetails]);
 
@@ -139,7 +139,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         <ScreenWrapper
             shouldEnableMaxHeight
             shouldUseCachedViewportHeight
-            testID={ImportedMembersConfirmationPage.displayName}
+            testID="ImportedMembersConfirmationPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -205,6 +205,10 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 closeImportPageAndModal={closeImportPageAndModal}
                 shouldHandleNavigationBack={false}
+                onModalHide={() => {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
+                }}
             />
             <WorkspaceMemberDetailsRoleSelectionModal
                 isVisible={isRoleSelectionModalVisible}
@@ -215,7 +219,5 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         </ScreenWrapper>
     );
 }
-
-ImportedMembersConfirmationPage.displayName = 'ImportedMembersConfirmationPage';
 
 export default ImportedMembersConfirmationPage;

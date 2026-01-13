@@ -7,7 +7,7 @@ import {getTagForDisplay} from '@libs/TransactionUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Tag'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Tag']);
     const styles = useThemeStyles();
     return shouldUseNarrowLayout ? (
         <TextWithIconCell
@@ -25,5 +25,4 @@ function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: Tr
     );
 }
 
-TagCell.displayName = 'TagCell';
 export default TagCell;

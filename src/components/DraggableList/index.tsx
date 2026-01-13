@@ -2,7 +2,7 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, PointerSensor, useSensor} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React from 'react';
+import React, {Fragment} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
@@ -23,6 +23,7 @@ function DraggableList<T>({
     onDragEnd: onDragEndCallback,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
+    disableScroll,
     ref,
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
@@ -50,10 +51,13 @@ function DraggableList<T>({
 
     const sortableItems = data.map((item, index) => {
         const key = keyExtractor(item, index);
+        // Check if item has a disabled property for dragging
+        const isDisabled = typeof item === 'object' && item !== null && 'isDragDisabled' in item ? !!(item as {isDragDisabled?: boolean}).isDragDisabled : false;
         return (
             <SortableItem
                 id={key}
                 key={key}
+                disabled={isDisabled}
             >
                 {renderItem({
                     item,
@@ -73,8 +77,10 @@ function DraggableList<T>({
         }),
     ];
 
+    const Container = disableScroll ? Fragment : ScrollView;
+
     return (
-        <ScrollView
+        <Container
             ref={ref}
             style={styles.flex1}
             contentContainerStyle={styles.flex1}
@@ -95,10 +101,8 @@ function DraggableList<T>({
                 </DndContext>
             </div>
             {ListFooterComponent}
-        </ScrollView>
+        </Container>
     );
 }
-
-DraggableList.displayName = 'DraggableList';
 
 export default DraggableList;

@@ -73,6 +73,4 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
     );
 }
 
-RequireTwoFactorAuthenticationModal.displayName = 'RequireTwoFactorAuthenticationModal';
-
 export default RequireTwoFactorAuthenticationModal;

@@ -175,7 +175,5 @@ function PressableWithDelayToggle({
     );
 }
 
-PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
-
 export default PressableWithDelayToggle;
 export type {PressableWithDelayToggleProps};

@@ -77,5 +77,4 @@ function Slider({sliderValue, gestureCallbacks}: SliderProps) {
     );
 }
 
-Slider.displayName = 'Slider';
 export default Slider;

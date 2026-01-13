@@ -55,7 +55,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteTokenInputPage.displayName}
+            displayName="NetSuiteTokenInputPage"
             headerTitle="workspace.netsuite.tokenInput.title"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -66,27 +66,24 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={handleBackButtonPress}
             shouldLoadForEmptyConnection={isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE])}
             shouldBeBlocked={shouldPageBeBlocked}
+            shouldUseScrollView={SubStep !== NetSuiteTokenInputForm}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     ref={ref}
-                    startStepIndex={0}
+                    startStepIndex={screenIndex}
                     stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
                 />
             </View>
-            <View style={[styles.flexGrow1, styles.mt3]}>
-                <SubStep
-                    isEditing={isEditing}
-                    onNext={handleNextScreen}
-                    onMove={moveTo}
-                    screenIndex={screenIndex}
-                    policyID={policyID}
-                />
-            </View>
+            <SubStep
+                isEditing={isEditing}
+                onNext={handleNextScreen}
+                onMove={moveTo}
+                screenIndex={screenIndex}
+                policyID={policyID}
+            />
         </ConnectionLayout>
     );
 }
-
-NetSuiteTokenInputPage.displayName = 'NetSuiteTokenInputPage';
 
 export default withPolicyConnections(NetSuiteTokenInputPage);

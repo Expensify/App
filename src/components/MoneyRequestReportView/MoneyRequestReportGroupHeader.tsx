@@ -1,18 +1,29 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {GroupedTransactions} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+// Height constants
+const DESKTOP_HEIGHT = 28;
+const MOBILE_HEIGHT_WITH_CHECKBOX = 20;
+const MOBILE_HEIGHT_WITHOUT_CHECKBOX = 16;
 
 type MoneyRequestReportGroupHeaderProps = {
     /** The grouped transaction data */
     group: GroupedTransactions;
+
+    /** The group key for toggle callback */
+    groupKey: string;
 
     /** Currency code for amount formatting */
     currency: string;
@@ -29,62 +40,81 @@ type MoneyRequestReportGroupHeaderProps = {
     /** Whether some (but not all) transactions in this group are selected */
     isIndeterminate?: boolean;
 
-    /** Callback when group checkbox is toggled */
-    onToggleSelection?: () => void;
+    /** Whether the checkbox should be disabled (e.g., all transactions are pending delete) */
+    isDisabled?: boolean;
 
-    /** Additional styles to apply */
-    style?: StyleProp<ViewStyle>;
+    /** Callback when group checkbox is toggled - receives groupKey */
+    onToggleSelection?: (groupKey: string) => void;
+
+    /** Pending action for offline feedback styling (Pattern B - Optimistic WITH Feedback) */
+    pendingAction?: PendingAction;
 };
 
 function MoneyRequestReportGroupHeader({
     group,
+    groupKey,
     currency,
     isGroupedByTag = false,
     isSelectionModeEnabled = false,
     isSelected = false,
     isIndeterminate = false,
+    isDisabled = false,
     onToggleSelection,
-    style,
+    pendingAction,
 }: MoneyRequestReportGroupHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const displayName = group.groupName || translate(isGroupedByTag ? 'search.noTag' : 'search.noCategory');
-    const formattedAmount = convertToDisplayString(Math.abs(group.totalAmount), currency);
+    const cleanedGroupName = isGroupedByTag && group.groupName ? getCommaSeparatedTagNameWithSanitizedColons(group.groupName) : group.groupName;
+    const displayName = cleanedGroupName || translate(isGroupedByTag ? 'reportLayout.noTag' : 'reportLayout.uncategorized');
+    const formattedAmount = convertToDisplayString(group.subTotalAmount, currency);
 
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
-    const DESKTOP_HEIGHT = 28;
-    const MOBILE_HEIGHT_WITH_CHECKBOX = 20;
-    const MOBILE_HEIGHT_WITHOUT_CHECKBOX = 16;
+    const conditionalHeight = useMemo(
+        () => (shouldUseNarrowLayout ? {height: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX} : {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT}),
+        [shouldUseNarrowLayout, shouldShowCheckbox],
+    );
 
-    const conditionalHeight = shouldUseNarrowLayout
-        ? {height: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
-        : {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT};
+    const textStyle = useMemo(
+        () =>
+            shouldUseNarrowLayout
+                ? {fontSize: variables.fontSizeLabel, lineHeight: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
+                : {fontSize: variables.fontSizeNormal, lineHeight: DESKTOP_HEIGHT},
+        [shouldUseNarrowLayout, shouldShowCheckbox],
+    );
 
-    const textStyle = shouldUseNarrowLayout
-        ? {fontSize: variables.fontSizeLabel, lineHeight: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
-        : {fontSize: variables.fontSizeNormal, lineHeight: DESKTOP_HEIGHT};
+    const handleToggleSelection = useCallback(() => {
+        onToggleSelection?.(groupKey);
+    }, [onToggleSelection, groupKey]);
 
     return (
-        <View style={[styles.reportLayoutGroupHeader, conditionalHeight, style]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                {shouldShowCheckbox && (
-                    <Checkbox
-                        isChecked={isSelected}
-                        isIndeterminate={isIndeterminate}
-                        onPress={onToggleSelection ?? (() => {})}
-                        accessibilityLabel={translate('reportLayout.selectGroup', {groupName: displayName})}
-                        style={styles.mr2}
-                    />
-                )}
-                <Text style={[styles.textBold, textStyle, shouldShowCheckbox && styles.ml2]}>{`${displayName} - ${formattedAmount}`}</Text>
+        <OfflineWithFeedback pendingAction={pendingAction}>
+            <View style={[styles.reportLayoutGroupHeader, conditionalHeight]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                    {shouldShowCheckbox && (
+                        <Checkbox
+                            isChecked={isSelected}
+                            isIndeterminate={isIndeterminate}
+                            disabled={isDisabled}
+                            onPress={handleToggleSelection}
+                            accessibilityLabel={translate('reportLayout.selectGroup', {groupName: displayName})}
+                            style={styles.mr2}
+                        />
+                    )}
+                    <Text
+                        style={[styles.textBold, textStyle, styles.flexShrink1, shouldShowCheckbox && styles.ml2]}
+                        numberOfLines={1}
+                    >
+                        {displayName}
+                    </Text>
+                    <Text style={[styles.textBold, textStyle, styles.mh1]}>{CONST.DOT_SEPARATOR}</Text>
+                    <Text style={[styles.textBold, textStyle]}>{formattedAmount}</Text>
+                </View>
             </View>
-        </View>
+        </OfflineWithFeedback>
     );
 }
-
-MoneyRequestReportGroupHeader.displayName = 'MoneyRequestReportGroupHeader';
 
 export default MoneyRequestReportGroupHeader;

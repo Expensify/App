@@ -25,15 +25,22 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 ## Option 1: SmartScan a Receipt
 
-1. From the navigation tabs, click the green **+** button and select **Create expense**.
-2. Choose **Scan**.
-3. Drag and drop the receipt or click **Choose File** to upload.
-4. Enter the workspace or recipient’s email/phone number.
-5. Add details like description, category, tags, and tax.
-6. Click **Create expense**.
+**On mobile:**
+1. Tap the green camera button and take a photo of the receipt or upload from gallery.
+2. Enter the workspace or recipient’s email/phone number.
+3. Add details like description, category, tags, and tax.
+4. Tap **Create expense**.
 
-💡 **Note:** You can also forward receipts to `receipts@expensify.com` using a verified email address.
-💡 **Note:** Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending your receipts add your phone number to your account from **Account > Profile > Phone Number**.
+**On desktop:**
+1. Click the green receipt button and drag and drop the receipt or click **Choose files** to upload.
+2. Enter the workspace or recipient’s email/phone number.
+3. Add details like description, category, tags, and tax.
+4. Click **Create expense**.
+
+💡 **Note:** 
+Other ways to SmartScan receipts include:
+- Forward your digital receipts to `receipts@expensify.com`.
+- Text a photo of your receipts to 47777 (US numbers only). Just make sure you [add your phone number to Expensify](https://new.expensify.com/settings/profile/contact-methods).
 
 ## Smart Receipt Detection
 
@@ -48,7 +55,16 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 
 ## Option 2: Manually Add an Expense
 
-1. From the navigation tabs, click the green **+** button and select **Create expense**.
+**On mobile:**
+1. Tap the green camera button.
+2. Select **Manual**.
+3. Enter the amount and currency, then tap **Next**.
+4. Choose a workspace or an individual.
+5. Add optional fields like category, tags, or description.
+6. Tap **Create expense**.
+
+**On desktop:**
+1. Click the green add receipt button.
 2. Select **Manual**.
 3. Enter the amount and currency, then click **Next**.
 4. Choose a workspace or an individual.
@@ -59,8 +75,8 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 
 ## Option 3: Create a Distance Expense
 
-1. From the navigation tabs, click the green **+** button and select **Create expense**.
-2. Select **Distance**.
+1. From the navigation tabs, click the grey **+** button.
+2. Select **Track distance**.
 3. Enter start and stop locations.
 4. (Optional) Add additional stops.
 5. Click **Next**.
@@ -71,19 +87,20 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 
 ## Option 4: Scan Multiple Receipts (Mobile)
 
-1. On the mobile app, tap the green **+** button and select **Create expense**.
+1. On mobile, tap the green camera button.
 2. Tap the multi-receipt icon in the bottom-right corner.
 3. Tap the green capture button to take a photo of each receipt.
-5. Once you’ve scanned all your receipts, tap the green arrow to confirm.
-6. Enter expense details for each receipt or just tap Create expenses for automatic scanning.
+4. Once you’ve scanned all your receipts, tap the green arrow to confirm.
+5. Enter expense details for each receipt or tap **Create expenses** for automatic scanning.
 
 ---
 
 ## Option 5: Bulk Upload Receipts (Desktop)
 
-1. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
-2. Select **Scan Receipts** or **Add Attachments**.
+1. On desktop, go to the Reports page.
+2. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 3. Follow the prompts to assign workspaces, recipients, and coding.
+4. Once the expenses are ready, click **Create expenses**. 
 
 # Next Steps for Individual Expenses
 
@@ -100,8 +117,8 @@ To split an expense, you’ll need to start a chat with each person you’re req
 
 ## Start a Chat Before Splitting
 
-1. Click the green Create button in the left sidebar.
-2. Select Start Chat.
+1. From the navigation tabs, click the grey **+** button.
+2. Select **Start chat**.
 3. Search for the person by name, email, or phone number.
 4. Send them a message to begin the conversation.
 5. Once a chat is started, follow the steps below to split the expense.

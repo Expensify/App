@@ -111,14 +111,14 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             return;
         }
         inputValidateCodeRef.current.clear();
-    }, [validateCode]);
+    }, [validateCode.length]);
 
     useEffect(() => {
         if (!input2FARef.current || twoFactorAuthCode.length > 0) {
             return;
         }
         input2FARef.current.clear();
-    }, [twoFactorAuthCode]);
+    }, [twoFactorAuthCode.length]);
 
     /**
      * Handle text input and clear formError upon text change
@@ -218,7 +218,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         clearLocalSignInData();
         // `clearLocalSignInData` is not required as a dependency, and adding it
         // over complicates things requiring clearLocalSignInData function to use useCallback
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingResendValidationForm]);
 
     useEffect(() => {
@@ -421,8 +421,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         </SafariFormWrapper>
     );
 }
-
-BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export default withToggleVisibilityView(BaseValidateCodeForm);
 

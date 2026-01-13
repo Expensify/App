@@ -1,6 +1,7 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {deleteMoneyRequest, getIOUActionForTransactions, getIOURequestPolicyID, initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU';
+import {deleteMoneyRequest, getIOURequestPolicyID, initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU';
+import {getIOUActionForTransactions} from '@libs/actions/IOU/DuplicateAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
@@ -8,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -30,6 +32,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -108,6 +114,19 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     allPolicyRecentlyUsedCategories?.[
                         `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(getIOURequestPolicyID(originalTransaction, report))}`
                     ] ?? [];
+
+                const hasEditableSplitExpensesLeft = childTransactions.some((childTransaction) => {
+                    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
+                    return (currentReport?.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED;
+                });
+
+                if (!hasEditableSplitExpensesLeft) {
+                    nonSplitTransactions.push(...splitTransactionsByOriginalTransactionID[transactionID]);
+                    continue;
+                }
+
+                const remainingSplitExpenses = childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction));
+
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
@@ -115,15 +134,21 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionData: {
                         reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
-                        splitExpenses: childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction)),
+                        splitExpenses: remainingSplitExpenses,
                     },
-                    hash: currentSearchHash ?? 0,
+                    searchContext: {
+                        currentSearchHash: currentSearchHash ?? 0,
+                    },
                     policyCategories,
                     policy,
                     policyRecentlyUsedCategories,
                     iouReport,
                     firstIOU: originalTransactionIouActions.at(0),
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                    currentUserPersonalDetails,
+                    transactionViolations,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    quickAction,
                 });
             }
 
@@ -136,18 +161,19 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
                 const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
-                deleteMoneyRequest(
+                deleteMoneyRequest({
                     transactionID,
-                    action,
-                    duplicateTransactions,
-                    duplicateTransactionViolations,
+                    reportAction: action,
+                    transactions: duplicateTransactions,
+                    violations: duplicateTransactionViolations,
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived,
                     isSingleTransactionView,
-                    deletedTransactionIDs,
-                    transactionIDs,
-                );
+                    transactionIDsPendingDeletion: deletedTransactionIDs,
+                    selectedTransactionIDs: transactionIDs,
+                    hash: currentSearchHash,
+                });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
                     deletedTransactionThreadReportIDs.add(action.childReportID);
@@ -156,7 +182,22 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             return Array.from(deletedTransactionThreadReportIDs);
         },
-        [reportActions, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, policyCategories, policy, archivedReportsIdSet, isBetaEnabled],
+        [
+            reportActions,
+            allTransactions,
+            allReports,
+            report,
+            allPolicyRecentlyUsedCategories,
+            allReportNameValuePairs,
+            policyCategories,
+            policy,
+            isBetaEnabled,
+            currentUserPersonalDetails,
+            transactionViolations,
+            policyRecentlyUsedCurrencies,
+            quickAction,
+            archivedReportsIdSet,
+        ],
     );
 
     return {

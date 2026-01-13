@@ -12,6 +12,7 @@ import {translateLocal} from '../utils/TestHelper';
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
 };
 
 const missingCategoryViolation = {
@@ -79,6 +80,7 @@ const missingTagViolation = {
 const tagOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
 };
 
 const smartScanFailedViolation = {
@@ -365,7 +367,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
 
-        it('should only return smartscanFailed violation for smart scan failed transactions', () => {
+        it('should keep other violations while adding smartscanFailed for smart scan failed transactions', () => {
             const partialTransaction = {
                 ...transaction,
                 amount: 0,
@@ -375,7 +377,43 @@ describe('getViolationsOnyxData', () => {
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
-            expect(result.value).toEqual([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}]);
+            expect(result.value).toEqual(
+                expect.arrayContaining([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}, missingCategoryViolation]),
+            );
+        });
+
+        it('should not add smartscanFailed when scan failed but required fields are filled', () => {
+            const transactionWithEnteredDetails = {
+                ...transaction,
+                amount: 10000,
+                merchant: 'Coffee Shop',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transactionWithEnteredDetails, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
+        });
+
+        it('should not add smartscanFailed when scan failed but modified fields are filled (amount and merchant)', () => {
+            const transactionWithModifiedDetails = {
+                ...transaction,
+                amount: 0,
+                modifiedAmount: 12345,
+                merchant: '',
+                modifiedMerchant: 'Manual Merchant',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(
+                transactionWithModifiedDetails as unknown as Transaction,
+                transactionViolations,
+                policy,
+                policyTags,
+                policyCategories,
+                false,
+                false,
+            );
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
         });
     });
 
@@ -518,6 +556,7 @@ describe('getViolationsOnyxData', () => {
             const someTagLevelsRequiredViolation = {
                 name: 'someTagLevelsRequired',
                 type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
                 data: {
                     errorIndexes: [0, 1, 2],
                 },
@@ -602,8 +641,8 @@ describe('getViolations', () => {
 
         await Onyx.multiSet({...transactionCollectionDataSet});
 
-        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, undefined, undefined);
-        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, undefined, undefined);
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
 
         expect(isSmartScanDismissed).toBeTruthy();
         expect(isDuplicateViolationDismissed).toBeFalsy();
@@ -641,8 +680,8 @@ describe('getViolations', () => {
 
         await Onyx.multiSet({...transactionCollectionDataSet});
 
-        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, report, policy);
-        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, report, policy);
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
 
         expect(isSmartScanDismissed).toBeTruthy();
         expect(isDuplicateViolationDismissed).toBeFalsy();
@@ -664,7 +703,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, undefined, undefined);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -705,7 +744,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, report, policy);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -723,7 +762,7 @@ describe('getViolations', () => {
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
-        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, '', undefined, undefined);
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined);
         expect(hasWarningTypeViolationRes).toBeTruthy();
     });
 
@@ -763,7 +802,7 @@ describe('getViolations', () => {
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
-        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, CARLOS_EMAIL, report, policy);
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
         expect(hasWarningTypeViolationRes).toBeTruthy();
     });
 });
@@ -887,12 +926,12 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
     it('should return false when violations is null', () => {
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -901,14 +940,14 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, []);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, []);
         expect(result).toBe(false);
     });
 
     it('should return false when no violations exist for transactions', () => {
         const violations = {};
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -920,7 +959,7 @@ describe('hasVisibleViolationsForUser', () => {
         // Mock shouldShowViolation to return true for missing category
         jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockReturnValue(true);
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
     });
 
@@ -942,7 +981,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -967,7 +1006,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
     });
 
@@ -1003,7 +1042,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction, secondTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction, secondTransaction]);
         expect(result).toBe(true);
     });
 });

@@ -50,7 +50,7 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedMultiLevelTagsPage.displayName}
+            testID="ImportedMultiLevelTagsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -76,7 +76,5 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ImportedMultiLevelTagsPage.displayName = 'ImportedMultiLevelTagsPage';
 
 export default ImportedMultiLevelTagsPage;

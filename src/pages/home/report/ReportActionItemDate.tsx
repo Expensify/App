@@ -19,6 +19,4 @@ function ReportActionItemDate({created}: ReportActionItemDateProps) {
     return <Text style={[styles.chatItemMessageHeaderTimestamp]}>{datetimeToCalendarTime(created, false, false)}</Text>;
 }
 
-ReportActionItemDate.displayName = 'ReportActionItemDate';
-
 export default memo(ReportActionItemDate);

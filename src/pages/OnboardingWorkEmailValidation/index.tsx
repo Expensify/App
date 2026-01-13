@@ -15,6 +15,4 @@ function OnboardingWorkEmailValidation(props: OnboardingWorkEmailValidationProps
     );
 }
 
-OnboardingWorkEmailValidation.displayName = 'OnboardingWorkEmailValidation';
-
 export default OnboardingWorkEmailValidation;

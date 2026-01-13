@@ -5,6 +5,7 @@ import {Circle, Rect} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ItemListSkeletonView from './ItemListSkeletonView';
@@ -36,6 +37,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+    useSkeletonSpan('SearchRowSkeleton');
 
     if (shouldUseNarrowLayout) {
         return (
@@ -175,7 +177,5 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
         </View>
     );
 }
-
-SearchRowSkeleton.displayName = 'SearchRowSkeleton';
 
 export default SearchRowSkeleton;

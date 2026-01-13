@@ -10,6 +10,7 @@ import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -39,7 +40,7 @@ function getTagViolationsForSingleLevelTags(
     if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
-        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}});
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
     }
 
     // Remove 'tagOutOfPolicy' violation if tag is in policy
@@ -115,6 +116,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         newTransactionViolations.push({
             name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
             type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
             data: {
                 errorIndexes,
             },
@@ -129,12 +131,12 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
                     data: {
                         tagName: policyTagKeys.at(i),
                     },
                 });
                 hasInvalidTag = true;
-                break;
             }
         }
         if (!hasInvalidTag) {
@@ -232,6 +234,8 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
         isSelfDM?: boolean,
+        iouReport?: OnyxEntry<Report> | null,
+        isFromExpenseReport?: boolean,
     ): OnyxUpdate {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -246,14 +250,24 @@ const ViolationsUtils = {
 
         let newTransactionViolations = [...transactionViolations];
 
-        const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+        // Remove AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense
+        if (iouReport && isFromExpenseReport && isCurrentUserSubmitter(iouReport)) {
+            const hasRejectedExpenseViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            if (hasRejectedExpenseViolation) {
+                newTransactionViolations = newTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            }
+        }
+
+        // Only show SmartScan failed when scan failed AND the user hasn't filled required fields yet
+        const hasUserStartedFixingSmartscan = !TransactionUtils.isAmountMissing(updatedTransaction) || !TransactionUtils.isMerchantMissing(updatedTransaction);
+        const shouldShowSmartScanFailedError =
+            isScanRequest &&
+            updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
+            TransactionUtils.hasMissingSmartscanFields(updatedTransaction, iouReport ?? undefined) &&
+            !hasUserStartedFixingSmartscan;
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
-            return {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
-                value: [{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}],
-            };
+            newTransactionViolations.push({name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true});
         }
         if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
@@ -269,7 +283,7 @@ const ViolationsUtils = {
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && !isCategoryMissing(categoryKey) && !isCategoryInPolicy) {
-                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION});
+                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
@@ -289,7 +303,7 @@ const ViolationsUtils = {
         }
 
         // Calculate client-side tag violations
-        const policyRequiresTags = !!policy.requiresTag && !isSelfDM;
+        const policyRequiresTags = (!!policy.requiresTag || !!updatedTransaction?.tag) && !isSelfDM;
         if (policyRequiresTags) {
             newTransactionViolations =
                 Object.keys(policyTagList).length === 1
@@ -325,7 +339,8 @@ const ViolationsUtils = {
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
         const isDistanceRequest = TransactionUtils.isDistanceRequest(updatedTransaction);
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
-        const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest);
+        const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
+        const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -452,7 +467,7 @@ const ViolationsUtils = {
         }
 
         if (isPolicyTrackTaxEnabled && !hasTaxOutOfPolicyViolation && !isTaxInPolicy) {
-            newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
+            newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
         }
 
         if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {
@@ -571,6 +586,8 @@ const ViolationsUtils = {
                 return translate('violations.taxRequired');
             case 'hold':
                 return translate('violations.hold');
+            case 'companyCardRequired':
+                return translate('violations.companyCardRequired');
             case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
                 return translate('violations.prohibitedExpense', {
                     prohibitedExpenseTypes: violation.data?.prohibitedExpenseRule ?? [],
@@ -629,6 +646,7 @@ const ViolationsUtils = {
         report: OnyxEntry<Report>,
         violations: OnyxCollection<TransactionViolation[]>,
         currentUserEmail: string,
+        currentUserAccountID: number,
         policy: OnyxEntry<Policy>,
         transactions: Transaction[],
     ): boolean {
@@ -645,7 +663,10 @@ const ViolationsUtils = {
 
             // Check if any violation is not dismissed and should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
-                return !isViolationDismissed(transaction, violation, currentUserEmail, report, policy) && shouldShowViolation(report, policy, violation.name, currentUserEmail);
+                return (
+                    !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
+                );
             });
         });
     },

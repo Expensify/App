@@ -55,11 +55,14 @@ function SearchFiltersCategoryPage() {
         const uniqueCategoryNames = new Set<string>();
 
         if (!selectedPoliciesCategories || selectedPoliciesCategories.length === 0) {
-            // eslint-disable-next-line unicorn/no-array-for-each
-            Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+            const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
+            for (const category of categories) {
+                uniqueCategoryNames.add(category.name);
+            }
         } else {
-            // eslint-disable-next-line unicorn/no-array-for-each
-            selectedPoliciesCategories.forEach((category) => uniqueCategoryNames.add(category.name));
+            for (const category of selectedPoliciesCategories) {
+                uniqueCategoryNames.add(category.name);
+            }
         }
         items.push(
             ...Array.from(uniqueCategoryNames)
@@ -76,7 +79,7 @@ function SearchFiltersCategoryPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersCategoryPage.displayName}
+            testID="SearchFiltersCategoryPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -97,7 +100,5 @@ function SearchFiltersCategoryPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersCategoryPage.displayName = 'SearchFiltersCategoryPage';
 
 export default SearchFiltersCategoryPage;

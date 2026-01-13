@@ -77,10 +77,9 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             onfidoLinksTitle={`${translate('personalInfoStep.byAddingThisBankAccount')} `}
             isLoading={isLoading}
             error={error}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

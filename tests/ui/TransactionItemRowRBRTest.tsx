@@ -33,7 +33,7 @@ const defaultProps = {
     taxAmountColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
     onCheckboxPress: jest.fn(),
     shouldShowCheckbox: false,
-    columns: Object.values(CONST.REPORT.TRANSACTION_LIST.COLUMNS) as SearchColumnType[],
+    columns: Object.values(CONST.SEARCH.TABLE_COLUMNS) as SearchColumnType[],
     onButtonPress: jest.fn(),
     isParentHovered: false,
 };
@@ -123,6 +123,26 @@ describe('TransactionItemRowRBR', () => {
 
         // Then the RBR message should be displayed
         expect(screen.getByText('Missing category.')).toBeOnTheScreen();
+    });
+
+    it('should default reimbursable to Yes when field is missing', async () => {
+        const mockTransaction = createBaseTransaction({reimbursable: undefined, billable: false});
+
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <TransactionItemRow
+                    transactionItem={mockTransaction}
+                    violations={undefined}
+                    // eslint-disable-next-line react/jsx-props-no-spreading -- test: avoids repeating many required props
+                    {...defaultProps}
+                    columns={[CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdates();
+
+        expect(screen.getByText('Yes')).toBeOnTheScreen();
+        expect(screen.queryByText('No')).not.toBeOnTheScreen();
     });
 
     it('should display RBR message for transaction with multiple violations', async () => {

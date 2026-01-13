@@ -56,7 +56,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
 
     return (
         <ScreenWrapper
-            testID={ConnectBankAccount.displayName}
+            testID="ConnectBankAccount"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -90,7 +90,5 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
         </ScreenWrapper>
     );
 }
-
-ConnectBankAccount.displayName = 'ConnectBankAccount';
 
 export default ConnectBankAccount;

@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
@@ -48,6 +49,16 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         resendValidateCode(email);
     }, [email]);
 
+    const handleBackButtonPress = useCallback(() => {
+        if (onboardingValues?.shouldValidate === false) {
+            updateOnboardingValuesAndNavigation(onboardingValues);
+            return;
+        }
+
+        const routeToNavigate = (route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+        Navigation.goBack(routeToNavigate);
+    }, [route.params?.backTo, onboardingValues]);
+
     useEffect(() => {
         if (isValidated) {
             return;
@@ -73,10 +84,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={40}
-                onBackButtonPress={() => {
-                    const routeToNavigate = (route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
-                    Navigation.goBack(routeToNavigate);
-                }}
+                onBackButtonPress={handleBackButtonPress}
+                shouldDisplayHelpButton={false}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
@@ -120,7 +129,5 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingPrivateDomain.displayName = 'BaseOnboardingPrivateDomain';
 
 export default BaseOnboardingPrivateDomain;

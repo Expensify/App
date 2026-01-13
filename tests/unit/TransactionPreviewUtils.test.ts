@@ -43,6 +43,8 @@ const basicProps = {
     shouldShowRBR: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
+    currentUserEmail: '',
+    currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
 };
 
 describe('TransactionPreviewUtils', () => {
@@ -84,7 +86,7 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
                         },
                     },
                 },
@@ -247,7 +249,7 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
                         },
                     },
                 },

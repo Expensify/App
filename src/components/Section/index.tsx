@@ -215,7 +215,7 @@ function Section({
         </View>
     );
 }
-Section.displayName = 'Section';
 
+export type {SectionProps};
 export {CARD_LAYOUT};
 export default Section;

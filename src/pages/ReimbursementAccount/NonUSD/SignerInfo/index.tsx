@@ -105,7 +105,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         };
-    }, [reimbursementAccount, onSubmit, currency, currentSubStep]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, currentSubStep]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -116,7 +116,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         if (reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
             setCurrentSubStep(SUBSTEP.HANG_TIGHT);
         }
-    }, [reimbursementAccount]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isAskingForCorpaySignerInformation, reimbursementAccount?.isAskingForCorpaySignerInformationSuccess]);
 
     const bodyContent = useMemo(() => {
         if (isUserOwner) {
@@ -205,7 +205,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={SignerInfo.displayName}
+            wrapperID="SignerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('signerInfoStep.signerInfo')}
             stepNames={stepNames}
@@ -213,7 +213,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         >
             {currentSubStep === SUBSTEP.IS_DIRECTOR && (
                 <YesNoStep
-                    title={translate('signerInfoStep.areYouDirector', {companyName})}
+                    title={translate('signerInfoStep.areYouDirector', companyName)}
                     description={translate('signerInfoStep.regulationRequiresUs')}
                     defaultValue={isUserDirector}
                     onSelectedValue={handleNextSubStep}
@@ -245,7 +245,5 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-SignerInfo.displayName = 'SignerInfo';
 
 export default SignerInfo;

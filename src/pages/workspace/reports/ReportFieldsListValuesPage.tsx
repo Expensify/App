@@ -11,10 +11,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -76,7 +76,7 @@ function ReportFieldsListValuesPage({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
@@ -151,7 +151,6 @@ function ReportFieldsListValuesPage({
     }, []);
     const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), [localeCompare]);
     const [inputValue, setInputValue, filteredListValues] = useSearchResults(data, filterListValue, sortListValues);
-    const sections = useMemo(() => [{data: filteredListValues, isDisabled: false}], [filteredListValues]);
 
     const filteredListValuesArray = filteredListValues.map((item) => item.value);
 
@@ -357,7 +356,7 @@ function ReportFieldsListValuesPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsListValuesPage.displayName}
+                testID="ReportFieldsListValuesPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -390,23 +389,23 @@ function ReportFieldsListValuesPage({
                 )}
                 {!shouldShowEmptyState && (
                     <SelectionListWithModal
-                        addBottomSafeAreaPadding
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
-                        onTurnOnSelectionMode={(item) => item && toggleValue(item)}
-                        sections={sections}
-                        selectedItems={selectedValuesArray}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        onCheckboxPress={toggleValue}
-                        onSelectRow={openListValuePage}
-                        onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
+                        data={filteredListValues}
                         ListItem={TableListItem}
-                        listHeaderContent={headerContent}
-                        customListHeader={getCustomListHeader()}
-                        shouldShowListEmptyContent={false}
+                        onSelectRow={openListValuePage}
+                        selectedItems={selectedValuesArray}
+                        onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
+                        onTurnOnSelectionMode={(item) => item && toggleValue(item)}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        customListHeader={getCustomListHeader()}
+                        customListHeaderContent={headerContent}
+                        canSelectMultiple={canSelectMultiple}
+                        onCheckboxPress={toggleValue}
+                        showListEmptyContent={false}
                         showScrollIndicator={false}
+                        turnOnSelectionModeOnLongPress
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}
@@ -424,7 +423,5 @@ function ReportFieldsListValuesPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsListValuesPage.displayName = 'ReportFieldsListValuesPage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsListValuesPage);

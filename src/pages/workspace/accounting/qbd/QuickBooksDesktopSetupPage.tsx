@@ -32,7 +32,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync']);
     const policyID: string = route.params.policyID;
     const [hasError, setHasError] = useState(false);
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
@@ -65,7 +65,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useNetwork({
@@ -83,7 +83,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={RequireQuickBooksDesktopModal.displayName}
+            testID="RequireQuickBooksDesktopModal"
         >
             <HeaderWithBackButton
                 title={translate('workspace.qbd.qbdSetup')}
@@ -140,7 +140,5 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         </ScreenWrapper>
     );
 }
-
-RequireQuickBooksDesktopModal.displayName = 'RequireQuickBooksDesktopModal';
 
 export default RequireQuickBooksDesktopModal;
