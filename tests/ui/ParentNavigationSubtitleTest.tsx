@@ -39,7 +39,7 @@ describe('ParentNavigationSubtitle', () => {
                 parentNavigationSubtitleData={{reportName, workspaceName}}
                 parentReportID={parentReportID}
                 reportID="456"
-                openParentReportInCurrentTab={true}
+                openParentReportInCurrentTab
             />,
         );
 
