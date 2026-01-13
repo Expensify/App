@@ -1446,6 +1446,10 @@ const translations = {
         },
         chooseWorkspace: 'Choose a workspace',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `report routed to ${to} due to custom approval workflow`,
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hour' : 'hours'} @ ${rate} / hour`,
+            hrs: 'hrs',
+        },
     },
     transactionMerge: {
         listPage: {
