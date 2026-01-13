@@ -215,6 +215,7 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
+import TreasureChestGreenWithSparkle from '@assets/images/treasure-chest-green-with-sparkle.svg';
 import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
@@ -222,6 +223,7 @@ import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
+import UserMinus from '@assets/images/user-minus.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
@@ -342,6 +344,7 @@ const Expensicons = {
     LinkCopy,
     Location,
     Lock,
+    UserMinus,
     Luggage,
     MagnifyingGlass,
     Mail,
@@ -469,6 +472,7 @@ const Expensicons = {
     XeroExport,
     ArrowCircleClockwise,
     LuggageWithLines,
+    TreasureChestGreenWithSparkle,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons
