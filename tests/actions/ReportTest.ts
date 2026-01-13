@@ -7,6 +7,7 @@ import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import type {SearchQueryJSON} from '@components/Search/types';
 import useAncestors from '@hooks/useAncestors';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -2051,6 +2052,51 @@ describe('actions/Report', () => {
         });
     });
 
+    it('should add the report preview action to the chat snapshot when it is created', async () => {
+        jest.spyOn(require('@src/libs/SearchQueryUtils'), 'getCurrentSearchQueryJSON').mockImplementationOnce(
+            () =>
+                ({
+                    hash: currentHash,
+                    query: 'test',
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    status: '',
+                    flatFilters: [],
+                }) as unknown as SearchQueryJSON,
+        );
+        const accountID = 1234;
+        const policyID = '5678';
+
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            isPolicyExpenseChatEnabled: true,
+            type: CONST.POLICY.TYPE.TEAM,
+            autoReporting: false,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+            harvesting: {
+                enabled: false,
+            },
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy);
+        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+
+        await waitForBatchedUpdates();
+
+        await new Promise((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`,
+                callback: (snapshot) => {
+                    Onyx.disconnect(connection);
+                    expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`]).toBeTruthy();
+                    expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`]).toBeTruthy();
+                    expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).toBeTruthy();
+                    resolve(null);
+                },
+            });
+        });
+    });
+
     describe('completeOnboarding', () => {
         const TEST_USER_LOGIN = 'test@gmail.com';
         const TEST_USER_ACCOUNT_ID = 1;
@@ -2215,7 +2261,7 @@ describe('actions/Report', () => {
             });
 
             // When deleting the expense report
-            Report.deleteAppReport(reportID, '', {}, {});
+            Report.deleteAppReport(reportID, '', {}, {}, {});
             await waitForBatchedUpdates();
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
@@ -2317,6 +2363,7 @@ describe('actions/Report', () => {
                 {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
                 },
+                {},
                 {},
             );
             await waitForBatchedUpdates();

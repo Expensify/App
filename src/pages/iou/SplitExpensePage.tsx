@@ -1,10 +1,9 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -14,6 +13,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAllTransactions from '@hooks/useAllTransactions';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -27,13 +27,13 @@ import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
     evenlyDistributeSplitExpenseAmounts,
-    getIOUActionForTransactions,
     getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
     updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
+import {getIOUActionForTransactions} from '@libs/actions/IOU/DuplicateAction';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -65,7 +65,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [cannotBeEditedModalVisible, setCannotBeEditedModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
 
@@ -440,7 +440,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSelectRow = useCallback(
         (item: SplitListItemType) => {
             if (!item.isEditable) {
-                setCannotBeEditedModalVisible(true);
+                showConfirmModal({
+                    title: translate('iou.splitExpenseCannotBeEditedModalTitle'),
+                    prompt: translate('iou.splitExpenseCannotBeEditedModalDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
                 return;
             }
             Keyboard.dismiss();
@@ -449,7 +454,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
             });
         },
-        [draftTransaction, reportID],
+        [draftTransaction, reportID, showConfirmModal, translate],
     );
 
     return (
@@ -541,15 +546,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         </View>
                     )}
                 </View>
-                <ConfirmModal
-                    title={translate('iou.splitExpenseCannotBeEditedModalTitle')}
-                    prompt={translate('iou.splitExpenseCannotBeEditedModalDescription')}
-                    onConfirm={() => setCannotBeEditedModalVisible(false)}
-                    onCancel={() => setCannotBeEditedModalVisible(false)}
-                    confirmText={translate('common.buttonConfirm')}
-                    isVisible={cannotBeEditedModalVisible}
-                    shouldShowCancelButton={false}
-                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

@@ -32,7 +32,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedVa
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
-import type {SamlMetadata} from './Domain';
+import type {DomainSecurityGroup, SamlMetadata} from './Domain';
 import type DomainErrors from './DomainErrors';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
@@ -315,4 +315,5 @@ export type {
     SamlMetadata,
     DomainErrors,
     DomainPendingActions,
+    DomainSecurityGroup,
 };
