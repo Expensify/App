@@ -36,7 +36,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true, conciergeReportID, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
 
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ChatBubble']);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);

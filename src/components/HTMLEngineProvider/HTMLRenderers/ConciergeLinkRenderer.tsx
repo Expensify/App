@@ -19,7 +19,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
      * Simple wrapper to create a stable reference without passing event args to navigation function.
      */
     const navigateToConciergeChat = () => {
-        navigateToConciergeChatAction(false, conciergeReportID);
+        navigateToConciergeChatAction(conciergeReportID, false);
     };
 
     // Define link style based on context

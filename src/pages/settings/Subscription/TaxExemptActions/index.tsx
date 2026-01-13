@@ -30,7 +30,7 @@ function TaxExemptActions() {
                 text: translate('subscription.details.taxExempt'),
                 onSelected: () => {
                     requestTaxExempt();
-                    navigateToConciergeChat(false, conciergeReportID);
+                    navigateToConciergeChat(conciergeReportID, false);
                 },
             },
         ],

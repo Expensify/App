@@ -90,8 +90,19 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModalWithReport: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
+    isActiveRoute: jest.fn(() => false),
+    getTopmostReportId: jest.fn(() => undefined),
+    goBack: jest.fn(),
+    navigationRef: {
+        getRootState: jest.fn(() => ({routes: []})),
+        isReady: jest.fn(() => true),
+        current: {
+            getRootState: jest.fn(() => ({routes: []})),
+        },
+    },
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('@libs/actions/Welcome', () => ({
     ...jest.requireActual('@libs/actions/Welcome'),
     onServerDataReady: jest.fn(() => Promise.resolve()),
@@ -3249,7 +3260,8 @@ describe('actions/Report', () => {
 
     describe('navigateToConciergeChat', () => {
         const CONCIERGE_REPORT_ID = '123456';
-        const mockNavigation = jest.requireMock('@libs/Navigation/Navigation');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const mockNavigation: {navigate: jest.Mock; dismissModalWithReport: jest.Mock} = jest.requireMock('@libs/Navigation/Navigation');
 
         beforeEach(async () => {
             jest.clearAllMocks();
@@ -3263,7 +3275,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(false, CONCIERGE_REPORT_ID);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, false);
 
             await waitForBatchedUpdates();
 
@@ -3274,7 +3286,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(true, CONCIERGE_REPORT_ID);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, true);
 
             await waitForBatchedUpdates();
 
@@ -3289,7 +3301,7 @@ describe('actions/Report', () => {
             // When conciergeReportID is undefined, the function uses onServerDataReady()
             // which is async. We're testing that it doesn't throw and handles the case properly.
             expect(() => {
-                Report.navigateToConciergeChat(false, undefined);
+                Report.navigateToConciergeChat(undefined, false);
             }).not.toThrow();
         });
 
@@ -3298,7 +3310,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(true, CONCIERGE_REPORT_ID, undefined, undefined, reportActionID);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, true, undefined, undefined, reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -3313,7 +3325,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(false, CONCIERGE_REPORT_ID, undefined, linkToOptions);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, false, undefined, linkToOptions);
 
             await waitForBatchedUpdates();
 
@@ -3327,7 +3339,7 @@ describe('actions/Report', () => {
             // Don't set CONCIERGE_REPORT_ID to simulate undefined state
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(false, undefined, checkIfCurrentPageActive);
+            Report.navigateToConciergeChat(undefined, false, checkIfCurrentPageActive);
 
             await waitForBatchedUpdates();
 
@@ -3342,7 +3354,7 @@ describe('actions/Report', () => {
             // When conciergeReportID is undefined (or null passed as undefined),
             // it should handle it gracefully
             expect(() => {
-                Report.navigateToConciergeChat(false, undefined);
+                Report.navigateToConciergeChat(undefined, false);
             }).not.toThrow();
         });
 
@@ -3352,7 +3364,7 @@ describe('actions/Report', () => {
 
             // Empty string is falsy in JavaScript, so it should trigger the undefined path
             expect(() => {
-                Report.navigateToConciergeChat(false, '');
+                Report.navigateToConciergeChat('', false);
             }).not.toThrow();
         });
 
@@ -3364,7 +3376,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(true, CONCIERGE_REPORT_ID, checkIfCurrentPageActive, linkToOptions, reportActionID);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, true, checkIfCurrentPageActive, linkToOptions, reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -3381,7 +3393,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, onyxConciergeReportID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(false, providedConciergeReportID);
+            Report.navigateToConciergeChat(providedConciergeReportID, false);
 
             await waitForBatchedUpdates();
 

@@ -33,7 +33,7 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(true, conciergeReportID, () => !isUnmounted.current);
+                    navigateToConciergeChat(conciergeReportID, true, () => !isUnmounted.current);
                 });
             } else {
                 Navigation.navigate(ROUTES.HOME);

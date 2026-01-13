@@ -30,7 +30,7 @@ function Finish() {
     const handleBackButtonPress = () => {
         Navigation.goBack();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true, conciergeReportID);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, true);
 
     return (
         <ScreenWrapper

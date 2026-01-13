@@ -758,7 +758,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
 
             Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat(false, conciergeReportID);
+                navigateToConciergeChat(conciergeReportID, false);
             });
             return;
         }

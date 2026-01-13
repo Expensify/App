@@ -14,7 +14,7 @@ function handleWalletStatementNavigation(type?: string, url?: string): void {
     }
 
     if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-        navigateToConciergeChat();
+        navigateToConciergeChat(undefined);
         return;
     }
 

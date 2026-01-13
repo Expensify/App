@@ -32,7 +32,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
             >
                 <Text>
                     {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-                    <TextLink onPress={() => navigateToConciergeChat(false, conciergeReportID)}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
+                    <TextLink onPress={() => navigateToConciergeChat(conciergeReportID, false)}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
                 </Text>
             </EmptyStateComponent>
         </ScrollView>

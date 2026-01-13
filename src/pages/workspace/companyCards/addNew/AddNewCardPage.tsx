@@ -146,7 +146,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat(false, conciergeReportID);
+                    navigateToConciergeChat(conciergeReportID, false);
                 }}
             />
         </>

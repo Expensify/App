@@ -2877,8 +2877,8 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
  * Navigates to the 1:1 report with Concierge
  */
 function navigateToConciergeChat(
-    shouldDismissModal = false,
     conciergeReportID: string | undefined,
+    shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
     linkToOptions?: LinkToOptions,
     reportActionID?: string,
@@ -3338,7 +3338,7 @@ function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, sh
     } else {
         Navigation.goBack();
     }
-    navigateToConciergeChat(false, conciergeReportIDOnyxConnect);
+    navigateToConciergeChat(conciergeReportIDOnyxConnect, false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
@@ -3703,7 +3703,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(false, conciergeReportIDOnyxConnect, () => true, {forceReplace: true});
+        navigateToConciergeChat(conciergeReportIDOnyxConnect, false, () => true, {forceReplace: true});
     }
 }
 

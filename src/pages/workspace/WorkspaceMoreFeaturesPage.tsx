@@ -660,7 +660,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableExpensifyCardWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableExpensifyCardWarningModalOpen(false);
-                        navigateToConciergeChat(false, conciergeReportID);
+                        navigateToConciergeChat(conciergeReportID, false);
                     }}
                     onCancel={() => setIsDisableExpensifyCardWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.expensifyCard.disableCardPrompt')}
@@ -672,7 +672,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableCompanyCardsWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableCompanyCardsWarningModalOpen(false);
-                        navigateToConciergeChat(false, conciergeReportID);
+                        navigateToConciergeChat(conciergeReportID, false);
                     }}
                     onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}

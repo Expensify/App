@@ -96,7 +96,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: icons.Bug,
-                action: waitForNavigate(() => navigateToConciergeChat(false, conciergeReportID)),
+                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, false)),
             },
         ];
 

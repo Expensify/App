@@ -261,7 +261,7 @@ function SubscriptionSettings() {
                     shouldShowRightIcon
                     onPress={() => {
                         requestTaxExempt();
-                        navigateToConciergeChat(false, conciergeReportID);
+                        navigateToConciergeChat(conciergeReportID, false);
                     }}
                     icon={icons.Coins}
                     wrapperStyle={styles.sectionMenuItemTopDescription}

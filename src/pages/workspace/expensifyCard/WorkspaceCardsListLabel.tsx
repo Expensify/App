@@ -89,7 +89,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const requestLimitIncrease = () => {
         requestExpensifyCardLimitIncrease(cardSettings?.paymentBankAccountID);
         setVisible(false);
-        navigateToConciergeChat(false, conciergeReportID);
+        navigateToConciergeChat(conciergeReportID, false);
     };
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
