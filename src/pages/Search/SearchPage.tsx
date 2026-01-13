@@ -1011,7 +1011,7 @@ function SearchPage({route}: SearchPageProps) {
     const {resetVideoPlayerData} = usePlaybackContext();
 
     const metadata = searchResults?.search;
-    const isSavedSearch = queryJSON?.hash !== undefined && String(queryJSON.hash) in (savedSearches ?? {});
+    const isSavedSearch = queryJSON?.hash !== null && queryJSON?.hash !== undefined && String(queryJSON.hash) in (savedSearches ?? {});
     const shouldShowFooter = shouldShowSearchPageFooter({
         isSavedSearch,
         resultsCount: metadata?.count,

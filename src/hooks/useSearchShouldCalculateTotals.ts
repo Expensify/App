@@ -12,7 +12,7 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, queryH
             return false;
         }
 
-        if (queryHash !== undefined && String(queryHash) in (savedSearches ?? {})) {
+        if (queryHash !== null && queryHash !== undefined && String(queryHash) in (savedSearches ?? {})) {
             return true;
         }
 
