@@ -9,6 +9,7 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -245,6 +246,7 @@ const translations = {
         dismiss: 'Dismiss',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
+        unshare: 'Unshare',
         yes: 'Yes',
         no: 'No',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -904,6 +906,8 @@ const translations = {
         asCopilot: 'as copilot for',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `created this report to hold all expenses from <a href="${reportUrl}">${reportName}</a> that couldn't be submitted on your chosen frequency`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `created this report for any held expenses from <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone in this conversation',
@@ -1121,7 +1125,6 @@ const translations = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense from your <a href="${reportUrl}">personal space</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2103,6 +2106,11 @@ const translations = {
         shareBankAccountEmptyTitle: 'No admins available',
         shareBankAccountEmptyDescription: 'There are no workspace admins you can share this bank account with.',
         shareBankAccountNoAdminsSelected: 'Please select an admin before continuing',
+        unshareBankAccount: 'Unshare bank account',
+        unshareBankAccountDescription: 'Everyone below has access to this bank account. You can remove access at any point. We’ll still complete any payments in process.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} will lose access to this business bank account. We’ll still complete any payments in process.`,
+        reachOutForHelp: 'It’s being used with the Expensify Card. <concierge-link>Reach out to Concierge</concierge-link> if you need to unshare it.',
+        unshareErrorModalTitle: 'Can’t unshare bank account',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5491,6 +5499,20 @@ const translations = {
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing accounting connections.`,
             enterCredentials: 'Enter your credentials',
+            claimOffer: {
+                badgeText: 'Offer available!',
+                xero: {
+                    headline: 'Get Xero free for 6 months!',
+                    description: '<muted-text><centered-text>New to Xero? Expensify customers get 6 months free. Claim your offer below.</centered-text></muted-text>',
+                    connectButton: 'Connect to Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Get 5% off Uber rides',
+                    description: `<muted-text><centered-text>Activate Uber for Business through Expensify and save 5% on all business rides through June. <a href="${CONST.UBER_TERMS_LINK}">Terms apply.</a></centered-text></muted-text>`,
+                    connectButton: 'Connect to Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -7034,6 +7056,19 @@ const translations = {
             title: "Can't create expense",
             prompt: "You can't create an expense with the same start and stop location.",
         },
+        locationRequiredModal: {
+            title: 'Location access required',
+            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+            allow: 'Allow',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Background location access required',
+            prompt: 'Please allow background location access in your device settings ("Allow all the time" option) to start GPS distance tracking.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Precise location required',
+            prompt: 'Please enable "precise location" in your device settings to start GPS distance tracking.',
+        },
         desktop: {
             title: 'Track distance on your phone',
             subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',
@@ -7826,6 +7861,11 @@ const translations = {
             addAdmin: 'Add admin',
             invite: 'Invite',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
+            revokeAdminAccess: 'Revoke admin access',
+            cantRevokeAdminAccess: "Can't revoke admin access from the technical contact",
+            error: {
+                removeAdmin: 'Unable to remove this user as an Admin. Please try again.',
+            },
         },
         members: {
             title: 'Members',

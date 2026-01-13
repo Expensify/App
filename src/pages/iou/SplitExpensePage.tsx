@@ -27,13 +27,13 @@ import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
     evenlyDistributeSplitExpenseAmounts,
-    getIOUActionForTransactions,
     getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
     updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
+import {getIOUActionForTransactions} from '@libs/actions/IOU/DuplicateAction';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -81,6 +81,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
@@ -97,7 +98,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
+    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentPolicy);
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
@@ -117,8 +118,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
 
     const {isBetaEnabled} = usePermissions();
@@ -212,6 +213,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             currentUserPersonalDetails,
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            quickAction,
         });
     }, [
         splitExpenses,
@@ -242,6 +244,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         isBetaEnabled,
         transactionViolations,
         policyRecentlyUsedCurrencies,
+        quickAction,
     ]);
 
     const onSplitExpenseValueChange = useCallback(

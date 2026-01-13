@@ -156,6 +156,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
+                [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: {
+                    path: ROUTES.SEARCH_ROUTER,
+                    exact: true,
+                },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
@@ -250,6 +254,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: {
@@ -558,6 +566,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PURCHASE_BILL_DATE_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_BANK_ACCOUNT_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER]: {path: ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_AUTO_SYNC]: {path: ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ACCOUNTING_METHOD]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.route},
@@ -831,7 +840,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT.route,
                         },
-
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.route,
                             screens: {
