@@ -50,7 +50,6 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {
     calculateAmount as calculateIOUAmount,
@@ -8637,12 +8636,7 @@ function getNavigationUrlOnMoneyRequestDelete(
 
     // Determine which report to navigate back to
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
-        // On narrow layouts (mobile), navigate to the full report screen
-        if (getIsNarrowLayout()) {
-            return ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
-        }
-        // On wide layouts, navigate to the Super Wide RHP version of the expense report
-        return ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReport.reportID});
+        return ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
     }
 
     if (iouReport?.chatReportID && shouldDeleteIOUReport) {
