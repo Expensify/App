@@ -169,6 +169,7 @@ function ParentNavigationSubtitle({
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
                         {hasAccessToParentReport ? (
                             <TextLink
+                                testID="parent-navigation-subtitle-link"
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
                                 onPress={onPress}
