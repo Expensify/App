@@ -67,33 +67,17 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     const originalResult = originalUseOnyx(key, originalOnyxOptions, dependencies);
 
     // Snapshot Onyx
-    /**
-     * React hooks cannot be called conditionally. Thus we always subscribe to the snapshot data
-     * and if shouldUseSnapshot is false then the selector always returns false as the data so we don't cause unnecessary renders
-     * similarly canBeMissing is set to true to avoid falsy warnings and initWithStoredValues/allowStaleData are set to false/true resp. to avoid the connection overhead.
-     */
     const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatibleKey;
     const snapshotSelector = useMemo(() => {
-        if (!shouldUseSnapshot) {
-            return () => false;
-        }
-
         if (!selector) {
             return (data: OnyxValue<OnyxKey> | undefined) => getKeyData(data as SearchResults, key) as OnyxValue<OnyxKey>;
         }
 
         return (data: OnyxValue<OnyxKey> | undefined) => selector(getKeyData(data as SearchResults, key));
-    }, [shouldUseSnapshot, selector, key]);
-    const snapshotOnyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {
-        ...optionsWithoutSelector,
-        selector: snapshotSelector,
-        allowDynamicKey: true,
-        canBeMissing: shouldUseSnapshot ? optionsWithoutSelector.canBeMissing : true,
-        initWithStoredValues: shouldUseSnapshot ? optionsWithoutSelector.initWithStoredValues : false,
-        allowStaleData: shouldUseSnapshot ? optionsWithoutSelector.allowStaleData : true,
-    };
+    }, [selector, key]);
+    const snapshotOnyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector: snapshotSelector, allowDynamicKey: true};
     const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey;
-    const snapshotResult = originalUseOnyx(snapshotKey, snapshotOnyxOptions, dependencies);
+    const snapshotResult = shouldUseSnapshot ? originalUseOnyx(snapshotKey, snapshotOnyxOptions, dependencies) : [undefined, {status: 'loaded'}];
 
     const result = useMemo((): UseOnyxResult<TReturnValue> => {
         // Merge snapshot data with live data if possible
