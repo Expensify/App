@@ -40,7 +40,7 @@ function PublicDomainErrorPage({route}: PublicDomainErrorPageProps) {
                     success
                     large
                     style={[styles.w100]}
-                    onPress={() => Navigation.goBack(route.params.backTo)}
+                    onPress={() => Navigation.closeRHPFlow()}
                     text={translate('common.buttonConfirm')}
                 />
             </FixedFooter>
