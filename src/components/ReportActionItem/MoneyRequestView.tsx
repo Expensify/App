@@ -433,11 +433,11 @@ function MoneyRequestView({
         if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
             return;
         }
-        updateMoneyRequestReimbursable(
-            transaction.transactionID,
+        updateMoneyRequestReimbursable({
+            transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
-            newReimbursable,
+            value: newReimbursable,
             policy,
             policyTagList,
             policyCategories,
@@ -445,7 +445,7 @@ function MoneyRequestView({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
-        );
+        });
     };
 
     if (isManagedCardTransaction) {

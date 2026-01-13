@@ -121,19 +121,19 @@ function IOURequestStepMerchant({
         }
         setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
         if (isEditing) {
-            updateMoneyRequestMerchant(
+            updateMoneyRequestMerchant({
                 transactionID,
-                report,
+                transactionThreadReport: report,
                 parentReport,
-                newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 policy,
-                policyTags,
+                policyTagList: policyTags,
                 policyCategories,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
-            );
+            });
         }
         setIsSaved(true);
         shouldNavigateAfterSaveRef.current = true;

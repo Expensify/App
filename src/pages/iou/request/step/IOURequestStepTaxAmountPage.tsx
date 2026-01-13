@@ -105,19 +105,19 @@ function IOURequestStepTaxAmountPage({
                 navigateBack();
                 return;
             }
-            updateMoneyRequestTaxAmount(
+            updateMoneyRequestTaxAmount({
                 transactionID,
-                report,
+                transactionThreadReport: report,
                 parentReport,
-                taxAmountInSmallestCurrencyUnits,
+                taxAmount: taxAmountInSmallestCurrencyUnits,
                 policy,
-                policyTags,
+                policyTagList: policyTags,
                 policyCategories,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
-            );
+            });
             navigateBack();
             return;
         }
