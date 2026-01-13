@@ -414,7 +414,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(reportForSubtitle))}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);
