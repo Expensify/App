@@ -35,6 +35,8 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
         selector: domainMemberSettingsSelector,
     });
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const is2FAEnabled = account?.requiresTwoFactorAuth;
 
     return (
         <BaseDomainSettingsPage domainAccountID={domainAccountID}>
@@ -48,7 +50,7 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
                         return;
                     }
 
-                    if (!value) {
+                    if (!value && is2FAEnabled) {
                         Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH.getRoute(domainAccountID));
                     } else {
                         toggleTwoFactorAuthRequiredForDomain(domainAccountID, domainName, value);
