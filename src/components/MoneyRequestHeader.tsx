@@ -53,7 +53,8 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {dismissRejectUseExplanation, duplicateExpenseTransaction as duplicateTransactionAction} from '@userActions/IOU';
+import {dismissRejectUseExplanation} from '@userActions/IOU';
+import {duplicateExpenseTransaction as duplicateTransactionAction} from '@userActions/IOU/DuplicateAction';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -137,7 +138,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy);
+    const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
     const reportID = report?.reportID;
     const {removeTransaction, currentSearchHash} = useSearchContext();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
@@ -146,6 +147,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
@@ -183,20 +186,22 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
             for (const item of transactions) {
-                duplicateTransactionAction(
-                    item,
+                duplicateTransactionAction({
+                    transaction: item,
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
+                    introSelected,
+                    activePolicyID,
                     quickAction,
-                    policyRecentlyUsedCurrencies ?? [],
-                    defaultExpensePolicy ?? undefined,
-                    activePolicyCategories,
-                    activePolicyExpenseChat,
-                );
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    targetPolicy: defaultExpensePolicy ?? undefined,
+                    targetPolicyCategories: activePolicyCategories,
+                    targetReport: activePolicyExpenseChat,
+                });
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, introSelected, activePolicyID, quickAction, policyRecentlyUsedCurrencies],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (

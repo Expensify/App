@@ -37,7 +37,7 @@ type SelectedTransactionInfo = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
     /** The reportID of the transaction */
-    reportID: string;
+    reportID?: string;
 
     /** The policyID tied to the report the transaction is reported on */
     policyID: string | undefined;
@@ -71,7 +71,7 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 /** Model of selected reports */
 type SelectedReports = {
-    reportID: string;
+    reportID: string | undefined;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
@@ -236,11 +236,11 @@ type SearchQueryAST = {
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
-    columns?: SearchCustomColumnIds[];
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];
     rawFilterList?: RawQueryFilter[];
+    columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
 };
 
 type SearchQueryJSON = {
