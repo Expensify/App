@@ -38,7 +38,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             options={[
                 {
                     value: 'leave',
-                    text: translate('domain.admins.settings'),
+                    text: translate('domain.common.settings'),
                     icon: icons.Gear,
                     onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
                 },

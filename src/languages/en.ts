@@ -7826,7 +7826,6 @@ const translations = {
             primaryContact: 'Primary contact',
             addPrimaryContact: 'Add primary contact',
             setPrimaryContactError: 'Unable to set primary contact. Please try again later.',
-            settings: 'Settings',
             consolidatedDomainBilling: 'Consolidated domain billing',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
@@ -7848,7 +7847,10 @@ const translations = {
             forceTwoFactorAuthDescription: `<muted-text>Require Two-Factor Authentication for all members of this domain. Domain members will be prompted to set up Two-Factor Authentication on their account when they sign in.</muted-text>`,
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
             disableTwoFactorAuth: 'Disable two-factor authentication',
-            enterTwoFactorAuthCodeDescription: 'In order to disable two-factor authentication (2FA), please enter a valid code from your authentication app.',
+            enterTwoFactorAuthCodeDescription: 'To disable two-factor authentication (2FA), please enter a valid code from your authentication app.',
+        },
+        common: {
+            settings: 'Settings',
         },
     },
 };

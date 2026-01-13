@@ -26,7 +26,7 @@ function BaseDomainSettingsPage({domainAccountID, children}: BaseDomainSettingsP
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
-                    title={translate('domain.admins.settings')}
+                    title={translate('domain.common.settings')}
                     onBackButtonPress={() => {
                         Navigation.dismissModal();
                     }}
