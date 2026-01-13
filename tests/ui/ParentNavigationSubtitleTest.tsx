@@ -13,13 +13,14 @@ jest.mock('@src/hooks/useRootNavigationState', () => ({
     default: (selector?: (state: unknown) => unknown) => mockUseRootNavigationState(selector) as unknown,
 }));
 
-type AnyRoute = RouteProp<Record<string, object | undefined>, string>;
+type AnyRoute = RouteProp<Record<string, Record<string, unknown> | undefined>, string>;
 const mockUseRoute = jest.fn<AnyRoute, []>();
 jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const actualNav = jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native');
     return {
         ...actualNav,
-        useRoute: () => mockUseRoute() as AnyRoute,
+        useRoute: () => mockUseRoute(),
     };
 });
 
@@ -35,7 +36,7 @@ describe('ParentNavigationSubtitle', () => {
         const reportName = 'Report Name';
         const workspaceName = 'Workspace Name';
         Navigation.getTopmostReportId = jest.fn(() => parentReportID);
-        mockUseRoute.mockReturnValue({name: 'SearchReport'});
+        mockUseRoute.mockReturnValue({name: 'SearchReport'} as AnyRoute);
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
             const mockRoute = {name: 'ReportsSplitNavigator'};
             if (selector) {
@@ -70,7 +71,7 @@ describe('ParentNavigationSubtitle', () => {
         const reportName = 'Report Name';
         const workspaceName = 'Workspace Name';
         Navigation.getTopmostReportId = jest.fn(() => parentReportID);
-        mockUseRoute.mockReturnValue({name: 'SearchReport'});
+        mockUseRoute.mockReturnValue({name: 'SearchReport'} as AnyRoute);
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
             const mockRoute = {name: 'SettingsSplitNavigator'};
             if (selector) {
@@ -101,7 +102,7 @@ describe('ParentNavigationSubtitle', () => {
         const reportName = 'Report Name';
         const workspaceName = 'Workspace Name';
         Navigation.getTopmostReportId = jest.fn(() => '999');
-        mockUseRoute.mockReturnValue({name: 'SearchReport'});
+        mockUseRoute.mockReturnValue({name: 'SearchReport'} as AnyRoute);
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
             const mockRoute = {name: 'ReportsSplitNavigator'};
             if (selector) {
