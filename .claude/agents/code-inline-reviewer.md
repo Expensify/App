@@ -497,6 +497,60 @@ function UserProfile({ userId }) {
 
 ---
 
+### [PERFORMANCE-12] Prevent memory leaks in components and plugins
+
+- **Search patterns**: `setInterval`, `setTimeout`, `addEventListener`, `subscribe`, `useEffect` with missing cleanup
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A resource (timeout, interval, event listener, subscription, etc.) is created in a component
+  - The resource is not cleared upon component unmount
+  - Asynchronous operations are initiated without a corresponding cleanup mechanism
+
+  **DO NOT flag if:**
+
+  - The resource is cleared properly in a cleanup function (e.g., inside `useEffect` return)
+  - The resource is not expected to persist beyond the component's lifecycle
+  - The resource is managed by a library that handles cleanup automatically
+  - The operation is guaranteed to complete before the component unmounts
+
+- **Reasoning**: Failing to clear resources causes memory leaks, leading to increased memory consumption and potential crashes, especially in long-lived components or components that mount/unmount frequently.
+
+Good:
+
+```tsx
+function TimerComponent() {
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      updateTimer();
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  return <Text>Timer</Text>;
+}
+```
+
+Bad:
+
+```tsx
+function TimerComponent() {
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      updateTimer();
+    }, 1000);
+    // Missing cleanup - interval will continue after unmount
+  }, []);
+
+  return <Text>Timer</Text>;
+}
+```
+
+---
+
 ### [CONSISTENCY-1] Avoid platform-specific checks within components
 
 - **Search patterns**: `Platform.OS`, `isAndroid`, `isIOS`, `Platform\.select`
@@ -509,7 +563,7 @@ function UserProfile({ userId }) {
 
   **DO NOT flag if:**
 
-  - The logic is handled through platform-specific file extensions (e.g., `index.desktop.tsx`, `index.mobile.tsx`)
+  - The logic is handled through platform-specific file extensions (e.g., `index.web.tsx`, `index.native.tsx`)
 
 - **Reasoning**: Mixing platform-specific logic within components increases maintenance overhead, complexity, and bug risk. Separating concerns through dedicated files or components improves maintainability and reduces platform-specific bugs.
 
@@ -745,61 +799,7 @@ useEffect(() => {
 
 ---
 
-### [MEMORY-1] Prevent memory leaks in components and plugins
-
-- **Search patterns**: `setInterval`, `setTimeout`, `addEventListener`, `subscribe`, `useEffect` with missing cleanup
-
-- **Condition**: Flag ONLY when ALL of these are true:
-
-  - A resource (timeout, interval, event listener, subscription, etc.) is created in a component
-  - The resource is not cleared upon component unmount
-  - Asynchronous operations are initiated without a corresponding cleanup mechanism
-
-  **DO NOT flag if:**
-
-  - The resource is cleared properly in a cleanup function (e.g., inside `useEffect` return)
-  - The resource is not expected to persist beyond the component's lifecycle
-  - The resource is managed by a library that handles cleanup automatically
-  - The operation is guaranteed to complete before the component unmounts
-
-- **Reasoning**: Failing to clear resources causes memory leaks, leading to increased memory consumption and potential crashes, especially in long-lived components or components that mount/unmount frequently.
-
-Good:
-
-```tsx
-function TimerComponent() {
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      updateTimer();
-    }, 1000);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
-
-  return <Text>Timer</Text>;
-}
-```
-
-Bad:
-
-```tsx
-function TimerComponent() {
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      updateTimer();
-    }, 1000);
-    // Missing cleanup - interval will continue after unmount
-  }, []);
-
-  return <Text>Timer</Text>;
-}
-```
-
----
-
-### [SAFETY-1] Ensure proper error handling
+### [CONSISTENCY-5] Ensure proper error handling
 
 - **Search patterns**: `try`, `catch`, `async`, `await`, `Promise`, `.then(`, `.catch(`
 
