@@ -5564,6 +5564,20 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Tem certeza de que deseja conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integração contábil'}? Isso removerá quaisquer conexões contábeis existentes.`,
             enterCredentials: 'Insira suas credenciais',
+            claimOffer: {
+                badgeText: 'Oferta disponível!',
+                xero: {
+                    headline: 'Obtenha Xero grátis por 6 meses!',
+                    description: '<muted-text><centered-text>Novo no Xero? Clientes Expensify ganham 6 meses grátis. Resgate sua oferta abaixo.</centered-text></muted-text>',
+                    connectButton: 'Conectar ao Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Obtenha 5% de desconto em viagens do Uber',
+                    description: `<muted-text><centered-text>Ative o Uber for Business através do Expensify e economize 5% em todas as viagens de negócios até junho. <a href="${CONST.UBER_TERMS_LINK}">Termos se aplicam.</a></centered-text></muted-text>`,
+                    connectButton: 'Conectar ao Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6293,6 +6307,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `alterou o endereço da empresa para "${newAddress}" (anteriormente "${previousAddress}")` : `definir o endereço da empresa como "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `adicionou ${approverName} (${approverEmail}) como aprovador para o campo ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `removeu ${approverName} (${approverEmail}) como aprovador para ${field} "${name}"`,
@@ -7890,6 +7906,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             cantRevokeAdminAccess: 'Não é possível revogar o acesso de administrador do contato técnico',
             error: {removeAdmin: 'Não foi possível remover este usuário como Administrador. Tente novamente.'},
         },
+        members: {title: 'Membros', findMember: 'Encontrar membro'},
     },
     gps: {
         tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',
@@ -7912,6 +7929,20 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             confirm: 'Descartar rastreamento de distância',
         },
         zeroDistanceTripModal: {title: 'Não é possível criar a despesa', prompt: 'Você não pode criar uma despesa com o mesmo local de partida e de chegada.'},
+
+        locationRequiredModal: {
+            title: 'Acesso à localização necessário',
+            prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+            allow: 'Permitir',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Acesso à localização em segundo plano necessário',
+            prompt: 'Permita o acesso à localização em segundo plano nas configurações do seu dispositivo (opção "Permitir o tempo todo") para iniciar o rastreamento de distância por GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Localização precisa obrigatória',
+            prompt: 'Ative a opção "localização precisa" nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+        },
         desktop: {
             title: 'Controle a distância no seu telefone',
             subtitle: 'Registre milhas ou quilômetros automaticamente com o GPS e transforme viagens em despesas instantaneamente.',

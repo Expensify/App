@@ -16,6 +16,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMovingTransactionFromTrackExpense, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -88,6 +89,7 @@ function IOURequestStepAmount({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
@@ -121,8 +123,6 @@ function IOURequestStepAmount({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-
-    console.log({policy});
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -336,7 +336,6 @@ function IOURequestStepAmount({
         }
 
         if (!isEditing) {
-            console.log('here1');
             navigateToNextPage({amount, paymentMethod});
             return;
         }
@@ -344,7 +343,6 @@ function IOURequestStepAmount({
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         const transactionCurrency = getCurrency(currentTransaction);
         if (newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
-            console.log('here');
             navigateBack();
             return;
         }
@@ -362,11 +360,10 @@ function IOURequestStepAmount({
             return;
         }
 
-        console.log(taxAmount, taxCode);
-
         updateMoneyRequestAmountAndCurrency({
             transactionID,
-            transactionThreadReportID: reportID,
+            transactionThreadReport: report,
+            parentReport,
             transactions: duplicateTransactions,
             transactionViolations: duplicateTransactionViolations,
             currency: selectedCurrency,

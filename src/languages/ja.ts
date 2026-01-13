@@ -5547,6 +5547,21 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'この会計統合'} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
             enterCredentials: '認証情報を入力してください',
+            claimOffer: {
+                badgeText: 'オファー利用可能！',
+                xero: {
+                    headline: 'Xero を6か月間無料で利用！',
+                    description:
+                        '<muted-text><centered-text>Xero を初めてご利用ですか？Expensify のお客様は6か月間無料でご利用いただけます。以下のオファーを獲得してください。</centered-text></muted-text>',
+                    connectButton: 'Xero に接続',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Uber の乗車で5%割引',
+                    description: `<muted-text><centered-text>Expensify を通じて Uber for Business を有効化すると、6月までのすべてのビジネス乗車で5%割引になります。<a href="${CONST.UBER_TERMS_LINK}">条件が適用されます。</a></centered-text></muted-text>`,
+                    connectButton: 'Uber for Business に接続',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6269,6 +6284,8 @@ ${reportName}
         billcom: 'Bill.com',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `会社住所を「${newAddress}」（以前は「${previousAddress}」）に変更しました` : `会社の住所を「${newAddress}」に設定`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `${field}「${name}」の承認者として${approverName}（${approverEmail}）を追加しました`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `${field}「${name}」の承認者として${approverName}（${approverEmail}）を削除しました`,
@@ -7852,6 +7869,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             cantRevokeAdminAccess: '技術連絡先から管理者アクセス権を取り消すことはできません',
             error: {removeAdmin: 'このユーザーを管理者として削除できません。もう一度お試しください。'},
         },
+        members: {title: 'メンバー', findMember: 'メンバーを検索'},
     },
     gps: {
         tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',
@@ -7865,6 +7883,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         stopGpsTrackingModal: {title: 'GPS追跡を停止', prompt: '本当に終了しますか？現在のジャーニーが終了します。', cancel: '追跡を再開', confirm: 'GPS追跡を停止'},
         discardDistanceTrackingModal: {title: '距離の追跡を破棄', prompt: '本当に実行しますか？現在の行程が破棄され、元に戻すことはできません。', confirm: '距離の追跡を破棄'},
         zeroDistanceTripModal: {title: '経費を作成できません', prompt: '開始地点と終了地点が同じ経路では経費を作成できません。'},
+        locationRequiredModal: {title: '位置情報へのアクセスが必要です', prompt: 'GPS で距離を追跡するには、デバイスの設定で位置情報へのアクセスを許可してください。', allow: '許可'},
+        androidBackgroundLocationRequiredModal: {
+            title: 'バックグラウンド位置情報へのアクセスが必要です',
+            prompt: 'GPS距離の追跡を開始するには、デバイスの設定でバックグラウンドの位置情報アクセスを許可し（「常に許可」オプション）、有効にしてください。',
+        },
+        preciseLocationRequiredModal: {title: '正確な位置情報が必要です', prompt: 'GPS距離の追跡を開始するには、デバイスの設定で「正確な位置情報」を有効にしてください。'},
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
     },
 };

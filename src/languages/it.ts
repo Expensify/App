@@ -5582,6 +5582,20 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Sei sicuro di voler collegare ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'questa integrazione contabile'}? Questo rimuoverà tutte le connessioni contabili esistenti.`,
             enterCredentials: 'Inserisci le tue credenziali',
+            claimOffer: {
+                badgeText: 'Offerta disponibile!',
+                xero: {
+                    headline: 'Ottieni Xero gratis per 6 mesi!',
+                    description: '<muted-text><centered-text>Nuovo su Xero? I clienti Expensify ottengono 6 mesi gratuiti. Richiedi la tua offerta qui sotto.</centered-text></muted-text>',
+                    connectButton: 'Connetti a Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Ottieni il 5% di sconto sui viaggi Uber',
+                    description: `<muted-text><centered-text>Attiva Uber for Business tramite Expensify e risparmia il 5% su tutti i viaggi di lavoro fino a giugno. <a href="${CONST.UBER_TERMS_LINK}">Si applicano i termini.</a></centered-text></muted-text>`,
+                    connectButton: 'Connetti a Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6314,6 +6328,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `ha modificato l’indirizzo dell’azienda in "${newAddress}" (precedentemente "${previousAddress}")` : `imposta l’indirizzo dell’azienda su "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `ha aggiunto ${approverName} (${approverEmail}) come approvatore per il campo ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
@@ -7914,6 +7930,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             cantRevokeAdminAccess: 'Impossibile revocare i privilegi di amministratore dal referente tecnico',
             error: {removeAdmin: 'Impossibile rimuovere questo utente come amministratore. Riprova.'},
         },
+        members: {title: 'Membri', findMember: 'Trova membro'},
     },
     gps: {
         tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
@@ -7936,6 +7953,19 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             confirm: 'Scarta monitoraggio distanza',
         },
         zeroDistanceTripModal: {title: 'Impossibile creare la spesa', prompt: 'Non puoi creare una spesa con la stessa località di partenza e di arrivo.'},
+        locationRequiredModal: {
+            title: 'Accesso alla posizione richiesto',
+            prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per avviare il tracciamento della distanza GPS.',
+            allow: 'Consenti',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Accesso alla posizione in background richiesto',
+            prompt: 'Consenti l’accesso alla posizione in background nelle impostazioni del dispositivo (opzione “Consenti sempre”) per avviare il tracciamento della distanza tramite GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Posizione precisa richiesta',
+            prompt: 'Per favore, abilita la “posizione precisa” nelle impostazioni del dispositivo per avviare il tracciamento della distanza GPS.',
+        },
         desktop: {
             title: 'Tieni traccia della distanza sul tuo telefono',
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',

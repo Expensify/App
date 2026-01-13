@@ -5575,6 +5575,20 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Weet je zeker dat je ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'deze boekhoudkundige integratie'} wilt verbinden? Hierdoor worden alle bestaande boekhoudkoppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
+            claimOffer: {
+                badgeText: 'Aanbieding beschikbaar!',
+                xero: {
+                    headline: 'Krijg 6 maanden gratis Xero!',
+                    description: '<muted-text><centered-text>Nieuw bij Xero? Expensify-klanten krijgen 6 maanden gratis. Verzilver je aanbieding hieronder.</centered-text></muted-text>',
+                    connectButton: 'Verbinden met Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Krijg 5% korting op Uber-ritten',
+                    description: `<muted-text><centered-text>Activeer Uber for Business via Expensify en bespaar 5% op alle zakelijke ritten tot en met juni. <a href="${CONST.UBER_TERMS_LINK}">Voorwaarden zijn van toepassing.</a></centered-text></muted-text>`,
+                    connectButton: 'Verbinden met Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6303,6 +6317,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         billcom: 'Bill.com',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `het bedrijfsadres gewijzigd naar "${newAddress}" (voorheen "${previousAddress}")` : `stel het bedrijfsadres in op "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `${approverName} (${approverEmail}) toegevoegd als goedkeurder voor het veld ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
@@ -7903,6 +7919,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             cantRevokeAdminAccess: 'Kan de beheerdersrechten niet intrekken van de technische contactpersoon',
             error: {removeAdmin: 'Kan deze gebruiker niet als beheerder verwijderen. Probeer het opnieuw.'},
         },
+        members: {title: 'Leden', findMember: 'Lid zoeken'},
     },
     gps: {
         tooltip: 'GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.',
@@ -7925,6 +7942,17 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             confirm: 'Afstandstracking negeren',
         },
         zeroDistanceTripModal: {title: 'Kan geen uitgave aanmaken', prompt: 'Je kunt geen uitgave aanmaken met dezelfde begin- en eindlocatie.'},
+
+        locationRequiredModal: {
+            title: 'Locatietoegang vereist',
+            prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om GPS-afstandsregistratie te starten.',
+            allow: 'Toestaan',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Toegang tot locatie op de achtergrond vereist',
+            prompt: 'Sta achtergrondlocatietoegang toe in de instellingen van je apparaat (de optie “Altijd toestaan”) om het bijhouden van de GPS-afstand te starten.',
+        },
+        preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
     },
 };
