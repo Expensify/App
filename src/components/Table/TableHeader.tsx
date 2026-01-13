@@ -50,18 +50,7 @@ type TableHeaderProps = ViewProps & {
  */
 function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHeaderWhenEmptySearch = true, ...props}: TableHeaderProps) {
     const styles = useThemeStyles();
-    const {columns, processedData: filteredAndSortedData, originalDataLength, activeSearchString, activeFilters, filterConfig} = useTableContext<T, ColumnKey>();
-
-    const hasActiveFilters = filterConfig
-        ? Object.keys(activeFilters).some((key) => {
-              const filterValue = activeFilters[key];
-              const defaultValue = filterConfig?.[key]?.default;
-              return filterValue !== defaultValue;
-          })
-        : false;
-
-    const hasSearchString = activeSearchString.trim().length > 0;
-    const isEmptyResult = filteredAndSortedData.length === 0 && originalDataLength > 0 && (hasSearchString || hasActiveFilters);
+    const {columns, isEmptyResult} = useTableContext<T, ColumnKey>();
 
     if (shouldHideHeaderWhenEmptySearch && isEmptyResult) {
         return null;
