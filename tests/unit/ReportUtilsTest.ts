@@ -18,6 +18,7 @@ import {compute} from '@libs/Formula';
 import type {FormulaContext} from '@libs/Formula';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
+import Log from '@libs/Log';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11024,12 +11025,8 @@ describe('ReportUtils', () => {
         describe('when action is CATEGORIZE', () => {
             beforeEach(async () => {
                 jest.clearAllMocks();
-                await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, {});
-                await Onyx.setCollection(ONYXKEYS.COLLECTION.TRANSACTION, {});
-                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT, {});
-                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {});
-                await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
-                await Onyx.set(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, 0);
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
             });
 
             it("should navigate to the restricted action page if the active policy's billable actions are restricted", async () => {
@@ -11086,7 +11083,7 @@ describe('ReportUtils', () => {
             it('should navigate to the category step via filteredPolicies when activePolicy is null', async () => {
                 // Given a transaction and no active policy, but one valid policy is available in Onyx
                 const transaction = createRandomTransaction(3);
-                const policy = {
+                const ownPolicy = {
                     ...createRandomPolicy(102),
                     ownerAccountID: currentUserAccountID,
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -11095,13 +11092,13 @@ describe('ReportUtils', () => {
                 };
                 const policyExpenseReport = {
                     ...createPolicyExpenseChat(2),
-                    policyID: policy.id,
+                    policyID: ownPolicy.id,
                     ownerAccountID: currentUserAccountID,
                 };
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${2}`, {});
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${ownPolicy.id}`, ownPolicy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
@@ -11196,7 +11193,6 @@ describe('ReportUtils', () => {
                 createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, activePolicy);
 
                 // Then it should log a warning and not navigate
-                const Log = require('@libs/Log').default;
                 expect(Log.warn).toHaveBeenCalledWith('policyExpenseReportID is not valid during expense categorizing');
                 expect(Navigation.navigate).not.toHaveBeenCalled();
             });
