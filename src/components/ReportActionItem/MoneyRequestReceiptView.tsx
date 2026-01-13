@@ -159,8 +159,8 @@ function MoneyRequestReceiptView({
 
     const transactionToCheck = updatedTransaction ?? transaction;
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
-    // @TODO: Verify if we don't need to check isInvoice here
-    const shouldShowReceiptEmptyState = !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
+    // Empty state for invoices should be displayed only in WideRHP
+    const shouldShowReceiptEmptyState = (isDisplayedInWideRHP || !isInvoice) && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
