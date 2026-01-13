@@ -72,9 +72,6 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 
 function App() {
     useDefaultDragAndDrop();
-    setTimeout(() => {
-        OnyxUpdateManager();
-    }, 1000);
 
     return (
         <StrictModeWrapper>

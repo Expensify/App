@@ -25,6 +25,7 @@ import usePriorityMode from './hooks/usePriorityChange';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
+import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import * as Report from './libs/actions/Report';
 import Timing from './libs/actions/Timing';
 import * as User from './libs/actions/User';
@@ -211,6 +212,8 @@ function Expensify() {
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         Timing.end(CONST.TELEMETRY.SPAN_APP_STARTUP);
+
+        OnyxUpdateManager();
 
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
