@@ -23,6 +23,7 @@ import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
+import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -908,23 +909,29 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (!isEmptyObject(requestParentReportAction)) {
             const rootState = navigationRef.getRootState();
             const rhp = rootState.routes.at(-1);
-            const previousRoute = rhp?.state?.routes?.at(-2);
-            const secondToLast = rhp?.state?.routes?.at(-3);
+            const rhpRoutes = rhp?.state?.routes ?? [];
+            const previousRoute = rhpRoutes.at(-2);
+            const superWideRHPIndex = rhpRoutes.findIndex((rhpRoute) => SUPER_WIDE_RIGHT_MODALS.has(rhpRoute.name));
 
+            // If the deleted expense is displayed directly below, close the entire RHP
+            const isSuperWideRHPDisplayed = superWideRHPIndex > -1;
+            const isSuperWideRHPDisplayedDirectlyBelow = isSuperWideRHPDisplayed && superWideRHPIndex === rhpRoutes.length - 2;
             if (
-                (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || previousRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) &&
-                (previousRoute.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT])?.reportID === route.params.reportID
+                isSuperWideRHPDisplayedDirectlyBelow &&
+                (previousRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT])?.reportID === route.params.reportID
             ) {
                 Navigation.dismissModal();
                 return;
             }
 
+            // If the deleted expense is opened from the super wide rhp, go back there.
             if (
                 previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT &&
                 (previousRoute.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT])?.reportID === route.params.reportID
             ) {
-                if (secondToLast?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || secondToLast?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
-                    navigationRef.dispatch({...StackActions.pop(2), target: rhp?.state?.key});
+                if (isSuperWideRHPDisplayed) {
+                    const distanceToPop = rhpRoutes.length - 1 - superWideRHPIndex;
+                    navigationRef.dispatch({...StackActions.pop(distanceToPop), target: rhp?.state?.key});
                     return;
                 }
                 Navigation.dismissModal();
