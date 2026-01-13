@@ -1,13 +1,27 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
-import useOnyx from '@hooks/useOnyx';
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx} from 'react-native-onyx';
+import useTodos from '@hooks/useTodos';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResults} from '@src/types/onyx';
+import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchContextData, SearchContextProps, SearchQueryJSON, SelectedTransactions} from './types';
+
+// Default search info when building from live data
+const defaultSearchInfo: SearchResultsInfo = {
+    offset: 0,
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+    hasMoreResults: false,
+    hasResults: true,
+    isLoading: false,
+};
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
@@ -51,7 +65,37 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
 
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContextData.currentSearchHash}`, {canBeMissing: true});
+    // Snapshot data from Onyx
+    const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContextData.currentSearchHash}`, {canBeMissing: true});
+
+    // Get pre-built to-do search results data from useTodos
+    const {todoSearchResultsData} = useTodos();
+
+    // Determine if the current search is a to-do action search based on the search key
+    const currentSearchKey = searchContextData.currentSearchKey;
+    const isTodoSearch =
+        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT ||
+        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.APPROVE ||
+        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY ||
+        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT;
+
+    // Build the current search results - use live data for to-do searches, snapshot otherwise
+    const currentSearchResults = useMemo((): SearchResults | undefined => {
+        // If viewing a to-do search, use live data from useTodos
+        if (isTodoSearch && currentSearchKey) {
+            const liveData = todoSearchResultsData[currentSearchKey];
+            if (liveData) {
+                const searchInfo: SearchResultsInfo = snapshotSearchResults?.search ?? defaultSearchInfo;
+                return {
+                    search: searchInfo,
+                    data: liveData,
+                };
+            }
+        }
+
+        // Otherwise return the snapshot data
+        return snapshotSearchResults ?? undefined;
+    }, [isTodoSearch, currentSearchKey, todoSearchResultsData, snapshotSearchResults]);
 
     const setCurrentSearchHashAndKey = useCallback((searchHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {

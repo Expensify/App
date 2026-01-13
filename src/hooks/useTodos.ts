@@ -1,20 +1,11 @@
 import {useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
-import {useSearchContext} from '@components/Search/SearchContext';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, SearchResults, Transaction} from '@src/types/onyx';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-
-type TodosResult = {
-    reportsToSubmit: Report[];
-    reportsToApprove: Report[];
-    reportsToPay: Report[];
-    reportsToExport: Report[];
-};
 
 type TodoSearchResultsData = SearchResults['data'];
 
@@ -91,12 +82,6 @@ function buildSearchResultsData(
     return data as TodoSearchResultsData;
 }
 
-/**
- * Hook that provides to-do data (reports needing action) and optionally builds it in SearchResults format.
- *
- * When the user is viewing a to-do search result, this hook provides live Onyx data in the same format
- * as the search snapshot, allowing the UI to display real-time updates instead of stale snapshot data.
- */
 export default function useTodos() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -108,18 +93,7 @@ export default function useTodos() {
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const {login = '', accountID} = useCurrentUserPersonalDetails();
 
-    // Get search context to determine if we're viewing a to-do search
-    const {currentSearchKey, currentSearchResults} = useSearchContext();
-
-    // Determine if the current search is a to-do action search based on the search key
-    const isTodoSearch =
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT ||
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.APPROVE ||
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY ||
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT;
-
-    // Compute the categorized to-do reports
-    const todos = useMemo((): TodosResult => {
+    const todos = useMemo(() => {
         const reportsToSubmit: Report[] = [];
         const reportsToApprove: Report[] = [];
         const reportsToPay: Report[] = [];
@@ -168,87 +142,33 @@ export default function useTodos() {
 
     const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport} = todos;
 
-    // Build SearchResults-formatted data for the current to-do search key
-    const todoSearchResultsData = useMemo((): TodoSearchResultsData | undefined => {
-        if (!isTodoSearch) {
-            return undefined;
-        }
-
-        let relevantReports: Report[] = [];
-        switch (currentSearchKey) {
-            case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
-                relevantReports = reportsToSubmit;
-                break;
-            case CONST.SEARCH.SEARCH_KEYS.APPROVE:
-                relevantReports = reportsToApprove;
-                break;
-            case CONST.SEARCH.SEARCH_KEYS.PAY:
-                relevantReports = reportsToPay;
-                break;
-            case CONST.SEARCH.SEARCH_KEYS.EXPORT:
-                relevantReports = reportsToExport;
-                break;
-            default:
+    // Build SearchResults-formatted data for each to-do category
+    const todoSearchResultsData = useMemo(() => {
+        const buildData = (reports: Report[]): TodoSearchResultsData | undefined => {
+            if (reports.length === 0) {
                 return undefined;
-        }
+            }
+            return buildSearchResultsData(
+                reports,
+                allTransactions as Record<string, Transaction> | undefined,
+                allPolicies as Record<string, unknown> | undefined,
+                allReportActions as Record<string, Record<string, unknown>> | undefined,
+                allReportNameValuePairs as Record<string, unknown> | undefined,
+                personalDetailsList as Record<string, unknown> | undefined,
+                allTransactionViolations as Record<string, unknown[]> | undefined,
+            );
+        };
 
-        return buildSearchResultsData(
-            relevantReports,
-            allTransactions as Record<string, Transaction> | undefined,
-            allPolicies as Record<string, unknown> | undefined,
-            allReportActions as Record<string, Record<string, unknown>> | undefined,
-            allReportNameValuePairs as Record<string, unknown> | undefined,
-            personalDetailsList as Record<string, unknown> | undefined,
-            allTransactionViolations as Record<string, unknown[]> | undefined,
-        );
-    }, [
-        isTodoSearch,
-        currentSearchKey,
-        reportsToSubmit,
-        reportsToApprove,
-        reportsToPay,
-        reportsToExport,
-        allTransactions,
-        allPolicies,
-        allReportActions,
-        allReportNameValuePairs,
-        personalDetailsList,
-        allTransactionViolations,
-    ]);
-
-    // Default search info when building from live data
-    const defaultSearchInfo: SearchResultsInfo = useMemo(
-        () => ({
-            offset: 0,
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            hasMoreResults: false,
-            hasResults: true,
-            isLoading: false,
-        }),
-        [],
-    );
-
-    // Return either the live to-do data or the snapshot data
-    const searchResultsData = useMemo((): SearchResults | undefined => {
-        // If viewing a to-do search and we have live data, use it
-        if (isTodoSearch && todoSearchResultsData) {
-            // Merge with snapshot search metadata but use live data
-            const searchInfo: SearchResultsInfo = (currentSearchResults as SearchResults | undefined)?.search ?? defaultSearchInfo;
-            return {
-                search: searchInfo,
-                data: todoSearchResultsData,
-            };
-        }
-
-        // Otherwise return the snapshot data
-        return (currentSearchResults as SearchResults | undefined) ?? undefined;
-    }, [isTodoSearch, todoSearchResultsData, currentSearchResults, defaultSearchInfo]);
+        return {
+            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: buildData(reportsToSubmit),
+            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: buildData(reportsToApprove),
+            [CONST.SEARCH.SEARCH_KEYS.PAY]: buildData(reportsToPay),
+            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: buildData(reportsToExport),
+        };
+    }, [reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, allTransactions, allPolicies, allReportActions, allReportNameValuePairs, personalDetailsList, allTransactionViolations]);
 
     return {
         ...todos,
-        isTodoSearch,
-        currentSearchKey,
-        searchResultsData,
+        todoSearchResultsData,
     };
 }

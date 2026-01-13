@@ -108,7 +108,7 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems, currentSearchResults} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const allTransactions = useAllTransactions();
@@ -163,8 +163,6 @@ function SearchPage({route}: SearchPageProps) {
         'ArrowSplit',
     ] as const);
 
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
     const selectedTransactionReportIDs = useMemo(
         () => [
