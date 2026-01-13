@@ -8,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -100,20 +99,20 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         return data;
     }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
 
-    // Auto-select first option if none selected
     useEffect(() => {
-        if (selectedApproverType === undefined && approverTypes.length > 0) {
-            setSelectedApproverType(approverTypes.at(0)?.keyForList);
+        if (selectedApproverType !== undefined) {
+            return;
         }
+        setSelectedApproverType(approverTypes.at(0)?.keyForList);
     }, [approverTypes, selectedApproverType]);
 
-    // Skip dialog if only one option
     useEffect(() => {
-        if (!isLoadingReportData && !hasAutoAppliedRef.current && approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList) {
-            hasAutoAppliedRef.current = true;
-            changeApprover();
+        if (hasAutoAppliedRef.current || approverTypes.length !== 1 || selectedApproverType !== approverTypes.at(0)?.keyForList) {
+            return;
         }
-    }, [approverTypes, selectedApproverType, changeApprover, isLoadingReportData]);
+        hasAutoAppliedRef.current = true;
+        changeApprover();
+    }, [approverTypes, selectedApproverType, changeApprover]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
