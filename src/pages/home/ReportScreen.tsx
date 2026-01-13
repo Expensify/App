@@ -596,11 +596,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         // Since fetchReport is always called once when opening a report,
         // if that initial call is used to create a transactionThreadReport,
         // then fetchReport needs to be called again after the transactionThreadReport has been fully created.
-        if (
-            (!!prevTransactionThreadReportID && prevTransactionThreadReportID !== CONST.FAKE_REPORT_ID) ||
-            !transactionThreadReportID ||
-            (transactionThreadReportID === CONST.FAKE_REPORT_ID && !!prevTransactionThreadReportID)
-        ) {
+        const prevTransactionThreadReportIDWasValid = !!prevTransactionThreadReportID && prevTransactionThreadReportID !== CONST.FAKE_REPORT_ID;
+        const transactionThreadReportIDUpdatedFromValidToFake = transactionThreadReportID === CONST.FAKE_REPORT_ID && !!prevTransactionThreadReportID;
+
+        if (prevTransactionThreadReportIDWasValid || !transactionThreadReportID || transactionThreadReportIDUpdatedFromValidToFake) {
             return;
         }
 
