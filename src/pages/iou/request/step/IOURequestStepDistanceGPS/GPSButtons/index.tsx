@@ -208,6 +208,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 confirmText={translate('gps.locationServicesRequiredModal.confirm')}
                 cancelText={translate('common.dismiss')}
                 prompt={translate('gps.locationServicesRequiredModal.prompt')}
+                shouldReverseStackedButtons
             />
         </>
     );
