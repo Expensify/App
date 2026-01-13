@@ -2753,7 +2753,7 @@ describe('ReportActionsUtils', () => {
 
         beforeEach(() => {
             jest.spyOn(require('../../src/libs/ReportUtils'), 'getReportOrDraftReport').mockImplementation((...args: unknown[]) => {
-                const reportID = args[0] as string | undefined;
+                const reportID = args.at(0) as string | undefined;
                 if (reportID === expenseReportID) {
                     return {...createRandomReport(0, undefined), reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE};
                 }
@@ -2764,7 +2764,7 @@ describe('ReportActionsUtils', () => {
             });
 
             jest.spyOn(require('../../src/libs/ReportUtils'), 'isExpenseReport').mockImplementation((...args: unknown[]) => {
-                const reportOrID = args[0] as Report | string | null;
+                const reportOrID = args.at(0) as Report | string | null;
                 const report = typeof reportOrID === 'string' ? null : reportOrID;
                 return report?.reportID === expenseReportID;
             });
