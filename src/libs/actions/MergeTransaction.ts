@@ -19,12 +19,14 @@ import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTrans
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getIOUActionForReportID, getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticIOUReportAction,
+    findSelfDMReportID,
     getReportOrDraftReport,
     getReportTransactions,
     getTransactionDetails,
+    isChatReport,
     isCurrentUserSubmitter,
     isMoneyRequestReportEligibleForMerge,
     isReportManager,
@@ -391,6 +393,18 @@ function mergeTransactionRequest({
     const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
     // Only delete source report if it differs from target and has one transaction
     const shouldDeleteSourceReport = sourceTransaction.reportID !== mergeTransaction.reportID && transactionsOfSourceReport.length === 1;
+    
+    // Remove ACTIONABLE_TRACK_EXPENSE_WHISPER when target transaction is moved to expense report
+    const isTargetUnreported = !targetTransaction.reportID || targetTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const targetReport = isTargetUnreported ? null : getReportOrDraftReport(targetTransaction.reportID);
+    const targetChatReportID = isTargetUnreported
+        ? findSelfDMReportID()
+        : targetReport && isChatReport(targetReport)
+          ? targetTransaction.reportID
+          : targetReport?.chatReportID;
+    const isTargetMovingToExpenseReport = mergeTransaction.reportID && mergeTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && mergeTransaction.reportID !== targetTransaction.reportID;
+    const actionableWhisperAction = getTrackExpenseActionableWhisper(targetTransaction.transactionID, targetChatReportID);
+    
     const optimisticSourceReportData: OnyxUpdate[] = shouldDeleteSourceReport
         ? [
               {
@@ -400,6 +414,16 @@ function mergeTransactionRequest({
               },
           ]
         : [];
+    
+    if (actionableWhisperAction && targetChatReportID && isTargetMovingToExpenseReport) {
+        optimisticSourceReportData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [actionableWhisperAction.reportActionID]: null,
+            },
+        });
+    }
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureSourceReportData: OnyxUpdate[] =
@@ -412,6 +436,16 @@ function mergeTransactionRequest({
                   },
               ]
             : [];
+    
+    if (actionableWhisperAction && targetChatReportID && isTargetMovingToExpenseReport) {
+        failureSourceReportData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [actionableWhisperAction.reportActionID]: actionableWhisperAction,
+            },
+        });
+    }
     const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
     const optimisticSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
         ? [
