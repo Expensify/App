@@ -3298,7 +3298,7 @@ describe('OptionsListUtils', () => {
             expect(result.isDisabled).toBe(true);
         });
     });
-    
+
     describe('getUserToInviteOption', () => {
         it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
             const result = getUserToInviteOption({
