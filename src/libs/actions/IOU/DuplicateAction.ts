@@ -25,6 +25,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {CreateTrackExpenseParams, RequestMoneyInformation} from '.';
+import {getCleanUpTransactionThreadReportOnyxData} from '.';
 import {
     getAllReportActionsFromIOU,
     getAllReports,
@@ -190,6 +191,25 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         }, {}),
     };
 
+    const cleanUpTransactionThreadReportsOptimisticData = [];
+    const cleanUpTransactionThreadReportsSuccessData = [];
+    const cleanUpTransactionThreadReportsFailureData = [];
+    let updatedReportPreviewAction;
+    for (const [index, iouAction] of Object.entries(iouActionsToDelete)) {
+        const transactionThreadID = iouAction.childReportID;
+        const shouldDeleteTransactionThread = !!transactionThreadID;
+        const cleanUpTransactionThreadReportOnyxDataForIouAction = getCleanUpTransactionThreadReportOnyxData({
+            transactionThreadID,
+            shouldDeleteTransactionThread,
+            reportAction: iouAction,
+            updatedReportPreviewAction,
+            shouldAddUpdatedReportPreviewActionToOnyxData: Number(index) === iouActionsToDelete.length - 1,
+        });
+        cleanUpTransactionThreadReportsOptimisticData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.optimisticData);
+        cleanUpTransactionThreadReportsSuccessData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.successData);
+        cleanUpTransactionThreadReportsFailureData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.failureData);
+        updatedReportPreviewAction = cleanUpTransactionThreadReportOnyxDataForIouAction.updatedReportPreviewAction;
+    }
     const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
 
     const transactionThreadReportID =
@@ -212,7 +232,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
 
     optimisticData.push(
         optimisticTransactionData,
@@ -221,7 +241,9 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         expenseReportOptimisticData,
         expenseReportActionsOptimisticData,
         optimisticReportActionData,
+        ...cleanUpTransactionThreadReportsOptimisticData,
     );
+    successData.push(...cleanUpTransactionThreadReportsSuccessData);
     failureData.push(
         failureTransactionData,
         ...failureTransactionDuplicatesData,
@@ -229,6 +251,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         expenseReportFailureData,
         expenseReportActionsFailureData,
         failureReportActionData,
+        ...cleanUpTransactionThreadReportsFailureData,
     );
 
     if (optimisticTransactionThreadReportID) {
