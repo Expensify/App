@@ -86,7 +86,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 openReport(props.route.params.reportID);
-                // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+                // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
@@ -95,7 +95,6 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-                // eslint-disable-next-line react-compiler/react-compiler
                 if (shouldShowNotFoundPage && contentShown.current && !isFocused) {
                     return null;
                 }
@@ -109,9 +108,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
             }
 
-            // eslint-disable-next-line react-compiler/react-compiler
             if (!contentShown.current) {
-                // eslint-disable-next-line react-compiler/react-compiler
                 contentShown.current = true;
             }
 
