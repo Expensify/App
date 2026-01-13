@@ -32,7 +32,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedVa
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
-import type {SamlMetadata} from './Domain';
+import type {DomainSecurityGroup, SamlMetadata} from './Domain';
 import type DomainErrors from './DomainErrors';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
@@ -64,6 +64,7 @@ import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
 import type Onboarding from './Onboarding';
+import type OnboardingRHPVariant from './OnboardingRHPVariant';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
@@ -292,6 +293,7 @@ export type {
     ImportedSpreadsheetMemberData,
     Onboarding,
     OnboardingPurpose,
+    OnboardingRHPVariant,
     ValidateMagicCodeAction,
     ShareTempFile,
     CorpayFields,
@@ -315,4 +317,5 @@ export type {
     SamlMetadata,
     DomainErrors,
     DomainPendingActions,
+    DomainSecurityGroup,
 };
