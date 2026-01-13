@@ -1,4 +1,3 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
@@ -15,9 +14,9 @@ jest.mock('@src/hooks/useRootNavigationState', () => ({
 }));
 
 type AnyRoute = RouteProp<Record<string, object | undefined>, string>;
-const mockUseRoute = jest.fn();
+const mockUseRoute = jest.fn<AnyRoute, []>();
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native');
     return {
         ...actualNav,
         useRoute: () => mockUseRoute() as AnyRoute,
