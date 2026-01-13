@@ -64,6 +64,12 @@ function TransactionListItem<TItem extends ListItem>({
     const snapshotPolicy = useMemo(() => {
         return (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
     }, [currentSearchResults, transactionItem.policyID]);
+
+    const exportedReportActions = useMemo(() => {
+        const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
+        return actionsData ? Object.values(actionsData) : [];
+    }, [currentSearchResults, transactionItem.reportID]);
+
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
@@ -232,6 +238,7 @@ function TransactionListItem<TItem extends ListItem>({
                             onArrowRightPress={onPress}
                             isHover={hovered}
                             customCardNames={customCardNames}
+                            reportActions={exportedReportActions}
                         />
                     </>
                 )}
