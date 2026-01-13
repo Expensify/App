@@ -142,27 +142,27 @@ type CardFeedErrors = {
     /**
      * Whether to show the RBR for all feeds.
      */
-    shouldShowRBRForAllFeeds: boolean;
+    shouldShowRBR: boolean;
     /**
      * Whether to show the RBR for each workspace account ID.
      */
-    shouldShowRBRPerWorkspaceAccountID: Record<number, boolean>;
+    rbrWorkspaceAccountIDMapping: Record<number, boolean>;
     /**
      * Whether to show the RBR for each feed name with domain ID.
      */
-    shouldShowRBRPerFeedNameWithDomainID: Record<string, boolean>;
+    rbrFeedNameWithDomainIDMapping: Record<string, boolean>;
     /**
      * Whether some feed connection is broken.
      */
-    isSomeFeedConnectionBroken: boolean;
+    isFeedConnectionBroken: boolean;
     /**
      * Whether some feed has errors.
      */
-    hasSomeFeedErrors: boolean;
+    hasFeedErrors: boolean;
     /**
      * Whether some failed card assignments.
      */
-    hasSomeFailedCardAssignments: boolean;
+    hasFailedCardAssignment: boolean;
 };
 
 /**

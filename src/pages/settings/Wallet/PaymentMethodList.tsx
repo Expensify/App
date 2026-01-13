@@ -183,7 +183,7 @@ function PaymentMethodList({
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
-    const {shouldShowRBRPerFeedNameWithDomainID} = useCardFeedErrors();
+    const {rbrFeedNameWithDomainIDMapping} = useCardFeedErrors();
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -203,7 +203,7 @@ function PaymentMethodList({
                 let shouldShowRBR = false;
                 if (card.fundID) {
                     const feedNameWithDomainID = getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeedWithNumber, card.fundID);
-                    shouldShowRBR = shouldShowRBRPerFeedNameWithDomainID[feedNameWithDomainID];
+                    shouldShowRBR = rbrFeedNameWithDomainIDMapping[feedNameWithDomainID];
                 } else {
                     shouldShowRBR = true;
                 }
@@ -400,7 +400,7 @@ function PaymentMethodList({
         cardList,
         illustrations,
         companyCardFeedIcons,
-        shouldShowRBRPerFeedNameWithDomainID,
+        rbrFeedNameWithDomainIDMapping,
         privatePersonalDetails,
         onPress,
         shouldShowRightIcon,

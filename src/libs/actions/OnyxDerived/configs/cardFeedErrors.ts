@@ -13,11 +13,11 @@ export default createOnyxDerivedValueConfig({
     dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER],
     compute: ([globalCardList, allWorkspaceCards, failedCompanyCardAssignmentsPerFeed, cardFeeds]) => {
         const cardFeedErrors: AllCardFeedErrorsMap = new Map();
+        const rbrWorkspaceAccountIDMapping: Record<number, boolean> = {};
+        const rbrFeedNameWithDomainIDMapping: Record<string, boolean> = {};
         let isSomeFeedConnectionBroken = false;
         let hasSomeFeedErrors = false;
-        let hasSomeFailedCardAssignments = false;
-        const shouldShowRBRPerWorkspaceAccountID: Record<number, boolean> = {};
-        const shouldShowRBRPerFeedNameWithDomainID: Record<string, boolean> = {};
+        let hasSomeFailedCardAssignment = false;
 
         function addErrorsForCard(card: Card) {
             const bankName = card.bank as CompanyCardFeedWithNumber;
@@ -43,17 +43,17 @@ export default createOnyxDerivedValueConfig({
                 isSomeFeedConnectionBroken = true;
             }
 
-            if (hasSomeFeedErrors) {
+            if (hasFeedError) {
                 hasSomeFeedErrors = true;
             }
 
             if (hasFailedCardAssignments) {
-                hasSomeFailedCardAssignments = true;
+                hasSomeFailedCardAssignment = true;
             }
 
-            shouldShowRBRPerWorkspaceAccountID[workspaceAccountID] = shouldShowRBRPerWorkspaceAccountID[workspaceAccountID] || shouldShowRBR;
+            rbrWorkspaceAccountIDMapping[workspaceAccountID] = rbrWorkspaceAccountIDMapping[workspaceAccountID] || shouldShowRBR;
 
-            shouldShowRBRPerFeedNameWithDomainID[feedNameWithDomainID] = shouldShowRBRPerFeedNameWithDomainID[feedNameWithDomainID] || shouldShowRBR;
+            rbrFeedNameWithDomainIDMapping[feedNameWithDomainID] = rbrFeedNameWithDomainIDMapping[feedNameWithDomainID] || shouldShowRBR;
 
             allFeedsErrors.set(bankName, {
                 shouldShowRBR,
@@ -85,21 +85,21 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        const shouldShowRBRForAllFeeds = hasSomeFeedErrors || hasSomeFailedCardAssignments || isSomeFeedConnectionBroken;
+        const shouldShowRBR = hasSomeFeedErrors || hasSomeFailedCardAssignment || isSomeFeedConnectionBroken;
 
         return {
             // The errors of all card feeds.
             cardFeedErrors: mapToObject(cardFeedErrors) as CardFeedErrorsObject,
 
             // Mappings of whether to show the RBR for each workspace account ID and per feed name with domain ID
-            shouldShowRBRPerWorkspaceAccountID,
-            shouldShowRBRPerFeedNameWithDomainID,
+            rbrWorkspaceAccountIDMapping,
+            rbrFeedNameWithDomainIDMapping,
 
             // Whether any of the feeds has one of the below errors
-            shouldShowRBRForAllFeeds,
-            isSomeFeedConnectionBroken,
-            hasSomeFeedErrors,
-            hasSomeFailedCardAssignments,
+            shouldShowRBR,
+            isFeedConnectionBroken: isSomeFeedConnectionBroken,
+            hasFeedErrors: hasSomeFeedErrors,
+            hasFailedCardAssignment: hasSomeFailedCardAssignment,
         };
     },
 });

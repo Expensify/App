@@ -145,9 +145,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const {shouldShowRBRForAllFeeds} = useCardFeedErrors();
+    const {shouldShowRBR} = useCardFeedErrors();
 
-    const hasBrokenFeedConnection = shouldShowRBRForAllFeeds || checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
+    const hasBrokenFeedConnection = shouldShowRBR || checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     const walletBrickRoadIndicator = useMemo(() => {
         if (
