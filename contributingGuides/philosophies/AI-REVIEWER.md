@@ -34,7 +34,7 @@ AI reviewers provide automated feedback to assist human reviewers, but their out
 When AI feedback is unclear or ambiguous, contributors will benefit from discussing it first with C+ reviewers before jumping to implementation. As mentioned in the first principle, reviewer feedback should be treated as suggestions only.
 
 ### Report false positives to maintainers
-When AI feedback is incorrect or not applicable, reach out to the AI reviewer maintainers to help improve the system. You can either tag them directly in a reply to the reviewer's comment or reach out through Slack. This feedback helps refine the reviewers and prevents the same issues from recurring.
+When AI feedback is incorrect or not applicable, reach out to the AI reviewer maintainers in the #expensify-open-source Slack channel to help improve the system. This feedback helps refine the reviewers and prevents the same issues from recurring.
 
 ### Keep rule documentation in sync with AI reviewer prompts
 When adding or modifying rules in AI reviewer agent files, the corresponding documentation should be updated. The agent files in `.claude/agents/` are the source of truth for specific rules.
@@ -162,7 +162,7 @@ When AI feedback is accurate:
 ### Handling False Positives
 When AI feedback is incorrect or not applicable:
 1. Evaluate whether the feedback applies to your specific context
-2. Reach out to AI reviewer maintainers by tagging them in a reply or through Slack
+2. Reach out to AI reviewer maintainers in the #expensify-open-source Slack channel
 3. Your feedback helps refine the reviewers and prevent recurring issues
 
 ### Escalating to Human Reviewers
@@ -185,6 +185,6 @@ Escalate to human reviewers when:
 
 **Context**: The parent component is already optimized by React Compiler.
 
-✅ **Good Response**: Tag the AI reviewer maintainers or reach out through Slack with explanation of incorrect suggestion.
+✅ **Good Response**: Reach out in the #expensify-open-source Slack channel with explanation of incorrect suggestion.
 
 ❌ **Bad Response**: Apply the change anyway, adding unnecessary complexity.
