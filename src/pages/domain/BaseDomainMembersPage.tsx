@@ -175,6 +175,7 @@ function BaseDomainMembersPage({
                     showListEmptyContent={false}
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
+                    shouldHeaderBeInsideList
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={listHeaderContent}
                 />
