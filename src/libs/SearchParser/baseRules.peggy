@@ -84,9 +84,49 @@ columns = "columns"i {return "columns"}
 values
   = perDiem
   / draft
+  / originalAmount
+  / taxRate
+  / taxAmount
+  / policyName
+  / withdrawalId
+  / bankAccount
+  / reportId
+  / base62ReportId
+  / exportedTo
+  / exchangeRate
+  / reimbursableTotal
+  / nonReimbursableTotal
+  / groupFrom
+  / groupExpenses
+  / groupTotal
+  / groupCard
+  / groupFeed
+  / groupBankAccount
+  / groupWithdrawn
+  / groupWithdrawalId
 
-perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
-draft = "drafts"i / "draft"i {return "drafts"; }
+perDiem                 = "per-diem"i                  { return "perDiem"; }
+draft                  = "drafts"i / "draft"i         { return "drafts"; }
+originalAmount          = "original-amount"i           { return "originalamount"; }
+taxAmount               = "tax"i                       { return "taxAmount"; }
+policyName              = "policy-name"i               { return "policyname"; }
+withdrawalId            = "withdrawal-id"i             { return "withdrawalID"; }
+bankAccount             = "bank-account"i              { return "bankAccount"; }
+reportId                = "long-report-id"i            { return "reportID"; }
+base62ReportId          = "report-id"i                 { return "base62ReportID"; }
+exportedTo              = "exported-to"i               { return "exportedto"; }
+exchangeRate            = "exchange-rate"i             { return "exchangeRate"; }
+reimbursableTotal       = "reimbursable-total"i        { return "reimbursableTotal"; }
+nonReimbursableTotal    = "non-reimbursable-total"i    { return "nonReimbursableTotal"; }
+groupFrom               = "group-from"i                { return "groupFrom"; }
+groupExpenses           = "group-expenses"i            { return "groupExpenses"; }
+groupTotal              = "group-total"i               { return "groupTotal"; }
+groupCard               = "group-card"i                { return "groupCard"; }
+groupFeed               = "group-feed"i                { return "groupFeed"; }
+groupBankAccount        = "group-bank-account"i        { return "groupBankAccount"; }
+groupWithdrawn          = "group-withdrawn"i           { return "groupWithdrawn"; }
+groupWithdrawalId       = "group-withdrawal-id"i       { return "groupWithdrawalID"; }
+
 
 operator "operator"
   = (":" / "=") { return "eq"; }
