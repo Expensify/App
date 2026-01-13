@@ -164,6 +164,7 @@ type DomainSettings = {
     };
 };
 
+/** Card feeds status */
 type CardFeedsStatus = {
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
