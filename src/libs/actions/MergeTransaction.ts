@@ -589,14 +589,6 @@ function mergeTransactionRequest({
                 },
             });
 
-            finallyTargetReportActionData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForIOUAction}`,
-                value: {
-                    [oldIOUAction.reportActionID]: null,
-                },
-            });
-
             failureTargetReportActionData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldIOUReportID}`,
