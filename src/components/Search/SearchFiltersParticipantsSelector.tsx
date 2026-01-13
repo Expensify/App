@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
-import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatSectionsFromSearchTerm, getFilteredRecentAttendees, getValidOptions} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
@@ -18,6 +18,7 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Attendee} from '@src/types/onyx/IOU';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 const defaultListOptions = {
@@ -33,6 +34,32 @@ const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoring
 function getSelectedOptionData(option: Option): OptionData {
     // eslint-disable-next-line rulesdir/no-default-id-values
     return {...option, selected: true, reportID: option.reportID ?? '-1'};
+}
+
+/**
+ * Creates an OptionData object from a name-only attendee (attendee without a real accountID in personalDetails)
+ */
+function getOptionDataFromAttendee(attendee: Attendee): OptionData {
+    return {
+        text: attendee.displayName,
+        alternateText: attendee.email || attendee.displayName,
+        login: attendee.email || attendee.displayName,
+        displayName: attendee.displayName,
+        accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        reportID: '-1',
+        selected: true,
+        icons: attendee.avatarUrl
+            ? [
+                  {
+                      source: attendee.avatarUrl,
+                      type: CONST.ICON_TYPE_AVATAR,
+                      name: attendee.displayName,
+                  },
+              ]
+            : [],
+        searchText: attendee.searchText ?? attendee.displayName,
+    };
 }
 
 type SearchFiltersParticipantsSelectorProps = {
@@ -56,12 +83,20 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
+
+    // Transform raw recentAttendees into Option[] format for use with getValidOptions
+    const recentAttendeeLists = useMemo(
+        () => getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? []),
+        [personalDetails, recentAttendees],
+    );
+
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
 
-        return memoizedGetValidOptions(
+        const result = memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -72,13 +107,38 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                shouldAcceptName: true,
+                includeUserToInvite: true,
+                recentAttendees: recentAttendeeLists,
+                includeRecentReports: false,
             },
             countryCode,
         );
-    }, [areOptionsInitialized, options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
+        return result;
+    }, [areOptionsInitialized, options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode, recentAttendeeLists]);
 
     const unselectedOptions = useMemo(() => {
-        return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));
+        // Filter by both accountID (for regular users) AND login (for name-only attendees)
+        const selectedAccountIDs = new Set(
+            selectedOptions.map((option) => option.accountID).filter((id): id is number => !!id && id !== CONST.DEFAULT_NUMBER_ID),
+        );
+        const selectedLogins = new Set(selectedOptions.map((option) => option.login).filter((login): login is string => !!login));
+
+        const isSelected = (option: {accountID?: number; login?: string}) => {
+            if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && selectedAccountIDs.has(option.accountID)) {
+                return true;
+            }
+            if (option.login && selectedLogins.has(option.login)) {
+                return true;
+            }
+            return false;
+        };
+
+        return {
+            ...defaultOptions,
+            personalDetails: defaultOptions.personalDetails.filter((option) => !isSelected(option)),
+            recentReports: defaultOptions.recentReports.filter((option) => !isSelected(option)),
+        };
     }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
@@ -86,7 +146,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            canInviteUser: false,
+            canInviteUser: true,
+            shouldAcceptName: true,
         });
 
         const {currentUserOption} = unselectedOptions;
@@ -143,10 +204,15 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         newSections.push(formattedResults.section);
 
+        // Filter current user from recentReports to avoid duplicate with currentUserOption section
+        const filteredRecentReports = chatOptions.recentReports.filter(
+            (report) => report.accountID !== chatOptions.currentUserOption?.accountID,
+        );
+
         newSections.push({
             title: '',
-            data: chatOptions.recentReports,
-            shouldShow: chatOptions.recentReports.length > 0,
+            data: filteredRecentReports,
+            shouldShow: filteredRecentReports.length > 0,
         });
 
         newSections.push({
@@ -169,26 +235,45 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     }, []);
 
     const applyChanges = useCallback(() => {
-        const selectedAccountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
-        onFiltersUpdate(selectedAccountIDs);
+        const selectedIdentifiers = selectedOptions
+            .map((option) => {
+                // For real users (with valid accountID in personalDetails), use accountID
+                if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && personalDetails?.[option.accountID]) {
+                    return option.accountID.toString();
+                }
+                // For name-only attendees, use displayName or login as identifier
+                return option.displayName || option.login;
+            })
+            .filter(Boolean) as string[];
+        onFiltersUpdate(selectedIdentifiers);
 
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [onFiltersUpdate, selectedOptions]);
+    }, [onFiltersUpdate, selectedOptions, personalDetails]);
 
-    // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
+    // This effect handles setting initial selectedOptions based on accountIDs or displayNames saved in onyx form
     useEffect(() => {
         if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
             return;
         }
 
         const preSelectedOptions = initialAccountIDs
-            .map((accountID) => {
-                const participant = personalDetails[accountID];
-                if (!participant) {
-                    return;
+            .map((identifier) => {
+                // First, try to look up as accountID in personalDetails
+                const participant = personalDetails[identifier];
+                if (participant) {
+                    return getSelectedOptionData(participant);
                 }
 
-                return getSelectedOptionData(participant);
+                // If not found in personalDetails, this might be a name-only attendee
+                // Search in recentAttendees by displayName or email
+                const attendee = recentAttendees?.find(
+                    (recentAttendee) => recentAttendee.displayName === identifier || recentAttendee.email === identifier,
+                );
+                if (attendee) {
+                    return getOptionDataFromAttendee(attendee);
+                }
+
+                return undefined;
             })
             .filter((option): option is NonNullable<OptionData> => {
                 return !!option;
@@ -196,16 +281,22 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         setSelectedOptions(preSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
-    }, [initialAccountIDs, personalDetails]);
+    }, [initialAccountIDs, personalDetails, recentAttendees]);
 
     const handleParticipantSelection = useCallback(
         (option: Option) => {
             const foundOptionIndex = selectedOptions.findIndex((selectedOption: Option) => {
-                if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
+                // Match by accountID for real users (excluding DEFAULT_NUMBER_ID which is 0)
+                if (selectedOption.accountID && selectedOption.accountID !== CONST.DEFAULT_NUMBER_ID && selectedOption.accountID === option?.accountID) {
                     return true;
                 }
 
                 if (selectedOption.reportID && selectedOption.reportID === option?.reportID) {
+                    return true;
+                }
+
+                // Match by login for name-only attendees
+                if (selectedOption.login && selectedOption.login === option?.login) {
                     return true;
                 }
 
