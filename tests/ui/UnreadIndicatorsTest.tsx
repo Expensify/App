@@ -763,4 +763,23 @@ describe('Unread Indicators', () => {
         expect(displayNameTexts).toHaveLength(1);
         expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
     });
+
+    it('Mark the last comment as unread should set lastReadTime to the last action’s creation time', async () => {
+        await signInAndGetAppWithUnreadChat();
+        await navigateToSidebarOption(0);
+
+        const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+
+        // When USER_A add a comment
+        addComment(report, REPORT_ID, [], 'Current User Comment', CONST.DEFAULT_TIME_ZONE);
+        await waitForBatchedUpdates();
+
+        // Then USER_A mark the report as unread
+        markCommentAsUnread(REPORT_ID, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID);
+        await waitForBatchedUpdates();
+
+        // Then the lastReadTime of report should same as last action from USER_B
+        const updatedReport = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        expect(updatedReport?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportAction9CreatedDate, 1));
+    });
 });
