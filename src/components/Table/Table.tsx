@@ -179,7 +179,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
 
     // Check if filters are applied (not default values)
     const hasActiveFilters = filters
-        ? (Object.keys(currentFilters) as Array<FilterKey>).some((key) => {
+        ? (Object.keys(currentFilters) as FilterKey[]).some((key) => {
               const filterValue = currentFilters[key];
               const defaultValue = filters[key]?.default;
               return filterValue !== defaultValue;
