@@ -444,7 +444,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         role={policyEmployee.role}
                         owner={policy?.owner}
                         login={details.login}
-                        badgeStyles={[styles.alignSelfEnd]}
                     />
                 ),
                 icons: [
