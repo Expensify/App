@@ -58,7 +58,7 @@ type SelectedTransactionInfo = {
     groupExchangeRate?: number;
 
     /** Whether it is the only expense of the parent expense report */
-    isFromOneTransactionReport?: boolean;
+    isFromOneTransactionReport: boolean;
 
     /** Account ID of the report owner */
     ownerAccountID?: number;
