@@ -71,9 +71,15 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    // Use card from CARD_LIST instead of WORKSPACE_CARDS_LIST so we can access it even after unassignment
-    // this prevents NotFoundPage from being shown briefly in RHP when the card is being unassigned
-    const card = cardList?.[cardID] ?? allBankCards?.[cardID];
+
+    // Prefer feed-scoped card from WORKSPACE_CARDS_LIST to maintain proper access control
+    // Only use CARD_LIST as fallback if card is being unassigned (has pendingAction: DELETE)
+    // This prevents showing cards from other feeds/workspaces via deep links while still
+    // preventing NotHerePage flash during the unassignment flow
+    const feedScopedCard = allBankCards?.[cardID];
+    const globalCard = cardList?.[cardID];
+    const isCardBeingUnassigned = globalCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const card = feedScopedCard ?? (isCardBeingUnassigned ? globalCard : undefined);
 
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
