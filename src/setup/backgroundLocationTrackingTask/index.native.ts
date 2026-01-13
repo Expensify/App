@@ -33,5 +33,7 @@ defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK
         }
     }
 
-    addGpsPoints(data.locations.map((location) => ({lat: location.coords.latitude, long: location.coords.longitude})));
+    const newGpsPoints = data.locations.map((location) => ({lat: location.coords.latitude, long: location.coords.longitude}));
+
+    addGpsPoints(newGpsPoints);
 });

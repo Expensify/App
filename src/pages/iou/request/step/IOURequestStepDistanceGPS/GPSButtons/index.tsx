@@ -1,6 +1,6 @@
-import {hasServicesEnabledAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
+import {startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 import React, {useState} from 'react';
-import {Linking, Platform, View} from 'react-native';
+import {Linking, View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -27,7 +27,6 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const [showDiscardConfirmation, setShowDiscardConfirmation] = useState(false);
     const [showStopConfirmation, setShowStopConfirmation] = useState(false);
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
-    const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
@@ -39,12 +38,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const checkSettingsAndPermissions = async () => {
         setShouldShowStartError(false);
 
-        const hasLocationServicesEnabled = await hasServicesEnabledAsync();
-
-        if (!hasLocationServicesEnabled) {
-            setShowDisabledServicesModal(true);
-            return;
-        }
+        // todo: add location services enabled check here
 
         setStartPermissionsFlow(true);
     };
@@ -160,23 +154,6 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 onConfirm={() => setShowZeroDistanceModal(false)}
                 confirmText={translate('common.buttonConfirm')}
                 prompt={translate('gps.zeroDistanceTripModal.prompt')}
-            />
-            <ConfirmModal
-                title="Enable location services"
-                isVisible={showDisabledServicesModal}
-                onConfirm={() => {
-                    setShowDisabledServicesModal(false);
-                    if (Platform.OS === 'android') {
-                        Linking.sendIntent('android.settings.SETTINGS');
-                    } else {
-                        // cspell:disable-next-line
-                        Linking.openURL('App-Prefs:General');
-                    }
-                }}
-                onCancel={() => setShowDisabledServicesModal(false)}
-                confirmText="Open settings"
-                cancelText="Dismiss"
-                prompt="Please enable location services in your device settings to start GPS distance tracking."
             />
             <ConfirmModal
                 isVisible={showLocationRequiredModal}

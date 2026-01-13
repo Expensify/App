@@ -43,9 +43,7 @@ async function addGpsPoints(gpsPointsToAdd: GpsDraftDetails['gpsPoints']) {
 
     const capturedPoints = gpsDraftDetails?.gpsPoints ?? [];
 
-    const pointsToMeasureDistanceBetween: GPSPoint[] = [capturedPoints.at(-1), ...gpsPointsToAdd].filter((val): val is GPSPoint => {
-        return !!val;
-    });
+    const pointsToMeasureDistanceBetween: GPSPoint[] = [capturedPoints.at(-1), ...gpsPointsToAdd].filter((val): val is GPSPoint => !!val);
 
     let previousPoint: GPSPoint | undefined;
     let distanceToAdd = 0;
@@ -64,13 +62,13 @@ async function addGpsPoints(gpsPointsToAdd: GpsDraftDetails['gpsPoints']) {
 
     const capturedDistance = gpsDraftDetails?.distanceInMeters ?? 0;
 
-    const newDistance = capturedDistance + distanceToAdd;
+    const updatedDistance = capturedDistance + distanceToAdd;
 
-    const newGpsPoints = [...capturedPoints, ...gpsPointsToAdd];
+    const updatedGpsPoints = [...capturedPoints, ...gpsPointsToAdd];
 
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
-        gpsPoints: newGpsPoints,
-        distanceInMeters: newDistance,
+        gpsPoints: updatedGpsPoints,
+        distanceInMeters: updatedDistance,
     });
 }
 
