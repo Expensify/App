@@ -162,7 +162,6 @@ function ParentNavigationSubtitle({
             const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
 
             if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
-                // @TODO: Check this case
                 if (previousRoute.params && 'reportID' in previousRoute.params) {
                     const reportIDFromParams = previousRoute.params.reportID;
 
