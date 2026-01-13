@@ -12,6 +12,7 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     getCardIssuedMessage,
+    getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -2315,6 +2316,78 @@ describe('ReportActionsUtils', () => {
             // Then it should return the routed due to DEW message with the correct "to" value
             const expected = translateLocal('iou.routedDueToDEW', {to});
             expect(actual).toBe(expected);
+        });
+    });
+
+    describe('getCompanyAddressUpdateMessage', () => {
+        it('should return "set" message when setting address for first time', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St',
+                        city: 'San Francisco',
+                        state: 'CA',
+                        zipCode: '94102',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, San Francisco, CA 94102"');
+        });
+
+        it('should return "changed" message when updating existing address', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '456 New Ave',
+                        city: 'Los Angeles',
+                        state: 'CA',
+                        zipCode: '90001',
+                        country: 'US',
+                    },
+                    oldAddress: {
+                        addressStreet: '123 Old St',
+                        city: 'San Francisco',
+                        state: 'CA',
+                        zipCode: '94102',
+                        country: 'US',
+                    },
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('changed the company address to "456 New Ave, Los Angeles, CA 90001" (previously "123 Old St, San Francisco, CA 94102")');
+        });
+        it('should handle address with street2 (newline separated)', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nSuite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+
+            // The new line should be replaced with a comma
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
     });
 
