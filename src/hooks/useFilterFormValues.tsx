@@ -1,6 +1,7 @@
-import {useMemo} from 'react';
+import {useEffect, useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
@@ -28,6 +29,10 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const formValues = queryJSON
         ? buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates)
         : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
+
+    useEffect(() => {
+        updateAdvancedFilters(formValues, true);
+    }, [formValues]);
 
     return formValues;
 };

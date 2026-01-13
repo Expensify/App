@@ -24,7 +24,6 @@ import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
-import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -56,7 +55,6 @@ import {
     search,
     submitMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
-    updateAdvancedFilters,
 } from '@libs/actions/Search';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {setNameValuePair} from '@libs/actions/User';
@@ -218,13 +216,6 @@ function SearchPage({route}: SearchPageProps) {
         formattedAmount: totalFormattedAmount,
         onlyShowPayElsewhere,
     });
-
-    const formValues = useFilterFormValues(queryJSON);
-
-    // Sync the advanced filters form with the current query when it changes
-    useEffect(() => {
-        updateAdvancedFilters(formValues, true);
-    }, [formValues]);
 
     useEffect(() => {
         confirmReadyToOpenApp();
