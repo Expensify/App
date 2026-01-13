@@ -567,6 +567,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
         if (tempPropShouldStopScrollAndJump) {
             selectRow(focusedOption, focusedIndex);
+            return;
         }
         selectRow(focusedOption);
     };
