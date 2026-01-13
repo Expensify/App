@@ -2,7 +2,6 @@ import {PortalHost} from '@gorhom/portal';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -167,7 +166,9 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     // We need to cancel telemetry span when user leaves the screen before full report data is loaded
     useEffect(() => {
-        return () => cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+        return () => {
+            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+        };
     }, [reportID]);
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
@@ -185,7 +186,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     if (isLoadingApp) {
         return (
             <View style={styles.flex1}>
-                <HeaderGap />
                 <ReportHeaderSkeletonView />
                 <ReportActionsSkeletonView />
                 {shouldDisplayReportFooter ? (
@@ -212,7 +212,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 needsOffscreenAlphaCompositing
                 shouldShowErrorMessages={false}
             >
-                <HeaderGap />
                 {reportHeaderView}
             </OfflineWithFeedback>
             <OfflineWithFeedback
