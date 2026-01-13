@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type PublicDomainErrorPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR>;
@@ -40,8 +41,8 @@ function PublicDomainErrorPage({route}: PublicDomainErrorPageProps) {
                     success
                     large
                     style={[styles.w100]}
-                    onPress={() => Navigation.closeRHPFlow()}
-                    text={translate('common.buttonConfirm')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(route.params.backTo))}
+                    text={translate('travel.publicDomainError.buttonText')}
                 />
             </FixedFooter>
         </ScreenWrapper>
