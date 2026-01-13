@@ -60,7 +60,7 @@ function StatusPage() {
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const hasVacationDelegate = !!vacationDelegate?.delegate;
-    const hasActiveDelegations = (vacationDelegate?.delegatorFor?.length ?? 0) > 0;
+    const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
     const vacationDelegatePersonalDetails = getPersonalDetailByEmail(vacationDelegate?.delegate ?? '');
     const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
 
@@ -299,26 +299,29 @@ function StatusPage() {
                     ) : (
                         <View>
                             <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
-                            {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>}
+
                             {hasVacationDelegate ? (
-                                <OfflineWithFeedback
-                                    pendingAction={vacationDelegate?.pendingAction}
-                                    errors={vacationDelegate?.errors}
-                                    errorRowStyles={styles.mh5}
-                                    onClose={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
-                                >
-                                    <MenuItem
-                                        title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
-                                        description={fallbackVacationDelegateLogin}
-                                        avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                        icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
-                                        iconType={CONST.ICON_TYPE_AVATAR}
-                                        numberOfLinesDescription={1}
-                                        shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
-                                        containerStyle={styles.pr2}
-                                    />
-                                </OfflineWithFeedback>
+                                <>
+                                    <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>
+                                    <OfflineWithFeedback
+                                        pendingAction={vacationDelegate?.pendingAction}
+                                        errors={vacationDelegate?.errors}
+                                        errorRowStyles={styles.mh5}
+                                        onClose={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
+                                    >
+                                        <MenuItem
+                                            title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
+                                            description={fallbackVacationDelegateLogin}
+                                            avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                            icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
+                                            iconType={CONST.ICON_TYPE_AVATAR}
+                                            numberOfLinesDescription={1}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                                            containerStyle={styles.pr2}
+                                        />
+                                    </OfflineWithFeedback>
+                                </>
                             ) : (
                                 <View style={[styles.mt1]}>
                                     <MenuItem

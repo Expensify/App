@@ -36,7 +36,7 @@ function VacationDelegatePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
-    const hasActiveDelegations = (vacationDelegate?.delegatorFor?.length ?? 0) > 0;
+    const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const excludeLogins = useMemo(
