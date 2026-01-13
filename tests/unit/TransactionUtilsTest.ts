@@ -1552,4 +1552,27 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
         });
     });
+
+    describe('getConvertedAmount', () => {
+        it('should return the absolute amount if transaction is not from expense report, tracked expense and allowNegative is false', () => {
+            const transaction = generateTransaction({
+                convertedAmount: -100,
+            });
+            expect(TransactionUtils.getConvertedAmount(transaction)).toBe(100);
+        });
+
+        it('should return the opposite sign amount if the transaction is from the expense report and disableOppositeConversion is false', () => {
+            const transaction = generateTransaction({
+                convertedAmount: -100,
+            });
+            expect(TransactionUtils.getConvertedAmount(transaction, true, false, false, false)).toBe(100);
+        });
+
+        it('should return the current converted amount if the transaction is from the expense report and disableOppositeConversion is true', () => {
+            const transaction = generateTransaction({
+                convertedAmount: -100,
+            });
+            expect(TransactionUtils.getConvertedAmount(transaction, true, false, false, true)).toBe(-100);
+        });
+    });
 });

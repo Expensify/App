@@ -1114,7 +1114,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔报销${reportName ? `来自 ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `已移动此报销${reportName ? `到 <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `已移动此报销${reportName ? `来自 <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用从您的<a href="${reportUrl}">个人空间</a>中移出`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此报销移动到你的<a href="${reportUrl}">个人空间</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -5462,6 +5461,20 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `您确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将移除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
+            claimOffer: {
+                badgeText: '优惠可用！',
+                xero: {
+                    headline: '免费使用 Xero 6 个月！',
+                    description: '<muted-text><centered-text>首次使用 Xero？Expensify 客户可免费使用 6 个月。请在下方领取您的优惠。</centered-text></muted-text>',
+                    connectButton: '连接到 Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Uber 乘车享受 5% 折扣',
+                    description: `<muted-text><centered-text>通过 Expensify 激活 Uber for Business，在 6 月之前的所有商务乘车均可享受 5% 折扣。<a href="${CONST.UBER_TERMS_LINK}">适用条款。</a></centered-text></muted-text>`,
+                    connectButton: '连接到 Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -7708,6 +7721,7 @@ ${reportName}
             cantRevokeAdminAccess: '无法撤销技术联系人的管理员访问权限',
             error: {removeAdmin: '无法将此用户移除管理员角色。请重试。'},
         },
+        members: {title: '成员', findMember: '查找成员'},
     },
     gps: {
         tooltip: 'GPS 跟踪进行中！完成后，请在下方停止跟踪。',
@@ -7721,6 +7735,10 @@ ${reportName}
         stopGpsTrackingModal: {title: '停止 GPS 追踪', prompt: '你确定吗？这将结束你当前的旅程。', cancel: '恢复追踪', confirm: '停止 GPS 追踪'},
         discardDistanceTrackingModal: {title: '丢弃距离跟踪', prompt: '您确定吗？这将放弃您当前的流程，且无法撤销。', confirm: '丢弃距离跟踪'},
         zeroDistanceTripModal: {title: '无法创建报销', prompt: '你不能创建起点和终点相同的报销。'},
+
+        locationRequiredModal: {title: '需要访问位置信息', prompt: '请在设备设置中允许位置访问以开始 GPS 距离跟踪。', allow: '允许'},
+        androidBackgroundLocationRequiredModal: {title: '需要后台位置访问权限', prompt: '请在设备设置中允许应用使用“始终允许”位置访问权限，以开始 GPS 距离跟踪。'},
+        preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},
         desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
     },
 };
