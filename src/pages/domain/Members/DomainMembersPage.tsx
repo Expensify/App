@@ -10,6 +10,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -37,7 +38,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             customText={translate('common.more')}
             options={[
                 {
-                    value: 'leave',
+                    value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SETTINGS,
                     text: translate('domain.common.settings'),
                     icon: icons.Gear,
                     onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),

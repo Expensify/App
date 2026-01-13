@@ -1,5 +1,4 @@
-import {technicalContactSettingsSelector} from '@selectors/Domain';
-import {Str} from 'expensify-common';
+import {domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -37,7 +36,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
         canBeMissing: false,
         selector: technicalContactSettingsSelector,
     });
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
 
     return (
         <BaseDomainSettingsPage domainAccountID={domainAccountID}>
@@ -60,15 +59,15 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 isActive={!!technicalContactSettings?.technicalContactEmail && !!technicalContactSettings?.useTechnicalContactBillingCard}
                 disabled={!technicalContactSettings?.technicalContactEmail}
                 onToggle={(value) => {
-                    if (!domain?.email) {
+                    if (!domainName) {
                         return;
                     }
-                    toggleConsolidatedDomainBilling(domainAccountID, Str.extractEmailDomain(domain.email), value);
+                    toggleConsolidatedDomainBilling(domainAccountID, domainName, value);
                 }}
                 title={translate('domain.admins.consolidatedDomainBilling')}
                 subtitle={
                     <View style={[styles.flexRow, styles.renderHTML, styles.mt1]}>
-                        <RenderHTML html={translate('domain.admins.consolidatedDomainBillingDescription', domain?.email ? Str.extractEmailDomain(domain.email) : '')} />
+                        <RenderHTML html={translate('domain.admins.consolidatedDomainBillingDescription', domainName ?? '')} />
                     </View>
                 }
                 shouldPlaceSubtitleBelowSwitch

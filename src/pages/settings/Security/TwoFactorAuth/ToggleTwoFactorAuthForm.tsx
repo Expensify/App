@@ -1,5 +1,5 @@
 import type {Ref} from 'react';
-import React, {useCallback} from 'react';
+import React from 'react';
 import TwoFactorAuthForm from '@components/TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
 import useOnyx from '@hooks/useOnyx';
@@ -29,23 +29,20 @@ function ToggleTwoFactorAuthForm({validateInsteadOfDisable, onFocus, shouldAutoF
     /**
      * Handle text input and clear formError upon text change
      */
-    const clearAccountErrorsIfPresent = useCallback(() => {
+    const clearAccountErrorsIfPresent = () => {
         if (!account?.errors) {
             return;
         }
         clearAccountMessages();
-    }, [account?.errors]);
+    };
 
-    const handleSubmit = useCallback(
-        (code: string) => {
-            if (validateInsteadOfDisable !== false) {
-                validateTwoFactorAuth(code, shouldClearData);
-                return;
-            }
-            toggleTwoFactorAuth(false, code);
-        },
-        [validateInsteadOfDisable, shouldClearData],
-    );
+    const handleSubmit = (code: string) => {
+        if (validateInsteadOfDisable !== false) {
+            validateTwoFactorAuth(code, shouldClearData);
+            return;
+        }
+        toggleTwoFactorAuth(false, code);
+    };
 
     const errorMessage = getLatestErrorMessage(account);
 
