@@ -3,8 +3,7 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
-import type {ReportAction} from '@src/types/onyx';
+import type {ReportAction, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
