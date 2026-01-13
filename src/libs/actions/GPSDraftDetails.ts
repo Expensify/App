@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 import geodesicDistance from '@src/utils/geodesicDistance';
@@ -38,9 +38,7 @@ function setIsTracking(isTracking: boolean) {
 
 type GPSPoint = GpsDraftDetails['gpsPoints'][number];
 
-async function addGpsPoints(gpsPointsToAdd: GpsDraftDetails['gpsPoints']) {
-    const gpsDraftDetails = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
-
+function addGpsPoints(gpsDraftDetails: OnyxEntry<GpsDraftDetails>, gpsPointsToAdd: GpsDraftDetails['gpsPoints']) {
     const capturedPoints = gpsDraftDetails?.gpsPoints ?? [];
 
     const pointsToMeasureDistanceBetween: GPSPoint[] = [capturedPoints.at(-1), ...gpsPointsToAdd].filter((val): val is GPSPoint => !!val);
