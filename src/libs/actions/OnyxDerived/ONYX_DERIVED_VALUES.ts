@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
+import orderedReportsForLHNConfig from './configs/orderedReportsForLHN';
 import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPolicyID';
 import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
@@ -13,6 +14,7 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: reportAttributesConfig,
     [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: reportTransactionsAndViolationsConfig,
     [ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID]: outstandingReportsByPolicyIDConfig,
+    [ONYXKEYS.DERIVED.ORDERED_REPORTS_FOR_LHN]: orderedReportsForLHNConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Key in ValueOf<typeof ONYXKEYS.DERIVED>]: OnyxDerivedValueConfig<Key, any>;

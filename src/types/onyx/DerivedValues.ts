@@ -70,5 +70,34 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
  */
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
+/**
+ * The derived value for ordered reports in the LHN (Left Hand Navigation).
+ */
+type OrderedReportsForLHNDerivedValue = {
+    /**
+     * The reports to display in the LHN.
+     */
+    reportsToDisplay: OnyxCollection<Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
+    /**
+     * The ordered report IDs.
+     */
+    orderedReportIDs: string[];
+    /**
+     * The current report ID.
+     */
+    currentReportID: string | undefined;
+    /**
+     * The locale used for sorting.
+     */
+    locale: string | null;
+};
+
 export default ReportAttributesDerivedValue;
-export type {ReportAttributes, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue, ReportTransactionsAndViolations, OutstandingReportsByPolicyIDDerivedValue};
+export type {
+    ReportAttributes,
+    ReportAttributesDerivedValue,
+    ReportTransactionsAndViolationsDerivedValue,
+    ReportTransactionsAndViolations,
+    OutstandingReportsByPolicyIDDerivedValue,
+    OrderedReportsForLHNDerivedValue,
+};
