@@ -24,14 +24,12 @@ function buildSearchResultsData(
 ): TodoSearchResultsData {
     const data: Record<string, unknown> = {};
 
-    // Add reports
     for (const report of reports) {
         if (!report?.reportID) {
             continue;
         }
         data[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
 
-        // Add the policy for this report
         if (report.policyID && allPolicies) {
             const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`;
             if (allPolicies[policyKey] && !data[policyKey]) {
@@ -39,7 +37,6 @@ function buildSearchResultsData(
             }
         }
 
-        // Add report name value pairs
         if (report.chatReportID && allReportNameValuePairs) {
             const nvpKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`;
             if (allReportNameValuePairs[nvpKey] && !data[nvpKey]) {
@@ -47,7 +44,6 @@ function buildSearchResultsData(
             }
         }
 
-        // Add report actions
         if (allReportActions) {
             const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`;
             if (allReportActions[actionsKey] && !data[actionsKey]) {
@@ -56,14 +52,12 @@ function buildSearchResultsData(
         }
     }
 
-    // Add transactions for these reports
     if (allTransactions) {
         const reportIDs = new Set(reports.map((r) => r.reportID));
         for (const [transactionKey, transaction] of Object.entries(allTransactions)) {
             if (transaction?.reportID && reportIDs.has(transaction.reportID)) {
                 data[transactionKey] = transaction;
 
-                // Add transaction violations
                 if (transactionViolations) {
                     const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
                     if (transactionViolations[violationsKey]) {
@@ -74,7 +68,6 @@ function buildSearchResultsData(
         }
     }
 
-    // Add personal details
     if (personalDetails) {
         data[ONYXKEYS.PERSONAL_DETAILS_LIST] = personalDetails;
     }
@@ -165,7 +158,18 @@ export default function useTodos() {
             [CONST.SEARCH.SEARCH_KEYS.PAY]: buildData(reportsToPay),
             [CONST.SEARCH.SEARCH_KEYS.EXPORT]: buildData(reportsToExport),
         };
-    }, [reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, allTransactions, allPolicies, allReportActions, allReportNameValuePairs, personalDetailsList, allTransactionViolations]);
+    }, [
+        reportsToSubmit,
+        reportsToApprove,
+        reportsToPay,
+        reportsToExport,
+        allTransactions,
+        allPolicies,
+        allReportActions,
+        allReportNameValuePairs,
+        personalDetailsList,
+        allTransactionViolations,
+    ]);
 
     return {
         ...todos,
