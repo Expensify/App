@@ -8,7 +8,6 @@ import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
-import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -24,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setDraftSplitTransaction, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
@@ -71,6 +71,7 @@ function IOURequestStepCategory({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyIdDraft}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const policyData = usePolicyData(policy?.id);
@@ -111,7 +112,7 @@ function IOURequestStepCategory({
 
     useEffect(() => {
         fetchData();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyID]);
 
     const navigateBack = () => {
@@ -134,7 +135,8 @@ function IOURequestStepCategory({
             if (isEditing && report) {
                 updateMoneyRequestCategory({
                     transactionID: transaction.transactionID,
-                    transactionThreadReportID: report.reportID,
+                    transactionThreadReport: report,
+                    parentReport,
                     category: updatedCategory,
                     policy,
                     policyTagList: policyTags,
@@ -220,14 +222,11 @@ function IOURequestStepCategory({
                 </View>
             )}
             {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && (
-                <>
-                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
-                    <CategoryPicker
-                        selectedCategory={categoryForDisplay}
-                        policyID={policyID ?? report?.policyID}
-                        onSubmit={updateCategory}
-                    />
-                </>
+                <CategoryPicker
+                    selectedCategory={categoryForDisplay}
+                    policyID={policyID ?? report?.policyID}
+                    onSubmit={updateCategory}
+                />
             )}
         </StepScreenWrapper>
     );

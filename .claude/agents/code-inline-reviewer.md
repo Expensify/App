@@ -143,31 +143,79 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ---
 
-### [PERF-4] Memoize objects and functions passed as props
+### [PERF-4] Memoize objects (including arrays) and functions passed as props
 
-- **Search patterns**: `useMemo`, `useCallback`, and prop passing patterns
+- **Search patterns**: `prop={{`, `prop={[`, `={() =>`, `prop={variable}` (where variable is non-memoized object/function)
 
-- **Condition**: Objects and functions passed as props should be properly memoized or simplified to primitive values to prevent unnecessary re-renders.
-- **Reasoning**: React uses referential equality to determine if props changed. New object/function instances on every render trigger unnecessary re-renders of child components, even when the actual data hasn't changed. Memoization preserves referential stability.
+- **Applies ONLY to**: Objects (including arrays)/functions passed directly as JSX props. Does NOT apply to:
+  - Code inside callbacks (`.then()`, event handlers)
+  - Code inside `useEffect`/`useMemo`/`useCallback` bodies
+  - Primitives (strings, numbers, booleans)
+  - Already memoized values (`useMemo`/`useCallback`)
 
-Good:
+- **Reasoning**: New object/function references break memoization of child components. Only matters when child IS memoized AND parent is NOT optimized by React Compiler.
 
-```tsx
-const reportData = useMemo(() => ({
-    reportID: report.reportID,
-    type: report.type,
-    isPinned: report.isPinned,
-}), [report.reportID, report.type, report.isPinned]);
+#### Before flagging: Run optimization check
 
-return <ReportActionItem report={reportData} />
+**YOU MUST call `checkReactCompilerOptimization.ts` (available in PATH from `.claude/scripts/`) on EVERY .tsx file from the diff.**
+
+**Call the script ONCE per file, separately. DO NOT use loops or batch processing.**
+
+Example usage:
+```bash
+checkReactCompilerOptimization.ts src/components/File1.tsx
+checkReactCompilerOptimization.ts src/components/File2.tsx
 ```
 
-Bad:
+**NEVER use absolute or relative paths for this script. Call it by name only:**
+- ✅ `checkReactCompilerOptimization.ts src/components/Example.tsx`
+- ❌ `/home/runner/work/App/App/.claude/scripts/checkReactCompilerOptimization.ts ...`
+- ❌ `./.claude/scripts/checkReactCompilerOptimization.ts ...`
 
+**"File not found"** → Assume parent is optimized and skip PERF-4.
+
+#### Decision flow
+
+1. **Parent in `parentOptimized`?** → YES = **Skip** (compiler auto-memoizes)
+
+2. **Child has custom memo comparator that PREVENTS re-render for this prop?**
+   → Use `sourcePath` from script output to read child's source file
+   → Grep for `React.memo` or `memo(`
+   → If custom comparator prevents re-render despite new reference for this prop → **Skip**
+
+3. **Child is memoized?** (`optimized: true` OR `React.memo`)
+   - NO → **Skip** (child re-renders anyway)
+   - YES → **Flag PERF-4**
+
+#### Examples
+
+**Flag** (parent NOT optimized, child IS memoized, no custom comparator):
 ```tsx
-const [report] = useOnyx(`ONYXKEYS.COLLECTION.REPORT${iouReport.id}`);
+// Script output: parentOptimized: [], child MemoizedList optimized: true
+// No custom comparator found
+return <MemoizedList options={{ showHeader: true }} />;
+```
 
-return <ReportActionItem report={report} />
+**Skip - custom comparator** (comparator prevents re-render for this prop):
+```tsx
+// Script output: sourcePath: "src/components/PopoverMenu.tsx"
+// PopoverMenu.tsx has custom memo comparator that handles anchorPosition
+return <PopoverMenu anchorPosition={{x: 0, y: 0}} />;
+```
+
+**Skip - parent optimized**:
+```tsx
+// Script output: parentOptimized: ["MyComponent"]
+// React Compiler auto-memoizes - no manual memoization needed
+return <MemoizedList options={{ showHeader: true }} />;
+```
+
+**Skip - spread props with stable inner values**:
+```tsx
+// Spread is OK when inner values come from memoized sources
+// illustration from useMemoizedLazyIllustrations, illustrationStyle from useThemeStyles
+const illustration = useAboutSectionIllustration();
+return <Section {...illustration} />;
 ```
 
 ---
@@ -197,6 +245,212 @@ memo(ReportActionItem, (prevProps, nextProps) =>
     prevProps.isSelected === nextProps.isSelected
 )
 ```
+
+---
+
+### [PERF-6] Derive state from props
+
+- **Condition**: Flag when useEffect updates state based on props or other state, when the value could be computed directly
+
+- **Reasoning**: Computing derived values directly in the component body ensures they're always synchronized with props/state and avoids unnecessary re-renders.
+
+Good:
+
+```tsx
+function Form() {
+  const [firstName, setFirstName] = useState('Taylor');
+  const [lastName, setLastName] = useState('Swift');
+  
+  // ✅ Good: calculated during rendering
+  const fullName = firstName + ' ' + lastName;
+}
+```
+
+Bad:
+
+```tsx
+function Form() {
+  const [firstName, setFirstName] = useState('Taylor');
+  const [lastName, setLastName] = useState('Swift');
+  
+  // 🔴 Avoid: redundant state and unnecessary Effect
+  const [fullName, setFullName] = useState('');
+  useEffect(() => {
+    setFullName(firstName + ' ' + lastName);
+  }, [firstName, lastName]);
+}
+```
+
+---
+
+### [PERF-7] Control component resets via key prop
+
+- **Condition**: 
+  - Flag when useEffect resets all or most component state when a prop changes
+  - Should use `key` prop instead to reset the entire component
+
+- **Reasoning**: Using `key` prop for full resets is more React-idiomatic. When a prop changes and you need to reset all component state, the `key` prop causes React to unmount and remount the component, automatically resetting all state without needing useEffect.
+
+Good:
+
+```tsx
+function ProfilePage({ userId }) {
+  return <ProfileView key={userId} userId={userId} />;
+}
+
+function ProfileView({ userId }) {
+  const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(0);
+  // Component resets when userId changes due to key prop
+}
+```
+
+Bad:
+
+```tsx
+// 🔴 Avoid: resetting all state with useEffect
+function ProfilePage({ userId }) {
+  return <ProfileView userId={userId} />;
+}
+
+function ProfileView({ userId }) {
+  const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(0);
+  
+  useEffect(() => {
+    setComment(''); // Reset when userId changes
+    setRating(0);
+  }, [userId]);
+}
+```
+
+---
+
+### [PERF-8] Handle events in event handlers
+
+- **Condition**: Flag when useEffect responds to user events that should be handled in event handlers
+
+- **Reasoning**: Event handlers provide immediate response and clearer code flow. useEffect adds unnecessary render cycles and makes the relationship between user action and response less clear.
+
+Good:
+
+```tsx
+function BuyButton({ productId, onBuy }) {
+  function handleClick() {
+    // ✅ Good: handle event directly in event handler
+    onBuy();
+    showNotification('Item purchased!');
+  }
+  
+  return <button onClick={handleClick}>Buy</button>;
+}
+```
+
+Bad:
+
+```tsx
+function BuyButton({ productId, onBuy }) {
+  const [isBuying, setIsBuying] = useState(false);
+  
+  // 🔴 Avoid: handling events in useEffect
+  useEffect(() => {
+    if (isBuying) {
+      onBuy();
+      showNotification('Item purchased!');
+    }
+  }, [isBuying, onBuy]);
+  
+  return <button onClick={() => setIsBuying(true)}>Buy</button>;
+}
+```
+
+---
+
+### [PERF-9] Avoid useEffect chains
+
+- **Condition**: Flag when multiple useEffects form a chain where one effect's state update triggers another effect
+
+- **Reasoning**: Chains of effects create complex dependencies, timing issues, and unnecessary renders. Logic should be restructured to avoid interdependent effects.
+
+Good:
+
+```tsx
+function Form() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  
+  // ✅ Good: compute derived values directly
+  const fullName = firstName + ' ' + lastName;
+  const isValid = firstName.length > 0 && lastName.length > 0;
+  
+  return (
+    <form>
+      <input value={firstName} onChange={e => setFirstName(e.target.value)} />
+      <input value={lastName} onChange={e => setLastName(e.target.value)} />
+      {isValid && <button>Submit</button>}
+    </form>
+  );
+}
+```
+
+Bad:
+
+```tsx
+function Form() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [isValid, setIsValid] = useState(false);
+  
+  // 🔴 Avoid: chain of effects
+  useEffect(() => {
+    setFullName(firstName + ' ' + lastName);
+  }, [firstName, lastName]);
+  
+  useEffect(() => {
+    setIsValid(fullName.length > 0);
+  }, [fullName]);
+}
+```
+
+---
+
+### [PERF-10] Communicate with parent components without useEffect
+
+- **Condition**: Flag when useEffect calls parent callbacks to communicate state changes or pass data to parent components
+
+- **Reasoning**: Parent-child communication should not use useEffect. Instead, lift the state up to the parent component and pass it down as props. This follows React's unidirectional data flow pattern, eliminates synchronization issues, reduces unnecessary renders, and makes the data flow clearer. Use useEffect only when synchronizing with external systems, not for parent-child communication.
+
+Good:
+
+```tsx
+// Lifting state up
+function Parent() {
+  const [value, setValue] = useState('');
+  return <Child value={value} onChange={setValue} />;
+}
+
+function Child({ value, onChange }) {
+  return <input value={value} onChange={e => onChange(e.target.value)} />;
+}
+```
+
+Bad:
+
+```tsx
+// 🔴 Avoid: passing data via useEffect
+function Child({ onValueChange }) {
+  const [value, setValue] = useState('');
+  
+  useEffect(() => {
+    onValueChange(value);
+  }, [value, onValueChange]);
+  
+  return <input value={value} onChange={e => setValue(e.target.value)} />;
+}
+```
+
+---
 
 ## Instructions
 

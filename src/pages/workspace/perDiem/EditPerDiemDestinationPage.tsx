@@ -49,7 +49,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
             if (!destinationTrimmed) {
                 errors.destination = translate('common.error.fieldRequired');
             } else if (destinationTrimmed.length > CONST.MAX_LENGTH_256) {
-                errors.destination = translate('common.error.characterLimitExceedCounter', {length: destinationTrimmed.length, limit: CONST.MAX_LENGTH_256});
+                errors.destination = translate('common.error.characterLimitExceedCounter', destinationTrimmed.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;
@@ -96,9 +96,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.pb4}>
-                        <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>
-                            {translate('workspace.perDiem.editDestinationSubtitle', {destination: selectedRate?.name ?? ''})}
-                        </Text>
+                        <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.perDiem.editDestinationSubtitle', selectedRate?.name ?? '')}</Text>
                     </View>
                     <InputWrapper
                         ref={inputCallbackRef}

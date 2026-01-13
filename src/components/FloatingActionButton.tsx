@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Icon from './Icon';
 import {PlusCircle} from './Icon/Expensicons';
 import {PressableWithFeedback, PressableWithoutFeedback} from './Pressable';
@@ -24,7 +25,7 @@ const SMALL_FAB_PATH =
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-type FloatingActionButtonProps = {
+type FloatingActionButtonProps = WithSentryLabel & {
     /* Callback to fire on request to toggle the FloatingActionButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
@@ -44,7 +45,7 @@ type FloatingActionButtonProps = {
     ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
 };
 
-function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref}: FloatingActionButtonProps) {
+function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
     const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -116,6 +117,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                     role={role}
                     shouldUseHapticsOnLongPress
                     testID="floating-action-button"
+                    sentryLabel={sentryLabel}
                 >
                     {({hovered}) => {
                         isHovered.set(hovered);
@@ -156,6 +158,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 styles.flex1,
             ]}
             testID="create-action-button"
+            sentryLabel={sentryLabel}
         >
             <View
                 testID="fab-container"

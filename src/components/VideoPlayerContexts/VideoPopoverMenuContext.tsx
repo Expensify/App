@@ -35,14 +35,13 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (typeof source === 'number' || !source) {
             return;
         }
-        fileDownload(addEncryptedAuthTokenToURL(source));
-    }, [source]);
+        fileDownload(translate, addEncryptedAuthTokenToURL(source));
+    }, [source, translate]);
 
     const menuItems = useMemo(() => {
         const items: PopoverMenuItem[] = [];
 
         if (!isOffline && !isLocalFile) {
-            // eslint-disable-next-line react-compiler/react-compiler
             items.push({
                 icon: icons.Download,
                 text: translate('common.download'),

@@ -116,13 +116,18 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                     });
                                 },
                                 hasDependentTags,
+                                translate,
                             );
                         } else {
-                            downloadTagsCSV(policyID, () => {
-                                close(() => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
-                            });
+                            downloadTagsCSV(
+                                policyID,
+                                () => {
+                                    close(() => {
+                                        setIsDownloadFailureModalVisible(true);
+                                    });
+                                },
+                                translate,
+                            );
                         }
                     }}
                 >
@@ -148,13 +153,18 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                 });
                             },
                             hasDependentTags,
+                            translate,
                         );
                     } else {
-                        downloadTagsCSV(policyID, () => {
-                            close(() => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
-                        });
+                        downloadTagsCSV(
+                            policyID,
+                            () => {
+                                close(() => {
+                                    setIsDownloadFailureModalVisible(true);
+                                });
+                            },
+                            translate,
+                        );
                     }
                 }}
             >
@@ -191,7 +201,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         shouldShowRightIcon
                         onPress={() => {
                             setImportedSpreadsheetIsImportingMultiLevelTags(false);
-                            if (hasVisibleTags) {
+                            if (hasVisibleTags && isMultiLevelTags) {
                                 setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
                             } else {
                                 Navigation.navigate(

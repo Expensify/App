@@ -8,8 +8,6 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -54,7 +52,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
-import {setIssueNewCardStepAndData} from '@userActions/Card';
 import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,11 +68,15 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
     WorkspacePolicyOnyxProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
+function isNameValuePairsObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info', 'Transfer']);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -104,7 +105,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = useMemo(() => personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails), [personalDetails, policy?.ownerAccountID]);
     const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
     const hasMultipleFeeds = Object.keys(getCompanyFeeds(cardFeeds, false, true)).length > 0;
-    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
+    const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const isReimburser = policy?.achAccount?.reimburser === memberLogin;
@@ -255,38 +256,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             Navigation.navigate(
                 ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
                     policyID,
-                    card.cardID.toString(),
                     getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID),
+                    card.cardID.toString(),
                     Navigation.getActiveRoute(),
                 ),
             );
         },
         [policyID],
     );
-
-    const handleIssueNewCard = useCallback(() => {
-        if (isAccountLocked) {
-            showLockedAccountModal();
-            return;
-        }
-
-        if (hasMultipleFeeds) {
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_NEW_CARD.getRoute(policyID, accountID));
-            return;
-        }
-        const activeRoute = Navigation.getActiveRoute();
-
-        setIssueNewCardStepAndData({
-            step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
-            data: {
-                assigneeEmail: memberLogin,
-            },
-            isEditing: false,
-            isChangeAssigneeDisabled: true,
-            policyID,
-        });
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
-    }, [accountID, hasMultipleFeeds, memberLogin, policyID, isAccountLocked, showLockedAccountModal]);
 
     const startChangeOwnershipFlow = useCallback(() => {
         clearWorkspaceOwnerChangeFlow(policyID);
@@ -343,7 +320,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     <ButtonDisabledWhenOffline
                                         text={translate('workspace.people.transferOwner')}
                                         onPress={startChangeOwnershipFlow}
-                                        icon={Expensicons.Transfer}
+                                        icon={icons.Transfer}
                                         style={styles.mb5}
                                     />
                                 )
@@ -422,31 +399,36 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             />
                             {shouldShowCardsSection && (
                                 <>
-                                    <View style={[styles.ph5, styles.pv3]}>
-                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
-                                            {translate('walletPage.assignedCards')}
-                                        </Text>
-                                    </View>
+                                    {memberCards.length > 0 && (
+                                        <View style={[styles.ph5, styles.pv3]}>
+                                            <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                                {translate('walletPage.assignedCards')}
+                                            </Text>
+                                        </View>
+                                    )}
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                         const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);
+                                        const nameValuePairs = isNameValuePairsObject(memberCard.nameValuePairs) ? memberCard.nameValuePairs : null;
+                                        const unapprovedExpenseLimit = nameValuePairs?.unapprovedExpenseLimit;
+                                        const cardTitle = nameValuePairs?.cardTitle;
 
                                         return (
                                             <OfflineWithFeedback
-                                                key={`${memberCard.nameValuePairs?.cardTitle}_${memberCard.cardID}`}
+                                                key={`${cardTitle ?? ''}_${memberCard.cardID}`}
                                                 errorRowStyles={styles.ph5}
                                                 errors={memberCard.errors}
                                                 pendingAction={memberCard.pendingAction}
                                             >
                                                 <MenuItem
                                                     key={memberCard.cardID}
-                                                    title={
-                                                        memberCard.nameValuePairs?.cardTitle ??
-                                                        customCardNames?.[memberCard.cardID] ??
-                                                        maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)
-                                                    }
+                                                    title={cardTitle ?? customCardNames?.[memberCard.cardID] ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
-                                                    badgeText={memberCard.bank === CONST.EXPENSIFY_CARD.BANK ? convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit) : ''}
+                                                    badgeText={
+                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK && unapprovedExpenseLimit !== undefined
+                                                            ? convertToDisplayString(unapprovedExpenseLimit)
+                                                            : ''
+                                                    }
                                                     icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
                                                     plaidUrl={plaidUrl}
                                                     displayInDefaultIconColor
@@ -463,11 +445,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             </OfflineWithFeedback>
                                         );
                                     })}
-                                    <MenuItem
-                                        title={translate('workspace.expensifyCard.newCard')}
-                                        icon={Expensicons.Plus}
-                                        onPress={handleIssueNewCard}
-                                    />
                                 </>
                             )}
                         </View>

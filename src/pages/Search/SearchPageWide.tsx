@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
@@ -88,7 +89,6 @@ function SearchPageWide({
             <ScreenWrapper
                 testID="Search"
                 shouldEnableMaxHeight
-                headerGapStyles={[styles.searchHeaderGap, styles.h0]}
                 shouldShowOfflineIndicatorInWideScreen={!!searchResults}
                 offlineIndicatorStyle={offlineIndicatorStyle}
             >
@@ -99,7 +99,7 @@ function SearchPageWide({
                     shouldShowLink={false}
                 >
                     {!!queryJSON && (
-                        <>
+                        <DragAndDropProvider>
                             {PDFValidationComponent}
                             <SearchPageHeader
                                 queryJSON={queryJSON}
@@ -142,7 +142,7 @@ function SearchPageWide({
                                     dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                                 />
                             </DragAndDropConsumer>
-                        </>
+                        </DragAndDropProvider>
                     )}
                 </FullPageNotFoundView>
             </ScreenWrapper>

@@ -9,7 +9,7 @@ import Icon from '@components/Icon';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -149,6 +149,7 @@ function HeaderWithBackButton({
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
+                        sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
                     >
                         <Icon
                             src={threeDotsMenuItems.at(0)?.icon as React.FC<SvgProps>}
@@ -167,6 +168,7 @@ function HeaderWithBackButton({
                     shouldOverlay={shouldOverlayDots}
                     anchorAlignment={threeDotsAnchorAlignment}
                     shouldSetModalVisibility={shouldSetModalVisibility}
+                    sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                 />
             );
         }
@@ -188,9 +190,6 @@ function HeaderWithBackButton({
 
     return (
         <View
-            // Hover on some part of close icons will not work on Electron if dragArea is true
-            // https://github.com/Expensify/App/issues/29598
-            dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
                 shouldUseHeadlineHeader && styles.headerBarHeight,
@@ -222,6 +221,7 @@ function HeaderWithBackButton({
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
                             id={CONST.BACK_BUTTON_NATIVE_ID}
+                            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
                         >
                             <Icon
                                 src={icons.BackArrow}
@@ -271,6 +271,7 @@ function HeaderWithBackButton({
                                         style={[styles.touchableButtonImage]}
                                         role="button"
                                         accessibilityLabel={translate('common.download')}
+                                        sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
                                     >
                                         <Icon
                                             src={icons.Download}
@@ -309,6 +310,7 @@ function HeaderWithBackButton({
                                 style={[styles.touchableButtonImage]}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.CLOSE_BUTTON}
                             >
                                 <Icon
                                     src={icons.Close}
@@ -318,7 +320,7 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
-                {shouldDisplayHelpButton && <HelpButton />}
+                {shouldDisplayHelpButton && <SidePanelButton />}
                 {shouldDisplaySearchRouter && <SearchButton />}
             </View>
         </View>
