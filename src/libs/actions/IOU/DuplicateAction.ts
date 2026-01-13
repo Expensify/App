@@ -25,12 +25,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {CreateTrackExpenseParams, RequestMoneyInformation} from '.';
-import {getCleanUpTransactionThreadReportOnyxData} from '.';
 import {
     getAllReportActionsFromIOU,
     getAllReports,
     getAllTransactions,
     getAllTransactionViolations,
+    getCleanUpTransactionThreadReportOnyxData,
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
     getUserAccountID,
