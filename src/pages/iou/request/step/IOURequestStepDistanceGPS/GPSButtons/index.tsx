@@ -1,6 +1,6 @@
-import {startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
+import {hasServicesEnabledAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 import React, {useState} from 'react';
-import {Linking, View} from 'react-native';
+import {Linking, Platform, View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -27,6 +27,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const [showDiscardConfirmation, setShowDiscardConfirmation] = useState(false);
     const [showStopConfirmation, setShowStopConfirmation] = useState(false);
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
+    const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
@@ -38,7 +39,12 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const checkSettingsAndPermissions = async () => {
         setShouldShowStartError(false);
 
-        // todo: add location services enabled check here
+        const hasLocationServicesEnabled = await hasServicesEnabledAsync();
+
+        if (!hasLocationServicesEnabled) {
+            setShowDisabledServicesModal(true);
+            return;
+        }
 
         setStartPermissionsFlow(true);
     };
@@ -86,6 +92,16 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
         }
 
         navigateToNextStep();
+    };
+
+    const openSettingsForLocationServices = () => {
+        setShowDisabledServicesModal(false);
+        if (Platform.OS === 'android') {
+            Linking.sendIntent('android.settings.SETTINGS');
+        } else {
+            // cspell:disable-next-line
+            Linking.openURL('App-Prefs:General');
+        }
     };
 
     return (
@@ -183,6 +199,15 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 iconHeight={120}
                 shouldCenterIcon
                 shouldReverseStackedButtons
+            />
+            <ConfirmModal
+                title={translate('gps.locationServicesRequiredModal.title')}
+                isVisible={showDisabledServicesModal}
+                onConfirm={openSettingsForLocationServices}
+                onCancel={() => setShowDisabledServicesModal(false)}
+                confirmText={translate('gps.locationServicesRequiredModal.confirm')}
+                cancelText={translate('common.dismiss')}
+                prompt={translate('gps.locationServicesRequiredModal.prompt')}
             />
         </>
     );
