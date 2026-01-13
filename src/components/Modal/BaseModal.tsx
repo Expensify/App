@@ -163,7 +163,7 @@ function BaseModal({
             }
             hideModalCallbackRef.current?.(true);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
@@ -323,7 +323,7 @@ function BaseModal({
                         // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
                         onClick={(e) => e.stopPropagation()}
                         onBackdropPress={handleBackdropPress}
-                        // Note: Escape key on web/desktop will trigger onBackButtonPress callback
+                        // Note: Escape key on web will trigger onBackButtonPress callback
                         onBackButtonPress={closeTop}
                         onModalShow={handleShowModal}
                         onModalHide={hideModal}
