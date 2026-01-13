@@ -701,6 +701,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         />
                     }
                     description={translate('threads.from')}
+                    descriptionTextStyle={[styles.mutedNormalTextLabel, styles.mb1]}
                     shouldCheckActionAllowedOnPress={false}
                 />
             )}
@@ -787,6 +788,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     interactive={false}
                     titleComponent={nameSectionFurtherDetailsContent}
                     description={translate('common.from')}
+                    descriptionTextStyle={[styles.mutedNormalTextLabel, styles.mb1]}
                 />
             </View>
         </OfflineWithFeedback>
