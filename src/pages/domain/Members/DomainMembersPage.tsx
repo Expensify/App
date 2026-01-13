@@ -56,7 +56,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             headerTitle={translate('domain.members.title')}
             headerContent={headerContent}
             searchPlaceholder={translate('domain.members.findMember')}
-            onSelectRow={() => {}}
+            onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
             headerIcon={illustrations.Profile}
         />
     );
