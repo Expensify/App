@@ -80,14 +80,8 @@ function ExpenseReportListItemRow({
         // Check if all transactions are scanning
         const allScanning = item.transactions.every((transaction) => isTransactionScanning(transaction as Parameters<typeof isTransactionScanning>[0]));
 
-        // Check if any transaction has a non-zero amount (not scanning or has amount)
-        const hasTransactionWithAmount = item.transactions.some((transaction) => {
-            const amount = transaction.modifiedAmount ?? transaction.amount ?? 0;
-            return amount !== 0;
-        });
-
-        // Show "Scanning..." only if all are scanning AND none have amounts
-        return allScanning && !hasTransactionWithAmount;
+        // Show "Scanning..." only if all are scanning
+        return allScanning;
     })();
 
     const columnComponents = {
