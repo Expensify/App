@@ -4819,19 +4819,31 @@ function updateMoneyRequestDate({
 }
 
 /** Updates the billable field of an expense */
-function updateMoneyRequestBillable(
-    transactionID: string | undefined,
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
-    parentReport: OnyxEntry<OnyxTypes.Report>,
-    value: boolean,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    isASAPSubmitBetaEnabled: boolean,
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
-) {
+function updateMoneyRequestBillable({
+    transactionID,
+    transactionThreadReport,
+    parentReport,
+    value,
+    policy,
+    policyTagList,
+    policyCategories,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    isASAPSubmitBetaEnabled,
+    parentReportNextStep,
+}: {
+    transactionID: string | undefined;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+    value: boolean;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    isASAPSubmitBetaEnabled: boolean;
+    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+}) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
     }

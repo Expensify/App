@@ -412,11 +412,11 @@ function MoneyRequestView({
         if (newBillable === getBillable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
             return;
         }
-        updateMoneyRequestBillable(
-            transaction.transactionID,
+        updateMoneyRequestBillable({
+            transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
-            newBillable,
+            value: newBillable,
             policy,
             policyTagList,
             policyCategories,
@@ -424,7 +424,7 @@ function MoneyRequestView({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
-        );
+        });
     };
 
     const saveReimbursable = (newReimbursable: boolean) => {
