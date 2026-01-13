@@ -198,7 +198,16 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            setWorkspaceCategoryEnabled(policyData.current, categoriesToUpdate, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined);
+            setWorkspaceCategoryEnabled({
+                policyData: policyData.current,
+                categoriesToUpdate,
+                isSetupCategoriesTaskParentReportArchived: false,
+                setupCategoryTaskReport: undefined,
+                setupCategoryTaskParentReport: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                hasOutstandingChildTask: false,
+                parentReportAction: undefined,
+            });
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
