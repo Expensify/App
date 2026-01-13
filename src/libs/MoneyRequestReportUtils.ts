@@ -19,7 +19,7 @@ import {
 import {getReimbursable, isTransactionPendingDelete} from './TransactionUtils';
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
-    return !!policy && policy.disabledFields?.defaultBillable !== true;
+    return !!policy && policy.disabledFields?.defaultBillable === false;
 }
 
 function hasNonReimbursableTransactions(transactions: Transaction[]): boolean {

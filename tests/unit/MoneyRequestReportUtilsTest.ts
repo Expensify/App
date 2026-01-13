@@ -149,13 +149,18 @@ describe('MoneyRequestReportUtils', () => {
             expect(isBillableEnabledOnPolicy(undefined)).toBe(false);
         });
 
-        test('returns true when defaultBillable is not disabled', () => {
+        test('returns true when defaultBillable is enabled', () => {
             const policy = {disabledFields: {defaultBillable: false}} as unknown as Policy;
             expect(isBillableEnabledOnPolicy(policy)).toBe(true);
         });
 
         test('returns false when defaultBillable is disabled', () => {
             const policy = {disabledFields: {defaultBillable: true}} as unknown as Policy;
+            expect(isBillableEnabledOnPolicy(policy)).toBe(false);
+        });
+
+        test('returns false when defaultBillable is missing', () => {
+            const policy = {disabledFields: {}} as unknown as Policy;
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
         });
     });
