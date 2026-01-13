@@ -1,6 +1,5 @@
-import {createPoliciesSelector} from '@selectors/Policy';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -25,7 +24,7 @@ import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -48,10 +47,6 @@ type Props = {
     createReport?: () => void;
     isPerDiemRequest: boolean;
 };
-
-const policyIdSelector = (policy: OnyxEntry<Policy>) => policy?.id;
-
-const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policyIdSelector);
 
 function IOURequestEditReportCommon({
     backTo,
