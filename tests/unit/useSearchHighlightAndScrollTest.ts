@@ -258,7 +258,9 @@ describe('useSearchHighlightAndScroll', () => {
     });
 
     it('should return new search result keys for manually highlighted expenses', async () => {
-        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/TransactionUtils'), 'mergeTransactionIdsHighlightOnSearchRoute').mockImplementationOnce(jest.fn());
+        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest
+            .spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute')
+            .mockImplementationOnce(jest.fn());
 
         await Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[baseProps.queryJSON.type]: {'3': true}});
 
