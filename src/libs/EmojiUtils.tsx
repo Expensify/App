@@ -666,15 +666,19 @@ function containsOnlyCustomEmoji(text?: string): boolean {
 /**
  * Insert ZWNJ (Zero-Width Non-Joiner) between digits/symbols and emojis to prevent Safari's automatic keycap sequence bug.
  * Safari converts digits/symbols (#, *, 0-9) immediately followed by emojis into Unicode keycap sequences (e.g., "*😄" → "*️⃣").
- * Adding two spaces before * and # when they come after emojis prevents corruption.
+ * Adding a space before * and # when they come after emojis prevents corruption.
  */
 function insertZWNJBetweenDigitAndEmoji(input: string): string {
     if (!isSafari()) {
         return input;
     }
 
-    let result = input.replaceAll(/([\d#*])\uFE0F?\u20E3/gu, '$1');
-    result = result.replaceAll(/([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF]) ?([#*])/gu, '$1  $2');
+    // Fix corrupted keycaps that Safari created (keycap followed by emoji indicates corruption)
+    // Only fix keycaps that are immediately followed by another emoji, preserving legitimate standalone keycaps
+    let result = input.replaceAll(/([\d#*])\uFE0F?\u20E3([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu, '$1\u200C$2');
+    // Ensure exactly one space before * and # when they come after emojis (normalize multiple spaces to one)
+    result = result.replaceAll(/([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])\s*([#*])/gu, '$1 $2');
+    // Insert ZWNJ between digit/symbol and emoji (the main fix to prevent corruption)
     result = result.replaceAll(CONST.REGEX.DIGIT_OR_SYMBOL_FOLLOWED_BY_EMOJI, '$1\u200C$2');
 
     return result;

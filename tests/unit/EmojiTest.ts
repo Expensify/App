@@ -455,8 +455,8 @@ describe('EmojiTest', () => {
             const input = '1😄 #🚀 *👍';
             // When we process it with insertZWNJBetweenDigitAndEmoji
             const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
-            // Then ZWNJ should be inserted for each digit/symbol-emoji pair, and two spaces before # and * when they come after emojis
-            expect(result).toBe(`1${ZWNJ}😄  #${ZWNJ}🚀  *${ZWNJ}👍`);
+            // Then ZWNJ should be inserted for each digit/symbol-emoji pair, and one space before # and * when they come after emojis
+            expect(result).toBe(`1${ZWNJ}😄 #${ZWNJ}🚀 *${ZWNJ}👍`);
         });
 
         it('should handle consecutive symbol-emoji pairs (# and *)', () => {
@@ -464,8 +464,8 @@ describe('EmojiTest', () => {
             const input = '#😄*🚀';
             // When we process it with insertZWNJBetweenDigitAndEmoji
             const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
-            // Then ZWNJ should be inserted for each pair, and two spaces before * when it comes after an emoji
-            expect(result).toBe(`#${ZWNJ}😄  *${ZWNJ}🚀`);
+            // Then ZWNJ should be inserted for each pair, and one space before * when it comes after an emoji
+            expect(result).toBe(`#${ZWNJ}😄 *${ZWNJ}🚀`);
         });
 
         it('should not modify text with space between symbol (# or *) and emoji', () => {
@@ -485,14 +485,14 @@ describe('EmojiTest', () => {
             expect(result.includes(ZWNJ)).toBe(false);
         });
 
-        it('should add two spaces before asterisk when asterisk comes after emoji', () => {
+        it('should add one space before asterisk when asterisk comes after emoji', () => {
             // Given an emoji followed by asterisk (common mobile Safari issue)
             // Scenario: User types "#😄" then "*" - Safari may corrupt the *
             const input = '#😄*';
             // When we process it
             const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
-            // Then two spaces should be added before asterisk, and ZWNJ between # and emoji
-            expect(result).toBe(`#${ZWNJ}😄  *`);
+            // Then one space should be added before asterisk, and ZWNJ between # and emoji
+            expect(result).toBe(`#${ZWNJ}😄 *`);
         });
 
         it('should handle emoji followed by asterisk then emoji', () => {
@@ -500,17 +500,17 @@ describe('EmojiTest', () => {
             const input = '#😄*😀';
             // When we process it
             const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
-            // Then two spaces should be added before *, and ZWNJ between # and first emoji, and between * and second emoji
-            expect(result).toBe(`#${ZWNJ}😄  *${ZWNJ}😀`);
+            // Then one space should be added before *, and ZWNJ between # and first emoji, and between * and second emoji
+            expect(result).toBe(`#${ZWNJ}😄 *${ZWNJ}😀`);
         });
 
-        it('should add two spaces before hash symbol when hash comes after emoji', () => {
+        it('should add one space before hash symbol when hash comes after emoji', () => {
             // Given an emoji followed by hash symbol
             const input = '😄#';
             // When we process it
             const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
-            // Then two spaces should be added before hash
-            expect(result).toBe(`😄  #`);
+            // Then one space should be added before hash
+            expect(result).toBe(`😄 #`);
         });
 
         it('should fix corrupted keycap sequence followed by emoji', () => {
@@ -532,8 +532,8 @@ describe('EmojiTest', () => {
             // When we process it
             const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
 
-            // Then ZWNJ should be inserted between symbols and emojis, and two spaces before * (even if one space already exists)
-            expect(result).toBe(`#${ZWNJ}😃  *${ZWNJ}😄`);
+            // Then ZWNJ should be inserted between symbols and emojis, and one space before * (normalized from existing space)
+            expect(result).toBe(`#${ZWNJ}😃 *${ZWNJ}😄`);
         });
 
         it('should fix corrupted keycap in text with spaces', () => {
@@ -543,30 +543,33 @@ describe('EmojiTest', () => {
             // When we process it
             const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
 
-            // Then corrupted keycap should be fixed to "*\u200C😄" (keycap removed, ZWNJ added), and two spaces before * when it comes after an emoji
-            expect(result).toBe(`#${ZWNJ}😃  *${ZWNJ}😄`);
+            // Then corrupted keycap should be fixed to "*\u200C😄" (keycap removed, ZWNJ added), and one space before * when it comes after an emoji
+            expect(result).toBe(`#${ZWNJ}😃 *${ZWNJ}😄`);
         });
 
-        it('should ensure two spaces before symbol even if one space already exists', () => {
-            // Given emoji followed by one space then symbol (like "#😄 *")
-            const input = '#😄 *';
+        it('should normalize to one space before symbol even if multiple spaces exist', () => {
+            // Given emoji followed by one or more spaces then symbol (like "#😄 *" or "#😄  *")
+            const inputOneSpace = '#😄 *';
+            const inputTwoSpaces = '#😄  *';
 
             // When we process it
-            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            const resultOneSpace = EmojiUtils.insertZWNJBetweenDigitAndEmoji(inputOneSpace);
+            const resultTwoSpaces = EmojiUtils.insertZWNJBetweenDigitAndEmoji(inputTwoSpaces);
 
-            // Then two spaces should be ensured before the symbol
-            expect(result).toBe(`#${ZWNJ}😄  *`);
+            // Then exactly one space should be ensured before the symbol in both cases
+            expect(resultOneSpace).toBe(`#${ZWNJ}😄 *`);
+            expect(resultTwoSpaces).toBe(`#${ZWNJ}😄 *`);
         });
 
-        it('should fix corrupted keycap sequences first', () => {
-            // Given corrupted keycap sequence (like "*️⃣")
+        it('should preserve legitimate standalone keycap emojis', () => {
+            // Given a legitimate standalone keycap emoji (like "*️⃣")
             const input = '*\uFE0F\u20E3';
 
             // When we process it
             const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
 
-            // Then corrupted keycap should be fixed to just the base character
-            expect(result).toBe('*');
+            // Then the keycap should be preserved (not removed) since it's not followed by another emoji
+            expect(result).toBe('*\uFE0F\u20E3');
         });
     });
 });
