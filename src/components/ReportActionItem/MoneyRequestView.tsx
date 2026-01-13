@@ -272,6 +272,7 @@ function MoneyRequestView({
         tag: transactionTag,
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
+        convertedAmount: transactionConvertedAmount,
     } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {};
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -413,7 +414,8 @@ function MoneyRequestView({
         }
         updateMoneyRequestBillable(
             transaction.transactionID,
-            transactionThreadReport?.reportID,
+            transactionThreadReport,
+            parentReport,
             newBillable,
             policy,
             policyTagList,
@@ -431,7 +433,8 @@ function MoneyRequestView({
         }
         updateMoneyRequestReimbursable(
             transaction.transactionID,
-            transactionThreadReport?.reportID,
+            transactionThreadReport,
+            parentReport,
             newReimbursable,
             policy,
             policyTagList,
@@ -461,6 +464,11 @@ function MoneyRequestView({
     }
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
+    }
+    if (currency !== moneyRequestReport?.currency && !isManagedCardTransaction && transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+        if (transactionConvertedAmount) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
+        }
     }
 
     if (isFromMergeTransaction) {
