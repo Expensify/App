@@ -781,6 +781,14 @@ function getUpdatedTransaction({
         updatedTransaction.modifiedCurrency = updatedCurrency;
     }
 
+    if (Object.hasOwn(transactionChanges, 'odometerStart') && typeof transactionChanges.odometerStart === 'number') {
+        lodashSet(updatedTransaction, 'comment.odometerStart', transactionChanges.odometerStart);
+    }
+
+    if (Object.hasOwn(transactionChanges, 'odometerEnd') && typeof transactionChanges.odometerEnd === 'number') {
+        lodashSet(updatedTransaction, 'comment.odometerEnd', transactionChanges.odometerEnd);
+    }
+
     updatedTransaction.pendingFields = {
         ...(updatedTransaction?.pendingFields ?? {}),
         ...(Object.hasOwn(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
