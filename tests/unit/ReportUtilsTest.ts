@@ -440,6 +440,7 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
             expect(title).toHaveBeenCalledWith(
@@ -469,6 +470,7 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
             expect(description).toHaveBeenCalledWith(
@@ -489,6 +491,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 selectedInterestedFeatures: ['categories', 'accounting', 'tags'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
@@ -505,6 +508,7 @@ describe('ReportUtils', () => {
                     tasks: [],
                 },
                 adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -516,6 +520,42 @@ describe('ReportUtils', () => {
             expect(setupSpecialistDetail?.avatar).toContain('images/avatars/');
 
             mergeSpy.mockRestore();
+        });
+
+        it('passes MICRO company size to onboarding task parameters', () => {
+            const title = jest.fn();
+            const description = jest.fn();
+
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE,
+                            title,
+                            description,
+                            autoCompleted: false,
+                            mediaAttributes: {},
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+
+            expect(title).toHaveBeenCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                }),
+            );
+
+            expect(description).toHaveBeenCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                }),
+            );
         });
     });
 

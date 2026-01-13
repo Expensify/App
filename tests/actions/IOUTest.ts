@@ -22,7 +22,6 @@ import {
     completeSplitBill,
     createDistanceRequest,
     deleteMoneyRequest,
-    duplicateExpenseTransaction,
     evenlyDistributeSplitExpenseAmounts,
     getIOUReportActionToApproveOrPay,
     getPerDiemExpenseInformation,
@@ -31,13 +30,11 @@ import {
     initMoneyRequest,
     initSplitExpense,
     markRejectViolationAsResolved,
-    mergeDuplicates,
     payMoneyRequest,
     putOnHold,
     rejectMoneyRequest,
     replaceReceipt,
     requestMoney,
-    resolveDuplicates,
     retractReport,
     setDraftSplitTransaction,
     setMoneyRequestCategory,
@@ -90,7 +87,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OriginalMessageIOU, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant, Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -5127,7 +5124,8 @@ describe('actions/IOU', () => {
                 updateMoneyRequestAmountAndCurrency({
                     transactionID: transaction.transactionID,
                     transactions: {},
-                    transactionThreadReportID: thread.reportID,
+                    transactionThreadReport: thread,
+                    parentReport: iouReport,
                     transactionViolations: {},
                     amount: 20000,
                     currency: CONST.CURRENCY.USD,
@@ -6467,79 +6465,6 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('resolveDuplicate', () => {
-        test('Resolving duplicates of two transaction by keeping one of them should properly set the other one on hold even if the transaction thread reports do not exist in onyx', () => {
-            // Given two duplicate transactions
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const transaction1 = buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'USD',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const transaction2 = buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'USD',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const transactionCollectionDataSet: TransactionCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-            };
-            const iouActions: ReportAction[] = [];
-            for (const transaction of [transaction1, transaction2]) {
-                iouActions.push(
-                    buildOptimisticIOUReportAction({
-                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        amount: transaction.amount,
-                        currency: transaction.currency,
-                        comment: '',
-                        participants: [],
-                        transactionID: transaction.transactionID,
-                    }),
-                );
-            }
-            const actions: OnyxInputValue<ReportActions> = {};
-            for (const iouAction of iouActions) {
-                actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction;
-            }
-            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
-
-            return waitForBatchedUpdates()
-                .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
-                .then(() => {
-                    // When resolving duplicates with transaction thread reports no existing in onyx
-                    resolveDuplicates({
-                        ...transaction1,
-                        receiptID: 1,
-                        category: '',
-                        comment: '',
-                        billable: false,
-                        reimbursable: true,
-                        tag: '',
-                        transactionIDList: [transaction2.transactionID],
-                    });
-                    return waitForBatchedUpdates();
-                })
-                .then(() => {
-                    return new Promise<void>((resolve) => {
-                        const connection = Onyx.connect({
-                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`,
-                            callback: (transaction) => {
-                                Onyx.disconnect(connection);
-                                // Then the duplicate transaction should correctly be set on hold.
-                                expect(transaction?.comment?.hold).toBeDefined();
-                                resolve();
-                            },
-                        });
-                    });
-                });
-        });
-    });
-
     describe('putOnHold', () => {
         test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added hold comment report action created timestamp", () => {
             const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
@@ -6977,6 +6902,7 @@ describe('actions/IOU', () => {
             const transactionID = '1';
             const policyID = '2';
             const transactionThreadReportID = '3';
+            const transactionThreadReport = {reportID: transactionThreadReportID};
             const category = 'Advertising';
             const taxCode = 'id_TAX_EXEMPT';
             const ruleTaxCode = 'id_TAX_RATE_1';
@@ -6991,12 +6917,13 @@ describe('actions/IOU', () => {
                 amount: 100,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
 
             // When updating a money request category
             updateMoneyRequestCategory({
                 transactionID,
-                transactionThreadReportID,
+                transactionThreadReport,
+                parentReport: undefined,
                 category,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -7072,7 +6999,8 @@ describe('actions/IOU', () => {
                 // When updating a money request category
                 updateMoneyRequestCategory({
                     transactionID,
-                    transactionThreadReportID: '3',
+                    transactionThreadReport: {reportID: '3'},
+                    parentReport: undefined,
                     category,
                     policy: fakePolicy,
                     policyTagList: undefined,
@@ -7115,7 +7043,8 @@ describe('actions/IOU', () => {
                 // When updating the money request category
                 updateMoneyRequestCategory({
                     transactionID,
-                    transactionThreadReportID: '3',
+                    transactionThreadReport: {reportID: '3'},
+                    parentReport: undefined,
                     category,
                     policy: fakePolicy,
                     policyTagList: undefined,
@@ -7147,6 +7076,7 @@ describe('actions/IOU', () => {
             const transactionID = '1';
             const policyID = '2';
             const transactionThreadReportID = '3';
+            const transactionThreadReport = {reportID: transactionThreadReportID};
             const category = '';
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
@@ -7165,12 +7095,13 @@ describe('actions/IOU', () => {
                 },
             ]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
 
             // When updating a money request category
             updateMoneyRequestCategory({
                 transactionID,
-                transactionThreadReportID,
+                transactionThreadReport,
+                parentReport: undefined,
                 category,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -7962,7 +7893,8 @@ describe('actions/IOU', () => {
 
             updateMoneyRequestAmountAndCurrency({
                 transactionID: fakeTransaction.transactionID,
-                transactionThreadReportID: fakeReport.reportID,
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -8029,7 +7961,8 @@ describe('actions/IOU', () => {
 
             updateMoneyRequestAmountAndCurrency({
                 transactionID: fakeTransaction.transactionID,
-                transactionThreadReportID: fakeReport.reportID,
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -8125,7 +8058,8 @@ describe('actions/IOU', () => {
 
             updateMoneyRequestAmountAndCurrency({
                 transactionID,
-                transactionThreadReportID,
+                transactionThreadReport: transactionThread,
+                parentReport: expenseReport,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -9721,599 +9655,6 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('mergeDuplicates', () => {
-        let writeSpy: jest.SpyInstance;
-
-        beforeEach(() => {
-            jest.clearAllMocks();
-            global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                // Apply optimistic data for testing
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
-            return Onyx.clear();
-        });
-
-        afterEach(() => {
-            writeSpy.mockRestore();
-        });
-
-        const createMockTransaction = (id: string, reportID: string, amount = 100): Transaction => ({
-            ...createRandomTransaction(Number(id)),
-            transactionID: id,
-            reportID,
-            amount,
-            created: '2024-01-01 12:00:00',
-            currency: 'EUR',
-            merchant: 'Test Merchant',
-            modifiedMerchant: 'Updated Merchant',
-            comment: {comment: 'Updated comment'},
-            category: 'Travel',
-            tag: 'UpdatedProject',
-            billable: true,
-            reimbursable: false,
-        });
-
-        const createMockReport = (reportID: string, total = 300): Report => ({
-            ...createRandomReport(Number(reportID), undefined),
-            reportID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            total,
-        });
-
-        const createMockViolations = () => [
-            {name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION},
-            {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
-        ];
-
-        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID: string): ReportAction => ({
-            reportActionID,
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            created: '2024-01-01 12:00:00',
-            originalMessage: {
-                IOUTransactionID: transactionID,
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            } as OriginalMessageIOU,
-            message: [{type: 'TEXT', text: 'Test IOU message'}],
-            childReportID,
-        });
-
-        it('should merge duplicate transactions successfully', async () => {
-            // Given: Set up test data with main transaction and duplicates
-            const reportID = 'report123';
-            const mainTransactionID = 'main123';
-            const duplicate1ID = 'dup456';
-            const duplicate2ID = 'dup789';
-            const duplicateTransactionIDs = [duplicate1ID, duplicate2ID];
-            const childReportID = 'child123';
-
-            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
-            const duplicateTransaction1 = createMockTransaction(duplicate1ID, reportID, 100);
-            const duplicateTransaction2 = createMockTransaction(duplicate2ID, reportID, 50);
-            const expenseReport = createMockReport(reportID, 300);
-
-            const mainViolations = createMockViolations();
-            const duplicate1Violations = createMockViolations();
-            const duplicate2Violations = createMockViolations();
-
-            const iouAction1 = createMockIouAction(duplicate1ID, 'action456', childReportID);
-            const iouAction2 = createMockIouAction(duplicate2ID, 'action789', childReportID);
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction1);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate2ID}`, duplicateTransaction2);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, expenseReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicate1Violations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`, duplicate2Violations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                action456: iouAction1,
-                action789: iouAction2,
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`, {});
-            await waitForBatchedUpdates();
-
-            const mergeParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: duplicateTransactionIDs,
-                created: '2024-01-01 12:00:00',
-                merchant: 'Updated Merchant',
-                amount: 200,
-                currency: CONST.CURRENCY.EUR,
-                category: 'Travel',
-                comment: 'Updated comment',
-                billable: true,
-                reimbursable: false,
-                tag: 'UpdatedProject',
-                receiptID: 123,
-                reportID,
-            };
-
-            // When: Call mergeDuplicates
-            mergeDuplicates(mergeParams);
-            await waitForBatchedUpdates();
-
-            // Then: Verify main transaction was updated
-            const updatedMainTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`);
-            expect(updatedMainTransaction).toMatchObject({
-                billable: true,
-                comment: {comment: 'Updated comment'},
-                category: 'Travel',
-                created: '2024-01-01 12:00:00',
-                currency: CONST.CURRENCY.EUR,
-                modifiedMerchant: 'Updated Merchant',
-                reimbursable: false,
-                tag: 'UpdatedProject',
-            });
-
-            // Then: Verify duplicate transactions were removed
-            const removedDuplicate1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`);
-            const removedDuplicate2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate2ID}`);
-            expect(removedDuplicate1).toBeFalsy();
-            expect(removedDuplicate2).toBeFalsy();
-
-            // Then: Verify violations were filtered to remove DUPLICATED_TRANSACTION
-            const updatedMainViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`);
-            const updatedDup1Violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`);
-            const updatedDup2Violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`);
-
-            expect(updatedMainViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
-            expect(updatedDup1Violations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
-            expect(updatedDup2Violations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
-
-            // Then: Verify expense report total was updated
-            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-            expect(updatedReport?.total).toBe(150); // 300 - 100 - 50 = 150
-
-            // Then: Verify IOU actions were marked as deleted
-            const updatedReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-            expect(getOriginalMessage(updatedReportActions?.action456)).toHaveProperty('deleted');
-            expect(getOriginalMessage(updatedReportActions?.action789)).toHaveProperty('deleted');
-
-            // Then: Verify API was called with correct parameters
-            expect(writeSpy).toHaveBeenCalledWith(
-                WRITE_COMMANDS.MERGE_DUPLICATES,
-                expect.objectContaining(mergeParams),
-                expect.objectContaining({
-                    optimisticData: expect.arrayContaining([]),
-                    failureData: expect.arrayContaining([]),
-                }),
-            );
-        });
-
-        it('should handle empty duplicate transaction list', async () => {
-            // Given: Set up test data with only main transaction
-            const reportID = 'report123';
-            const mainTransactionID = 'main123';
-            const mainTransaction = createMockTransaction(mainTransactionID, reportID);
-            const expenseReport = createMockReport(reportID, 150);
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, expenseReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, []);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
-            await waitForBatchedUpdates();
-
-            const mergeParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: [],
-                created: '2024-01-01 12:00:00',
-                merchant: 'Updated Merchant',
-                amount: 200,
-                currency: CONST.CURRENCY.EUR,
-                category: 'Travel',
-                comment: 'Updated comment',
-                billable: true,
-                reimbursable: false,
-                tag: 'UpdatedProject',
-                receiptID: 123,
-                reportID,
-            };
-
-            // When: Call mergeDuplicates with empty duplicate list
-            mergeDuplicates(mergeParams);
-            await waitForBatchedUpdates();
-
-            // Then: Verify main transaction was still updated
-            const updatedMainTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`);
-            expect(updatedMainTransaction).toMatchObject({
-                billable: true,
-                comment: {comment: 'Updated comment'},
-                category: 'Travel',
-                modifiedMerchant: 'Updated Merchant',
-            });
-
-            // Then: Verify expense report total remained unchanged (no duplicates to subtract)
-            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-            expect(updatedReport?.total).toBe(150);
-        });
-
-        it('should handle missing expense report gracefully', async () => {
-            // Given: Set up test data without expense report
-            const reportID = 'report123';
-            const mainTransactionID = 'main123';
-            const duplicate1ID = 'dup456';
-            const duplicateTransactionIDs = [duplicate1ID];
-
-            const mainTransaction = createMockTransaction(mainTransactionID, reportID);
-            const duplicateTransaction = createMockTransaction(duplicate1ID, reportID, 50);
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, []);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, []);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
-            await waitForBatchedUpdates();
-
-            const mergeParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: duplicateTransactionIDs,
-                created: '2024-01-01 12:00:00',
-                merchant: 'Updated Merchant',
-                amount: 200,
-                currency: CONST.CURRENCY.EUR,
-                category: 'Travel',
-                comment: 'Updated comment',
-                billable: true,
-                reimbursable: false,
-                tag: 'UpdatedProject',
-                receiptID: 123,
-                reportID,
-            };
-
-            // When: Call mergeDuplicates without expense report
-            mergeDuplicates(mergeParams);
-            await waitForBatchedUpdates();
-
-            // Then: Verify function completed without errors
-            const updatedMainTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`);
-            expect(updatedMainTransaction).toMatchObject({
-                category: 'Travel',
-                modifiedMerchant: 'Updated Merchant',
-            });
-
-            // Then: Verify API was still called
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.MERGE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
-        });
-    });
-
-    describe('resolveDuplicates', () => {
-        let writeSpy: jest.SpyInstance;
-
-        beforeEach(() => {
-            jest.clearAllMocks();
-            global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                // Apply optimistic data for testing
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
-            return Onyx.clear();
-        });
-
-        afterEach(() => {
-            writeSpy.mockRestore();
-        });
-
-        const createMockTransaction = (id: string, reportID: string, amount = 100): Transaction => ({
-            ...createRandomTransaction(Number(id)),
-            transactionID: id,
-            reportID,
-            amount,
-            created: '2024-01-01 12:00:00',
-            currency: 'EUR',
-            merchant: 'Test Merchant',
-            modifiedMerchant: 'Updated Merchant',
-            comment: {comment: 'Updated comment'},
-            category: 'Travel',
-            tag: 'UpdatedProject',
-            billable: true,
-            reimbursable: false,
-        });
-
-        const createMockViolations = () => [
-            {name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION},
-            {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
-        ];
-
-        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID: string) => ({
-            reportActionID,
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {
-                IOUTransactionID: transactionID,
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            },
-            message: [{type: 'TEXT', text: 'Test IOU message'}],
-            childReportID,
-        });
-
-        it('should resolve duplicate transactions successfully', async () => {
-            // Given: Set up test data with main transaction and duplicates
-            const reportID = 'report123';
-            const mainTransactionID = 'main123';
-            const duplicate1ID = 'dup456';
-            const duplicate2ID = 'dup789';
-            const duplicateTransactionIDs = [duplicate1ID, duplicate2ID];
-            const childReportID1 = 'child456';
-            const childReportID2 = 'child789';
-            const mainChildReportID = 'mainChild123';
-
-            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
-            const duplicateTransaction1 = createMockTransaction(duplicate1ID, reportID, 100);
-            const duplicateTransaction2 = createMockTransaction(duplicate2ID, reportID, 50);
-
-            const mainViolations = createMockViolations();
-            const duplicate1Violations = createMockViolations();
-            const duplicate2Violations = createMockViolations();
-
-            const iouAction1 = createMockIouAction(duplicate1ID, 'action456', childReportID1);
-            const iouAction2 = createMockIouAction(duplicate2ID, 'action789', childReportID2);
-            const mainIouAction = createMockIouAction(mainTransactionID, 'mainAction123', mainChildReportID);
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction1);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate2ID}`, duplicateTransaction2);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicate1Violations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`, duplicate2Violations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                action456: iouAction1,
-                action789: iouAction2,
-                mainAction123: mainIouAction,
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID1}`, {});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID2}`, {});
-            await waitForBatchedUpdates();
-
-            const resolveParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: duplicateTransactionIDs,
-                created: '2024-01-01 12:00:00',
-                merchant: 'Updated Merchant',
-                amount: 200,
-                currency: CONST.CURRENCY.EUR,
-                category: 'Travel',
-                comment: 'Updated comment',
-                billable: true,
-                reimbursable: false,
-                tag: 'UpdatedProject',
-                receiptID: 123,
-                reportID,
-            };
-
-            // When: Call resolveDuplicates
-            resolveDuplicates(resolveParams);
-            await waitForBatchedUpdates();
-
-            // Then: Verify main transaction was updated
-            const updatedMainTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`);
-            expect(updatedMainTransaction).toMatchObject({
-                billable: true,
-                comment: {comment: 'Updated comment'},
-                category: 'Travel',
-                created: '2024-01-01 12:00:00',
-                currency: CONST.CURRENCY.EUR,
-                modifiedMerchant: 'Updated Merchant',
-                reimbursable: false,
-                tag: 'UpdatedProject',
-            });
-
-            // Then: Verify duplicate transactions still exist (unlike mergeDuplicates)
-            const duplicateTransaction1Updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`);
-            const duplicateTransaction2Updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate2ID}`);
-            expect(duplicateTransaction1Updated).not.toBeNull();
-            expect(duplicateTransaction2Updated).not.toBeNull();
-
-            // Then: Verify violations were updated - main transaction should not have DUPLICATED_TRANSACTION or HOLD
-            const updatedMainViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`);
-            expect(updatedMainViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
-
-            // Then: Verify duplicate transactions have HOLD violation added but DUPLICATED_TRANSACTION removed
-            const updatedDup1Violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`);
-            const updatedDup2Violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`);
-
-            expect(updatedDup1Violations).toEqual(
-                expect.arrayContaining([
-                    {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION},
-                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
-                ]),
-            );
-            expect(updatedDup2Violations).toEqual(
-                expect.arrayContaining([
-                    {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION},
-                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
-                ]),
-            );
-
-            // Then: Verify hold report actions were created in child report threads
-            const childReportActions1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID1}`);
-            const childReportActions2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID2}`);
-
-            // Should have hold actions added
-            expect(Object.keys(childReportActions1 ?? {})).toHaveLength(1);
-            expect(Object.keys(childReportActions2 ?? {})).toHaveLength(1);
-
-            // Then: Verify dismissed violation action was created in main transaction thread
-            const mainChildReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mainChildReportID}`);
-            expect(Object.keys(mainChildReportActions ?? {})).toHaveLength(1);
-
-            // Then: Verify API was called with correct parameters
-            expect(writeSpy).toHaveBeenCalledWith(
-                WRITE_COMMANDS.RESOLVE_DUPLICATES,
-                expect.objectContaining({
-                    transactionID: mainTransactionID,
-                    transactionIDList: duplicateTransactionIDs,
-                    reportActionIDList: expect.arrayContaining([]),
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    dismissedViolationReportActionID: expect.anything(),
-                }),
-                expect.objectContaining({
-                    optimisticData: expect.arrayContaining([]),
-                    failureData: expect.arrayContaining([]),
-                }),
-            );
-        });
-
-        it('should return early when transactionID is undefined', async () => {
-            // Given: Params with undefined transactionID
-            const resolveParams = {
-                transactionID: undefined,
-                transactionIDList: ['dup456'],
-                created: '2024-01-01 12:00:00',
-                merchant: 'Updated Merchant',
-                amount: 200,
-                currency: CONST.CURRENCY.EUR,
-                category: 'Travel',
-                comment: 'Updated comment',
-                billable: true,
-                reimbursable: false,
-                tag: 'UpdatedProject',
-                receiptID: 123,
-                reportID: 'report123',
-            };
-
-            // When: Call resolveDuplicates with undefined transactionID
-            resolveDuplicates(resolveParams);
-            await waitForBatchedUpdates();
-
-            // Then: Verify API was not called
-            expect(writeSpy).not.toHaveBeenCalled();
-        });
-
-        it('should handle empty duplicate transaction list', async () => {
-            // Given: Set up test data with only main transaction
-            const reportID = 'report123';
-            const mainTransactionID = 'main123';
-            const mainChildReportID = 'mainChild123';
-
-            const mainTransaction = createMockTransaction(mainTransactionID, reportID);
-            const mainViolations = createMockViolations();
-            const mainIouAction = createMockIouAction(mainTransactionID, 'mainAction123', mainChildReportID);
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                mainAction123: mainIouAction,
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mainChildReportID}`, {});
-            await waitForBatchedUpdates();
-
-            const resolveParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: [],
-                created: '2024-01-01 12:00:00',
-                merchant: 'Updated Merchant',
-                amount: 200,
-                currency: CONST.CURRENCY.EUR,
-                category: 'Travel',
-                comment: 'Updated comment',
-                billable: true,
-                reimbursable: false,
-                tag: 'UpdatedProject',
-                receiptID: 123,
-                reportID,
-            };
-
-            // When: Call resolveDuplicates with empty duplicate list
-            resolveDuplicates(resolveParams);
-            await waitForBatchedUpdates();
-
-            // Then: Verify main transaction was still updated
-            const updatedMainTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`);
-            expect(updatedMainTransaction).toMatchObject({
-                billable: true,
-                category: 'Travel',
-                modifiedMerchant: 'Updated Merchant',
-            });
-
-            // Then: Verify main transaction violations were still filtered
-            const updatedMainViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`);
-            expect(updatedMainViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
-
-            // Then: Verify API was called
-            // eslint-disable-next-line
-            expect(API.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
-        });
-
-        it('should handle missing IOU actions gracefully', async () => {
-            // Given: Set up test data without IOU actions
-            const reportID = 'report123';
-            const mainTransactionID = 'main123';
-            const duplicate1ID = 'dup456';
-            const duplicateTransactionIDs = [duplicate1ID];
-
-            const mainTransaction = createMockTransaction(mainTransactionID, reportID);
-            const duplicateTransaction = createMockTransaction(duplicate1ID, reportID);
-            const mainViolations = createMockViolations();
-            const duplicateViolations = createMockViolations();
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
-            await waitForBatchedUpdates();
-
-            const resolveParams = {
-                transactionID: mainTransactionID,
-                transactionIDList: duplicateTransactionIDs,
-                created: '2024-01-01 12:00:00',
-                merchant: 'Updated Merchant',
-                amount: 200,
-                currency: CONST.CURRENCY.EUR,
-                category: 'Travel',
-                comment: 'Updated comment',
-                billable: true,
-                reimbursable: false,
-                tag: 'UpdatedProject',
-                receiptID: 123,
-                reportID,
-            };
-
-            // When: Call resolveDuplicates without IOU actions
-            resolveDuplicates(resolveParams);
-            await waitForBatchedUpdates();
-
-            // Then: Verify function completed without errors
-            const updatedMainTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`);
-            expect(updatedMainTransaction).toMatchObject({
-                category: 'Travel',
-                modifiedMerchant: 'Updated Merchant',
-            });
-
-            // Then: Verify violations were still processed
-            const updatedDuplicateViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`);
-            expect(updatedDuplicateViolations).toEqual(
-                expect.arrayContaining([
-                    {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION},
-                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
-                ]),
-            );
-
-            // Then: Verify API was called
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
-        });
-    });
-
     describe('getPerDiemExpenseInformation', () => {
         it('should include policyRecentlyUsedCurrencies when provided', () => {
             const testCurrency = CONST.CURRENCY.GBP;
@@ -10761,10 +10102,11 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             // When updating the transaction attendees
-            updateMoneyRequestAttendees(
-                transaction.transactionID,
-                '2',
-                [
+            updateMoneyRequestAttendees({
+                transactionID: transaction.transactionID,
+                transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
+                parentReport: undefined,
+                attendees: [
                     {avatarUrl: '', displayName: 'user 1', email: 'user1@gmail.com'},
                     {avatarUrl: '', displayName: 'user 2', email: 'user2@gmail.com'},
                     {avatarUrl: '', displayName: 'user 3', email: 'user3@gmail.com'},
@@ -10772,14 +10114,14 @@ describe('actions/IOU', () => {
                     {avatarUrl: '', displayName: 'user 5', email: 'user5@gmail.com'},
                     {avatarUrl: '', displayName: 'user 6', email: 'user6@gmail.com'},
                 ],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                123,
-                '',
-                false,
-            );
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                violations: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: '',
+                isASAPSubmitBetaEnabled: false,
+            });
             await waitForBatchedUpdates();
 
             // Then the recent attendees should be updated with a maximum of 5 attendees
@@ -10810,15 +10152,18 @@ describe('actions/IOU', () => {
             };
             const transactionThreadReportID = '2';
             const iouReportID = '3';
+            const iouReport = {reportID: iouReportID, policyID: policy.id};
+            const transactionThreadReport = {reportID: transactionThreadReportID, parentReportID: iouReportID};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, policyTags);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policy.id}`, policyRecentlyUsedTags);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID, parentReportID: iouReportID});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {reportID: iouReportID, policyID: policy.id});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
 
             // When updating the expense tag
             updateMoneyRequestTag({
                 transactionID: '1',
-                transactionThreadReportID,
+                transactionThreadReport,
+                parentReport: iouReport,
                 tag: newTag,
                 policy,
                 policyTagList: policyTags,
@@ -11694,84 +11039,6 @@ describe('actions/IOU', () => {
             if (invoiceInfo.invoiceRoom.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
                 expect(invoiceInfo.invoiceRoom.invoiceReceiver.accountID).toBe(userBAccountID);
             }
-        });
-    });
-
-    describe('duplicateExpenseTransaction', () => {
-        const DUPLICATION_EXCEPTIONS = new Set(['transactionID', 'createdAccountID', 'reportID', 'status', 'created', 'parentTransactionID', 'isTestDrive', 'source', 'receipt', 'filename']);
-
-        function isTransactionDuplicated(originalTransaction: Transaction, duplicatedTransaction: Transaction) {
-            for (const k of Object.keys(duplicatedTransaction)) {
-                const key = k as keyof Transaction;
-
-                if (DUPLICATION_EXCEPTIONS.has(key) || !Object.hasOwn(originalTransaction, key) || key.startsWith('original') || key.startsWith('modified')) {
-                    continue;
-                }
-
-                let originalTransactionKey = key;
-                const modifiedKey = `modified${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof Transaction;
-
-                if (modifiedKey in originalTransaction && !!originalTransaction[modifiedKey]) {
-                    originalTransactionKey = modifiedKey;
-                }
-
-                const originalValue = originalTransaction[originalTransactionKey];
-                const duplicatedValue = duplicatedTransaction[key];
-
-                expect(duplicatedValue).toEqual(originalValue);
-            }
-        }
-
-        const mockOptimisticChatReportID = '789';
-        const mockOptimisticIOUReportID = '987';
-        const mockIsASAPSubmitBetaEnabled = false;
-
-        const mockTransaction = createRandomTransaction(1);
-        const mockPolicy = createRandomPolicy(1);
-        const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-        const fakePolicyCategories = createRandomPolicyCategories(3);
-
-        it('should create a duplicate expense with all fields duplicated', async () => {
-            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
-            const mockCashExpenseTransaction = {
-                ...mockTransaction,
-                amount: mockTransaction.amount * -1,
-                comment: {
-                    ...restOfComment,
-                },
-            };
-
-            duplicateExpenseTransaction({
-                transaction: mockCashExpenseTransaction,
-                optimisticChatReportID: mockOptimisticChatReportID,
-                optimisticIOUReportID: mockOptimisticIOUReportID,
-                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
-                introSelected: undefined,
-                activePolicyID: undefined,
-                quickAction: undefined,
-                policyRecentlyUsedCurrencies: [],
-                targetPolicy: mockPolicy,
-                targetPolicyCategories: fakePolicyCategories,
-                targetReport: policyExpenseChat,
-            });
-
-            await waitForBatchedUpdates();
-
-            let duplicatedTransaction: OnyxEntry<Transaction>;
-
-            await getOnyxData({
-                key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
-                callback: (allTransactions) => {
-                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
-                },
-            });
-
-            if (!duplicatedTransaction) {
-                return;
-            }
-
-            isTransactionDuplicated(mockCashExpenseTransaction, duplicatedTransaction);
         });
     });
 

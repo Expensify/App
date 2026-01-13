@@ -69,6 +69,7 @@ import {
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getChangedApproverActionMessage,
+    getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getDefaultApproverUpdateMessage,
@@ -1456,6 +1457,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getForwardsToUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceReimbursementUpdateMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS)) {
+            children = <ReportActionItemBasicMessage message={getCompanyAddressUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
