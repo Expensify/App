@@ -32,7 +32,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedVa
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
-import type {SamlMetadata} from './Domain';
+import type {DomainSecurityGroup, SamlMetadata} from './Domain';
 import type DomainErrors from './DomainErrors';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
@@ -128,6 +128,7 @@ import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
+import type UnshareBankAccount from './UnshareBankAccount';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
@@ -161,6 +162,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
     Download,
@@ -313,4 +315,5 @@ export type {
     SamlMetadata,
     DomainErrors,
     DomainPendingActions,
+    DomainSecurityGroup,
 };
