@@ -47,6 +47,7 @@ import type {
 } from '@src/types/onyx';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
@@ -1449,6 +1450,10 @@ function getDraftTransactions(draftTransactions?: OnyxCollection<Transaction>): 
     return Object.values(draftTransactions ?? allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
+function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {
+    return Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[type]: data});
+}
+
 export {
     saveWaypoint,
     removeWaypoint,
@@ -1467,4 +1472,5 @@ export {
     revert,
     changeTransactionsReport,
     setTransactionReport,
+    mergeTransactionIdsHighlightOnSearchRoute,
 };

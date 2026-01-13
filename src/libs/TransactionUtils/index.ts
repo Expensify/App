@@ -71,7 +71,6 @@ import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {
     Comment,
     Receipt,
@@ -2528,11 +2527,6 @@ function shouldReuseInitialTransaction(
     return !isMultiScanEnabled || (transactions.length === 1 && (!initialTransaction.receipt?.source || initialTransaction.receipt?.isTestReceipt === true));
 }
 
-function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    return Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[type]: data});
-}
-
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -2663,7 +2657,6 @@ export {
     getConvertedAmount,
     shouldShowExpenseBreakdown,
     isTimeRequest,
-    mergeTransactionIdsHighlightOnSearchRoute,
 };
 
 export type {TransactionChanges};
