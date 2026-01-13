@@ -173,7 +173,6 @@ function SelectionScreen<T = string>({
                         data={data}
                         ListItem={listItem}
                         onSelectRow={onSelectRow}
-                        showListEmptyContent={false}
                         showScrollIndicator
                         shouldShowTooltips={false}
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
