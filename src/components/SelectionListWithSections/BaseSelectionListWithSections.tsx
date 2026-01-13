@@ -88,6 +88,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     customListHeader,
     customListHeaderHeight = 0,
     listHeaderWrapperStyle,
+    selectAllStyle,
     isRowMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
@@ -144,6 +145,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
+    shouldSkipContentHeaderHeightOffset,
     tempPropShouldStopScrollAndJump,
     ref,
 }: SelectionListProps<TItem>) {
@@ -356,11 +358,16 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
-            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea});
+            let viewOffset = variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            // Skip contentHeaderHeight for native split expense tabs scroll correction
+            if (shouldSkipContentHeaderHeightOffset) {
+                viewOffset = viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            }
+            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset});
             pendingScrollIndexRef.current = null;
         },
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [flattenedSections.allOptions, currentPage],
     );
 
@@ -392,7 +399,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
 
         setDisabledArrowKeyIndexes(flattenedSections.disabledArrowKeyOptionsIndexes);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [flattenedSections.disabledArrowKeyOptionsIndexes]);
 
     /** Check whether there is a need to scroll to an item and if all items are loaded */
@@ -462,7 +469,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         setFocusedIndex(selectedItemIndex);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedItemIndex]);
 
     const clearInputAfterSelect = useCallback(() => {
@@ -640,7 +647,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                             >
-                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                <Text style={[styles.textStrong, styles.ph3, selectAllStyle]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>
                         )}
                     </View>
@@ -758,7 +765,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
-                            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
+                            // eslint-disable-next-line no-param-reassign
                             textInputRef.current = element as RNTextInput;
                         }
                     }}
@@ -989,7 +996,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
-        shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
+        shouldBubble: (flattenedSections.allOptions.length > 0 && !flattenedSections.allOptions.at(focusedIndex)) || focusedIndex === -1,
         shouldStopPropagation,
         shouldPreventDefault,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused && focusedIndex >= 0,

@@ -1,7 +1,6 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {SearchColumnType, SortOrder, TableColumnSize} from '@components/Search/types';
-import {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import SortableTableHeader from '@components/SelectionListWithSections/SortableTableHeader';
 import type {SortableColumnName} from '@components/SelectionListWithSections/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,6 +51,18 @@ const columnConfig: ColumnConfig[] = [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
+        translationKey: 'common.reimbursable',
+        canBeMissing: true,
+        isColumnSortable: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+        translationKey: 'common.billable',
+        canBeMissing: true,
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
         translationKey: undefined, // comments have no title displayed
         isColumnSortable: false,
@@ -72,9 +83,6 @@ type SearchTableHeaderProps = {
     shouldShowSorting: boolean;
     columns: SearchColumnType[];
 };
-
-const expenseHeaders = getExpenseHeaders();
-
 function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, columns, amountColumnSize, taxAmountColumnSize}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
@@ -85,17 +93,11 @@ function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColu
         [columns],
     );
 
-    const areAllOptionalColumnsHidden = useMemo(() => {
-        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
-        return canBeMissingColumns.every((column) => !columns.includes(column));
-    }, [columns]);
-
     return (
         <View style={[styles.dFlex, styles.flex5]}>
             <SortableTableHeader
                 columns={columnConfig}
                 shouldShowColumn={shouldShowColumn}
-                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                 dateColumnSize={dateColumnSize}
                 amountColumnSize={amountColumnSize}
                 taxAmountColumnSize={taxAmountColumnSize}

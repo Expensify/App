@@ -3,8 +3,8 @@ import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import {ChatBubbleCounter} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -62,6 +62,7 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
     );
 
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleCounter']);
 
     const iconSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
     const fontSize = shouldUseNarrowLayout ? variables.fontSizeXXSmall : variables.fontSizeExtraSmall;
@@ -70,7 +71,7 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
         threadMessages.count > 0 && (
             <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(iconSize), containerStyles]}>
                 <Icon
-                    src={ChatBubbleCounter}
+                    src={icons.ChatBubbleCounter}
                     additionalStyles={[styles.pAbsolute]}
                     fill={threadMessages.isUnread ? theme.iconMenu : theme.icon}
                     width={iconSize}

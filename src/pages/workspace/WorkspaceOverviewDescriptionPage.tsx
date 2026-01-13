@@ -39,7 +39,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
             const errors = {};
 
             if (values.description.length > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}));
+                addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', values.description.length, CONST.DESCRIPTION_LIMIT));
             }
 
             return errors;

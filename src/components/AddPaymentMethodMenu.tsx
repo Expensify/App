@@ -14,8 +14,6 @@ import type {AnchorPosition} from '@src/styles';
 import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
 import PopoverMenu from './PopoverMenu';
@@ -59,7 +57,7 @@ function AddPaymentMethodMenu({
     onItemSelected,
     shouldShowPersonalBankAccountOption = false,
 }: AddPaymentMethodMenuProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Building']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Bank']);
     const {translate} = useLocalize();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -107,7 +105,7 @@ function AddPaymentMethodMenu({
                     ? [
                           {
                               text: translate('common.personalBankAccount'),
-                              icon: Expensicons.Bank,
+                              icon: icons.Bank,
                               onSelected: () => {
                                   completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
@@ -130,7 +128,7 @@ function AddPaymentMethodMenu({
                 // ...[
                 //     {
                 //         text: translate('common.debitCard'),
-                //         icon: Expensicons.CreditCard,
+                //         icon: icons.CreditCard,
                 //         onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
                 //     },
                 // ],
