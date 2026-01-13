@@ -817,6 +817,10 @@ function dismissToPreviousRHP() {
     return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
 }
 
+function navigateBackToLastSuperWideRHPScreen() {
+    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
+}
+
 function dismissToSuperWideRHP() {
     // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
     if (getIsNarrowLayout()) {
@@ -824,7 +828,7 @@ function dismissToSuperWideRHP() {
         return;
     }
     // On wide layouts, dismiss back to the Super Wide RHP modal stack
-    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
+    navigateBackToLastSuperWideRHPScreen();
 }
 
 function getTopmostReportIDInSearchRHP(state = navigationRef.getRootState()): string | undefined {
@@ -885,6 +889,7 @@ export default {
     dismissToSuperWideRHP,
     getTopmostReportIDInSearchRHP,
     getTopmostSuperWideRHPReportID,
+    navigateBackToLastSuperWideRHPScreen,
 };
 
 export {navigationRef};
