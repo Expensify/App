@@ -84,6 +84,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 },
             ],
             isDisabled: !canBeExported,
+            keyForList: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
         },
         {
             value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
@@ -95,6 +96,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 },
             ],
             isDisabled: !canBeExported,
+            keyForList: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
         },
     ];
 
@@ -125,7 +127,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="ReportDetailsExportPage"
-            sections={[{data: exportSelectorOptions}]}
+            data={exportSelectorOptions}
             listItem={UserListItem}
             shouldBeBlocked={false}
             onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}

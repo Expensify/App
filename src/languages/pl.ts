@@ -21,12 +21,31 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
+    FileLimitParams,
+    FileTypeParams,
+    FiltersAmountBetweenParams,
+    FlightLayoverParams,
+    FlightParams,
+    FocusModeUpdateParams,
+    FormattedMaxLengthParams,
+    GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
+    ImportedTagsMessageParams,
+    ImportedTypesParams,
+    ImportFieldParams,
+    ImportMembersSuccessfulDescriptionParams,
+    ImportPerDiemRatesSuccessfulDescriptionParams,
+    ImportTagsSuccessfulDescriptionParams,
+    IncorrectZipFormatParams,
+    IndividualExpenseRulesSubtitleParams,
+    InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
     IntegrationSyncFailedParams,
@@ -114,6 +133,9 @@ import type {
     SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
+    SpreadCategoriesParams,
+    SpreadFieldNameParams,
+    SpreadSheetColumnParams,
     StatementTitleParams,
     StepCounterParams,
     StripePaidParams,
@@ -233,6 +255,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dismiss: 'Zamknij',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Kontynuuj',
+        unshare: 'Cofnij udostępnianie',
         yes: 'Tak',
         no: 'Nie',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -686,12 +709,12 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'Plik PDF zabezpieczony hasłem nie jest obsługiwany',
         attachmentImageResized: 'Ten obraz został zmniejszony na potrzeby podglądu. Pobierz go, aby zobaczyć w pełnej rozdzielczości.',
         attachmentImageTooLarge: 'Ten obraz jest zbyt duży, aby wyświetlić podgląd przed przesłaniem.',
-        tooManyFiles: (fileLimit: number) => `Możesz przesłać jednocześnie maksymalnie ${fileLimit} plików.`,
+        tooManyFiles: ({fileLimit}: FileLimitParams) => `Możesz przesłać jednocześnie maksymalnie ${fileLimit} plików.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Plik przekracza ${maxUploadSizeInMB} MB. Spróbuj ponownie.`,
         someFilesCantBeUploaded: 'Niektórych plików nie można przesłać',
         sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Pliki muszą mieć mniej niż ${maxUploadSizeInMB} MB. Większe pliki nie zostaną przesłane.`,
         maxFileLimitExceeded: 'Możesz jednorazowo przesłać maksymalnie 30 paragonów. Dodatkowe nie zostaną przesłane.',
-        unsupportedFileType: (fileType: string) => `Pliki ${fileType} nie są obsługiwane. Przesłane zostaną tylko obsługiwane typy plików.`,
+        unsupportedFileType: ({fileType}: FileTypeParams) => `Pliki ${fileType} nie są obsługiwane. Przesłane zostaną tylko obsługiwane typy plików.`,
         learnMoreAboutSupportedFiles: 'Dowiedz się więcej o obsługiwanych formatach.',
         passwordProtected: 'Pliki PDF zabezpieczone hasłem nie są obsługiwane. Zostaną przesłane tylko obsługiwane pliki.',
     },
@@ -716,8 +739,8 @@ const translations: TranslationDeepObject<typeof en> = {
     composer: {
         noExtensionFoundForMimeType: 'Nie znaleziono rozszerzenia dla typu MIME',
         problemGettingImageYouPasted: 'Wystąpił problem z pobraniem wklejonego obrazu',
-        commentExceededMaxLength: (formattedMaxLength: string) => `Maksymalna długość komentarza to ${formattedMaxLength} znaków.`,
-        taskTitleExceededMaxLength: (formattedMaxLength: string) => `Maksymalna długość tytułu zadania to ${formattedMaxLength} znaków.`,
+        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `Maksymalna długość komentarza to ${formattedMaxLength} znaków.`,
+        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `Maksymalna długość tytułu zadania to ${formattedMaxLength} znaków.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Zaktualizuj aplikację',
@@ -896,8 +919,10 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Tylko administratorzy mogą wysyłać wiadomości w tym pokoju.',
     reportAction: {
         asCopilot: 'jako kopilot dla',
-        harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `utworzył ten raport, aby zawrzeć wszystkie wydatki z <a href="${reportUrl}">${reportName}</a>, które nie mogły zostać przesłane zgodnie z wybraną przez ciebie częstotliwością`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `utworzył ten raport dla wszystkich wstrzymanych wydatków z <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Powiadom wszystkich w tej konwersacji',
@@ -954,15 +979,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Subskrypcja',
         domains: 'Domeny',
     },
-    tabSelector: {
-        chat: 'Czat',
-        room: 'Pokój',
-        distance: 'Dystans',
-        manual: 'Ręczny',
-        scan: 'Skanuj',
-        map: 'Mapa',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: 'Czat', room: 'Pokój', distance: 'Dystans', manual: 'Ręczny', scan: 'Skanuj', map: 'Mapa', gps: 'GPS', odometer: 'Licznik przebiegu'},
     spreadsheet: {
         upload: 'Prześlij arkusz kalkulacyjny',
         import: 'Importuj arkusz kalkulacyjny',
@@ -971,13 +988,13 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseSpreadsheet: '<muted-link>Wybierz plik arkusza kalkulacyjnego do zaimportowania. Obsługiwane formaty: .csv, .txt, .xls i .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Wybierz plik arkusza kalkulacyjnego do zaimportowania. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Dowiedz się więcej</a> o obsługiwanych formatach plików.</muted-link>`,
         fileContainsHeader: 'Plik zawiera nagłówki kolumn',
-        column: (name: string) => `Kolumna ${name}`,
-        fieldNotMapped: (fieldName: string) => `Ups! Wymagane pole („${fieldName}”) nie zostało zmapowane. Sprawdź wszystko i spróbuj ponownie.`,
-        singleFieldMultipleColumns: (fieldName: string) => `Ups! Przypisałeś jedno pole („${fieldName}”) do wielu kolumn. Sprawdź ustawienia i spróbuj ponownie.`,
-        emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
+        column: ({name}: SpreadSheetColumnParams) => `Kolumna ${name}`,
+        fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Ups! Wymagane pole („${fieldName}”) nie zostało zmapowane. Sprawdź wszystko i spróbuj ponownie.`,
+        singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) => `Ups! Przypisałeś jedno pole („${fieldName}”) do wielu kolumn. Sprawdź ustawienia i spróbuj ponownie.`,
+        emptyMappedField: ({fieldName}: SpreadFieldNameParams) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony pomyślnie',
-        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `Dodano ${categories} kategorii.` : 'Dodano 1 kategorię.'),
-        importMembersSuccessfulDescription: (added: number, updated: number) => {
+        importCategoriesSuccessfulDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `Dodano ${categories} kategorii.` : 'Dodano 1 kategorię.'),
+        importMembersSuccessfulDescription: ({added, updated}: ImportMembersSuccessfulDescriptionParams) => {
             if (!added && !updated) {
                 return 'Nie dodano ani nie zaktualizowano żadnych członków.';
             }
@@ -989,9 +1006,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `Dodano ${added} członków.` : 'Dodano 1 członka.';
         },
-        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `Dodano ${tags} tagów.` : 'Dodano 1 tag.'),
+        importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfulDescriptionParams) => (tags > 1 ? `Dodano ${tags} tagów.` : 'Dodano 1 tag.'),
         importMultiLevelTagsSuccessfulDescription: 'Dodano tagi wielopoziomowe.',
-        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `Dodano ${rates} stawek ryczałtowych.` : 'Dodano 1 stawkę diety.'),
+        importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfulDescriptionParams) => (rates > 1 ? `Dodano ${rates} stawek ryczałtowych.` : 'Dodano 1 stawkę diety.'),
         importFailedTitle: 'Import zakończony niepowodzeniem',
         importFailedDescription: 'Upewnij się, że wszystkie pola zostały wypełnione poprawnie i spróbuj ponownie. Jeśli problem będzie się powtarzał, skontaktuj się z Concierge.',
         importDescription: 'Wybierz pola do zmapowania z arkusza kalkulacyjnego, klikając menu rozwijane obok każdej zaimportowanej kolumny poniżej.',
@@ -1111,7 +1128,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniesiono wydatek${reportName ? `z ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `przeniósł ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `przeniósł ten wydatek${reportName ? `z <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek z twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek do twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1287,6 +1303,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Stawka nie jest prawidłowa dla tego przestrzeni roboczej. Wybierz dostępną stawkę z tej przestrzeni roboczej.',
             endDateBeforeStartDate: 'Data zakończenia nie może być wcześniejsza niż data rozpoczęcia',
             endDateSameAsStartDate: 'Data zakończenia nie może być taka sama jak data rozpoczęcia',
+            manySplitsProvided: `Maksymalna liczba dozwolonych podziałów wynosi ${CONST.IOU.SPLITS_LIMIT}.`,
+            dateRangeExceedsMaxDays: `Zakres dat nie może przekraczać ${CONST.IOU.SPLITS_LIMIT} dni.`,
+            negativeDistanceNotAllowed: 'Odczyt końcowy musi być większy niż odczyt początkowy',
+            invalidReadings: 'Wprowadź zarówno odczyt początkowy, jak i końcowy',
         },
         dismissReceiptError: 'Odrzuć błąd',
         dismissReceiptErrorConfirmation: 'Uwaga! Odrzucenie tego błędu spowoduje całkowite usunięcie przesłanego paragonu. Czy na pewno chcesz kontynuować?',
@@ -1438,6 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} do ${endDate} (${count} dni)`,
         splitByDate: 'Podziel według daty',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `raport przekazany do ${to} z powodu niestandardowego procesu zatwierdzania`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'godzina' : 'godziny'} @ ${rate} / godzinę`, hrs: 'godz.'},
     },
     transactionMerge: {
         listPage: {
@@ -2090,6 +2111,11 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountEmptyTitle: 'Brak dostępnych administratorów',
         shareBankAccountEmptyDescription: 'Brak administratorów obszaru roboczego, z którymi można udostępnić to konto bankowe.',
         shareBankAccountNoAdminsSelected: 'Wybierz administratora przed kontynuowaniem',
+        unshareBankAccount: 'Anuluj udostępnianie konta bankowego',
+        unshareBankAccountDescription: 'Wszyscy poniżej mają dostęp do tego konta bankowego. Możesz go usunąć w dowolnym momencie. Nadal będziemy realizować wszystkie płatności w toku.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} utraci dostęp do tego firmowego konta bankowego. Nadal będziemy realizować wszystkie płatności w toku.`,
+        reachOutForHelp: 'Jest ono używane z kartą Expensify. <concierge-link>Skontaktuj się z Concierge</concierge-link>, jeśli chcesz je anulować.',
+        unshareErrorModalTitle: 'Nie można anulować udostępniania konta bankowego',
     },
     cardPage: {
         expensifyCard: 'Karta Expensify',
@@ -2310,7 +2336,7 @@ ${amount} dla ${merchant} - ${date}`,
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Przelej${amount ? ` ${amount}` : ''}`,
         instant: 'Natychmiastowa (karta debetowa)',
-        instantSummary: (rate: string, minAmount: string) => `Opłata ${rate}% (minimum ${minAmount})`,
+        instantSummary: ({rate, minAmount}: InstantSummaryParams) => `Opłata ${rate}% (minimum ${minAmount})`,
         ach: '1–3 dni robocze (konto bankowe)',
         achSummary: 'Bez opłaty',
         whichAccount: 'Które konto?',
@@ -2844,7 +2870,7 @@ ${
             dateShouldBeBefore: (dateString: string) => `Data powinna być wcześniejsza niż ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Data powinna być późniejsza niż ${dateString}`,
             hasInvalidCharacter: 'Nazwa może zawierać tylko znaki łacińskie',
-            incorrectZipFormat: (zipFormat?: string) => `Nieprawidłowy format kodu pocztowego${zipFormat ? `Akceptowalny format: ${zipFormat}` : ''}`,
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Nieprawidłowy format kodu pocztowego${zipFormat ? `Akceptowalny format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Upewnij się, że numer telefonu jest prawidłowy (np. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
@@ -2926,7 +2952,7 @@ ${
     },
     focusModeUpdateModal: {
         title: 'Witamy w trybie #focus!',
-        prompt: (priorityModePageUrl: string) =>
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
             `Pozostań na bieżąco, wyświetlając tylko nieprzeczytane czaty lub czaty wymagające Twojej uwagi. Nie martw się, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
     notFound: {
@@ -3067,6 +3093,7 @@ ${
         currencyHeader: 'W jakiej walucie jest Twoje konto bankowe?',
         confirmationStepHeader: 'Sprawdź swoje dane.',
         confirmationStepSubHeader: 'Sprawdź poniższe szczegóły i zaznacz pole z warunkami, aby potwierdzić.',
+        toGetStarted: 'Dodaj osobiste konto bankowe, aby otrzymywać zwroty kosztów, opłacać faktury lub włączyć portfel Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Wprowadź hasło do Expensify',
@@ -3597,7 +3624,7 @@ ${
         flight: 'Lot',
         flightDetails: {
             passenger: 'Pasażer',
-            layover: (layover: string) => `<muted-text-label>Masz <strong>${layover} międzylądowanie</strong> przed tym lotem</muted-text-label>`,
+            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>Masz <strong>${layover} międzylądowanie</strong> przed tym lotem</muted-text-label>`,
             takeOff: 'Odlot',
             landing: 'Strona startowa',
             seat: 'Miejsce',
@@ -3687,18 +3714,17 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `Konfigurowanie podróży nie powiodło się dla domeny: ${domain}. Sprawdź i włącz obsługę podróży dla tej domeny.`,
         },
         updates: {
-            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
+            bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
                 `Twój lot ${airlineCode} (${origin} → ${destination}) w dniu ${startDate} został zarezerwowany. Kod potwierdzenia: ${confirmationID}`,
-            ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+            ticketVoided: ({airlineCode, origin, destination, startDate}: FlightParams) =>
                 `Twój bilet na lot ${airlineCode} (${origin} → ${destination}) w dniu ${startDate} został unieważniony.`,
-            ticketRefunded: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+            ticketRefunded: ({airlineCode, origin, destination, startDate}: FlightParams) =>
                 `Twój bilet na lot ${airlineCode} (${origin} → ${destination}) w dniu ${startDate} został zwrócony lub wymieniony.`,
-            flightCancelled: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+            flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) =>
                 `Twój lot ${airlineCode} (${origin} → ${destination}) w dniu ${startDate}} został odwołany przez linię lotniczą.`,
             flightScheduleChangePending: (airlineCode: string) => `Linie lotnicze zaproponowały zmianę rozkładu lotu ${airlineCode}; oczekujemy na potwierdzenie.`,
             flightScheduleChangeClosed: (airlineCode: string, startDate?: string) => `Zmiana planu potwierdzona: lot ${airlineCode} odlot teraz o ${startDate}.`,
-            flightUpdated: (airlineCode: string, origin: string, destination: string, startDate: string) =>
-                `Twój lot ${airlineCode} (${origin} → ${destination}) w dniu ${startDate} został zaktualizowany.`,
+            flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `Twój lot ${airlineCode} (${origin} → ${destination}) w dniu ${startDate} został zaktualizowany.`,
             flightCabinChanged: (airlineCode: string, cabinClass?: string) => `Twoja klasa kabiny została zaktualizowana do ${cabinClass} na locie ${airlineCode}.`,
             flightSeatConfirmed: (airlineCode: string) => `Twoje miejsce na locie ${airlineCode} zostało potwierdzone.`,
             flightSeatChanged: (airlineCode: string) => `Twoje miejsce na locie ${airlineCode} zostało zmienione.`,
@@ -4508,7 +4534,7 @@ ${
                 importTaxDescription: 'Importuj grupy podatkowe z NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Wybierz jedną z opcji poniżej:',
-                    label: (importedTypes: string[]) => `Zaimportowano jako ${importedTypes.join('i')}`,
+                    label: ({importedTypes}: ImportedTypesParams) => `Zaimportowano jako ${importedTypes.join('i')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Wprowadź ${fieldName}`,
                     customSegments: {
                         title: 'Niestandardowe segmenty/rejestry',
@@ -4623,18 +4649,18 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'Domyślne ustawienia pracownika NetSuite',
                         description: 'Niezaimportowane do Expensify, zastosowane przy eksporcie',
-                        footerContent: (importField: string) =>
+                        footerContent: ({importField}: ImportFieldParams) =>
                             `Jeśli używasz ${importField} w NetSuite, zastosujemy domyślną wartość ustawioną w rekordzie pracownika podczas eksportu do Raportu Wydatków lub Zapisu w Dzienniku.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Tagi',
                         description: 'Na poziomie pozycji',
-                        footerContent: (importField: string) => `${startCase(importField)} będzie można wybrać osobno dla każdego wydatku w raporcie pracownika.`,
+                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} będzie można wybrać osobno dla każdego wydatku w raporcie pracownika.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Pola raportu',
                         description: 'Poziom raportu',
-                        footerContent: (importField: string) => `Wybór ${startCase(importField)} zostanie zastosowany do wszystkich wydatków w raporcie pracownika.`,
+                        footerContent: ({importField}: ImportFieldParams) => `Wybór ${startCase(importField)} zostanie zastosowany do wszystkich wydatków w raporcie pracownika.`,
                     },
                 },
             },
@@ -4711,7 +4737,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 commercialFeedPlaidDetails: `Wymaga konfiguracji z Twoim bankiem, ale poprowadzimy Cię przez ten proces. Zwykle jest to dostępne tylko dla większych firm.`,
                 directFeedDetails: 'Najprostsze rozwiązanie. Połącz się od razu, używając swoich głównych danych logowania. Ta metoda jest najczęściej stosowana.',
                 enableFeed: {
-                    title: (provider: string) => `Włącz swój kanał ${provider}`,
+                    title: ({provider}: GoBackMessageParams) => `Włącz swój kanał ${provider}`,
                     heading:
                         'Mamy bezpośrednią integrację z wystawcą Twojej karty i możemy szybko oraz dokładnie zaimportować dane Twoich transakcji do Expensify.\n\nAby rozpocząć, po prostu:',
                     visa: 'Mamy globalne integracje z Visa, choć kwalifikowalność zależy od banku i programu karty.\n\nAby rozpocząć, po prostu:',
@@ -5270,7 +5296,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 prompt3: 'pobierz kopię zapasową',
                 prompt4: 'pierwszy.',
             },
-            importedTagsMessage: (columnCounts: number) =>
+            importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Znaleźliśmy *${columnCounts} kolumn* w Twoim arkuszu kalkulacyjnym. Wybierz *Name* obok kolumny, która zawiera nazwy tagów. Możesz także wybrać *Enabled* obok kolumny, która ustawia status tagów.`,
             cannotDeleteOrDisableAllTags: {
                 title: 'Nie można usunąć ani wyłączyć wszystkich tagów',
@@ -5540,6 +5566,20 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Czy na pewno chcesz połączyć ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'to połączenie z systemem księgowym'}? Spowoduje to usunięcie wszystkich istniejących połączeń księgowych.`,
             enterCredentials: 'Wprowadź swoje dane logowania',
+            claimOffer: {
+                badgeText: 'Oferta dostępna!',
+                xero: {
+                    headline: 'Otrzymaj Xero za darmo na 6 miesięcy!',
+                    description: '<muted-text><centered-text>Nowy w Xero? Klienci Expensify otrzymują 6 miesięcy za darmo. Odbierz swoją ofertę poniżej.</centered-text></muted-text>',
+                    connectButton: 'Połącz z Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Otrzymaj 5% zniżki na przejazdy Uber',
+                    description: `<muted-text><centered-text>Aktywuj Uber for Business przez Expensify i zaoszczędź 5% na wszystkich przejazdach służbowych do czerwca. <a href="${CONST.UBER_TERMS_LINK}">Obowiązują warunki.</a></centered-text></muted-text>`,
+                    connectButton: 'Połącz z Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6080,7 +6120,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         rules: {
             individualExpenseRules: {
                 title: 'Wydatki',
-                subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
+                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
                     `<muted-text>Ustaw limity wydatków i domyślne ustawienia dla poszczególnych wydatków. Możesz też utworzyć reguły dla <a href="${categoriesPageLink}">kategorii</a> i <a href="${tagsPageLink}">tagów</a>.</muted-text>`,
                 receiptRequiredAmount: 'Wymagana kwota paragonu',
                 receiptRequiredAmountDescription: 'Wymagaj paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to nadpisane przez regułę kategorii.',
@@ -6269,6 +6309,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         billcom: 'Bill.com',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `zmienił adres firmy na „${newAddress}” (wcześniej „${previousAddress}”)` : `ustaw adres firmy na „${newAddress}”`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `dodano ${approverName} (${approverEmail}) jako osobę zatwierdzającą dla pola ${field} „${name}”`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
@@ -6705,7 +6747,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Mniej niż ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Większe niż ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Pomiędzy ${greaterThan} a ${lessThan}`,
+                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Pomiędzy ${greaterThan} a ${lessThan}`,
                 equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Równe ${amount ?? ''}`,
             },
             card: {
@@ -6908,6 +6950,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 removedConnection: ({connectionName}: ConnectionNameParams) => `usunięto połączenie z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `połączono z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'opuścił czat',
+                companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
+                    `Połączenie ${feedName} jest przerwane. Aby przywrócić importy kart, <a href='${workspaceCompanyCardRoute}'>zaloguj się do swojego banku</a>`,
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',
@@ -7067,6 +7111,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         error: {
             selectSuggestedAddress: 'Wybierz sugerowany adres lub użyj bieżącej lokalizacji',
         },
+        odometer: {startReading: 'Rozpocznij czytanie', endReading: 'Zakończ czytanie', saveForLater: 'Zapisz na później', totalDistance: 'Całkowity dystans'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Świadectwo zgubione lub uszkodzone',
@@ -7854,7 +7899,11 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             addAdmin: 'Dodaj administratora',
             invite: 'Zaproś',
             addAdminError: 'Nie można dodać tego członka jako administratora. Spróbuj ponownie.',
+            revokeAdminAccess: 'Cofnij uprawnienia administratora',
+            cantRevokeAdminAccess: 'Nie można odebrać uprawnień administratora kontaktowi technicznemu',
+            error: {removeAdmin: 'Nie można usunąć tego użytkownika jako administratora. Spróbuj ponownie.'},
         },
+        members: {title: 'Członkowie', findMember: 'Znajdź członka'},
     },
     gps: {
         tooltip: 'Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.',
@@ -7872,6 +7921,20 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             confirm: 'Odrzuć śledzenie dystansu',
         },
         zeroDistanceTripModal: {title: 'Nie można utworzyć wydatku', prompt: 'Nie możesz utworzyć wydatku z tym samym miejscem początkowym i końcowym.'},
+
+        locationRequiredModal: {
+            title: 'Wymagany dostęp do lokalizacji',
+            prompt: 'Aby rozpocząć śledzenie dystansu GPS, zezwól na dostęp do lokalizacji w ustawieniach swojego urządzenia.',
+            allow: 'Zezwól',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Wymagany dostęp do lokalizacji w tle',
+            prompt: 'Zezwól aplikacji na dostęp do lokalizacji w tle w ustawieniach urządzenia (opcja „Zawsze zezwalaj”), aby rozpocząć śledzenie dystansu GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Wymagane dokładne położenie',
+            prompt: 'Włącz proszę „dokładną lokalizację” w ustawieniach swojego urządzenia, aby rozpocząć śledzenie dystansu GPS.',
+        },
         desktop: {
             title: 'Śledź dystans na swoim telefonie',
             subtitle: 'Automatycznie rejestruj mile lub kilometry za pomocą GPS i natychmiast zamieniaj podróże w wydatki.',

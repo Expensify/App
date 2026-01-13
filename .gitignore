@@ -156,6 +156,7 @@ modules/*/lib/
 
 # Claude local settings
 .claude/settings.local.json
+.playwright/
 
 # cspell cache
 .cspellcache
