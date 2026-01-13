@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -19,7 +19,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {setConnectionError} from '@userActions/connections';
+import useOnyx from '@libs/onyx/hooks/useOnyx';
+import {setConnectionError, setConnectionErrorMessage} from '@userActions/connections';
 import {getQuickbooksDesktopCodatSetupLink} from '@userActions/connections/QuickbooksDesktop';
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -28,56 +29,87 @@ import type SCREENS from '@src/SCREENS';
 
 type RequireQuickBooksDesktopModalProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL>;
 
+type SetupLinkFetchStatus = {status: 'loading'} | {status: 'success'; setupLink: string} | {status: 'error'};
+
 function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync']);
     const policyID: string = route.params.policyID;
-    const [hasError, setHasError] = useState(false);
-    const [codatSetupLink, setCodatSetupLink] = useState<string>('');
-    const hasResultOfFetchingSetupLink = !!codatSetupLink || hasError;
+    const [setupLinkFetchStatus, setSetupLinkFetchStatus] = useState<SetupLinkFetchStatus>({status: 'loading'});
+    const [connectionError] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.lastSync?.errorMessage,
+    });
 
-    const ContentWrapper = hasResultOfFetchingSetupLink
-        ? ({children}: React.PropsWithChildren) => children
-        : ({children}: React.PropsWithChildren) => <FullPageOfflineBlockingView addBottomSafeAreaPadding>{children}</FullPageOfflineBlockingView>;
+    const isLoading = setupLinkFetchStatus.status === 'loading';
+    const shouldShowError = setupLinkFetchStatus.status === 'error';
+    const codatSetupLink = setupLinkFetchStatus.status === 'success' ? setupLinkFetchStatus.setupLink : '';
 
-    const fetchSetupLink = useCallback(() => {
-        setHasError(false);
+    const ContentWrapper = isLoading
+        ? ({children}: React.PropsWithChildren) => <FullPageOfflineBlockingView addBottomSafeAreaPadding>{children}</FullPageOfflineBlockingView>
+        : ({children}: React.PropsWithChildren) => children;
+
+    const setLocalizedConnectionError = useEffectEvent(() => {
+        setConnectionError(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, translate('workspace.qbd.setupPage.setupErrorTitle'));
+    });
+
+    useEffect(() => {
+        let shouldIgnoreResponse = false;
+
+        // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
+        enablePolicyTaxes(policyID, false);
+
+        setSetupLinkFetchStatus({status: 'loading'});
+
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
-            if (!response?.jsonCode) {
+            if (shouldIgnoreResponse || !response?.jsonCode) {
                 return;
             }
 
             if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                setCodatSetupLink(String(response?.setupUrl ?? ''));
+                setSetupLinkFetchStatus({status: 'success', setupLink: String(response?.setupUrl ?? '')});
             } else {
-                setConnectionError(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, translate('workspace.qbd.setupPage.setupErrorTitle'));
-                setHasError(true);
+                setLocalizedConnectionError();
+                setSetupLinkFetchStatus({status: 'error'});
             }
         });
-    }, [policyID, translate]);
 
+        return () => {
+            shouldIgnoreResponse = true;
+        };
+    }, [policyID]);
+
+    // Re-translate the error message when locale changes
     useEffect(() => {
-        // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
-        enablePolicyTaxes(policyID, false);
-
-        fetchSetupLink();
-        // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        if (!connectionError) {
+            return;
+        }
+        setConnectionErrorMessage(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, translate('workspace.qbd.setupPage.setupErrorTitle'));
+    }, [connectionError, policyID, translate]);
 
     useNetwork({
         onReconnect: () => {
-            if (hasResultOfFetchingSetupLink) {
+            if (!isLoading) {
                 return;
             }
-            fetchSetupLink();
+
+            // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+            getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
+                if (!response?.jsonCode) {
+                    return;
+                }
+
+                if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    setSetupLinkFetchStatus({status: 'success', setupLink: String(response?.setupUrl ?? '')});
+                } else {
+                    setLocalizedConnectionError();
+                    setSetupLinkFetchStatus({status: 'error'});
+                }
+            });
         },
     });
-
-    const shouldShowError = hasError;
 
     return (
         <ScreenWrapper
@@ -113,7 +145,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         <Text style={[styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.setupPage.title')}</Text>
                         <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
                         <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
-                            {!hasResultOfFetchingSetupLink ? (
+                            {isLoading ? (
                                 <ActivityIndicator />
                             ) : (
                                 <CopyTextToClipboard
