@@ -83,7 +83,6 @@ import {
     isActionOfType,
     isCardIssuedAction,
     isInviteOrRemovedAction,
-    isMoneyRequestAction,
     isOldDotReportAction,
     isRenamedAction,
     isTagModificationAction,

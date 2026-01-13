@@ -196,6 +196,7 @@ import {
     getMessageOfOldDotReportAction,
     getMostRecentActiveDEWSubmitFailedAction,
     getNumberOfMoneyRequests,
+    getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -9351,9 +9352,9 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 
 function getReceiptUploadErrorReason(report: Report, chatReport: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, transactions: OnyxCollection<Transaction>) {
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
-    if (transactionThreadReportID) {
-        const transactionID = getTransactionID(transactionThreadReportID);
+    const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
+    if (transactionThreadReportAction) {
+        const transactionID = isMoneyRequestAction(transactionThreadReportAction) ? getOriginalMessage(transactionThreadReportAction)?.IOUTransactionID : undefined;
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (hasReceiptError(transaction)) {
             return {
@@ -9361,7 +9362,7 @@ function getReceiptUploadErrorReason(report: Report, chatReport: OnyxEntry<Repor
             };
         }
     }
-    const transactionID = getTransactionID(report.reportID);
+    const transactionID = getTransactionID(report);
     const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
         return {
