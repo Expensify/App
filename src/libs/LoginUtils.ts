@@ -5,6 +5,7 @@ import ROUTES from '@src/ROUTES';
 import {clearSignInData, setAccountError} from './actions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
+import {normalize} from './StringUtils';
 
 /**
  * Remove the special chars from the phone number
@@ -116,7 +117,7 @@ function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
 }
 
 function sanitizePhoneOrEmail(phoneOrEmail: string) {
-    return phoneOrEmail.replaceAll(/\s+/g, '').toLowerCase();
+    return normalize(phoneOrEmail).toLowerCase();
 }
 
 export {
