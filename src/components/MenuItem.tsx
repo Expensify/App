@@ -1001,6 +1001,7 @@ function MenuItem({
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.pl6,
                                                             isHovered ? styles.opacity1 : styles.opacitySemiTransparent,
+                                                            shouldUseNormalIconSizeForRightIcon && styles.opacity1,
                                                             styles.alignItemsEnd,
                                                         ]}
                                                     >
