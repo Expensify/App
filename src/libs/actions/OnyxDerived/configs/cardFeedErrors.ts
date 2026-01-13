@@ -50,11 +50,6 @@ export default createOnyxDerivedValueConfig({
 
             const hasFeedError = feedNameWithDomainID ? !!selectedFeed?.errors : false;
             let isFeedConnectionBroken = isCardConnectionBroken(card);
-
-            if (card.bank === 'vcf2') {
-                isFeedConnectionBroken = true;
-            }
-
             const shouldShowRBR = hasFailedCardAssignments || hasFeedError || isFeedConnectionBroken;
 
             if (isFeedConnectionBroken) {
