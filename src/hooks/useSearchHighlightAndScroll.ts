@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -52,31 +52,22 @@ function useSearchHighlightAndScroll({
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
-    const existingSearchResultIDs = useMemo(() => {
-        if (!searchResults?.data) {
-            return [];
-        }
-        return isChat ? extractReportActionIDsFromSearchResults(searchResults.data) : extractTransactionIDsFromSearchResults(searchResults.data);
-    }, [searchResults?.data, isChat]);
+    const existingSearchResultIDs = searchResults?.data
+        ? isChat
+            ? extractReportActionIDsFromSearchResults(searchResults.data)
+            : extractTransactionIDsFromSearchResults(searchResults.data)
+        : [];
 
-    const newTransactions = useMemo(() => {
-        const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
-
-        if (previousTransactionsIDs.length === 0) {
-            return [];
-        }
-
+    const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
+    const newTransactions: Transaction[] = [];
+    if (previousTransactionsIDs.length > 0) {
         const previousIDs = new Set(previousTransactionsIDs);
-        const result: Transaction[] = [];
-
         for (const [id, transaction] of Object.entries(transactions ?? {})) {
             if (!previousIDs.has(id) && transaction) {
-                result.push(transaction);
+                newTransactions.push(transaction);
             }
         }
-
-        return result;
-    }, [previousTransactions, transactions]);
+    }
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
@@ -235,51 +226,48 @@ function useSearchHighlightAndScroll({
     /**
      * Callback to handle scrolling to the new search result.
      */
-    const handleSelectionListScroll = useCallback(
-        (data: SearchListItem[], ref: SelectionListHandle | null) => {
-            // Early return if there's no ref, new transaction wasn't brought in by this hook
-            // or there's no new search result key
-            const newSearchResultKey = newSearchResultKeys?.values().next().value;
-            if (!ref || !triggeredByHookRef.current || !newSearchResultKey) {
-                return;
-            }
+    const handleSelectionListScroll = (data: SearchListItem[], ref: SelectionListHandle | null) => {
+        // Early return if there's no ref, new transaction wasn't brought in by this hook
+        // or there's no new search result key
+        const newSearchResultKey = newSearchResultKeys?.values().next().value;
+        if (!ref || !triggeredByHookRef.current || !newSearchResultKey) {
+            return;
+        }
 
-            // Extract the transaction/report action ID from the newSearchResultKey
-            const newID = newSearchResultKey.replace(isChat ? ONYXKEYS.COLLECTION.REPORT_ACTIONS : ONYXKEYS.COLLECTION.TRANSACTION, '');
+        // Extract the transaction/report action ID from the newSearchResultKey
+        const newID = newSearchResultKey.replace(isChat ? ONYXKEYS.COLLECTION.REPORT_ACTIONS : ONYXKEYS.COLLECTION.TRANSACTION, '');
 
-            // Find the index of the new transaction/report action in the data array
-            const indexOfNewItem = data.findIndex((item) => {
-                if (isChat) {
-                    if ('reportActionID' in item && item.reportActionID === newID) {
-                        return true;
-                    }
-                } else {
-                    // Handle TransactionListItemType
-                    if ('transactionID' in item && item.transactionID === newID) {
-                        return true;
-                    }
-
-                    // Handle TransactionGroupListItemType with transactions array
-                    if ('transactions' in item && Array.isArray(item.transactions)) {
-                        return item.transactions.some((transaction) => transaction?.transactionID === newID);
-                    }
+        // Find the index of the new transaction/report action in the data array
+        const indexOfNewItem = data.findIndex((item) => {
+            if (isChat) {
+                if ('reportActionID' in item && item.reportActionID === newID) {
+                    return true;
+                }
+            } else {
+                // Handle TransactionListItemType
+                if ('transactionID' in item && item.transactionID === newID) {
+                    return true;
                 }
 
-                return false;
-            });
-
-            // Early return if the new item is not found in the data array
-            if (indexOfNewItem <= 0) {
-                return;
+                // Handle TransactionGroupListItemType with transactions array
+                if ('transactions' in item && Array.isArray(item.transactions)) {
+                    return item.transactions.some((transaction) => transaction?.transactionID === newID);
+                }
             }
 
-            // Perform the scrolling action
-            ref.scrollToIndex(indexOfNewItem);
-            // Reset the trigger flag to prevent unintended future scrolls and highlights
-            triggeredByHookRef.current = false;
-        },
-        [newSearchResultKeys, isChat],
-    );
+            return false;
+        });
+
+        // Early return if the new item is not found in the data array
+        if (indexOfNewItem <= 0) {
+            return;
+        }
+
+        // Perform the scrolling action
+        ref.scrollToIndex(indexOfNewItem);
+        // Reset the trigger flag to prevent unintended future scrolls and highlights
+        triggeredByHookRef.current = false;
+    };
 
     return {newSearchResultKeys, handleSelectionListScroll, newTransactions};
 }

@@ -1,5 +1,4 @@
 import truncate from 'lodash/truncate';
-import {useCallback, useMemo} from 'react';
 import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
@@ -99,47 +98,40 @@ function useBulkPayOptions({
         });
     }
 
-    const getPaymentSubitems = useCallback(
-        (payAsBusiness: boolean) => {
-            const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
-
-            return formattedPaymentMethods
-                .filter((method) => {
-                    const accountData = method?.accountData as AccountData;
-                    return accountData?.type === requiredAccountType;
-                })
-                .map((formattedPaymentMethod) => ({
-                    text: formattedPaymentMethod?.title ?? '',
-                    description: formattedPaymentMethod?.description ?? '',
-                    icon: formattedPaymentMethod?.icon,
-                    shouldUpdateSelectedIndex: true,
-                    iconStyles: formattedPaymentMethod?.iconStyles,
-                    iconHeight: formattedPaymentMethod?.iconSize,
-                    iconWidth: formattedPaymentMethod?.iconSize,
-                    key: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                    additionalData: {
-                        payAsBusiness,
-                        methodID: formattedPaymentMethod.methodID,
-                        paymentMethod: formattedPaymentMethod.accountType,
-                    },
-                }));
-        },
-        [formattedPaymentMethods],
-    );
+    const getPaymentSubitems = (payAsBusiness: boolean) => {
+        const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
+        return formattedPaymentMethods
+            .filter((method) => {
+                const accountData = method?.accountData as AccountData;
+                return accountData?.type === requiredAccountType;
+            })
+            .map((formattedPaymentMethod) => ({
+                text: formattedPaymentMethod?.title ?? '',
+                description: formattedPaymentMethod?.description ?? '',
+                icon: formattedPaymentMethod?.icon,
+                shouldUpdateSelectedIndex: true,
+                iconStyles: formattedPaymentMethod?.iconStyles,
+                iconHeight: formattedPaymentMethod?.iconSize,
+                iconWidth: formattedPaymentMethod?.iconSize,
+                key: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                additionalData: {
+                    payAsBusiness,
+                    methodID: formattedPaymentMethod.methodID,
+                    paymentMethod: formattedPaymentMethod.accountType,
+                },
+            }));
+    };
 
     const latestBankItems = getLatestBankAccountItem();
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
-    const bulkPayButtonOptions = useMemo(() => {
+    let bulkPayButtonOptions;
+    if (!selectedReportID || !selectedPolicyID) {
+        bulkPayButtonOptions = undefined;
+    } else if (onlyShowPayElsewhere) {
+        bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+    } else {
         const buttonOptions = [];
-
-        if (!selectedReportID || !selectedPolicyID) {
-            return undefined;
-        }
-
-        if (onlyShowPayElsewhere) {
-            return [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
-        }
 
         if (shouldShowBusinessBankAccountOptions) {
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
@@ -221,30 +213,8 @@ function useBulkPayOptions({
             }
         }
 
-        return buttonOptions;
-    }, [
-        translate,
-        icons.Building,
-        icons.User,
-        selectedReportID,
-        selectedPolicyID,
-        shouldShowBusinessBankAccountOptions,
-        canUseWallet,
-        hasMultiplePolicies,
-        hasSinglePolicy,
-        isPersonalOnlyOption,
-        shouldShowPayElsewhereOption,
-        isInvoiceReport,
-        paymentMethods,
-        personalBankAccountList.length,
-        canUsePersonalBankAccount,
-        activeAdminPolicies,
-        currency,
-        chatReport,
-        getPaymentSubitems,
-        formattedAmount,
-        onlyShowPayElsewhere,
-    ]);
+        bulkPayButtonOptions = buttonOptions;
+    }
 
     return {
         bulkPayButtonOptions,
