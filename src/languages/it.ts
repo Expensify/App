@@ -553,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valore',
         downloadFailedTitle: 'Download non riuscito',
         downloadFailedDescription: 'Il download non può essere completato. Riprova più tardi.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Non puoi esportare un rapporto vuoto.',
+            other: () => 'Non puoi esportare rapporti vuoti.',
+        }),
         filterLogs: 'Filtra registri',
         network: 'Rete',
         reportID: 'ID rapporto',
@@ -1189,8 +1193,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questa spesa?',
             other: 'Sei sicuro di voler eliminare queste spese?',
         }),
-        deleteReport: 'Elimina resoconto',
-        deleteReportConfirmation: 'Sei sicuro di voler eliminare questo report?',
+        deleteReport: () => ({
+            one: 'Elimina rapporto',
+            other: 'Elimina rapporti',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Sei sicuro di voler eliminare questo report?',
+            other: 'Sei sicuro di voler eliminare questi report?',
+        }),
         settledExpensify: 'Pagato',
         done: 'Fatto',
         settledElsewhere: 'Pagato altrove',
@@ -1461,6 +1471,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} giorni)`,
         splitByDate: 'Dividi per data',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapporto inoltrato a ${to} a causa del flusso di lavoro di approvazione personalizzato`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'ora' : 'ore'} @ ${rate} / ora`, hrs: 'ore'},
     },
     transactionMerge: {
         listPage: {
@@ -3101,6 +3112,7 @@ ${
         currencyHeader: 'Qual è la valuta del tuo conto bancario?',
         confirmationStepHeader: 'Controlla le tue informazioni.',
         confirmationStepSubHeader: 'Controlla attentamente i dettagli qui sotto e seleziona la casella delle condizioni per confermare.',
+        toGetStarted: 'Aggiungi un conto bancario personale per ricevere rimborsi, pagare fatture o abilitare il portafoglio Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Inserisci la password di Expensify',

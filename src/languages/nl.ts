@@ -553,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Waarde',
         downloadFailedTitle: 'Download mislukt',
         downloadFailedDescription: 'Je download kon niet worden voltooid. Probeer het later opnieuw.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Je kunt geen leeg rapport exporteren.',
+            other: () => 'Je kunt geen lege rapporten exporteren.',
+        }),
         filterLogs: 'Logboeken filteren',
         network: 'Netwerk',
         reportID: 'Rapport-ID',
@@ -1189,8 +1193,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Weet je zeker dat je deze uitgave wilt verwijderen?',
             other: 'Weet je zeker dat je deze uitgaven wilt verwijderen?',
         }),
-        deleteReport: 'Rapport verwijderen',
-        deleteReportConfirmation: 'Weet u zeker dat u dit rapport wilt verwijderen?',
+        deleteReport: () => ({
+            one: 'Rapport verwijderen',
+            other: 'Rapporten verwijderen',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Weet u zeker dat u dit rapport wilt verwijderen?',
+            other: 'Weet u zeker dat u deze rapporten wilt verwijderen?',
+        }),
         settledExpensify: 'Betaald',
         done: 'Gereed',
         settledElsewhere: 'Elders betaald',
@@ -1460,6 +1470,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} tot ${endDate} (${count} dagen)`,
         splitByDate: 'Splitsen op datum',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapport doorgestuurd naar ${to} vanwege aangepaste goedkeuringsworkflow`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'uur' : 'uren'} @ ${rate} / uur`, hrs: 'uur'},
     },
     transactionMerge: {
         listPage: {
@@ -3099,6 +3110,7 @@ ${
         currencyHeader: 'Wat is de valuta van je bankrekening?',
         confirmationStepHeader: 'Controleer je gegevens.',
         confirmationStepSubHeader: 'Controleer de onderstaande gegevens en vink het vakje met de voorwaarden aan om te bevestigen.',
+        toGetStarted: 'Voeg een persoonlijke bankrekening toe om vergoedingen te ontvangen, facturen te betalen of de Expensify Wallet in te schakelen.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-wachtwoord invoeren',

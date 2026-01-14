@@ -384,6 +384,8 @@ function MoneyRequestView({
             getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
         [getViolationsForField],
     );
+    // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
@@ -407,6 +409,16 @@ function MoneyRequestView({
     const updatedTransactionDescription = getDescription(updatedTransaction) || undefined;
     const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
+
+    const shouldShowConvertedAmount =
+        transactionConvertedAmount &&
+        currency !== moneyRequestReport?.currency &&
+        !isManagedCardTransaction &&
+        transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID &&
+        !isFromMergeTransaction &&
+        !isFromReviewDuplicates &&
+        !getPendingFieldAction('amount') &&
+        !pendingAction;
 
     const saveBillable = (newBillable: boolean) => {
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
@@ -466,10 +478,8 @@ function MoneyRequestView({
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
-    if (currency !== moneyRequestReport?.currency && !isManagedCardTransaction && transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-        if (transactionConvertedAmount) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
-        }
+    if (shouldShowConvertedAmount) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
     }
 
     if (isFromMergeTransaction) {
@@ -480,8 +490,6 @@ function MoneyRequestView({
     }
 
     const hasErrors = hasMissingSmartscanFields(transaction, reportTransaction);
-    // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     const getErrorForField = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
         // Checks applied when creating a new expense

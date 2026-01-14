@@ -552,6 +552,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Wert',
         downloadFailedTitle: 'Download fehlgeschlagen',
         downloadFailedDescription: 'Ihr Download konnte nicht abgeschlossen werden. Bitte versuchen Sie es später noch einmal.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Sie können keinen leeren Bericht exportieren.',
+            other: () => 'Sie können keine leeren Berichte exportieren.',
+        }),
         filterLogs: 'Protokolle filtern',
         network: 'Netzwerk',
         reportID: 'Berichts-ID',
@@ -1194,8 +1198,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sind Sie sicher, dass Sie diese Ausgabe löschen möchten?',
             other: 'Sind Sie sicher, dass Sie diese Ausgaben löschen möchten?',
         }),
-        deleteReport: 'Bericht löschen',
-        deleteReportConfirmation: 'Sind Sie sicher, dass Sie diesen Bericht löschen möchten?',
+        deleteReport: () => ({
+            one: 'Bericht löschen',
+            other: 'Berichte löschen',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Möchten Sie diesen Bericht wirklich löschen?',
+            other: 'Möchten Sie diese Berichte wirklich löschen?',
+        }),
         settledExpensify: 'Bezahlt',
         done: 'Fertig',
         settledElsewhere: 'Anderswo bezahlt',
@@ -1466,6 +1476,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} bis ${endDate} (${count} Tage)`,
         splitByDate: 'Nach Datum aufteilen',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `bericht aufgrund eines benutzerdefinierten Genehmigungsworkflows an ${to} weitergeleitet`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'Stunde' : 'Stunden'} @ ${rate} / Stunde`, hrs: 'Std.'},
     },
     transactionMerge: {
         listPage: {
@@ -3112,6 +3123,7 @@ ${
         currencyHeader: 'Was ist die Währung deines Bankkontos?',
         confirmationStepHeader: 'Überprüfen Sie Ihre Angaben.',
         confirmationStepSubHeader: 'Überprüfen Sie die untenstehenden Angaben und aktivieren Sie das Kontrollkästchen für die Bedingungen, um zu bestätigen.',
+        toGetStarted: 'Fügen Sie ein persönliches Bankkonto hinzu, um Erstattungen zu erhalten, Rechnungen zu bezahlen oder die Expensify Wallet zu aktivieren.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-Passwort eingeben',

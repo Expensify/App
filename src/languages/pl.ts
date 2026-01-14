@@ -553,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Nie możesz eksportować pustego raportu.',
+            other: () => 'Nie możesz eksportować pustych raportów.',
+        }),
         filterLogs: 'Filtruj logi',
         network: 'Sieć',
         reportID: 'ID raportu',
@@ -1188,9 +1192,15 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Czy na pewno chcesz usunąć ten wydatek?',
             other: 'Czy na pewno chcesz usunąć te wydatki?',
         }),
-        deleteReport: 'Usuń raport',
-        deleteReportConfirmation: 'Czy na pewno chcesz usunąć ten raport?',
-        settledExpensify: 'Opłacone',
+        deleteReport: () => ({
+            one: 'Usuń raport',
+            other: 'Usuń raporty',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Czy na pewno chcesz usunąć ten raport?',
+            other: 'Czy na pewno chcesz usunąć te raporty?',
+        }),
+        settledExpensify: 'Zapłacono',
         done: 'Gotowe',
         settledElsewhere: 'Opłacone gdzie indziej',
         individual: 'Indywidualny',
@@ -1458,6 +1468,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} do ${endDate} (${count} dni)`,
         splitByDate: 'Podziel według daty',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `raport przekazany do ${to} z powodu niestandardowego procesu zatwierdzania`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'godzina' : 'godziny'} @ ${rate} / godzinę`, hrs: 'godz.'},
     },
     transactionMerge: {
         listPage: {
@@ -3092,6 +3103,7 @@ ${
         currencyHeader: 'W jakiej walucie jest Twoje konto bankowe?',
         confirmationStepHeader: 'Sprawdź swoje dane.',
         confirmationStepSubHeader: 'Sprawdź poniższe szczegóły i zaznacz pole z warunkami, aby potwierdzić.',
+        toGetStarted: 'Dodaj osobiste konto bankowe, aby otrzymywać zwroty kosztów, opłacać faktury lub włączyć portfel Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Wprowadź hasło do Expensify',
