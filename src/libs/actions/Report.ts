@@ -1941,10 +1941,13 @@ function handlePreexistingReport(report: Report) {
     }
 
     // Handle cleanup of stale optimistic IOU report and its report preview separately
-    if ((isMoneyRequestReport(report) || isMoneyRequest(report)) && parentReportActionID) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-            [parentReportActionID]: null,
-        });
+    if ((isMoneyRequestReport(report) || isMoneyRequest(report)) && parentReportID && parentReportActionID) {
+        const parentReportAction = allReportActions?.[parentReportID]?.[parentReportActionID];
+        if (parentReportAction?.childReportID === reportID) {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                [parentReportActionID]: null,
+            });
+        }
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
         return;
     }
