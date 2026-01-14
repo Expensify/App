@@ -46,7 +46,12 @@ Follow these steps in order:
 
 ### Step 1: Read the issue
 
+```bash
+gh issue view "$ISSUE_URL" --json labels,body,comments
+```
+
 Extract key information:
+- Current labels on the issue
 - Reproduction steps
 - Version number (e.g., `v9.3.1-0`)
 - Reproducible on staging? Production? Both?
@@ -109,7 +114,20 @@ See Decision Tree below for label actions.
 
 ### Step 7: Post comment and update labels
 
-Post your findings and apply appropriate label changes.
+Post your findings (use single quotes for the body to handle special characters):
+```bash
+gh issue comment "$ISSUE_URL" --body '## 🔍 Investigation Summary
+...your comment here...
+'
+```
+
+Remove label only if the decision tree warrants it:
+```bash
+removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlockerCash  # For Backend bugs
+removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlocker      # For Frontend bugs
+```
+
+Call scripts by name only (e.g., `removeDeployBlockerLabel.sh`), not with full paths.
 
 ---
 
@@ -193,6 +211,7 @@ Technical explanation of what went wrong in the code.
 - Make assumptions about code you haven't read
 - Recommend DEMOTE for bugs affecting core functionality (auth, payments, data loss)
 - Close the issue—only update labels and comment
+- Use heredocs, temp files, or shell redirects for comments
 
 **DO:**
 - Always verify the causing PR touches the affected code before concluding
@@ -209,35 +228,3 @@ Technical explanation of what went wrong in the code.
 - **Unclear if frontend/backend**: Keep BOTH labels until confirmed
 - **Low confidence**: Do NOT remove any labels
 
----
-
-## Command Reference
-
-**Important:**
-- Do not use heredocs, temp files, or shell redirects. Pass the comment body directly to `gh issue comment --body`.
-- Call scripts by name only (e.g., `removeDeployBlockerLabel.sh`), not with full paths. The `.claude/scripts/` directory is in PATH.
-
-```bash
-# Check current labels on the issue
-gh issue view "$ISSUE_URL" --json labels --jq '.labels[].name'
-
-# Get StagingDeployCash checklist
-gh issue list --label "StagingDeployCash" --state open --json number,body --limit 1
-
-# View a PR's details
-gh pr view <PR_NUMBER> --json title,body,author,files,mergedAt
-gh pr diff <PR_NUMBER>
-
-# Verify the PR touches affected code
-git log --oneline -10 -- <affected_file>
-gh pr view <PR_NUMBER> --json files --jq '.files[].path'
-
-# Post your findings (use single quotes for the body)
-gh issue comment "$ISSUE_URL" --body '## 🔍 Investigation Summary
-...your comment here...
-'
-
-# Remove label (only if decision tree warrants it)
-removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlockerCash  # For Backend bugs
-removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlocker      # For Frontend bugs
-```
