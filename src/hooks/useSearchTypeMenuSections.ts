@@ -44,7 +44,7 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = () => {
-    const [allCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
+    const [allCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const expensifyCards = useMemo(() => getCardFeedsForDisplay({}, allCards), [allCards]);
     const defaultExpensifyCard = useMemo(() => Object.values(expensifyCards)?.at(0), [expensifyCards]);
 

@@ -72,9 +72,9 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
- * The derived value for merged personal and workspace card feeds.
+ * The derived value for merged non-personal and workspace card feeds.
  */
-type PersonalAndWorkspaceCardListDerivedValue = CardList;
+type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
 
 export default ReportAttributesDerivedValue;
 export type {
@@ -83,5 +83,5 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
-    PersonalAndWorkspaceCardListDerivedValue,
+    NonPersonalAndWorkspaceCardListDerivedValue,
 };

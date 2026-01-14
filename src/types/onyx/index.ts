@@ -30,7 +30,7 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type {
     OutstandingReportsByPolicyIDDerivedValue,
-    PersonalAndWorkspaceCardListDerivedValue,
+    NonPersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
 } from './DerivedValues';
@@ -312,7 +312,7 @@ export type {
     LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
-    PersonalAndWorkspaceCardListDerivedValue,
+    NonPersonalAndWorkspaceCardListDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,

@@ -145,10 +145,10 @@ function isCardClosed(card: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
 }
 
-function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined) {
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldFilterOutPersonalCards = false) {
     const feedCards: CardList = {};
     for (const card of Object.values(cardList ?? {})) {
-        if (!isCard(card)) {
+        if (!isCard(card) || (shouldFilterOutPersonalCards && !isPersonalCard(card))) {
             continue;
         }
 
