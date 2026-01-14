@@ -193,22 +193,22 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         visibleTransactions,
     ]);
 
+    const wereAllTransactionsDeleted = !!(report?.reportID && !reportMetadata?.isLoadingInitialReportActions && visibleTransactions?.length === 0 && !snapshotTransaction);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
-        (): boolean => {
-            if (isLoadingApp !== false) {
-                return false;
-            }
-
-            if (!reportID && !reportMetadata?.isLoadingInitialReportActions) {
-                return true;
-            }
-
-            return !!reportID && !isValidReportIDFromPath(reportID);
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [reportID, reportMetadata?.isLoadingInitialReportActions],
-    );
+    const shouldShowNotFoundPage = useMemo((): boolean => {
+        if (isLoadingApp !== false) {
+            return false;
+        }
+        if (!reportID && !reportMetadata?.isLoadingInitialReportActions) {
+            return true;
+        }
+        if (!!reportID && !isValidReportIDFromPath(reportID)) {
+            return true;
+        }
+        // Show Not Found when all transactions were deleted
+        return wereAllTransactionsDeleted;
+    }, [reportID, reportMetadata?.isLoadingInitialReportActions, wereAllTransactionsDeleted, isLoadingApp]);
 
     if (shouldUseNarrowLayout) {
         return (
