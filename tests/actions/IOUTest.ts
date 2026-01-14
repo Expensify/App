@@ -5011,7 +5011,9 @@ describe('actions/IOU', () => {
                 accountID: participantAccountIDs.at(index),
                 personalDetails: allPersonalDetails?.[participantAccountIDs[index]] ?? undefined,
             }));
-            openReport(thread.reportID, '', participants, thread, createIOUAction?.reportActionID);
+            const ownerAccountID = thread.ownerAccountID;
+            const ownerPersonalDetails = ownerAccountID ? (allPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
+            openReport(thread.reportID, '', participants, ownerPersonalDetails, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -5108,7 +5110,9 @@ describe('actions/IOU', () => {
                 accountID: participantAccountIDs.at(index),
                 personalDetails: allPersonalDetails?.[participantAccountIDs[index]] ?? undefined,
             }));
-            openReport(thread.reportID, '', participants, thread, createIOUAction?.reportActionID);
+            const ownerAccountID = thread.ownerAccountID;
+            const ownerPersonalDetails = ownerAccountID ? (allPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
+            openReport(thread.reportID, '', participants, ownerPersonalDetails, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -5226,7 +5230,9 @@ describe('actions/IOU', () => {
                 accountID: participantAccountIDs.at(index),
                 personalDetails: allPersonalDetails?.[participantAccountIDs[index]] ?? undefined,
             }));
-            openReport(thread.reportID, '', participants, thread, createIOUAction?.reportActionID);
+            const ownerAccountID = thread.ownerAccountID;
+            const ownerPersonalDetails = ownerAccountID ? (allPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
+            openReport(thread.reportID, '', participants, ownerPersonalDetails, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             Onyx.connect({
@@ -5333,7 +5339,9 @@ describe('actions/IOU', () => {
                 accountID: participantAccountIDs.at(index),
                 personalDetails: allPersonalDetails?.[participantAccountIDs[index]] ?? undefined,
             }));
-            openReport(thread.reportID, '', participants, thread, createIOUAction?.reportActionID);
+            const ownerAccountID = thread.ownerAccountID;
+            const ownerPersonalDetails = ownerAccountID ? (allPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
+            openReport(thread.reportID, '', participants, ownerPersonalDetails, thread, createIOUAction?.reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -5610,7 +5618,9 @@ describe('actions/IOU', () => {
                 accountID: participantAccountIDs.at(index),
                 personalDetails: allPersonalDetails?.[participantAccountIDs[index]] ?? undefined,
             }));
-            openReport(thread.reportID, '', participants, thread, createIOUAction?.reportActionID);
+            const ownerAccountID = thread.ownerAccountID;
+            const ownerPersonalDetails = ownerAccountID ? (allPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
+            openReport(thread.reportID, '', participants, ownerPersonalDetails, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {

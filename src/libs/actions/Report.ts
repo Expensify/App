@@ -971,6 +971,7 @@ function buildParticipantInfoFromLoginsAndDetails(logins: string[], personalDeta
  * @param reportID The ID of the report to open
  * @param reportActionID The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat.
  * @param participants List of participants with their login and optional personal details (only needed when creating a new report)
+ * @param reportOwnerPersonalDetails Personal details of the report owner (only needed when creating a new report)
  * @param newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
@@ -986,6 +987,7 @@ function openReport(
     reportID: string | undefined,
     reportActionID?: string,
     participants: ParticipantInfo[] = [],
+    reportOwnerPersonalDetails?: PersonalDetails,
     newReportObject?: OptimisticChatReport,
     parentReportActionID?: string,
     isFromDeepLink = false,
@@ -1285,7 +1287,7 @@ function openReport(
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            emailCreatingAction = participantPersonalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
+            emailCreatingAction = reportOwnerPersonalDetails?.login ?? '';
         }
         const optimisticCreatedAction = buildOptimisticCreatedReportAction(emailCreatingAction);
         optimisticData.push(
@@ -1483,25 +1485,15 @@ function createTransactionThreadReport(
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-    // Build participant info for the current user (owner of the transaction thread)
+    // Get owner personal details for the transaction thread
     const ownerAccountID = optimisticTransactionThread.ownerAccountID;
-    const participants: ParticipantInfo[] =
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        deprecatedCurrentUserLogin && ownerAccountID
-            ? [
-                  {
-                      // eslint-disable-next-line @typescript-eslint/no-deprecated
-                      login: deprecatedCurrentUserLogin,
-                      accountID: ownerAccountID,
-                      personalDetails: allPersonalDetails?.[ownerAccountID] ?? undefined,
-                  },
-              ]
-            : [];
+    const ownerPersonalDetails = ownerAccountID ? (allPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
 
     openReport(
         optimisticTransactionThreadReportID,
         undefined,
-        participants,
+        [],
+        ownerPersonalDetails,
         optimisticTransactionThread,
         iouReportAction?.reportActionID,
         false,
@@ -1555,8 +1547,12 @@ function navigateToAndOpenReport(
         // Build participant info array with logins and personal details
         const participants = buildParticipantInfoFromLoginsAndDetails(userLogins, personalDetails, participantAccountIDs);
 
+        // Get owner personal details
+        const ownerAccountID = newChat?.ownerAccountID;
+        const ownerPersonalDetails = ownerAccountID ? (personalDetails?.[ownerAccountID] ?? undefined) : undefined;
+
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', participants, newChat, undefined, false, avatarFile);
+        openReport(newChat?.reportID, '', participants, ownerPersonalDetails, newChat, undefined, false, avatarFile);
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -1594,8 +1590,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
 
         // Build participant info array from account IDs and personal details
         const ownerAccountID = newChat?.ownerAccountID;
-        const relevantAccountIDs = ownerAccountID ? [...participantAccountIDs, ownerAccountID] : participantAccountIDs;
-        const participants = relevantAccountIDs
+        const participants = participantAccountIDs
             .map((accountID): ParticipantInfo | null => {
                 const personalDetail = allPersonalDetails?.[accountID];
                 if (!personalDetail?.login) {
@@ -1609,8 +1604,11 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
             })
             .filter((p): p is ParticipantInfo => p !== null);
 
+        // Get owner personal details
+        const ownerPersonalDetails = ownerAccountID ? (allPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
+
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', participants, newChat, '0', false);
+        openReport(newChat?.reportID, '', participants, ownerPersonalDetails, newChat, '0', false);
     }
     const report = chat ?? newChat;
 
@@ -1653,7 +1651,11 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
             // Build participant info array with logins and personal details
             const participants = buildParticipantInfoFromLoginsAndDetails(participantLogins, allPersonalDetails, participantAccountIDsForDetails);
 
-            openReport(newChat.reportID, '', participants, newChat, parentReportAction.reportActionID, false, undefined, true);
+            // Get owner personal details
+            const ownerAccountID = newChat.ownerAccountID;
+            const ownerPersonalDetails = ownerAccountID ? (allPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
+
+            openReport(newChat.reportID, '', participants, ownerPersonalDetails, newChat, parentReportAction.reportActionID, false, undefined, true);
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
@@ -2547,7 +2549,11 @@ function toggleSubscribeToChildReport(
         // Build participant info array with logins and personal details
         const participants = buildParticipantInfoFromLoginsAndDetails(participantLogins, allPersonalDetails, participantAccountIDs);
 
-        openReport(newChat.reportID, '', participants, newChat, parentReportAction.reportActionID);
+        // Get owner personal details
+        const ownerAccountID = newChat.ownerAccountID;
+        const ownerPersonalDetails = ownerAccountID ? (allPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
+
+        openReport(newChat.reportID, '', participants, ownerPersonalDetails, newChat, parentReportAction.reportActionID);
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, parentReportID, parentReportAction?.reportActionID);
     }

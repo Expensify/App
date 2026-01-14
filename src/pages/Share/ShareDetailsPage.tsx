@@ -149,18 +149,9 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                             })) ?? [];
 
                     const ownerAccountID = report.ownerAccountID;
-                    if (ownerAccountID && personalDetails?.[ownerAccountID]) {
-                        const ownerPersonalDetails = personalDetails[ownerAccountID];
-                        if (ownerPersonalDetails?.login) {
-                            participants.push({
-                                login: ownerPersonalDetails.login,
-                                accountID: ownerAccountID,
-                                personalDetails: ownerPersonalDetails,
-                            });
-                        }
-                    }
+                    const ownerPersonalDetails = ownerAccountID && personalDetails?.[ownerAccountID] ? personalDetails[ownerAccountID] : undefined;
 
-                    openReport(report.reportID, '', participants, report);
+                    openReport(report.reportID, '', participants, ownerPersonalDetails, report);
                 }
                 if (report.reportID) {
                     addAttachmentWithComment(report, report.reportID, ancestors, file, message, personalDetail.timezone);

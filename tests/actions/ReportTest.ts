@@ -888,7 +888,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         for (let i = 0; i < 5; i++) {
-            Report.openReport(REPORT_ID, undefined, [{login: 'test@user.com'}], {
+            Report.openReport(REPORT_ID, undefined, [{login: 'test@user.com'}], undefined, {
                 reportID: REPORT_ID,
             });
         }
@@ -943,7 +943,7 @@ describe('actions/Report', () => {
         expect(transaction).toBeTruthy();
 
         // Call openReport with transaction object to trigger the legacy preview flow
-        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
+        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, undefined, false, undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
@@ -986,7 +986,7 @@ describe('actions/Report', () => {
             if (i > 4) {
                 reportID = `${i}`;
             }
-            Report.openReport(reportID, undefined, [{login: 'test@user.com'}], {
+            Report.openReport(reportID, undefined, [{login: 'test@user.com'}], undefined, {
                 reportID: REPORT_ID,
             });
         }
@@ -1659,6 +1659,7 @@ describe('actions/Report', () => {
             REPORT_ID,
             undefined,
             [{login: 'test@user.com'}],
+            undefined,
             {
                 parentReportID: REPORT_ID,
                 parentReportActionID: reportActionID,
