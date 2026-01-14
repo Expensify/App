@@ -20,7 +20,7 @@ import type {
     OriginalMessageExportIntegration,
     OriginalMessageMarkedReimbursed,
     OriginalMessageUnreportedTransaction,
-    PolicyBudgetFrequency,  
+    PolicyBudgetFrequency,
 } from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -2845,7 +2845,7 @@ function getWorkspaceCustomUnitRateImportedMessage(action: ReportAction): string
     return getReportActionText(action);
 }
 
-function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate,action: ReportAction): string {
+function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (customUnitName && rateName) {
@@ -2902,7 +2902,7 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
 function getWorkspaceCustomUnitRateDeletedMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE>) ?? {};
     if (customUnitName && rateName) {
-        return translate('workspaceActions.deleteCustomUnitRate', customUnitName, rateName);
+        return translate('workspaceActions.deleteCustomUnitRate', {customUnitName, rateName});
     }
 
     return getReportActionText(action);
