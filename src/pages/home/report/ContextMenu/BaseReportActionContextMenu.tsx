@@ -202,7 +202,7 @@ function BaseReportActionContextMenu({
     const [childChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.chatReportID}`, {canBeMissing: true});
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
-
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const transactionThreadReportID = useMemo(
         () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
         [paginatedReportActions, isOffline, childReport, childChatReport],
@@ -410,6 +410,7 @@ function BaseReportActionContextMenu({
                             policyTags,
                             translate,
                             harvestReport,
+                            currentUserAccountID,
                             currentUserPersonalDetails,
                         };
 

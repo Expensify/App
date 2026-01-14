@@ -16,12 +16,11 @@ import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionList';
 import type RadioListItem from './SelectionList/ListItem/RadioListItem';
 import type TableListItem from './SelectionList/ListItem/TableListItem';
+import type UserListItem from './SelectionList/ListItem/UserListItem';
 import type {ListItem} from './SelectionList/types';
-import type UserListItem from './SelectionListWithSections/UserListItem';
 
 type SelectorType<T = string> = ListItem & {
     value: T;
@@ -102,14 +101,16 @@ type SelectionScreenProps<T = string> = {
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
-    /** Label for the text input */
-    textInputLabel?: string;
+    textInputOptions?: {
+        /** Label for the text input */
+        label?: string;
 
-    /** Value for the text input */
-    textInputValue?: string;
+        /** Value for the text input */
+        value?: string;
 
-    /** Callback to fire when the text input changes */
-    onChangeText?: (text: string) => void;
+        /** Callback to fire when the text input changes */
+        onChangeText?: (text: string) => void;
+    };
 };
 
 function SelectionScreen<T = string>({
@@ -135,10 +136,8 @@ function SelectionScreen<T = string>({
     onClose,
     shouldSingleExecuteRowSelect,
     headerTitleAlreadyTranslated,
-    textInputLabel,
-    textInputValue,
-    onChangeText,
     shouldShowTextInput,
+    textInputOptions,
     shouldUpdateFocusedIndex = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
@@ -146,12 +145,6 @@ function SelectionScreen<T = string>({
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
-
-    const textInputOptions = {
-        onChangeText,
-        textInputLabel,
-        textInputValue,
-    };
 
     return (
         <AccessOrNotFoundWrapper
