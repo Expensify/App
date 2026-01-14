@@ -21,24 +21,27 @@ Investigate the deploy blocker issue to identify the causing PR and post a recom
 
 ### Backend vs Frontend
 
-Determine from the issue description and App code whether this is a frontend or backend bug:
+Classification is based on **where the fix needs to happen**, NOT where the symptom appears.
 
-**Backend bug** = issue originates from the API / backend code, not this App repo:
-- Server error codes (500, 502, 503)
-- API response errors or malformed data
-- Authentication/authorization failures from server
-- Data missing or incorrect from API responses
-- Error messages mentioning Auth, PHP, or API
-
-**Frontend bug** = issue is in the App (React Native/TypeScript):
-- UI rendering issues, navigation bugs
-- Onyx state problems
+**Frontend bug** = fix requires changes to the App repo:
+- The causing PR is in `Expensify/App` and needs to be reverted or fixed
+- UI rendering issues, navigation bugs, Onyx state problems
 - Client-side validation errors
-- Issues that occur before any API call
+- App code sends incorrect data to API (even if symptom appears as API error)
+- App code mishandles a valid API response
 
-When analyzing, look at the App code to understand:
-- Does the bug occur in UI logic, or when processing an API response?
-- Is the App code handling the response correctly, or is the response itself wrong?
+**Backend bug** = fix requires changes to Auth/Web-Expensify/backend, NOT App:
+- Server error codes (500, 502, 503) from backend bugs
+- Backend API returns incorrect data for a correctly-formed request
+- Authentication/authorization failures originating from server logic
+- No App PR caused the issue; the bug is in backend code
+
+**Critical**: If the causing PR is in the App repo and the recommendation is to REVERT that App PR, it is a **Frontend bug** regardless of how the symptom manifests. Do NOT remove `DeployBlockerCash` if reverting an App PR would fix the issue.
+
+When analyzing:
+1. First identify the causing PR and which repo it's in
+2. Determine if the fix is reverting/changing that PR vs fixing something elsewhere
+3. Classify based on where the fix happens, not where the symptom appears
 
 ---
 
@@ -52,6 +55,8 @@ When analyzing, look at the App code to understand:
 |----------------|--------------|
 | Backend bug | Remove `DeployBlockerCash` if present (doesn't block App deploy) |
 | Frontend bug | Remove `DeployBlocker` if present (doesn't block Web deploy) |
+
+⚠️ **Important**: If the causing PR is in `Expensify/App` and you recommend REVERT, do NOT remove `DeployBlockerCash`. The App deploy is blocked until that PR is reverted.
 
 ---
 
@@ -109,10 +114,13 @@ gh issue comment "$ISSUE_URL" --body '## 🔍 Investigation Summary
 ...your comment here...
 '
 
-# Remove label ONLY if it exists on the issue:
-# For backend bugs - remove DeployBlockerCash (if present)
+# Remove label ONLY if it exists on the issue AND classification warrants it:
+
+# For backend bugs (fix is in Auth/Web-Expensify, NOT an App PR):
 removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlockerCash
 
-# For frontend bugs - remove DeployBlocker (if present)
+# For frontend bugs (fix is reverting/changing an App PR):
 removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlocker
+
+# REMEMBER: If recommending REVERT of an App PR, do NOT remove DeployBlockerCash!
 ```
