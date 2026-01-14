@@ -3033,22 +3033,21 @@ function getAutoPayApprovedReportsEnabledMessage(translate: LocalizedTranslate, 
 function getAutoReimbursementMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {oldLimit, newLimit, currency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT>) ?? {};
 
-    const oldLimitValue = oldLimit ?? 0;
-    const newLimitValue = newLimit ?? 0;
-
-    if (oldLimitValue === 0) {
-        const newLimitFormatted = convertToDisplayString(newLimitValue, currency);
+    if ((oldLimit === undefined || oldLimit === null || oldLimit === 0) && typeof newLimit === 'number' && newLimit !== 0) {
+        const newLimitFormatted = convertToDisplayString(newLimit, currency);
         return translate('workspaceActions.setAutoPayApprovedReportsLimit', {newLimit: newLimitFormatted});
     }
 
-    if (newLimitValue === 0) {
+    if (newLimit === 0) {
         return translate('workspaceActions.removedAutoPayApprovedReportsLimit');
     }
 
-    const oldLimitFormatted = convertToDisplayString(oldLimitValue, currency);
-    const newLimitFormatted = convertToDisplayString(newLimitValue, currency);
-
-    return translate('workspaceActions.updatedAutoPayApprovedReportsLimit', {oldLimit: oldLimitFormatted, newLimit: newLimitFormatted});
+    if (typeof oldLimit === 'number' && typeof newLimit === 'number') {
+        const oldLimitFormatted = convertToDisplayString(oldLimit, currency);
+        const newLimitFormatted = convertToDisplayString(newLimit, currency);
+        return translate('workspaceActions.updatedAutoPayApprovedReportsLimit', {oldLimit: oldLimitFormatted, newLimit: newLimitFormatted});
+    }
+    return getReportActionText(action);
 }
 
 type DefaultApproverOriginalMessage = {
