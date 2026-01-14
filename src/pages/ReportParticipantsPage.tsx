@@ -441,15 +441,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                     })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
-                    onModalHide={() => {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
-                            if (!textInputRef.current) {
-                                return;
-                            }
-                            textInputRef.current.focus();
-                        });
-                    }}
                 />
                 <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
                     <SelectionListWithModal

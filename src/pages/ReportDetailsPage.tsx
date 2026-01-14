@@ -324,16 +324,18 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         getReportPrivateNote(report?.reportID);
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
-    const leaveChat = useCallback(() => {
+    const leaveChat = useCallback(async () => {
         Navigation.dismissModal();
-        Navigation.isNavigationReady().then(() => {
-            if (isRootGroupChat) {
-                leaveGroupChat(report.reportID, quickAction?.chatReportID?.toString() === report.reportID);
-                return;
-            }
-            const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-            leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
-        });
+
+        await Navigation.isNavigationReady();
+
+        if (isRootGroupChat) {
+            leaveGroupChat(report.reportID, quickAction?.chatReportID?.toString() === report.reportID);
+            return;
+        }
+
+        const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
+        leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
     }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
