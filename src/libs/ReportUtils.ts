@@ -11324,7 +11324,8 @@ function isReportOutstanding(
     const activeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID}`];
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
-    const shouldAllowSubmittedReport = allowSubmitted || isInstantSubmitEnabled(policy) || isProcessingReport(activeReport);
+    const canSubmit = canSubmitReport(iouReport, policy, getReportTransactions(iouReport.reportID), undefined, false, currentUserEmail ?? '');
+    const shouldAllowSubmittedReport = allowSubmitted || canSubmit || isProcessingReport(activeReport);
     return (
         isExpenseReport(iouReport) &&
         iouReport?.stateNum !== undefined &&
