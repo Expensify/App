@@ -856,7 +856,9 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         }
     }
 
-    return [...categoryApprovers, ...tagApprovers];
+    // Simplify the rule approvers list by removing two consecutive duplicate approvers.
+    const allRuleApprovers = [...categoryApprovers, ...tagApprovers];
+    return allRuleApprovers.filter((approver, index) => index === 0 || approver !== allRuleApprovers.at(index - 1));
 }
 
 function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report> | {ownerAccountID: number}) {
@@ -884,7 +886,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
     const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
-    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin && policy?.preventSelfApproval) {
+    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin) {
         ruleApprovers.shift();
     }
     if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
