@@ -1985,9 +1985,12 @@ function handlePreexistingReport(report: Report) {
                     preexistingReportID: null,
                 });
                 // Update the parent report action to point to the preexisting thread report
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-                    [parentReportActionID]: {childReportID: preexistingReportID},
-                });
+                const parentReportAction = parentReportID ? allReportActions?.[parentReportID]?.[parentReportActionID] : null;
+                if (parentReportAction) {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                        [parentReportActionID]: {childReportID: preexistingReportID},
+                    });
+                }
             }
         };
 
