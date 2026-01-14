@@ -33,7 +33,7 @@ type BaseDomainMemberDetailsComponentProps = {
     children?: React.ReactNode;
 };
 
-function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems, actionButton, children}: BaseDomainMemberDetailsComponentProps) {
+function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}: BaseDomainMemberDetailsComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);

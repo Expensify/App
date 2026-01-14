@@ -33,7 +33,7 @@ function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActiv
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <BaseLockAccountComponent
                 testID="DomainReportSuspiciousActivityPage"
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_LOCK_ACCOUNT)}
+                onBackButtonPress={handleLockRequestFinish}
                 confirmModalPrompt={confirmModalPrompt}
                 lockAccountPagePrompt={lockAccountPagePrompt}
                 handleLockRequestFinish={handleLockRequestFinish}

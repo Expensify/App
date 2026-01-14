@@ -285,13 +285,13 @@ describe('actions/User', () => {
                     command: unknown,
                     params: unknown,
                     options?: {
-                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
+                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: OnyxKey; value: OnyxMergeInput<OnyxKey>}>;
                     },
                 ) => {
                     if (options?.optimisticData) {
                         for (const update of options.optimisticData) {
                             if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                                Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
+                                Onyx.merge(update.key, update.value);
                             }
                         }
                     }
@@ -512,13 +512,13 @@ describe('actions/User', () => {
                     command: unknown,
                     params: unknown,
                     options?: {
-                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
+                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: OnyxKey; value: OnyxMergeInput<OnyxKey>}>;
                     },
                 ) => {
                     if (options?.optimisticData) {
                         for (const update of options.optimisticData) {
                             if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                                Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
+                                Onyx.merge(update.key, update.value);
                             }
                         }
                     }
