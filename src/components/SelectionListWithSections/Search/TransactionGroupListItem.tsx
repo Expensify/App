@@ -157,7 +157,24 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
-    const searchTransactions = useCallback(
+    // Refresh transactions when expanding - always starts fresh from offset 0
+    // This is stable because it only depends on queryJSON, avoiding infinite loops
+    const refreshTransactions = useCallback(() => {
+        if (!groupItem.transactionsQueryJSON) {
+            return;
+        }
+
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: false,
+        });
+    }, [groupItem.transactionsQueryJSON]);
+
+    // Load more transactions for pagination - uses current offset
+    const loadMoreTransactions = useCallback(
         (pageSize = 0) => {
             if (!groupItem.transactionsQueryJSON) {
                 return;
@@ -188,15 +205,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
 
-    // Use ref to avoid infinite loop - searchTransactions changes when snapshot updates
-    const searchTransactionsRef = useRef(searchTransactions);
-    searchTransactionsRef.current = searchTransactions;
+    // Trigger fresh search when expanding or when a new transaction is created while expanded
     useEffect(() => {
         if (!isExpanded) {
             return;
         }
-        searchTransactionsRef.current();
-    }, [newTransactionID, isExpanded]);
+        refreshTransactions();
+    }, [newTransactionID, isExpanded, refreshTransactions]);
 
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
@@ -388,7 +403,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 isExpenseReportType={isExpenseReportType}
                                 transactionsSnapshot={transactionsSnapshot}
                                 transactionsQueryJSON={groupItem.transactionsQueryJSON}
-                                searchTransactions={searchTransactions}
+                                searchTransactions={loadMoreTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 onLongPress={onExpandedRowLongPress}
                             />
