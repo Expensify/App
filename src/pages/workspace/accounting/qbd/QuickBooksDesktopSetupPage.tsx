@@ -1,4 +1,4 @@
-import React, {useEffect, useEffectEvent, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import useOnyx from '@libs/onyx/hooks/useOnyx';
 import {setConnectionError, setConnectionErrorMessage} from '@userActions/connections';
 import {getQuickbooksDesktopCodatSetupLink} from '@userActions/connections/QuickbooksDesktop';
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
@@ -38,9 +37,6 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync']);
     const policyID: string = route.params.policyID;
     const [setupLinkFetchStatus, setSetupLinkFetchStatus] = useState<SetupLinkFetchStatus>({status: 'loading'});
-    const [connectionError] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        selector: (policy) => policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.lastSync?.errorMessage,
-    });
 
     const isLoading = setupLinkFetchStatus.status === 'loading';
     const shouldShowError = setupLinkFetchStatus.status === 'error';
@@ -50,10 +46,6 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         ? ({children}: React.PropsWithChildren) => <FullPageOfflineBlockingView addBottomSafeAreaPadding>{children}</FullPageOfflineBlockingView>
         : ({children}: React.PropsWithChildren) => children;
 
-    const setLocalizedConnectionError = useEffectEvent(() => {
-        setConnectionError(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, translate('workspace.qbd.setupPage.setupErrorTitle'));
-    });
-
     useEffect(() => {
         let shouldIgnoreResponse = false;
 
@@ -62,7 +54,6 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
         setSetupLinkFetchStatus({status: 'loading'});
 
-        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
             if (shouldIgnoreResponse || !response?.jsonCode) {
                 return;
@@ -71,7 +62,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
                 setSetupLinkFetchStatus({status: 'success', setupLink: String(response?.setupUrl ?? '')});
             } else {
-                setLocalizedConnectionError();
+                setConnectionError(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, translate('workspace.qbd.setupPage.setupErrorTitle'));
                 setSetupLinkFetchStatus({status: 'error'});
             }
         });
@@ -79,15 +70,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         return () => {
             shouldIgnoreResponse = true;
         };
-    }, [policyID]);
-
-    // Re-translate the error message when locale changes
-    useEffect(() => {
-        if (!connectionError) {
-            return;
-        }
-        setConnectionErrorMessage(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, translate('workspace.qbd.setupPage.setupErrorTitle'));
-    }, [connectionError, policyID, translate]);
+    }, [policyID, translate]);
 
     useNetwork({
         onReconnect: () => {
@@ -104,7 +87,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
                     setSetupLinkFetchStatus({status: 'success', setupLink: String(response?.setupUrl ?? '')});
                 } else {
-                    setLocalizedConnectionError();
+                    setConnectionError(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, translate('workspace.qbd.setupPage.setupErrorTitle'));
                     setSetupLinkFetchStatus({status: 'error'});
                 }
             });
