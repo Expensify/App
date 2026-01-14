@@ -689,7 +689,7 @@ function ComposerWithSuggestions({
     useEffect(() => {
         const isModalVisible = modal?.isVisible;
         if (isModalVisible && !prevIsModalVisible) {
-            // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+            // eslint-disable-next-line no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
 
@@ -721,7 +721,7 @@ function ComposerWithSuggestions({
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useImperativeHandle(
