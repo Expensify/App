@@ -6784,7 +6784,7 @@ function buildOptimisticExpenseReport({
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const policy = policyReal ?? policyDraft;
 
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, allBetas, undefined);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, allBetas);
 
     const created = createdTimestamp ?? DateUtils.getDBTime();
 

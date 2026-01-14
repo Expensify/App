@@ -179,7 +179,7 @@ function AccessOrNotFoundWrapper({
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
             return acc && accessFunction(policy, login, report, allPolicies ?? null, allBetas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
         }
-        return acc && accessFunction(policy, login, report, allPolicies ?? null, allBetas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
+        return acc && accessFunction(policy, login, report, allPolicies ?? null, allBetas, iouType, isReportArchived);
     }, true);
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
