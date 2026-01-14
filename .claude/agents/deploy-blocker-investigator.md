@@ -77,15 +77,16 @@ gh pr diff <PR_NUMBER>
 
 **Always verify before concluding.** Confirm the suspected PR actually touches the affected code:
 
+1. **Find files related to the affected feature** using the Grep tool to search for relevant keywords in the codebase
+
+2. **Check recent changes** to the affected file:
 ```bash
-# Find files related to the affected feature
-grep -r "SearchColumns" src/ --include="*.tsx" -l
-
-# See recent changes to a specific file
 git log --oneline -10 -- src/pages/Search/SearchColumnsPage.tsx
+```
 
-# Check if the suspected PR modified this file
-gh pr view <PR_NUMBER> --json files --jq '.files[].path' | grep -i "search"
+3. **Confirm the PR modifies these files**:
+```bash
+gh pr view <PR_NUMBER> --json files --jq '.files[].path'
 ```
 
 **Verification checklist:**
@@ -225,7 +226,7 @@ gh pr view <PR_NUMBER> --json title,body,author,files,mergedAt
 gh pr diff <PR_NUMBER>
 
 # Step 4: Verify the PR touches affected code
-grep -r "<feature_keyword>" src/ --include="*.tsx" -l
+# Use the Grep tool to find files related to the affected feature
 git log --oneline -10 -- <affected_file>
 gh pr view <PR_NUMBER> --json files --jq '.files[].path'
 
