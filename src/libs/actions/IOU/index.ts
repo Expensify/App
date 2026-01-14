@@ -3115,7 +3115,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   currency,
                   allBetas,
                   nonReimbursableTotal,
-                  parentReportActionID: undefined,
                   optimisticIOUReportID: optimisticReportID,
                   reportTransactions: reportTransactions,
               })
@@ -9390,7 +9389,6 @@ function getReportFromHoldRequestsOnyxData({
               allBetas,
               nonReimbursableTotal: holdNonReimbursableAmount,
               parentReportActionID: newParentReportActionID,
-              optimisticIOUReportID: undefined,
               reportTransactions: reportTransactions,
               createdTimestamp,
           })
