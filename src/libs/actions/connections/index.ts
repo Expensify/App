@@ -295,18 +295,6 @@ function setConnectionError(policyID: string, connectionName: PolicyConnectionNa
     });
 }
 
-function setConnectionErrorMessage(policyID: string, connectionName: PolicyConnectionName, errorMessage?: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        connections: {
-            [connectionName]: {
-                lastSync: {
-                    errorMessage,
-                },
-            },
-        },
-    });
-}
-
 function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID: string, connectionName: ConnectionName) {
     let stageInProgress;
     switch (connectionName) {
@@ -369,5 +357,4 @@ export {
     isConnectionInProgress,
     hasSynchronizationErrorMessage,
     setConnectionError,
-    setConnectionErrorMessage,
 };
