@@ -2781,8 +2781,8 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function isTodoSearch(currentSearchKey: SearchKey) {
-    return (
+function isTodoSearch(currentSearchKey: SearchKey | undefined) {
+    return !!currentSearchKey && (
         currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT ||
         currentSearchKey === CONST.SEARCH.SEARCH_KEYS.APPROVE ||
         currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY ||
@@ -3005,8 +3005,8 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
 /**
  * Whether to show the empty state or not
  */
-function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes) {
-    return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
+function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes, isTodoSearchFlag = false) {
+    return !isDataLoaded || dataLength === 0 || (!isTodoSearchFlag && !Object.values(CONST.SEARCH.DATA_TYPES).includes(type));
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {

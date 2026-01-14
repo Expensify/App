@@ -64,6 +64,7 @@ import {
     isTransactionWithdrawalIDGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
+    isTodoSearch,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getOriginalTransactionWithSplitInfo, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -359,7 +360,7 @@ function Search({
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = isTodoSearch(searchKey) || isSearchDataLoaded(searchResults, queryJSON);
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
@@ -1032,7 +1033,7 @@ function Search({
     }
 
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults?.search?.type)) {
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults?.search?.type, isTodoSearch(searchKey))) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
