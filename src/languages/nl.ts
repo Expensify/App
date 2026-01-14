@@ -7942,7 +7942,6 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             confirm: 'Afstandstracking negeren',
         },
         zeroDistanceTripModal: {title: 'Kan geen uitgave aanmaken', prompt: 'Je kunt geen uitgave aanmaken met dezelfde begin- en eindlocatie.'},
-
         locationRequiredModal: {
             title: 'Locatietoegang vereist',
             prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om GPS-afstandsregistratie te starten.',
@@ -7954,14 +7953,11 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         },
         preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
-        notification: {
-            title: 'GPS tracking in progress',
-            body: 'Go to the app to finish',
-        },
+        notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om af te ronden'},
         locationServicesRequiredModal: {
-            title: 'Location access required',
-            confirm: 'Open settings',
-            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+            title: 'Locatietoegang vereist',
+            confirm: 'Instellingen openen',
+            prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om het bijhouden van GPS-afstand te starten.',
         },
     },
 };

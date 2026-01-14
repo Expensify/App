@@ -7890,14 +7890,11 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         },
         preciseLocationRequiredModal: {title: '正確な位置情報が必要です', prompt: 'GPS距離の追跡を開始するには、デバイスの設定で「正確な位置情報」を有効にしてください。'},
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
-        notification: {
-            title: 'GPS tracking in progress',
-            body: 'Go to the app to finish',
-        },
+        notification: {title: 'GPS追跡を実行中', body: 'アプリに移動して完了してください'},
         locationServicesRequiredModal: {
-            title: 'Location access required',
-            confirm: 'Open settings',
-            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+            title: '位置情報へのアクセスが必要です',
+            confirm: '設定を開く',
+            prompt: 'GPS距離の追跡を開始するには、デバイスの設定で位置情報へのアクセスを許可してください。',
         },
     },
 };

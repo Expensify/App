@@ -7994,14 +7994,11 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             subtitle: 'Enregistrez automatiquement les miles ou kilomètres avec le GPS et transformez instantanément vos trajets en dépenses.',
             button: 'Télécharger l’application',
         },
-        notification: {
-            title: 'GPS tracking in progress',
-            body: 'Go to the app to finish',
-        },
+        notification: {title: 'Suivi GPS en cours', body: 'Aller dans l’application pour terminer'},
         locationServicesRequiredModal: {
-            title: 'Location access required',
-            confirm: 'Open settings',
-            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+            title: 'Accès à la localisation requis',
+            confirm: 'Ouvrir les paramètres',
+            prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour lancer le suivi de distance GPS.',
         },
     },
 };

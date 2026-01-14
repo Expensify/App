@@ -7989,14 +7989,11 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
             button: 'App herunterladen',
         },
-        notification: {
-            title: 'GPS tracking in progress',
-            body: 'Go to the app to finish',
-        },
+        notification: {title: 'GPS-Tracking läuft', body: 'Gehe zur App, um abzuschließen'},
         locationServicesRequiredModal: {
-            title: 'Location access required',
-            confirm: 'Open settings',
-            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+            title: 'Standortzugriff erforderlich',
+            confirm: 'Einstellungen öffnen',
+            prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
         },
     },
 };
