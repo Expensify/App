@@ -25,9 +25,7 @@ function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActiv
 
     const lockAccountPagePrompt = <RenderHTML html={translate('domain.members.reportSuspiciousActivityPrompt', memberLogin)} />;
 
-    const handleLockRequestFinish = () => {
-        Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
-    };
+    const handleLockRequestFinish = () => Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
