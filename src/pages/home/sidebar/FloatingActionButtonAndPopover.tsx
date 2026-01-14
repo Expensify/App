@@ -12,6 +12,7 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -317,20 +318,21 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         [quickActionReport?.policyID],
     );
 
-    const showRedirectToExpensifyClassicModal = useCallback(() => {
-        showConfirmModal({
+    const showRedirectToExpensifyClassicModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
             title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
             prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
             confirmText: translate('exitSurvey.goToExpensifyClassic'),
             cancelText: translate('common.cancel'),
-            onConfirm: () => {
-                if (CONFIG.IS_HYBRID_APP) {
-                    closeReactNativeApp({shouldSetNVP: true});
-                    return;
-                }
-                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-            },
         });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        if (CONFIG.IS_HYBRID_APP) {
+            closeReactNativeApp({shouldSetNVP: true});
+            return;
+        }
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
     }, [showConfirmModal, translate]);
 
     const startScan = useCallback(() => {
