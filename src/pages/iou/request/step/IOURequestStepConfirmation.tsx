@@ -61,8 +61,8 @@ import {
 } from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
+    getAttendees,
     getDefaultTaxCode,
-    getOriginalAttendees,
     getRateID,
     getRequestType,
     getValidWaypoints,
@@ -1396,7 +1396,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getOriginalAttendees(transaction, currentUserPersonalDetails)}
+                        iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}
