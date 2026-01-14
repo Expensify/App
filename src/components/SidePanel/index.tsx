@@ -1,12 +1,12 @@
 import React from 'react';
 import useSidePanel from '@hooks/useSidePanel';
 import type {ExtraContentProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import Concierge from './Concierge';
 import SidePanelModal from './SidePanelModal';
+import SidePanelReport from './SidePanelReport';
 import useSyncSidePanelWithHistory from './useSyncSidePanelWithHistory';
 
 function SidePanel({navigation}: Pick<ExtraContentProps, 'navigation'>) {
-    const {sidePanelNVP, isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop, closeSidePanel} = useSidePanel();
+    const {sidePanelNVP, isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop, closeSidePanel, reportID} = useSidePanel();
 
     // Hide side panel once animation ends
     // This hook synchronizes the side panel visibility with the browser history when it is displayed as RHP.
@@ -15,7 +15,7 @@ function SidePanel({navigation}: Pick<ExtraContentProps, 'navigation'>) {
     useSyncSidePanelWithHistory();
 
     // Side panel can't be displayed if NVP is undefined
-    if (!sidePanelNVP) {
+    if (!sidePanelNVP || !reportID) {
         return null;
     }
 
@@ -30,7 +30,10 @@ function SidePanel({navigation}: Pick<ExtraContentProps, 'navigation'>) {
             closeSidePanel={closeSidePanel}
             shouldHideSidePanelBackdrop={shouldHideSidePanelBackdrop}
         >
-            <Concierge navigation={navigation} />
+            <SidePanelReport
+                navigation={navigation}
+                reportID={reportID}
+            />
         </SidePanelModal>
     );
 }
