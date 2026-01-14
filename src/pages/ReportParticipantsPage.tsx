@@ -8,16 +8,17 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import {Plus} from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -65,8 +66,8 @@ type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScre
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
     const icons = useMemoizedLazyExpensifyIcons(['User', 'MakeAdmin', 'RemoveMembers', 'FallbackAvatar']);
-    const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -246,13 +247,29 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSearchValue('');
-        setRemoveMembersConfirmModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
         });
     };
+
+    const showRemoveMembersModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
+            title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
+            prompt: translate('workspace.people.removeMembersPrompt', {
+                count: selectedMembers.length,
+                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
+            }),
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        removeUsers();
+    }, [showConfirmModal, translate, selectedMembers, formatPhoneNumber, currentUserAccountID, removeUsers]);
 
     const changeUserRole = useCallback(
         (role: ValueOf<typeof CONST.REPORT.ROLE>) => {
@@ -309,7 +326,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
-                onSelected: () => setRemoveMembersConfirmModalVisible(true),
+                onSelected: showRemoveMembersModal,
             },
         ];
 
@@ -336,7 +353,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         }
 
         return options;
-    }, [icons.RemoveMembers, icons.User, icons.MakeAdmin, changeUserRole, translate, setRemoveMembersConfirmModalVisible, selectedMembers, report.participants]);
+    }, [icons.RemoveMembers, icons.User, icons.MakeAdmin, changeUserRole, translate, showRemoveMembersModal, selectedMembers, report.participants]);
 
     const headerButtons = useMemo(() => {
         if (!isGroupChat) {
@@ -429,19 +446,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
-                <ConfirmModal
-                    danger
-                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembers.length})}
-                    isVisible={removeMembersConfirmModalVisible}
-                    onConfirm={removeUsers}
-                    onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={translate('workspace.people.removeMembersPrompt', {
-                        count: selectedMembers.length,
-                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
-                    })}
-                    confirmText={translate('common.remove')}
-                    cancelText={translate('common.cancel')}
-                />
                 <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
                     <SelectionListWithModal
                         data={participants}
