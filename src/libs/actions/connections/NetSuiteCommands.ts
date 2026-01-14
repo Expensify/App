@@ -321,14 +321,11 @@ function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryPar
 }
 
 function updateNetSuiteImportMapping<TMappingName extends keyof Connections['netsuite']['options']['config']['syncOptions']['mapping']>(
-    policyID: string | undefined,
+    policyID: string,
     mappingName: TMappingName,
     mappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
     oldMappingValue?: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES> | null,
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -443,7 +440,7 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
 }
 
 function updateNetSuiteCustomersJobsMapping(
-    policyID: string | undefined,
+    policyID: string,
     mappingValue: {
         customersMapping: NetSuiteMappingValues;
         jobsMapping: NetSuiteMappingValues;
@@ -453,9 +450,6 @@ function updateNetSuiteCustomersJobsMapping(
         jobsMapping?: NetSuiteMappingValues;
     },
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData: OnyxData = {
         optimisticData: [
             {

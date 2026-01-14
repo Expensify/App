@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -29,8 +29,8 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const data: CardListItem[] = useMemo(
-        () =>
+    const sections = useMemo(() => {
+        const data: CardListItem[] =
             vendors?.map((vendor) => ({
                 value: vendor.id,
                 text: vendor.name,
@@ -38,9 +38,9 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
                 // We use the logical OR (||) here instead of ?? because `nonReimbursableBillDefaultVendor` can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 isSelected: vendor.id === (nonReimbursableBillDefaultVendor || vendors.at(0)?.id),
-            })) ?? [],
-        [nonReimbursableBillDefaultVendor, vendors],
-    );
+            })) ?? [];
+        return data.length ? [{data}] : [];
+    }, [nonReimbursableBillDefaultVendor, vendors]);
 
     const selectVendor = useCallback(
         (row: CardListItem) => {
@@ -73,11 +73,11 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksDesktopNonReimbursableDefaultVendorSelectPage"
             title="workspace.accounting.defaultVendor"
-            data={data}
+            sections={sections}
             listItem={RadioListItem}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={sections.at(0)?.data.find((mode) => mode.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack()}

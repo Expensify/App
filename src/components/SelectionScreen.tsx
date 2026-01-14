@@ -17,10 +17,10 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 // eslint-disable-next-line no-restricted-imports
-import SelectionList from './SelectionList';
-import type RadioListItem from './SelectionList/ListItem/RadioListItem';
-import type TableListItem from './SelectionList/ListItem/TableListItem';
-import type {ListItem} from './SelectionList/types';
+import SelectionList from './SelectionListWithSections';
+import type RadioListItem from './SelectionListWithSections/RadioListItem';
+import type TableListItem from './SelectionListWithSections/TableListItem';
+import type {ListItem, SectionListDataType} from './SelectionListWithSections/types';
 import type UserListItem from './SelectionListWithSections/UserListItem';
 
 type SelectorType<T = string> = ListItem & {
@@ -46,7 +46,7 @@ type SelectionScreenProps<T = string> = {
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
-    data: Array<SelectorType<T>>;
+    sections: Array<SectionListDataType<SelectorType<T>>>;
 
     /** Default renderer for every item in the list */
     listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
@@ -55,10 +55,10 @@ type SelectionScreenProps<T = string> = {
     listItemWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Item `keyForList` to focus initially */
-    initiallyFocusedOptionKey?: string | undefined;
+    initiallyFocusedOptionKey?: string | null | undefined;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (item: SelectorType<T>) => void;
+    onSelectRow: (selection: SelectorType<T>) => void;
 
     /** Callback to fire when back button is pressed */
     onBackButtonPress?: () => void;
@@ -120,7 +120,7 @@ function SelectionScreen<T = string>({
     headerContent,
     listEmptyContent,
     listFooterContent,
-    data,
+    sections,
     listItem,
     listItemWrapperStyle,
     initiallyFocusedOptionKey,
@@ -167,23 +167,26 @@ function SelectionScreen<T = string>({
                     pendingAction={pendingAction}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
-                    shouldDisableOpacity={!data.length}
+                    shouldDisableOpacity={!sections.length}
                 >
                     <SelectionList
-                        data={data}
-                        ListItem={listItem}
                         onSelectRow={onSelectRow}
+                        sections={sections}
+                        ListItem={listItem}
                         showScrollIndicator
+                        onChangeText={onChangeText}
                         shouldShowTooltips={false}
-                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
-                        textInputOptions={textInputOptions}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
+                        textInputLabel={textInputLabel}
+                        textInputValue={textInputValue}
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
-                        style={{listItemWrapperStyle}}
+                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
-                        alternateNumberOfSupportedLines={2}
+                        isAlternateTextMultilineSupported
+                        listItemWrapperStyle={listItemWrapperStyle}
                         addBottomSafeAreaPadding={!errors || isEmptyObject(errors)}
                     >
                         <ErrorMessageRow
