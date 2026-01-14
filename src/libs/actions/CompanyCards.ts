@@ -419,6 +419,7 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
                     [cardID]: {
                         ...card,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        errors: null,
                     },
                 },
             },
