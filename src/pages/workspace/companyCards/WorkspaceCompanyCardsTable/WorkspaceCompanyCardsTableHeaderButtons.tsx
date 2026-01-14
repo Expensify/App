@@ -9,6 +9,7 @@ import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCurrencyList from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import useCurrencyList from '@hooks/useCurrencyList';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
