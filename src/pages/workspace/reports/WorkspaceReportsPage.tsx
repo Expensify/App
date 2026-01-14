@@ -111,7 +111,7 @@ function WorkspaceReportFieldsPage({
                 fieldID: reportField.fieldID,
                 pendingAction: reportField.pendingAction,
                 isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type))),
+                rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
             }));
     }, [filteredPolicyFieldList, policy, translate, localeCompare]);
 
