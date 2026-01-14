@@ -121,7 +121,7 @@ function ParentNavigationSubtitle({
             }
 
             // If the parent report is already displayed underneath RHP, simply dismiss the modal
-            if (Navigation.getTopmostReportId() === parentReportID) {
+            if (Navigation.getTopmostReportId() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                 Navigation.dismissModal();
                 return;
             }
@@ -169,6 +169,7 @@ function ParentNavigationSubtitle({
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
                         {hasAccessToParentReport ? (
                             <TextLink
+                                testID="parent-navigation-subtitle-link"
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
                                 onPress={onPress}
