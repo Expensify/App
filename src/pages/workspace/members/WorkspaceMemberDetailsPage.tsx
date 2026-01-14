@@ -243,7 +243,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             return;
         }
         removeUser();
-    }, [confirmModalPrompt, removeUser, showConfirmModal]);
+    }, [confirmModalPrompt, removeUser, showConfirmModal, translate]);
 
     const askForConfirmationToRemove = () => {
         if (isReimburser) {
