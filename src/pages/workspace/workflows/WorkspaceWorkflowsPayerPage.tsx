@@ -1,29 +1,38 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {SectionListData} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmModal from '@components/ConfirmModal';
+import ErrorMessageRow from '@components/ErrorMessageRow';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, Section} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {clearShareBankAccount, clearShareBankAccountErrors, shareBankAccount} from '@userActions/BankAccounts';
 import {setWorkspacePayer} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +41,7 @@ import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceWorkflowsPayerPageOnyxProps = {
-    /** All of the personal details for everyone */
+    /** All the personal details for everyone */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
@@ -45,21 +54,43 @@ type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name ?? '';
+    const bankAccountID = policy?.achAccount?.bankAccountID;
     const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
+    const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(undefined);
+    const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
+    const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope'] as const);
+    const isLoading = sharedBankAccountData?.isLoading ?? false;
+    const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
+    const [showShareModal, setShowShareModal] = useState<boolean>(false);
+    const [showValidationModal, setShowValidationModal] = useState<boolean>(false);
+    const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+    const selectedPayerDetails = selectedPayer ? getPersonalDetailByEmail(selectedPayer) : undefined;
 
-    const isDeletedPolicyEmployee = useCallback(
-        (policyEmployee: PolicyEmployee) => !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
-        [isOffline],
-    );
+    useEffect(() => {
+        setSelectedPayer(policy?.achAccount?.reimburser);
+    }, [policy?.achAccount?.reimburser]);
 
-    const [formattedPolicyAdmins, formattedAuthorizedPayer] = useMemo(() => {
+    useEffect(() => {
+        return () => {
+            if (!shouldShowSuccess) {
+                return;
+            }
+            clearShareBankAccount();
+        };
+    }, [shouldShowSuccess]);
+
+    const isDeletedPolicyEmployee = (policyEmployee: PolicyEmployee) =>
+        !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
+
+    const getPayersAndAdmins = () => {
         const policyAdminDetails: MemberOption[] = [];
         const authorizedPayerDetails: MemberOption[] = [];
-
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
         for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
             const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
@@ -79,7 +110,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
             const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
 
-            const isAuthorizedPayer = policy?.achAccount?.reimburser === details?.login;
+            const isAuthorizedPayer = selectedPayer === details?.login;
 
             const formattedMember = {
                 keyForList: String(accountID),
@@ -108,19 +139,11 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             }
         }
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [
-        policy?.employeeList,
-        policy?.owner,
-        policy?.achAccount?.reimburser,
-        policy?.pendingFields?.reimburser,
-        personalDetails,
-        isDeletedPolicyEmployee,
-        translate,
-        formatPhoneNumber,
-        icons.FallbackAvatar,
-    ]);
+    };
 
-    const sections: MembersSection[] = useMemo(() => {
+    const [formattedPolicyAdmins, formattedAuthorizedPayer] = getPayersAndAdmins();
+
+    const getSections = () => {
         const sectionsArray: MembersSection[] = [];
 
         if (searchTerm !== '') {
@@ -147,40 +170,66 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             shouldShow: true,
         });
         return sectionsArray;
-    }, [searchTerm, formattedAuthorizedPayer, translate, formattedPolicyAdmins, countryCode]);
+    };
 
-    const headerMessage = useMemo(
-        () => (searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : ''),
+    const sections: MembersSection[] = getSections();
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [translate, sections],
-    );
+    const headerMessage = searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : '';
 
-    const setPolicyAuthorizedPayer = (member: MemberOption) => {
-        const authorizedPayerEmail = personalDetails?.[member.accountID]?.login ?? '';
+    const handleShareBankAccount = () => {
+        // setShowShareModal(true);
+        // setShowValidationModal(true);
+        setShowErrorModal(true);
+    };
+
+    const handleConfirm = () => {
+        setShowShareModal(false);
+        if (!bankAccountID) {
+            return;
+        }
+
+        if (!selectedPayer) {
+            setIsAlertVisible(true);
+            return;
+        }
+
+        const accountID = policyMemberEmailsToAccountIDs?.[selectedPayer] ?? '';
+
+        const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
 
         if (policy?.achAccount?.reimburser === authorizedPayerEmail || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             Navigation.goBack();
             return;
         }
 
-        setWorkspacePayer(policy?.id, authorizedPayerEmail);
-        Navigation.goBack();
+        shareBankAccount(Number(bankAccountID), [authorizedPayerEmail]);
     };
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
-        () => (isEmptyObject(policy) && !isLoadingReportData) || isPendingDeletePolicy(policy) || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-        [policy, isLoadingReportData],
-    );
+    const setPolicyAuthorizedPayer = (member: MemberOption) => {
+        const login = personalDetails?.[member.accountID]?.login;
+        setSelectedPayer(login);
+    };
 
-    const totalNumberOfEmployeesEitherOwnerOrAdmin = useMemo(() => {
-        return Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
-            const isOwner = policy?.owner === email;
-            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
-            return !isDeletedPolicyEmployee(policyEmployee) && (isOwner || isAdmin);
-        });
-    }, [isDeletedPolicyEmployee, policy?.employeeList, policy?.owner]);
+    const onButtonPress = () => {
+        if (!selectedPayer || !policy) {
+            Navigation.closeRHPFlow();
+            return;
+        }
+        const accountID = policyMemberEmailsToAccountIDs?.[selectedPayer] ?? '';
+        const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
+
+        setWorkspacePayer(policy?.id, authorizedPayerEmail);
+        Navigation.closeRHPFlow();
+    };
+
+    const shouldShowBlockingPage =
+        (isEmptyObject(policy) && !isLoadingReportData) || isPendingDeletePolicy(policy) || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
+    const totalNumberOfEmployeesEitherOwnerOrAdmin = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
+        const isOwner = policy?.owner === email;
+        const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
+        return !isDeletedPolicyEmployee(policyEmployee) && (isOwner || isAdmin);
+    });
 
     const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowSearchInput ? translate('selectionList.findMember') : undefined;
@@ -191,7 +240,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             policyID={route.params.policyID}
         >
             <FullPageNotFoundView
-                shouldShow={shouldShowNotFoundPage}
+                shouldShow={shouldShowBlockingPage}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={goBackFromInvalidPolicy}
                 onLinkPress={goBackFromInvalidPolicy}
@@ -205,20 +254,108 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         subtitle={policyName}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <SelectionList
-                        sections={sections}
-                        textInputLabel={textInputLabel}
-                        textInputValue={searchTerm}
-                        onChangeText={setSearchTerm}
-                        headerMessage={headerMessage}
-                        ListItem={UserListItem}
-                        onSelectRow={setPolicyAuthorizedPayer}
-                        shouldSingleExecuteRowSelect
-                        showScrollIndicator
-                        addBottomSafeAreaPadding
-                    />
+                    {shouldShowSuccess ? (
+                        <ScrollView contentContainerStyle={styles.flexGrow1}>
+                            <ConfirmationPage
+                                heading={translate('walletPage.shareBankAccountSuccess')}
+                                description={translate('walletPage.shareBankAccountSuccessDescription')}
+                                illustration={illustrations.ShareBank}
+                                shouldShowButton
+                                descriptionStyle={[styles.ph4, styles.textSupporting]}
+                                illustrationStyle={styles.successBankSharedCardIllustration}
+                                onButtonPress={onButtonPress}
+                                buttonText={translate('common.buttonConfirm')}
+                                containerStyle={styles.h100}
+                            />
+                        </ScrollView>
+                    ) : (
+                        <SelectionList
+                            sections={sections}
+                            textInputLabel={textInputLabel}
+                            textInputValue={searchTerm}
+                            onChangeText={setSearchTerm}
+                            headerMessage={headerMessage}
+                            ListItem={UserListItem}
+                            onSelectRow={setPolicyAuthorizedPayer}
+                            shouldSingleExecuteRowSelect
+                            showScrollIndicator
+                            addBottomSafeAreaPadding
+                            footerContent={
+                                <FormAlertWithSubmitButton
+                                    isLoading={isLoading}
+                                    message={translate('walletPage.shareBankAccountNoAdminsSelected')}
+                                    isAlertVisible={isAlertVisible}
+                                    shouldRenderFooterAboveSubmit
+                                    isDisabled={(!formattedPolicyAdmins?.length && !formattedAuthorizedPayer?.length) || !selectedPayer}
+                                    buttonText={translate('common.save')}
+                                    onSubmit={handleShareBankAccount}
+                                    footerContent={
+                                        <ErrorMessageRow
+                                            errors={sharedBankAccountData?.errors}
+                                            errorRowStyles={[styles.mv3]}
+                                            onDismiss={clearShareBankAccountErrors}
+                                        />
+                                    }
+                                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                                />
+                            }
+                        />
+                    )}
                 </ScreenWrapper>
             </FullPageNotFoundView>
+            <ConfirmModal
+                title={translate('workflowsPayerPage.shareBankAccount.shareTitle')}
+                isVisible={showShareModal}
+                onConfirm={handleConfirm}
+                onCancel={() => setShowShareModal(false)}
+                success
+                prompt={
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML
+                            html={translate('workflowsPayerPage.shareBankAccount.shareDescription', {
+                                admin: selectedPayerDetails?.displayName ?? '',
+                            })}
+                        />
+                    </View>
+                }
+                confirmText={translate('common.share')}
+            />
+            <ConfirmModal
+                title={translate('workflowsPayerPage.shareBankAccount.validationTitle')}
+                isVisible={showValidationModal}
+                onConfirm={() => setShowValidationModal(false)}
+                success
+                prompt={
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML
+                            html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
+                                admin: selectedPayerDetails?.displayName ?? '',
+                                validationLink: '',
+                            })}
+                        />
+                    </View>
+                }
+                shouldShowCancelButton={false}
+                confirmText={translate('common.buttonConfirm')}
+            />
+            <ConfirmModal
+                title={translate('workflowsPayerPage.shareBankAccount.errorTitle')}
+                isVisible={showErrorModal}
+                onConfirm={() => setShowErrorModal(false)}
+                success
+                prompt={
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML
+                            html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
+                                admin: selectedPayerDetails?.displayName ?? '',
+                                chatLink: '',
+                            })}
+                        />
+                    </View>
+                }
+                shouldShowCancelButton={false}
+                confirmText={translate('common.buttonConfirm')}
+            />
         </AccessOrNotFoundWrapper>
     );
 }
