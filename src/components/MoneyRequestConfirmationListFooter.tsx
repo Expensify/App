@@ -41,6 +41,7 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -113,6 +114,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is a manual distance request */
     isManualDistanceRequest: boolean;
+
+    /** Flag indicating if it is an odometer distance request */
+    isOdometerDistanceRequest?: boolean;
 
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
@@ -231,6 +235,7 @@ function MoneyRequestConfirmationListFooter({
     isCategoryRequired,
     isDistanceRequest,
     isManualDistanceRequest,
+    isOdometerDistanceRequest = false,
     isPerDiemRequest,
     isMerchantEmpty,
     isMerchantRequired,
@@ -301,8 +306,8 @@ function MoneyRequestConfirmationListFooter({
 
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowMap = isDistanceRequest && !isManualDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
+    const shouldShowMap =
+        isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest && [hasErrors, hasPendingWaypoints, iouType !== CONST.IOU.TYPE.SPLIT, !isReadOnly].some(Boolean);
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
     const senderWorkspace = useMemo(() => {
@@ -501,6 +506,11 @@ function MoneyRequestConfirmationListFooter({
 
                         if (isManualDistanceRequest) {
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                            return;
+                        }
+
+                        if (isOdometerDistanceRequest) {
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()) as Route);
                             return;
                         }
 
@@ -1031,7 +1041,7 @@ function MoneyRequestConfirmationListFooter({
                     <View style={styles.dividerLine} />
                 </>
             )}
-            {(!shouldShowMap || isManualDistanceRequest) && (
+            {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
                 <View style={!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3}>
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent

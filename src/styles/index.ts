@@ -4239,10 +4239,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
         },
 
-        reportPreviewBoxHoverBorderColor: {
-            borderColor: theme.cardBG,
-        },
-
         reportContainerBorderRadius: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
@@ -5287,7 +5283,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
             padding: 16,
-            flexWrap: 'wrap',
         },
 
         accountSwitcherPopover: {
