@@ -20,7 +20,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
