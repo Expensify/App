@@ -1217,14 +1217,6 @@ Onyx.connectWithoutView({
     callback: (value) => (newGroupChatDraft = value),
 });
 
-let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
-    callback: (value) => {
-        onboardingCompanySize = value;
-    },
-});
-
 let cachedSelfDMReportID: OnyxEntry<string>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SELF_DM_REPORT_ID,
@@ -11428,7 +11420,7 @@ type PrepareOnboardingOnyxDataParams = {
     onboardingPolicyID?: string;
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
-    companySize?: OnboardingCompanySize;
+    companySize: OnboardingCompanySize | undefined;
     selectedInterestedFeatures?: string[];
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
@@ -11509,7 +11501,7 @@ function prepareOnboardingOnyxData({
 
     const onboardingTaskParams: OnboardingTaskLinks = {
         integrationName,
-        onboardingCompanySize: companySize ?? onboardingCompanySize,
+        onboardingCompanySize: companySize,
         workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID ?? firstAdminPolicy?.id)}`,
         workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID)}`,
         workspaceTagsLink: `${environmentURL}/${ROUTES.WORKSPACE_TAGS.getRoute(onboardingPolicyID)}`,
