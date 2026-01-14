@@ -17,7 +17,7 @@ function formatTimeMerchant(hours: number, rate: number, currency: string, trans
 }
 
 /**
- * Checks whether the amount calculated via computeTimeAmount is valid (primarly that it is not too big).
+ * Checks whether the amount calculated via computeTimeAmount is valid (primarily that it is not too big).
  */
 function isValidTimeExpenseAmount(amount: number, currency?: string) {
     return validateAmount(convertToFrontendAmountAsString(amount, currency), getCurrencyDecimals(currency));
