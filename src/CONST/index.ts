@@ -5731,7 +5731,7 @@ const CONST = {
      * - Removes existing missingAttendees violations from transaction lists
      * - Hides "Require attendees" toggle in category settings
      */
-    IS_ATTENDEES_REQUIRED_FEATURE_DISABLED: false,
+    IS_ATTENDEES_REQUIRED_FEATURE_DISABLED: true,
 
     /**
      * Constants for types of violation.
