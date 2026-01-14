@@ -148,7 +148,6 @@ function BaseReportActionContextMenu({
         'Pin',
         'Flag',
         'Bug',
-        'QuestionMark',
         'Trashcan',
         'Checkmark',
         'Concierge',
