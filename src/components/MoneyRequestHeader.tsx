@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
+import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -53,7 +54,7 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {dismissRejectUseExplanation, duplicateExpenseTransaction as duplicateTransactionAction} from '@userActions/IOU';
+import {dismissRejectUseExplanation} from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -137,7 +138,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy);
+    const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
     const reportID = report?.reportID;
     const {removeTransaction, currentSearchHash} = useSearchContext();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);

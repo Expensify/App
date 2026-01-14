@@ -156,6 +156,7 @@ import TrashCan from '@assets/images/simple-illustrations/simple-illustration__t
 import TravelAlerts from '@assets/images/simple-illustrations/simple-illustration__travelalerts.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
+import UserShield from '@assets/images/simple-illustrations/simple-illustration__user-shield.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
@@ -329,6 +330,7 @@ const Illustrations = {
     ShieldYellow,
     Clock,
     Members,
+    UserShield,
 };
 
 /**
