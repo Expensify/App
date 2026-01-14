@@ -235,6 +235,9 @@ type PureReportActionItemProps = {
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
+    /** All transaction drafts */
+    allTransactionDrafts?: OnyxCollection<OnyxTypes.Transaction>;
+
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -358,6 +361,7 @@ type PureReportActionItemProps = {
         actionName: IOUAction,
         reportActionID: string,
         introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+        allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>,
         isRestrictedToPreferredPolicy?: boolean,
         preferredPolicyID?: string,
     ) => void;
@@ -448,6 +452,7 @@ function PureReportActionItem({
     allReports,
     policies,
     introSelected,
+    allTransactionDrafts,
     action,
     report,
     policy,
@@ -877,6 +882,7 @@ function PureReportActionItem({
                             CONST.IOU.ACTION.SUBMIT,
                             action.reportActionID,
                             introSelected,
+                            allTransactionDrafts,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                         );
@@ -890,14 +896,28 @@ function PureReportActionItem({
                         text: 'actionableMentionTrackExpense.categorize',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID, introSelected);
+                            createDraftTransactionAndNavigateToParticipantSelector(
+                                transactionID,
+                                reportActionReportID,
+                                CONST.IOU.ACTION.CATEGORIZE,
+                                action.reportActionID,
+                                introSelected,
+                                allTransactionDrafts,
+                            );
                         },
                     },
                     {
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID, introSelected);
+                            createDraftTransactionAndNavigateToParticipantSelector(
+                                transactionID,
+                                reportActionReportID,
+                                CONST.IOU.ACTION.SHARE,
+                                action.reportActionID,
+                                introSelected,
+                                allTransactionDrafts,
+                            );
                         },
                     },
                 );
@@ -1037,6 +1057,7 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
+        allTransactionDrafts,
         report,
         originalReport,
     ]);
