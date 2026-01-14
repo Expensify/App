@@ -3465,7 +3465,7 @@ describe('actions/IOU', () => {
                 total: originalAmount,
             };
 
-            const originalTransaction: Transaction = {
+            const originalTransaction = {
                 transactionID: originalTransactionID,
                 amount: originalAmount,
                 modifiedAmount: '', // Empty string - the edge case that was causing the bug
@@ -3476,7 +3476,7 @@ describe('actions/IOU', () => {
                 merchant: 'Test Merchant',
                 reportID,
                 comment: {},
-            };
+            } as Transaction;
 
             const transactionThread: Report = {
                 reportID: rand64(),
