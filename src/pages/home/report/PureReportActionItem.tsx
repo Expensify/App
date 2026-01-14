@@ -39,6 +39,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -348,6 +349,7 @@ type PureReportActionItemProps = {
         reactionObject: Emoji,
         existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>,
         paramSkinTone: number,
+        currentUserAccountID: number,
         ignoreSkinToneOnCompare: boolean | undefined,
     ) => void;
 
@@ -358,6 +360,7 @@ type PureReportActionItemProps = {
         actionName: IOUAction,
         reportActionID: string,
         introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+        activePolicy: OnyxEntry<OnyxTypes.Policy>,
         isRestrictedToPreferredPolicy?: boolean,
         preferredPolicyID?: string,
     ) => void;
@@ -418,7 +421,7 @@ type PureReportActionItemProps = {
     isTryNewDotNVPDismissed?: boolean;
 
     /** Current user's account id */
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
 
     /** The bank account list */
     bankAccountList?: OnyxTypes.BankAccountList | undefined;
@@ -517,6 +520,7 @@ function PureReportActionItem({
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const activePolicy = useActivePolicy();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -770,9 +774,9 @@ function PureReportActionItem({
 
     const toggleReaction = useCallback(
         (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => {
-            toggleEmojiReaction(reportID, action, emoji, emojiReactions, preferredSkinTone, ignoreSkinToneOnCompare);
+            toggleEmojiReaction(reportID, action, emoji, emojiReactions, preferredSkinTone, currentUserAccountID, ignoreSkinToneOnCompare);
         },
-        [reportID, action, emojiReactions, toggleEmojiReaction],
+        [reportID, action, emojiReactions, toggleEmojiReaction, currentUserAccountID],
     );
 
     const contextValue = useMemo(
@@ -877,6 +881,7 @@ function PureReportActionItem({
                             CONST.IOU.ACTION.SUBMIT,
                             action.reportActionID,
                             introSelected,
+                            activePolicy,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                         );
@@ -890,14 +895,28 @@ function PureReportActionItem({
                         text: 'actionableMentionTrackExpense.categorize',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID, introSelected);
+                            createDraftTransactionAndNavigateToParticipantSelector(
+                                transactionID,
+                                reportActionReportID,
+                                CONST.IOU.ACTION.CATEGORIZE,
+                                action.reportActionID,
+                                introSelected,
+                                activePolicy,
+                            );
                         },
                     },
                     {
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID, introSelected);
+                            createDraftTransactionAndNavigateToParticipantSelector(
+                                transactionID,
+                                reportActionReportID,
+                                CONST.IOU.ACTION.SHARE,
+                                action.reportActionID,
+                                introSelected,
+                                activePolicy,
+                            );
                         },
                     },
                 );
@@ -1037,6 +1056,7 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
+        activePolicy,
         report,
         originalReport,
     ]);

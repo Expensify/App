@@ -304,6 +304,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: {
+                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT,
                             exact: true,
@@ -1152,6 +1156,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
                             path: ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.route,
                         },
+                        [SCREENS.DOMAIN.MEMBER_DETAILS]: {
+                            path: ROUTES.DOMAIN_MEMBER_DETAILS.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
@@ -1443,6 +1450,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'per-diem': {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
+                                },
+                                time: {
+                                    path: ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.route,
                                 },
                             },
                         },

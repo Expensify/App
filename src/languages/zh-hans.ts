@@ -553,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: '值',
         downloadFailedTitle: '下载失败',
         downloadFailedDescription: '您的下载未能完成。请稍后再试。',
+        downloadFailedEmptyReportDescription: () => ({
+            one: '您无法导出空报告。',
+            other: () => '您无法导出空报告。',
+        }),
         filterLogs: '筛选日志',
         network: '网络',
         reportID: '报告 ID',
@@ -1171,8 +1175,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '你确定要删除此报销吗？',
             other: '您确定要删除这些报销吗？',
         }),
-        deleteReport: '删除报表',
-        deleteReportConfirmation: '您确定要删除此报表吗？',
+        deleteReport: () => ({
+            one: '删除报告',
+            other: '删除报告',
+        }),
+        deleteReportConfirmation: () => ({
+            one: '您确定要删除此报告吗？',
+            other: '您确定要删除这些报告吗？',
+        }),
         settledExpensify: '已支付',
         done: '完成',
         settledElsewhere: '在其他地方已支付',
@@ -1435,6 +1445,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} 至 ${endDate}（${count} 天）`,
         splitByDate: '按日期拆分',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `报告因自定义审批工作流而转发至 ${to}`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'} @ ${rate} / 小时`, hrs: '小时'},
     },
     transactionMerge: {
         listPage: {
@@ -3051,6 +3062,7 @@ ${
         currencyHeader: '您的银行账户使用什么货币？',
         confirmationStepHeader: '检查您的信息。',
         confirmationStepSubHeader: '请仔细核对以下详情，并勾选条款复选框以确认。',
+        toGetStarted: '添加个人银行账户以接收报销、支付发票或启用 Expensify 钱包。',
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入 Expensify 密码',

@@ -553,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valor',
         downloadFailedTitle: 'Falha no download',
         downloadFailedDescription: 'Seu download não pôde ser concluído. Tente novamente mais tarde.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Você não pode exportar um relatório vazio.',
+            other: () => 'Você não pode exportar relatórios vazios.',
+        }),
         filterLogs: 'Filtrar Logs',
         network: 'Rede',
         reportID: 'ID do Relatório',
@@ -1188,8 +1192,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Você tem certeza de que deseja excluir esta despesa?',
             other: 'Tem certeza de que deseja excluir estas despesas?',
         }),
-        deleteReport: 'Excluir relatório',
-        deleteReportConfirmation: 'Você tem certeza de que deseja excluir este relatório?',
+        deleteReport: () => ({
+            one: 'Excluir relatório',
+            other: 'Excluir relatórios',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Tem certeza de que deseja excluir este relatório?',
+            other: 'Tem certeza de que deseja excluir estes relatórios?',
+        }),
         settledExpensify: 'Pago',
         done: 'Concluído',
         settledElsewhere: 'Pago em outro lugar',
@@ -1457,6 +1467,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} dias)`,
         splitByDate: 'Dividir por data',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `relatório encaminhado para ${to} devido ao fluxo de trabalho de aprovação personalizado`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hora' : 'horas'} @ ${rate} / hora`, hrs: 'h'},
     },
     transactionMerge: {
         listPage: {
@@ -3093,6 +3104,7 @@ ${
         currencyHeader: 'Qual é a moeda da sua conta bancária?',
         confirmationStepHeader: 'Verifique suas informações.',
         confirmationStepSubHeader: 'Verifique os detalhes abaixo e marque a caixa de termos para confirmar.',
+        toGetStarted: 'Adicione uma conta bancária pessoal para receber reembolsos, pagar faturas ou ativar a Carteira Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Digite a senha do Expensify',

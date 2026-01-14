@@ -553,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valeur',
         downloadFailedTitle: 'Échec du téléchargement',
         downloadFailedDescription: 'Votre téléchargement n’a pas pu être terminé. Veuillez réessayer plus tard.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Vous ne pouvez pas exporter un rapport vide.',
+            other: () => 'Vous ne pouvez pas exporter des rapports vides.',
+        }),
         filterLogs: 'Filtrer les journaux',
         network: 'Réseau',
         reportID: 'ID du rapport',
@@ -1193,8 +1197,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Êtes-vous sûr de vouloir supprimer cette dépense ?',
             other: 'Voulez-vous vraiment supprimer ces dépenses ?',
         }),
-        deleteReport: 'Supprimer le rapport',
-        deleteReportConfirmation: 'Voulez-vous vraiment supprimer ce rapport ?',
+        deleteReport: () => ({
+            one: 'Supprimer le rapport',
+            other: 'Supprimer les rapports',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Êtes-vous sûr de vouloir supprimer ce rapport ?',
+            other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?',
+        }),
         settledExpensify: 'Payé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
@@ -1467,6 +1477,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `Du ${startDate} au ${endDate} (${count} jours)`,
         splitByDate: 'Scinder par date',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapport acheminé vers ${to} en raison d'un workflow d'approbation personnalisé`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'heure' : 'heures'} @ ${rate} / heure`, hrs: 'h'},
     },
     transactionMerge: {
         listPage: {
@@ -3118,6 +3129,7 @@ ${
         currencyHeader: 'Quelle est la devise de votre compte bancaire ?',
         confirmationStepHeader: 'Vérifiez vos informations.',
         confirmationStepSubHeader: 'Vérifiez les détails ci-dessous, puis cochez la case des conditions pour confirmer.',
+        toGetStarted: 'Ajoutez un compte bancaire personnel pour recevoir des remboursements, payer des factures ou activer le portefeuille Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Saisissez le mot de passe Expensify',
