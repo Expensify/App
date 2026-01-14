@@ -1510,6 +1510,7 @@ function MoneyReportHeader({
         }
         clearSelectedTransactions(true);
         // We don't need to run the effect on change of clearSelectedTransactions since it can cause the infinite loop.
+        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionThreadReportID]);
 

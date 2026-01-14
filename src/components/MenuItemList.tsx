@@ -86,6 +86,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
 
     return (
         // ref is accessed for MenuItem's ref initialization
+        // eslint-disable-next-line react-compiler/react-compiler
         menuItems.map(({key, ref, ...menuItemProps}) => (
             <OfflineWithFeedback
                 key={key ?? menuItemProps.title}

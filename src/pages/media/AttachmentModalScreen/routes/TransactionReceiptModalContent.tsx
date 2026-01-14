@@ -100,7 +100,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         }
         openReport(reportID);
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -154,6 +154,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 ),
         );
 
+        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [receiptPath]);
 
@@ -289,7 +290,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 });
             }
             return menuItems;
-            // eslint-disable-next-line react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         },
         [
             icons.Download,

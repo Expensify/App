@@ -99,6 +99,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                 </View>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     avatarID={policyID}
                     source={stashedLocalAvatarImage}
                     onImageSelected={(image) => {

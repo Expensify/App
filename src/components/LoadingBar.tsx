@@ -16,6 +16,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
 
     useEffect(() => {
         if (shouldShow) {
+            // eslint-disable-next-line react-compiler/react-compiler
             left.set(0);
             width.set(0);
             opacity.set(withTiming(1, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}));
@@ -58,7 +59,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
             );
         }
         // we want to update only when shouldShow changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShow]);
 
     const animatedIndicatorStyle = useAnimatedStyle(() => ({

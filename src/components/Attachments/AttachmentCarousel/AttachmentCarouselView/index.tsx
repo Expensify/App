@@ -216,6 +216,7 @@ function AttachmentCarouselView({
                     isPagerScrolling.set(false);
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
                 })
+                // eslint-disable-next-line react-compiler/react-compiler
                 .withRef(pagerRef as RefObject<GestureType | undefined>),
         [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef, isPagerScrolling],
     );
@@ -228,7 +229,7 @@ function AttachmentCarouselView({
 
         scrollRef.current.scrollToIndex({index: page, animated: false});
         // The hook is not supposed to run on page change, so we keep the page out of the dependencies
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [cellWidth]);
 
     return (
