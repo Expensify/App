@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
@@ -108,10 +109,10 @@ function WorkspaceCompanyCardTableItem({
     }
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
-    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? cardholder?.login : undefined;
+    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
     const narrowWidthCardName = isAssigned ? `${customCardName ?? ''}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : cardName;
 
-    const leftColumnTitle = isAssigned ? (cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
+    const leftColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const leftColumnSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const resetFailedCompanyCardAssignment = () => {
@@ -126,7 +127,7 @@ function WorkspaceCompanyCardTableItem({
 
     return (
         <OfflineWithFeedback
-            errorRowStyles={styles.ph5}
+            errorRowStyles={[styles.ph5, styles.mb4]}
             errors={errors}
             pendingAction={pendingAction}
             onClose={resetFailedCompanyCardAssignment}
@@ -230,7 +231,7 @@ function WorkspaceCompanyCardTableItem({
                                 <Button
                                     success
                                     small={shouldUseNarrowTableLayout}
-                                    text={translate('workspace.companyCards.assign')}
+                                    text={shouldUseNarrowTableLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
                                     onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}
                                 />

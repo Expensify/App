@@ -166,7 +166,7 @@ function MoneyRequestParticipantsSelector({
                 onFinish();
             }
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, policy, activeAdminWorkspaces],
     );
 
@@ -215,7 +215,7 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, iouType, onParticipantsAdded],
     );
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
@@ -236,11 +236,11 @@ function MoneyRequestParticipantsSelector({
         },
     });
 
-    const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+    const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
 
     useEffect(() => {
-        searchInServer(searchTerm.trim());
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm.trim());
+    }, [debouncedSearchTerm]);
 
     const inputHelperText = useMemo(
         () =>
@@ -248,11 +248,10 @@ function MoneyRequestParticipantsSelector({
                 (availableOptions.personalDetails ?? []).length + (availableOptions.recentReports ?? []).length + (availableOptions.workspaceChats ?? []).length !== 0 ||
                     !isEmptyObject(availableOptions.selfDMChat),
                 !!availableOptions?.userToInvite,
-                searchTerm.trim(),
+                debouncedSearchTerm.trim(),
                 countryCode,
                 participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             availableOptions.personalDetails?.length,
@@ -261,7 +260,7 @@ function MoneyRequestParticipantsSelector({
             availableOptions?.userToInvite,
             availableOptions.workspaceChats,
             cleanSearchTerm,
-            searchTerm,
+            debouncedSearchTerm,
             participants,
             countryCode,
         ],

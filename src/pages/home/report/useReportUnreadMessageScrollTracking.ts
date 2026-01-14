@@ -111,14 +111,13 @@ export default function useReportUnreadMessageScrollTracking({
 
         // if we're scrolled closer than the offset and read action has been skipped then mark message as read
         if (unreadActionVisible && readActionSkippedRef.current) {
-            // eslint-disable-next-line react-compiler/react-compiler,no-param-reassign
+            // eslint-disable-next-line no-param-reassign
             readActionSkippedRef.current = false;
             readNewestAction(ref.current.reportID);
         }
 
         // FlatList requires a stable onViewableItemsChanged callback for optimal performance.
         // Therefore, we use a ref to store values instead of adding them as dependencies.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

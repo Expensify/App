@@ -1,12 +1,13 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
+import type {AddAdminToDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getAuthToken} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
 
@@ -353,8 +354,10 @@ function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
 }
 
-function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
@@ -371,8 +374,15 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID
                 technicalContactEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                technicalContactEmailErrors: null,
+            },
+        },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -380,8 +390,17 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID
                 technicalContactEmail: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                technicalContactEmailErrors: null,
+            },
+        },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
@@ -393,6 +412,13 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                technicalContactEmailErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.setPrimaryContactError'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 technicalContactEmail: null,
@@ -400,11 +426,9 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID
         },
     ];
 
-    const authToken = getAuthToken();
     const params: SetTechnicalContactEmailParams = {
-        authToken,
         domainAccountID,
-        technicalContactAccountID: newTechnicalContactAccountID,
+        technicalContactEmail: newTechnicalContactEmail,
     };
 
     API.write(WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL, params, {optimisticData, successData, failureData});
@@ -484,9 +508,7 @@ function toggleConsolidatedDomainBilling(domainAccountID: number, domainName: st
         },
     ];
 
-    const authToken = getAuthToken();
     const params: ToggleConsolidatedDomainBillingParams = {
-        authToken,
         domainAccountID,
         domainName,
         enabled: useTechnicalContactBillingCard,
@@ -499,6 +521,181 @@ function clearToggleConsolidatedDomainBillingErrors(domainAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         useTechnicalContactBillingCardErrors: null,
     });
+}
+
+function addAdminToDomain(domainAccountID: number, accountID: number, targetEmail: string, domainName: string) {
+    const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [PERMISSION_KEY]: accountID,
+            } as PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [PERMISSION_KEY]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.addAdminError'),
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: null,
+                },
+            },
+        },
+    ];
+
+    const authToken = getAuthToken();
+    const params: AddAdminToDomainParams = {
+        authToken,
+        domainName,
+        targetEmail,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_DOMAIN_ADMIN, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Removes an error and pending actions after trying to add admin
+ */
+function clearAdminError(domainAccountID: number, accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        adminErrors: {
+            [accountID]: null,
+        },
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        admin: {
+            [accountID]: null,
+        },
+    });
+}
+/**
+ * Removes admin access for a domain member
+ */
+function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {errors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.error.removeAdmin')},
+                },
+            },
+        },
+    ];
+
+    const parameters: RemoveDomainAdminParams = {
+        domainAccountID,
+        targetAccountID: accountID,
+    };
+
+    API.write(WRITE_COMMANDS.REMOVE_DOMAIN_ADMIN, parameters, {optimisticData, successData, failureData});
 }
 
 export {
@@ -519,4 +716,7 @@ export {
     clearSetPrimaryContactError,
     toggleConsolidatedDomainBilling,
     clearToggleConsolidatedDomainBillingErrors,
+    addAdminToDomain,
+    clearAdminError,
+    revokeDomainAdminAccess,
 };

@@ -282,10 +282,6 @@ export default {
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
 
-    desktopAppRetiredIllustrationW: 264,
-    desktopAppRetiredIllustrationH: 230,
-    desktopAppRetiredViewContainerWidth: 310,
-
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,

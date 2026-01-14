@@ -34,7 +34,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
-import {getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -666,8 +665,8 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false): boolean {
-    if (isPerDiemRequest) {
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false, isTimeRequest = false): boolean {
+    if (isPerDiemRequest || isTimeRequest) {
         return false;
     }
     const distanceUnit = getDistanceRateCustomUnit(policy);
@@ -928,6 +927,7 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
+/** @deprecated Please use ONYXKEYS.PERSONAL_POLICY_ID to find the personal policyID */
 function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
@@ -1236,10 +1236,7 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
         importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
     }
 
-    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, {
-        importFields,
-        importType: translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase(),
-    });
+    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, importFields, translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase());
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 
@@ -1400,12 +1397,6 @@ function navigateToExpensifyCardPage(policyID: string) {
     });
 }
 
-function navigateToReceiptPartnersPage(policyID: string) {
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
-    });
-}
-
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
@@ -1447,17 +1438,6 @@ function hasOnlyPersonalPolicies(policies: OnyxCollection<Policy>) {
 
 function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
     return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
-}
-
-function getWorkspaceAccountID(policyID?: string) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
-
-    if (!policy) {
-        return 0;
-    }
-    return policy.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
@@ -1629,17 +1609,10 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-function isPreferredExporter(policy: Policy) {
-    const user = getCurrentUserEmail();
-    const exporters = [
-        policy.connections?.intacct?.config?.export?.exporter,
-        policy.connections?.netsuite?.options?.config?.exporter,
-        policy.connections?.quickbooksDesktop?.config?.export?.exporter,
-        policy.connections?.quickbooksOnline?.config?.export?.exporter,
-        policy.connections?.xero?.config?.export?.exporter,
-    ];
+function isPreferredExporter(policy: Policy, currentUserLogin: string) {
+    const exporters = getConnectionExporters(policy);
 
-    return exporters.some((exporter) => exporter && exporter === user);
+    return exporters.some((exporter) => exporter && exporter === currentUserLogin);
 }
 
 /**
@@ -1686,6 +1659,19 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
+/**
+ * Returns an array of connection exporters from the policy's accounting integrations
+ */
+function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string | undefined> {
+    return [
+        policy?.connections?.intacct?.config?.export?.exporter,
+        policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
+        policy?.connections?.quickbooksOnline?.config?.export?.exporter,
+        policy?.connections?.xero?.config?.export?.exporter,
+        policy?.connections?.netsuite?.options?.config?.exporter,
+    ];
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1694,12 +1680,15 @@ export {
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
+    getConnectionExporters,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
+    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPersonalPolicy,
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1759,7 +1748,6 @@ export {
     getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
-    navigateToReceiptPartnersPage,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     findSelectedSageVendorWithDefaultSelect,
@@ -1811,7 +1799,6 @@ export {
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
-    getWorkspaceAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getTagNamesFromTagsLists,
     getTagApproverRule,

@@ -58,16 +58,25 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
         canBeMissing: false,
         selector: technicalContactSettingsSelector,
     });
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
 
     let technicalContactEmailKey: string | undefined;
     const data: AdminOption[] = [];
     for (const accountID of adminAccountIDs ?? []) {
+        // Don't show admins with errors
+        const adminErrors = domainErrors?.adminErrors?.[accountID] ?? {};
+        if (Object.keys(adminErrors).length !== 0) {
+            continue;
+        }
+
         const details = personalDetails?.[accountID];
-        if (details?.login === technicalContactSettings?.technicalContactEmail) {
+        let isSelected = false;
+        if (!!details?.login && !!technicalContactSettings?.technicalContactEmail && details.login === technicalContactSettings.technicalContactEmail) {
             technicalContactEmailKey = String(accountID);
+            isSelected = true;
         }
         data.push({
-            isSelected: details?.login === technicalContactSettings?.technicalContactEmail,
+            isSelected,
             keyForList: String(accountID),
             accountID,
             login: details?.login ?? '',
@@ -105,7 +114,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                             return;
                         }
                         if (option.login !== technicalContactSettings?.technicalContactEmail) {
-                            setPrimaryContact(domainAccountID, option.accountID, option.login, technicalContactSettings?.technicalContactEmail);
+                            setPrimaryContact(domainAccountID, option.login, technicalContactSettings?.technicalContactEmail);
                         }
                         Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
                     }}

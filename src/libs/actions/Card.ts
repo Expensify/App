@@ -19,7 +19,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
@@ -729,12 +728,10 @@ function startIssueNewCardFlow(policyID: string | undefined) {
     API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters);
 }
 
-function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: number) {
+function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: number, bankAccountID?: number) {
     if (!bankAccountID) {
         return;
     }
-
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA>> = [
         {
