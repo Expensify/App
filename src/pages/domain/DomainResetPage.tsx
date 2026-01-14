@@ -104,7 +104,10 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
                     style={styles.flexGrow1}
                 >
                     <View style={styles.mt5}>
-                        <RenderHTML html={translate('domain.admins.resetDomainInfo', {contactMethodRoute})} />
+                        <RenderHTML
+                            html={translate('domain.admins.resetDomainInfo', {contactMethodRoute})}
+                            onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
+                        />
                     </View>
                     <View style={styles.mt5}>
                         <RenderHTML html={translate('domain.admins.resetDomainExplanation', {domainName})} />
