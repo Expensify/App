@@ -49,6 +49,7 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation,
+    shouldShowRightCaret,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -102,6 +103,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
+                shouldShowRightCaret={shouldShowRightCaret}
             />
             {item.footerContent && item.footerContent}
         </>

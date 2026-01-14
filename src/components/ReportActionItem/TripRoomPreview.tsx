@@ -132,7 +132,7 @@ function TripRoomPreview({
     const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, tripTransactions);
     const dateInfo =
         chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
-            ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate), preferredLocale)
+            ? DateUtils.getFormattedDateRange(translate, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate), preferredLocale)
             : '';
     const reportCurrency = iouReport?.currency ?? chatReport?.currency;
 

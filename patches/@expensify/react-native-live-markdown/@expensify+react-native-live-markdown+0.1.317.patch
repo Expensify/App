@@ -1,0 +1,118 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
+index e36195f..3a3ae72 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
+@@ -21,6 +21,7 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+   autoCapitalize = 'sentences',
+   autoCorrect = true,
+   blurOnSubmit = false,
++  submitBehavior,
+   caretHidden,
+   clearTextOnFocus,
+   dir = 'auto',
+@@ -359,8 +360,19 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+       handleOnChangeText(e);
+       return;
+     }
+-    const blurOnSubmitDefault = !multiline;
+-    const shouldBlurOnSubmit = blurOnSubmit === null ? blurOnSubmitDefault : blurOnSubmit;
++    // Support submitBehavior prop (React Native 0.73+), fallback to blurOnSubmit for backwards compatibility
++    let shouldBlurOnSubmit;
++    let shouldSubmit;
++    if (submitBehavior != null) {
++      // submitBehavior takes precedence over blurOnSubmit
++      shouldSubmit = submitBehavior === 'submit' || submitBehavior === 'blurAndSubmit';
++      shouldBlurOnSubmit = submitBehavior === 'blurAndSubmit';
++    } else {
++      // Fallback to blurOnSubmit logic for backwards compatibility
++      const blurOnSubmitDefault = !multiline;
++      shouldBlurOnSubmit = blurOnSubmit === null ? blurOnSubmitDefault : blurOnSubmit;
++      shouldSubmit = blurOnSubmit || !multiline;
++    }
+     const nativeEvent = e.nativeEvent;
+     const isComposing = isEventComposing(nativeEvent);
+     const event = e;
+@@ -373,18 +385,19 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+     !isComposing && !e.isDefaultPrevented()) {
+       // prevent "Enter" from inserting a newline or submitting a form
+       e.preventDefault();
+-      if (!e.shiftKey && (blurOnSubmit || !multiline) && onSubmitEditing) {
++      // submitBehavior === 'newline' means don't submit, just insert newline (default behavior)
++      if (!e.shiftKey && shouldSubmit && onSubmitEditing) {
+         onSubmitEditing(event);
+-      } else if (multiline) {
++      } else if (multiline && (!shouldSubmit || e.shiftKey)) {
+         //   We need to change normal behavior of "Enter" key to insert a line breaks, to prevent wrapping contentEditable text in <div> tags.
+         //  Thanks to that in every situation we have proper amount of new lines in our parsed text. Without it pressing enter in empty lines will add 2 more new lines.
+         insertText(e, '\n');
+       }
+-      if (!e.shiftKey && (shouldBlurOnSubmit && hostNode !== null || !multiline)) {
++      if (!e.shiftKey && shouldBlurOnSubmit && hostNode !== null) {
+         setTimeout(() => divRef.current && divRef.current.blur(), 0);
+       }
+     }
+-  }, [multiline, blurOnSubmit, setEventProps, onKeyPress, handleOnChangeText, onSubmitEditing, insertText]);
++  }, [multiline, blurOnSubmit, submitBehavior, setEventProps, onKeyPress, handleOnChangeText, onSubmitEditing, insertText]);
+   const handleFocus = useCallback(event => {
+     hasJustBeenFocused.current = true;
+     const e = event;
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
+index fa3283d..59f02c6 100644
+--- a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
++++ b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
+@@ -87,6 +87,7 @@ const MarkdownTextInput = React.forwardRef<MarkdownTextInput, MarkdownTextInputP
+       autoCapitalize = 'sentences',
+       autoCorrect = true,
+       blurOnSubmit = false,
++      submitBehavior,
+       caretHidden,
+       clearTextOnFocus,
+       dir = 'auto',
+@@ -518,8 +519,20 @@ const MarkdownTextInput = React.forwardRef<MarkdownTextInput, MarkdownTextInputP
+           return;
+         }
+ 
+-        const blurOnSubmitDefault = !multiline;
+-        const shouldBlurOnSubmit = blurOnSubmit === null ? blurOnSubmitDefault : blurOnSubmit;
++        // Support submitBehavior prop (React Native 0.73+), fallback to blurOnSubmit for backwards compatibility
++        let shouldBlurOnSubmit: boolean;
++        let shouldSubmit: boolean;
++
++        if (submitBehavior != null) {
++          // submitBehavior takes precedence over blurOnSubmit
++          shouldSubmit = submitBehavior === 'submit' || submitBehavior === 'blurAndSubmit';
++          shouldBlurOnSubmit = submitBehavior === 'blurAndSubmit';
++        } else {
++          // Fallback to blurOnSubmit logic for backwards compatibility
++          const blurOnSubmitDefault = !multiline;
++          shouldBlurOnSubmit = blurOnSubmit === null ? blurOnSubmitDefault : blurOnSubmit;
++          shouldSubmit = blurOnSubmit || !multiline;
++        }
+ 
+         const nativeEvent = e.nativeEvent;
+         const isComposing = isEventComposing(nativeEvent);
+@@ -538,19 +551,20 @@ const MarkdownTextInput = React.forwardRef<MarkdownTextInput, MarkdownTextInputP
+         ) {
+           // prevent "Enter" from inserting a newline or submitting a form
+           e.preventDefault();
+-          if (!e.shiftKey && (blurOnSubmit || !multiline) && onSubmitEditing) {
++          // submitBehavior === 'newline' means don't submit, just insert newline (default behavior)
++          if (!e.shiftKey && shouldSubmit && onSubmitEditing) {
+             onSubmitEditing(event as unknown as NativeSyntheticEvent<TextInputSubmitEditingEventData>);
+-          } else if (multiline) {
++          } else if (multiline && (!shouldSubmit || e.shiftKey)) {
+             //   We need to change normal behavior of "Enter" key to insert a line breaks, to prevent wrapping contentEditable text in <div> tags.
+             //  Thanks to that in every situation we have proper amount of new lines in our parsed text. Without it pressing enter in empty lines will add 2 more new lines.
+             insertText(e, '\n');
+           }
+-          if (!e.shiftKey && ((shouldBlurOnSubmit && hostNode !== null) || !multiline)) {
++          if (!e.shiftKey && shouldBlurOnSubmit && hostNode !== null) {
+             setTimeout(() => divRef.current && divRef.current.blur(), 0);
+           }
+         }
+       },
+-      [multiline, blurOnSubmit, setEventProps, onKeyPress, handleOnChangeText, onSubmitEditing, insertText],
++      [multiline, blurOnSubmit, submitBehavior, setEventProps, onKeyPress, handleOnChangeText, onSubmitEditing, insertText],
+     );
+ 
+     const handleFocus: FocusEventHandler<HTMLDivElement> = useCallback(

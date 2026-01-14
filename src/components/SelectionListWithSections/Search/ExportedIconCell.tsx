@@ -53,7 +53,10 @@ function ExportedIconCell({reportID, hash}: ExportedIconCellProps) {
         }
 
         if (isExportedToIntegrationAction(action)) {
-            const label = getOriginalMessage(action)?.label;
+            const message = getOriginalMessage(action);
+            const label = message?.label;
+            const type = message?.type;
+            isExportedToCsv = isExportedToCsv || type === CONST.EXPORT_TEMPLATE;
             isExportedToXero = isExportedToXero || label === CONST.EXPORT_LABELS.XERO;
             isExportedToNetsuite = isExportedToNetsuite || label === CONST.EXPORT_LABELS.NETSUITE;
             isExportedToQuickbooksOnline = isExportedToQuickbooksOnline || label === CONST.EXPORT_LABELS.QBO;

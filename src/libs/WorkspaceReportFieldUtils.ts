@@ -57,7 +57,7 @@ function validateReportFieldListValueName(
     } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
         // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        addErrorMessage(errors, inputID, translateLocal('common.error.characterLimitExceedCounter', {length: [...valueName].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}));
+        addErrorMessage(errors, inputID, translateLocal('common.error.characterLimitExceedCounter', [...valueName].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
     }
 
     return errors;
