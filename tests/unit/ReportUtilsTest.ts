@@ -3815,7 +3815,15 @@ describe('ReportUtils', () => {
         it('should return canUnholdRequest as true for a held duplicate transaction', async () => {
             const chatReport: Report = {reportID: '1'};
             const reportPreviewReportActionID = '8';
-            const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 'USD', [CONST.BETAS.ALL], undefined, reportPreviewReportActionID);
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: chatReport.reportID,
+                policyID: '123',
+                payeeAccountID: currentUserAccountID,
+                total: 122,
+                currency: 'USD',
+                allBetas: [CONST.BETAS.ALL],
+                optimisticIOUReportID: reportPreviewReportActionID,
+            });
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -4302,7 +4310,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return true when the report has outstanding violations', async () => {
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD', [CONST.BETAS.ALL]);
+            const expenseReport = buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', allBetas: [CONST.BETAS.ALL]});
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -4617,7 +4625,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false when the report is the single transaction thread', async () => {
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD', [CONST.BETAS.ALL]);
+            const expenseReport = buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', allBetas: [CONST.BETAS.ALL]});
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -9219,7 +9227,7 @@ describe('ReportUtils', () => {
 
             const total = 100;
             const currency = CONST.CURRENCY.USD;
-            const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency, [CONST.BETAS.ALL]);
+            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID: undefined, payeeAccountID: 1, total, currency, allBetas: [CONST.BETAS.ALL]});
             expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
     });
@@ -9374,7 +9382,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
 
             const betas: Beta[] = [CONST.BETAS.ASAP_SUBMIT];
-            const expenseReport = buildOptimisticExpenseReport(chatReportID, policyID, 1, 100, CONST.CURRENCY.USD, betas);
+            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID, payeeAccountID: 1, total: 100, currency: CONST.CURRENCY.USD, allBetas: betas});
 
             expect(expenseReport.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
             expect(expenseReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
@@ -9392,7 +9400,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
 
             const betas: Beta[] = [];
-            const expenseReport = buildOptimisticExpenseReport(chatReportID, policyID, 1, 100, CONST.CURRENCY.USD, betas);
+            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID, payeeAccountID: 1, total: 100, currency: CONST.CURRENCY.USD, allBetas: betas});
 
             expect(expenseReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
             expect(expenseReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);

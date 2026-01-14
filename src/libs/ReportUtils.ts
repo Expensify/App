@@ -456,6 +456,20 @@ type BuildOptimisticIOUReportActionParams = {
     reportActionID?: string;
 };
 
+type BuildOptimisticExpenseReportParams = {
+    chatReportID: string | undefined;
+    policyID: string | undefined;
+    payeeAccountID: number;
+    total: number;
+    currency: string;
+    allBetas: OnyxEntry<Beta[]>;
+    nonReimbursableTotal?: number;
+    parentReportActionID?: string;
+    optimisticIOUReportID?: string;
+    reportTransactions?: Record<string, Transaction>;
+    createdTimestamp?: string;
+};
+
 type OptimisticIOUReportAction = Pick<
     ReportAction,
     | 'actionName'
@@ -6745,19 +6759,19 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, allBetas: Ony
  * @param parentReportActionID – The parent ReportActionID of the PolicyExpenseChat
  * @param optimisticIOUReportID – Optimistic IOU report id
  */
-function buildOptimisticExpenseReport(
-    chatReportID: string | undefined,
-    policyID: string | undefined,
-    payeeAccountID: number,
-    total: number,
-    currency: string,
-    allBetas: OnyxEntry<Beta[]>,
+function buildOptimisticExpenseReport({
+    chatReportID,
+    policyID,
+    payeeAccountID,
+    total,
+    currency,
+    allBetas,
     nonReimbursableTotal = 0,
-    parentReportActionID?: string,
-    optimisticIOUReportID?: string,
-    reportTransactions?: Record<string, Transaction>,
-    createdTimestamp?: string,
-): OptimisticExpenseReport {
+    parentReportActionID,
+    optimisticIOUReportID,
+    reportTransactions,
+    createdTimestamp,
+}: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
