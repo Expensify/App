@@ -106,6 +106,7 @@ const SCREENS = {
         ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Verify_Account',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
+        ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'Settings_Add_US_Bank_Account_Entry_Point',
         ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Select_Country_Verify_Account',
         CLOSE: 'Settings_Close',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
@@ -222,7 +223,6 @@ const SCREENS = {
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         TWO_FACTOR_AUTH: 'TwoFactorAuth',
-        SEARCH_ROUTER: 'Search_Router',
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
@@ -499,6 +499,7 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Customers_Displayed_As',
             QUICKBOOKS_DESKTOP_ITEMS: 'Policy_Accounting_Quickbooks_Desktop_Import_Items',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
+            CLAIM_OFFER: 'Policy_Accounting_Claim_Offer',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
             XERO_CUSTOMER: 'Policy_Accounting_Xero_Import_Customer',
@@ -876,6 +877,7 @@ const SCREENS = {
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
         ADD_ADMIN: 'Domain_Add_Admin',
         MEMBERS: 'Domain_Members',
+        MEMBER_DETAILS: 'Member_Details',
     },
 } as const;
 

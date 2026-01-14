@@ -218,6 +218,7 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
@@ -815,6 +816,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER]: {
+        policyID: string;
+        integration: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1386,6 +1391,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.DOMAIN.ADD_ADMIN]: {
         domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBER_DETAILS]: {
+        domainAccountID: number;
+        accountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -2197,7 +2206,6 @@ type WorkspacesDomainModalNavigatorParamList = {
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: undefined;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
