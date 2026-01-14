@@ -3052,8 +3052,8 @@ function getForwardsToUpdateMessage(translate: LocalizedTranslate, action: Repor
 function getInvoiceCompanyNameUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {newValue, oldValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME>) ?? {};
 
-    if (typeof newValue === 'string' && typeof oldValue === 'string') {
-        return translate('workspaceActions.changedInvoiceCompanyName', {newValue, oldValue});
+    if (typeof newValue === 'string') {
+        return translate('workspaceActions.changedInvoiceCompanyName', {newValue, oldValue: typeof oldValue === 'string' ? oldValue : undefined});
     }
 
     return getReportActionText(action);
@@ -3062,8 +3062,8 @@ function getInvoiceCompanyNameUpdateMessage(translate: LocalizedTranslate, actio
 function getInvoiceCompanyWebsiteUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {newValue, oldValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE>) ?? {};
 
-    if (typeof newValue === 'string' && typeof oldValue === 'string') {
-        return translate('workspaceActions.changedInvoiceCompanyWebsite', {newValue, oldValue});
+    if (typeof newValue === 'string') {
+        return translate('workspaceActions.changedInvoiceCompanyWebsite', {newValue, oldValue: typeof oldValue === 'string' ? oldValue : undefined});
     }
 
     return getReportActionText(action);
