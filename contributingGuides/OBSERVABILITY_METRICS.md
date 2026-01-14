@@ -23,7 +23,6 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **End**:
 - User sees: NewDot interface fully loaded
 - Technical: Transition finalized after setup (`src/HybridAppHandler.tsx:28`)
-**Attributes**: Uses `startTime` from `hybridAppSettings.hybridApp.transitionStartTimestamp`
 
 ### Open Report
 
@@ -44,7 +43,6 @@ This document lists all implemented telemetry metrics in the Expensify App.
   - Report data loaded from Onyx (reportID, type, chatType)
   - Report actions list layout complete
   - Called in `ReportActionsView.tsx:272` and `MoneyRequestReportActionsList.tsx:649`
-**Cancel**: Report unmounts before loading (`src/pages/home/ReportScreen.tsx:620`, `src/pages/home/sidebar/SidebarLinks.tsx:70`)
 **Span ID**: `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`
 **Attributes**: `is_transaction_thread`, `is_one_transaction_report`, `report_type`, `chat_type`
 
@@ -61,7 +59,6 @@ This document lists all implemented telemetry metrics in the Expensify App.
   - Search results data loaded from Onyx
   - Results sorted and sectioned
   - List layout rendered (`src/components/Search/index.tsx:961`)
-**Cancel**: Search returns error or empty state (`src/components/Search/index.tsx:987`, `:993`, `:1008`)
 
 ### Navigate to Inbox Tab
 
@@ -135,7 +132,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Start**: Skeleton component mounted (`src/libs/telemetry/useSkeletonSpan.ts:13`)
 **End**: Component unmounts (`src/libs/telemetry/useSkeletonSpan.ts:24`)
 **Span ID**: `${CONST.TELEMETRY.SPAN_SKELETON}_${component}_${reactId}`
-**Minimum Duration**: `CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION` (10,000ms)
+**Minimum Duration**: `CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION` (10s)
 
 ### Authentication Failures
 
@@ -144,7 +141,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 
 ### ANRs (Application Not Responding)
 
-**Status**: Automatic via Sentry SDK - no custom instrumentation needed
+**Status**: Metrics TBD
 
 ## Feature Health
 
