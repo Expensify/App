@@ -1020,7 +1020,14 @@ function setWorkspaceReimbursement({
             value: {
                 isLoadingWorkspaceReimbursement: false,
                 reimbursementChoice: policy?.reimbursementChoice ?? null,
-                achAccount: {reimburser: policy?.achAccount?.reimburser ?? null, bankAccountID: null},
+                achAccount: {
+                    reimburser: policy?.achAccount?.reimburser ?? null,
+                    bankAccountID: null,
+                    accountNumber: policy?.achAccount?.accountNumber ?? null,
+                    addressName: policy?.achAccount?.addressName ?? null,
+                    bankName: policy?.achAccount?.bankName ?? null,
+                    state: policy?.achAccount?.state ?? null,
+                },
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
