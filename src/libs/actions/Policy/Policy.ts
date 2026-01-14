@@ -2690,7 +2690,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const isTaxesOptionSelected = parts?.taxes;
     const isTagsOptionSelected = parts?.tags;
     const isInvoicesOptionSelected = parts?.invoices;
-    const isCustomUnitsOptionSelected = parts?.customUnits;
+    const isDistanceRatesOptionSelected = parts?.distance;
     const isRulesOptionSelected = parts?.expenses;
     const isWorkflowsOptionSelected = parts?.exportLayouts;
     const isPerDiemOptionSelected = parts?.perDiem;
@@ -2721,7 +2721,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 ...policy,
                 areCategoriesEnabled: true,
                 areTagsEnabled: isTagsOptionSelected,
-                areDistanceRatesEnabled: isCustomUnitsOptionSelected,
+                areDistanceRatesEnabled: isDistanceRatesOptionSelected,
                 areInvoicesEnabled: isInvoicesOptionSelected,
                 areRulesEnabled: isRulesOptionSelected,
                 areWorkflowsEnabled: isWorkflowsOptionSelected,
@@ -2737,7 +2737,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 name: policyName,
                 fieldList: isReportsOptionSelected ? policy?.fieldList : undefined,
                 connections: isConnectionsOptionSelected ? policy?.connections : undefined,
-                customUnits: getCustomUnitsForDuplication(policy, isCustomUnitsOptionSelected, isPerDiemOptionSelected),
+                customUnits: getCustomUnitsForDuplication(policy, isDistanceRatesOptionSelected, isPerDiemOptionSelected),
                 taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: {
