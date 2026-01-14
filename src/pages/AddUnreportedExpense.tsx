@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -65,35 +65,32 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
-    const getUnreportedTransactions = useCallback(
-        (transactions: OnyxCollection<Transaction>) => {
-            if (!transactions) {
-                return [];
+    const getUnreportedTransactions = (transactions: OnyxCollection<Transaction>) => {
+        if (!transactions) {
+            return [];
+        }
+        return Object.values(transactions || {}).filter((item) => {
+            const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
+            if (!isUnreported) {
+                return false;
             }
-            return Object.values(transactions || {}).filter((item) => {
-                const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
-                if (!isUnreported) {
-                    return false;
-                }
 
-                // Negative values are not allowed for unreported expenses
-                if ((getTransactionDetails(item)?.amount ?? 0) < 0) {
-                    return false;
-                }
+            // Negative values are not allowed for unreported expenses
+            if ((getTransactionDetails(item)?.amount ?? 0) < 0) {
+                return false;
+            }
 
-                if (isPerDiemRequest(item)) {
-                    // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
-                    const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
-                    const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
+            if (isPerDiemRequest(item)) {
+                // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
+                const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
+                const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
 
-                    return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
-                }
+                return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
+            }
 
-                return true;
-            });
-        },
-        [policy],
-    );
+            return true;
+        });
+    };
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION,
@@ -101,7 +98,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             selector: getUnreportedTransactions,
             canBeMissing: true,
         },
-        [getUnreportedTransactions],
+        [policy],
     );
 
     const fetchMoreUnreportedTransactions = () => {
@@ -119,16 +116,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle<Transaction & ListItem>>(null);
 
-    const shouldShowTextInput = useMemo(() => {
-        return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
-    }, [transactions.length]);
+    const shouldShowTextInput = transactions.length >= CONST.SEARCH_ITEM_LIMIT;
 
-    const filteredTransactions = useMemo(() => {
-        if (!debouncedSearchValue.trim() || !shouldShowTextInput) {
-            return transactions;
-        }
-
-        return tokenizedSearch(transactions, debouncedSearchValue, (transaction) => {
+    let filteredTransactions = transactions;
+    if (debouncedSearchValue.trim() && shouldShowTextInput) {
+        filteredTransactions = tokenizedSearch(transactions, debouncedSearchValue, (transaction) => {
             const searchableFields: string[] = [];
 
             const merchant = getMerchant(transaction);
@@ -152,16 +144,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
             return searchableFields;
         });
-    }, [debouncedSearchValue, shouldShowTextInput, transactions]);
+    }
 
-    const unreportedExpenses = useMemo(() => {
-        return createUnreportedExpenses(filteredTransactions).map((item) => ({
-            ...item,
-            isSelected: selectedIds.has(item.transactionID),
-        }));
-    }, [filteredTransactions, selectedIds]);
+    const unreportedExpenses = createUnreportedExpenses(filteredTransactions).map((item) => ({
+        ...item,
+        isSelected: selectedIds.has(item.transactionID),
+    }));
 
-    const handleConfirm = useCallback(() => {
+    const handleConfirm = () => {
         if (selectedIds.size === 0) {
             setErrorMessage(translate('iou.selectUnreportedExpense'));
             return;
@@ -194,78 +184,52 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [
-        selectedIds,
-        translate,
-        report,
-        isASAPSubmitBetaEnabled,
-        session?.accountID,
-        session?.email,
-        transactionViolations,
-        reportToConfirm,
-        policy,
-        reportNextStep,
-        policyCategories,
-        policyRecentlyUsedCurrencies,
-    ]);
+    };
 
-    const footerContent = useMemo(() => {
-        return (
-            <>
-                {!!errorMessage && (
-                    <FormHelpMessage
-                        style={[styles.ph1, styles.mb2]}
-                        isError
-                        message={errorMessage}
-                    />
-                )}
-                <Button
-                    success
-                    large
-                    style={[styles.w100, styles.justifyContentCenter]}
-                    text={translate('iou.addUnreportedExpenseConfirm')}
-                    onPress={handleConfirm}
-                    pressOnEnter
-                    enterKeyEventListenerPriority={1}
+    const footerContent = (
+        <>
+            {!!errorMessage && (
+                <FormHelpMessage
+                    style={[styles.ph1, styles.mb2]}
+                    isError
+                    message={errorMessage}
                 />
-            </>
-        );
-    }, [errorMessage, styles, translate, handleConfirm]);
-
-    const headerMessage = useMemo(() => {
-        if (debouncedSearchValue.trim() && unreportedExpenses?.length === 0) {
-            return translate('common.noResultsFound');
-        }
-        return '';
-    }, [debouncedSearchValue, unreportedExpenses?.length, translate]);
-
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchValue,
-            label: shouldShowTextInput ? translate('iou.findExpense') : undefined,
-            onChangeText: setSearchValue,
-            headerMessage,
-        }),
-        [searchValue, shouldShowTextInput, translate, setSearchValue, headerMessage],
+            )}
+            <Button
+                success
+                large
+                style={[styles.w100, styles.justifyContentCenter]}
+                text={translate('iou.addUnreportedExpenseConfirm')}
+                onPress={handleConfirm}
+                pressOnEnter
+                enterKeyEventListenerPriority={1}
+            />
+        </>
     );
 
-    const onSelectRow = useCallback(
-        (item: {transactionID: string}) => {
-            setSelectedIds((prevIds) => {
-                const newIds = new Set(prevIds);
-                if (newIds.has(item.transactionID)) {
-                    newIds.delete(item.transactionID);
-                } else {
-                    newIds.add(item.transactionID);
-                    if (errorMessage) {
-                        setErrorMessage('');
-                    }
+    const headerMessage = debouncedSearchValue.trim() && unreportedExpenses?.length === 0 ? translate('common.noResultsFound') : '';
+
+    const textInputOptions = {
+        value: searchValue,
+        label: shouldShowTextInput ? translate('iou.findExpense') : undefined,
+        onChangeText: setSearchValue,
+        headerMessage,
+    };
+
+    const onSelectRow = (item: {transactionID: string}) => {
+        setSelectedIds((prevIds) => {
+            const newIds = new Set(prevIds);
+            if (newIds.has(item.transactionID)) {
+                newIds.delete(item.transactionID);
+            } else {
+                newIds.add(item.transactionID);
+                if (errorMessage) {
+                    setErrorMessage('');
                 }
-                return newIds;
-            });
-        },
-        [errorMessage],
-    );
+            }
+            return newIds;
+        });
+    };
 
     const hasSearchTerm = debouncedSearchValue.trim().length > 0;
     const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
