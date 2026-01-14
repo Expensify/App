@@ -10664,7 +10664,7 @@ function retractReport(
         });
     }
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
@@ -10686,7 +10686,7 @@ function retractReport(
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
@@ -10696,16 +10696,19 @@ function retractReport(
                 },
             },
         },
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 stateNum: expenseReport.stateNum,
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 statusNum: expenseReport.stateNum,
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 hasReportBeenRetracted: false,
                 nextStep: expenseReport.nextStep ?? null,
                 pendingFields: {
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     partial: null,
                     nextStep: null,
                 },
