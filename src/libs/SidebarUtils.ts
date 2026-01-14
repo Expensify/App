@@ -31,6 +31,8 @@ import {
     getAddedConnectionMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCompanyAddressUpdateMessage,
+    getCompanyCardConnectionBrokenMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getForwardsToUpdateMessage,
@@ -770,6 +772,7 @@ function getOptionData({
         hasMultipleParticipants,
         localeCompare,
         formatPhoneNumberPhoneUtils,
+        undefined,
         isSelfDM(report),
     );
 
@@ -861,6 +864,8 @@ function getOptionData({
             result.alternateText = translate('workspaceActions.downgradedWorkspace');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
             result.alternateText = Parser.htmlToText(getIntegrationSyncFailedMessage(translate, lastAction, report?.policyID));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
+            result.alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
         } else if (
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
@@ -908,6 +913,8 @@ function getOptionData({
             result.alternateText = getReimburserUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
             result.alternateText = getWorkspaceReimbursementUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS) {
+            result.alternateText = getCompanyAddressUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
             result.alternateText = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
