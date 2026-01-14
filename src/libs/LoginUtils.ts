@@ -127,6 +127,10 @@ function normalizeLogin(login: string | undefined): string {
     return Str.isSMSLogin(login) ? Str.removeSMSDomain(login) : login;
 }
 
+function sanitizePhoneOrEmail(phoneOrEmail: string) {
+    return phoneOrEmail.replaceAll(CONST.REGEX.WHITESPACE, '').toLowerCase();
+}
+
 export {
     getPhoneNumberWithoutSpecialChars,
     appendCountryCode,
@@ -140,4 +144,5 @@ export {
     getEmailDomain,
     isDomainPublic,
     normalizeLogin,
+    sanitizePhoneOrEmail,
 };

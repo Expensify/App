@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 // eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -161,20 +161,24 @@ function BaseDomainMembersPage({
                 {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
 
                 <SelectionList
-                    sections={[{data: filteredData}]}
+                    data={filteredData}
                     shouldShowRightCaret
                     canSelectMultiple={false}
-                    listHeaderContent={listHeaderContent}
-                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    style={{
+                        containerStyle: styles.flex1,
+                        listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5],
+                        listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
+                    }}
                     ListItem={TableListItem}
                     onSelectRow={onSelectRow}
                     onDismissError={onDismissError}
-                    shouldShowListEmptyContent={false}
-                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : styles.pr3}
+                    showListEmptyContent={false}
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
+                    shouldHeaderBeInsideList
                     customListHeader={getCustomListHeader()}
-                    containerStyle={styles.flex1}
+                    customListHeaderContent={listHeaderContent}
+                    disableMaintainingScrollPosition
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

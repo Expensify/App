@@ -3,7 +3,7 @@ import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashSet from 'lodash/set';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
@@ -2092,7 +2092,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
  *
  */
 function removeTransactionFromDuplicateTransactionViolation(
-    onyxData: OnyxData,
+    onyxData: OnyxData<OnyxKey>,
     transactionID: string,
     transactions: OnyxCollection<Transaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,

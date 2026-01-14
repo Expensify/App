@@ -2563,6 +2563,13 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
     if (groupBy) {
         return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
     }
+
+    if (searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return !Object.keys(searchResults?.data).some(
+            (key) => isReportEntry(key) && (searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Report)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+    }
+
     return !Object.keys(searchResults?.data).some(
         (key) =>
             key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
@@ -3289,7 +3296,7 @@ function getColumnsToShow(
     });
 
     if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
-        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
+        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
         const result: SearchColumnType[] = [];
 
         // Add required columns that aren't in visibleColumns at the start

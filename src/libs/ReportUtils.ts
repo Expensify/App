@@ -2019,7 +2019,9 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
  * @param tagListsUpdate - Changed tag properties, if none pass empty object
  */
 function pushTransactionViolationsOnyxData(
-    onyxData: OnyxData,
+    onyxData: OnyxData<
+        typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+    >,
     policyData: PolicyData,
     policyUpdate: Partial<Policy> = {},
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
