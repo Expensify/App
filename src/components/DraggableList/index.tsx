@@ -25,6 +25,7 @@ function DraggableList<T>({
     keyExtractor,
     onDragEnd: onDragEndCallback,
     onSelectRow,
+    isKeyboardActive = true,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
     disableScroll,
@@ -42,7 +43,7 @@ function DraggableList<T>({
         initialFocusedIndex: -1,
         maxIndex: data.length - 1,
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: true,
+        isActive: isKeyboardActive,
     });
 
     const selectFocusedOption = useCallback(() => {
@@ -53,7 +54,7 @@ function DraggableList<T>({
     }, [data, focusedIndex, onSelectRow]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
-        isActive: focusedIndex >= 0,
+        isActive: isKeyboardActive && focusedIndex >= 0,
     });
 
     /**

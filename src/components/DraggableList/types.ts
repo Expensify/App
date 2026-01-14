@@ -22,6 +22,9 @@ type DraggableListProps<T> = {
     /** Called when a row is selected via Enter key */
     onSelectRow?: (item: T) => void;
 
+    /** Whether keyboard navigation is active for this list. Defaults to true. */
+    isKeyboardActive?: boolean;
+
     /** Rendered at the bottom of all the items. Just like in the FlatList. */
     ListFooterComponent?: React.ReactElement;
 
