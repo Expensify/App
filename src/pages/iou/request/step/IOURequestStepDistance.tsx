@@ -46,6 +46,7 @@ import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransac
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -86,6 +87,8 @@ function IOURequestStepDistance({
     const {isBetaEnabled} = usePermissions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
@@ -271,7 +274,7 @@ function IOURequestStepDistance({
             }
             openReport(transaction?.reportID);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = useCallback(() => {
@@ -458,11 +461,11 @@ function IOURequestStepDistance({
         quickAction,
         policyRecentlyUsedCurrencies,
         customUnitRateID,
+        introSelected,
+        activePolicyID,
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
-        introSelected,
-        activePolicyID,
     ]);
 
     const getError = () => {
@@ -533,7 +536,8 @@ function IOURequestStepDistance({
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
                     transactionID: transaction?.transactionID,
-                    transactionThreadReportID: report?.reportID,
+                    transactionThreadReport: report,
+                    parentReport,
                     waypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
@@ -550,20 +554,21 @@ function IOURequestStepDistance({
 
         navigateToNextStep();
     }, [
-        navigateBack,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
         isLoadingRoute,
+        isEditing,
         isLoading,
         isCreatingNewRequest,
-        isEditing,
         navigateToNextStep,
         transactionBackup,
         waypoints,
-        transaction?.transactionID,
         transaction?.routes,
-        report?.reportID,
+        transaction?.transactionID,
+        report,
+        navigateBack,
+        parentReport,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,

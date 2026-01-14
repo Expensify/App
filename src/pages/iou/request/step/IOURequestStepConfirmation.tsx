@@ -2,18 +2,19 @@ import reportsSelector from '@selectors/Attributes';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -68,6 +69,7 @@ import {
     hasReceipt,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isScanRequest,
 } from '@libs/TransactionUtils';
 import type {GpsPoint} from '@userActions/IOU';
@@ -126,7 +128,6 @@ function IOURequestStepConfirmation({
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
 
-    const [isRemoveConfirmModalVisible, setRemoveConfirmModalVisible] = useState(false);
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
@@ -137,7 +138,7 @@ function IOURequestStepConfirmation({
     }, [initialTransaction, optimisticTransactions]);
     const hasMultipleTransactions = transactions.length > 1;
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
     // We will use setCurrentTransactionID later to switch between transactions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -179,7 +180,10 @@ function IOURequestStepConfirmation({
     const canUseReport = !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
 
     const shouldUseTransactionReport = !!transactionReport && (canUseReport || !reportWithDraftFallback);
-
+    const isTransactionReportDifferentFromRoute = useMemo(
+        () => !!transaction?.reportID && !!reportWithDraftFallback?.reportID && transaction.reportID !== reportWithDraftFallback.reportID,
+        [reportWithDraftFallback?.reportID, transaction?.reportID],
+    );
     const report = useMemo(() => {
         if (isUnreported) {
             return undefined;
@@ -187,8 +191,11 @@ function IOURequestStepConfirmation({
         if (shouldUseTransactionReport) {
             return transactionReport;
         }
+        if (isTransactionReportDifferentFromRoute) {
+            return undefined;
+        }
         return reportWithDraftFallback;
-    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback]);
+    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback, isTransactionReportDifferentFromRoute]);
 
     const policy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : (policyReal ?? policyDraft);
     const policyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(transaction, report);
@@ -233,6 +240,7 @@ function IOURequestStepConfirmation({
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
+    const {showConfirmModal} = useConfirmModal();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
 
@@ -240,6 +248,8 @@ function IOURequestStepConfirmation({
     const requestType = getRequestType(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
+    const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
+    const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
     const {
@@ -370,7 +380,7 @@ function IOURequestStepConfirmation({
             // for all of the routes in the creation flow.
             reportID ?? generateReportID(),
         );
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoadingTransaction]);
 
     useEffect(() => {
@@ -389,7 +399,7 @@ function IOURequestStepConfirmation({
             }
         }
         // We don't want to clear out category every time the transactions change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy?.id, policyCategories, transactionsCategories]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -403,7 +413,7 @@ function IOURequestStepConfirmation({
             setMoneyRequestCategory(item.transactionID, defaultCategory, policy);
         }
         // Prevent resetting to default when unselect category
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
@@ -617,6 +627,7 @@ function IOURequestStepConfirmation({
                     currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    quickAction,
                 });
                 existingIOUReport = iouReport;
             }
@@ -627,28 +638,29 @@ function IOURequestStepConfirmation({
             archivedReportsIdSet,
             report,
             currentUserPersonalDetails.login,
-            currentUserPersonalDetails.email,
             currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.email,
             policy,
             policyTags,
-            policyRecentlyUsedTags,
             policyCategories,
             policyRecentlyUsedCategories,
+            policyRecentlyUsedTags,
             action,
+            isManualDistanceRequest,
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
             shouldGenerateTransactionThreadReport,
             backToReport,
             isASAPSubmitBetaEnabled,
+            transactionViolations,
+            policyRecentlyUsedCurrencies,
+            quickAction,
             viewTourTaskReport,
             viewTourTaskParentReport,
             isViewTourTaskParentReportArchived,
             hasOutstandingChildTask,
             parentReportAction,
-            transactionViolations,
-            isManualDistanceRequest,
-            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -695,21 +707,23 @@ function IOURequestStepConfirmation({
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                quickAction,
             });
         },
         [
-            report,
             transaction,
+            report,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             policy,
             policyTags,
+            policyRecentlyUsedTags,
             policyCategories,
             recentlyUsedDestinations,
             isASAPSubmitBetaEnabled,
             hasViolations,
             policyRecentlyUsedCurrencies,
-            policyRecentlyUsedTags,
+            quickAction,
         ],
     );
 
@@ -725,6 +739,7 @@ function IOURequestStepConfirmation({
             for (const [index, item] of transactions.entries()) {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
+                const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
                 trackExpenseIOUActions({
                     report,
@@ -742,7 +757,7 @@ function IOURequestStepConfirmation({
                     },
                     transactionParams: {
                         amount: item.amount,
-                        distance: isManualDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined,
+                        distance: itemDistance,
                         currency: item.currency,
                         created: item.created,
                         merchant: item.merchant,
@@ -762,6 +777,8 @@ function IOURequestStepConfirmation({
                         customUnitRateID,
                         attendees: item.comment?.attendees,
                         isLinkedTrackedExpenseReportArchived,
+                        odometerStart: isOdometerDistanceRequest ? item.comment?.odometerStart : undefined,
+                        odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
                     },
                     accountantParams: {
                         accountant: item.accountant,
@@ -792,6 +809,7 @@ function IOURequestStepConfirmation({
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
+            isOdometerDistanceRequest,
             isASAPSubmitBetaEnabled,
             introSelected,
             activePolicyID,
@@ -804,6 +822,7 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
+
             createDistanceRequestIOUActions({
                 report,
                 participants: selectedParticipants,
@@ -821,7 +840,7 @@ function IOURequestStepConfirmation({
                 transactionParams: {
                     amount: transaction.amount,
                     comment: trimmedComment,
-                    distance: isManualDistanceRequest ? (transaction.comment?.customUnit?.quantity ?? undefined) : undefined,
+                    distance: transactionDistance,
                     created: transaction.created,
                     currency: transaction.currency,
                     merchant: transaction.merchant,
@@ -835,7 +854,9 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
-                    receipt: isManualDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
+                    receipt: isManualDistanceRequest || isOdometerDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
+                    odometerStart: isOdometerDistanceRequest ? transaction.comment?.odometerStart : undefined,
+                    odometerEnd: isOdometerDistanceRequest ? transaction.comment?.odometerEnd : undefined,
                 },
                 backToReport,
                 isASAPSubmitBetaEnabled,
@@ -851,11 +872,13 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.accountID,
             iouType,
             policy,
+            isOdometerDistanceRequest,
             policyCategories,
             policyTags,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             isManualDistanceRequest,
+            transactionDistance,
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
@@ -1280,18 +1303,31 @@ function IOURequestStepConfirmation({
         if (currentTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
             const nextTransaction = transactions.at(currentTransactionIndex + 1);
             replaceDefaultDraftTransaction(nextTransaction);
-            setRemoveConfirmModalVisible(false);
             return;
         }
 
         removeDraftTransaction(currentTransactionID);
-        setRemoveConfirmModalVisible(false);
         showPreviousTransaction();
+    };
+
+    const confirmRemoveCurrentTransaction = async () => {
+        const result = await showConfirmModal({
+            title: translate('iou.removeExpense'),
+            prompt: translate('iou.removeExpenseConfirmation'),
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        removeCurrentTransaction();
     };
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
+    const shouldShowSmartScanFields =
+        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
@@ -1358,18 +1394,21 @@ function IOURequestStepConfirmation({
                         iouCategory={transaction?.category}
                         onConfirm={onConfirm}
                         onSendMoney={sendMoney}
-                        showRemoveExpenseConfirmModal={() => setRemoveConfirmModalVisible(true)}
+                        showRemoveExpenseConfirmModal={() => {
+                            confirmRemoveCurrentTransaction();
+                        }}
                         receiptPath={receiptPath}
                         receiptFilename={receiptFilename}
                         iouType={iouType}
                         reportID={reportID}
-                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest) && !isPerDiemRequest}
+                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policyID}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
                         isDistanceRequest={isDistanceRequest}
                         isManualDistanceRequest={isManualDistanceRequest}
+                        isOdometerDistanceRequest={isOdometerDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
                         action={action}
@@ -1381,16 +1420,6 @@ function IOURequestStepConfirmation({
                         isReceiptEditable
                     />
                 </View>
-                <ConfirmModal
-                    title={translate('iou.removeExpense')}
-                    isVisible={isRemoveConfirmModalVisible}
-                    onConfirm={removeCurrentTransaction}
-                    onCancel={() => setRemoveConfirmModalVisible(false)}
-                    prompt={translate('iou.removeExpenseConfirmation')}
-                    confirmText={translate('common.remove')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </DragAndDropProvider>
         </ScreenWrapper>
     );

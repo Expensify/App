@@ -12,7 +12,7 @@ import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -40,7 +40,7 @@ function getTagViolationsForSingleLevelTags(
     if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
-        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}});
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
     }
 
     // Remove 'tagOutOfPolicy' violation if tag is in policy
@@ -116,6 +116,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         newTransactionViolations.push({
             name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
             type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
             data: {
                 errorIndexes,
             },
@@ -130,12 +131,12 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
                     data: {
                         tagName: policyTagKeys.at(i),
                     },
                 });
                 hasInvalidTag = true;
-                break;
             }
         }
         if (!hasInvalidTag) {
@@ -302,7 +303,7 @@ const ViolationsUtils = {
         }
 
         // Calculate client-side tag violations
-        const policyRequiresTags = !!policy.requiresTag && !isSelfDM;
+        const policyRequiresTags = (!!policy.requiresTag || !!updatedTransaction?.tag) && !isSelfDM;
         if (policyRequiresTags) {
             newTransactionViolations =
                 Object.keys(policyTagList).length === 1
@@ -343,7 +344,7 @@ const ViolationsUtils = {
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
+        const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
         const canCalculateAmountViolations = policy.outputCurrency === currency;

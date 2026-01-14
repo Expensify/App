@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -45,7 +45,7 @@ function ShareTab({ref}: ShareTabProps) {
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const selectionListRef = useRef<SelectionListHandle | null>(null);
+    const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});

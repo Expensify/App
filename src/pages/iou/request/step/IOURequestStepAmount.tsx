@@ -15,6 +15,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -84,6 +85,7 @@ function IOURequestStepAmount({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
@@ -221,6 +223,7 @@ function IOURequestStepAmount({
                         currentUserAccountIDParam,
                         currentUserEmailParam,
                         transactionViolations,
+                        quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     });
                     return;
@@ -345,7 +348,8 @@ function IOURequestStepAmount({
 
         updateMoneyRequestAmountAndCurrency({
             transactionID,
-            transactionThreadReportID: reportID,
+            transactionThreadReport: report,
+            parentReport,
             transactions: duplicateTransactions,
             transactionViolations: duplicateTransactionViolations,
             currency: selectedCurrency,
@@ -409,7 +413,6 @@ function IOURequestStepAmount({
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
-                isP2P={isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))}
                 isCurrencyPressable={!isUnreportedDistanceExpense}
             />
         </StepScreenWrapper>
