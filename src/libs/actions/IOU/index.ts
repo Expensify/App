@@ -9639,8 +9639,8 @@ function getReportFromHoldRequestsOnyxData({
         iouReport?.reportID,
         optimisticExpenseReport.reportID,
     );
-
-    if (isApprovalFlow && optimisticReportActionCopyIDs.length > 0) {
+    // Only copy the report action for approval flow
+    if (isApprovalFlow && !isEmptyObject(optimisticReportActionCopyIDs)) {
         optimisticData.push(...copiedActionsOptimistic);
         successData.push(...copiedActionsSuccess);
         failureData.push(...copiedActionsFailure);
@@ -10412,6 +10412,7 @@ function approveMoneyRequest(
         optimisticCreatedReportForUnapprovedTransactionsActionID = holdReportOnyxData.optimisticCreatedReportForUnapprovedTransactionsActionID;
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
         optimisticReportActionCopyIDs = JSON.stringify(holdReportOnyxData.optimisticReportActionCopyIDs);
+        console.log('optimisticReportActionCopyIDs', optimisticReportActionCopyIDs);
     }
 
     // Remove duplicates violations if we approve the report
