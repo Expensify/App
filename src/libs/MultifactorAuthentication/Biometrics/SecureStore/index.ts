@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import type {SecureStoreMethods, SecureStoreValues} from './types';
 
 /**
  * Platform SecureStore constants used by the multifactor authentication biometrics flow.
@@ -34,15 +35,9 @@ const SECURE_STORE_VALUES = {
             CODE: SecureStore.AUTH_TYPE.OPTIC_ID,
             NAME: 'OpticID',
         },
-    } satisfies Record<
-        string,
-        {
-            CODE: SecureStore.AuthType;
-            NAME: string;
-        }
-    >,
+    },
     WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: SecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-} as const;
+} as const satisfies SecureStoreValues;
 
 /**
  * Thin wrapper around SecureStore methods used by multifactor authentication.
@@ -54,7 +49,7 @@ const SECURE_STORE_METHODS = {
     getItemAsync: SecureStore.getItemAsync,
     setItemAsync: SecureStore.setItemAsync,
     deleteItemAsync: SecureStore.deleteItemAsync,
-};
+} satisfies SecureStoreMethods;
 
 type SecureStoreOptions = SecureStore.SecureStoreOptions;
 

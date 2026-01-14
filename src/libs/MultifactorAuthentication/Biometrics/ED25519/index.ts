@@ -5,7 +5,7 @@ import {utf8ToBytes} from '@noble/hashes/utils';
 import {Buffer} from 'buffer';
 import 'react-native-get-random-values';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
-import type {Base64URL, BinaryData, ChallengeFlag, MultifactorAuthenticationChallengeObject, SignedChallenge} from './types';
+import type {Base64URL, ChallengeFlags, MultifactorAuthenticationChallengeObject, SignedChallenge} from './types';
 
 /**
  * ED25519 helpers used to construct and sign multifactor authentication challenges.
@@ -19,9 +19,9 @@ const {hexToBytes, concatBytes, bytesToHex, randomBytes} = etc;
 /**
  * Converts a string into a URL-safe base64 representation.
  */
-const base64URL = <T extends string>(value: T): Base64URL<T> => {
+function base64URL(value: string): Base64URL {
     return Buffer.from(value).toString('base64').replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
-};
+}
 
 /**
  * Generates a new ED25519 key pair encoded as hex strings.
@@ -39,7 +39,7 @@ function generateKeyPair() {
 /**
  * Builds the challenge flag bitmask describing user presence and verification.
  */
-const createFlag = (up: boolean, uv: boolean): ChallengeFlag => {
+function createFlag(up: boolean, uv: boolean): ChallengeFlags {
     let flag = 0;
     if (up) {
         flag |= 0x01; // Set bit 0
@@ -48,13 +48,14 @@ const createFlag = (up: boolean, uv: boolean): ChallengeFlag => {
         flag |= 0x04; // Set bit 2
     }
     return flag;
-};
+}
 /* eslint-enable no-bitwise */
 
 /**
  * Creates the binary authenticator data buffer for a relying party identifier.
+ * The result is in a form of concatBytes of the RPID, FLAGS, and SIGN_COUNT.
  */
-const createBinaryData = (rpId: string): Bytes => {
+function createBinaryData(rpId: string): Bytes {
     const rpIdBytes = utf8ToBytes(rpId);
     const RPID = sha256(rpIdBytes);
 
@@ -68,18 +69,18 @@ const createBinaryData = (rpId: string): Bytes => {
     const signCountArray = new Uint8Array(buffer);
 
     return concatBytes(RPID, flagsArray, signCountArray);
-};
+}
 
 /**
  * Signs a multifactor authentication challenge for the given account identifier and key.
  * Returns a WebAuthn-compatible signed challenge structure.
  */
-const signToken = (accountID: number, token: MultifactorAuthenticationChallengeObject, key: string): SignedChallenge => {
-    const rawId: Base64URL<string> = base64URL(`${accountID}_${VALUES.KEY_ALIASES.PUBLIC_KEY}`);
+function signToken(accountID: number, token: MultifactorAuthenticationChallengeObject, key: string): SignedChallenge {
+    const rawId: Base64URL = base64URL(`${accountID}_${VALUES.KEY_ALIASES.PUBLIC_KEY}`);
     const type = VALUES.ED25519_TYPE;
 
     const binaryData = createBinaryData(token.rpId);
-    const authenticatorData: Base64URL<BinaryData> = base64URL(bytesToHex(binaryData));
+    const authenticatorData: Base64URL = base64URL(bytesToHex(binaryData));
 
     const tokenBytes = utf8ToBytes(JSON.stringify(token));
 
@@ -87,7 +88,7 @@ const signToken = (accountID: number, token: MultifactorAuthenticationChallengeO
     const keyInBytes = hexToBytes(key);
 
     const signatureRaw = sign(message, keyInBytes);
-    const signature: Base64URL<string> = base64URL(bytesToHex(signatureRaw));
+    const signature: Base64URL = base64URL(bytesToHex(signatureRaw));
 
     return {
         rawId,
@@ -98,6 +99,6 @@ const signToken = (accountID: number, token: MultifactorAuthenticationChallengeO
             signature,
         },
     };
-};
+}
 
 export {generateKeyPair, signToken, createBinaryData, hexToBytes, concatBytes, sha256, utf8ToBytes, verify, bytesToHex, randomBytes, base64URL};

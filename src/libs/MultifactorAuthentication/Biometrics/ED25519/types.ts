@@ -1,5 +1,3 @@
-import type {Bytes} from '@noble/ed25519';
-
 /**
  * Hex-encoded string representation of binary data.
  */
@@ -8,40 +6,23 @@ type Hex = string;
 /**
  * Base64URL-encoded representation of a value used in WebAuthn-like flows.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type Base64URL<T> = string;
+type Base64URL = string;
 
 /**
  * Bitmask flag describing user presence and verification state for a challenge.
  */
-type ChallengeFlag = number;
-
-/**
- * JSON payload that wraps the raw challenge sent to the client.
- */
-type ChallengeJSON = {
-    challenge: Base64URL<string>;
-};
-
-/**
- * Low-level binary components that are combined into authenticator data.
- */
-type BinaryData = {
-    RPID: Bytes[];
-    FLAGS: Bytes[];
-    SIGN_COUNT: Bytes[];
-};
+type ChallengeFlags = number;
 
 /**
  * Signed multifactor authentication challenge matching the WebAuthn response shape.
  */
 type SignedChallenge = {
-    rawId: Base64URL<string>;
+    rawId: Base64URL;
     type: string;
     response: {
-        authenticatorData: Base64URL<BinaryData>;
-        clientDataJSON: Base64URL<ChallengeJSON>;
-        signature: Base64URL<Hex>;
+        authenticatorData: Base64URL;
+        clientDataJSON: Base64URL;
+        signature: Base64URL;
     };
 };
 
@@ -63,4 +44,4 @@ type MultifactorAuthenticationChallengeObject = {
     timeout: number;
 };
 
-export type {MultifactorAuthenticationChallengeObject, Hex, Base64URL, ChallengeJSON, ChallengeFlag, BinaryData, SignedChallenge};
+export type {MultifactorAuthenticationChallengeObject, Hex, Base64URL, ChallengeFlags, SignedChallenge};

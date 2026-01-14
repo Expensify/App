@@ -1,3 +1,5 @@
+import type {SecureStoreMethods, SecureStoreValues} from './types';
+
 /**
  * Web polyfill values mirroring the native SecureStore API for multifactor authentication.
  * Provides stable auth type codes and configuration flags for non-native environments.
@@ -34,7 +36,7 @@ const SECURE_STORE_VALUES = {
         },
     },
     WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: -1,
-} as const;
+} as const satisfies SecureStoreValues;
 
 /**
  * Web-safe polyfill implementations of SecureStore methods used by multifactor authentication.
@@ -43,12 +45,10 @@ const SECURE_STORE_VALUES = {
 const SECURE_STORE_METHODS = {
     canUseBiometricAuthentication: () => false,
     canUseDeviceCredentialsAuthentication: () => false,
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    getItemAsync: async (key: string, options: Record<string, unknown>) => [null, 0],
-    setItemAsync: async (key: string, value: string, options: Record<string, unknown>) => 0,
-    deleteItemAsync: async (key: string, options: Record<string, unknown>) => {},
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-};
+    getItemAsync: async () => [null, 0],
+    setItemAsync: async () => 0,
+    deleteItemAsync: async () => {},
+} as const satisfies SecureStoreMethods;
 
 type SecureStoreOptions = Record<string, unknown>;
 
