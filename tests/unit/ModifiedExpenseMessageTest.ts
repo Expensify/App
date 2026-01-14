@@ -739,6 +739,45 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the category is changed from Uncategorized with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: '6403 Travel - Member Services',
+                    oldCategory: 'Uncategorized',
+                    source: CONST.CATEGORY_SOURCE.AI,
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the correct text message without showing previously uncategorized', () => {
+                const expectedResult = `set the category based on past activity to "6403 Travel - Member Services"`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is cleared from Uncategorized (both missing)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: '',
+                    oldCategory: 'Uncategorized',
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the generic changed expense message since no meaningful change occurred', () => {
+                const expectedResult = `changed the expense`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the category is removed with AI attribution', () => {
             const reportAction = {
                 ...createRandomReportAction(1),

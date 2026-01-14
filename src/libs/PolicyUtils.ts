@@ -666,8 +666,8 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false): boolean {
-    if (isPerDiemRequest) {
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false, isTimeRequest = false): boolean {
+    if (isPerDiemRequest || isTimeRequest) {
         return false;
     }
     const distanceUnit = getDistanceRateCustomUnit(policy);
@@ -1237,10 +1237,7 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
         importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
     }
 
-    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, {
-        importFields,
-        importType: translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase(),
-    });
+    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, importFields, translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase());
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 
@@ -1398,12 +1395,6 @@ function goBackWhenEnableFeature(policyID: string) {
 function navigateToExpensifyCardPage(policyID: string) {
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
-    });
-}
-
-function navigateToReceiptPartnersPage(policyID: string) {
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
     });
 }
 
@@ -1751,7 +1742,6 @@ export {
     getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
-    navigateToReceiptPartnersPage,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     findSelectedSageVendorWithDefaultSelect,
