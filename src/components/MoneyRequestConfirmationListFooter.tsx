@@ -450,7 +450,7 @@ function MoneyRequestConfirmationListFooter({
                     shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !isTimeRequest}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    interactive={!isReadOnly}
+                    interactive={!isReadOnly && !isTimeRequest}
                     onPress={() => {
                         if (isDistanceRequest || isTimeRequest || !transactionID) {
                             return;
