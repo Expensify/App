@@ -71,7 +71,7 @@ Defined in `src/CONST/index.ts` under `CONST.TELEMETRY`:
 
 #### Naming Conventions
 
-**Span names** describe **what's measured**, not **where**. Use `OpenReport` instead of `ReportPage`. Subspans should match parent span names (e.g., parent: `OpenReport`, subspan: `OpenReportFetchData`).
+**Span names** describe **what's measured**, not **where**. Use `OpenReport` instead of `ReportPage`. Child span's should match parent span names (e.g., parent: `OpenReport`, child: `OpenReportFetchData`).
 
 #### Tags vs. Attributes
 
