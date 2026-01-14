@@ -22,7 +22,6 @@ import usePrevious from '@hooks/usePrevious';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCurrencySupportedForECards} from '@libs/CardUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
@@ -290,7 +289,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
             // Update the data that is returned from back-end to draft value
             const draftStep = reimbursementAccount?.draftStep;
-            Log.hmmm('draftStep', draftStep);
             if (draftStep) {
                 updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
             }
