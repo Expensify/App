@@ -150,7 +150,7 @@ function useSelectedTransactionsActions({
         setIsDeleteModalVisible(false);
     };
 
-    let computedOptions = [];
+    let computedOptions: PopoverMenuItem[] = [];
     if (selectedTransactionIDs.length) {
         const options = [];
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
