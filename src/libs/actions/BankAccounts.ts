@@ -26,6 +26,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {MemberForList} from '@libs/OptionsListUtils';
+import {getFormattedStreet} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -140,6 +141,10 @@ function openPersonalBankAccountSetupWithPlaid(exitReportID?: string) {
 
 function clearPersonalBankAccountSetupType() {
     Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: null});
+}
+
+function clearPersonalBankAccountErrors() {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
 }
 
 /**
@@ -265,21 +270,29 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
 function addPersonalBankAccount(
-    account: PlaidBankAccount,
+    account: Partial<PlaidBankAccount & PersonalBankAccountForm>,
     personalPolicyID: string | undefined,
     policyID?: string,
     source?: string,
     lastPaymentMethod?: LastPaymentMethodType | string | undefined,
 ) {
     const parameters: AddPersonalBankAccountParams = {
-        addressName: account.addressName ?? '',
-        routingNumber: account.routingNumber,
-        accountNumber: account.accountNumber,
+        addressName: account?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL ? `${account?.legalFirstName} ${account?.legalLastName}` : account.addressName,
+        routingNumber: account?.routingNumber,
+        accountNumber: account?.accountNumber,
         isSavings: account.isSavings ?? false,
-        setupType: 'plaid',
-        bank: account.bankName,
-        plaidAccountID: account.plaidAccountID,
-        plaidAccessToken: account.plaidAccessToken,
+        setupType: account?.setupType,
+        bank: account?.bankName,
+        plaidAccountID: account?.plaidAccountID,
+        plaidAccessToken: account?.plaidAccessToken,
+        phoneNumber: account?.phoneNumber,
+        legalFirstName: account?.legalFirstName,
+        legalLastName: account?.legalLastName,
+        addressStreet: getFormattedStreet(account?.addressStreet, account?.addressStreet2),
+        addressCity: account?.addressCity,
+        addressState: account?.addressState,
+        addressZip: account?.addressZipCode,
+        addressCountry: account?.country,
     };
     if (policyID) {
         parameters.policyID = policyID;
@@ -1483,6 +1496,7 @@ export {
     clearReimbursementAccount,
     clearEnterSignerInformationFormSave,
     sendReminderForCorpaySignerInformation,
+    clearPersonalBankAccountErrors,
     clearReimbursementAccountSendReminderForCorpaySignerInformation,
     getBankAccountFromID,
     openBankAccountSharePage,
