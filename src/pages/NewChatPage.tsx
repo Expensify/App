@@ -101,6 +101,7 @@ function useOptions() {
         {
             betas: betas ?? [],
             includeSelfDM: true,
+            shouldAlwaysIncludeDM: true,
         },
         countryCode,
     );
@@ -362,6 +363,15 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
 
+        if (option?.reportID) {
+            Navigation.dismissModal({
+                callback: () => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option?.reportID));
+                },
+            });
+            return;
+        }
+
         let login = '';
 
         if (option?.login) {
@@ -379,7 +389,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     };
 
     const itemRightSideComponent = (item: ListItem & Option, isFocused?: boolean) => {
-        if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
+        if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login)) || !item.login) {
             return null;
         }
 
