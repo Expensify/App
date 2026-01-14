@@ -502,7 +502,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         cardID: existingTransaction?.cardID,
         cardName: existingTransaction?.cardName,
         cardNumber: existingTransaction?.cardNumber,
-        iouRequestType: existingTransaction?.iouRequestType,
+        // Use conditional spread to avoid creating the key if it's undefined, which would break lodashHas checks.
+        ...(existingTransaction?.iouRequestType ? {iouRequestType: existingTransaction.iouRequestType} : {}),
         routes,
     };
 }
