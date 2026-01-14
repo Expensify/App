@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {setConnectionError, setConnectionErrorMessage} from '@userActions/connections';
+import {setConnectionError} from '@userActions/connections';
 import {getQuickbooksDesktopCodatSetupLink} from '@userActions/connections/QuickbooksDesktop';
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
