@@ -502,7 +502,13 @@ function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, data: 
  * param {SelectedTimezone} currentSelectedTimezone - Current user's timezone to display the result in.
  * returns {string} - A localized string such as 'Until 05:34 PM', 'Until tomorrow', or 'Until Jul 01 05:34 PM'.
  */
-function getStatusUntilDate(translate: LocalizedTranslate, inputDate: string, inputDateTimeZone: SelectedTimezone, currentSelectedTimezone: SelectedTimezone, locale: Locale = CONST.LOCALES.DEFAULT): string {
+function getStatusUntilDate(
+    translate: LocalizedTranslate,
+    inputDate: string,
+    inputDateTimeZone: SelectedTimezone,
+    currentSelectedTimezone: SelectedTimezone,
+    locale: Locale = CONST.LOCALES.DEFAULT,
+): string {
     if (!inputDate) {
         return '';
     }
