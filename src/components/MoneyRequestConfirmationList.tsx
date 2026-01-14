@@ -1015,6 +1015,7 @@ function MoneyRequestConfirmationList({
             showDelegateNoAccessModal,
             iouCategory,
             policyCategories,
+            isTimeRequest,
         ],
     );
 
