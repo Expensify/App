@@ -5,12 +5,12 @@ import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import ConfirmModal from '@components/ConfirmModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -36,13 +36,13 @@ type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [showVerifyCompanyModal, setShowVerifyCompanyModal] = useState(false);
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
 
     const isLoading = travelProvisioning?.isLoading;
@@ -71,7 +71,17 @@ function TravelTerms({route}: TravelTermsPageProps) {
         }
 
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED) {
-            setShowVerifyCompanyModal(true);
+            showConfirmModal({
+                title: translate('travel.verifyCompany.title'),
+                titleStyles: styles.textHeadlineH1,
+                titleContainerStyles: styles.mb2,
+                prompt: translate('travel.verifyCompany.message'),
+                promptStyles: styles.mb2,
+                confirmText: translate('travel.verifyCompany.confirmText'),
+                shouldShowCancelButton: false,
+                image: illustrations.RocketDude,
+                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+            }).then(createTravelEnablementIssue);
         }
 
         if (travelProvisioning?.spotnanaToken) {
@@ -81,6 +91,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
         }
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [travelProvisioning, domain]);
 
     const toggleTravelTerms = () => {
@@ -153,26 +164,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
                     </ScrollView>
                 </FullPageNotFoundView>
             </ScreenWrapper>
-
-            <ConfirmModal
-                isVisible={showVerifyCompanyModal}
-                onConfirm={() => {
-                    createTravelEnablementIssue();
-                    setShowVerifyCompanyModal(false);
-                }}
-                onCancel={() => {
-                    setShowVerifyCompanyModal(false);
-                }}
-                title={translate('travel.verifyCompany.title')}
-                titleStyles={styles.textHeadlineH1}
-                titleContainerStyles={styles.mb2}
-                prompt={translate('travel.verifyCompany.message')}
-                promptStyles={styles.mb2}
-                confirmText={translate('travel.verifyCompany.confirmText')}
-                shouldShowCancelButton={false}
-                image={illustrations.RocketDude}
-                imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
-            />
         </>
     );
 }
