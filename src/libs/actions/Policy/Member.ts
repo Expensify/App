@@ -172,8 +172,8 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData {
-    const onyxData: OnyxData = {
+function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> {
+    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -183,7 +183,10 @@ function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersL
                     importFinalModal: {
                         titleKey: 'spreadsheet.importSuccessfulTitle',
                         promptKey: 'spreadsheet.importMembersSuccessfulDescription',
-                        promptKeyParams: [addedMembersLength, updatedMembersLength],
+                        promptKeyParams: {
+                            added: addedMembersLength,
+                            updated: updatedMembersLength,
+                        },
                     },
                 },
             },
@@ -896,7 +899,6 @@ function buildAddMembersToWorkspaceOnyxData(
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
-            pendingAction: null,
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
         };
     }

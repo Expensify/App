@@ -25,6 +25,7 @@ import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,6 +47,10 @@ jest.mock('@userActions/Report', () => ({
 jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
     setOptimisticDataForTransactionThreadPreview: jest.fn(),
+}));
+jest.mock('@src/libs/SearchQueryUtils', () => ({
+    ...jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils'),
+    getCurrentSearchQueryJSON: jest.fn(),
 }));
 
 const adminAccountID = 18439984;
@@ -398,7 +403,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Expense',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -427,7 +432,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Expense',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -457,7 +462,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             merchant: '(none)',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -486,7 +491,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             merchant: '(none)',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -773,7 +778,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: '',
+        formattedMerchant: 'Expense',
         formattedTo: '',
         formattedTotal: 5000,
         from: {
@@ -785,14 +790,14 @@ const transactionsListItems = [
         hasEReceipt: false,
         keyForList: '1',
         merchant: 'Expense',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         reportID: '123456789',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -832,7 +837,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: '',
+        formattedMerchant: 'Expense',
         formattedTo: 'Admin',
         formattedTotal: 5000,
         from: {
@@ -844,13 +849,13 @@ const transactionsListItems = [
         hasEReceipt: false,
         keyForList: '2',
         merchant: 'Expense',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         reportID: '11111',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -901,7 +906,7 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -926,7 +931,7 @@ const transactionsListItems = [
         formattedTotal: 1200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -965,7 +970,7 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -990,7 +995,7 @@ const transactionsListItems = [
         formattedTotal: 3200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -1067,7 +1072,7 @@ const transactionReportGroupListItems = [
                 date: '2024-12-21',
                 exported: '',
                 formattedFrom: 'Admin',
-                formattedMerchant: '',
+                formattedMerchant: 'Expense',
                 formattedTo: '',
                 formattedTotal: 5000,
                 from: {
@@ -1079,14 +1084,14 @@ const transactionReportGroupListItems = [
                 hasEReceipt: false,
                 keyForList: '1',
                 merchant: 'Expense',
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 reportID: '123456789',
-                shouldShowMerchant: false,
+                shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1172,7 +1177,7 @@ const transactionReportGroupListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
-                formattedMerchant: '',
+                formattedMerchant: 'Expense',
                 formattedTo: 'Admin',
                 formattedTotal: 5000,
                 from: {
@@ -1190,13 +1195,13 @@ const transactionReportGroupListItems = [
                 ],
                 keyForList: '2',
                 merchant: 'Expense',
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 reportID: '11111',
-                shouldShowMerchant: false,
+                shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1293,7 +1298,7 @@ const transactionReportGroupListItems = [
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: '',
@@ -1318,7 +1323,7 @@ const transactionReportGroupListItems = [
                 formattedTotal: 1200,
                 formattedMerchant: '',
                 date: '2025-03-05',
-                shouldShowMerchant: false,
+                shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1354,7 +1359,7 @@ const transactionReportGroupListItems = [
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: '',
@@ -1379,7 +1384,7 @@ const transactionReportGroupListItems = [
                 formattedTotal: 3200,
                 formattedMerchant: '',
                 date: '2025-03-05',
-                shouldShowMerchant: false,
+                shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1650,15 +1655,15 @@ describe('SearchUIUtils', () => {
     });
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
-            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -1681,10 +1686,10 @@ describe('SearchUIUtils', () => {
                     managerID: adminAccountID,
                 },
             };
-            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0)).toStrictEqual(
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0)).toStrictEqual(
                 CONST.SEARCH.ACTION_TYPES.VIEW,
             );
-            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0)).toStrictEqual(
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0)).toStrictEqual(
                 CONST.SEARCH.ACTION_TYPES.VIEW,
             );
         });
@@ -1704,7 +1709,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1728,7 +1733,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1744,7 +1749,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
@@ -1762,13 +1767,13 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
         });
 
         test('Should return `View` action for non-money request reports', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -1782,7 +1787,7 @@ describe('SearchUIUtils', () => {
                     reportID: 'non_existent_report',
                 },
             };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
@@ -1800,15 +1805,51 @@ describe('SearchUIUtils', () => {
                     reportID: multiTransactionReportID,
                 },
             };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `Pay` action for an IOU report ready to be paid', async () => {
             Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             await waitForBatchedUpdates();
             const iouReportKey = `report_${reportID3}`;
-            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+        });
+
+        test('Should return EXPORT_TO_ACCOUNTING action when report is approved and policy has verified accounting integration', () => {
+            const exportReportID = 'report_export';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`policy_${policyID}`]: {
+                    ...searchResults.data[`policy_${policyID}`],
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    exporter: adminEmail,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: true,
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as Connections,
+                },
+                [`report_${exportReportID}`]: {
+                    ...searchResults.data[`report_${reportID2}`],
+                    reportID: exportReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+            };
+
+            const actions = SearchUIUtils.getActions(localSearchResults, {}, `report_${exportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, {});
+
+            expect(actions).toContain(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
         });
 
         test('Should return `Submit` action when report has DEW_SUBMIT_FAILED action and is still OPEN', async () => {
@@ -1844,7 +1885,7 @@ describe('SearchUIUtils', () => {
                 },
             ] as OnyxTypes.ReportAction[];
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', dewReportActions).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}, dewReportActions).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -1881,7 +1922,7 @@ describe('SearchUIUtils', () => {
                 },
             ] as OnyxTypes.ReportAction[];
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', dewReportActions).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}, dewReportActions).at(0);
             expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -1920,7 +1961,7 @@ describe('SearchUIUtils', () => {
                 },
             ] as OnyxTypes.ReportAction[];
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${nonDewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', nonDewReportActions).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${nonDewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}, nonDewReportActions).at(0);
             expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
@@ -1968,6 +2009,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             });
             expect(filteredReportActions).toStrictEqual(reportActionListItems);
             expect(allReportActionsLength).toBe(6);
@@ -1982,6 +2024,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
+                    bankAccountList: {},
                 })[0],
             ).toEqual(transactionsListItems);
         });
@@ -2007,6 +2050,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             })[0] as TransactionListItemType[];
 
             const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
@@ -2039,6 +2083,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             })[0] as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
@@ -2061,6 +2106,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
+                    bankAccountList: {},
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
         });
@@ -2101,6 +2147,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             })[0];
             const resultReportFirst = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -2109,6 +2156,7 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
             })[0];
 
             expect(resultTransactionFirst).toBeDefined();
@@ -2130,6 +2178,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
+                    bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 })[0],
             ).toStrictEqual(transactionMemberGroupListItems);
@@ -2144,6 +2193,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
+                    bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);
@@ -2158,6 +2208,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
+                    bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
@@ -2181,10 +2232,78 @@ describe('SearchUIUtils', () => {
                 currentUserEmail: '',
                 translate: translateLocal,
                 formatPhoneNumber,
+                bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
             }) as [TransactionWithdrawalIDGroupListItemType[], number];
 
             expect(result).toHaveLength(0);
+        });
+    });
+
+    describe('Test getSections with shouldSkipActionFiltering option', () => {
+        beforeEach(() => {
+            // Mock getCurrentSearchQueryJSON to return a query with action filter
+            (SearchQueryUtils.getCurrentSearchQueryJSON as jest.Mock).mockReturnValue({
+                type: 'expense-report',
+                filters: {
+                    operator: 'and',
+                    left: {operator: 'eq', left: 'action', right: 'approve'},
+                },
+                flatFilters: [
+                    {
+                        key: 'action',
+                        filters: [{operator: 'eq', value: 'approve'}],
+                    },
+                ],
+            });
+        });
+
+        afterEach(() => {
+            (SearchQueryUtils.getCurrentSearchQueryJSON as jest.Mock).mockClear();
+        });
+
+        it('should return all expense reports when shouldSkipActionFiltering is true', () => {
+            const result = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: searchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                shouldSkipActionFiltering: true,
+            })[0] as TransactionGroupListItemType[];
+
+            expect(result.length).toBe(4); // All expense reports returned
+        });
+
+        it('should return only filtered expense reports when shouldSkipActionFiltering is false', () => {
+            const result = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: searchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                shouldSkipActionFiltering: false,
+            })[0] as TransactionGroupListItemType[];
+
+            expect(result.length).toBe(2); // Only filtered expense reports returned
+        });
+
+        it('should apply default filtering behavior when shouldSkipActionFiltering is undefined', () => {
+            const result = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: searchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+            })[0] as TransactionGroupListItemType[];
+
+            expect(result.length).toBe(2); // Default behavior applies filtering
         });
     });
 
@@ -2702,10 +2821,10 @@ describe('SearchUIUtils', () => {
         Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
         searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
         return waitForBatchedUpdates().then(() => {
-            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
-            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
@@ -2818,7 +2937,7 @@ describe('SearchUIUtils', () => {
             },
         };
         return waitForBatchedUpdates().then(() => {
-            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
+            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', {}).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
     });
@@ -3090,6 +3209,71 @@ describe('SearchUIUtils', () => {
             // From/To columns should not exist in expense report view
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
+        });
+
+        test('Should conditionally include Billable and Reimbursable columns in expense report view when enabled', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const reimbursableTransaction = {
+                ...baseTransaction,
+                transactionID: 'reimbursableTx',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                billable: true,
+            };
+            const nonReimbursableTransaction = {
+                ...baseTransaction,
+                transactionID: 'nonReimbursableTx',
+                merchant: 'Test Merchant 2',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                reimbursable: false,
+                billable: false,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [reimbursableTransaction, nonReimbursableTransaction], [], true, undefined, undefined, false, true, true);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.BILLABLE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE);
+
+            // Column order: after Tag and before Amount (and before Comments)
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TAG)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE));
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.BILLABLE));
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
+        });
+
+        test('Should not include Reimbursable column in expense report view when all expenses are reimbursable', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const reimbursableTransaction1 = {
+                ...baseTransaction,
+                transactionID: 'reimbursableTx1',
+                merchant: 'Test Merchant 1',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                reimbursable: true,
+                billable: false,
+            };
+            const reimbursableTransaction2 = {
+                ...baseTransaction,
+                transactionID: 'reimbursableTx2',
+                merchant: 'Test Merchant 2',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                category: '',
+                tag: '',
+                billable: true,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [reimbursableTransaction1, reimbursableTransaction2], [], true, undefined, undefined, false, true, false);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.BILLABLE);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE);
         });
 
         test('Should handle modifiedMerchant and empty category/tag values correctly', () => {
