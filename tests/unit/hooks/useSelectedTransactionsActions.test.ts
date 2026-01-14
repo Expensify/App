@@ -31,6 +31,9 @@ jest.mock('@libs/actions/Search', () => ({
 
 jest.mock('@libs/actions/IOU', () => ({
     initSplitExpense: jest.fn(),
+}));
+
+jest.mock('@libs/actions/IOU/HoldAction', () => ({
     unholdRequest: jest.fn(),
 }));
 

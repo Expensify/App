@@ -96,8 +96,8 @@ import {
     startDistanceRequest,
     startMoneyRequest,
 } from './actions/IOU';
-import {unholdRequest} from './actions/IOU/HoldAction';
 import type {IOURequestType} from './actions/IOU';
+import {unholdRequest} from './actions/IOU/HoldAction';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
