@@ -1,7 +1,6 @@
-import {useEffect, useMemo} from 'react';
+import {useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
-import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
@@ -23,16 +22,12 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
-    const taxRates = getAllTaxRates(policies);
+    const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [workspaceCardFeeds, userCardList]);
 
     const formValues = queryJSON
         ? buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates)
         : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
-
-    useEffect(() => {
-        updateAdvancedFilters(formValues, true);
-    }, [formValues]);
 
     return formValues;
 };
