@@ -11,7 +11,7 @@ import {getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {clearErrorFields, clearErrors, setErrors} from '@userActions/FormActions';
-import {putOnHold} from '@userActions/IOU';
+import {putOnHold} from '@userActions/IOU/HoldAction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
