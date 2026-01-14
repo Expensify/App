@@ -689,22 +689,32 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
-function changeTransactionsReport(
-    transactionsOrIDs: Transaction[] | string[],
-    isASAPSubmitBetaEnabled: boolean,
-    accountID: number,
-    email: string,
-    newReport?: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-    reportNextStep?: OnyxEntry<ReportNextStepDeprecated>,
-    policyCategories?: OnyxEntry<PolicyCategories>,
-) {
+type ChangeTransactionsReportProps = {
+    transactionIDs: string[];
+    isASAPSubmitBetaEnabled: boolean;
+    accountID: number;
+    email: string;
+    newReport?: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+    reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
+    policyCategories?: OnyxEntry<PolicyCategories>;
+    allTransactionsCollection: OnyxCollection<Transaction>;
+};
+
+function changeTransactionsReport({
+    transactionIDs,
+    isASAPSubmitBetaEnabled,
+    accountID,
+    email,
+    newReport,
+    policy,
+    reportNextStep,
+    policyCategories,
+    allTransactionsCollection,
+}: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
-    const transactions =
-        typeof transactionsOrIDs.at(0) === 'string'
-            ? (transactionsOrIDs as string[]).map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined)
-            : (transactionsOrIDs as Transaction[]);
-    const transactionIDs = transactions.map((t) => t.transactionID);
+
+    const transactions = transactionIDs.map((id) => allTransactionsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
