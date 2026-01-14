@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import AddUnreportedExpenseFooter from '@components/AddUnreportedExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -54,32 +54,35 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
-    const getUnreportedTransactions = (transactions: OnyxCollection<Transaction>) => {
-        if (!transactions) {
-            return [];
-        }
-        return Object.values(transactions || {}).filter((item) => {
-            const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
-            if (!isUnreported) {
-                return false;
+    const getUnreportedTransactions = useCallback(
+        (transactions: OnyxCollection<Transaction>) => {
+            if (!transactions) {
+                return [];
             }
+            return Object.values(transactions || {}).filter((item) => {
+                const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
+                if (!isUnreported) {
+                    return false;
+                }
 
-            // Negative values are not allowed for unreported expenses
-            if ((getTransactionDetails(item)?.amount ?? 0) < 0) {
-                return false;
-            }
+                // Negative values are not allowed for unreported expenses
+                if ((getTransactionDetails(item)?.amount ?? 0) < 0) {
+                    return false;
+                }
 
-            if (isPerDiemRequest(item)) {
-                // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
-                const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
-                const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
+                if (isPerDiemRequest(item)) {
+                    // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
+                    const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
+                    const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
 
-                return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
-            }
+                    return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
+                }
 
-            return true;
-        });
-    };
+                return true;
+            });
+        },
+        [policy],
+    );
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION,
@@ -87,7 +90,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             selector: getUnreportedTransactions,
             canBeMissing: true,
         },
-        [policy],
+        [getUnreportedTransactions],
     );
 
     const fetchMoreUnreportedTransactions = () => {
@@ -105,11 +108,16 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle<Transaction & ListItem>>(null);
 
-    const shouldShowTextInput = transactions.length >= CONST.SEARCH_ITEM_LIMIT;
+    const shouldShowTextInput = useMemo(() => {
+        return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
+    }, [transactions.length]);
 
-    let filteredTransactions = transactions;
-    if (debouncedSearchValue.trim() && shouldShowTextInput) {
-        filteredTransactions = tokenizedSearch(transactions, debouncedSearchValue, (transaction) => {
+    const filteredTransactions = useMemo(() => {
+        if (!debouncedSearchValue.trim() || !shouldShowTextInput) {
+            return transactions;
+        }
+
+        return tokenizedSearch(transactions, debouncedSearchValue, (transaction) => {
             const searchableFields: string[] = [];
 
             const merchant = getMerchant(transaction);
@@ -133,49 +141,65 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
             return searchableFields;
         });
-    }
+    }, [debouncedSearchValue, shouldShowTextInput, transactions]);
 
-    const unreportedExpenses = createUnreportedExpenses(filteredTransactions).map((item) => ({
-        ...item,
-        isSelected: selectedIds.has(item.transactionID),
-    }));
+    const unreportedExpenses = useMemo(() => {
+        return createUnreportedExpenses(filteredTransactions).map((item) => ({
+            ...item,
+            isSelected: selectedIds.has(item.transactionID),
+        }));
+    }, [filteredTransactions, selectedIds]);
 
-    const footerContent = (
-        <AddUnreportedExpenseFooter
-            selectedIds={selectedIds}
-            report={report}
-            reportToConfirm={reportToConfirm}
-            reportNextStep={reportNextStep}
-            policy={policy}
-            policyCategories={policyCategories}
-            errorMessage={errorMessage}
-            setErrorMessage={setErrorMessage}
-        />
+    const footerContent = useMemo(
+        () => (
+            <AddUnreportedExpenseFooter
+                selectedIds={selectedIds}
+                report={report}
+                reportToConfirm={reportToConfirm}
+                reportNextStep={reportNextStep}
+                policy={policy}
+                policyCategories={policyCategories}
+                errorMessage={errorMessage}
+                setErrorMessage={setErrorMessage}
+            />
+        ),
+        [selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage],
     );
 
-    const headerMessage = debouncedSearchValue.trim() && unreportedExpenses?.length === 0 ? translate('common.noResultsFound') : '';
+    const headerMessage = useMemo(() => {
+        if (debouncedSearchValue.trim() && unreportedExpenses?.length === 0) {
+            return translate('common.noResultsFound');
+        }
+        return '';
+    }, [debouncedSearchValue, unreportedExpenses?.length, translate]);
 
-    const textInputOptions = {
-        value: searchValue,
-        label: shouldShowTextInput ? translate('iou.findExpense') : undefined,
-        onChangeText: setSearchValue,
-        headerMessage,
-    };
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: shouldShowTextInput ? translate('iou.findExpense') : undefined,
+            onChangeText: setSearchValue,
+            headerMessage,
+        }),
+        [searchValue, shouldShowTextInput, translate, setSearchValue, headerMessage],
+    );
 
-    const onSelectRow = (item: {transactionID: string}) => {
-        setSelectedIds((prevIds) => {
-            const newIds = new Set(prevIds);
-            if (newIds.has(item.transactionID)) {
-                newIds.delete(item.transactionID);
-            } else {
-                newIds.add(item.transactionID);
-                if (errorMessage) {
-                    setErrorMessage('');
+    const onSelectRow = useCallback(
+        (item: {transactionID: string}) => {
+            setSelectedIds((prevIds) => {
+                const newIds = new Set(prevIds);
+                if (newIds.has(item.transactionID)) {
+                    newIds.delete(item.transactionID);
+                } else {
+                    newIds.add(item.transactionID);
+                    if (errorMessage) {
+                        setErrorMessage('');
+                    }
                 }
-            }
-            return newIds;
-        });
-    };
+                return newIds;
+            });
+        },
+        [errorMessage],
+    );
 
     const hasSearchTerm = debouncedSearchValue.trim().length > 0;
     const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
