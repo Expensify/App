@@ -27,7 +27,6 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -44,18 +43,15 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             return;
         }
 
-        // Only connect partially setup account if it's different from the existing one
-        if (reimbursementAccount?.achData?.bankAccountID !== methodID) {
-            const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
-            setWorkspaceReimbursement({
-                policyID,
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
-                reimburserEmail: newReimburserEmail,
-                lastPaymentMethod: lastPaymentMethod?.[policyID],
-                shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
-            });
-        }
+        const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
+        setWorkspaceReimbursement({
+            policyID,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
+            reimburserEmail: newReimburserEmail,
+            lastPaymentMethod: lastPaymentMethod?.[policyID],
+            shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
+        });
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (isBankAccountPartiallySetup(accountData?.state)) {
