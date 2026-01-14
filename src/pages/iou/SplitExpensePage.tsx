@@ -34,7 +34,7 @@ import {
     updateSplitExpenseAmountField,
     updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
-import {getIOUActionForTransactions} from '@libs/actions/IOU/DuplicateAction';
+import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
