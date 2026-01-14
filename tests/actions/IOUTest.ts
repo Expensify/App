@@ -3476,7 +3476,7 @@ describe('actions/IOU', () => {
                 merchant: 'Test Merchant',
                 reportID,
                 comment: {},
-            } as Transaction;
+            } as unknown as Transaction;
 
             const transactionThread: Report = {
                 reportID: rand64(),
