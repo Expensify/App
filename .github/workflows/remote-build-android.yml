@@ -1,3 +1,4 @@
+# Reminder: If this workflow's name changes, update the name in the dependent workflow at .github/workflows/failureNotifier.yml.
 name: Remote Build Android
 
 on:

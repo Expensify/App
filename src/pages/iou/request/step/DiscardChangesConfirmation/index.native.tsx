@@ -1,29 +1,27 @@
 import type {NavigationAction} from '@react-navigation/native';
+import {useIsFocused, usePreventRemove} from '@react-navigation/native';
 import React, {memo, useCallback, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({getHasUnsavedChanges, isEnabled = true}: DiscardChangesConfirmationProps) {
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
     const [isVisible, setIsVisible] = useState(false);
+    const shouldAllowNavigation = useRef(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
 
-    useBeforeRemove(
-        useCallback(
-            (e) => {
-                if (!getHasUnsavedChanges()) {
-                    return;
-                }
+    const hasUnsavedChanges = isEnabled && isFocused && getHasUnsavedChanges();
+    const shouldPrevent = hasUnsavedChanges && !shouldAllowNavigation.current;
 
-                e.preventDefault();
-                blockedNavigationAction.current = e.data.action;
-                setIsVisible(true);
-            },
-            [getHasUnsavedChanges],
-        ),
+    usePreventRemove(
+        shouldPrevent,
+        useCallback(({data}) => {
+            blockedNavigationAction.current = data.action;
+            setIsVisible(true);
+        }, []),
     );
 
     return (
@@ -36,11 +34,18 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
             cancelText={translate('common.cancel')}
             onConfirm={() => {
                 setIsVisible(false);
+                shouldAllowNavigation.current = true;
                 if (blockedNavigationAction.current) {
                     navigationRef.current?.dispatch(blockedNavigationAction.current);
+                    blockedNavigationAction.current = undefined;
+                } else {
+                    navigationRef.current?.goBack();
                 }
             }}
-            onCancel={() => setIsVisible(false)}
+            onCancel={() => {
+                setIsVisible(false);
+                blockedNavigationAction.current = undefined;
+            }}
             shouldHandleNavigationBack
         />
     );

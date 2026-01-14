@@ -27,6 +27,7 @@ import {
     getPersonalDetailSearchTerms,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
+    getUserToInviteOption,
     getValidOptions,
     optionsOrderBy,
     orderOptions,
@@ -2675,7 +2676,7 @@ describe('OptionsListUtils', () => {
         it('MOVED_TRANSACTION action', async () => {
             const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
-            const report: Report = createRandomReport(0, undefined);
+            const report: Report = createRandomReport(2, undefined);
             const report2: Report = {
                 ...createRandomReport(1, undefined),
                 reportName: 'Expense Report #123',
@@ -2781,7 +2782,7 @@ describe('OptionsListUtils', () => {
                 [takeControlAction.reportActionID]: takeControlAction,
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
-            expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(takeControlAction)));
+            expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
         it('REROUTE action', async () => {
             const report: Report = createRandomReport(0, undefined);
@@ -2795,7 +2796,7 @@ describe('OptionsListUtils', () => {
                 [rerouteAction.reportActionID]: rerouteAction,
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
-            expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(rerouteAction)));
+            expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
         it('MOVED action', async () => {
             const report: Report = createRandomReport(0, undefined);
@@ -2853,6 +2854,94 @@ describe('OptionsListUtils', () => {
             });
             expect(result).toBe(expectedVisibleText);
         });
+
+        describe('DEW (Dynamic External Workflow)', () => {
+            beforeEach(() => Onyx.clear());
+
+            it('should show queued message for SUBMITTED action with DEW policy when offline and pending submit', async () => {
+                const reportID = 'dewReport1';
+                const report: Report = {
+                    reportID,
+                    reportName: 'Test Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: 'dewPolicy1',
+                };
+                const policy: Policy = {
+                    id: 'dewPolicy1',
+                    name: 'Test Policy',
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                } as Policy;
+                const submittedAction: ReportAction = {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2024-01-01 00:00:00',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    message: [{type: 'COMMENT', text: 'submitted'}],
+                    originalMessage: {},
+                };
+                const reportMetadata = {
+                    pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [submittedAction.reportActionID]: submittedAction,
+                });
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policy, reportMetadata});
+                expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
+            });
+
+            it('should show custom error message for DEW_SUBMIT_FAILED action', async () => {
+                const reportID = 'dewReport2';
+                const report: Report = {
+                    reportID,
+                    reportName: 'Test Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const customErrorMessage = 'This report contains an expense missing required fields.';
+                const dewSubmitFailedAction: ReportAction = {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2024-01-01 00:00:00',
+                    message: [{type: 'COMMENT', text: customErrorMessage}],
+                    originalMessage: {
+                        message: customErrorMessage,
+                    },
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+                });
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+                expect(lastMessage).toBe(customErrorMessage);
+            });
+
+            it('should show fallback message for DEW_SUBMIT_FAILED action without message', async () => {
+                const reportID = 'dewReport3';
+                const report: Report = {
+                    reportID,
+                    reportName: 'Test Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const dewSubmitFailedAction: ReportAction = {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2024-01-01 00:00:00',
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+                });
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+                expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
+            });
+        });
     });
 
     describe('getPersonalDetailSearchTerms', () => {
@@ -2872,6 +2961,26 @@ describe('OptionsListUtils', () => {
             expect(searchTerms.includes(displayName)).toBe(true);
             const searchTerms2 = getCurrentUserSearchTerms({text: displayName});
             expect(searchTerms2.includes(displayName)).toBe(true);
+        });
+    });
+
+    describe('getUserToInviteOption', () => {
+        it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
+            const result = getUserToInviteOption({
+                searchValue: 'Jeff Amazon',
+                loginList: {},
+            });
+            expect(result).toBeNull();
+        });
+
+        it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
+            const result = getUserToInviteOption({
+                searchValue: 'Jeff Amazon',
+                shouldAcceptName: true,
+                loginList: {},
+            });
+            expect(result).not.toBeNull();
+            expect(result?.login).toBe('Jeff Amazon');
         });
     });
 });

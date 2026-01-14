@@ -26,6 +26,8 @@ type FormulaPart = {
     functions: string[];
 };
 
+type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'created' | 'amount' | 'currency' | 'merchant' | 'pendingAction'>;
+
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
@@ -196,40 +198,6 @@ function parsePart(definition: string): FormulaPart {
     part.functions = functions;
 
     return part;
-}
-
-/**
- * Check if a formula requires backend computation (e.g., currency conversion with exchange rates)
- * This is used by OptimisticReportNames to skip optimistic updates when online and backend is needed
- */
-function requiresBackendComputation(parts: FormulaPart[], context?: FormulaContext): boolean {
-    if (!context) {
-        return false;
-    }
-
-    const {report} = context;
-
-    for (const part of parts) {
-        if (part.type === FORMULA_PART_TYPES.REPORT) {
-            const [field, ...additionalPath] = part.fieldPath;
-            // Reconstruct format string by joining additional path elements with ':'
-            // This handles format strings with colons like 'HH:mm:ss'
-            const format = additionalPath.length > 0 ? additionalPath.join(':') : undefined;
-            const fieldName = field?.toLowerCase();
-
-            if (fieldName === 'total' || fieldName === 'reimbursable') {
-                // Use formatAmount to check whether a currency conversion is needed.
-                // A null return means the backend must handle the conversion.
-                // We rely on report.total because zero values can be computed optimistically.
-                const result = formatAmount(report.total, report.currency, format);
-                if (result === null) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
 }
 
 /**
@@ -942,6 +910,6 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
     }
 }
 
-export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences, requiresBackendComputation};
+export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences};
 
-export type {FormulaContext, FormulaPart, FieldList};
+export type {FormulaContext, FieldList, MinimalTransaction};

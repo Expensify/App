@@ -518,7 +518,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123');
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -627,7 +627,7 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeAction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeActionForSelectedTransactions').mockReturnValue(true);
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
         const {result} = renderHook(() =>
