@@ -1,0 +1,184 @@
+# Observability
+
+## Philosophy
+
+### Why Observability Matters
+
+When users encounter issues in live sessions that we can't reproduce locally, bugs don't get fixed. This leads to churn and decreased customer lifetime value. Observability shifts us from reactive to proactive monitoring by automatically collecting traces and logs during user sessions, enabling us to diagnose issues without manual reproduction.
+
+### Terminology
+
+- **Telemetry**: How a system collects data (metrics, logs, traces)
+- **Observability**: Using telemetry to understand what's happening inside the system
+- **Trace**: Collection of spans showing end-to-end flow through the system
+- **Span**: Basic unit representing a specific operation (navigation, API call, render) with duration and metadata
+- **Tags**: Contextual attributes (locale, app version, policy ID) for filtering and pattern detection
+- **P90**: 90th percentile—90% of data falls below this value 
+
+## Tools & implementation
+
+We use **Sentry** for observability across all platforms (Web, iOS, Android). Sentry collects traces, spans, and contextual data from user sessions to identify and diagnose production issues.
+
+### Working with Spans
+
+#### Creating a Span
+
+```typescript
+startSpan(spanId, {
+    name: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+    op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+});
+```
+
+Minimum set of parameters required to create a span:
+
+**Span ID**: [Covered in Metrics section]
+
+**Span configuration**: Set of parameters passed to `Sentry.startInteractiveSpan`. See the [Sentry docs](https://docs.sentry.io/platforms/react-native/tracing/instrumentation/custom-instrumentation/#starting-inactive-spans-startinactivespan) for more details.
+
+Additional parameters can be added as a config object (third parameter):
+
+**Minimum Duration**: what's the minimum duration of a span. Spans shorter than this duration are discarded.
+
+```typescript
+startSpan(CONST.TELEMETRY.SPAN_SKELETON, {
+    name: CONST.TELEMETRY.SPAN_SKELETON,
+    op: CONST.TELEMETRY.SPAN_SKELETON,
+}, {minDuration: CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION});
+```
+
+#### Finishing a Span
+
+There are two ways to finish a span:
+
+```typescript
+endSpan(spanId); // Operation completed successfully
+```
+
+```typescript
+cancelSpan(spanId); // Operation abandoned (e.g., user navigated away, component unmounted)
+```
+
+The difference is that the latter adds a `canceled` attribute to the span indicating that it was canceled.
+
+### Constants
+
+Defined in `src/CONST/index.ts` under `CONST.TELEMETRY`:
+- Span names: `SPAN_OPEN_REPORT`, `SPAN_SEND_MESSAGE`
+- Tag names: `TAG_ACTIVE_POLICY`, `TAG_AUTHENTICATION_ERROR_TYPE`
+- Attribute names: `ATTRIBUTE_REPORT_ID`, `ATTRIBUTE_MESSAGE_LENGTH`
+- Configuration: `CONFIG.SKELETON_MIN_DURATION`
+
+#### Naming Conventions
+
+**Span names** describe **what's measured**, not **where**. Use `OpenReport` instead of `ReportPage`. Subspans should match parent span names (e.g., parent: `OpenReport`, subspan: `OpenReportFetchData`).
+
+#### Tags vs. Attributes
+
+- **Tags**: For filtering and grouping in dashboards (indexed, searchable)
+- **Attributes**: For additional context without filtering (not indexed)
+
+### Middlewares
+
+Process events before sending to Sentry:
+- **minDurationFilter** - Discards spans shorter than a specified duration
+- **scopeTagsEnricher** - Adds cohort and policy tags
+- **emailDomainFilter** - Removes PII
+- **firebasePerformanceFilter** - Filters noise
+
+Middlewares run automatically. Add new middleware only for global filtering or enrichment (e.g., new PII protection).
+
+## Metrics
+
+We track three categories:
+
+### Performance Metrics
+
+User-facing latency with thresholds (P90):
+
+- **App start time**: 3s
+- **OD → ND transition**: 3s
+- **Open report**: 1s
+- **Navigate to Reports tab**: 400ms
+- **Navigate to Inbox tab**: 400ms
+- **Open search modal**: 400ms
+- **Open Create Expense**: 400ms
+- **Send message**: 300ms
+
+### Failure Rates
+
+Error conditions tracked for trend analysis:
+
+- **ANRs**: __TBD__
+- **404 pages**: __TBD__
+- **Infinite skeletons**: Skeleton visible 10+ seconds
+- **Authentication failures**: __TBD__ 
+
+### Feature Health
+
+__TBD__
+
+End-to-end flows for critical features:
+
+- **Create expense**: Manual entry, scan, distance (metrics TBD)
+
+### Adding New Metrics
+
+#### 1. Define Span ID
+
+Span ID identifies an operation instance:
+
+```typescript
+// Multiple instances: Add unique identifier
+const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}-${reportID}`;
+
+// Single instance: Use constant directly
+const spanId = CONST.TELEMETRY.SPAN_APP_STARTUP;
+```
+
+#### 2. Add Constants
+
+Add span name, tags, and attributes to `src/CONST/index.ts`:
+
+```typescript
+TELEMETRY: {
+    SPAN_YOUR_OPERATION: 'ManualYourOperation',
+    TAG_YOUR_TAG: 'your_tag',
+    ATTRIBUTE_YOUR_ATTR: 'your_attr'
+}
+```
+
+#### 3. Start Span
+
+```typescript
+startSpan(spanId, {
+    name: CONST.TELEMETRY.SPAN_YOUR_OPERATION,
+    op: CONST.TELEMETRY.SPAN_YOUR_OPERATION,
+});
+```
+
+#### 4. Add Context
+
+```typescript
+const span = getSpan(spanId);
+span?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_YOUR_ATTR, value);
+span?.setTag(CONST.TELEMETRY.TAG_YOUR_TAG, value);
+```
+
+#### 5. Finish Span
+
+```typescript
+endSpan(spanId); // or cancelSpan(spanId)
+```
+
+#### When to Add Metrics
+
+Add metrics when:
+- Operation impacts user experience
+- Performance regressions need monitoring
+- Debugging requires operation visibility
+
+Don't add metrics for:
+- Internal operations invisible to users
+- Operations already covered by parent spans
+- Operations too granular to be actionable
