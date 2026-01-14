@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,7 +40,6 @@ type ApproverSelectionListPageProps = {
     onSelectApprover?: (approvers: SelectionListApprover[]) => void;
     shouldShowLoadingPlaceholder?: boolean;
     shouldEnableHeaderMaxHeight?: boolean;
-    onSearchChange?: (searchTerm: string) => void;
     shouldUpdateFocusedIndex?: boolean;
 };
 
@@ -67,7 +66,6 @@ function ApproverSelectionList({
     onSelectApprover,
     shouldShowLoadingPlaceholder,
     shouldEnableHeaderMaxHeight,
-    onSearchChange,
     shouldUpdateFocusedIndex = true,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
@@ -76,16 +74,6 @@ function ApproverSelectionList({
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell']);
-
-    const handleSearchChange = useCallback(
-        (term: string) => {
-            setSearchTerm(term);
-            if (onSearchChange) {
-                onSearchChange(term);
-            }
-        },
-        [onSearchChange, setSearchTerm],
-    );
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
 
@@ -138,10 +126,10 @@ function ApproverSelectionList({
         () => ({
             label: shouldShowListEmptyContent ? undefined : translate('selectionList.findMember'),
             value: searchTerm,
-            onChangeText: handleSearchChange,
+            onChangeText: setSearchTerm,
             headerMessage: searchTerm && !data?.length ? translate('common.noResultsFound') : '',
         }),
-        [shouldShowListEmptyContent, translate, searchTerm, handleSearchChange, data?.length],
+        [shouldShowListEmptyContent, translate, searchTerm, setSearchTerm, data?.length],
     );
 
     return (
@@ -165,9 +153,9 @@ function ApproverSelectionList({
                 {subtitle}
                 <SelectionList
                     data={data}
+                    onSelectRow={toggleApprover}
                     ListItem={InviteMemberListItem}
                     textInputOptions={textInputOptions}
-                    onSelectRow={toggleApprover}
                     canSelectMultiple={allowMultipleSelection}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listEmptyContent={listEmptyContent}
