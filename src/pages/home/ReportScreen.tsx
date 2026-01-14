@@ -431,6 +431,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 report={report}
                 parentReportAction={parentReportAction}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
+                isInSidePanel={isInSidePanel}
             />
         );
     }, [
@@ -445,6 +446,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         reportActions,
         reportIDFromRoute,
         shouldUseNarrowLayout,
+        isInSidePanel,
     ]);
 
     useEffect(() => {
