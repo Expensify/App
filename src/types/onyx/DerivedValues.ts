@@ -77,7 +77,8 @@ type OrderedReportsForLHNDerivedValue = {
     /**
      * The reports to display in the LHN.
      */
-    reportsToDisplay: OnyxCollection<
+    reportsToDisplay: Record<
+        string,
         Report & {
             /**
              * Whether the report has errors that need user attention, excluding SmartScan receipt failures.

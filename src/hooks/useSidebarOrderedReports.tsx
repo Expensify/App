@@ -30,7 +30,7 @@ type SidebarOrderedReportsContextValue = {
     clearLHNCache: () => void;
 };
 
-type ReportsToDisplayInLHN = Record<string, (OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean}) | undefined>;
+type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
 
 const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
     orderedReports: [],
@@ -76,10 +76,8 @@ function SidebarOrderedReportsContextProvider({
     const perfRef = useRef<{hookDuration: number}>({
         hookDuration: 0,
     });
-    const hookStartTime = useRef<number>(0);
-    useEffect(() => {
-        hookStartTime.current = performance.now();
-    });
+    // eslint-disable-next-line react-hooks/purity
+    const hookStartTime = useRef<number>(performance.now());
 
     // Get ordered report IDs from the derived value, holding a stable reference when it's empty
     const orderedReportIDs = useMemo(() => orderedReportsData?.orderedReportIDs ?? [], [orderedReportsData?.orderedReportIDs]);

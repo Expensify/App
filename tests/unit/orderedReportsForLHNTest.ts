@@ -512,14 +512,11 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call - full computation to initialize the cache
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Capture the report2 and report3 objects from the first result
             const report2FromFirstResult = firstResult.reportsToDisplay?.[`${ONYXKEYS.COLLECTION.REPORT}2`];
@@ -563,14 +560,11 @@ describe('orderedReportsForLHN derived value', () => {
             // First call - to initialize isFullyComputed state
             // Note: Due to module-level isFullyComputed state, after any previous test runs,
             // this may already be true. We focus on verifying the second call behavior.
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Clear spies for second call - this is the call we're testing
             updateReportsToDisplayInLHNSpy.mockClear();
@@ -583,18 +577,15 @@ describe('orderedReportsForLHN derived value', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}2`]: report2,
             };
 
-            orderedReportsForLHNConfig.compute(
-                [updatedReports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
-                {
-                    currentValue: firstResult,
-                    sourceValues: {
-                        [ONYXKEYS.COLLECTION.REPORT]: {
-                            [`${ONYXKEYS.COLLECTION.REPORT}1`]: updatedReport1,
-                        },
+            orderedReportsForLHNConfig.compute([updatedReports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: firstResult,
+                sourceValues: {
+                    [ONYXKEYS.COLLECTION.REPORT]: {
+                        [`${ONYXKEYS.COLLECTION.REPORT}1`]: updatedReport1,
                     },
-                    areAllConnectionsSet: true,
                 },
-            );
+                areAllConnectionsSet: true,
+            });
 
             // Second call should use incremental update, not full computation
             expect(updateReportsToDisplayInLHNSpy).toHaveBeenCalled();
@@ -612,14 +603,11 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call - full computation
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             updateReportsToDisplayInLHNSpy.mockClear();
 
@@ -631,18 +619,15 @@ describe('orderedReportsForLHN derived value', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}3`]: report3,
             };
 
-            orderedReportsForLHNConfig.compute(
-                [updatedReports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
-                {
-                    currentValue: firstResult,
-                    sourceValues: {
-                        [ONYXKEYS.COLLECTION.REPORT]: {
-                            [`${ONYXKEYS.COLLECTION.REPORT}2`]: updatedReport2,
-                        },
+            orderedReportsForLHNConfig.compute([updatedReports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: firstResult,
+                sourceValues: {
+                    [ONYXKEYS.COLLECTION.REPORT]: {
+                        [`${ONYXKEYS.COLLECTION.REPORT}2`]: updatedReport2,
                     },
-                    areAllConnectionsSet: true,
                 },
-            );
+                areAllConnectionsSet: true,
+            });
 
             // Verify updateReportsToDisplayInLHN was called with only report2's key
             expect(updateReportsToDisplayInLHNSpy).toHaveBeenCalledWith(
@@ -661,14 +646,11 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call - full computation with both reports
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Note: Mock reports may or may not pass shouldDisplayReportInLHN checks.
             // We'll manually add report2 to reportsToDisplay to test the deletion behavior.
@@ -727,14 +709,11 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call - full computation
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [reports, policies, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, policies, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Capture references from first result
             const report3FromFirstResult = firstResult.reportsToDisplay?.[`${ONYXKEYS.COLLECTION.REPORT}3`];
@@ -765,10 +744,7 @@ describe('orderedReportsForLHN derived value', () => {
             // Verify updateReportsToDisplayInLHN was called with only reports belonging to policy1
             expect(updateReportsToDisplayInLHNSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    updatedReportsKeys: expect.arrayContaining([
-                        `${ONYXKEYS.COLLECTION.REPORT}1`,
-                        `${ONYXKEYS.COLLECTION.REPORT}2`,
-                    ]),
+                    updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}1`, `${ONYXKEYS.COLLECTION.REPORT}2`]),
                 }),
             );
 
@@ -790,32 +766,26 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call - full computation
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             updateReportsToDisplayInLHNSpy.mockClear();
             getReportsToDisplayInLHNSpy.mockClear();
 
             // Second call - betas changed (should trigger full recomputation)
             const newBetas: Beta[] = [CONST.BETAS.DEFAULT_ROOMS];
-            orderedReportsForLHNConfig.compute(
-                [reports, {}, {}, {}, {}, {}, newBetas, {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
-                {
-                    currentValue: firstResult,
-                    sourceValues: {
-                        // hasKeyTriggeredCompute checks if the key exists in sourceValues
-                        // The actual value doesn't matter for non-collection keys
-                        [ONYXKEYS.BETAS]: undefined,
-                    },
-                    areAllConnectionsSet: true,
+            orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, newBetas, {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: firstResult,
+                sourceValues: {
+                    // hasKeyTriggeredCompute checks if the key exists in sourceValues
+                    // The actual value doesn't matter for non-collection keys
+                    [ONYXKEYS.BETAS]: undefined,
                 },
-            );
+                areAllConnectionsSet: true,
+            });
 
             // Should use full computation, not incremental update
             expect(getReportsToDisplayInLHNSpy).toHaveBeenCalled();

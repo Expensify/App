@@ -12,7 +12,7 @@ let isFullyComputed = false;
 const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
 
 /**
- * Helper to create locale comparison function from a locale string
+ * Helper to create locale comparison function from a locale string (because we can't call useLocalize in this file)
  */
 function createLocaleCompare(locale: string | null | undefined): (a: string, b: string) => number {
     const collator = new Intl.Collator(locale ?? CONST.LOCALES.DEFAULT, COLLATOR_OPTIONS);
@@ -149,7 +149,7 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        const shouldDoIncrementalUpdate = reportsToUpdate.size > 0 && isFullyComputed;
+        const shouldDoIncrementalUpdate = reportsToUpdate.size > 0 && isFullyComputed && !!currentValue;
         let reportsToDisplay: ReportsToDisplayInLHN = {};
 
         // Convert policies to the expected format for SidebarUtils
@@ -170,8 +170,7 @@ export default createOnyxDerivedValueConfig({
         if (shouldDoIncrementalUpdate) {
             // Incremental update
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                displayedReports: currentValue?.reportsToDisplay ?? {},
+                displayedReports: currentValue.reportsToDisplay,
                 reports,
                 updatedReportsKeys: Array.from(reportsToUpdate),
                 currentReportId: undefined,
