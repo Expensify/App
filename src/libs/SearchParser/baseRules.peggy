@@ -92,6 +92,7 @@ values
 
 columnsValues
   = originalAmount
+  / taxRateValue
   / taxAmount
   / policyName
   / withdrawalId
@@ -115,6 +116,7 @@ perDiem                 = "per-diem"i &wordBoundary                 { return "pe
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
 originalAmount          = "original-amount"i &wordBoundary          { return "originalamount"; }
 taxAmount               = "tax"i &wordBoundary                      { return "taxAmount"; }
+taxRateValue            = "tax-rate"i &wordBoundary                 { return "taxrate"; }
 policyName              = "policy-name"i &wordBoundary              { return "policyname"; }
 withdrawalId            = "withdrawal-id"i &wordBoundary            { return "withdrawalID"; }
 bankAccount             = "bank-account"i &wordBoundary             { return "bankAccount"; }
