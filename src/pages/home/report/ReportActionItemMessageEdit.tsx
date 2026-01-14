@@ -16,6 +16,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -110,6 +111,7 @@ function ReportActionItemMessageEdit({
     ref,
 }: ReportActionItemMessageEditProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
+    const {email} = useCurrentUserPersonalDetails();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -218,7 +220,6 @@ function ReportActionItemMessageEdit({
      */
     const debouncedSaveDraft = useMemo(
         () =>
-            // eslint-disable-next-line react-compiler/react-compiler
             lodashDebounce((newDraft: string) => {
                 saveReportActionDraft(reportID, action, newDraft);
                 isCommentPendingSaved.current = false;
@@ -272,7 +273,7 @@ function ReportActionItemMessageEdit({
 
     useEffect(() => {
         updateDraft(draft);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- run this only when language is changed
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
     /**
@@ -314,9 +315,30 @@ function ReportActionItemMessageEdit({
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(originalReport, action, ancestors, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(
+            originalReport,
+            action,
+            ancestors,
+            trimmedNewDraft,
+            isOriginalReportArchived,
+            isOriginalParentReportArchived,
+            email ?? '',
+            Object.fromEntries(draftMessageVideoAttributeCache),
+        );
         deleteDraft();
-    }, [reportID, action, ancestors, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived, debouncedValidateCommentMaxLength]);
+    }, [
+        reportID,
+        action,
+        ancestors,
+        deleteDraft,
+        draft,
+        originalReportID,
+        isOriginalReportArchived,
+        originalReport,
+        isOriginalParentReportArchived,
+        debouncedValidateCommentMaxLength,
+        email,
+    ]);
 
     /**
      * @param emoji
@@ -563,7 +585,6 @@ function ReportActionItemMessageEdit({
 
                     <Suggestions
                         ref={suggestionsRef}
-                        // eslint-disable-next-line react-compiler/react-compiler
                         isComposerFocused={textInputRef.current?.isFocused()}
                         updateComment={updateDraft}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
