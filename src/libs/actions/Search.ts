@@ -45,7 +45,18 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    ExportTemplate,
+    LastPaymentMethod,
+    LastPaymentMethodType,
+    Policy,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Nullable from '@src/types/utils/Nullable';
@@ -728,6 +739,7 @@ function bulkDeleteReports(
     currentUserEmailParam: string,
     reportTransactions: Record<string, Transaction>,
     transactionsViolations: Record<string, TransactionViolations>,
+    bankAccountList: OnyxEntry<BankAccountList>,
 ) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
@@ -747,7 +759,7 @@ function bulkDeleteReports(
 
     if (reportIDList.length > 0) {
         for (const reportID of reportIDList) {
-            deleteAppReport(reportID, currentUserEmailParam, reportTransactions, transactionsViolations);
+            deleteAppReport(reportID, currentUserEmailParam, reportTransactions, transactionsViolations, bankAccountList);
         }
     }
 }

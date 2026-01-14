@@ -495,7 +495,7 @@ function SearchPage({route}: SearchPageProps) {
                 const transactionsViolations = allTransactionViolations
                     ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
                     : {};
-                bulkDeleteReports(hash, selectedTransactions, currentUserPersonalDetails.email ?? '', reportTransactions, transactionsViolations);
+                bulkDeleteReports(hash, selectedTransactions, currentUserPersonalDetails.email ?? '', reportTransactions, transactionsViolations, bankAccountList);
                 clearSelectedTransactions();
             });
         });
@@ -510,6 +510,7 @@ function SearchPage({route}: SearchPageProps) {
         allTransactionViolations,
         selectedTransactions,
         currentUserPersonalDetails.email,
+        bankAccountList,
         clearSelectedTransactions,
     ]);
 
