@@ -2194,7 +2194,7 @@ type WorkspacesDomainModalNavigatorParamList = {
     [SCREENS.WORKSPACES_ADD_DOMAIN]: undefined;
     [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: undefined;
     [SCREENS.WORKSPACES_DOMAIN_ADDED]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
         domainAccountID: number;
