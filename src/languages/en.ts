@@ -7036,6 +7036,10 @@ const translations = {
             endReading: 'End reading',
             saveForLater: 'Save for later',
             totalDistance: 'Total distance',
+            startTitle: 'Odometer start photo',
+            endTitle: 'Odometer end photo',
+            startMessage: 'Snap a photo of your odometer at the start of your trip',
+            endMessage: 'Snap a photo of your odometer at the end of your trip',
         },
     },
     gps: {
