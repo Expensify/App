@@ -68,6 +68,7 @@ type SendInvoiceOptions = {
     currentUserAccountID: number;
     policyRecentlyUsedCurrencies: string[];
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>;
+    invoiceChatReportID?: string;
     receiptFile?: Receipt;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -569,6 +570,7 @@ function getSendInvoiceInformation({
     currentUserAccountID,
     policyRecentlyUsedCurrencies,
     invoiceChatReport,
+    invoiceChatReportID,
     receiptFile,
     policy,
     policyTagList,
@@ -595,6 +597,7 @@ function getSendInvoiceInformation({
     if (!chatReport) {
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
+            optimisticReportID: invoiceChatReportID,
             participantList: [receiverAccountID, currentUserAccountID],
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             policyID: senderWorkspaceID,
@@ -714,6 +717,7 @@ function sendInvoice({
     policy,
     policyTagList,
     policyCategories,
+    invoiceChatReportID,
     companyName,
     companyWebsite,
     policyRecentlyUsedCategories,
@@ -741,6 +745,7 @@ function sendInvoice({
         transaction,
         currentUserAccountID,
         policyRecentlyUsedCurrencies,
+        invoiceChatReportID,
         invoiceChatReport,
         receiptFile,
         policy,
