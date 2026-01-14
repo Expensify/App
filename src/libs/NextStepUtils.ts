@@ -432,6 +432,8 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 : {
                       text: shouldShowFixMessage ? ownerDisplayName : policyOwnerDisplayName,
                       type: 'strong',
+                      clickToCopyText:
+                          (shouldShowFixMessage ? ownerAccountID : policy?.ownerAccountID) === currentUserAccountIDParam ? (currentUserEmailParam ?? '') : '',
                   },
             {
                 text: ' to ',
