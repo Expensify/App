@@ -33,6 +33,7 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(disabled ? {} : listeners)}
             role="button"
+            // Only the focused item has tabIndex=0 for keyboard navigation, others have -1 to prevent double focus
             tabIndex={isFocused ? 0 : -1}
         >
             {children}
