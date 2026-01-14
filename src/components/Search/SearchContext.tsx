@@ -3,7 +3,7 @@ import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useTodos from '@hooks/useTodos';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isTransactionListItemType, isTransactionReportGroupListItemType, isTodoSearch} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,16 +69,12 @@ function SearchContextProvider({children}: ChildrenProps) {
     const {todoSearchResultsData} = useTodos();
 
     const currentSearchKey = searchContextData.currentSearchKey;
-    const isTodoSearch =
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT ||
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.APPROVE ||
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY ||
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT;
+    const shouldUseLiveData = currentSearchKey && isTodoSearch(currentSearchKey);
 
     // If viewing a to-do search, use live data from useTodos, otherwise return the snapshot data
     // We do this so that we can show the counters for the to-do search results without visiting the specific to-do page, e.g. show `Approve [3]` while viewing the `Submit` to-do search.
     const currentSearchResults = useMemo((): SearchResults | undefined => {
-        if (isTodoSearch && currentSearchKey) {
+        if (shouldUseLiveData) {
             const liveData = todoSearchResultsData[currentSearchKey];
             if (liveData) {
                 const searchInfo: SearchResultsInfo = snapshotSearchResults?.search ?? defaultSearchInfo;
@@ -90,7 +86,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         }
 
         return snapshotSearchResults ?? undefined;
-    }, [isTodoSearch, currentSearchKey, todoSearchResultsData, snapshotSearchResults]);
+    }, [shouldUseLiveData, currentSearchKey, todoSearchResultsData, snapshotSearchResults]);
 
     const setCurrentSearchHashAndKey = useCallback((searchHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {

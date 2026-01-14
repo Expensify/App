@@ -2774,6 +2774,10 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
+function isTodoSearch(currentSearchKey: SearchKey) {
+    return currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT || currentSearchKey === CONST.SEARCH.SEARCH_KEYS.APPROVE || currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY || currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT;
+}
+
 // eslint-disable-next-line @typescript-eslint/max-params
 function createTypeMenuSections(
     icons: Record<'Document' | 'Pencil' | 'ThumbsUp', IconAsset>,
@@ -3554,5 +3558,6 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    isTodoSearch,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
