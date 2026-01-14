@@ -702,6 +702,7 @@ describe('actions/DuplicateAction', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                allBetas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();

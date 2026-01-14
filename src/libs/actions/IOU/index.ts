@@ -3116,7 +3116,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   allBetas,
                   nonReimbursableTotal,
                   optimisticIOUReportID: optimisticReportID,
-                  reportTransactions: reportTransactions,
+                  reportTransactions,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
@@ -9389,7 +9389,7 @@ function getReportFromHoldRequestsOnyxData({
               allBetas,
               nonReimbursableTotal: holdNonReimbursableAmount,
               parentReportActionID: newParentReportActionID,
-              reportTransactions: reportTransactions,
+              reportTransactions,
               createdTimestamp,
           })
         : buildOptimisticIOUReport(
