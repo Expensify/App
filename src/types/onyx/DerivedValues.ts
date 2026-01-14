@@ -77,7 +77,16 @@ type OrderedReportsForLHNDerivedValue = {
     /**
      * The reports to display in the LHN.
      */
-    reportsToDisplay: OnyxCollection<Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
+    reportsToDisplay: OnyxCollection<
+        Report & {
+            /**
+             * Whether the report has errors that need user attention, excluding SmartScan receipt failures.
+             * This includes transaction violations that need review, policy-related issues, and other reportErrors.
+             * Used to display a RBR indicator in the LHN.
+             */
+            hasErrorsOtherThanFailedReceipt?: boolean;
+        }
+    >;
     /**
      * The ordered report IDs.
      */

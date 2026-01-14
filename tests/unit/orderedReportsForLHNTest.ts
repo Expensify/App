@@ -2,7 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import orderedReportsForLHNConfig from '@libs/actions/OnyxDerived/configs/orderedReportsForLHN';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Policy, Report, Transaction} from '@src/types/onyx';
 
 describe('orderedReportsForLHN derived value', () => {
     const createMockReport = (reportID: string, overrides: Partial<Report> = {}): Report => ({
@@ -13,21 +13,23 @@ describe('orderedReportsForLHN derived value', () => {
         ...overrides,
     });
 
-    const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Policy => ({
-        id: policyID,
-        name: `Policy ${policyID}`,
-        type: CONST.POLICY.TYPE.TEAM,
-        role: CONST.POLICY.ROLE.USER,
-        ...overrides,
-    } as Policy);
+    const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Policy =>
+        ({
+            id: policyID,
+            name: `Policy ${policyID}`,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            ...overrides,
+        }) as Policy;
 
-    const createMockTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction => ({
-        transactionID,
-        reportID,
-        amount: 100,
-        currency: 'USD',
-        ...overrides,
-    } as Transaction);
+    const createMockTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction =>
+        ({
+            transactionID,
+            reportID,
+            amount: 100,
+            currency: 'USD',
+            ...overrides,
+        }) as Transaction;
 
     describe('initial state', () => {
         it('should return empty state when connections are not set', () => {
@@ -101,25 +103,11 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call - full computation
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Second call - incremental update
             const updatedReport1 = createMockReport('1', {reportName: 'Updated Report 1'});
@@ -129,18 +117,7 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             const secondResult = orderedReportsForLHNConfig.compute(
-                [
-                    updatedReports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
+                [updatedReports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
                 {
                     currentValue: firstResult,
                     sourceValues: {
@@ -170,18 +147,7 @@ describe('orderedReportsForLHN derived value', () => {
 
             // First call - full computation
             const firstResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    transactions,
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
+                [reports, {}, transactions, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
                 {
                     currentValue: undefined,
                     sourceValues: undefined,
@@ -196,18 +162,7 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             const secondResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    updatedTransactions,
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
+                [reports, {}, updatedTransactions, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
                 {
                     currentValue: firstResult,
                     sourceValues: {
@@ -238,25 +193,11 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call - full computation
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    policies,
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, policies, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Second call - policy update
             const updatedPolicy1 = createMockPolicy('p1', {name: 'Updated Policy'});
@@ -265,18 +206,7 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             const secondResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    updatedPolicies,
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
+                [reports, updatedPolicies, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
                 {
                     currentValue: firstResult,
                     sourceValues: {
@@ -300,25 +230,11 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call - full computation
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Second call - draft comment added
             const reportsDrafts: OnyxCollection<string> = {
@@ -326,18 +242,7 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             const secondResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    reportsDrafts,
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
+                [reports, {}, {}, {}, {}, reportsDrafts, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
                 {
                     currentValue: firstResult,
                     sourceValues: {
@@ -362,50 +267,22 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call with en locale
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.EN,
-                ],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.EN], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             expect(firstResult.locale).toBe(CONST.LOCALES.EN);
 
             // Second call with es locale
-            const secondResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.ES,
-                ],
-                {
-                    currentValue: firstResult,
-                    sourceValues: {
-                        [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.ES,
-                    },
-                    areAllConnectionsSet: true,
+            const secondResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.ES], {
+                currentValue: firstResult,
+                sourceValues: {
+                    [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.ES,
                 },
-            );
+                areAllConnectionsSet: true,
+            });
 
             expect(secondResult.locale).toBe(CONST.LOCALES.ES);
             // Full recomputation should have happened, affecting all reports
@@ -417,49 +294,21 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call without betas
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Second call with betas
             const betas: Beta[] = [CONST.BETAS.DEFAULT_ROOMS];
-            const secondResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    betas,
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
-                {
-                    currentValue: firstResult,
-                    sourceValues: {
-                        [ONYXKEYS.BETAS]: betas,
-                    },
-                    areAllConnectionsSet: true,
+            const secondResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, betas, {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: firstResult,
+                sourceValues: {
+                    [ONYXKEYS.BETAS]: betas,
                 },
-            );
+                areAllConnectionsSet: true,
+            });
 
             // Full recomputation should have happened
             expect(secondResult.reportsToDisplay).toBeDefined();
@@ -471,48 +320,20 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call with DEFAULT priority mode
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Second call with GSD priority mode
-            const secondResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.GSD,
-                    CONST.LOCALES.DEFAULT,
-                ],
-                {
-                    currentValue: firstResult,
-                    sourceValues: {
-                        [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                    },
-                    areAllConnectionsSet: true,
+            const secondResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.GSD, CONST.LOCALES.DEFAULT], {
+                currentValue: firstResult,
+                sourceValues: {
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                 },
-            );
+                areAllConnectionsSet: true,
+            });
 
             // Full recomputation should have happened
             expect(secondResult.reportsToDisplay).toBeDefined();
@@ -526,46 +347,18 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call - full computation
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Second call with no sourceValues (no changes)
-            const secondResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
-                {
-                    currentValue: firstResult,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const secondResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: firstResult,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Should return the cached value
             expect(secondResult).toBe(firstResult);
@@ -617,18 +410,7 @@ describe('orderedReportsForLHN derived value', () => {
 
             // First call
             const firstResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    transactions,
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
+                [reports, {}, transactions, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
                 {
                     currentValue: undefined,
                     sourceValues: undefined,
@@ -643,18 +425,7 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             const secondResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    {},
-                    updatedTransactions,
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
+                [reports, {}, updatedTransactions, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
                 {
                     currentValue: firstResult,
                     sourceValues: {
@@ -685,25 +456,11 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             // First call
-            const firstResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    policies,
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
-                {
-                    currentValue: undefined,
-                    sourceValues: undefined,
-                    areAllConnectionsSet: true,
-                },
-            );
+            const firstResult = orderedReportsForLHNConfig.compute([reports, policies, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: true,
+            });
 
             // Second call - policy update
             const updatedPolicy1 = createMockPolicy('p1', {name: 'Updated'});
@@ -712,18 +469,7 @@ describe('orderedReportsForLHN derived value', () => {
             };
 
             const secondResult = orderedReportsForLHNConfig.compute(
-                [
-                    reports,
-                    updatedPolicies,
-                    {},
-                    {},
-                    {},
-                    {},
-                    [],
-                    {reports: {}, locale: null},
-                    CONST.PRIORITY_MODE.DEFAULT,
-                    CONST.LOCALES.DEFAULT,
-                ],
+                [reports, updatedPolicies, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT],
                 {
                     currentValue: firstResult,
                     sourceValues: {

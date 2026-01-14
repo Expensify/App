@@ -39,18 +39,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.NVP_PREFERRED_LOCALE,
     ],
     compute: (
-        [
-            reports,
-            policies,
-            transactions,
-            transactionViolations,
-            reportNameValuePairs,
-            reportsDrafts,
-            betas,
-            reportAttributesData,
-            priorityMode,
-            preferredLocale,
-        ],
+        [reports, policies, transactions, transactionViolations, reportNameValuePairs, reportsDrafts, betas, reportAttributesData, priorityMode, preferredLocale],
         {currentValue, sourceValues, areAllConnectionsSet},
     ) => {
         if (!areAllConnectionsSet) {
@@ -121,8 +110,8 @@ export default createOnyxDerivedValueConfig({
 
         // Add reports affected by transactions updates
         if (isFullyComputed && transactionsUpdates) {
-            for (const key of Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID ?? ''}`)) {
-                if (key !== `${ONYXKEYS.COLLECTION.REPORT}`) {
+            for (const key of Object.values(transactionsUpdates).map((transaction) => (transaction?.reportID ? `${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}` : undefined))) {
+                if (key && key !== `${ONYXKEYS.COLLECTION.REPORT}`) {
                     reportsToUpdate.add(key);
                 }
             }
@@ -132,8 +121,8 @@ export default createOnyxDerivedValueConfig({
         if (isFullyComputed && transactionViolationsUpdates) {
             for (const key of Object.keys(transactionViolationsUpdates)
                 .map((violationKey) => violationKey.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION))
-                .map((transactionKey) => `${ONYXKEYS.COLLECTION.REPORT}${transactions?.[transactionKey]?.reportID ?? ''}`)) {
-                if (key !== `${ONYXKEYS.COLLECTION.REPORT}`) {
+                .map((transactionKey) => (transactions?.[transactionKey]?.reportID ? `${ONYXKEYS.COLLECTION.REPORT}${transactions[transactionKey].reportID}` : undefined))) {
+                if (key && key !== `${ONYXKEYS.COLLECTION.REPORT}`) {
                     reportsToUpdate.add(key);
                 }
             }
@@ -214,14 +203,7 @@ export default createOnyxDerivedValueConfig({
         const localeCompare = createLocaleCompare(preferredLocale);
 
         // Sort the reports
-        const orderedReportIDs = SidebarUtils.sortReportsToDisplayInLHN(
-            reportsToDisplay,
-            priorityMode,
-            localeCompare,
-            reportsDrafts,
-            reportNameValuePairs,
-            reportAttributes,
-        );
+        const orderedReportIDs = SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplay, priorityMode, localeCompare, reportsDrafts, reportNameValuePairs, reportAttributes);
 
         // Mark as fully computed after first full iteration
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {

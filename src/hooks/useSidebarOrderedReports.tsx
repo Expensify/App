@@ -83,8 +83,8 @@ function SidebarOrderedReportsContextProvider({
 
     // Get ordered report IDs from the derived value
     // We use the whole orderedReportsData as a dependency to ensure we recompute whenever it changes
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unsafe-member-access, react-hooks/exhaustive-deps, react-compiler/react-compiler
-    const orderedReportIDs = useMemo(() => (orderedReportsData?.orderedReportIDs || []) as string[], [orderedReportsData]);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unsafe-member-access, react-hooks/exhaustive-deps, rulesdir/prefer-narrow-hook-dependencies
+    const orderedReportIDs = useMemo(() => orderedReportsData?.orderedReportIDs || [], [orderedReportsData]);
 
     // Get the actual reports based on the ordered IDs
     const getOrderedReports = useCallback(
@@ -101,8 +101,8 @@ function SidebarOrderedReportsContextProvider({
 
     const clearLHNCache = useCallback(() => {
         Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
-        // Setting the derived value to null triggers a full recomputation from scratch
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises, react-compiler/react-compiler, @expensify/onyx/no-direct-onyx-calls
+        // This is a debug function that clears the derived value cache
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.set(ONYXKEYS.DERIVED.ORDERED_REPORTS_FOR_LHN, null);
     }, []);
 
