@@ -51,17 +51,12 @@ function useSearchHighlightAndScroll({
     const initializedRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const searchResultsData = searchResults?.data;
 
-    const existingSearchResultIDs = searchResults?.data
-        ? isChat
-            ? extractReportActionIDsFromSearchResults(searchResults.data)
-            : extractTransactionIDsFromSearchResults(searchResults.data)
-        : [];
-
-    const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
+    const prevTransactionsIDs = Object.keys(previousTransactions ?? {});
     const newTransactions: Transaction[] = [];
-    if (previousTransactionsIDs.length > 0) {
-        const previousIDs = new Set(previousTransactionsIDs);
+    if (prevTransactionsIDs.length > 0) {
+        const previousIDs = new Set(prevTransactionsIDs);
         for (const [id, transaction] of Object.entries(transactions ?? {})) {
             if (!previousIDs.has(id) && transaction) {
                 newTransactions.push(transaction);
@@ -71,7 +66,7 @@ function useSearchHighlightAndScroll({
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
-        const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
+        const previousTransactionIDsLocal = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
         const reportActionsIDs = Object.values(reportActions ?? {})
@@ -83,13 +78,13 @@ function useSearchHighlightAndScroll({
 
         // Only proceed if we have previous data to compare against
         // This prevents triggering on initial data load
-        if ((previousTransactionsIDs.length === 0 && previousReportActionsIDs.length === 0) || searchTriggeredRef.current) {
+        if ((previousTransactionIDsLocal.length === 0 && previousReportActionsIDs.length === 0) || searchTriggeredRef.current) {
             return;
         }
 
-        const previousTransactionsIDsSet = new Set(previousTransactionsIDs);
+        const previousTransactionsIDsSet = new Set(previousTransactionIDsLocal);
         const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
-        const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionsIDs.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
+        const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionIDsLocal.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
         const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
         // Check if there is a change in the transactions or report actions list
@@ -102,14 +97,18 @@ function useSearchHighlightAndScroll({
             hasPendingSearchRef.current = false;
 
             const newIDs = isChat ? reportActionsIDs : transactionsIDs;
-            const existingSearchResultIDsSet = new Set(existingSearchResultIDs);
+            let currentSearchResultIDs: string[] = [];
+            if (searchResultsData) {
+                currentSearchResultIDs = isChat ? extractReportActionIDsFromSearchResults(searchResultsData) : extractTransactionIDsFromSearchResults(searchResultsData);
+            }
+            const existingSearchResultIDsSet = new Set(currentSearchResultIDs);
             const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDsSet.has(id));
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
-            if (!hasAGenuinelyNewID && existingSearchResultIDs.length > 0) {
+            if (!hasAGenuinelyNewID && currentSearchResultIDs.length > 0) {
                 const newIDsSet = new Set(newIDs);
-                const hasDeletedID = existingSearchResultIDs.some((id) => !newIDsSet.has(id));
+                const hasDeletedID = currentSearchResultIDs.some((id) => !newIDsSet.has(id));
                 if (!hasDeletedID) {
                     return;
                 }
@@ -117,7 +116,7 @@ function useSearchHighlightAndScroll({
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
-            hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
+            hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionIDsLocal.length;
 
             // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
@@ -142,8 +141,7 @@ function useSearchHighlightAndScroll({
         reportActions,
         previousReportActions,
         isChat,
-        searchResults?.data,
-        existingSearchResultIDs,
+        searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
     ]);
@@ -158,13 +156,14 @@ function useSearchHighlightAndScroll({
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
-        if (initializedRef.current || !searchResults?.data) {
+        if (initializedRef.current || !searchResultsData) {
             return;
         }
 
-        highlightedIDs.current = new Set(existingSearchResultIDs);
+        const initialIDs = isChat ? extractReportActionIDsFromSearchResults(searchResultsData) : extractTransactionIDsFromSearchResults(searchResultsData);
+        highlightedIDs.current = new Set(initialIDs);
         initializedRef.current = true;
-    }, [searchResults?.data, isChat, existingSearchResultIDs]);
+    }, [searchResultsData, isChat]);
 
     // Detect new items (transactions or report actions)
     useEffect(() => {
