@@ -73,18 +73,40 @@ gh pr view <PR_NUMBER> --json title,body,author,files,mergedAt
 gh pr diff <PR_NUMBER>
 ```
 
-### Step 4: Determine fix location
+### Step 4: Verify the causing PR
+
+**Always verify before concluding.** Confirm the suspected PR actually touches the affected code:
+
+```bash
+# Find files related to the affected feature
+grep -r "SearchColumns" src/ --include="*.tsx" -l
+
+# See recent changes to a specific file
+git log --oneline -10 -- src/pages/Search/SearchColumnsPage.tsx
+
+# Check if the suspected PR modified this file
+gh pr view <PR_NUMBER> --json files --jq '.files[].path' | grep -i "search"
+```
+
+**Verification checklist:**
+- [ ] The PR modifies files in the affected area
+- [ ] The changes in the PR relate to the reported symptoms
+- [ ] The PR's merge date aligns with when the bug appeared
+
+If verification fails, go back to Step 3 and consider other candidate PRs.
+
+### Step 5: Determine fix location
 
 Ask: **Where does the fix need to happen?**
 
 - If reverting/fixing an App PR would resolve the issue → **Frontend bug**
 - If the fix requires backend changes → **Backend bug**
 
-### Step 5: Apply the decision tree
+### Step 6: Apply the decision tree
 
 See Decision Tree below for label actions.
 
-### Step 6: Post comment and update labels
+### Step 7: Post comment and update labels
 
 Post your findings and apply appropriate label changes.
 
@@ -165,6 +187,7 @@ Technical explanation of what went wrong in the code.
 - Close the issue—only update labels and comment
 
 **DO:**
+- Always verify the causing PR touches the affected code before concluding
 - Err on the side of keeping labels when uncertain
 - Tag the PR author if you need more information
 - Read the actual PR diff before making conclusions
@@ -197,12 +220,17 @@ gh issue list --label "StagingDeployCash" --state open --json number,body --limi
 gh pr view <PR_NUMBER> --json title,body,author,files,mergedAt
 gh pr diff <PR_NUMBER>
 
-# Step 4: Post your findings (use single quotes for the body)
+# Step 4: Verify the PR touches affected code
+grep -r "<feature_keyword>" src/ --include="*.tsx" -l
+git log --oneline -10 -- <affected_file>
+gh pr view <PR_NUMBER> --json files --jq '.files[].path'
+
+# Step 6: Post your findings (use single quotes for the body)
 gh issue comment "$ISSUE_URL" --body '## 🔍 Investigation Summary
 ...your comment here...
 '
 
-# Step 5: Remove label ONLY if decision tree warrants it
+# Step 7: Remove label ONLY if decision tree warrants it
 # For Backend bugs (fix is NOT in App):
 removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlockerCash
 
