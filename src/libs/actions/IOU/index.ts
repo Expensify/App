@@ -3202,8 +3202,17 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     if (isSplitExpense && existingTransaction) {
-        const {convertedAmount: omittedConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
+        const {convertedAmount: originalConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
         optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
+
+        // Calculate proportional convertedAmount for the split based on the original conversion rate
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
+        const originalAmount = existingTransaction.modifiedAmount || existingTransaction.amount;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
+        const splitAmount = optimisticTransaction.modifiedAmount || optimisticTransaction.amount;
+        if (originalConvertedAmount && originalAmount && splitAmount) {
+            optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
+        }
     }
 
     // STEP 4: Build optimistic reportActions. We need:
