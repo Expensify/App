@@ -57,12 +57,6 @@ function CloseAccountPage() {
 
     const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
 
-    /**
-     * Removes spaces and transform the input string to lowercase.
-     * @param phoneOrEmail - The input string to be sanitized.
-     * @returns The sanitized string
-     */
-
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
 

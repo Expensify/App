@@ -11,7 +11,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Log from '@libs/__mocks__/Log';
+import Log from '@libs/Log';
 import {sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
