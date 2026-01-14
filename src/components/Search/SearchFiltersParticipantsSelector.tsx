@@ -86,10 +86,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions
-    const recentAttendeeLists = useMemo(
-        () => getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? []),
-        [personalDetails, recentAttendees],
-    );
+    const recentAttendeeLists = useMemo(() => getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? []), [personalDetails, recentAttendees]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -119,9 +116,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
     const unselectedOptions = useMemo(() => {
         // Filter by both accountID (for regular users) AND login (for name-only attendees)
-        const selectedAccountIDs = new Set(
-            selectedOptions.map((option) => option.accountID).filter((id): id is number => !!id && id !== CONST.DEFAULT_NUMBER_ID),
-        );
+        const selectedAccountIDs = new Set(selectedOptions.map((option) => option.accountID).filter((id): id is number => !!id && id !== CONST.DEFAULT_NUMBER_ID));
         const selectedLogins = new Set(selectedOptions.map((option) => option.login).filter((login): login is string => !!login));
 
         const isSelected = (option: {accountID?: number; login?: string}) => {
@@ -205,9 +200,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         newSections.push(formattedResults.section);
 
         // Filter current user from recentReports to avoid duplicate with currentUserOption section
-        const filteredRecentReports = chatOptions.recentReports.filter(
-            (report) => report.accountID !== chatOptions.currentUserOption?.accountID,
-        );
+        const filteredRecentReports = chatOptions.recentReports.filter((report) => report.accountID !== chatOptions.currentUserOption?.accountID);
 
         newSections.push({
             title: '',
@@ -266,9 +259,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
                 // If not found in personalDetails, this might be a name-only attendee
                 // Search in recentAttendees by displayName or email
-                const attendee = recentAttendees?.find(
-                    (recentAttendee) => recentAttendee.displayName === identifier || recentAttendee.email === identifier,
-                );
+                const attendee = recentAttendees?.find((recentAttendee) => recentAttendee.displayName === identifier || recentAttendee.email === identifier);
                 if (attendee) {
                     return getOptionDataFromAttendee(attendee);
                 }
