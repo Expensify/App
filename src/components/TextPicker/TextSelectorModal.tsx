@@ -10,10 +10,10 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +32,8 @@ function TextSelectorModal({
     required = false,
     customValidate,
     enabledWhenOffline = true,
+    allowHTML,
+    autoGrowHeight,
     ...rest
 }: TextSelectorModalProps) {
     const {translate} = useLocalize();
@@ -39,16 +41,17 @@ function TextSelectorModal({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [currentValue, setValue] = useState(value);
+    const [isClosing, setIsClosing] = useState(false);
 
-    const inputRef = useRef<BaseTextInputRef | null>(null);
+    const inputRef = useRef<TextInputType | null>(null);
     const inputValueRef = useRef(value);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    const inputCallbackRef = (ref: BaseTextInputRef | null) => {
+    const inputCallbackRef = (ref: TextInputType | null) => {
         inputRef.current = ref;
     };
 
     const hide = useCallback(() => {
+        setIsClosing(true);
         onClose();
         if (shouldClearOnClose) {
             setValue('');
@@ -65,7 +68,7 @@ function TextSelectorModal({
             }
 
             if (formValue.length > maxLength) {
-                errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', {length: formValue.length, limit: maxLength});
+                errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', formValue.length, maxLength);
             }
 
             if (customValidate) {
@@ -85,7 +88,8 @@ function TextSelectorModal({
             return;
         }
         setValue(value);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        setIsClosing(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
     useEffect(() => {
@@ -97,7 +101,11 @@ function TextSelectorModal({
             focusTimeoutRef.current = setTimeout(() => {
                 if (inputRef.current && isVisible) {
                     inputRef.current.focus();
-                    (inputRef.current as TextInputType).setSelection?.(inputValueRef.current?.length ?? 0, inputValueRef.current?.length ?? 0);
+                    inputRef.current.setSelection?.(inputValueRef.current?.length ?? 0, inputValueRef.current?.length ?? 0);
+                    if (autoGrowHeight) {
+                        scrollToBottom(inputRef.current);
+                        moveSelectionToEnd(inputRef.current);
+                    }
                 }
                 return () => {
                     if (!focusTimeoutRef.current || !isVisible) {
@@ -106,7 +114,7 @@ function TextSelectorModal({
                     clearTimeout(focusTimeoutRef.current);
                 };
             }, CONST.ANIMATED_TRANSITION);
-        }, [isVisible]),
+        }, [isVisible, autoGrowHeight]),
     );
 
     const handleSubmit = useCallback(
@@ -137,7 +145,7 @@ function TextSelectorModal({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop
-                testID={TextSelectorModal.displayName}
+                testID="TextSelectorModal"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -155,6 +163,8 @@ function TextSelectorModal({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                     enterKeyEventListenerPriority={0}
+                    allowHTML={allowHTML}
+                    shouldValidateOnBlur={!isClosing}
                 >
                     {!!subtitle && (
                         <View style={styles.pb4}>
@@ -169,13 +179,12 @@ function TextSelectorModal({
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...rest}
                         inputID={rest.inputID}
+                        autoGrowHeight={autoGrowHeight}
                     />
                 </FormProvider>
             </ScreenWrapper>
         </Modal>
     );
 }
-
-TextSelectorModal.displayName = 'TextSelectorModal';
 
 export default TextSelectorModal;

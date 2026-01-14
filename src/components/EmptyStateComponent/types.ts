@@ -10,6 +10,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
+type HeaderMedia = string | IconAsset | DotLottieAnimation;
 type EmptyStateButton = {
     buttonText?: string;
     buttonAction?: () => void;
@@ -24,7 +25,7 @@ type EmptyStateButton = {
     >;
 };
 
-type SharedProps<T> = {
+type SharedProps<TMediaType> = {
     SkeletonComponent?: ValidSkeletons;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
@@ -35,15 +36,15 @@ type SharedProps<T> = {
     cardStyles?: StyleProp<ViewStyle>;
     cardContentStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
-    headerMediaType: T;
+    headerMediaType: TMediaType;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
     lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
     subtitleText?: React.ReactNode;
 };
 
-type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {
-    headerMedia: HeaderMedia;
+type MediaType<THeaderMedia, TMediaType extends MediaTypes> = SharedProps<TMediaType> & {
+    headerMedia: THeaderMedia;
 };
 
 type VideoProps = MediaType<string, 'video'>;
@@ -51,6 +52,7 @@ type IllustrationProps = MediaType<IconAsset, 'illustration'>;
 type AnimationProps = MediaType<DotLottieAnimation, 'animation'>;
 
 type EmptyStateComponentProps = VideoProps | IllustrationProps | AnimationProps;
+type GenericEmptyStateComponentProps = SharedProps<MediaTypes> & {headerMedia: HeaderMedia};
 
 type VideoLoadedEventType = {
     srcElement: {
@@ -59,4 +61,4 @@ type VideoLoadedEventType = {
     };
 };
 
-export type {EmptyStateComponentProps, VideoLoadedEventType, EmptyStateButton};
+export type {EmptyStateComponentProps, VideoLoadedEventType, EmptyStateButton, GenericEmptyStateComponentProps, MediaTypes, HeaderMedia};

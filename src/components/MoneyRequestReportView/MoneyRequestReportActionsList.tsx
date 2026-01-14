@@ -14,6 +14,7 @@ import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
@@ -52,7 +53,7 @@ import {
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
@@ -69,6 +70,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
@@ -112,6 +114,9 @@ type MoneyRequestReportListProps = {
 
     /** Whether report actions are still loading and we load the report for the first time, since the last sign in */
     showReportActionsLoadingState?: boolean;
+
+    /** The type of action that's pending  */
+    reportPendingAction?: PendingAction | null;
 };
 
 function MoneyRequestReportActionsList({
@@ -125,6 +130,7 @@ function MoneyRequestReportActionsList({
     hasOlderActions,
     hasPendingDeletionTransaction,
     showReportActionsLoadingState,
+    reportPendingAction,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -169,6 +175,8 @@ function MoneyRequestReportActionsList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
+    const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
@@ -216,7 +224,7 @@ function MoneyRequestReportActionsList({
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
-            const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction);
+            const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
 
             return (
                 isActionVisibleOnMoneyReport &&
@@ -227,7 +235,7 @@ function MoneyRequestReportActionsList({
         });
 
         return filteredActions.toReversed();
-    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs]);
+    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction]);
 
     const reportActionSize = useRef(visibleReportActions.length);
     const lastAction = visibleReportActions.at(-1);
@@ -294,7 +302,7 @@ function MoneyRequestReportActionsList({
     useEffect(() => {
         setUnreadMarkerTime(reportLastReadTime);
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     useEffect(() => {
@@ -323,7 +331,7 @@ function MoneyRequestReportActionsList({
                 readActionSkipped.current = true;
             }
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
 
     useEffect(() => {
@@ -355,7 +363,7 @@ function MoneyRequestReportActionsList({
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
 
     /**
@@ -398,7 +406,6 @@ function MoneyRequestReportActionsList({
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
 
-            // eslint-disable-next-line react-compiler/react-compiler
             if (shouldDisplayNewMarker) {
                 return [reportAction.reportActionID, index];
             }
@@ -521,7 +528,7 @@ function MoneyRequestReportActionsList({
         };
 
         // This effect handles subscribing to events, so we only want to run it on mount, and in case reportID changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     useEffect(() => {
@@ -572,6 +579,8 @@ function MoneyRequestReportActionsList({
                     isReportArchived={isReportArchived}
                     draftMessage={matchingDraftMessageString}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
+                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
                 />
             );
         },
@@ -595,6 +604,8 @@ function MoneyRequestReportActionsList({
             draftMessage,
             isTryNewDotNVPDismissed,
             isReportArchived,
+            reportNameValuePairs?.origin,
+            reportNameValuePairs?.originalID,
         ],
     );
 
@@ -635,8 +646,8 @@ function MoneyRequestReportActionsList({
 
         didLayout.current = true;
 
-        markOpenReportEnd(reportID);
-    }, [reportID]);
+        markOpenReportEnd(report);
+    }, [report]);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
     // Wrapped into useCallback to stabilize children re-renders
@@ -664,44 +675,46 @@ function MoneyRequestReportActionsList({
         >
             {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
                 <>
-                    <ButtonWithDropdownMenu
-                        onPress={() => null}
-                        options={selectedTransactionsOptions}
-                        customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                        isSplitButton={false}
-                        shouldAlwaysShowDropdownMenu
-                        wrapperStyle={[styles.w100, styles.ph5]}
-                    />
-                    <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
-                        <Checkbox
-                            accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                            onPress={() => {
-                                if (selectedTransactionIDs.length !== 0) {
-                                    clearSelectedTransactions(true);
-                                } else {
-                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                }
-                            }}
+                    <OfflineWithFeedback pendingAction={reportPendingAction}>
+                        <ButtonWithDropdownMenu
+                            onPress={() => null}
+                            options={selectedTransactionsOptions}
+                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                            isSplitButton={false}
+                            shouldAlwaysShowDropdownMenu
+                            wrapperStyle={[styles.w100, styles.ph5]}
                         />
-                        <PressableWithFeedback
-                            style={[styles.userSelectNone, styles.alignItemsCenter]}
-                            onPress={() => {
-                                if (isSelectAllChecked) {
-                                    clearSelectedTransactions(true);
-                                } else {
-                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                }
-                            }}
-                            accessibilityLabel={translate('workspace.people.selectAll')}
-                            role="button"
-                            accessibilityState={{checked: isSelectAllChecked}}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                        >
-                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                        </PressableWithFeedback>
-                    </View>
+                        <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
+                            <Checkbox
+                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                isChecked={isSelectAllChecked}
+                                isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                                onPress={() => {
+                                    if (selectedTransactionIDs.length !== 0) {
+                                        clearSelectedTransactions(true);
+                                    } else {
+                                        setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                                    }
+                                }}
+                            />
+                            <PressableWithFeedback
+                                style={[styles.userSelectNone, styles.alignItemsCenter]}
+                                onPress={() => {
+                                    if (isSelectAllChecked) {
+                                        clearSelectedTransactions(true);
+                                    } else {
+                                        setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                                    }
+                                }}
+                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                role="button"
+                                accessibilityState={{checked: isSelectAllChecked}}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            >
+                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                            </PressableWithFeedback>
+                        </View>
+                    </OfflineWithFeedback>
                     <ConfirmModal
                         title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
                         isVisible={isDeleteModalVisible}
@@ -818,7 +831,5 @@ function MoneyRequestReportActionsList({
         </View>
     );
 }
-
-MoneyRequestReportActionsList.displayName = 'MoneyRequestReportActionsList';
 
 export default MoneyRequestReportActionsList;

@@ -45,7 +45,6 @@ import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
-import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -155,7 +154,8 @@ function AuthScreens() {
     const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const {shouldRenderSecondaryOverlay, shouldRenderTertiaryOverlay} = useContext(WideRHPContext);
+    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
+        useContext(WideRHPContext);
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
@@ -170,9 +170,7 @@ function AuthScreens() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
-    // eslint-disable-next-line react-compiler/react-compiler
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
-    // eslint-disable-next-line react-compiler/react-compiler
     isLoadingAppRef.current = isLoadingApp;
 
     const handleNetworkReconnect = () => {
@@ -190,7 +188,7 @@ function AuthScreens() {
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
         initializePusher();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session]);
 
     useAutoUpdateTimezone();
@@ -252,9 +250,7 @@ function AuthScreens() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected);
-
-        App.redirectThirdPartyDesktopSignIn();
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID);
 
         Download.clearDownloads();
 
@@ -302,7 +298,7 @@ function AuthScreens() {
                 if (Navigation.isOnboardingFlow()) {
                     return;
                 }
-                Modal.close(Session.callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
+                Session.callFunctionIfActionIsAllowed(() => Modal.close(() => Navigation.navigate(ROUTES.NEW)))();
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
@@ -326,7 +322,7 @@ function AuthScreens() {
         };
 
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -342,13 +338,23 @@ function AuthScreens() {
                     return;
                 }
 
-                if (shouldRenderSecondaryOverlay) {
-                    Navigation.dismissToFirstRHP();
+                if (shouldRenderSecondaryOverlayForWideRHP) {
+                    Navigation.closeRHPFlow();
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
+                    Navigation.dismissToSuperWideRHP();
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
+                    Navigation.dismissToPreviousRHP();
                     return;
                 }
 
                 if (shouldRenderTertiaryOverlay) {
-                    Navigation.dismissToSecondRHP();
+                    Navigation.dismissToPreviousRHP();
                     return;
                 }
 
@@ -360,7 +366,14 @@ function AuthScreens() {
             true,
         );
         return () => unsubscribeEscapeKey();
-    }, [modal?.disableDismissOnEscape, modal?.willAlertModalBecomeVisible, shouldRenderSecondaryOverlay, shouldRenderTertiaryOverlay]);
+    }, [
+        modal?.disableDismissOnEscape,
+        modal?.willAlertModalBecomeVisible,
+        shouldRenderSecondaryOverlayForWideRHP,
+        shouldRenderSecondaryOverlayForRHPOnWideRHP,
+        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+        shouldRenderTertiaryOverlay,
+    ]);
 
     // Animation is disabled when navigating to the sidebar screen
     const getWorkspaceOrDomainSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
@@ -604,11 +617,6 @@ function AuthScreens() {
                     listeners={modalScreenListenersWithCancelSearch}
                 />
                 <RootStack.Screen
-                    name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
-                    options={rootNavigatorScreenOptions.fullScreen}
-                    component={DesktopSignInRedirectPage}
-                />
-                <RootStack.Screen
                     name={NAVIGATORS.SHARE_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={ShareModalStackNavigator}
@@ -705,8 +713,6 @@ function AuthScreens() {
         </ComposeProviders>
     );
 }
-
-AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 

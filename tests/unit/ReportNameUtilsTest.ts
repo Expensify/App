@@ -1,12 +1,21 @@
 import Onyx from 'react-native-onyx';
 import {translate} from '@libs/Localize';
-import {computeReportName, getGroupChatName, getPolicyExpenseChatName, getReportName as getSimpleReportName} from '@libs/ReportNameUtils';
+import {
+    buildReportNameFromParticipantNames,
+    computeReportName,
+    getGroupChatName,
+    getInvoicePayerName,
+    getInvoicesChatName,
+    getPolicyExpenseChatName,
+    getReportName as getSimpleReportName,
+} from '@libs/ReportNameUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
 import {createAdminRoom, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ReportNameUtils', () => {
@@ -319,6 +328,74 @@ describe('ReportNameUtils', () => {
         });
     });
 
+    describe('buildReportNameFromParticipantNames', () => {
+        test('Excludes current user and uses short names for multiple participants', () => {
+            const report = {
+                ...createRegularChat(1000, [currentUserAccountID, 1, 2]),
+            };
+
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails});
+            expect(name).toBe('Ragnar, floki@vikings.net');
+        });
+
+        test('Uses full name when only one participant remains after filtering current user', () => {
+            const report = {
+                ...createRegularChat(1001, [currentUserAccountID, 1]),
+            };
+
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails});
+            expect(name).toBe('Ragnar Lothbrok');
+        });
+    });
+
+    describe('Invoice naming helpers', () => {
+        test('Invoice room uses policy name when current user is receiver', () => {
+            const receiverPolicy = {name: 'Personal Workspace'} as unknown as Policy;
+            const report: Report = {
+                reportID: 'invoice-chat-1',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: currentUserAccountID},
+                policyName: 'Personal Workspace',
+            };
+
+            const name = getInvoicesChatName({
+                report,
+                receiverPolicy,
+                personalDetails: participantsPersonalDetails,
+            });
+
+            expect(name).toBe('Personal Workspace');
+        });
+
+        test('Invoice room displays receiver name for other individuals', () => {
+            const receiverPolicy = {name: 'Vendor Workspace'} as unknown as Policy;
+            const report: Report = {
+                reportID: 'invoice-chat-2',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+                policyName: 'Vendor Workspace',
+            };
+
+            const name = getInvoicesChatName({
+                report,
+                receiverPolicy,
+                personalDetails: participantsPersonalDetails,
+            });
+
+            const normalizedName = name?.replaceAll('\u00A0', ' ');
+            expect(normalizedName).toBe('Ragnar Lothbrok');
+        });
+
+        test('Invoice payer name falls back to provided personal details', () => {
+            const report: Report = {
+                reportID: 'invoice-chat-3',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+            };
+            const name = getInvoicePayerName(report, undefined, null);
+
+            const normalizedName = name?.replaceAll('\u00A0', ' ');
+            expect(normalizedName).toBe('Ragnar Lothbrok');
+        });
+    });
+
     describe('getPolicyExpenseChatName', () => {
         it("returns owner's display name when available", () => {
             const report = {
@@ -375,27 +452,27 @@ describe('ReportNameUtils', () => {
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('shows all participants when count <= 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('shows all participants when count <= 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(fourParticipants, true)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants, true)).toEqual('Four, One, Three, Two');
             });
 
             it('shows 5 participants with ellipsis when count > 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
+                expect(getGroupChatName(formatPhoneNumber, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('shows all participants when count > 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('uses correct display names for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 
@@ -408,7 +485,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('uses report name when available (limit true)', async () => {
@@ -419,7 +496,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('uses report name when >5 participants and limit true', async () => {
@@ -430,7 +507,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('uses report name when >5 participants and limit false', async () => {
@@ -441,7 +518,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('falls back to participant names when report name is empty', async () => {
@@ -452,7 +529,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
         });
     });

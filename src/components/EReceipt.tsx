@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
+import {filterPersonalCards, getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencySymbol} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
@@ -41,8 +41,8 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark'] as const);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark']);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
@@ -171,8 +171,6 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
         </View>
     );
 }
-
-EReceipt.displayName = 'EReceipt';
 
 export default EReceipt;
 export type {EReceiptProps};

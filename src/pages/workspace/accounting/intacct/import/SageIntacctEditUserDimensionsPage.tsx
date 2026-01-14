@@ -67,7 +67,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctEditUserDimensionsPage.displayName}
+            displayName="SageIntacctEditUserDimensionsPage"
             headerTitleAlreadyTranslated={editedUserDimensionName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -151,7 +151,5 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
         </ConnectionLayout>
     );
 }
-
-SageIntacctEditUserDimensionsPage.displayName = 'SageIntacctEditUserDimensionsPage';
 
 export default SageIntacctEditUserDimensionsPage;

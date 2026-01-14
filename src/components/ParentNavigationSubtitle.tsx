@@ -90,7 +90,7 @@ function ParentNavigationSubtitle({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
+    const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
     const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
 
@@ -121,7 +121,7 @@ function ParentNavigationSubtitle({
             }
 
             // If the parent report is already displayed underneath RHP, simply dismiss the modal
-            if (Navigation.getTopmostReportId() === parentReportID) {
+            if (Navigation.getTopmostReportId() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                 Navigation.dismissModal();
                 return;
             }
@@ -169,6 +169,7 @@ function ParentNavigationSubtitle({
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
                         {hasAccessToParentReport ? (
                             <TextLink
+                                testID="parent-navigation-subtitle-link"
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
                                 onPress={onPress}
@@ -197,5 +198,4 @@ function ParentNavigationSubtitle({
     );
 }
 
-ParentNavigationSubtitle.displayName = 'ParentNavigationSubtitle';
 export default ParentNavigationSubtitle;

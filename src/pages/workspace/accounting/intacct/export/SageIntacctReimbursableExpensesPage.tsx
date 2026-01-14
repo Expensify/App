@@ -71,7 +71,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             type: 'toggle',
             title: translate('workspace.sageIntacct.defaultVendor'),
             key: 'Default vendor toggle',
-            subtitle: translate('workspace.sageIntacct.defaultVendorDescription', {isReimbursable: true}),
+            subtitle: translate('workspace.sageIntacct.defaultVendorDescription', true),
             shouldPlaceSubtitleBelowSwitch: true,
             isActive: !!config?.export.reimbursableExpenseReportDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
@@ -114,7 +114,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctReimbursableExpensesPage.displayName}
+            displayName="SageIntacctReimbursableExpensesPage"
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.sageIntacct.reimbursableExpenses.description"
             onBackButtonPress={() => Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)))}
@@ -156,7 +156,5 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
         </ConnectionLayout>
     );
 }
-
-SageIntacctReimbursableExpensesPage.displayName = 'SageIntacctReimbursableExpensesPage';
 
 export default withPolicyConnections(SageIntacctReimbursableExpensesPage);

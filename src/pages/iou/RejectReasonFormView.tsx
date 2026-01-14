@@ -35,7 +35,7 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={RejectReasonFormView.displayName}
+            testID="RejectReasonFormView"
         >
             <HeaderWithBackButton
                 title={translate('iou.reject.reasonPageTitle')}
@@ -70,7 +70,5 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
         </ScreenWrapper>
     );
 }
-
-RejectReasonFormView.displayName = 'RejectReasonFormView';
 
 export default RejectReasonFormView;

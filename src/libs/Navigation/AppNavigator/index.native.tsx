@@ -32,6 +32,4 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     return <PublicScreens />;
 }
 
-AppNavigator.displayName = 'AppNavigator';
-
 export default memo(AppNavigator);

@@ -40,7 +40,7 @@ type DomainItem = {
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
 
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Globe'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Globe']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAdmin, isValidated, action} = item;
@@ -75,7 +75,6 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                 accessibilityLabel="row"
                 style={styles.mh5}
                 onPress={action}
-                disabled={!isAdmin}
             >
                 {({hovered}) => (
                     <DomainsListRow
@@ -89,8 +88,6 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
         </OfflineWithFeedback>
     );
 }
-
-DomainMenuItem.displayName = 'DomainMenuItem';
 
 export type {DomainItem};
 export default DomainMenuItem;

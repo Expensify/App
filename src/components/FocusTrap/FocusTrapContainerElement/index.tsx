@@ -4,6 +4,4 @@ function FocusTrapContainerElement({children}: FocusTrapContainerElementProps) {
     return children;
 }
 
-FocusTrapContainerElement.displayName = 'FocusTrapContainerElement';
-
 export default FocusTrapContainerElement;

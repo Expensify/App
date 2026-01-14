@@ -136,7 +136,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedCategoriesPage.displayName}
+            testID="ImportedCategoriesPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -159,11 +159,10 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 closeImportPageAndModal={closeImportPageAndModal}
+                shouldHandleNavigationBack={false}
             />
         </ScreenWrapper>
     );
 }
-
-ImportedCategoriesPage.displayName = 'ImportedCategoriesPage';
 
 export default ImportedCategoriesPage;

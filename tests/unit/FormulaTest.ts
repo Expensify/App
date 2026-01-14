@@ -1,13 +1,13 @@
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
-import {compute, extract, hasCircularReferences, parse, requiresBackendComputation} from '@libs/Formula';
+import {compute, hasCircularReferences, parse} from '@libs/Formula';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getAllReportActions: jest.fn(),
@@ -28,28 +28,6 @@ const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 const mockCurrencyUtils = CurrencyUtils as jest.Mocked<typeof CurrencyUtils>;
 
 describe('CustomFormula', () => {
-    describe('extract()', () => {
-        test('should extract formula parts with default braces', () => {
-            expect(extract('{report:type} - {report:total}')).toEqual(['{report:type}', '{report:total}']);
-        });
-
-        test('should handle nested braces', () => {
-            expect(extract('{report:{report:submit:from:firstName|substr:2}}')).toEqual(['{report:{report:submit:from:firstName|substr:2}}']);
-        });
-
-        test('should handle escaped braces', () => {
-            expect(extract('\\{not-formula} {report:type}')).toEqual(['{report:type}']);
-        });
-
-        test('should handle empty formula', () => {
-            expect(extract('')).toEqual([]);
-        });
-
-        test('should handle formula without braces', () => {
-            expect(extract('no braces here')).toEqual([]);
-        });
-    });
-
     describe('parse()', () => {
         test('should parse report formula parts', () => {
             const parts = parse('{report:type} {report:startdate}');
@@ -486,30 +464,17 @@ describe('CustomFormula', () => {
                 test('nosymbol - should format without currency symbol', () => {
                     const result = compute('{report:total:nosymbol}', currencyContext);
                     expect(result).toBe('100.00');
-
-                    // Should not require backend computation
-                    const parts = parse('{report:total:nosymbol}');
-                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
                 });
-
                 test('same currency - should format normally (case insensitive)', () => {
                     currencyContext.report.currency = 'EUR';
                     expect(compute('{report:total:EUR}', currencyContext)).toBe('€100.00');
                     expect(compute('{report:total:eur}', currencyContext)).toBe('€100.00');
-
-                    // Should not require backend computation when currencies match
-                    const parts = parse('{report:total:EUR}');
-                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
                 });
 
                 test('default (no format) - should use report currency', () => {
                     currencyContext.report.currency = 'NPR';
                     const result = compute('{report:total}', currencyContext);
                     expect(result).toBe('NPR\u00A0100.00');
-
-                    // Should not require backend computation
-                    const parts = parse('{report:total}');
-                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
                 });
             });
 
@@ -520,10 +485,6 @@ describe('CustomFormula', () => {
                     // Various currencies requiring conversion
                     expect(compute('{report:total:EUR}', currencyContext)).toBe('{report:total:EUR}');
                     expect(compute('{report:total:JPY}', currencyContext)).toBe('{report:total:JPY}');
-
-                    // Should require backend computation
-                    const parts = parse('{report:total:EUR}');
-                    expect(requiresBackendComputation(parts, currencyContext)).toBe(true);
                 });
 
                 test('case and whitespace handling - should normalize and detect conversion', () => {
@@ -533,18 +494,6 @@ describe('CustomFormula', () => {
                     expect(compute('{report:total:EuR}', currencyContext)).toBe('{report:total:EuR}');
                     expect(compute('{report:total: EUR }', currencyContext)).toBe('{report:total: EUR }');
                     expect(compute('{report:total:eur }', currencyContext)).toBe('{report:total:eur }');
-                });
-
-                test('in complex formulas - should detect conversion need', () => {
-                    currencyContext.report.currency = 'USD';
-
-                    // Multiple parts where one needs conversion
-                    const parts = parse('Report: {report:type} Total: {report:total:EUR}');
-                    expect(requiresBackendComputation(parts, currencyContext)).toBe(true);
-
-                    // Non-total fields don't need backend
-                    const simpleParts = parse('{report:type} {report:policyname}');
-                    expect(requiresBackendComputation(simpleParts, currencyContext)).toBe(false);
                 });
             });
 
@@ -591,13 +540,6 @@ describe('CustomFormula', () => {
         });
 
         describe('frontpart modifier', () => {
-            test('should extract front part of email', () => {
-                const result = compute('{report:submit:from:email|frontpart}', mockContext);
-                // Submit part extraction not implemented yet; for now, it returns the definition
-                // Once implemented, this should return 'frontpart' of the email
-                expect(result).toBe('{report:submit:from:email|frontpart}');
-            });
-
             test('should extract first word from non-email text', () => {
                 const result = compute('{report:policyname|frontpart}', mockContext);
                 expect(result).toBe('Engineering'); // First word of "Engineering Department Rules"
@@ -1047,6 +989,373 @@ describe('CustomFormula', () => {
             expect(compute('{report:startdate:yyyy-MM-dd HH:mm:ss}', mockContextWithDate)).toBe('2025-01-08 15:30:45');
             expect(compute('{report:created:HH:mm:ss}', mockContextWithDate)).toBe('15:30:45');
             expect(compute('{report:startdate:g:i a}', mockContextWithDate)).toBe('3:30 pm');
+        });
+    });
+
+    describe('Submission Info', () => {
+        const mockSubmitter: PersonalDetails = {
+            accountID: 12345,
+            firstName: 'John',
+            lastName: 'Doe',
+            displayName: 'John Doe',
+            login: 'john.doe@company.com',
+        };
+
+        const mockManager: PersonalDetails = {
+            accountID: 67890,
+            firstName: 'Jane',
+            lastName: 'Smith',
+            displayName: 'Jane Smith',
+            login: 'jane.smith@company.com',
+        };
+
+        const mockContextWithSubmissionInfo: FormulaContext = {
+            report: {
+                reportID: '123',
+                reportName: '',
+                type: 'expense',
+                ownerAccountID: 12345,
+                managerID: 67890,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                created: '2025-01-15T10:30:00Z',
+            } as Report,
+            policy: {
+                name: 'Test Policy',
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'john.doe@company.com': {
+                        email: 'john.doe@company.com',
+                        employeeUserID: 'EMP001',
+                        employeePayrollID: 'PAY123',
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'jane.smith@company.com': {
+                        email: 'jane.smith@company.com',
+                        employeeUserID: 'EMP002',
+                        employeePayrollID: 'PAY456',
+                    },
+                },
+            } as unknown as Policy,
+            submitterPersonalDetails: mockSubmitter,
+            managerPersonalDetails: mockManager,
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+
+            const mockReportActions = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': {
+                    reportActionID: '1',
+                    created: '2025-01-10T08:00:00Z',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '2': {
+                    reportActionID: '2',
+                    created: '2025-01-15T10:30:00Z',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                },
+            } as unknown as ReportActions;
+
+            mockReportActionsUtils.getAllReportActions.mockReturnValue(mockReportActions);
+        });
+
+        describe('Submitter information', () => {
+            test('firstname - basic submitter first name', () => {
+                expect(compute('{report:submit:from:firstname}', mockContextWithSubmissionInfo)).toBe('John');
+            });
+
+            test('lastname - basic submitter last name', () => {
+                expect(compute('{report:submit:from:lastname}', mockContextWithSubmissionInfo)).toBe('Doe');
+            });
+
+            test('fullname - basic submitter full name', () => {
+                expect(compute('{report:submit:from:fullname}', mockContextWithSubmissionInfo)).toBe('John Doe');
+            });
+
+            test('email - basic submitter email', () => {
+                expect(compute('{report:submit:from:email}', mockContextWithSubmissionInfo)).toBe('john.doe@company.com');
+            });
+
+            test('userid - submitter employee user ID (alias for customfield1)', () => {
+                expect(compute('{report:submit:from:userid}', mockContextWithSubmissionInfo)).toBe('EMP001');
+            });
+
+            test('customfield1 - submitter employee user ID from policy', () => {
+                expect(compute('{report:submit:from:customfield1}', mockContextWithSubmissionInfo)).toBe('EMP001');
+            });
+
+            test('customfield2 - submitter employee payroll ID from policy', () => {
+                expect(compute('{report:submit:from:customfield2}', mockContextWithSubmissionInfo)).toBe('PAY123');
+            });
+
+            test('payrollid - submitter employee payroll ID (alias for customfield2)', () => {
+                expect(compute('{report:submit:from:payrollid}', mockContextWithSubmissionInfo)).toBe('PAY123');
+            });
+
+            test('name fields fall back to email when name missing', () => {
+                const contextWithPartialDetails: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 111,
+                        login: 'fallback@email.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:firstname}', contextWithPartialDetails)).toBe('fallback@email.com');
+                expect(compute('{report:submit:from:lastname}', contextWithPartialDetails)).toBe('fallback@email.com');
+                expect(compute('{report:submit:from:fullname}', contextWithPartialDetails)).toBe('fallback@email.com');
+            });
+
+            test('customfield1 - return empty when employeeList missing', () => {
+                const contextWithoutEmployeeList: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: {
+                        name: 'Test Policy',
+                    } as Policy,
+                    submitterPersonalDetails: mockSubmitter,
+                };
+
+                expect(compute('{report:submit:from:customfield1}', contextWithoutEmployeeList)).toBe('');
+            });
+
+            test('customfield2 - return empty when employeeList missing', () => {
+                const contextWithoutEmployeeList: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: {
+                        name: 'Test Policy',
+                    } as Policy,
+                    submitterPersonalDetails: mockSubmitter,
+                };
+
+                expect(compute('{report:submit:from:customfield2}', contextWithoutEmployeeList)).toBe('');
+            });
+
+            test('customfield1 - return empty when user not in employeeList', () => {
+                const contextWithDifferentEmployee: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: {
+                        name: 'Test Policy',
+                        employeeList: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'other.user@company.com': {
+                                email: 'other.user@company.com',
+                                employeeUserID: 'EMP999',
+                            },
+                        },
+                    } as unknown as Policy,
+                    submitterPersonalDetails: mockSubmitter,
+                };
+
+                expect(compute('{report:submit:from:customfield1}', contextWithDifferentEmployee)).toBe('');
+            });
+        });
+
+        describe('Manager information', () => {
+            test('firstname - basic manager first name', () => {
+                expect(compute('{report:submit:to:firstname}', mockContextWithSubmissionInfo)).toBe('Jane');
+            });
+
+            test('lastname - basic manager last name', () => {
+                expect(compute('{report:submit:to:lastname}', mockContextWithSubmissionInfo)).toBe('Smith');
+            });
+
+            test('fullname - basic manager full name', () => {
+                expect(compute('{report:submit:to:fullname}', mockContextWithSubmissionInfo)).toBe('Jane Smith');
+            });
+
+            test('email - basic manager email', () => {
+                expect(compute('{report:submit:to:email}', mockContextWithSubmissionInfo)).toBe('jane.smith@company.com');
+            });
+
+            test('userid - manager employee user ID (alias for customfield1)', () => {
+                expect(compute('{report:submit:to:userid}', mockContextWithSubmissionInfo)).toBe('EMP002');
+            });
+
+            test('customfield1 - manager employee user ID from policy', () => {
+                expect(compute('{report:submit:to:customfield1}', mockContextWithSubmissionInfo)).toBe('EMP002');
+            });
+
+            test('customfield2 - manager employee payroll ID from policy', () => {
+                expect(compute('{report:submit:to:customfield2}', mockContextWithSubmissionInfo)).toBe('PAY456');
+            });
+
+            test('payrollid - manager employee payroll ID (alias for customfield2)', () => {
+                expect(compute('{report:submit:to:payrollid}', mockContextWithSubmissionInfo)).toBe('PAY456');
+            });
+
+            test('firstname - fall back to email when manager name missing', () => {
+                const contextWithPartialManagerDetails: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    managerPersonalDetails: {
+                        accountID: 222,
+                        login: 'manager@email.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:to:firstname}', contextWithPartialManagerDetails)).toBe('manager@email.com');
+            });
+
+            test('fullname - fall back to email when manager displayName missing', () => {
+                const contextWithPartialManagerDetails: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    managerPersonalDetails: {
+                        accountID: 222,
+                        login: 'manager@email.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:to:fullname}', contextWithPartialManagerDetails)).toBe('manager@email.com');
+            });
+        });
+
+        describe('Submission date', () => {
+            test('default format - yyyy-MM-dd', () => {
+                expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('2025-01-15');
+            });
+
+            test('custom format - verifies date formatting works', () => {
+                expect(compute('{report:submit:date:MMMM dd, yyyy}', mockContextWithSubmissionInfo)).toBe('January 15, 2025');
+            });
+        });
+
+        describe('Function modifiers', () => {
+            test('frontpart - extract username from submitter email', () => {
+                expect(compute('{report:submit:from:email|frontpart}', mockContextWithSubmissionInfo)).toBe('john.doe');
+            });
+
+            test('domain - extract domain from submitter email', () => {
+                expect(compute('{report:submit:from:email|domain}', mockContextWithSubmissionInfo)).toBe('company.com');
+            });
+
+            test('frontpart - extract username from manager email', () => {
+                expect(compute('{report:submit:to:email|frontpart}', mockContextWithSubmissionInfo)).toBe('jane.smith');
+            });
+
+            test('substr - extract first 4 characters from fullname', () => {
+                expect(compute('{report:submit:from:fullname|substr:0:4}', mockContextWithSubmissionInfo)).toBe('John');
+            });
+
+            test('chained modifiers - frontpart then substr on email', () => {
+                expect(compute('{report:submit:from:email|frontpart|substr:0:4}', mockContextWithSubmissionInfo)).toBe('john');
+            });
+        });
+
+        describe('Combined formulas', () => {
+            test('submitter and manager names together', () => {
+                expect(compute('{report:submit:from:firstname} -> {report:submit:to:firstname}', mockContextWithSubmissionInfo)).toBe('John -> Jane');
+            });
+
+            test('transaction date range with submission date', () => {
+                const mockTransactions = [
+                    {
+                        transactionID: 'trans1',
+                        created: '2025-01-08T12:00:00Z',
+                        amount: 5000,
+                        merchant: 'Store',
+                    },
+                ] as Transaction[];
+
+                mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
+
+                expect(compute('{report:startdate} to {report:submit:date}', mockContextWithSubmissionInfo)).toBe('2025-01-08 to 2025-01-15');
+            });
+        });
+
+        describe('Edge cases', () => {
+            test('empty email - return empty when email empty', () => {
+                const contextWithEmptyEmail: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        login: '',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:email}', contextWithEmptyEmail)).toBe('');
+            });
+
+            test('empty email with name - return empty when name also empty', () => {
+                const contextWithEmptyEmail: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        login: '',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:firstname}', contextWithEmptyEmail)).toBe('');
+            });
+
+            test('empty firstname - fallback to email when firstname is empty string', () => {
+                const contextWithEmptyFirstName: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        firstName: '',
+                        login: 'user@test.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:firstname}', contextWithEmptyFirstName)).toBe('user@test.com');
+            });
+
+            test('empty lastname - fallback to email when lastname is empty string', () => {
+                const contextWithEmptyLastName: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        lastName: '',
+                        login: 'user@test.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:lastname}', contextWithEmptyLastName)).toBe('user@test.com');
+            });
+
+            test('empty displayName - fallback to email when displayName is empty string', () => {
+                const contextWithEmptyDisplayName: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        displayName: '',
+                        login: 'user@test.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:fullname}', contextWithEmptyDisplayName)).toBe('user@test.com');
+            });
+
+            test('empty email with frontpart - return empty for empty email modifier', () => {
+                const contextWithEmptyEmail: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        login: '',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:email|frontpart}', contextWithEmptyEmail)).toBe('');
+            });
+
+            test('unknown field - return empty for invalid field name', () => {
+                expect(compute('{report:submit:from:unknown}', mockContextWithSubmissionInfo)).toBe('');
+            });
+
+            test('invalid direction - return empty for invalid from/to', () => {
+                expect(compute('{report:submit:invalid:email}', mockContextWithSubmissionInfo)).toBe('');
+            });
         });
     });
 

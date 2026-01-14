@@ -1,10 +1,11 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -14,7 +15,6 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isPerDiemRequest} from '@libs/TransactionUtils';
 import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,15 +44,10 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const session = useSession();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
 
-    const hasPerDiemTransactions = useMemo(() => {
-        return selectedTransactionIDs.some((transactionID) => {
-            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            return transaction && isPerDiemRequest(transaction);
-        });
-    }, [selectedTransactionIDs, allTransactions]);
+    const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionIDs);
 
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -97,12 +92,13 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         Navigation.dismissModal();
     };
 
-    const createReportForPolicy = () => {
-        if (!policyForMovingExpensesID) {
+    const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!hasPerDiemTransactions && !policyForMovingExpenses?.id) {
             return;
         }
 
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
@@ -114,7 +110,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (hasPerDiemTransactions) {
+            handleCreateReport();
+            return;
+        }
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
@@ -144,7 +144,5 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         </>
     );
 }
-
-IOURequestEditReport.displayName = 'IOURequestEditReport';
 
 export default withWritableReportOrNotFound(IOURequestEditReport);

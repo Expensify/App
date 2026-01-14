@@ -107,7 +107,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
             },
             {
                 title: values[TAX_ID_EIN_NUMBER],
-                description: translate('businessInfoStep.taxIDEIN', {country: values[COMPANY_COUNTRY_CODE]}),
+                description: translate('businessInfoStep.taxIDEIN', values[COMPANY_COUNTRY_CODE]),
                 shouldShowRightIcon: true,
                 onPress: () => {
                     onMove(5);
@@ -206,7 +206,5 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

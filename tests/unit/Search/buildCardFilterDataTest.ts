@@ -1,5 +1,4 @@
 // The cards_ object keys don't follow normal naming convention, so to test this reliably we have to disable liner
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {buildCardFeedsData, buildCardsData} from '@libs/CardFeedUtils';
@@ -319,6 +318,19 @@ const illustrationsMock = {
     GenericCompanyCardLarge: jest.fn(),
     GenericCSVCompanyCardLarge: jest.fn(),
 };
+const companyCardIconsMock = {
+    VisaCompanyCardDetailLarge: jest.fn(),
+    AmexCardCompanyCardDetailLarge: jest.fn(),
+    MasterCardCompanyCardDetailLarge: jest.fn(),
+    BankOfAmericaCompanyCardDetailLarge: jest.fn(),
+    CapitalOneCompanyCardDetailLarge: jest.fn(),
+    ChaseCompanyCardDetailLarge: jest.fn(),
+    CitibankCompanyCardDetailLarge: jest.fn(),
+    WellsFargoCompanyCardDetailLarge: jest.fn(),
+    BrexCompanyCardDetailLarge: jest.fn(),
+    StripeCompanyCardDetailLarge: jest.fn(),
+    PlaidCompanyCardDetailLarge: jest.fn(),
+};
 
 describe('buildIndividualCardsData', () => {
     it("Builds all individual cards and doesn't generate duplicates", () => {
@@ -328,6 +340,7 @@ describe('buildIndividualCardsData', () => {
             {},
             ['21588678'],
             illustrationsMock as IllustrationsType,
+            companyCardIconsMock,
         );
 
         expect(result.unselected.length + result.selected.length).toEqual(13);
@@ -353,6 +366,7 @@ describe('buildIndividualCardsData', () => {
             {},
             [],
             illustrationsMock as IllustrationsType,
+            companyCardIconsMock,
         );
         expect(result.unselected.length + result.selected.length).toEqual(0);
     });
@@ -366,6 +380,7 @@ describe('buildCardsData closed cards', () => {
             {},
             ['21539012'],
             illustrationsMock as IllustrationsType,
+            companyCardIconsMock,
             true,
         );
         expect(result.unselected.length + result.selected.length).toEqual(4);
@@ -388,7 +403,7 @@ describe('buildCardsData closed cards', () => {
 
 describe('buildCardsData with empty argument objects', () => {
     it('Returns empty array when cardList and workspaceCardFeeds are empty', () => {
-        const result = buildCardsData({}, {}, {}, [], illustrationsMock as IllustrationsType);
+        const result = buildCardsData({}, {}, {}, [], illustrationsMock as IllustrationsType, companyCardIconsMock);
         expect(result).toEqual({selected: [], unselected: []});
     });
 });
@@ -400,6 +415,7 @@ describe('buildCardFeedsData', () => {
         [],
         translateMock as LocaleContextProps['translate'],
         illustrationsMock as IllustrationsType,
+        companyCardIconsMock,
     );
 
     it('Build domain card feed properly', () => {
@@ -435,7 +451,7 @@ describe('buildCardFeedsData', () => {
 
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Return empty array when domainCardFeeds and workspaceCardFeeds are empty', () => {
-        const result = buildCardFeedsData({}, {}, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType);
+        const result = buildCardFeedsData({}, {}, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType, companyCardIconsMock);
         expect(result).toEqual({selected: [], unselected: []});
     });
 });

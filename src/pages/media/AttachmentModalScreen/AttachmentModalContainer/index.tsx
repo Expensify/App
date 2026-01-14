@@ -67,6 +67,4 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({
     );
 }
 
-AttachmentModalContainer.displayName = 'AttachmentModalContainer';
-
 export default AttachmentModalContainer;

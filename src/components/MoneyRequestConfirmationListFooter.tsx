@@ -22,7 +22,8 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -40,6 +41,7 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -112,6 +114,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is a manual distance request */
     isManualDistanceRequest: boolean;
+
+    /** Flag indicating if it is an odometer distance request */
+    isOdometerDistanceRequest?: boolean;
 
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
@@ -230,6 +235,7 @@ function MoneyRequestConfirmationListFooter({
     isCategoryRequired,
     isDistanceRequest,
     isManualDistanceRequest,
+    isOdometerDistanceRequest = false,
     isPerDiemRequest,
     isMerchantEmpty,
     isMerchantRequired,
@@ -263,7 +269,7 @@ function MoneyRequestConfirmationListFooter({
     isReceiptEditable = false,
     isDescriptionRequired = false,
 }: MoneyRequestConfirmationListFooterProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -300,8 +306,8 @@ function MoneyRequestConfirmationListFooter({
 
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowMap = isDistanceRequest && !isManualDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
+    const shouldShowMap =
+        isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest && [hasErrors, hasPendingWaypoints, iouType !== CONST.IOU.TYPE.SPLIT, !isReadOnly].some(Boolean);
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
     const senderWorkspace = useMemo(() => {
@@ -321,7 +327,6 @@ function MoneyRequestConfirmationListFooter({
      */
     const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false)) || isUnreported;
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
@@ -346,19 +351,19 @@ function MoneyRequestConfirmationListFooter({
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
     const reportName = useMemo(() => {
-        const name = getReportName(selectedReport, selectedPolicy);
+        const name = computeReportName(selectedReport, allReports, allPolicies);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [isUnreported, selectedReport, selectedPolicy, translate]);
+    }, [isUnreported, selectedReport, allReports, allPolicies, translate]);
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = (isFromGlobalCreate ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
-
+    const shouldReportBeEditable =
+        (isFromGlobalCreate && !isPerDiemRequest ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
@@ -501,6 +506,11 @@ function MoneyRequestConfirmationListFooter({
 
                         if (isManualDistanceRequest) {
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                            return;
+                        }
+
+                        if (isOdometerDistanceRequest) {
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()) as Route);
                             return;
                         }
 
@@ -886,10 +896,12 @@ function MoneyRequestConfirmationListFooter({
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabled={!shouldDisplayReceipt}
                         disabledStyle={styles.cursorDefault}
+                        style={styles.h100}
                     >
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
+                            style={styles.h100}
                             onLoadError={onPDFLoadError}
                             onPassword={onPDFPassword}
                         />
@@ -1029,7 +1041,7 @@ function MoneyRequestConfirmationListFooter({
                     <View style={styles.dividerLine} />
                 </>
             )}
-            {(!shouldShowMap || isManualDistanceRequest) && (
+            {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
                 <View style={!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3}>
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
@@ -1052,12 +1064,10 @@ function MoneyRequestConfirmationListFooter({
     );
 }
 
-MoneyRequestConfirmationListFooter.displayName = 'MoneyRequestConfirmationListFooter';
-
 export default memo(
     MoneyRequestConfirmationListFooter,
     (prevProps, nextProps) =>
-        deepEqual(prevProps.action, nextProps.action) &&
+        prevProps.action === nextProps.action &&
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
@@ -1079,13 +1089,14 @@ export default memo(
         prevProps.isReadOnly === nextProps.isReadOnly &&
         prevProps.isTypeInvoice === nextProps.isTypeInvoice &&
         prevProps.onToggleBillable === nextProps.onToggleBillable &&
-        deepEqual(prevProps.policy, nextProps.policy) &&
-        deepEqual(prevProps.policyTagLists, nextProps.policyTagLists) &&
+        prevProps.policy === nextProps.policy &&
+        prevProps.policyTagLists === nextProps.policyTagLists &&
         prevProps.rate === nextProps.rate &&
         prevProps.receiptFilename === nextProps.receiptFilename &&
         prevProps.receiptPath === nextProps.receiptPath &&
         prevProps.reportActionID === nextProps.reportActionID &&
         prevProps.reportID === nextProps.reportID &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- selectedParticipants is derived with .map() which creates new array references
         deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
         prevProps.shouldDisplayFieldError === nextProps.shouldDisplayFieldError &&
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
@@ -1093,7 +1104,7 @@ export default memo(
         prevProps.shouldShowMerchant === nextProps.shouldShowMerchant &&
         prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
         prevProps.shouldShowTax === nextProps.shouldShowTax &&
-        deepEqual(prevProps.transaction, nextProps.transaction) &&
+        prevProps.transaction === nextProps.transaction &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.unit === nextProps.unit,
 );

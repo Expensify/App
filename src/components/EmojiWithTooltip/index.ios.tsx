@@ -5,18 +5,17 @@ import type EmojiWithTooltipProps from './types';
 
 function EmojiWithTooltip({emojiCode, style = {}, isMedium = false}: EmojiWithTooltipProps) {
     const styles = useThemeStyles();
+    const isCustomEmoji = emojiCode === '\uE100';
 
     return isMedium ? (
         <Text style={style}>
             <View>
-                <Text style={styles.emojisWithTextFontSizeAligned}>{emojiCode}</Text>
+                <Text style={[styles.emojisWithTextFontSizeAligned, isCustomEmoji && styles.customEmojiFontAlignment]}>{emojiCode}</Text>
             </View>
         </Text>
     ) : (
-        <Text style={style}>{emojiCode}</Text>
+        <Text style={[style, isCustomEmoji && styles.customEmojiFontAlignment]}>{emojiCode}</Text>
     );
 }
-
-EmojiWithTooltip.displayName = 'EmojiWithTooltip';
 
 export default EmojiWithTooltip;

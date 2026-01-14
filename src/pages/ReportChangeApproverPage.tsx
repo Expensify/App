@@ -51,6 +51,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
 
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
@@ -71,9 +72,9 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
-        assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled);
+        assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep);
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportID]);
+    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep, reportID]);
 
     const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [
@@ -128,7 +129,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
 
     return (
         <ScreenWrapper
-            testID={ReportChangeApproverPage.displayName}
+            testID="ReportChangeApproverPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -162,7 +163,5 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         </ScreenWrapper>
     );
 }
-
-ReportChangeApproverPage.displayName = 'ReportChangeApproverPage';
 
 export default withReportOrNotFound()(ReportChangeApproverPage);

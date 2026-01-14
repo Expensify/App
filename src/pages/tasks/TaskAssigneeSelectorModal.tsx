@@ -7,6 +7,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
@@ -44,6 +45,7 @@ function TaskAssigneeSelectorModal() {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -93,6 +95,8 @@ function TaskAssigneeSelectorModal() {
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
     }, [reports, route.params?.reportID]);
 
+    const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const sections = useMemo(() => {
@@ -136,10 +140,10 @@ function TaskAssigneeSelectorModal() {
                 isDisabled: option.isDisabled ?? undefined,
                 login: option.login ?? undefined,
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-                isSelected: task?.assigneeAccountID === option.accountID,
+                isSelected: task?.assigneeAccountID === option.accountID || task?.report?.managerID === option.accountID,
             })),
         }));
-    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate]);
+    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate, task?.report?.managerID]);
 
     const initiallyFocusedOptionKey = useMemo(() => {
         return sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
@@ -166,11 +170,12 @@ function TaskAssigneeSelectorModal() {
                         assigneePersonalDetails,
                         report.reportID,
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
-                        isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}),
+                        isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}, loginList),
                     );
                     // Pass through the selected assignee
                     editTaskAssignee(
                         report,
+                        parentReport,
                         currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         option?.login ?? '',
                         currentUserPersonalDetails.accountID,
@@ -191,7 +196,7 @@ function TaskAssigneeSelectorModal() {
                     assigneePersonalDetails,
                     task?.shareDestination ?? '',
                     undefined, // passing null as report is null in this condition
-                    isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}),
+                    isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}, loginList),
                 );
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
@@ -199,7 +204,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
         },
-        [report, currentUserPersonalDetails.accountID, task?.shareDestination, backTo, hasOutstandingChildTask, allPersonalDetails],
+        [allPersonalDetails, report, currentUserPersonalDetails.accountID, loginList, parentReport, hasOutstandingChildTask, task?.shareDestination, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);
@@ -216,7 +221,7 @@ function TaskAssigneeSelectorModal() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={TaskAssigneeSelectorModal.displayName}
+            testID="TaskAssigneeSelectorModal"
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                 <HeaderWithBackButton
@@ -243,7 +248,5 @@ function TaskAssigneeSelectorModal() {
         </ScreenWrapper>
     );
 }
-
-TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
 
 export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModal));

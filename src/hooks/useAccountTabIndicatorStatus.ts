@@ -57,7 +57,7 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
 
     const infoChecking: Partial<Record<AccountTabIndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList, session?.email),
-        [CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO]: hasPendingExpensifyCardAction(allCards),
+        [CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO]: hasPendingExpensifyCardAction(allCards, privatePersonalDetails),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: hasSubscriptionGreenDotInfo(
             stripeCustomerId,
             retryBillingSuccessful,

@@ -77,7 +77,8 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             if (isCreatedAction(reportAction)) {
                 return formatReportLastMessageText(
-                    SidebarUtils.getWelcomeMessage(report, policy, participantPersonalDetailList, localeCompare, isReportArchived).messageText ?? translate('report.noActivityYet'),
+                    SidebarUtils.getWelcomeMessage(report, policy, participantPersonalDetailList, translate, localeCompare, isReportArchived).messageText ??
+                        translate('report.noActivityYet'),
                 );
             }
 
@@ -133,7 +134,5 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         </ScrollView>
     );
 }
-
-DebugReportActions.displayName = 'DebugReportActions';
 
 export default DebugReportActions;

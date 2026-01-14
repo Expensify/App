@@ -4,8 +4,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import CardListItem from '@components/SelectionListWithSections/Search/CardListItem';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
 import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+import {filterPersonalCards} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,8 +27,9 @@ function SearchFiltersCardPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
 
-    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
@@ -39,20 +43,20 @@ function SearchFiltersCardPage() {
     }, [searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID, workspaceCardFeeds, userCardList]);
 
     const individualCardsSectionData = useMemo(
-        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, false),
-        [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
+        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, companyCardFeedIcons, false),
+        [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations, companyCardFeedIcons],
     );
 
     const closedCardsSectionData = useMemo(
-        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, true),
-        [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
+        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, companyCardFeedIcons, true),
+        [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations, companyCardFeedIcons],
     );
 
     const domainFeedsData = useMemo(() => getDomainFeedData(workspaceCardFeeds), [workspaceCardFeeds]);
 
     const cardFeedsSectionData = useMemo(
-        () => buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, selectedCards, translate, illustrations),
-        [domainFeedsData, workspaceCardFeeds, selectedCards, translate, illustrations],
+        () => buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, selectedCards, translate, illustrations, companyCardFeedIcons),
+        [domainFeedsData, workspaceCardFeeds, selectedCards, translate, illustrations, companyCardFeedIcons],
     );
 
     const shouldShowSearchInput =
@@ -159,7 +163,7 @@ function SearchFiltersCardPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersCardPage.displayName}
+            testID="SearchFiltersCardPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -198,7 +202,5 @@ function SearchFiltersCardPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersCardPage.displayName = 'SearchFiltersCardPage';
 
 export default SearchFiltersCardPage;

@@ -48,6 +48,4 @@ function JobTitle({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-JobTitle.displayName = 'JobTitle';
-
 export default JobTitle;

@@ -13,6 +13,4 @@ function SearchInputSelectionWrapper({selection, ref, ...props}: SearchAutocompl
     );
 }
 
-SearchInputSelectionWrapper.displayName = 'SearchInputSelectionWrapper';
-
 export default SearchInputSelectionWrapper;

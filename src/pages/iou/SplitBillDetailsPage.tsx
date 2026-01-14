@@ -4,11 +4,11 @@ import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorContextProvider';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -16,7 +16,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -42,6 +41,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
 
     const reportID = report?.reportID;
     const originalMessage = reportAction && isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
@@ -51,6 +51,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(IOUTransactionID)}`, {canBeMissing: true});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
@@ -90,11 +91,20 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, isASAPSubmitBetaEnabled, transactionViolations, session?.email);
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, transactionViolations]);
+        completeSplitBill(
+            reportID,
+            reportAction,
+            draftTransaction,
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            isASAPSubmitBetaEnabled,
+            quickAction,
+            transactionViolations,
+            session?.email,
+        );
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations]);
 
     return (
-        <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
+        <ScreenWrapper testID="SplitBillDetailsPage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
@@ -106,7 +116,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                             <MoneyRequestHeaderStatusBar
                                 icon={
                                     <Icon
-                                        src={Expensicons.ReceiptScan}
+                                        src={icons.ReceiptScan}
                                         height={variables.iconSizeSmall}
                                         width={variables.iconSizeSmall}
                                         fill={theme.icon}
@@ -134,7 +144,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields
                                 receiptPath={transaction?.receipt?.source}
-                                receiptFilename={getReceiptFilenameFromTransaction(transaction)}
+                                receiptFilename={transaction?.receipt?.filename}
                                 isDistanceRequest={isDistanceRequest}
                                 isManualDistanceRequest={isManualDistanceRequest}
                                 isEditingSplitBill={isEditingSplitBill}
@@ -158,7 +168,5 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
         </ScreenWrapper>
     );
 }
-
-SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
 export default withReportAndReportActionOrNotFound(SplitBillDetailsPage);

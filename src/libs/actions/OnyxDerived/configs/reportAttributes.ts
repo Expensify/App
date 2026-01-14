@@ -40,7 +40,7 @@ const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList
     if (Object.keys(previousDisplayNames).length === 0) {
         previousDisplayNames = currentDisplayNames;
         previousPersonalDetails = personalDetails;
-        return false;
+        return Object.keys(currentDisplayNames).length > 0;
     }
 
     const currentKeys = Object.keys(currentDisplayNames);
@@ -90,6 +90,9 @@ export default createOnyxDerivedValueConfig({
             if (!displayNamesChanged) {
                 return currentValue ?? {reports: {}, locale: null};
             }
+        } else if (!sourceValues) {
+            previousDisplayNames = {};
+            previousPersonalDetails = undefined;
         }
 
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
@@ -140,6 +143,18 @@ export default createOnyxDerivedValueConfig({
             if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates) {
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
+
+                    // When an IOU report changes, we need to re-evaluate its parent chat report as well.
+                    const parentChatReportIDsToUpdate = new Set<string>();
+                    for (const reportKey of dataToIterate) {
+                        const report = reports[reportKey];
+                        if (report?.chatReportID && report.reportID !== report.chatReportID) {
+                            parentChatReportIDsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
+                        }
+                    }
+                    if (parentChatReportIDsToUpdate.size > 0) {
+                        dataToIterate.push(...Array.from(parentChatReportIDsToUpdate));
+                    }
                 }
                 if (!!transactionsUpdates || !!transactionViolationsUpdates) {
                     let transactionReportIDs: string[] = [];
@@ -213,6 +228,31 @@ export default createOnyxDerivedValueConfig({
 
             return acc;
         }, currentValue?.reports ?? {});
+
+        // Propagate errors from IOU reports to their parent chat reports.
+        const chatReportIDsWithErrors = new Set<string>();
+        for (const report of Object.values(reports)) {
+            if (!report?.reportID) {
+                continue;
+            }
+
+            // If this is an IOU report and its calculated attributes have an error,
+            // then we need to mark its parent chat report.
+            const attributes = reportAttributes[report.reportID];
+            if (report.chatReportID && report.reportID !== report.chatReportID && attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+                chatReportIDsWithErrors.add(report.chatReportID);
+            }
+        }
+
+        // Apply the error status to the parent chat reports.
+        for (const chatReportID of chatReportIDsWithErrors) {
+            if (!reportAttributes[chatReportID]) {
+                continue;
+            }
+
+            reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;
