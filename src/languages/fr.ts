@@ -255,7 +255,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Rechercher...',
         next: 'Suivant',
         previous: 'Précédent',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Retour',
         create: 'Créer',
         add: 'Ajouter',
@@ -716,7 +715,7 @@ const translations: TranslationDeepObject<typeof en> = {
     composer: {
         noExtensionFoundForMimeType: 'Aucune extension trouvée pour le type MIME',
         problemGettingImageYouPasted: 'Un problème est survenu lors de la récupération de l’image que vous avez collée',
-        commentExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du commentaire est de ${formattedMaxLength} caractères.`,
+        commentExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale d’un commentaire est de ${formattedMaxLength} caractères.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du titre de la tâche est de ${formattedMaxLength} caractères.`,
     },
     baseUpdateAppModal: {
@@ -974,9 +973,9 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseSpreadsheetMultiLevelTag: `<muted-link>Sélectionnez un fichier de feuille de calcul à importer. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">En savoir plus</a> sur les formats de fichier pris en charge.</muted-link>`,
         fileContainsHeader: 'Le fichier contient des en-têtes de colonnes',
         column: (name: string) => `Colonne ${name}`,
-        fieldNotMapped: (fieldName: string) => `Oups ! Un champ requis (« ${fieldName} ») n’a pas été associé. Veuillez vérifier et réessayer.`,
-        singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
-        emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
+        fieldNotMapped: (fieldName: string) => `Oups ! Un champ requis (« ${fieldName} ») n’a pas été associé. Veuillez vérifier et réessayer.`,
+        singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
+        emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
         importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `${categories} catégories ont été ajoutées.` : '1 catégorie a été ajoutée.'),
         importMembersSuccessfulDescription: (added: number, updated: number) => {
@@ -991,9 +990,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `${added} membres ont été ajoutés.` : '1 membre a été ajouté.';
         },
-        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `${tags} libellés ont été ajoutés.` : '1 tag a été ajouté.'),
+        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `${tags} libellés ont été ajoutés.` : '1 étiquette a été ajoutée.'),
         importMultiLevelTagsSuccessfulDescription: 'Des balises à plusieurs niveaux ont été ajoutées.',
-        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `Les taux de per diem ${rates} ont été ajoutés.` : '1 taux de per diem a été ajouté.'),
+        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `${rates} taux de per diem ont été ajoutés.` : '1 indemnité journalière a été ajoutée.'),
         importFailedTitle: 'Échec de l’importation',
         importFailedDescription: 'Veuillez vous assurer que tous les champs sont correctement remplis, puis réessayez. Si le problème persiste, veuillez contacter Concierge.',
         importDescription: 'Choisissez quels champs mapper à partir de votre feuille de calcul en cliquant sur le menu déroulant à côté de chaque colonne importée ci-dessous.',
@@ -2863,7 +2862,7 @@ ${
             dateShouldBeBefore: (dateString: string) => `La date doit être antérieure au ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `La date doit être postérieure au ${dateString}`,
             hasInvalidCharacter: 'Le nom ne peut inclure que des caractères latins',
-            incorrectZipFormat: (zipFormat?: string) => `Format de code postal incorrect${zipFormat ? `Format acceptable : ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Format de code postal incorrect${zipFormat ? `Format acceptable : ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Veuillez vous assurer que le numéro de téléphone est valide (p. ex. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
@@ -3723,7 +3722,7 @@ ${
             flightScheduleChangePending: (airlineCode: string) => `La compagnie aérienne a proposé un changement d’horaire pour le vol ${airlineCode} ; nous attendons la confirmation.`,
             flightScheduleChangeClosed: (airlineCode: string, startDate?: string) => `Changement d’horaire confirmé : le vol ${airlineCode} part désormais à ${startDate}.`,
             flightUpdated: (airlineCode: string, origin: string, destination: string, startDate: string) =>
-                `Votre vol ${airlineCode} (${origin} → ${destination}) le ${startDate} a été mis à jour.`,
+                `Votre vol ${airlineCode} (${origin} → ${destination}) du ${startDate} a été mis à jour.`,
             flightCabinChanged: (airlineCode: string, cabinClass?: string) => `Votre classe de cabine a été mise à jour en ${cabinClass} sur le vol ${airlineCode}.`,
             flightSeatConfirmed: (airlineCode: string) => `Votre siège attribué sur le vol ${airlineCode} a été confirmé.`,
             flightSeatChanged: (airlineCode: string) => `Votre siège attribué sur le vol ${airlineCode} a été modifié.`,
@@ -4654,19 +4653,19 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'Paramètre par défaut de l’employé NetSuite',
                         description: 'Non importé dans Expensify, appliqué à l’exportation',
-                        footerContent: (importField: string) =>
-                            `Si vous utilisez ${importField} dans NetSuite, nous appliquerons la valeur par défaut définie sur la fiche employé lors de l’exportation vers le rapport de dépenses ou l’écriture de journal.`,
+                        footerContent: (importField: string) => `La sélection ${startCase(importField)} s’appliquera à toutes les dépenses du rapport d’un employé.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Étiquettes',
                         description: 'Niveau poste de ligne',
-                        footerContent: (importField: string) => `${startCase(importField)} sera sélectionnable pour chaque dépense individuelle dans le rapport d'un employé.`,
+                        footerContent: (importField: string) => `La sélection ${startCase(importField)} s’appliquera à toutes les dépenses du rapport d’un employé.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Champs du rapport',
                         description: 'Niveau de rapport',
-                        footerContent: (importField: string) => `La sélection ${startCase(importField)} s’appliquera à toutes les dépenses sur le rapport d’un employé.`,
+                        footerContent: (importField: string) => `La sélection ${startCase(importField)} s’appliquera à toutes les dépenses du rapport d’un employé.`,
                     },
+                    footerContent: (importField: string) => `La sélection ${startCase(importField)} s’appliquera à toutes les dépenses du rapport d’un employé.`,
                 },
             },
         },
@@ -4743,7 +4742,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 commercialFeedPlaidDetails: `Nécessite une configuration avec votre banque, mais nous vous guiderons. Cela est généralement réservé aux grandes entreprises.`,
                 directFeedDetails: 'L’approche la plus simple. Connectez-vous immédiatement à l’aide de vos identifiants principaux. Cette méthode est la plus courante.',
                 enableFeed: {
-                    title: (provider: string) => `Activer votre flux ${provider}`,
+                    title: (provider: string) => `Activez votre flux ${provider}`,
                     heading:
                         'Nous avons une intégration directe avec l’émetteur de votre carte et pouvons importer rapidement et avec précision vos données de transactions dans Expensify.\n\nPour commencer, il vous suffit de :',
                     visa: 'Nous disposons d’intégrations globales avec Visa, bien que l’éligibilité varie selon la banque et le programme de carte.\n\nPour commencer, il vous suffit de :',
@@ -7287,6 +7286,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         hold: 'Cette dépense a été mise en attente',
         resolvedDuplicates: 'a résolu le doublon',
         companyCardRequired: 'Achats avec carte d’entreprise requis',
+        noRoute: 'Veuillez sélectionner une adresse valide',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} est requis`,

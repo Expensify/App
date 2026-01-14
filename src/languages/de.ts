@@ -255,7 +255,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Suchen …',
         next: 'Weiter',
         previous: 'Zurück',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Zurück',
         create: 'Erstellen',
         add: 'Hinzufügen',
@@ -715,7 +714,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noExtensionFoundForMimeType: 'Keine Erweiterung für diesen MIME-Typ gefunden',
         problemGettingImageYouPasted: 'Es gab ein Problem beim Abrufen des von dir eingefügten Bildes',
         commentExceededMaxLength: (formattedMaxLength: string) => `Die maximale Kommentarlänge beträgt ${formattedMaxLength} Zeichen.`,
-        taskTitleExceededMaxLength: (formattedMaxLength: string) => `Die maximale Aufgabenüberschrift darf ${formattedMaxLength} Zeichen lang sein.`,
+        taskTitleExceededMaxLength: (formattedMaxLength: string) => `Die maximale Länge des Aufgabentitels beträgt ${formattedMaxLength} Zeichen.`,
     },
     baseUpdateAppModal: {
         updateApp: 'App aktualisieren',
@@ -973,9 +972,9 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseSpreadsheetMultiLevelTag: `<muted-link>Wähle eine Tabellenkalkulationsdatei zum Importieren aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Erfahre mehr</a> über unterstützte Dateiformate.</muted-link>`,
         fileContainsHeader: 'Datei enthält Spaltenüberschriften',
         column: (name: string) => `Spalte ${name}`,
-        fieldNotMapped: (fieldName: string) => `Ups! Ein erforderliches Feld („${fieldName}“) wurde nicht zugeordnet. Bitte überprüfen und erneut versuchen.`,
-        singleFieldMultipleColumns: (fieldName: string) => `Ups! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
-        emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfen Sie es und versuchen Sie es erneut.`,
+        fieldNotMapped: (fieldName: string) => `Ups! Ein erforderliches Feld („${fieldName}“) wurde nicht zugeordnet. Bitte überprüfe es und versuche es erneut.`,
+        singleFieldMultipleColumns: (fieldName: string) => `Hoppla! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
+        emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfen und erneut versuchen.`,
         importSuccessfulTitle: 'Import erfolgreich',
         importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `${categories} Kategorien wurden hinzugefügt.` : '1 Kategorie wurde hinzugefügt.'),
         importMembersSuccessfulDescription: (added: number, updated: number) => {
@@ -992,7 +991,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `${tags} Tags wurden hinzugefügt.` : '1 Tag wurde hinzugefügt.'),
         importMultiLevelTagsSuccessfulDescription: 'Hierarchische Tags wurden hinzugefügt.',
-        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `${rates} Übernachtungspauschalen wurden hinzugefügt.` : '1 Pauschale wurde hinzugefügt.'),
+        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `${rates} Tagegelder wurden hinzugefügt.` : '1 Pauschale wurde hinzugefügt.'),
         importFailedTitle: 'Import fehlgeschlagen',
         importFailedDescription: 'Bitte stelle sicher, dass alle Felder korrekt ausgefüllt sind, und versuche es erneut. Wenn das Problem weiterhin besteht, wende dich bitte an Concierge.',
         importDescription: 'Wählen Sie aus, welche Felder aus Ihrer Tabelle zugeordnet werden sollen, indem Sie auf das Dropdown-Menü neben jeder der importierten Spalten unten klicken.',
@@ -1113,7 +1112,7 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `hat eine Ausgabe verschoben${reportName ? `von ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `hat diese Ausgabe verschoben${reportName ? `zu <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `hat diese Ausgabe verschoben${reportName ? `von <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `hat diese Ausgabe aus deinem <a href="${reportUrl}">Persönlichen Bereich</a> verschoben`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `hat diese Ausgabe aus deinem <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `hat diese Ausgabe in deinen <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2320,7 +2319,7 @@ ${amount} für ${merchant} – ${date}`,
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Überweisen${amount ? ` ${amount}` : ''}`,
         instant: 'Sofort (Debitkarte)',
-        instantSummary: (rate: string, minAmount: string) => `${rate}% Gebühr (mindestens ${minAmount})`,
+        instantSummary: (rate: string, minAmount: string) => `${rate}% Gebühr (${minAmount} Minimum)`,
         ach: '1–3 Werktage (Bankkonto)',
         achSummary: 'Keine Gebühr',
         whichAccount: 'Welches Konto?',
@@ -2855,7 +2854,7 @@ ${
             dateShouldBeBefore: (dateString: string) => `Das Datum sollte vor dem ${dateString} liegen`,
             dateShouldBeAfter: (dateString: string) => `Datum muss nach ${dateString} liegen`,
             hasInvalidCharacter: 'Name darf nur lateinische Zeichen enthalten',
-            incorrectZipFormat: (zipFormat?: string) => `Ungültiges Postleitzahlformat${zipFormat ? `Akzeptables Format: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Falsches Postleitzahlformat${zipFormat ? `Zulässiges Format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Bitte stelle sicher, dass die Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
@@ -3612,7 +3611,7 @@ ${
         flight: 'Flug',
         flightDetails: {
             passenger: 'Passagier',
-            layover: (layover: string) => `<muted-text-label>Sie haben einen <strong>${layover} Zwischenstopp</strong> vor diesem Flug</muted-text-label>`,
+            layover: (layover: string) => `<muted-text-label>Du hast einen <strong>${layover} Aufenthalt</strong> vor diesem Flug</muted-text-label>`,
             takeOff: 'Abflug',
             landing: 'Startseite',
             seat: 'Sitz',
@@ -4646,19 +4645,19 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'Standard-NetSuite-Mitarbeiter',
                         description: 'Nicht in Expensify importiert, beim Export angewendet',
-                        footerContent: (importField: string) =>
-                            `Wenn du ${importField} in NetSuite verwendest, wenden wir den Standardwert an, der im Mitarbeitendendatensatz festgelegt ist, sobald nach „Expense Report“ oder „Journal Entry“ exportiert wird.`,
+                        footerContent: (importField: string) => `${startCase(importField)}-Auswahl wird auf alle Ausgaben in dem Bericht eines Mitarbeiters angewendet.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Stichwörter',
                         description: 'Auf Positionsebene',
-                        footerContent: (importField: string) => `${startCase(importField)} wird für jede einzelne Ausgabe im Bericht eines Mitarbeiters auswählbar sein.`,
+                        footerContent: (importField: string) => `${startCase(importField)}-Auswahl wird auf alle Ausgaben in dem Bericht eines Mitarbeiters angewendet.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Berichtsfelder',
                         description: 'Berichtsebene',
-                        footerContent: (importField: string) => `${startCase(importField)}-Auswahl gilt für alle Ausgaben auf dem Bericht eines Mitarbeiters.`,
+                        footerContent: (importField: string) => `${startCase(importField)}-Auswahl wird auf alle Ausgaben in dem Bericht eines Mitarbeiters angewendet.`,
                     },
+                    footerContent: (importField: string) => `${startCase(importField)}-Auswahl wird auf alle Ausgaben in dem Bericht eines Mitarbeiters angewendet.`,
                 },
             },
         },
@@ -4735,7 +4734,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 commercialFeedPlaidDetails: `Erfordert die Einrichtung mit Ihrer Bank, aber wir führen Sie durch den Prozess. Dies ist in der Regel auf größere Unternehmen beschränkt.`,
                 directFeedDetails: 'Der einfachste Ansatz. Verbinde dich direkt mit deinen Master-Zugangsdaten. Diese Methode ist am gebräuchlichsten.',
                 enableFeed: {
-                    title: (provider: string) => `Aktiviere deinen ${provider}-Feed`,
+                    title: (provider: string) => `Aktivieren Sie Ihren ${provider}-Feed`,
                     heading:
                         'Wir verfügen über eine direkte Integration mit Ihrem Kartenaussteller und können Ihre Transaktionsdaten schnell und genau in Expensify importieren.\n\nUm zu beginnen, gehen Sie einfach wie folgt vor:',
                     visa: 'Wir verfügen über globale Integrationen mit Visa, wobei die Berechtigung je nach Bank und Kartenprogramm variiert.\n\nUm loszulegen, gehen Sie einfach wie folgt vor:',
@@ -7274,6 +7273,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         hold: 'Diese Ausgabe wurde zurückgestellt',
         resolvedDuplicates: 'Duplikat behoben',
         companyCardRequired: 'Firmenkartenkäufe erforderlich',
+        noRoute: 'Bitte wählen Sie eine gültige Adresse aus',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} ist erforderlich`,

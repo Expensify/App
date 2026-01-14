@@ -255,7 +255,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: '検索...',
         next: '次へ',
         previous: '前へ',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: '戻る',
         create: '作成',
         add: '追加',
@@ -684,12 +683,12 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'パスワードで保護されたPDFはサポートされていません',
         attachmentImageResized: 'この画像はプレビュー用にサイズが変更されています。フル解像度で表示するにはダウンロードしてください。',
         attachmentImageTooLarge: 'この画像はアップロード前にプレビューするには大きすぎます。',
-        tooManyFiles: (fileLimit: number) => `一度にアップロードできるファイルは${fileLimit}件までです。`,
+        tooManyFiles: (fileLimit: number) => `一度にアップロードできるファイルは最大 ${fileLimit} 件までです。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
         someFilesCantBeUploaded: '一部のファイルはアップロードできません',
         sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルは${maxUploadSizeInMB}MB未満である必要があります。これより大きいファイルはアップロードされません。`,
         maxFileLimitExceeded: '一度にアップロードできる領収書は最大30枚です。それを超えた分はアップロードされません。',
-        unsupportedFileType: (fileType: string) => `${fileType} ファイルはサポートされていません。サポートされているファイル形式のみアップロードされます。`,
+        unsupportedFileType: (fileType: string) => `${fileType} ファイルには対応していません。対応しているファイルタイプのみアップロードされます。`,
         learnMoreAboutSupportedFiles: 'サポートされている形式の詳細はこちらをご覧ください。',
         passwordProtected: 'パスワード保護されたPDFはサポートされていません。サポートされているファイルのみがアップロードされます。',
     },
@@ -971,10 +970,10 @@ const translations: TranslationDeepObject<typeof en> = {
         fileContainsHeader: 'ファイルには列ヘッダーが含まれています',
         column: (name: string) => `列 ${name}`,
         fieldNotMapped: (fieldName: string) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認して、もう一度お試しください。`,
-        singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）が複数の列に割り当てられています。内容を確認して、もう一度お試しください。`,
+        singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）が複数の列に割り当てられています。確認して、もう一度お試しください。`,
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に 1 つ以上の空の値が含まれています。確認して、もう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
-        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `${categories}件のカテゴリーが追加されました。` : 'カテゴリを1件追加しました。'),
+        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `${categories} 個のカテゴリーが追加されました。` : '1件のカテゴリが追加されました。'),
         importMembersSuccessfulDescription: (added: number, updated: number) => {
             if (!added && !updated) {
                 return 'メンバーは追加または更新されていません。';
@@ -987,9 +986,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `${added} 名のメンバーが追加されました。` : '1名のメンバーが追加されました。';
         },
-        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `${tags} 個のタグを追加しました。` : 'タグが 1 件追加されました。'),
+        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `${tags} 個のタグを追加しました。` : 'タグが1件追加されました。'),
         importMultiLevelTagsSuccessfulDescription: 'マルチレベルタグが追加されました。',
-        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `${rates}件の日当レートが追加されました。` : '1件の日当レートが追加されました。'),
+        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `${rates} 件の日当レートが追加されました。` : '1件の日当レートが追加されました。'),
         importFailedTitle: 'インポートに失敗しました',
         importFailedDescription: 'すべての項目が正しく入力されていることを確認して、もう一度お試しください。問題が解決しない場合は、Concierge までお問い合わせください。',
         importDescription: '下のインポートされた各列の横にあるドロップダウンをクリックして、スプレッドシートからマッピングするフィールドを選択してください。',
@@ -1232,7 +1231,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いはキャンセルされました`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} が銀行口座を追加しました。${amount} の支払いが行われました。`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}は支払済みにマークされました`,
+        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}支払い済みにマークしました`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}はウォレットで支払い済み`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}は<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>を通じてExpensifyで支払われました`,
@@ -4609,19 +4608,19 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'NetSuite 従業員のデフォルト',
                         description: 'Expensify にインポートされず、エクスポート時に適用されます',
-                        footerContent: (importField: string) =>
-                            `NetSuite で ${importField} を使用する場合、Expense Report または Journal Entry へエクスポートする際に、従業員レコードに設定されているデフォルトを適用します。`,
+                        footerContent: (importField: string) => `${startCase(importField)} の選択は、従業員のレポート上のすべての経費に適用されます。`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'タグ',
                         description: '明細行レベル',
-                        footerContent: (importField: string) => `${startCase(importField)} は、従業員のレポート上の各経費ごとに個別に選択できるようになります。`,
+                        footerContent: (importField: string) => `${startCase(importField)} の選択は、従業員のレポート上のすべての経費に適用されます。`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'レポート項目',
                         description: 'レポートレベル',
                         footerContent: (importField: string) => `${startCase(importField)} の選択は、従業員のレポート上のすべての経費に適用されます。`,
                     },
+                    footerContent: (importField: string) => `${startCase(importField)} の選択は、従業員のレポート上のすべての経費に適用されます。`,
                 },
             },
         },
@@ -6673,7 +6672,7 @@ ${reportName}
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} 未満`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''}より大きい`,
-                between: (greaterThan: string, lessThan: string) => `${greaterThan} から ${lessThan} まで`,
+                between: (greaterThan: string, lessThan: string) => `${greaterThan} と ${lessThan} の間`,
                 equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} と等しい`,
             },
             card: {
@@ -7205,6 +7204,7 @@ ${reportName}
         hold: 'この経費は保留になっています',
         resolvedDuplicates: '重複を解決しました',
         companyCardRequired: '法人カードでの購入が必須',
+        noRoute: '有効な住所を選択してください',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} は必須です`,

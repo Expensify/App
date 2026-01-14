@@ -255,7 +255,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Zoeken...',
         next: 'Volgende',
         previous: 'Vorige',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Ga terug',
         create: 'Maken',
         add: 'Toevoegen',
@@ -715,8 +714,8 @@ const translations: TranslationDeepObject<typeof en> = {
     composer: {
         noExtensionFoundForMimeType: 'Geen extensie gevonden voor mimetype',
         problemGettingImageYouPasted: 'Er is een probleem opgetreden bij het ophalen van de afbeelding die je hebt geplakt',
-        commentExceededMaxLength: (formattedMaxLength: string) => `De maximale lengte van opmerkingen is ${formattedMaxLength} tekens.`,
-        taskTitleExceededMaxLength: (formattedMaxLength: string) => `De maximale lengte van de taaknaam is ${formattedMaxLength} tekens.`,
+        commentExceededMaxLength: (formattedMaxLength: string) => `De maximale lengte van een opmerking is ${formattedMaxLength} tekens.`,
+        taskTitleExceededMaxLength: (formattedMaxLength: string) => `De maximale lengte van een taaknaam is ${formattedMaxLength} tekens.`,
     },
     baseUpdateAppModal: {
         updateApp: 'App bijwerken',
@@ -971,11 +970,11 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseSpreadsheetMultiLevelTag: `<muted-link>Selecteer een spreadsheetbestand om te importeren. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Meer informatie</a> over ondersteunde bestandsindelingen.</muted-link>`,
         fileContainsHeader: 'Bestand bevat kolomkoppen',
         column: (name: string) => `Kolom ${name}`,
-        fieldNotMapped: (fieldName: string) => `Oeps! Een verplicht veld ("${fieldName}") is niet toegewezen. Controleer dit en probeer het opnieuw.`,
-        singleFieldMultipleColumns: (fieldName: string) => `Oeps! Je hebt één veld ("${fieldName}") aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
-        emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
+        fieldNotMapped: (fieldName: string) => `Oeps! Een verplicht veld (“${fieldName}”) is niet toegewezen. Controleer het en probeer het opnieuw.`,
+        singleFieldMultipleColumns: (fieldName: string) => `Oeps! Je hebt één veld (‘${fieldName}’) toegewezen aan meerdere kolommen. Controleer dit en probeer het opnieuw.`,
+        emptyMappedField: (fieldName: string) => `Oeps! Het veld ("${fieldName}") bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import succesvol',
-        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `Er zijn ${categories} categorieën toegevoegd.` : '1 categorie is toegevoegd.'),
+        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `${categories} categorieën zijn toegevoegd.` : '1 categorie is toegevoegd.'),
         importMembersSuccessfulDescription: (added: number, updated: number) => {
             if (!added && !updated) {
                 return 'Er zijn geen leden toegevoegd of bijgewerkt.';
@@ -988,7 +987,7 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `${added} leden zijn toegevoegd.` : '1 lid is toegevoegd.';
         },
-        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `Er zijn ${tags} tags toegevoegd.` : '1 tag is toegevoegd.'),
+        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `${tags} tags zijn toegevoegd.` : '1 tag is toegevoegd.'),
         importMultiLevelTagsSuccessfulDescription: 'Tags op meerdere niveaus zijn toegevoegd.',
         importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `${rates} dagvergoedingen zijn toegevoegd.` : '1 dagvergoedingstarief is toegevoegd.'),
         importFailedTitle: 'Import mislukt',
@@ -2314,7 +2313,7 @@ ${amount} voor ${merchant} - ${date}`,
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Overboeking${amount ? ` ${amount}` : ''}`,
         instant: 'Direct (debitkaart)',
-        instantSummary: (rate: string, minAmount: string) => `${rate}% vergoeding (${minAmount} minimum)`,
+        instantSummary: (rate: string, minAmount: string) => `${rate}% kosten (${minAmount} minimum)`,
         ach: '1-3 werkdagen (bankrekening)',
         achSummary: 'Geen kosten',
         whichAccount: 'Welk account?',
@@ -2846,7 +2845,7 @@ ${
             dateShouldBeBefore: (dateString: string) => `Datum moet vóór ${dateString} zijn`,
             dateShouldBeAfter: (dateString: string) => `Datum moet na ${dateString} zijn`,
             hasInvalidCharacter: 'Naam mag alleen Latijnse tekens bevatten',
-            incorrectZipFormat: (zipFormat?: string) => `Ongeldig postcodeformaat${zipFormat ? `Acceptabel formaat: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Onjuist formaat postcode${zipFormat ? `Acceptabel formaat: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Zorg ervoor dat het telefoonnummer geldig is (bijv. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
@@ -3600,7 +3599,7 @@ ${
         flight: 'Vlucht',
         flightDetails: {
             passenger: 'Passagier',
-            layover: (layover: string) => `<muted-text-label>Je hebt een <strong>${layover} tussenstop</strong> vóór deze vlucht</muted-text-label>`,
+            layover: (layover: string) => `<muted-text-label>Je hebt een <strong>${layover} tussenstop</strong> voor deze vlucht</muted-text-label>`,
             takeOff: 'Vertrek',
             landing: 'Landingspagina',
             seat: 'Licentie',
@@ -4630,19 +4629,19 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'Standaard NetSuite-medewerker',
                         description: 'Niet in Expensify geïmporteerd, toegepast bij export',
-                        footerContent: (importField: string) =>
-                            `Als je ${importField} in NetSuite gebruikt, passen we de standaardwaarde die is ingesteld op de werknemerskaart toe bij het exporteren naar Expense Report of Journal Entry.`,
+                        footerContent: (importField: string) => `${startCase(importField)}-selectie wordt toegepast op alle uitgaven op het rapport van een werknemer.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Labels',
                         description: 'Niveau van regelitems',
-                        footerContent: (importField: string) => `${startCase(importField)} zal selecteerbaar zijn voor elke afzonderlijke onkost in het rapport van een werknemer.`,
+                        footerContent: (importField: string) => `${startCase(importField)}-selectie wordt toegepast op alle uitgaven op het rapport van een werknemer.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Rapportvelden',
                         description: 'Rapportniveau',
-                        footerContent: (importField: string) => `${startCase(importField)}-selectie is van toepassing op alle onkosten op het rapport van een werknemer.`,
+                        footerContent: (importField: string) => `${startCase(importField)}-selectie wordt toegepast op alle uitgaven op het rapport van een werknemer.`,
                     },
+                    footerContent: (importField: string) => `${startCase(importField)}-selectie wordt toegepast op alle uitgaven op het rapport van een werknemer.`,
                 },
             },
         },
@@ -7248,6 +7247,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         hold: 'Deze uitgave is in de wacht gezet',
         resolvedDuplicates: 'het duplicaat opgelost',
         companyCardRequired: 'Aankopen met bedrijfskaart verplicht',
+        noRoute: 'Selecteer een geldig adres',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is verplicht`,

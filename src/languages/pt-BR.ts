@@ -255,7 +255,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Pesquisar...',
         next: 'Próximo',
         previous: 'Anterior',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Voltar',
         create: 'Criar',
         add: 'Adicionar',
@@ -689,7 +688,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someFilesCantBeUploaded: 'Alguns arquivos não podem ser enviados',
         sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Os arquivos devem ter menos de ${maxUploadSizeInMB} MB. Arquivos maiores não serão carregados.`,
         maxFileLimitExceeded: 'Você pode enviar até 30 recibos por vez. Quaisquer extras não serão enviados.',
-        unsupportedFileType: (fileType: string) => `Arquivos ${fileType} não são compatíveis. Somente tipos de arquivo compatíveis serão enviados.`,
+        unsupportedFileType: (fileType: string) => `Arquivos ${fileType} não são compatíveis. Apenas os tipos de arquivo compatíveis serão enviados.`,
         learnMoreAboutSupportedFiles: 'Saiba mais sobre os formatos compatíveis.',
         passwordProtected: 'PDFs protegidos por senha não são compatíveis. Somente arquivos compatíveis serão enviados.',
     },
@@ -971,8 +970,8 @@ const translations: TranslationDeepObject<typeof en> = {
         fileContainsHeader: 'Arquivo contém cabeçalhos de coluna',
         column: (name: string) => `Coluna ${name}`,
         fieldNotMapped: (fieldName: string) => `Ops! Um campo obrigatório ("${fieldName}") não foi mapeado. Revise e tente novamente.`,
-        singleFieldMultipleColumns: (fieldName: string) => `Opa! Você associou um único campo ("${fieldName}") a várias colunas. Revise e tente novamente.`,
-        emptyMappedField: (fieldName: string) => `Opa! O campo ("${fieldName}") contém um ou mais valores vazios. Verifique e tente novamente.`,
+        singleFieldMultipleColumns: (fieldName: string) => `Ops! Você mapeou um único campo ("${fieldName}") para várias colunas. Revise e tente novamente.`,
+        emptyMappedField: (fieldName: string) => `Ops! O campo ("${fieldName}") contém um ou mais valores vazios. Revise e tente novamente.`,
         importSuccessfulTitle: 'Importação bem-sucedida',
         importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `${categories} categorias foram adicionadas.` : '1 categoria foi adicionada.'),
         importMembersSuccessfulDescription: (added: number, updated: number) => {
@@ -989,7 +988,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `${tags} tags foram adicionadas.` : '1 tag foi adicionada.'),
         importMultiLevelTagsSuccessfulDescription: 'Tags em vários níveis foram adicionadas.',
-        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `Foram adicionadas taxas diárias de ${rates}.` : '1 taxa de diária foi adicionada.'),
+        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `${rates} valores de diária foram adicionados.` : '1 taxa de diária foi adicionada.'),
         importFailedTitle: 'Falha na importação',
         importFailedDescription: 'Verifique se todos os campos foram preenchidos corretamente e tente novamente. Se o problema persistir, entre em contato com a Concierge.',
         importDescription: 'Escolha quais campos mapear da sua planilha clicando no menu suspenso ao lado de cada coluna importada abaixo.',
@@ -4621,19 +4620,19 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'Padrão de funcionário NetSuite',
                         description: 'Não importado para o Expensify, aplicado na exportação',
-                        footerContent: (importField: string) =>
-                            `Se você usar ${importField} no NetSuite, aplicaremos o padrão definido no registro do funcionário ao exportar para Expense Report ou Journal Entry.`,
+                        footerContent: (importField: string) => `A seleção ${startCase(importField)} será aplicada a todas as despesas no relatório de um funcionário.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Tags',
                         description: 'Nível de item de linha',
-                        footerContent: (importField: string) => `${startCase(importField)} estará disponível para seleção em cada despesa individual no relatório de um funcionário.`,
+                        footerContent: (importField: string) => `A seleção ${startCase(importField)} será aplicada a todas as despesas no relatório de um funcionário.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Campos de relatório',
                         description: 'Nível de relatório',
-                        footerContent: (importField: string) => `A seleção de ${startCase(importField)} será aplicada a todas as despesas no relatório de um funcionário.`,
+                        footerContent: (importField: string) => `A seleção ${startCase(importField)} será aplicada a todas as despesas no relatório de um funcionário.`,
                     },
+                    footerContent: (importField: string) => `A seleção ${startCase(importField)} será aplicada a todas as despesas no relatório de um funcionário.`,
                 },
             },
         },
@@ -4709,7 +4708,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 commercialFeedPlaidDetails: `Requer configuração com o seu banco, mas vamos orientar você. Isso geralmente é limitado a empresas maiores.`,
                 directFeedDetails: 'A abordagem mais simples. Conecte-se imediatamente usando suas credenciais principais. Esse método é o mais comum.',
                 enableFeed: {
-                    title: (provider: string) => `Ative seu feed ${provider}`,
+                    title: (provider: string) => `Ative seu feed do ${provider}`,
                     heading:
                         'Temos uma integração direta com o emissor do seu cartão e podemos importar seus dados de transação para o Expensify de forma rápida e precisa.\n\nPara começar, simplesmente:',
                     visa: 'Temos integrações globais com a Visa, embora a elegibilidade varie de acordo com o banco e o programa do cartão.\n\nPara começar, basta:',
@@ -7240,6 +7239,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         hold: 'Esta despesa foi colocada em espera',
         resolvedDuplicates: 'duplicata resolvida',
         companyCardRequired: 'Compras com cartão da empresa obrigatórias',
+        noRoute: 'Selecione um endereço válido',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,
