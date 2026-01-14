@@ -5,7 +5,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -15,11 +14,13 @@ import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -84,7 +85,6 @@ function WalletPage() {
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
-    const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
     const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
@@ -219,7 +219,6 @@ function WalletPage() {
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-        setShowConfirmDeleteModal(false);
         resetSelectedPaymentMethodData();
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
@@ -311,6 +310,23 @@ function WalletPage() {
         [paymentMethod.formattedSelectedPaymentMethod, styles.mb4, styles.ph5, styles.pt3],
     );
 
+    const {showConfirmModal} = useConfirmModal();
+    const showDeleteAccountModal = useCallback(async () => {
+        const result = await showConfirmModal({
+            title: translate('walletPage.deleteAccount'),
+            prompt: translate('walletPage.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+        resetSelectedPaymentMethodData();
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deletePaymentMethod();
+    }, [showConfirmModal, translate, resetSelectedPaymentMethodData, deletePaymentMethod]);
+
     const threeDotMenuItems = useMemo(
         () => [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
@@ -368,7 +384,9 @@ function WalletPage() {
                         closeModal(() => showLockedAccountModal());
                         return;
                     }
-                    closeModal(() => setShowConfirmDeleteModal(true));
+                    closeModal(() => {
+                        showDeleteAccountModal();
+                    });
                 },
             },
             ...(shouldShowEnableGlobalReimbursementsButton
@@ -405,6 +423,7 @@ function WalletPage() {
             makeDefaultPaymentMethod,
             showLockedAccountModal,
             paymentMethod.selectedPaymentMethod.bankAccountID,
+            showDeleteAccountModal,
         ],
     );
 
@@ -633,18 +652,6 @@ function WalletPage() {
                     </OfflineWithFeedback>
                 </View>
             </ScrollView>
-            <ConfirmModal
-                isVisible={showConfirmDeleteModal}
-                onConfirm={deletePaymentMethod}
-                onCancel={() => setShowConfirmDeleteModal(false)}
-                title={translate('walletPage.deleteAccount')}
-                prompt={translate('walletPage.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-                onModalHide={resetSelectedPaymentMethodData}
-            />
         </ScreenWrapper>
     );
 }
