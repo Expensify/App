@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -58,79 +58,60 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
-    const submitterEmailSelector = useCallback(
-        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login,
-        [report?.ownerAccountID],
-    );
-    const [submitterEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false, selector: submitterEmailSelector}, [submitterEmailSelector]);
+    const submitterEmailSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login;
+    const [submitterEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false, selector: submitterEmailSelector}, [report?.ownerAccountID]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
-    const selectPolicy = useCallback(
-        (policyID?: string) => {
-            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            if (!policyID || !policy) {
-                return;
+    const selectPolicy = (policyID?: string) => {
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        if (!policyID || !policy) {
+            return;
+        }
+        if (shouldRestrictUserBillableActions(policy.id)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+        const {backTo} = route.params;
+        Navigation.goBack(backTo);
+        if (isIOUReport(reportID)) {
+            const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy, formatPhoneNumber);
+            if (!invite?.policyExpenseChatReportID) {
+                moveIOUReportToPolicy(reportID, policy);
             }
-            if (shouldRestrictUserBillableActions(policy.id)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                return;
-            }
-            const {backTo} = route.params;
-            Navigation.goBack(backTo);
-            if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy, formatPhoneNumber);
-                if (!invite?.policyExpenseChatReportID) {
-                    moveIOUReportToPolicy(reportID, policy);
-                }
-                // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-            } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
-                const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter(
-                    report,
-                    policy,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    hasViolations,
-                    isChangePolicyTrainingModalDismissed,
-                    isASAPSubmitBetaEnabled,
-                    employeeList,
-                    formatPhoneNumber,
-                    isReportLastVisibleArchived,
-                );
-            } else {
-                changeReportPolicy(
-                    report,
-                    policy,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    hasViolations,
-                    isChangePolicyTrainingModalDismissed,
-                    isASAPSubmitBetaEnabled,
-                    reportNextStep,
-                    isReportLastVisibleArchived,
-                );
-            }
-        },
-        [
-            policies,
-            route.params,
-            reportID,
-            report,
-            formatPhoneNumber,
-            isReportLastVisibleArchived,
-            session?.accountID,
-            session?.email,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            reportNextStep,
-            isChangePolicyTrainingModalDismissed,
-        ],
-    );
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+        } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
+            const employeeList = policy?.employeeList;
+            changeReportPolicyAndInviteSubmitter(
+                report,
+                policy,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
+                hasViolations,
+                isChangePolicyTrainingModalDismissed,
+                isASAPSubmitBetaEnabled,
+                employeeList,
+                formatPhoneNumber,
+                isReportLastVisibleArchived,
+            );
+        } else {
+            changeReportPolicy(
+                report,
+                policy,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
+                hasViolations,
+                isChangePolicyTrainingModalDismissed,
+                isASAPSubmitBetaEnabled,
+                reportNextStep,
+                isReportLastVisibleArchived,
+            );
+        }
+    };
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
@@ -149,15 +130,12 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         },
     });
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: shouldShowSearchInput ? translate('common.search') : undefined,
-            value: searchTerm,
-            onChangeText: setSearchTerm,
-            headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
-        }),
-        [searchTerm, setSearchTerm, shouldShowNoResultsFoundMessage, shouldShowSearchInput, translate],
-    );
+    const textInputOptions = {
+        label: shouldShowSearchInput ? translate('common.search') : undefined,
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
+    };
 
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
         return <NotFoundPage />;

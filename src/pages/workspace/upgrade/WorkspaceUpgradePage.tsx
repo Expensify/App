@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -58,30 +58,26 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
-    const feature = useMemo(
-        () =>
-            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-                .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-                .find((f) => f.alias === featureNameAlias),
-        [featureNameAlias],
-    );
+    const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+        .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
+        .find((f) => f.alias === featureNameAlias);
     const {translate} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
-    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
+    const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
+    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID}, [accountID]);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
-    const canPerformUpgrade = useMemo(() => canModifyPlan(ownerPolicies, policy), [ownerPolicies, policy]);
-    const isUpgraded = useMemo(() => isControlPolicy(policy), [policy]);
+    const canPerformUpgrade = canModifyPlan(ownerPolicies, policy);
+    const isUpgraded = isControlPolicy(policy);
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const categoryId = route.params?.categoryId;
 
     const defaultApprover = getDefaultApprover(policy);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
             Navigation.dismissModal();
             return;
@@ -115,7 +111,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
-    }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
+    };
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
@@ -125,7 +121,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         upgradeToCorporate(policy.id, feature?.name);
     };
 
-    const confirmUpgrade = useCallback(() => {
+    const confirmUpgrade = () => {
         if (!policyID) {
             return;
         }
@@ -187,31 +183,16 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             default:
         }
-    }, [
-        categoryId,
-        feature,
-        perDiemCustomUnit?.customUnitID,
-        policy?.connections?.xero?.config,
-        policy?.connections?.xero?.data,
-        policyID,
-        qboConfig?.syncClasses,
-        qboConfig?.syncCustomers,
-        qboConfig?.syncLocations,
-        route.params?.featureName,
-        featureNameAlias,
-        defaultApprover,
-    ]);
+    };
 
-    useFocusEffect(
-        useCallback(() => {
-            return () => {
-                if (!isUpgraded || !canPerformUpgrade) {
-                    return;
-                }
-                confirmUpgrade();
-            };
-        }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
-    );
+    useFocusEffect(() => {
+        return () => {
+            if (!isUpgraded || !canPerformUpgrade) {
+                return;
+            }
+            confirmUpgrade();
+        };
+    });
 
     if (!canPerformUpgrade) {
         return <NotFoundPage />;

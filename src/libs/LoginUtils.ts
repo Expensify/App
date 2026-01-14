@@ -115,6 +115,18 @@ function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
     return parsedPhoneNumber.number?.e164;
 }
 
+/**
+ * Format a login string by removing SMS domain if applicable
+ * @param login - The login string to format
+ * @returns The formatted login string, or empty string if no login provided
+ */
+function normalizeLogin(login: string | undefined): string {
+    if (!login) {
+        return '';
+    }
+    return Str.isSMSLogin(login) ? Str.removeSMSDomain(login) : login;
+}
+
 export {
     getPhoneNumberWithoutSpecialChars,
     appendCountryCode,
@@ -127,4 +139,5 @@ export {
     formatE164PhoneNumber,
     getEmailDomain,
     isDomainPublic,
+    normalizeLogin,
 };

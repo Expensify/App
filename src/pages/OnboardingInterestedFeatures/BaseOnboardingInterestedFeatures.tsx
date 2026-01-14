@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -59,92 +59,75 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [width, setWidth] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
 
-    const features: Feature[] = useMemo(() => {
-        return [
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
-                title: translate('workspace.moreFeatures.categories.title'),
-                icon: illustrations.FolderOpen,
-                enabledByDefault: true,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
-                title: translate('workspace.moreFeatures.connections.title'),
-                icon: illustrations.Accounting,
-                enabledByDefault: !!userReportedIntegration,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
-                title: translate('workspace.moreFeatures.companyCards.title'),
-                icon: illustrations.CompanyCard,
-                enabledByDefault: true,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
-                title: translate('workspace.moreFeatures.workflows.title'),
-                icon: illustrations.Workflows,
-                enabledByDefault: true,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
-                title: translate('workspace.moreFeatures.travel.title'),
-                icon: illustrations.Luggage,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
-                title: translate('workspace.moreFeatures.rules.title'),
-                icon: illustrations.Rules,
-                requiresUpdate: true,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
-                title: translate('workspace.moreFeatures.distanceRates.title'),
-                icon: illustrations.Car,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
-                title: translate('workspace.moreFeatures.expensifyCard.title'),
-                icon: illustrations.HandCard,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
-                title: translate('workspace.moreFeatures.tags.title'),
-                icon: illustrations.Tag,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
-                title: translate('workspace.moreFeatures.perDiem.title'),
-                icon: illustrations.PerDiem,
-                requiresUpdate: true,
-            },
-        ];
-    }, [
-        illustrations.FolderOpen,
-        illustrations.Accounting,
-        illustrations.CompanyCard,
-        illustrations.Workflows,
-        illustrations.Rules,
-        illustrations.Car,
-        illustrations.HandCard,
-        illustrations.Tag,
-        illustrations.PerDiem,
-        illustrations.Luggage,
-        translate,
-        userReportedIntegration,
-    ]);
+    const features: Feature[] = [
+        {
+            id: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+            title: translate('workspace.moreFeatures.categories.title'),
+            icon: illustrations.FolderOpen,
+            enabledByDefault: true,
+        },
+        {
+            id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+            title: translate('workspace.moreFeatures.connections.title'),
+            icon: illustrations.Accounting,
+            enabledByDefault: !!userReportedIntegration,
+        },
+        {
+            id: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
+            title: translate('workspace.moreFeatures.companyCards.title'),
+            icon: illustrations.CompanyCard,
+            enabledByDefault: true,
+        },
+        {
+            id: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
+            title: translate('workspace.moreFeatures.workflows.title'),
+            icon: illustrations.Workflows,
+            enabledByDefault: true,
+        },
+        {
+            id: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
+            title: translate('workspace.moreFeatures.travel.title'),
+            icon: illustrations.Luggage,
+        },
+        {
+            id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+            title: translate('workspace.moreFeatures.rules.title'),
+            icon: illustrations.Rules,
+            requiresUpdate: true,
+        },
+        {
+            id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+            title: translate('workspace.moreFeatures.distanceRates.title'),
+            icon: illustrations.Car,
+        },
+        {
+            id: CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
+            title: translate('workspace.moreFeatures.expensifyCard.title'),
+            icon: illustrations.HandCard,
+        },
+        {
+            id: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
+            title: translate('workspace.moreFeatures.tags.title'),
+            icon: illustrations.Tag,
+        },
+        {
+            id: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+            title: translate('workspace.moreFeatures.perDiem.title'),
+            icon: illustrations.PerDiem,
+            requiresUpdate: true,
+        },
+    ];
 
     const [userToggledFeatures, setUserToggledFeatures] = useState<Set<string>>(new Set());
 
-    const selectedFeatures = useMemo(() => {
-        return features
-            .filter((feature) => {
-                if (userToggledFeatures.has(feature.id)) {
-                    return !feature.enabledByDefault;
-                }
-                return feature.enabledByDefault;
-            })
-            .map((feature) => feature.id);
-    }, [features, userToggledFeatures]);
+    const selectedFeatures = features
+        .filter((feature) => {
+            if (userToggledFeatures.has(feature.id)) {
+                return !feature.enabledByDefault;
+            }
+            return feature.enabledByDefault;
+        })
+        .map((feature) => feature.id);
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
@@ -155,7 +138,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
 
-    const handleContinue = useCallback(async () => {
+    const handleContinue = async () => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
             return;
         }
@@ -234,27 +217,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         } finally {
             setIsLoading(false);
         }
-    }, [
-        isBetaEnabled,
-        isSmallScreenWidth,
-        onboardingAdminsChatReportID,
-        onboardingCompanySize,
-        onboardingMessages,
-        onboardingPolicyID,
-        onboardingPurposeSelected,
-        paidGroupPolicy,
-        session?.email,
-        userReportedIntegration,
-        features,
-        selectedFeatures,
-        currentUserPersonalDetails?.firstName,
-        currentUserPersonalDetails?.lastName,
-        currentUserPersonalDetails?.localCurrencyCode,
-        activePolicyID,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.email,
-        introSelected,
-    ]);
+    };
 
     // Create items for enabled features
     const enabledFeatures: Feature[] = features
@@ -282,7 +245,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         },
     ];
 
-    const handleFeatureSelect = useCallback((featureId: string) => {
+    const handleFeatureSelect = (featureId: string) => {
         setUserToggledFeatures((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(featureId)) {
@@ -292,58 +255,52 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             }
             return newSet;
         });
-    }, []);
+    };
 
     const gap = styles.gap3.gap;
 
-    const renderItem = useCallback(
-        (item: Feature) => {
-            const isSelected = selectedFeatures.includes(item.id);
-            return (
-                <PressableWithoutFeedback
-                    key={item.id}
+    const renderItem = (item: Feature) => {
+        const isSelected = selectedFeatures.includes(item.id);
+        return (
+            <PressableWithoutFeedback
+                key={item.id}
+                onPress={() => {
+                    handleFeatureSelect(item.id);
+                }}
+                accessibilityLabel={item.title}
+                accessible={false}
+                hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
+                style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}, isSelected && styles.activeComponentBG]}
+            >
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <Icon
+                        src={item.icon}
+                        width={48}
+                        height={48}
+                    />
+                    <Text style={[styles.textStrong]}>{item.title}</Text>
+                </View>
+                <Checkbox
+                    accessibilityLabel={item.title}
+                    isChecked={isSelected}
                     onPress={() => {
                         handleFeatureSelect(item.id);
                     }}
-                    accessibilityLabel={item.title}
-                    accessible={false}
-                    hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}, isSelected && styles.activeComponentBG]}
-                >
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                        <Icon
-                            src={item.icon}
-                            width={48}
-                            height={48}
-                        />
-                        <Text style={[styles.textStrong]}>{item.title}</Text>
-                    </View>
-                    <Checkbox
-                        accessibilityLabel={item.title}
-                        isChecked={isSelected}
-                        onPress={() => {
-                            handleFeatureSelect(item.id);
-                        }}
-                    />
-                </PressableWithoutFeedback>
-            );
-        },
-        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect, width, gap],
-    );
+                />
+            </PressableWithoutFeedback>
+        );
+    };
 
-    const renderSection = useCallback(
-        (section: SectionObject) => (
-            <Section
-                key={section.titleTranslationKey}
-                containerStyles={[styles.p0, styles.mh0, styles.bgTransparent, styles.noBorderRadius]}
-                childrenStyles={[styles.flexRow, styles.flexWrap, styles.gap3]}
-                renderTitle={() => <Text style={[styles.mutedNormalTextLabel, styles.mb3]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>}
-                subtitleMuted
-            >
-                {section.items.map(renderItem)}
-            </Section>
-        ),
-        [styles, renderItem, translate],
+    const renderSection = (section: SectionObject) => (
+        <Section
+            key={section.titleTranslationKey}
+            containerStyles={[styles.p0, styles.mh0, styles.bgTransparent, styles.noBorderRadius]}
+            childrenStyles={[styles.flexRow, styles.flexWrap, styles.gap3]}
+            renderTitle={() => <Text style={[styles.mutedNormalTextLabel, styles.mb3]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>}
+            subtitleMuted
+        >
+            {section.items.map(renderItem)}
+        </Section>
     );
 
     return (

@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -76,7 +76,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
-    const validate = useCallback(() => {
+    const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
@@ -93,9 +93,9 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
+    };
 
-    const importRates = useCallback(() => {
+    const importRates = () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0 || !perDiemCustomUnit?.customUnitID) {
@@ -124,7 +124,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             setIsImportingPerDiemRates(true);
             importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
         }
-    }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policyID, perDiemCustomUnit?.customUnitID]);
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
