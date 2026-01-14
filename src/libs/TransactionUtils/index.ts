@@ -13,7 +13,7 @@ import type {TransactionWithOptionalSearchFields} from '@components/TransactionI
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -657,9 +657,16 @@ function getUpdatedTransaction({
             const distanceInMeters = getDistanceInMeters(transaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
-                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                distanceInMeters,
+                unit,
+                rate,
+                transaction.currency,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                translateLocal,
+                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                getCurrencySymbol,
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -698,9 +705,16 @@ function getUpdatedTransaction({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
-                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                distanceInMeters,
+                unit,
+                rate,
+                updatedCurrency,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                translateLocal,
+                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                getCurrencySymbol,
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -772,8 +786,15 @@ function getUpdatedTransaction({
         amount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
         const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
-            toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
+            true,
+            distanceInMeters,
+            unit,
+            rate,
+            updatedCurrency,
+            translateLocal,
+            (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+            getCurrencySymbol,
         );
 
         updatedTransaction.modifiedAmount = amount;
@@ -1023,9 +1044,16 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
             // If modifiedMerchant is empty but modifiedCurrency exists, recalculate the merchant
             (!transaction?.modifiedMerchant && transaction?.modifiedCurrency)
         ) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, getCurrency(transaction), translateLocal, (digit) =>
-                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+            return DistanceRequestUtils.getDistanceMerchant(
+                true,
+                distanceInMeters,
+                unit,
+                rate,
+                getCurrency(transaction),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                translateLocal,
+                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                getCurrencySymbol,
             );
         }
     }
