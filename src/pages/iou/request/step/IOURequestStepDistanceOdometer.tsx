@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -46,6 +46,11 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type Transaction from '@src/types/onyx/Transaction';
+import useStyleUtils from '@hooks/useStyleUtils';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ReceiptImage from '@components/ReceiptImage';
+import variables from '@styles/variables';
+import {Gallery} from '@components/Icon/Expensicons';
 import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -69,6 +74,7 @@ function IOURequestStepDistanceOdometer({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const isFocused = useIsFocused();
 
@@ -91,6 +97,8 @@ function IOURequestStepDistanceOdometer({
     // Track local state via refs to avoid including them in useEffect dependencies
     const startReadingRef = useRef<string>('');
     const endReadingRef = useRef<string>('');
+    const initialStartImageRef = useRef<File | string | undefined>(undefined);
+    const initialEndImageRef = useRef<File | string | undefined>(undefined);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
@@ -125,6 +133,11 @@ function IOURequestStepDistanceOdometer({
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
+
+    // Get odometer images from transaction (only for display, not for initialization)
+    const odometerStartImage = transaction?.comment?.odometerStartImage;
+    const odometerEndImage = transaction?.comment?.odometerEndImage;
+
 
     // Reset component state when transaction has no odometer data (happens when switching tabs)
     // In Phase 1, we don't persist data from transaction since users can't save and exit
@@ -162,6 +175,8 @@ function IOURequestStepDistanceOdometer({
             endReadingRef.current = '';
             initialStartReadingRef.current = '';
             initialEndReadingRef.current = '';
+            initialStartImageRef.current = undefined;
+            initialEndImageRef.current = undefined;
             setFormError('');
             // Force TextInput remount to reset label position
             setInputKey((prev) => prev + 1);
@@ -184,8 +199,10 @@ function IOURequestStepDistanceOdometer({
         const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
+        initialStartImageRef.current = transaction?.comment?.odometerStartImage;
+        initialEndImageRef.current = transaction?.comment?.odometerEndImage;
         hasInitializedRefs.current = true;
-    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
+    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage]);
 
     // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
     // This updates the current state, but NOT the initial refs (those are set only once on mount)
@@ -228,6 +245,29 @@ function IOURequestStepDistanceOdometer({
         // Show 0 if distance is negative
         return distance <= 0 ? 0 : distance;
     })();
+
+    // Get image source for web (blob URL) or native (URI string)
+    const getImageSource = useCallback((image: File | string | {uri?: string} | undefined): string | undefined => {
+        if (!image) {
+            return undefined;
+        }
+        // Web: File object, create blob URL
+        if (typeof image !== 'string' && image instanceof File) {
+            return URL.createObjectURL(image);
+        }
+        // Native: URI string, use directly
+        if (typeof image === 'string') {
+            return image;
+        }
+        // Native: Object with uri property (fallback for compatibility)
+        if (typeof image === 'object' && 'uri' in image && typeof image.uri === 'string') {
+            return image.uri;
+        }
+        return undefined;
+    }, []);
+
+    const startImageSource = getImageSource(odometerStartImage);
+    const endImageSource = getImageSource(odometerEndImage);
 
     const buttonText = (() => {
         if (shouldSkipConfirmation) {
@@ -272,6 +312,24 @@ function IOURequestStepDistanceOdometer({
             setFormError('');
         }
     };
+
+    const handleCaptureImage = useCallback(
+        (imageType: 'start' | 'end') => {
+            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(transactionID, imageType));
+        },
+        [transactionID],
+    );
+
+    const handleViewOdometerImage = useCallback(
+        (imageType: 'start' | 'end') => {
+            if (!reportID || !transactionID) {
+                return;
+            }
+            // Navigate to receipt modal with imageType parameter
+            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, false, undefined, imageType));
+        },
+        [reportID, transactionID],
+    );
 
     // Navigate to confirmation page helper - following Manual tab pattern
     const navigateToConfirmationPage = () => {
@@ -515,6 +573,36 @@ function IOURequestStepDistanceOdometer({
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
                         </View>
+                        <PressableWithFeedback
+                            accessible={false}
+                            accessibilityRole="button"
+                            onPress={() => {
+                                if (odometerStartImage) {
+                                    handleViewOdometerImage('start');
+                                } else {
+                                    handleCaptureImage('start');
+                                }
+                            }}
+                            style={[
+                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                styles.overflowHidden,
+                                StyleUtils.getBackgroundColorStyle(theme.border),
+                            ]}
+                        >
+                            <ReceiptImage
+                                source={startImageSource ?? ''}
+                                shouldUseThumbnailImage
+                                thumbnailContainerStyles={styles.bgTransparent}
+                                isAuthTokenRequired
+                                fallbackIcon={Gallery}
+                                fallbackIconSize={20}
+                                fallbackIconColor={theme.icon}
+                                iconSize="x-small"
+                                loadingIconSize="small"
+                                shouldUseInitialObjectPosition
+                            />
+                        </PressableWithFeedback>
                     </View>
                     {/* End Reading */}
                     <View style={[styles.mb6, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
@@ -530,6 +618,36 @@ function IOURequestStepDistanceOdometer({
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
                         </View>
+                        <PressableWithFeedback
+                            accessible={false}
+                            accessibilityRole="button"
+                            onPress={() => {
+                                if (odometerEndImage) {
+                                    handleViewOdometerImage('end');
+                                } else {
+                                    handleCaptureImage('end');
+                                }
+                            }}
+                            style={[
+                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                styles.overflowHidden,
+                                StyleUtils.getBackgroundColorStyle(theme.border),
+                            ]}
+                        >
+                            <ReceiptImage
+                                source={endImageSource ?? ''}
+                                shouldUseThumbnailImage
+                                thumbnailContainerStyles={styles.bgTransparent}
+                                isAuthTokenRequired
+                                fallbackIcon={Gallery}
+                                fallbackIconSize={20}
+                                fallbackIconColor={theme.icon}
+                                iconSize="x-small"
+                                loadingIconSize="small"
+                                shouldUseInitialObjectPosition
+                            />
+                        </PressableWithFeedback>
                     </View>
 
                     {/* Total Distance Display - always shown, updated live */}
