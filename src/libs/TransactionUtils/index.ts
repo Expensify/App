@@ -118,6 +118,10 @@ type TransactionParams = {
     odometerStart?: number;
     odometerEnd?: number;
     routes?: Routes;
+    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
+    count?: number;
+    rate?: number;
+    unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -239,6 +243,12 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
     return transaction?.comment?.type === CONST.TRANSACTION.TYPE.TIME;
 }
 
@@ -264,6 +274,9 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     }
     if (isPerDiemRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    }
+    if (isTimeRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.TIME;
     }
 
     return CONST.IOU.REQUEST_TYPE.MANUAL;
@@ -397,6 +410,10 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         odometerStart,
         odometerEnd,
         routes,
+        type,
+        count,
+        rate,
+        unit,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -448,6 +465,15 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     if (isPerDiemTransaction) {
         // Set the custom unit, which comes from the policy per diem rate data
         lodashSet(commentJSON, 'customUnit', customUnit);
+    }
+
+    if (type === CONST.TRANSACTION.TYPE.TIME) {
+        commentJSON.units = {
+            count,
+            rate,
+            unit,
+        };
+        commentJSON.type = type;
     }
 
     return {
