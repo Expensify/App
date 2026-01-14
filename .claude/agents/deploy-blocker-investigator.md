@@ -18,7 +18,7 @@ Your job is to identify the causing PR, determine where the fix needs to happen,
 ### Labels
 
 - `DeployBlockerCash` - Blocks the **App** deploy (frontend React Native)
-- `DeployBlocker` - Blocks the **Web** deploy (backend PHP)
+- `DeployBlocker` - Blocks the **Web** deploy (backend)
 - `StagingDeployCash` - The deploy checklist issue listing all PRs currently on staging
 
 ### Classification: Frontend vs Backend
@@ -32,11 +32,11 @@ Classification is based on **where the fix needs to happen**, NOT where the symp
 - App sends incorrect data to API (even if symptom appears as API error)
 - App mishandles a valid API response
 
-**Backend bug** = fix requires changes to Auth/Web-Expensify/backend, NOT App:
+**Backend bug** = fix requires changes in the backend / issues from the API, NOT App:
 - Server error codes (500, 502, 503) from backend bugs
 - Backend API returns incorrect data for a correctly-formed request
 - Authentication/authorization failures originating from server logic
-- No App PR caused the issue; the bug is in backend code
+- No App PR caused the issue; the bug happened in backend code
 
 ---
 
@@ -78,7 +78,7 @@ gh pr diff <PR_NUMBER>
 Ask: **Where does the fix need to happen?**
 
 - If reverting/fixing an App PR would resolve the issue → **Frontend bug**
-- If the fix requires backend changes (Auth/Web-Expensify) → **Backend bug**
+- If the fix requires backend changes → **Backend bug**
 
 ### Step 5: Apply the decision tree
 
@@ -101,16 +101,11 @@ After identifying the causing PR and determining your recommendation:
 │        → KEEP `DeployBlockerCash` (App deploy is blocked)
 │        → REMOVE `DeployBlocker` if present
 │
-└─ NO (fix is in Auth/Web-Expensify/backend)
+└─ NO (fix is in backend)
          → Classification = Backend bug
          → REMOVE `DeployBlockerCash` if present
-         → KEEP `DeployBlocker` (Web deploy is blocked)
+         → KEEP `DeployBlocker` (Backend deploy is blocked)
 ```
-
-**Critical Rules:**
-- If recommending REVERT of an App PR → KEEP `DeployBlockerCash`
-- Never remove both labels simultaneously
-- When uncertain → Keep both labels
 
 ---
 
@@ -142,6 +137,9 @@ Post ONE comment using this exact format:
 
 Brief explanation of why this recommendation (1-2 sentences).
 
+
+**Labels**: [Describe any label changes made]
+
 <details>
 <summary>📋 Detailed Analysis</summary>
 
@@ -154,44 +152,7 @@ Brief explanation of why this recommendation (1-2 sentences).
 Technical explanation of what went wrong in the code.
 
 </details>
-
-**Labels**: [Describe any label changes made]
 ```
-
----
-
-## Example Investigation
-
-**Issue**: "Nothing to show" appears after adding columns in Reports
-
-```markdown
-## 🔍 Investigation Summary
-
-**Classification**: Frontend bug
-**Causing PR**: [#78864](https://github.com/Expensify/App/pull/78864) - "Fix custom columns search syntax" by @JS00001 (High confidence)
-**Related Issues**: None
-
-### Recommendation: REVERT
-
-PR #78864 added the `columns` parameter to search queries, but the feature causes the search to return empty results. Reverting will restore functionality.
-
-<details>
-<summary>📋 Detailed Analysis</summary>
-
-### Evidence
-- Bug reproduces on staging (v9.3.1-0) but NOT production
-- PR #78864 is in the StagingDeployCash checklist
-- PR modified `SearchColumnsPage.tsx` and `SearchQueryUtils.ts`
-- Bug occurs specifically when using the Columns feature this PR added
-
-### Root Cause
-The PR adds `columns:taxRate` to the search query string. The search API returns `hasResults: true` but with an empty data array when this parameter is present, causing the UI to show "Nothing to show".
-
-</details>
-
-**Labels**: Kept `DeployBlockerCash` (App PR needs revert), removed `DeployBlocker`
-```
-
 ---
 
 ## Constraints
@@ -213,7 +174,7 @@ The PR adds `columns:taxRate` to the search query string. The search API returns
 ## When Uncertain
 
 - **Can't find causing PR**: Use `NEEDS INVESTIGATION`, tag the issue author for more context
-- **Multiple candidate PRs**: List all with confidence levels, recommend reverting the most likely first
+- **Multiple candidate PRs**: List all with confidence levels and why, and recommend reverting the most likely first
 - **Unclear if frontend/backend**: Keep BOTH labels until confirmed
 - **Low confidence**: Do NOT remove any labels
 
