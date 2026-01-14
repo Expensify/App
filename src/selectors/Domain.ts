@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {DomainSecurityGroupWithID} from '@pages/domain/Groups/DomainGroupsPage';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -93,6 +94,19 @@ const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 
+function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] {
+    if (!domain) {
+        return getEmptyArray<DomainSecurityGroupWithID>();
+    }
+
+    return Object.entries(domain).reduce<DomainSecurityGroupWithID[]>((acc, [key, value]) => {
+        if (key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX)) {
+            acc.push({id: key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, ''), details: value as DomainSecurityGroup});
+        }
+        return acc;
+    }, []);
+}
+
 export {
     domainMemberSamlSettingsSelector,
     domainSettingsPrimaryContactSelector,
@@ -104,4 +118,5 @@ export {
     domainEmailSelector,
     adminPendingActionSelector,
     technicalContactSettingsSelector,
+    groupsSelector,
 };

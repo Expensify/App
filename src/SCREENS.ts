@@ -878,6 +878,7 @@ const SCREENS = {
         ADD_ADMIN: 'Domain_Add_Admin',
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
+        GROUPS: 'Domain_Groups',
     },
 } as const;
 

@@ -3653,6 +3653,10 @@ const ROUTES = {
         route: 'domain/:domainAccountID/members/:accountID',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}` as const,
     },
+    DOMAIN_GROUPS: {
+        route: 'domain/:domainAccountID/groups',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/groups` as const,
+    },
 } as const;
 
 /**

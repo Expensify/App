@@ -2523,6 +2523,9 @@ type DomainSplitNavigatorParamList = {
     [SCREENS.DOMAIN.MEMBERS]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.GROUPS]: {
+        domainAccountID: number;
+    };
 };
 
 type OnboardingModalNavigatorParamList = {
