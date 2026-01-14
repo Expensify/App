@@ -100,9 +100,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             isASAPSubmitBetaEnabled,
             reportNextStep,
         );
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.dismissModal();
-        });
+        Navigation.dismissModal();
     }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
 
     const button = useMemo(() => {

@@ -52,6 +52,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const hasAutoAppliedRef = useRef(false);
+    const hasNavigatedToAddApproverRef = useRef(false);
 
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
@@ -59,6 +60,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             return;
         }
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
+            hasNavigatedToAddApproverRef.current = true;
             if (policy && !isControlPolicy(policy)) {
                 Navigation.navigate(
                     ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -107,7 +109,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     }, [approverTypes, selectedApproverType]);
 
     useEffect(() => {
-        if (hasAutoAppliedRef.current || approverTypes.length !== 1 || selectedApproverType !== approverTypes.at(0)?.keyForList) {
+        if (hasAutoAppliedRef.current || approverTypes.length !== 1 || selectedApproverType !== approverTypes.at(0)?.keyForList || hasNavigatedToAddApproverRef.current) {
             return;
         }
         hasAutoAppliedRef.current = true;
