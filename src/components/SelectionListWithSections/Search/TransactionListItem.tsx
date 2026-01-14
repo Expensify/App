@@ -137,7 +137,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
     // like isAttendeeTrackingEnabled is not missing
-    // Use snapshotReport/snapshotPolic as fallbacks to fix offline issues where
+    // Use snapshotReport/snapshotPolicy as fallbacks to fix offline issues where
     // newly created reports aren't in the search snapshot yet
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const reportForViolations = parentReport ?? snapshotReport;

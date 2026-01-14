@@ -1527,7 +1527,7 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
     const policyCategoryToUpdate = policyCategories?.[categoryName];
     const originalAreAttendeesRequired = policyCategoryToUpdate?.areAttendeesRequired;
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
