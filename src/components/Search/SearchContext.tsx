@@ -69,7 +69,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     const {todoSearchResultsData} = useTodos();
 
     const currentSearchKey = searchContextData.currentSearchKey;
-    const isTodoSearch = 
+    const isTodoSearch =
         currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT ||
         currentSearchKey === CONST.SEARCH.SEARCH_KEYS.APPROVE ||
         currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY ||
