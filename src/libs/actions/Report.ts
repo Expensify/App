@@ -2030,12 +2030,25 @@ function handlePreexistingReport(report: Report) {
         }
 
         if (
+            parentReportID &&
             isParentOneTransactionReport &&
             (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
         ) {
-            callback();
-            // We are already on the parent one expense report, so just call the API to fetch report data
-            openReport(parentReportID);
+            // Check if there's a draft to preserve from the optimistic report
+            const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
+
+            if (draftReportComment) {
+                // Transfer draft to parent report before clearing optimistic report
+                saveReportDraftComment(parentReportID, draftReportComment, () => {
+                    callback();
+                    // We are already on the parent one expense report, so just call the API to fetch report data
+                    openReport(parentReportID);
+                });
+            } else {
+                callback();
+                // We are already on the parent one expense report, so just call the API to fetch report data
+                openReport(parentReportID);
+            }
             return;
         }
 
