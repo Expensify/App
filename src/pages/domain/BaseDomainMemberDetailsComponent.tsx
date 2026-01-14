@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -9,53 +10,47 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
+import ROUTES from '@src/ROUTES';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
-type MemberDetailsMenuItem = {
-    key: string;
-    title: string;
-    icon: IconAsset;
-    onPress: () => void | Promise<void>;
-    shouldShowRightIcon?: boolean;
-};
-
 type BaseDomainMemberDetailsComponentProps = {
-    /** ID domeny dla wrappera NotFound */
+    /** Domain ID */
     domainAccountID: number;
 
-    /** ID konta użytkownika */
+    /** User account ID */
     accountID: number;
 
-    /** Lista pozycji menu (np. profil, uprawnienia) */
-    menuItems: MemberDetailsMenuItem[];
-
-    /** Opcjonalny przycisk pod awatarem (np. Close Account) */
-    actionButton?: React.ReactNode;
-
-    /** Dodatkowy kontent na dole strony */
+    /** List of additional fields (e.g., force 2FA) */
     children?: React.ReactNode;
 };
 
 function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems, actionButton, children}: BaseDomainMemberDetailsComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Info']);
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    // The selector depends on the dynamic `accountID`, so it cannot be extracted
+    // to a static function outside the component.
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
+    });
 
-    const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
-    const phoneNumber = getPhoneNumber(details);
-
-    const memberLogin = details.login ?? '';
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
+    const phoneNumber = getPhoneNumber(personalDetails);
+    const memberLogin = personalDetails?.login ?? '';
     const isSMSLogin = Str.isSMSLogin(memberLogin);
+    const copyableName = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin;
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -68,20 +63,17 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
                 <ScrollView addBottomSafeAreaPadding>
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                            <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
+                            <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
                                 <Avatar
                                     containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
                                     imageStyles={[styles.avatarXLarge]}
-                                    source={details.avatar}
+                                    source={personalDetails?.avatar}
                                     avatarID={accountID}
                                     type={CONST.ICON_TYPE_AVATAR}
                                     size={CONST.AVATAR_SIZE.X_LARGE}
-                                    fallbackIcon={details.fallbackIcon}
+                                    fallbackIcon={personalDetails?.fallbackIcon}
                                 />
                             </OfflineWithFeedback>
-
-                            {/* Renderujemy przycisk akcji tylko jeśli został przekazany */}
-                            {actionButton}
 
                             {!!displayName && (
                                 <Text
@@ -92,27 +84,24 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
                                 </Text>
                             )}
                         </View>
+                        <View style={styles.w100}>
+                            <MenuItemWithTopDescription
+                                title={copyableName}
+                                copyValue={copyableName}
+                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                interactive={false}
+                                copyable
+                            />
+                            {children}
+                            <MenuItem
+                                style={styles.mb5}
+                                title={translate('common.profile')}
+                                icon={icons.Info}
+                                onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
+                                shouldShowRightIcon
+                            />
+                        </View>
                     </View>
-
-                    <MenuItemWithTopDescription
-                        title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                        copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                        description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                        interactive={false}
-                        copyable
-                    />
-
-                    {menuItems.map((item) => (
-                        <MenuItem
-                            key={item.key}
-                            icon={item.icon}
-                            title={item.title}
-                            onPress={item.onPress}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                        />
-                    ))}
-
-                    {children}
                 </ScrollView>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
@@ -121,5 +110,4 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
 
 BaseDomainMemberDetailsComponent.displayName = 'BaseDomainMemberDetailsComponent';
 
-export type {MemberDetailsMenuItem};
 export default BaseDomainMemberDetailsComponent;
