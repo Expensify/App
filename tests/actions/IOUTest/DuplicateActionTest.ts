@@ -699,6 +699,7 @@ describe('actions/DuplicateAction', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                selfTourViewed: false,
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
