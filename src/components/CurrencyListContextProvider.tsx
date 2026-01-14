@@ -4,7 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-type CurrnecyListContextProviderProps = {
+type CurrencyListContextProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
@@ -22,7 +22,7 @@ const CurrencyListContext = createContext<CurrencyListContextProps>({
     getCurrencySymbol: () => undefined,
 });
 
-function CurrnecyListContextProvider({children}: CurrnecyListContextProviderProps) {
+function CurrencyListContextProvider({children}: CurrencyListContextProviderProps) {
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const getCurrencySymbol = useCallback(
@@ -43,6 +43,6 @@ function CurrnecyListContextProvider({children}: CurrnecyListContextProviderProp
     return <CurrencyListContext.Provider value={contextValue}>{children}</CurrencyListContext.Provider>;
 }
 
-export {CurrencyListContext, CurrnecyListContextProvider};
+export {CurrencyListContext, CurrencyListContextProvider};
 
 export type {CurrencyListContextProps};

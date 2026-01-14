@@ -785,13 +785,13 @@ function getUpdatedTransaction({
         let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
         amount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
         const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
             true,
             distanceInMeters,
             unit,
             rate,
             updatedCurrency,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal,
             (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             getCurrencySymbol,
