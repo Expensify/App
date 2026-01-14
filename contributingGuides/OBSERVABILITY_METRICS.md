@@ -137,7 +137,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 ### Authentication Failures
 
 **Constants**: `CONST.TELEMETRY.TAG_AUTHENTICATION_FUNCTION`, `CONST.TELEMETRY.TAG_AUTHENTICATION_ERROR_TYPE`, `CONST.TELEMETRY.TAG_AUTHENTICATION_JSON_CODE` ([`src/CONST/index.ts`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/CONST/index.ts#L1700-L1702))
-**What's Measured**: Numbert of authentication failures tracked via `Sentry.captureException()` using [`trackAuthenticationError()`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/telemetry/trackAuthenticationError.ts#L23)
+**What's Measured**: Number of authentication failures tracked via `Sentry.captureException()` using [`trackAuthenticationError()`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/telemetry/trackAuthenticationError.ts#L23)
 **Error Types**:
 - `missing_params`: Missing required auth parameters ([`Authentication.ts:66`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/Authentication.ts#L66))
 - `network_retry`: Network failure during reauthentication ([`Authentication.ts:158`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/Authentication.ts#L158))
