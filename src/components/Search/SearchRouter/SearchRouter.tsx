@@ -121,17 +121,29 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
-    const contextualReportID = useRootNavigationState((state) => {
+    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState((state) => {
         // Safe handling when navigation is not yet initialized
         if (!state) {
-            return undefined;
+            return {contextualReportID: undefined, isSearchRouterScreen: false};
+        }
+        const focusedRoute = findFocusedRoute(state);
+        let maybeReportRoute = focusedRoute;
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        const isSearchRouterScreen = focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_ROUTER;
+        if (focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_ROUTER) {
+            const stateWithoutLastRoute = {
+                ...state,
+                routes: state.routes.slice(0, -1),
+                index: state.index !== 0 ? state.index - 1 : 0,
+            };
+            maybeReportRoute = findFocusedRoute(stateWithoutLastRoute);
         }
 
-        const focusedRoute = findFocusedRoute(state);
-        if (focusedRoute?.name === SCREENS.REPORT) {
+        if (maybeReportRoute?.name === SCREENS.REPORT) {
             // We're guaranteed that the type of params is of SCREENS.REPORT
-            return (focusedRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID;
+            return {contextualReportID: (maybeReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID, isSearchRouterScreen};
         }
+        return {contextualReportID: undefined, isSearchRouterScreen};
     });
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
@@ -145,11 +157,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return undefined;
             }
 
-            if (!isSearchRouterDisplayed) {
+            if (!isSearchRouterDisplayed && !isSearchRouterScreen) {
                 return undefined;
             }
             let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
-
             if (!reportForContextualSearch) {
                 const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`];
                 if (!report) {
