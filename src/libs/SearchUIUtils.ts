@@ -2782,11 +2782,12 @@ function isCorrectSearchUserName(displayName?: string) {
 }
 
 function isTodoSearch(currentSearchKey: SearchKey | undefined) {
-    return !!currentSearchKey && (
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT ||
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.APPROVE ||
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY ||
-        currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT
+    return (
+        !!currentSearchKey &&
+        (currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT ||
+            currentSearchKey === CONST.SEARCH.SEARCH_KEYS.APPROVE ||
+            currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY ||
+            currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT)
     );
 }
 

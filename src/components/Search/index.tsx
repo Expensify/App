@@ -56,6 +56,7 @@ import {
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
+    isTodoSearch,
     isTransactionCardGroupListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
@@ -64,7 +65,6 @@ import {
     isTransactionWithdrawalIDGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
-    isTodoSearch,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getOriginalTransactionWithSplitInfo, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -268,7 +268,7 @@ function Search({
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
 
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
-    const searchDataType = useMemo(() => isTodoSearch(searchKey) ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type, [searchKey, searchResults?.search?.type]);
+    const searchDataType = useMemo(() => (isTodoSearch(searchKey) ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [searchKey, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, similarSearchHash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
