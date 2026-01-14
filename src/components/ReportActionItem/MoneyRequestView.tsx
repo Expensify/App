@@ -322,7 +322,7 @@ function MoneyRequestView({
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const [reportTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
@@ -489,7 +489,7 @@ function MoneyRequestView({
         rateToDisplay = getRateFromMerchant(updatedMerchantTitle);
     }
 
-    const hasErrors = hasMissingSmartscanFields(transaction, reportTransaction);
+    const hasErrors = hasMissingSmartscanFields(transaction, transactionReport);
 
     const getErrorForField = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
         // Checks applied when creating a new expense

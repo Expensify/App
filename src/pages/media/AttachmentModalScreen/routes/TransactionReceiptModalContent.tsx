@@ -70,7 +70,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         return transactionMain;
     }, [isDraftTransaction, mergeTransaction, mergeTransactionID, transactionDraft, transactionMain]);
 
-    const [reportTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
@@ -285,7 +285,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 !hasOnlyEReceipt &&
                 hasReceipt(transaction) &&
                 !isReceiptBeingScanned(transaction) &&
-                !hasMissingSmartscanFields(transaction, reportTransaction)
+                !hasMissingSmartscanFields(transaction, transactionReport)
             ) {
                 menuItems.push({
                     icon: Expensicons.Trashcan,
@@ -299,19 +299,20 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             // eslint-disable-next-line react-hooks/exhaustive-deps
         },
         [
-            icons.Download,
             shouldShowReplaceReceiptButton,
             isOffline,
             allowDownload,
             draftTransactionID,
             transaction,
             shouldShowDeleteReceiptButton,
+            transactionReport,
+            expensifyIcons.Camera,
             translate,
             action,
             iouType,
             report?.reportID,
+            icons.Download,
             onDownloadAttachment,
-            expensifyIcons.Camera,
         ],
     );
 

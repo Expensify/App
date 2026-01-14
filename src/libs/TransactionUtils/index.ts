@@ -549,8 +549,8 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
-function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, reportTransaction: OnyxEntry<Report>): boolean {
-    const isFromExpenseReport = reportTransaction?.type === CONST.REPORT.TYPE.EXPENSE;
+function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
+    const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
     return (isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
