@@ -10431,7 +10431,6 @@ function approveMoneyRequest(
         optimisticCreatedReportForUnapprovedTransactionsActionID = holdReportOnyxData.optimisticCreatedReportForUnapprovedTransactionsActionID;
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
         optimisticReportActionCopyIDs = JSON.stringify(holdReportOnyxData.optimisticReportActionCopyIDs);
-        console.log('optimisticReportActionCopyIDs', optimisticReportActionCopyIDs);
     }
 
     // Remove duplicates violations if we approve the report
