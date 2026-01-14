@@ -95,8 +95,8 @@ import {
     setMoneyRequestReportID,
     startDistanceRequest,
     startMoneyRequest,
-    unholdRequest,
 } from './actions/IOU';
+import {unholdRequest} from './actions/IOU/HoldAction';
 import type {IOURequestType} from './actions/IOU';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
