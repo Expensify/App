@@ -4955,7 +4955,8 @@ const translations = {
                     },
                     centralInvoicingSection: {
                         title: 'Central invoicing',
-                        subtitle: 'Allow your members to pay and bill travel directly to the workspace.',
+                        subtitle: 'Centralize all travel spend in a monthly invoice instead of paying at time of purchase.',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Learn how.</a></muted-text>`,
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendCta: 'Pay balance',

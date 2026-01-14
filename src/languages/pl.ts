@@ -5017,7 +5017,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     },
                     centralInvoicingSection: {
                         title: 'Centralne fakturowanie',
-                        subtitle: 'Pozwól członkom rozliczać i fakturować podróże bezpośrednio na przestrzeń roboczą.',
+                        subtitle: 'Scentralizuj wszystkie wydatki na podróże w miesięcznej fakturze zamiast płacić w momencie zakupu.',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Dowiedz się jak.</a></muted-text>`,
                         subsections: {
                             currentTravelSpendLabel: 'Aktualne wydatki na podróże',
                             currentTravelSpendCta: 'Zapłać saldo',
@@ -7939,7 +7940,6 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             confirm: 'Odrzuć śledzenie dystansu',
         },
         zeroDistanceTripModal: {title: 'Nie można utworzyć wydatku', prompt: 'Nie możesz utworzyć wydatku z tym samym miejscem początkowym i końcowym.'},
-
         locationRequiredModal: {
             title: 'Wymagany dostęp do lokalizacji',
             prompt: 'Aby rozpocząć śledzenie dystansu GPS, zezwól na dostęp do lokalizacji w ustawieniach swojego urządzenia.',

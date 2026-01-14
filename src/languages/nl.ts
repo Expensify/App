@@ -5027,7 +5027,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     travelBookingSection: {title: 'Reisboeking', subtitle: 'Gefeliciteerd! Je kunt nu reizen boeken en beheren in deze werkruimte.', manageTravelLabel: 'Reizen beheren'},
                     centralInvoicingSection: {
                         title: 'Centrale facturatie',
-                        subtitle: 'Sta je leden toe om reizen rechtstreeks via de workspace te betalen en te factureren.',
+                        subtitle: 'Centraliseer alle reiskosten in één maandelijkse factuur in plaats van bij aankoop te betalen.',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Meer informatie.</a></muted-text>`,
                         subsections: {
                             currentTravelSpendLabel: 'Huidige reiskosten',
                             currentTravelSpendCta: 'Saldo betalen',
@@ -7960,7 +7961,6 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             confirm: 'Afstandstracking negeren',
         },
         zeroDistanceTripModal: {title: 'Kan geen uitgave aanmaken', prompt: 'Je kunt geen uitgave aanmaken met dezelfde begin- en eindlocatie.'},
-
         locationRequiredModal: {
             title: 'Locatietoegang vereist',
             prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om GPS-afstandsregistratie te starten.',

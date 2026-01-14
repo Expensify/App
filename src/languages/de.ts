@@ -5050,7 +5050,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     },
                     centralInvoicingSection: {
                         title: 'Zentrale Rechnungsstellung',
-                        subtitle: 'Ermöglichen Sie Ihren Mitgliedern, Reisen direkt über den Workspace zu bezahlen und abzurechnen.',
+                        subtitle: 'Zentralisieren Sie alle Reisekosten in einer monatlichen Rechnung, anstatt zum Zeitpunkt des Kaufs zu bezahlen.',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">So funktioniert's.</a></muted-text>`,
                         subsections: {
                             currentTravelSpendLabel: 'Aktuelle Reisekosten',
                             currentTravelSpendCta: 'Saldo bezahlen',

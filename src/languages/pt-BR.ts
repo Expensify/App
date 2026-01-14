@@ -5018,7 +5018,8 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     },
                     centralInvoicingSection: {
                         title: 'Faturamento centralizado',
-                        subtitle: 'Permita que seus membros paguem e cobrem viagens diretamente para o espaço de trabalho.',
+                        subtitle: 'Centralize todos os gastos de viagem em uma fatura mensal em vez de pagar no momento da compra.',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Saiba como.</a></muted-text>`,
                         subsections: {
                             currentTravelSpendLabel: 'Gasto atual com viagens',
                             currentTravelSpendCta: 'Pagar saldo',
@@ -7951,7 +7952,6 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             confirm: 'Descartar rastreamento de distância',
         },
         zeroDistanceTripModal: {title: 'Não é possível criar a despesa', prompt: 'Você não pode criar uma despesa com o mesmo local de partida e de chegada.'},
-
         locationRequiredModal: {
             title: 'Acesso à localização necessário',
             prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',

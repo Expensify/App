@@ -4924,7 +4924,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     travelBookingSection: {title: '旅行预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', manageTravelLabel: '管理差旅'},
                     centralInvoicingSection: {
                         title: '集中开票',
-                        subtitle: '允许您的成员直接向工作区支付和开具差旅费用。',
+                        subtitle: '将所有差旅支出集中到月度发票中，而不是在购买时逐笔付款。',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">了解如何操作。</a></muted-text>`,
                         subsections: {
                             currentTravelSpendLabel: '当前差旅行支出',
                             currentTravelSpendCta: '支付余额',
@@ -7755,7 +7756,6 @@ ${reportName}
         stopGpsTrackingModal: {title: '停止 GPS 追踪', prompt: '你确定吗？这将结束你当前的旅程。', cancel: '恢复追踪', confirm: '停止 GPS 追踪'},
         discardDistanceTrackingModal: {title: '丢弃距离跟踪', prompt: '您确定吗？这将放弃您当前的流程，且无法撤销。', confirm: '丢弃距离跟踪'},
         zeroDistanceTripModal: {title: '无法创建报销', prompt: '你不能创建起点和终点相同的报销。'},
-
         locationRequiredModal: {title: '需要访问位置信息', prompt: '请在设备设置中允许位置访问以开始 GPS 距离跟踪。', allow: '允许'},
         androidBackgroundLocationRequiredModal: {title: '需要后台位置访问权限', prompt: '请在设备设置中允许应用使用“始终允许”位置访问权限，以开始 GPS 距离跟踪。'},
         preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},

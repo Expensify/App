@@ -27,6 +27,8 @@ import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/Toggl
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BookOrManageYourTrip from './BookOrManageYourTrip';
+import CentralInvoicingLearnHow from './CentralInvoicingLearnHow';
+import CentralInvoicingSubtitleWrapper from './CentralInvoicingSubtitleWrapper';
 
 type WorkspaceTravelInvoicingSectionProps = {
     /** The ID of the policy */
@@ -72,10 +74,17 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
     const settlementAccountNumber = CONST.MASKED_PAN_PREFIX + (settlementAccount?.last4 ?? '1234');
 
+    const getCentralInvoicingSubtitle = () => {
+        if (!isCentralInvoicingEnabled) {
+            return <CentralInvoicingSubtitleWrapper htmlComponent={<CentralInvoicingLearnHow />} />;
+        }
+        return <CentralInvoicingSubtitleWrapper />;
+    };
+
     const optionItems: ToggleSettingOptionRowProps[] = [
         {
             title: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.title'),
-            subtitle: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subtitle'),
+            subtitle: getCentralInvoicingSubtitle(),
             switchAccessibilityLabel: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subtitle'),
             isActive: isCentralInvoicingEnabled,
             onToggle: (isEnabled: boolean) => setIsCentralInvoicingEnabled(isEnabled),
@@ -150,9 +159,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         >
             <ToggleSettingOptionRow
                 title={item.title}
-                titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
+                titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}
                 subtitle={item.subtitle}
-                subtitleStyle={[styles.textLabelSupportingEmptyValue, styles.lh20]}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
                 onToggle={item.onToggle}
                 disabled={item.disabled}

@@ -5056,7 +5056,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     },
                     centralInvoicingSection: {
                         title: 'Facturation centralisée',
-                        subtitle: 'Autorisez vos membres à payer et à facturer les déplacements directement à l’espace de travail.',
+                        subtitle: 'Centralisez toutes les dépenses de voyage dans une facture mensuelle plutôt que de payer au moment de l’achat.',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Découvrez comment.</a></muted-text>`,
                         subsections: {
                             currentTravelSpendLabel: 'Dépenses de voyage actuelles',
                             currentTravelSpendCta: 'Payer le solde',

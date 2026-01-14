@@ -4692,7 +4692,8 @@ ${amount} para ${merchant} - ${date}`,
                     },
                     centralInvoicingSection: {
                         title: 'Facturación centralizada',
-                        subtitle: 'Permite que tus miembros paguen y facturen los viajes directamente al espacio de trabajo.',
+                        subtitle: 'Centraliza todos los gastos de viaje en una factura mensual en lugar de pagar en el momento de la compra.',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Aprende cómo.</a></muted-text>`,
                         subsections: {
                             currentTravelSpendLabel: 'Gasto actual en viajes',
                             currentTravelSpendCta: 'Pagar saldo',
