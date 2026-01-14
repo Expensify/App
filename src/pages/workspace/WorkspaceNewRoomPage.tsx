@@ -110,8 +110,8 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             return false;
         }
 
-        return isPolicyAdmin(policyID, policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
-    }, [policyID, policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]]);
+        return isPolicyAdmin(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
+    }, [policyID, policies]);
 
     /**
      * @param values - form input values passed by the Form component
