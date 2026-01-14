@@ -289,7 +289,7 @@ describe('actions/Policy', () => {
                     perDiem: true,
                     reimbursements: true,
                     expenses: true,
-                    customUnits: true,
+                    distance: true,
                     invoices: true,
                     exportLayouts: true,
                 },
