@@ -553,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Nie możesz eksportować pustego raportu.',
+            other: () => 'Nie możesz eksportować pustych raportów.',
+        }),
         filterLogs: 'Filtruj logi',
         network: 'Sieć',
         reportID: 'ID raportu',
@@ -750,6 +754,35 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Uruchamianie Expensify',
         expired: 'Twoja sesja wygasła.',
         signIn: 'Zaloguj się ponownie.',
+    },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Test biometryczny',
+            authenticationSuccessful: 'Autentykacja zakończona sukcesem',
+            successfullyAuthenticatedUsing: ({authType}) => `Pomyślnie uwierzytelniono za pomocą ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometria (${registered ? 'Zarejestrowana' : 'Nie zarejestrowana'})`,
+            yourAttemptWasUnsuccessful: 'Twoja próba autentykacji była nieudana.',
+            youCouldNotBeAuthenticated: 'Nie udało się uwierzytelnić',
+            areYouSureToReject: 'Czy jesteś pewien? Próba autentykacji zostanie odrzucona, jeśli zamkniesz ten ekran.',
+            rejectAuthentication: 'Odrzuć autentykację',
+            test: 'Test',
+            biometricsAuthentication: 'Autentykacja biometryczna',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Włącz weryfikację twarzy/odcisku palca lub ustaw kod dostępu do urządzenia w ',
+            link: 'ustawieniach systemowych',
+            end: '.',
+        },
+        oops: 'Ups, coś poszło nie tak',
+        looksLikeYouRanOutOfTime: 'Wygląda na to, że zabrakło ci czasu! Spróbuj ponownie u sprzedawcy.',
+        youRanOutOfTime: 'Czas minął',
+        letsVerifyItsYou: 'Sprawdźmy, czy to ty',
+        verifyYourself: {
+            biometrics: 'Zweryfikuj się za pomocą twarzy lub odcisku palca',
+        },
+        enableQuickVerification: {
+            biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł ani kodów.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1188,9 +1221,15 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Czy na pewno chcesz usunąć ten wydatek?',
             other: 'Czy na pewno chcesz usunąć te wydatki?',
         }),
-        deleteReport: 'Usuń raport',
-        deleteReportConfirmation: 'Czy na pewno chcesz usunąć ten raport?',
-        settledExpensify: 'Opłacone',
+        deleteReport: () => ({
+            one: 'Usuń raport',
+            other: 'Usuń raporty',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Czy na pewno chcesz usunąć ten raport?',
+            other: 'Czy na pewno chcesz usunąć te raporty?',
+        }),
+        settledExpensify: 'Zapłacono',
         done: 'Gotowe',
         settledElsewhere: 'Opłacone gdzie indziej',
         individual: 'Indywidualny',

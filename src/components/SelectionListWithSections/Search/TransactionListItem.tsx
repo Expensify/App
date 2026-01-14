@@ -23,7 +23,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,7 +71,7 @@ function TransactionListItem<TItem extends ListItem>({
     // NOTE: Using || instead of ?? to treat empty string "" as falsy
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyID;
-    const [onyxPolicy] = originalUseOnyx(ONYXKEYS.COLLECTION.POLICY, {
+    const [parentPolicy] = originalUseOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
         selector: (policy) => policy?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
     });
@@ -135,12 +135,18 @@ function TransactionListItem<TItem extends ListItem>({
         transactionItem.shouldShowYearExported,
     ]);
 
+    // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
+    // like isAttendeeTrackingEnabled is not missing
+    // Use snapshotReport/snapshotPolic as fallbacks to fix offline issues where
+    // newly created reports aren't in the search snapshot yet
+    const policyForViolations = parentPolicy ?? snapshotPolicy;
+    const reportForViolations = parentReport ?? snapshotReport;
+
     const transactionViolations = useMemo(() => {
-        const policy = onyxPolicy ?? snapshotPolicy;
         const onyxViolations = (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
-                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, snapshotReport, policy) &&
-                shouldShowViolation(snapshotReport, policy, violation.name, currentUserDetails.email ?? '', false, transactionItem),
+                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations) &&
+                shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transactionItem),
         );
 
         // Sync missingAttendees violation with current policy category settings (can be removed later when BE handles this)
@@ -151,11 +157,12 @@ function TransactionListItem<TItem extends ListItem>({
             transaction?.category ?? transactionItem.category ?? '',
             transaction?.comment?.attendees ?? transactionItem.attendees,
             currentUserDetails,
-            policy?.isAttendeeTrackingEnabled ?? false,
-            policy?.type === CONST.POLICY.TYPE.CORPORATE,
+            policyForViolations?.isAttendeeTrackingEnabled ?? false,
+            policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
         );
-        return attendeeOnyxViolations;
-    }, [onyxPolicy, snapshotPolicy, policyCategories, snapshotReport, transactionItem, violations, currentUserDetails, transaction?.category, transaction?.comment?.attendees]);
+
+        return mergeProhibitedViolations(attendeeOnyxViolations);
+    }, [policyForViolations, reportForViolations, policyCategories, transactionItem, currentUserDetails, violations]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
