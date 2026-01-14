@@ -72,7 +72,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`, {canBeMissing: false});
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${currentReport?.policyID}`, {canBeMissing: false});
-    const {login} = useCurrentUserPersonalDetails();
+    const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const fetchData = useCallback(() => {
         if (!policyCategories) {
@@ -108,8 +108,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentPolicy);
 
     const isCategoryRequired = !!currentPolicy?.requiresCategory;
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const reportName = computeReportName(currentReport, undefined, undefined, undefined, undefined, undefined, undefined, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const reportName = computeReportName(currentReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, currentPolicy?.areRulesEnabled);
 
     const shouldShowTags = !!currentPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));

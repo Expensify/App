@@ -13,6 +13,7 @@ import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, Sea
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -548,8 +549,8 @@ function AdvancedSearchFilters() {
     const personalDetails = usePersonalDetails();
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const currentUserLogin = emailSelector(session);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
+    const {accountID: currentUserAccountID, login, email} = useCurrentUserPersonalDetails();
 
     const taxRates = getAllTaxRates(policies);
 
@@ -609,7 +610,7 @@ function AdvancedSearchFilters() {
             ) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports, currentUserAccountID);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
                 const workspacesData = workspaces.flatMap((value) => value.data);
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
