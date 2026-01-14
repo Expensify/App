@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -254,6 +255,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dismiss: 'Fechar',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Prosseguir',
+        unshare: 'Deixar de compartilhar',
         yes: 'Sim',
         no: 'Não',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -551,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valor',
         downloadFailedTitle: 'Falha no download',
         downloadFailedDescription: 'Seu download não pôde ser concluído. Tente novamente mais tarde.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Você não pode exportar um relatório vazio.',
+            other: () => 'Você não pode exportar relatórios vazios.',
+        }),
         filterLogs: 'Filtrar Logs',
         network: 'Rede',
         reportID: 'ID do Relatório',
@@ -748,6 +754,35 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'Sua sessão expirou.',
         signIn: 'Entre novamente.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Teste biométrico',
+            authenticationSuccessful: 'Autenticação bem-sucedida',
+            successfullyAuthenticatedUsing: ({authType}) => `Você autenticou com sucesso utilizando ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometria (${registered ? 'Registrada' : 'Não registrada'})`,
+            yourAttemptWasUnsuccessful: 'Sua tentativa de autenticação não foi bem-sucedida.',
+            youCouldNotBeAuthenticated: 'Você não pôde ser autenticado',
+            areYouSureToReject: 'Tem certeza? A tentativa de autenticação será rejeitada se você fechar esta tela.',
+            rejectAuthentication: 'Rejeitar autenticação',
+            test: 'Teste',
+            biometricsAuthentication: 'Autenticação biométrica',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Por favor, habilite a verificação por rosto/impressão digital ou defina um código de acesso do dispositivo em suas ',
+            link: 'configurações do sistema',
+            end: '.',
+        },
+        oops: 'Ops, algo deu errado',
+        looksLikeYouRanOutOfTime: 'Parece que você ficou sem tempo! Por favor, tente novamente no comerciante.',
+        youRanOutOfTime: 'Você ficou sem tempo',
+        letsVerifyItsYou: 'Vamos verificar se é você',
+        verifyYourself: {
+            biometrics: 'Verifique sua identidade com seu rosto ou impressão digital',
+        },
+        enableQuickVerification: {
+            biometrics: 'Habilite a verificação rápida e segura usando seu rosto ou impressão digital. Sem senhas ou códigos necessários.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abracadabra,
@@ -919,6 +954,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'como copiloto para',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `criou este relatório para agrupar todas as despesas de <a href="${reportUrl}">${reportName}</a> que não puderam ser enviadas na frequência que você escolheu`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `criou este relatório para quaisquer despesas retidas de <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notificar todos nesta conversa',
@@ -1124,7 +1161,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moveu esta despesa do seu <a href="${reportUrl}">espaço pessoal</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moveu esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1185,8 +1221,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Você tem certeza de que deseja excluir esta despesa?',
             other: 'Tem certeza de que deseja excluir estas despesas?',
         }),
-        deleteReport: 'Excluir relatório',
-        deleteReportConfirmation: 'Você tem certeza de que deseja excluir este relatório?',
+        deleteReport: () => ({
+            one: 'Excluir relatório',
+            other: 'Excluir relatórios',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Tem certeza de que deseja excluir este relatório?',
+            other: 'Tem certeza de que deseja excluir estes relatórios?',
+        }),
         settledExpensify: 'Pago',
         done: 'Concluído',
         settledElsewhere: 'Pago em outro lugar',
@@ -1299,6 +1341,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Taxa inválida para este workspace. Selecione uma taxa disponível do workspace.',
             endDateBeforeStartDate: 'A data de término não pode ser anterior à data de início',
             endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
+            manySplitsProvided: `O número máximo de divisões permitidas é ${CONST.IOU.SPLITS_LIMIT}.`,
+            dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
             invalidReadings: 'Insira as leituras de início e fim',
             negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
         },
@@ -1452,6 +1496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} dias)`,
         splitByDate: 'Dividir por data',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `relatório encaminhado para ${to} devido ao fluxo de trabalho de aprovação personalizado`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hora' : 'horas'} @ ${rate} / hora`, hrs: 'h'},
     },
     transactionMerge: {
         listPage: {
@@ -2105,6 +2150,11 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountEmptyTitle: 'Nenhum administrador disponível',
         shareBankAccountEmptyDescription: 'Não há administradores de espaço de trabalho com quem você possa compartilhar esta conta bancária.',
         shareBankAccountNoAdminsSelected: 'Selecione um administrador antes de continuar',
+        unshareBankAccount: 'Descompartilhar conta bancária',
+        unshareBankAccountDescription: 'Todos abaixo têm acesso a esta conta bancária. Você pode remover o acesso a qualquer momento. Ainda concluiremos quaisquer pagamentos em andamento.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderá o acesso a esta conta bancária comercial. Ainda concluiremos quaisquer pagamentos em andamento.`,
+        reachOutForHelp: 'Está sendo usada com o Cartão Expensify. <concierge-link>Entre em contato com o Concierge</concierge-link> se precisar descompartilhar.',
+        unshareErrorModalTitle: 'Não foi possível descompartilhar a conta bancária',
     },
     cardPage: {
         expensifyCard: 'Cartão Expensify',
@@ -3083,6 +3133,7 @@ ${
         currencyHeader: 'Qual é a moeda da sua conta bancária?',
         confirmationStepHeader: 'Verifique suas informações.',
         confirmationStepSubHeader: 'Verifique os detalhes abaixo e marque a caixa de termos para confirmar.',
+        toGetStarted: 'Adicione uma conta bancária pessoal para receber reembolsos, pagar faturas ou ativar a Carteira Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Digite a senha do Expensify',
@@ -5556,6 +5607,20 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Tem certeza de que deseja conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integração contábil'}? Isso removerá quaisquer conexões contábeis existentes.`,
             enterCredentials: 'Insira suas credenciais',
+            claimOffer: {
+                badgeText: 'Oferta disponível!',
+                xero: {
+                    headline: 'Obtenha Xero grátis por 6 meses!',
+                    description: '<muted-text><centered-text>Novo no Xero? Clientes Expensify ganham 6 meses grátis. Resgate sua oferta abaixo.</centered-text></muted-text>',
+                    connectButton: 'Conectar ao Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Obtenha 5% de desconto em viagens do Uber',
+                    description: `<muted-text><centered-text>Ative o Uber for Business através do Expensify e economize 5% em todas as viagens de negócios até junho. <a href="${CONST.UBER_TERMS_LINK}">Termos se aplicam.</a></centered-text></muted-text>`,
+                    connectButton: 'Conectar ao Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6285,6 +6350,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `alterou o endereço da empresa para "${newAddress}" (anteriormente "${previousAddress}")` : `definir o endereço da empresa como "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `adicionou ${approverName} (${approverEmail}) como aprovador para o campo ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `removeu ${approverName} (${approverEmail}) como aprovador para ${field} "${name}"`,
@@ -7878,7 +7945,11 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             addAdmin: 'Adicionar administrador',
             invite: 'Convidar',
             addAdminError: 'Não foi possível adicionar este membro como administrador. Tente novamente.',
+            revokeAdminAccess: 'Revogar acesso de administrador',
+            cantRevokeAdminAccess: 'Não é possível revogar o acesso de administrador do contato técnico',
+            error: {removeAdmin: 'Não foi possível remover este usuário como Administrador. Tente novamente.'},
         },
+        members: {title: 'Membros', findMember: 'Encontrar membro'},
     },
     gps: {
         tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',
@@ -7901,6 +7972,20 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             confirm: 'Descartar rastreamento de distância',
         },
         zeroDistanceTripModal: {title: 'Não é possível criar a despesa', prompt: 'Você não pode criar uma despesa com o mesmo local de partida e de chegada.'},
+
+        locationRequiredModal: {
+            title: 'Acesso à localização necessário',
+            prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+            allow: 'Permitir',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Acesso à localização em segundo plano necessário',
+            prompt: 'Permita o acesso à localização em segundo plano nas configurações do seu dispositivo (opção "Permitir o tempo todo") para iniciar o rastreamento de distância por GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Localização precisa obrigatória',
+            prompt: 'Ative a opção "localização precisa" nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+        },
         desktop: {
             title: 'Controle a distância no seu telefone',
             subtitle: 'Registre milhas ou quilômetros automaticamente com o GPS e transforme viagens em despesas instantaneamente.',

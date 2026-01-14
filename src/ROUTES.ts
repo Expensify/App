@@ -342,8 +342,13 @@ const ROUTES = {
     },
 
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
+    SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'settings/wallet/add-us-bank-account/entry-point',
     SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT: {
+        route: 'settings/wallet/:bankAccountID/unshare-bank-account',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/unshare-bank-account` as const,
+    },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements` as const,
@@ -414,13 +419,12 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
     },
     SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
-        route: 'settings/profile/contact-methods/new/:newContactMethod/confirm-magic-code',
-        getRoute: (newContactMethod: string, backTo?: string) => {
-            const encodedMethod = encodeURIComponent(newContactMethod);
+        route: 'settings/profile/contact-methods/new/confirm-magic-code',
+        getRoute: (backTo?: string) => {
             // TODO this backTo comes from drilling it through settings screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`settings/profile/contact-methods/new/${encodedMethod}/confirm-magic-code`, backTo);
+            return getUrlWithBackToParam(`settings/profile/contact-methods/new/confirm-magic-code`, backTo);
         },
     },
     SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
@@ -1177,13 +1181,12 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_DISTANCE_ODOMETER: {
         route: ':action/:iouType/distance-odometer/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_ODOMETER route');
             }
 
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}`, backTo);
+            return `${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}` as const;
         },
     },
     MONEY_REQUEST_STEP_DISTANCE_RATE: {
@@ -1265,6 +1268,11 @@ const ROUTES = {
         route: 'per-diem/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport ?? ''}` as const,
+    },
+    MONEY_REQUEST_CREATE_TAB_TIME: {
+        route: 'time/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `create/${iouType as string}/start/${transactionID}/${reportID}/time/${backToReport ?? ''}` as const,
     },
 
     MONEY_REQUEST_RECEIPT_VIEW: {
@@ -1694,7 +1702,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/classes',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/classes/displayed_as',
@@ -1702,7 +1715,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/customers',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import/customers` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/import/customers` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/customers/displayed_as',
@@ -2984,6 +3002,10 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/xero/advanced` as const;
         },
     },
+    POLICY_ACCOUNTING_CLAIM_OFFER: {
+        route: 'workspaces/:policyID/accounting/claim-offer/:integration',
+        getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/accounting/claim-offer/${integration}` as const,
+    },
     POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
         route: 'workspaces/:policyID/accounting/xero/advanced/autosync',
         getRoute: (policyID: string | undefined, backTo?: string) => {
@@ -3040,7 +3062,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes/displayed-as',
@@ -3048,7 +3075,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/customers',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/customers/displayed-as',
@@ -3056,7 +3088,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/locations',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/locations/displayed-as',
@@ -3091,7 +3128,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'workspaces/:policyID/accounting/netsuite/import',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING: {
         route: 'workspaces/:policyID/accounting/netsuite/import/mapping/:importField',
@@ -3131,7 +3173,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
         route: 'workspaces/:policyID/accounting/netsuite/import/customer-projects',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
         route: 'workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
@@ -3596,6 +3643,14 @@ const ROUTES = {
     DOMAIN_ADD_ADMIN: {
         route: 'domain/:domainAccountID/admins/invite',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/invite` as const,
+    },
+    DOMAIN_MEMBERS: {
+        route: 'domain/:domainAccountID/members',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members` as const,
+    },
+    DOMAIN_MEMBER_DETAILS: {
+        route: 'domain/:domainAccountID/members/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}` as const,
     },
 } as const;
 

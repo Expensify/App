@@ -5,6 +5,11 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
+type MultifactorAuthenticationTranslationParams = {
+    authType?: string;
+    registered?: boolean;
+};
+
 type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
@@ -80,6 +85,11 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
 };
 
 type HarvestCreatedExpenseReportParams = {
+    reportUrl: string;
+    reportName: string;
+};
+
+type CreatedReportForUnapprovedTransactionsParams = {
     reportUrl: string;
     reportName: string;
 };
@@ -777,6 +787,7 @@ export type {
     ReportPolicyNameParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     HarvestCreatedExpenseReportParams,
+    CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     MovedTransactionParams,
@@ -924,4 +935,5 @@ export type {
     FocusModeUpdateParams,
     RoutedDueToDEWParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
+    MultifactorAuthenticationTranslationParams,
 };

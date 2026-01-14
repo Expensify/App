@@ -9,6 +9,7 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -58,6 +59,7 @@ import type {
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
+    MultifactorAuthenticationTranslationParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
     NextStepParams,
@@ -245,6 +247,7 @@ const translations = {
         dismiss: 'Dismiss',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
+        unshare: 'Unshare',
         yes: 'Yes',
         no: 'No',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -542,6 +545,10 @@ const translations = {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
+        downloadFailedEmptyReportDescription: () => ({
+            one: "You can't export an empty report.",
+            other: () => `You can't export empty reports.`,
+        }),
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
@@ -734,6 +741,35 @@ const translations = {
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Biometrics test',
+            authenticationSuccessful: 'Authentication successful',
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `You’ve successfully authenticated using ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometrics (${registered ? 'Registered' : 'Not registered'})`,
+            yourAttemptWasUnsuccessful: 'Your authentication attempt was unsuccessful.',
+            youCouldNotBeAuthenticated: 'You couldn’t be authenticated',
+            areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
+            rejectAuthentication: 'Reject authentication',
+            test: 'Test',
+            biometricsAuthentication: 'Biometrics authentication',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Please enable face/fingerprint verification or set a device passcode in your ',
+            link: 'system settings',
+            end: '.',
+        },
+        oops: 'Oops, something went wrong',
+        looksLikeYouRanOutOfTime: 'Looks like you ran out of time! Please try again at the merchant.',
+        youRanOutOfTime: 'You ran out of time',
+        letsVerifyItsYou: 'Let’s verify it’s you',
+        verifyYourself: {
+            biometrics: 'Verify yourself with your face or fingerprint',
+        },
+        enableQuickVerification: {
+            biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abracadabra,
@@ -904,6 +940,8 @@ const translations = {
         asCopilot: 'as copilot for',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `created this report to hold all expenses from <a href="${reportUrl}">${reportName}</a> that couldn't be submitted on your chosen frequency`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `created this report for any held expenses from <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone in this conversation',
@@ -1121,7 +1159,6 @@ const translations = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense from your <a href="${reportUrl}">personal space</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1182,8 +1219,14 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
-        deleteReport: 'Delete report',
-        deleteReportConfirmation: 'Are you sure that you want to delete this report?',
+        deleteReport: () => ({
+            one: 'Delete report',
+            other: 'Delete reports',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Are you sure that you want to delete this report?',
+            other: 'Are you sure that you want to delete these reports?',
+        }),
         settledExpensify: 'Paid',
         done: 'Done',
         settledElsewhere: 'Paid elsewhere',
@@ -1295,6 +1338,8 @@ const translations = {
             invalidRate: 'Rate not valid for this workspace. Please select an available rate from the workspace.',
             endDateBeforeStartDate: "The end date can't be before the start date",
             endDateSameAsStartDate: "The end date can't be the same as the start date",
+            manySplitsProvided: `The maximum splits allowed is ${CONST.IOU.SPLITS_LIMIT}.`,
+            dateRangeExceedsMaxDays: `The date range can't exceed ${CONST.IOU.SPLITS_LIMIT} days.`,
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
@@ -1441,6 +1486,10 @@ const translations = {
         },
         chooseWorkspace: 'Choose a workspace',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `report routed to ${to} due to custom approval workflow`,
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hour' : 'hours'} @ ${rate} / hour`,
+            hrs: 'hrs',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2103,6 +2152,11 @@ const translations = {
         shareBankAccountEmptyTitle: 'No admins available',
         shareBankAccountEmptyDescription: 'There are no workspace admins you can share this bank account with.',
         shareBankAccountNoAdminsSelected: 'Please select an admin before continuing',
+        unshareBankAccount: 'Unshare bank account',
+        unshareBankAccountDescription: 'Everyone below has access to this bank account. You can remove access at any point. We’ll still complete any payments in process.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} will lose access to this business bank account. We’ll still complete any payments in process.`,
+        reachOutForHelp: 'It’s being used with the Expensify Card. <concierge-link>Reach out to Concierge</concierge-link> if you need to unshare it.',
+        unshareErrorModalTitle: 'Can’t unshare bank account',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -3082,6 +3136,7 @@ const translations = {
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
+        toGetStarted: 'Add a personal bank account to receive reimbursements, pay invoices, or enable the Expensify Wallet.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
@@ -5491,6 +5546,20 @@ const translations = {
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing accounting connections.`,
             enterCredentials: 'Enter your credentials',
+            claimOffer: {
+                badgeText: 'Offer available!',
+                xero: {
+                    headline: 'Get Xero free for 6 months!',
+                    description: '<muted-text><centered-text>New to Xero? Expensify customers get 6 months free. Claim your offer below.</centered-text></muted-text>',
+                    connectButton: 'Connect to Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Get 5% off Uber rides',
+                    description: `<muted-text><centered-text>Activate Uber for Business through Expensify and save 5% on all business rides through June. <a href="${CONST.UBER_TERMS_LINK}">Terms apply.</a></centered-text></muted-text>`,
+                    connectButton: 'Connect to Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6199,6 +6268,8 @@ const translations = {
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `changed the company address to "${newAddress}" (previously "${previousAddress}")` : `set the company address to "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `added ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `removed ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
@@ -7034,6 +7105,19 @@ const translations = {
             title: "Can't create expense",
             prompt: "You can't create an expense with the same start and stop location.",
         },
+        locationRequiredModal: {
+            title: 'Location access required',
+            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+            allow: 'Allow',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Background location access required',
+            prompt: 'Please allow background location access in your device settings ("Allow all the time" option) to start GPS distance tracking.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Precise location required',
+            prompt: 'Please enable "precise location" in your device settings to start GPS distance tracking.',
+        },
         desktop: {
             title: 'Track distance on your phone',
             subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',
@@ -7826,6 +7910,15 @@ const translations = {
             addAdmin: 'Add admin',
             invite: 'Invite',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
+            revokeAdminAccess: 'Revoke admin access',
+            cantRevokeAdminAccess: "Can't revoke admin access from the technical contact",
+            error: {
+                removeAdmin: 'Unable to remove this user as an Admin. Please try again.',
+            },
+        },
+        members: {
+            title: 'Members',
+            findMember: 'Find member',
         },
     },
 };

@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -254,6 +255,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dismiss: 'Sluiten',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Doorgaan',
+        unshare: 'Niet meer delen',
         yes: 'Ja',
         no: 'Nee',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -551,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Waarde',
         downloadFailedTitle: 'Download mislukt',
         downloadFailedDescription: 'Je download kon niet worden voltooid. Probeer het later opnieuw.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Je kunt geen leeg rapport exporteren.',
+            other: () => 'Je kunt geen lege rapporten exporteren.',
+        }),
         filterLogs: 'Logboeken filteren',
         network: 'Netwerk',
         reportID: 'Rapport-ID',
@@ -749,6 +755,35 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'Je sessie is verlopen.',
         signIn: 'Meld u opnieuw aan.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Biometrische test',
+            authenticationSuccessful: 'Authenticatie geslaagd',
+            successfullyAuthenticatedUsing: ({authType}) => `Je hebt je succesvol geverifieerd met ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometrie (${registered ? 'Geregistreerd' : 'Niet geregistreerd'})`,
+            yourAttemptWasUnsuccessful: 'Je authenticatiepoging is mislukt.',
+            youCouldNotBeAuthenticated: 'U kon niet worden geauthenticeerd',
+            areYouSureToReject: 'Weet je het zeker? De authenticatiepoging wordt afgewezen als je dit scherm sluit.',
+            rejectAuthentication: 'Authenticatie afwijzen',
+            test: 'Test',
+            biometricsAuthentication: 'Biometrische authenticatie',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Schakel gezichts-/vingerafdrukverificatie in of stel een apparaat-toegangscode in via je ',
+            link: 'systeeminstellingen',
+            end: '.',
+        },
+        oops: 'Oeps, er ging iets mis',
+        looksLikeYouRanOutOfTime: 'Het lijkt erop dat je tijd op is! Probeer het opnieuw bij de handelaar.',
+        youRanOutOfTime: 'De tijd is op',
+        letsVerifyItsYou: 'Laten we verifiëren dat jij het bent',
+        verifyYourself: {
+            biometrics: 'Verifieer jezelf met je gezicht of vingerafdruk',
+        },
+        enableQuickVerification: {
+            biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abracadabra,
@@ -920,6 +955,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'als copiloot voor',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `heeft dit rapport aangemaakt om alle uitgaven van <a href="${reportUrl}">${reportName}</a> op te nemen die niet konden worden ingediend met de door jou gekozen frequentie`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `heeft dit rapport gemaakt voor uitgestelde uitgaven van <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Iedereen in dit gesprek op de hoogte stellen',
@@ -1125,7 +1162,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `heeft een uitgave verplaatst${reportName ? `van ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `van <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `heeft deze uitgave verplaatst uit je <a href="${reportUrl}">persoonlijke ruimte</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `heeft deze uitgave verplaatst naar je <a href="${reportUrl}">persoonlijke ruimte</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1186,8 +1222,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Weet je zeker dat je deze uitgave wilt verwijderen?',
             other: 'Weet je zeker dat je deze uitgaven wilt verwijderen?',
         }),
-        deleteReport: 'Rapport verwijderen',
-        deleteReportConfirmation: 'Weet u zeker dat u dit rapport wilt verwijderen?',
+        deleteReport: () => ({
+            one: 'Rapport verwijderen',
+            other: 'Rapporten verwijderen',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Weet u zeker dat u dit rapport wilt verwijderen?',
+            other: 'Weet u zeker dat u deze rapporten wilt verwijderen?',
+        }),
         settledExpensify: 'Betaald',
         done: 'Gereed',
         settledElsewhere: 'Elders betaald',
@@ -1302,6 +1344,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Tarief is niet geldig voor deze workspace. Selecteer een beschikbaar tarief uit de workspace.',
             endDateBeforeStartDate: 'De einddatum kan niet vóór de startdatum liggen',
             endDateSameAsStartDate: 'De einddatum mag niet hetzelfde zijn als de startdatum',
+            manySplitsProvided: `Het maximum aantal toegestane splits is ${CONST.IOU.SPLITS_LIMIT}.`,
+            dateRangeExceedsMaxDays: `Het datumbereik mag niet meer dan ${CONST.IOU.SPLITS_LIMIT} dagen zijn.`,
             negativeDistanceNotAllowed: 'Eindstand moet groter zijn dan beginstand',
             invalidReadings: 'Voer zowel de begin- als eindstanden in',
         },
@@ -1455,6 +1499,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} tot ${endDate} (${count} dagen)`,
         splitByDate: 'Splitsen op datum',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapport doorgestuurd naar ${to} vanwege aangepaste goedkeuringsworkflow`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'uur' : 'uren'} @ ${rate} / uur`, hrs: 'uur'},
     },
     transactionMerge: {
         listPage: {
@@ -2108,6 +2153,13 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountEmptyTitle: 'Geen beheerders beschikbaar',
         shareBankAccountEmptyDescription: 'Er zijn geen werkruimtebeheerders waarmee u deze bankrekening kunt delen.',
         shareBankAccountNoAdminsSelected: 'Selecteer een beheerder voordat u verdergaat',
+        unshareBankAccount: 'Deelname bankrekening ongedaan maken',
+        unshareBankAccountDescription:
+            'Iedereen hieronder heeft toegang tot deze bankrekening. U kunt de toegang op elk moment intrekken. We zullen alle betalingen die in behandeling zijn nog steeds voltooien.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) =>
+            `${admin} verliest de toegang tot deze zakelijke bankrekening. We zullen alle betalingen die in behandeling zijn nog steeds voltooien.`,
+        reachOutForHelp: 'Deze wordt gebruikt met de Expensify Card. <concierge-link>Neem contact op met Concierge</concierge-link> als u de deling ongedaan wilt maken.',
+        unshareErrorModalTitle: 'Deling bankrekening kan niet ongedaan worden gemaakt',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -3087,6 +3139,7 @@ ${
         currencyHeader: 'Wat is de valuta van je bankrekening?',
         confirmationStepHeader: 'Controleer je gegevens.',
         confirmationStepSubHeader: 'Controleer de onderstaande gegevens en vink het vakje met de voorwaarden aan om te bevestigen.',
+        toGetStarted: 'Voeg een persoonlijke bankrekening toe om vergoedingen te ontvangen, facturen te betalen of de Expensify Wallet in te schakelen.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-wachtwoord invoeren',
@@ -5565,6 +5618,20 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Weet je zeker dat je ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'deze boekhoudkundige integratie'} wilt verbinden? Hierdoor worden alle bestaande boekhoudkoppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
+            claimOffer: {
+                badgeText: 'Aanbieding beschikbaar!',
+                xero: {
+                    headline: 'Krijg 6 maanden gratis Xero!',
+                    description: '<muted-text><centered-text>Nieuw bij Xero? Expensify-klanten krijgen 6 maanden gratis. Verzilver je aanbieding hieronder.</centered-text></muted-text>',
+                    connectButton: 'Verbinden met Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Krijg 5% korting op Uber-ritten',
+                    description: `<muted-text><centered-text>Activeer Uber for Business via Expensify en bespaar 5% op alle zakelijke ritten tot en met juni. <a href="${CONST.UBER_TERMS_LINK}">Voorwaarden zijn van toepassing.</a></centered-text></muted-text>`,
+                    connectButton: 'Verbinden met Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6293,6 +6360,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         billcom: 'Bill.com',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `het bedrijfsadres gewijzigd naar "${newAddress}" (voorheen "${previousAddress}")` : `stel het bedrijfsadres in op "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `${approverName} (${approverEmail}) toegevoegd als goedkeurder voor het veld ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
@@ -7889,7 +7958,11 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             addAdmin: 'Beheerder toevoegen',
             invite: 'Uitnodigen',
             addAdminError: 'Kan dit lid niet als beheerder toevoegen. Probeer het opnieuw.',
+            revokeAdminAccess: 'Beheerdersrechten intrekken',
+            cantRevokeAdminAccess: 'Kan de beheerdersrechten niet intrekken van de technische contactpersoon',
+            error: {removeAdmin: 'Kan deze gebruiker niet als beheerder verwijderen. Probeer het opnieuw.'},
         },
+        members: {title: 'Leden', findMember: 'Lid zoeken'},
     },
     gps: {
         tooltip: 'GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.',
@@ -7912,6 +7985,17 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             confirm: 'Afstandstracking negeren',
         },
         zeroDistanceTripModal: {title: 'Kan geen uitgave aanmaken', prompt: 'Je kunt geen uitgave aanmaken met dezelfde begin- en eindlocatie.'},
+
+        locationRequiredModal: {
+            title: 'Locatietoegang vereist',
+            prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om GPS-afstandsregistratie te starten.',
+            allow: 'Toestaan',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Toegang tot locatie op de achtergrond vereist',
+            prompt: 'Sta achtergrondlocatietoegang toe in de instellingen van je apparaat (de optie “Altijd toestaan”) om het bijhouden van de GPS-afstand te starten.',
+        },
+        preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
     },
 };
