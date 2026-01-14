@@ -6579,6 +6579,9 @@ ${reportName}
         savedSearchesMenuItemTitle: '已保存',
         groupedExpenses: '已分组报销费用',
         bulkActions: {
+            editMultiple: '批量编辑',
+            editMultipleTitle: '编辑多个费用',
+            editMultipleDescription: '更改将应用于所有选定的费用，并将覆盖之前设置的任何值。',
             approve: '批准',
             pay: '支付',
             delete: '删除',
