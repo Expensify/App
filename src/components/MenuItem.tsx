@@ -738,8 +738,8 @@ function MenuItem({
                                 {...(interactive && {
                                     role: CONST.ROLE.MENUITEM,
                                     accessibilityLabel: title ? title.toString() : '',
-                                    accessible: true,
                                 })}
+                                accessible={interactive}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >
