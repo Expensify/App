@@ -1162,7 +1162,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
-    [ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX]: OnyxTypes.DomainSecurityGroup;
 };
 
 type OnyxValuesMapping = {
