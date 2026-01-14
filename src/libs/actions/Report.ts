@@ -5331,10 +5331,6 @@ function deleteAppReport(
 
 /**
  * Moves an IOU report to a policy by converting it to an expense report
- * @param reportID - The ID of the IOU report to move
- * @param policy - The policy to move the report to
- * @param isFromSettlementButton - Whether the action is from report preview
- * @param reportTransactions - The transactions for this report (from useOnyx)
  */
 function moveIOUReportToPolicy(
     reportID: string,
@@ -5383,11 +5379,7 @@ function moveIOUReportToPolicy(
 }
 
 /**
- * Moves an IOU report to a policy by converting it to an expense report
- * @param reportID - The ID of the IOU report to move
- * @param policy - The policy to move the report to
- * @param formatPhoneNumber - Function to format phone numbers
- * @param reportTransactions - The transactions for this report (from useOnyx)
+ * Moves an IOU report to a policy by converting it to an expense report and invites the submitter
  */
 function moveIOUReportToPolicyAndInviteSubmitter(
     reportID: string,
