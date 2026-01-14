@@ -9407,7 +9407,7 @@ function getReportFromHoldRequestsOnyxData({
     optimisticHoldActionID: string;
     optimisticCreatedReportForUnapprovedTransactionsActionID: string | undefined;
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
-    optimisticReportActionCopyIDs: OptimisticHoldReportExpenseActionID[];
+    optimisticReportActionCopyIDs: OptimisticReportActionCopyIDs;
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
