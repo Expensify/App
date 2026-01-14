@@ -279,7 +279,7 @@ describe('orderedReportsForLHN derived value', () => {
             const secondResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.ES], {
                 currentValue: firstResult,
                 sourceValues: {
-                    [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.ES,
+                    [ONYXKEYS.NVP_PREFERRED_LOCALE]: undefined,
                 },
                 areAllConnectionsSet: true,
             });
@@ -305,7 +305,7 @@ describe('orderedReportsForLHN derived value', () => {
             const secondResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, betas, {reports: {}, locale: null}, CONST.PRIORITY_MODE.DEFAULT, CONST.LOCALES.DEFAULT], {
                 currentValue: firstResult,
                 sourceValues: {
-                    [ONYXKEYS.BETAS]: betas,
+                    [ONYXKEYS.BETAS]: undefined,
                 },
                 areAllConnectionsSet: true,
             });
@@ -330,7 +330,7 @@ describe('orderedReportsForLHN derived value', () => {
             const secondResult = orderedReportsForLHNConfig.compute([reports, {}, {}, {}, {}, {}, [], {reports: {}, locale: null}, CONST.PRIORITY_MODE.GSD, CONST.LOCALES.DEFAULT], {
                 currentValue: firstResult,
                 sourceValues: {
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: undefined,
                 },
                 areAllConnectionsSet: true,
             });

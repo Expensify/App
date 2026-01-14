@@ -81,10 +81,8 @@ function SidebarOrderedReportsContextProvider({
         hookStartTime.current = performance.now();
     });
 
-    // Get ordered report IDs from the derived value
-    // We use the whole orderedReportsData as a dependency to ensure we recompute whenever it changes
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unsafe-member-access, react-hooks/exhaustive-deps, rulesdir/prefer-narrow-hook-dependencies
-    const orderedReportIDs = useMemo(() => orderedReportsData?.orderedReportIDs || [], [orderedReportsData]);
+    // Get ordered report IDs from the derived value, holding a stable reference when it's empty
+    const orderedReportIDs = useMemo(() => orderedReportsData?.orderedReportIDs ?? [], [orderedReportsData?.orderedReportIDs]);
 
     // Get the actual reports based on the ordered IDs
     const getOrderedReports = useCallback(

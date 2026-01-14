@@ -66,7 +66,6 @@ export default createOnyxDerivedValueConfig({
 
         // If we already computed and there are no updates, return current value
         if ((isFullyComputed && !sourceValues) || !reports) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return (
                 currentValue ?? {
                     reportsToDisplay: {},
