@@ -3,7 +3,7 @@ import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
@@ -31,7 +31,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             headerIcon={icons.Profile}
             headerTitle={translate('domain.members.title')}
             searchPlaceholder={translate('domain.members.findMember')}
-            onSelectRow={(item: MemberOption) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
+            onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
+            headerIcon={illustrations.Profile}
         />
     );
 }
