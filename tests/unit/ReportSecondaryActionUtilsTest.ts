@@ -2703,6 +2703,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 originalCurrency: 'USD',
                 postedDate: '2025-01-01',
                 cardID: 1,
+                convertedAmount: -100,
             });
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
@@ -2756,6 +2757,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 originalCurrency: 'USD',
                 postedDate: '2025-01-01',
                 cardID: 1,
+                convertedAmount: 100,
             });
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
