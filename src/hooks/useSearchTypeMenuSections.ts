@@ -45,8 +45,11 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
  */
 const useSearchTypeMenuSections = () => {
     const [allCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
-    const expensifyCards = useMemo(() => getCardFeedsForDisplay({}, allCards), [allCards]);
-    const defaultExpensifyCard = useMemo(() => Object.values(expensifyCards)?.at(0), [expensifyCards]);
+
+    const defaultExpensifyCard = useMemo(() => {
+        const cards = getCardFeedsForDisplay({}, allCards);
+        return Object.values(cards)?.at(0);
+    }, [allCards]);
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
