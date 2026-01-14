@@ -295,6 +295,7 @@ function MoneyRequestReceiptView({
                         isThumbnail={!canEditReceipt}
                         isInMoneyRequestView
                         style={receiptStyle}
+                        isDisplayedInWideRHP={isDisplayedInWideRHP}
                     />
                 </OfflineWithFeedback>
             )}
