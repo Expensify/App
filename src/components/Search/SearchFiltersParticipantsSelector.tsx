@@ -42,7 +42,9 @@ function getSelectedOptionData(option: Option): OptionData {
 function getOptionDataFromAttendee(attendee: Attendee): OptionData {
     return {
         text: attendee.displayName,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string email
         alternateText: attendee.email || attendee.displayName,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string email
         login: attendee.email || attendee.displayName,
         displayName: attendee.displayName,
         accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -235,6 +237,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                     return option.accountID.toString();
                 }
                 // For name-only attendees, use displayName or login as identifier
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string
                 return option.displayName || option.login;
             })
             .filter(Boolean) as string[];
