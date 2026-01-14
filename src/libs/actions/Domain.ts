@@ -4,7 +4,6 @@ import * as API from '@libs/API';
 import type {AddAdminToDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {getAuthToken} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
@@ -354,7 +353,7 @@ function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
 }
 
-function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
+function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>
     > = [
@@ -426,11 +425,9 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID
         },
     ];
 
-    const authToken = getAuthToken();
     const params: SetTechnicalContactEmailParams = {
-        authToken,
         domainAccountID,
-        technicalContactAccountID: newTechnicalContactAccountID,
+        technicalContactEmail: newTechnicalContactEmail,
     };
 
     API.write(WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL, params, {optimisticData, successData, failureData});
@@ -510,9 +507,7 @@ function toggleConsolidatedDomainBilling(domainAccountID: number, domainName: st
         },
     ];
 
-    const authToken = getAuthToken();
     const params: ToggleConsolidatedDomainBillingParams = {
-        authToken,
         domainAccountID,
         domainName,
         enabled: useTechnicalContactBillingCard,
@@ -615,9 +610,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
         },
     ];
 
-    const authToken = getAuthToken();
     const params: AddAdminToDomainParams = {
-        authToken,
         domainName,
         targetEmail,
     };

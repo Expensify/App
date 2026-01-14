@@ -32,6 +32,8 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
+const XERO_PARTNER_LINK = 'https://xero5440.partnerlinks.io/uzfjy4uegog2-v0pj1v';
+const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'org.me.mobiexpensifyg';
@@ -445,6 +447,8 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    XERO_PARTNER_LINK,
+    UBER_TERMS_LINK,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
@@ -725,6 +729,7 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
+        TIME_TRACKING: 'timeTracking',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
@@ -1313,6 +1318,7 @@ const CONST = {
                     DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
                     DELETE_BUDGET: 'POLICYCHANGELOG_DELETE_BUDGET',
                     DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
+                    DELETE_CATEGORIES: 'POLICYCHANGELOG_DELETE_CATEGORIES',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
                     DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
                     DELETE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_SUB_RATE',
@@ -1352,6 +1358,7 @@ const CONST = {
                     UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
                     UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                    UPDATE_ADDRESS: 'POLICYCHANGELOG_UPDATE_ADDRESS',
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
@@ -2886,6 +2893,8 @@ const CONST = {
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
+        // Maximum number of splits allowed for expenses
+        SPLITS_LIMIT: 30,
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
@@ -2919,6 +2928,7 @@ const CONST = {
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
             DISTANCE_ODOMETER: 'distance-odometer',
+            TIME: 'time',
         },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
@@ -2931,6 +2941,7 @@ const CONST = {
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
             DISTANCE_ODOMETER: 'distance-odometer',
+            TIME: 'time',
         },
 
         REPORT_ACTION_TYPE: {
@@ -5514,6 +5525,7 @@ const CONST = {
         DISTANCE_MANUAL: 'distance-manual',
         DISTANCE_GPS: 'distance-gps',
         DISTANCE_ODOMETER: 'distance-odometer',
+        TIME: 'time',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,
@@ -5862,6 +5874,11 @@ const CONST = {
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
+    ONBOARDING_RHP_VARIANT: {
+        RHP_CONCIERGE_DM: 'rhpConciergeDm',
+        RHP_ADMINS_ROOM: 'rhpAdminsRoom',
+        CONTROL: 'control',
+    },
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_ACCOUNTING_MAPPING,
 
@@ -6657,6 +6674,7 @@ const CONST = {
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
     MIN_TAX_RATE_DECIMAL_PLACES: 2,
     DISTANCE_DECIMAL_PLACES: 2,
+    HOURS_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
