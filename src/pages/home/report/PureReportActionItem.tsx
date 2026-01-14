@@ -1254,6 +1254,7 @@ function PureReportActionItem({
                 <ReportActionItemBasicMessage>
                     <RenderHTML
                         html={`<comment><muted-text>${modifiedExpenseMessageText}</muted-text></comment>`}
+                        isSelectable={false}
                         onLinkPress={(_evt, href) => {
                             if (href !== `${CONST.DEEPLINK_BASE_URL}concierge/explain`) {
                                 return;
