@@ -36,10 +36,6 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    useEffect(() => {
-        openReimbursementAccountPage('', '', '', policyID);
-    }, [policyID]);
-
     const handleAddBankAccountPress = () => {
         navigateToBankAccountRoute(policyID);
     };
