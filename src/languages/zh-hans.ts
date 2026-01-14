@@ -1921,8 +1921,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthEnabled: '已启用双重身份验证',
         whatIsTwoFactorAuth: '双重身份验证（2FA）有助于保护您的账户安全。登录时，您需要输入由首选验证器应用生成的验证码。',
         disableTwoFactorAuth: '禁用双重身份验证',
-        explainProcessToRemove: '若要禁用双重身份验证 (2FA)，请输入来自您的身份验证应用中的有效验证码。',
-        explainProcessToRemoveWithRecovery: '若要停用双重身份验证 (2FA)，请输入有效的恢复代码。',
+        explainProcessToRemove: '要停用双重身份验证 (2FA)，请输入您身份验证应用中的有效验证码。',
+        explainProcessToRemoveWithRecovery: '要禁用双重身份验证（2FA），请输入有效的恢复代码。',
         disabled: '双重身份验证已被禁用',
         noAuthenticatorApp: '你将不再需要使用验证器应用来登录 Expensify。',
         stepCodes: '恢复代码',
@@ -7714,7 +7714,6 @@ ${reportName}
             primaryContact: '主要联系人',
             addPrimaryContact: '添加主要联系人',
             setPrimaryContactError: '无法设置主要联系人。请稍后重试。',
-            settings: '设置',
             consolidatedDomainBilling: '合并域名结算',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>启用后，主要联系人将为<strong>${domainName}</strong>成员拥有的所有工作区付款，并接收所有账单收据。</muted-text-label></comment>`,
@@ -7726,7 +7725,15 @@ ${reportName}
             cantRevokeAdminAccess: '无法撤销技术联系人的管理员访问权限',
             error: {removeAdmin: '无法将此用户移除管理员角色。请重试。'},
         },
-        members: {title: '成员', findMember: '查找成员'},
+        members: {
+            title: '成员',
+            findMember: '查找成员',
+            forceTwoFactorAuth: '强制启用双重身份验证',
+            forceTwoFactorAuthSAMLEnabledDescription: `<muted-text>请禁用<a href="${CONST.SAML_HELP_URL}">SAML</a>以强制启用双重身份验证。</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>要求此域中的所有成员使用双重身份验证。当域成员登录时，将提示他们在其账户上设置双重身份验证。</muted-text>`,
+            forceTwoFactorAuthError: '强制启用双重身份验证的设置无法更改。请稍后重试。',
+        },
+        common: {settings: '设置'},
     },
     gps: {
         tooltip: 'GPS 跟踪进行中！完成后，请在下方停止跟踪。',
@@ -7740,7 +7747,6 @@ ${reportName}
         stopGpsTrackingModal: {title: '停止 GPS 追踪', prompt: '你确定吗？这将结束你当前的旅程。', cancel: '恢复追踪', confirm: '停止 GPS 追踪'},
         discardDistanceTrackingModal: {title: '丢弃距离跟踪', prompt: '您确定吗？这将放弃您当前的流程，且无法撤销。', confirm: '丢弃距离跟踪'},
         zeroDistanceTripModal: {title: '无法创建报销', prompt: '你不能创建起点和终点相同的报销。'},
-
         locationRequiredModal: {title: '需要访问位置信息', prompt: '请在设备设置中允许位置访问以开始 GPS 距离跟踪。', allow: '允许'},
         androidBackgroundLocationRequiredModal: {title: '需要后台位置访问权限', prompt: '请在设备设置中允许应用使用“始终允许”位置访问权限，以开始 GPS 距离跟踪。'},
         preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},

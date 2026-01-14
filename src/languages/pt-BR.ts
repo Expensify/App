@@ -1948,8 +1948,8 @@ const translations: TranslationDeepObject<typeof en> = {
         whatIsTwoFactorAuth:
             'A autenticação de dois fatores (2FA) ajuda a manter sua conta segura. Ao fazer login, você precisará inserir um código gerado pelo seu aplicativo autenticador preferido.',
         disableTwoFactorAuth: 'Desativar autenticação de dois fatores',
-        explainProcessToRemove: 'Para desativar a autenticação de dois fatores (2FA), insira um código válido do seu aplicativo de autenticação.',
-        explainProcessToRemoveWithRecovery: 'Para desativar a autenticação de dois fatores (2FA), insira um código de recuperação válido.',
+        explainProcessToRemove: 'Para desativar a autenticação em duas etapas (2FA), insira um código válido do seu aplicativo de autenticação.', //_/\__/_/  \_,_/\__/\__/\_,_/
+        explainProcessToRemoveWithRecovery: 'Para desativar a autenticação em duas etapas (2FA), insira um código de recuperação válido.',
         disabled: 'A autenticação em duas etapas agora está desativada',
         noAuthenticatorApp: 'Você não precisará mais de um app autenticador para entrar no Expensify.',
         stepCodes: 'Códigos de recuperação',
@@ -7897,7 +7897,6 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             primaryContact: 'Contato principal',
             addPrimaryContact: 'Adicionar contato principal',
             setPrimaryContactError: 'Não foi possível definir o contato principal. Tente novamente mais tarde.',
-            settings: 'Configurações',
             consolidatedDomainBilling: 'Cobrança consolidada de domínio',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Quando ativado, o contato principal pagará por todos os espaços de trabalho pertencentes aos membros de <strong>${domainName}</strong> e receberá todos os recibos de cobrança.</muted-text-label></comment>`,
@@ -7909,7 +7908,15 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             cantRevokeAdminAccess: 'Não é possível revogar o acesso de administrador do contato técnico',
             error: {removeAdmin: 'Não foi possível remover este usuário como Administrador. Tente novamente.'},
         },
-        members: {title: 'Membros', findMember: 'Encontrar membro'},
+        members: {
+            title: 'Membros',
+            findMember: 'Encontrar membro',
+            forceTwoFactorAuth: 'Forçar autenticação em duas etapas',
+            forceTwoFactorAuthSAMLEnabledDescription: `<muted-text>Desative o <a href="${CONST.SAML_HELP_URL}">SAML</a> para forçar a autenticação de dois fatores.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Exigir autenticação em duas etapas para todos os membros deste domínio. Os membros do domínio serão solicitados a configurar a autenticação em duas etapas em suas contas ao fazer login.</muted-text>`,
+            forceTwoFactorAuthError: 'Não foi possível alterar a obrigatoriedade de autenticação em duas etapas. Tente novamente mais tarde.',
+        },
+        common: {settings: 'Configurações'},
     },
     gps: {
         tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',
@@ -7932,7 +7939,6 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             confirm: 'Descartar rastreamento de distância',
         },
         zeroDistanceTripModal: {title: 'Não é possível criar a despesa', prompt: 'Você não pode criar uma despesa com o mesmo local de partida e de chegada.'},
-
         locationRequiredModal: {
             title: 'Acesso à localização necessário',
             prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',

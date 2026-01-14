@@ -1951,7 +1951,7 @@ const translations: TranslationDeepObject<typeof en> = {
         whatIsTwoFactorAuth: '2 要素認証（2FA）は、アカウントを安全に保つのに役立ちます。ログイン時には、お好みの認証アプリで生成されたコードを入力する必要があります。',
         disableTwoFactorAuth: '2 要素認証を無効にする',
         explainProcessToRemove: '2 要素認証（2FA）を無効にするには、認証アプリから有効なコードを入力してください。',
-        explainProcessToRemoveWithRecovery: '2 要素認証（2FA）を無効にするには、有効なリカバリーコードを入力してください。',
+        explainProcessToRemoveWithRecovery: '2 要素認証（2FA）を無効にするには、有効な復元コードを入力してください。',
         disabled: '2 要素認証は無効になりました',
         noAuthenticatorApp: 'Expensify にログインする際、認証アプリはもう必要ありません。',
         stepCodes: 'リカバリーコード',
@@ -7860,7 +7860,6 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             primaryContact: '主要連絡先',
             addPrimaryContact: '主要連絡先を追加',
             setPrimaryContactError: 'メインの連絡先を設定できませんでした。後でもう一度お試しください。',
-            settings: '設定',
             consolidatedDomainBilling: '統合ドメイン請求',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>有効にすると、<strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを代表連絡先が行い、すべての請求書の領収書を受け取ります。</muted-text-label></comment>`,
@@ -7872,7 +7871,15 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             cantRevokeAdminAccess: '技術連絡先から管理者アクセス権を取り消すことはできません',
             error: {removeAdmin: 'このユーザーを管理者として削除できません。もう一度お試しください。'},
         },
-        members: {title: 'メンバー', findMember: 'メンバーを検索'},
+        members: {
+            title: 'メンバー',
+            findMember: 'メンバーを検索',
+            forceTwoFactorAuth: '2 要素認証を強制する',
+            forceTwoFactorAuthSAMLEnabledDescription: `<muted-text>二要素認証を強制するには、<a href="${CONST.SAML_HELP_URL}">SAML</a> を無効にしてください。</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>このドメインのすべてのメンバーに二要素認証を必須にします。ドメインのメンバーは、サインイン時にアカウントで二要素認証を設定するよう求められます。</muted-text>`,
+            forceTwoFactorAuthError: '2 要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
+        },
+        common: {settings: '設定'},
     },
     gps: {
         tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',
