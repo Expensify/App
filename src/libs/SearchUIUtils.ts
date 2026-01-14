@@ -3005,8 +3005,8 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
 /**
  * Whether to show the empty state or not
  */
-function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes, isTodoSearchFlag = false) {
-    return !isDataLoaded || dataLength === 0 || (!isTodoSearchFlag && !Object.values(CONST.SEARCH.DATA_TYPES).includes(type));
+function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes | undefined) {
+    return !isDataLoaded || dataLength === 0 || !type || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {

@@ -268,7 +268,7 @@ function Search({
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
 
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
-
+    const searchDataType = useMemo(() => isTodoSearch(searchKey) ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type, [searchKey, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, similarSearchHash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
@@ -848,8 +848,8 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchResults?.search?.type, validGroupBy);
-    }, [accountID, searchResults?.data, searchResults?.search?.type, visibleColumns, validGroupBy]);
+        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, validGroupBy);
+    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
@@ -1033,7 +1033,7 @@ function Search({
     }
 
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults?.search?.type, isTodoSearch(searchKey))) {
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
