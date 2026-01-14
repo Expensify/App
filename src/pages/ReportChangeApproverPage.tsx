@@ -102,18 +102,15 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
 
     useEffect(() => {
-        if (selectedApproverType !== undefined) {
+        if (selectedApproverType === undefined && approverTypes.length > 0) {
+            setSelectedApproverType(approverTypes.at(0)?.keyForList);
             return;
         }
-        setSelectedApproverType(approverTypes.at(0)?.keyForList);
-    }, [approverTypes, selectedApproverType]);
 
-    useEffect(() => {
-        if (hasAutoAppliedRef.current || approverTypes.length !== 1 || selectedApproverType !== approverTypes.at(0)?.keyForList || hasNavigatedToAddApproverRef.current) {
-            return;
+        if (!hasAutoAppliedRef.current && approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList && !hasNavigatedToAddApproverRef.current) {
+            hasAutoAppliedRef.current = true;
+            changeApprover();
         }
-        hasAutoAppliedRef.current = true;
-        changeApprover();
     }, [approverTypes, selectedApproverType, changeApprover]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
