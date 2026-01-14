@@ -18,6 +18,7 @@ import {
     getOriginalMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
+    getUpdateACHAccountMessage,
     isIOUActionMatchingTransactionList,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
@@ -2388,6 +2389,126 @@ describe('ReportActionsUtils', () => {
 
             // The new line should be replaced with a comma
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+    });
+
+    describe('getUpdateACHAccountMessage', () => {
+        it('should return "set" message when setting the default bank account for the first time', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only new bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Business Checking',
+                    maskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('set the default business bank account to "Business Checking: XXXX1234"');
+        });
+
+        it('should return "set" message without bank name when bankAccountName is empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only new bank account maskedBankAccountNumber
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: '',
+                    maskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('set the default business bank account to "XXXX1234"');
+        });
+
+        it('should return "removed" message when removing the default bank account', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only old bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldBankAccountName: 'Business Checking',
+                    oldMaskedBankAccountNumber: 'XXXX5678',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('removed the default business bank account "Business Checking: XXXX5678"');
+        });
+
+        it('should return "removed" message without bank name when oldBankAccountName is empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only old bank account maskedBankAccountNumber
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldBankAccountName: '',
+                    oldMaskedBankAccountNumber: 'XXXX5678',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('removed the default business bank account "XXXX5678"');
+        });
+
+        it('should return "changed" message when changing from one bank account to another', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with both new and old bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Savings Account',
+                    maskedBankAccountNumber: 'XXXX5678',
+                    oldBankAccountName: 'Business Checking',
+                    oldMaskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('changed the default business bank account to "Savings Account: XXXX5678" (previously "Business Checking: XXXX1234")');
+        });
+
+        it('should return "changed" message with partial bank names when some names are empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action where new bank has a name but old bank does not
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Savings Account',
+                    maskedBankAccountNumber: 'XXXX5678',
+                    oldBankAccountName: '',
+                    oldMaskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('changed the default business bank account to "Savings Account: XXXX5678" (previously "XXXX1234")');
         });
     });
 
