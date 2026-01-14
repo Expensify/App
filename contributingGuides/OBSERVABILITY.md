@@ -109,18 +109,16 @@ User-facing latency with thresholds (P90):
 
 Error conditions tracked for trend analysis:
 
-- **ANRs**: __TBD__
-- **404 pages**: __TBD__
+- **ANRs**: number of "Application Not Responding" errors
+- **404 pages**: number of user actions other than deep links that result in 404
 - **Infinite skeletons**: Skeleton visible 10+ seconds
-- **Authentication failures**: __TBD__ 
+- **Authentication failures**: number of authentication errors other than wrong credentials 
 
 ### Feature Health
 
-__TBD__
-
 End-to-end flows for critical features:
 
-- **Create expense**: Manual entry, scan, distance (metrics TBD)
+- **Create expense**: Create spans and dashboard that will provide information about feature health of creating expense for each type: Manual entry, scan, distance.
 
 ### Adding New Metrics
 
