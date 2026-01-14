@@ -195,7 +195,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             });
 
         setSelectedOptions(preSelectedOptions);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this should react only to changes in form data
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails]);
 
     const handleParticipantSelection = useCallback(

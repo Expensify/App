@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -81,6 +82,7 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
+    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
@@ -253,6 +255,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dismiss: 'Schließen',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Fortfahren',
+        unshare: 'Nicht teilen',
         yes: 'Ja',
         no: 'Nein',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -652,6 +655,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Erstattungsfähiger Gesamtbetrag',
         nonReimbursableTotal: 'Nicht erstattungsfähiger Gesamtbetrag',
         originalAmount: 'Ursprünglicher Betrag',
+        insights: 'Einblicke',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -918,6 +922,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'als Copilot für',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `hat diesen Bericht erstellt, um alle Ausgaben aus <a href="${reportUrl}">${reportName}</a> aufzunehmen, die mit der von dir gewählten Frequenz nicht eingereicht werden konnten`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `hat diesen Bericht für alle zurückgehaltenen Ausgaben aus <a href="${reportUrl}">${reportName}</a> erstellt`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Alle in dieser Unterhaltung benachrichtigen',
@@ -975,15 +981,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Abonnement',
         domains: 'Domänen',
     },
-    tabSelector: {
-        chat: 'Chat',
-        room: 'Raum',
-        distance: 'Entfernung',
-        manual: 'Manuell',
-        scan: 'Scannen',
-        map: 'Karte',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: 'Chat', room: 'Raum', distance: 'Entfernung', manual: 'Manuell', scan: 'Scannen', map: 'Karte', gps: 'GPS', odometer: 'Kilometerzähler'},
     spreadsheet: {
         upload: 'Eine Tabellenkalkulation hochladen',
         import: 'Tabellenkalkulation importieren',
@@ -1136,7 +1134,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `hat eine Ausgabe verschoben${reportName ? `von ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `hat diese Ausgabe verschoben${reportName ? `zu <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `hat diese Ausgabe verschoben${reportName ? `von <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `hat diese Ausgabe aus deinem <a href="${reportUrl}">Persönlichen Bereich</a> verschoben`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `hat diese Ausgabe in deinen <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1258,7 +1255,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `hat die Zahlung über ${amount} storniert, weil ${submitterDisplayName} seine Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} hat ein Bankkonto hinzugefügt. Die Zahlung über ${amount} wurde durchgeführt.`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}als bezahlt markiert`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}als bezahlt markiert${comment ? `, mit dem Kommentar "${comment}"` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}mit Wallet bezahlt`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}mit Expensify über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> bezahlt`,
@@ -1314,6 +1311,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Satz für diesen Workspace ungültig. Bitte wählen Sie einen verfügbaren Satz aus dem Workspace aus.',
             endDateBeforeStartDate: 'Das Enddatum darf nicht vor dem Startdatum liegen',
             endDateSameAsStartDate: 'Das Enddatum darf nicht mit dem Startdatum identisch sein',
+            manySplitsProvided: `Die maximale Anzahl zulässiger Aufteilungen beträgt ${CONST.IOU.SPLITS_LIMIT}.`,
+            dateRangeExceedsMaxDays: `Der Datumsbereich darf ${CONST.IOU.SPLITS_LIMIT} Tage nicht überschreiten.`,
+            invalidReadings: 'Bitte geben Sie sowohl Anfangs- als auch Endstand ein',
+            negativeDistanceNotAllowed: 'Endablesung muss größer als Startablesung sein',
         },
         dismissReceiptError: 'Fehler ausblenden',
         dismissReceiptErrorConfirmation: 'Achtung! Wenn du diesen Fehler verwirfst, wird dein hochgeladener Beleg vollständig entfernt. Bist du sicher?',
@@ -1465,6 +1466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} bis ${endDate} (${count} Tage)`,
         splitByDate: 'Nach Datum aufteilen',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `bericht aufgrund eines benutzerdefinierten Genehmigungsworkflows an ${to} weitergeleitet`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'Stunde' : 'Stunden'} @ ${rate} / Stunde`, hrs: 'Std.'},
     },
     transactionMerge: {
         listPage: {
@@ -1828,6 +1830,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Sentry-Anfragen in der Konsole protokollieren',
             sentryHighlightedSpanOps: 'Hervorgehobene Span-Namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: 'Cache für linke Seitenleiste',
+            clearleftHandNavCache: 'Löschen',
         },
         debugConsole: {
             saveLog: 'Protokoll speichern',
@@ -2117,6 +2121,12 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountEmptyTitle: 'Keine Administratoren verfügbar',
         shareBankAccountEmptyDescription: 'Es gibt keine Workspace-Administratoren, mit denen Sie dieses Bankkonto teilen können.',
         shareBankAccountNoAdminsSelected: 'Bitte wählen Sie einen Administrator aus, bevor Sie fortfahren',
+        unshareBankAccount: 'Bankkonto freigeben',
+        unshareBankAccountDescription:
+            'Alle unten aufgeführten Personen haben Zugriff auf dieses Bankkonto. Sie können den Zugriff jederzeit entfernen. Laufende Zahlungen werden weiterhin ausgeführt.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} verliert den Zugriff auf dieses Geschäftskonto. Laufende Zahlungen werden weiterhin ausgeführt.`,
+        reachOutForHelp: 'Dieses Konto wird mit der Expensify Card verwendet. <concierge-link>Wenden Sie sich an den Concierge</concierge-link>, wenn Sie die Freigabe aufheben möchten.',
+        unshareErrorModalTitle: 'Bankkonto kann nicht freigegeben werden',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -3103,6 +3113,7 @@ ${
         currencyHeader: 'Was ist die Währung deines Bankkontos?',
         confirmationStepHeader: 'Überprüfen Sie Ihre Angaben.',
         confirmationStepSubHeader: 'Überprüfen Sie die untenstehenden Angaben und aktivieren Sie das Kontrollkästchen für die Bedingungen, um zu bestätigen.',
+        toGetStarted: 'Fügen Sie ein persönliches Bankkonto hinzu, um Erstattungen zu erhalten, Rechnungen zu bezahlen oder die Expensify Wallet zu aktivieren.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-Passwort eingeben',
@@ -3848,9 +3859,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} – Zuletzt synchronisiert am ${formattedDate}`,
             authenticationError: (connectionName: string) => `Verbindung mit ${connectionName} aufgrund eines Authentifizierungsfehlers nicht möglich.`,
             learnMore: 'Mehr erfahren',
-            memberAlternateText: 'Mitglieder können Berichte einreichen und genehmigen.',
-            adminAlternateText: 'Admins haben vollen Bearbeitungszugriff auf alle Berichte und Workspace-Einstellungen.',
-            auditorAlternateText: 'Prüfer können Berichte anzeigen und kommentieren.',
+            memberAlternateText: 'Berichte einreichen und genehmigen.',
+            adminAlternateText: 'Berichte und Workspace-Einstellungen verwalten.',
+            auditorAlternateText: 'Berichte anzeigen und kommentieren.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -5590,6 +5601,20 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Sind Sie sicher, dass Sie ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'diese Buchhaltungsintegration'} verbinden möchten? Dadurch werden alle bestehenden Buchhaltungsverbindungen entfernt.`,
             enterCredentials: 'Geben Sie Ihre Anmeldedaten ein',
+            claimOffer: {
+                badgeText: 'Angebot verfügbar!',
+                xero: {
+                    headline: '6 Monate kostenlos mit Xero!',
+                    description: '<muted-text><centered-text>Neu bei Xero? Expensify-Kunden erhalten 6 Monate kostenlos. Fordern Sie Ihr Angebot unten an.</centered-text></muted-text>',
+                    connectButton: 'Mit Xero verbinden',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: '5% Rabatt auf Uber-Fahrten',
+                    description: `<muted-text><centered-text>Aktivieren Sie Uber for Business über Expensify und sparen Sie 5% bei allen Geschäftsreisen bis Juni. <a href="${CONST.UBER_TERMS_LINK}">Bedingungen gelten.</a></centered-text></muted-text>`,
+                    connectButton: 'Mit Uber for Business verbinden',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6323,6 +6348,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `Firmenadresse geändert zu „${newAddress}“ (zuvor „${previousAddress}“)` : `Unternehmensadresse auf „${newAddress}“ festlegen`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `${approverName} (${approverEmail}) als Genehmiger für das Feld ${field} „${name}“ hinzugefügt`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
@@ -6827,6 +6854,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             selectAllMatchingItems: 'Alle passenden Elemente auswählen',
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
+        topSpenders: 'Top-Ausgaben',
     },
     genericErrorPage: {
         title: 'Oh je, etwas ist schiefgelaufen!',
@@ -6963,6 +6991,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 removedConnection: ({connectionName}: ConnectionNameParams) => `Verbindung zu ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} entfernt`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `verbunden mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'hat den Chat verlassen',
+                companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
+                    `Die ${feedName}-Verbindung ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>`,
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten. Bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
@@ -7122,6 +7152,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         error: {
             selectSuggestedAddress: 'Bitte wählen Sie eine vorgeschlagene Adresse aus oder verwenden Sie den aktuellen Standort',
         },
+        odometer: {startReading: 'Mit dem Lesen beginnen', endReading: 'Lesen beenden', saveForLater: 'Für später speichern', totalDistance: 'Gesamtdistanz'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Zeugnis verloren oder beschädigt',
@@ -7917,7 +7948,11 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             addAdmin: 'Admin hinzufügen',
             invite: 'Einladen',
             addAdminError: 'Dieser Benutzer kann nicht als Admin hinzugefügt werden. Bitte versuche es erneut.',
+            revokeAdminAccess: 'Administratorzugriff widerrufen',
+            cantRevokeAdminAccess: 'Adminzugriff kann dem technischen Ansprechpartner nicht entzogen werden',
+            error: {removeAdmin: 'Dieser Benutzer kann nicht als Admin entfernt werden. Bitte versuchen Sie es erneut.'},
         },
+        members: {title: 'Mitglieder', findMember: 'Mitglied suchen'},
     },
     gps: {
         tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',
@@ -7940,6 +7975,19 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             confirm: 'Entfernungsverfolgung verwerfen',
         },
         zeroDistanceTripModal: {title: 'Ausgabe kann nicht erstellt werden', prompt: 'Sie können keine Ausgabe mit demselben Start- und Zielort erstellen.'},
+        locationRequiredModal: {
+            title: 'Standortzugriff erforderlich',
+            prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
+            allow: 'Erlauben',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Zugriff auf den Standort im Hintergrund erforderlich',
+            prompt: 'Bitte erlaube den Zugriff auf den Standort im Hintergrund in den Geräteeinstellungen (Option „Immer zulassen“), um die GPS-Distanzverfolgung zu starten.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Genaue Position erforderlich',
+            prompt: 'Bitte aktiviere „genaue Standortbestimmung“ in den Einstellungen deines Geräts, um die GPS‑Streckenverfolgung zu starten.',
+        },
         desktop: {
             title: 'Entfernung auf deinem Handy verfolgen',
             subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',

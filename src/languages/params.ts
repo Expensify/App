@@ -84,6 +84,11 @@ type HarvestCreatedExpenseReportParams = {
     reportName: string;
 };
 
+type CreatedReportForUnapprovedTransactionsParams = {
+    reportUrl: string;
+    reportName: string;
+};
+
 type MovedTransactionParams = {
     reportUrl: string;
     reportName?: string;
@@ -131,6 +136,8 @@ type ManagerApprovedParams = {manager: string};
 type ManagerApprovedAmountParams = {manager: string; amount: number | string};
 
 type PayerPaidParams = {payer: string};
+
+type PaidElsewhereParams = {payer?: string; comment?: string};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
@@ -766,6 +773,7 @@ export type {
     PayerOwesParams,
     RoleNamesParams,
     PayerPaidParams,
+    PaidElsewhereParams,
     RemovedTheRequestParams,
     MovedFromReportParams,
     RenamedRoomActionParams,
@@ -774,6 +782,7 @@ export type {
     ReportPolicyNameParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     HarvestCreatedExpenseReportParams,
+    CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     MovedTransactionParams,

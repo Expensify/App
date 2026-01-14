@@ -9,6 +9,7 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -69,6 +70,7 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
+    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
@@ -244,6 +246,7 @@ const translations = {
         dismiss: 'Dismiss',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
+        unshare: 'Unshare',
         yes: 'Yes',
         no: 'No',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -606,6 +609,7 @@ const translations = {
         sharedIn: 'Shared in',
         unreported: 'Unreported',
         explore: 'Explore',
+        insights: 'Insights',
         todo: 'To-do',
         invoice: 'Invoice',
         expense: 'Expense',
@@ -902,6 +906,8 @@ const translations = {
         asCopilot: 'as copilot for',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `created this report to hold all expenses from <a href="${reportUrl}">${reportName}</a> that couldn't be submitted on your chosen frequency`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `created this report for any held expenses from <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone in this conversation',
@@ -965,6 +971,7 @@ const translations = {
         scan: 'Scan',
         map: 'Map',
         gps: 'GPS',
+        odometer: 'Odometer',
     },
     spreadsheet: {
         upload: 'Upload a spreadsheet',
@@ -1118,7 +1125,6 @@ const translations = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense from your <a href="${reportUrl}">personal space</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1236,7 +1242,7 @@ const translations = {
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}marked as paid`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marked as paid${comment ? `, saying "${comment}"` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}paid with wallet`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}paid with Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
@@ -1262,6 +1268,8 @@ const translations = {
             invalidTagLength: 'The tag name exceeds 255 characters. Please shorten it or choose a different tag.',
             invalidAmount: 'Please enter a valid amount before continuing',
             invalidDistance: 'Please enter a valid distance before continuing',
+            invalidReadings: 'Please enter both start and end readings',
+            negativeDistanceNotAllowed: 'End reading must be greater than start reading',
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount',
@@ -1290,6 +1298,8 @@ const translations = {
             invalidRate: 'Rate not valid for this workspace. Please select an available rate from the workspace.',
             endDateBeforeStartDate: "The end date can't be before the start date",
             endDateSameAsStartDate: "The end date can't be the same as the start date",
+            manySplitsProvided: `The maximum splits allowed is ${CONST.IOU.SPLITS_LIMIT}.`,
+            dateRangeExceedsMaxDays: `The date range can't exceed ${CONST.IOU.SPLITS_LIMIT} days.`,
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
@@ -1436,6 +1446,10 @@ const translations = {
         },
         chooseWorkspace: 'Choose a workspace',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `report routed to ${to} due to custom approval workflow`,
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hour' : 'hours'} @ ${rate} / hour`,
+            hrs: 'hrs',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -1802,6 +1816,8 @@ const translations = {
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
             invalidateWithDelay: 'Invalidate with delay',
+            leftHandNavCache: 'Left Hand Nav cache',
+            clearleftHandNavCache: 'Clear',
             recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
@@ -2096,6 +2112,11 @@ const translations = {
         shareBankAccountEmptyTitle: 'No admins available',
         shareBankAccountEmptyDescription: 'There are no workspace admins you can share this bank account with.',
         shareBankAccountNoAdminsSelected: 'Please select an admin before continuing',
+        unshareBankAccount: 'Unshare bank account',
+        unshareBankAccountDescription: 'Everyone below has access to this bank account. You can remove access at any point. We’ll still complete any payments in process.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} will lose access to this business bank account. We’ll still complete any payments in process.`,
+        reachOutForHelp: 'It’s being used with the Expensify Card. <concierge-link>Reach out to Concierge</concierge-link> if you need to unshare it.',
+        unshareErrorModalTitle: 'Can’t unshare bank account',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -3075,6 +3096,7 @@ const translations = {
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
+        toGetStarted: 'Add a personal bank account to receive reimbursements, pay invoices, or enable the Expensify Wallet.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
@@ -3815,9 +3837,9 @@ const translations = {
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Last synced ${formattedDate}`,
             authenticationError: (connectionName: string) => `Can’t connect to ${connectionName} due to an authentication error.`,
             learnMore: 'Learn more',
-            memberAlternateText: 'Members can submit and approve reports.',
-            adminAlternateText: 'Admins have full edit access to all reports and workspace settings.',
-            auditorAlternateText: 'Auditors can view and comment on reports.',
+            memberAlternateText: 'Submit and approve reports.',
+            adminAlternateText: 'Manage reports and workspace settings.',
+            auditorAlternateText: 'View and comment on reports.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -5484,6 +5506,20 @@ const translations = {
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing accounting connections.`,
             enterCredentials: 'Enter your credentials',
+            claimOffer: {
+                badgeText: 'Offer available!',
+                xero: {
+                    headline: 'Get Xero free for 6 months!',
+                    description: '<muted-text><centered-text>New to Xero? Expensify customers get 6 months free. Claim your offer below.</centered-text></muted-text>',
+                    connectButton: 'Connect to Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Get 5% off Uber rides',
+                    description: `<muted-text><centered-text>Activate Uber for Business through Expensify and save 5% on all business rides through June. <a href="${CONST.UBER_TERMS_LINK}">Terms apply.</a></centered-text></muted-text>`,
+                    connectButton: 'Connect to Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6192,6 +6228,8 @@ const translations = {
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `changed the company address to "${newAddress}" (previously "${previousAddress}")` : `set the company address to "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `added ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `removed ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
@@ -6596,6 +6634,7 @@ const translations = {
         unapprovedCash: 'Unapproved cash',
         unapprovedCard: 'Unapproved card',
         reconciliation: 'Reconciliation',
+        topSpenders: 'Top spenders',
         saveSearch: 'Save search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
@@ -6810,6 +6849,8 @@ const translations = {
                 takeControl: `took control`,
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
                     `there was a problem syncing with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Please fix the issue in <a href="${workspaceAccountingLink}">workspace settings</a>.`,
+                companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
+                    `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>`,
                 addEmployee: (email: string, role: string) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
@@ -6990,6 +7031,12 @@ const translations = {
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
+        odometer: {
+            startReading: 'Start reading',
+            endReading: 'End reading',
+            saveForLater: 'Save for later',
+            totalDistance: 'Total distance',
+        },
     },
     gps: {
         tooltip: "GPS tracking in progress! When you're done, stop tracking below.",
@@ -7017,6 +7064,19 @@ const translations = {
         zeroDistanceTripModal: {
             title: "Can't create expense",
             prompt: "You can't create an expense with the same start and stop location.",
+        },
+        locationRequiredModal: {
+            title: 'Location access required',
+            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+            allow: 'Allow',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Background location access required',
+            prompt: 'Please allow background location access in your device settings ("Allow all the time" option) to start GPS distance tracking.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Precise location required',
+            prompt: 'Please enable "precise location" in your device settings to start GPS distance tracking.',
         },
         desktop: {
             title: 'Track distance on your phone',
@@ -7810,6 +7870,15 @@ const translations = {
             addAdmin: 'Add admin',
             invite: 'Invite',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
+            revokeAdminAccess: 'Revoke admin access',
+            cantRevokeAdminAccess: "Can't revoke admin access from the technical contact",
+            error: {
+                removeAdmin: 'Unable to remove this user as an Admin. Please try again.',
+            },
+        },
+        members: {
+            title: 'Members',
+            findMember: 'Find member',
         },
     },
 };

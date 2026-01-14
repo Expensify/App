@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -81,6 +82,7 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
+    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
@@ -253,6 +255,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dismiss: 'Chiudi',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Continua',
+        unshare: 'Non condividere',
         yes: 'Sì',
         no: 'No',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -653,6 +656,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Totale rimborsabile',
         nonReimbursableTotal: 'Totale non rimborsabile',
         originalAmount: 'Importo originale',
+        insights: 'Analisi',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -918,6 +922,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'come copilota per',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `ha creato questo rapporto per raccogliere tutte le spese di <a href="${reportUrl}">${reportName}</a> che non sono state inviate con la frequenza scelta`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `ha creato questo report per eventuali spese in sospeso da <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notifica tutti in questa conversazione',
@@ -973,15 +979,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Abbonamento',
         domains: 'Domini',
     },
-    tabSelector: {
-        chat: 'Chat',
-        room: 'Stanza',
-        distance: 'Distanza',
-        manual: 'Manuale',
-        scan: 'Scannerizza',
-        map: 'Mappa',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: 'Chat', room: 'Stanza', distance: 'Distanza', manual: 'Manuale', scan: 'Scannerizza', map: 'Mappa', gps: 'GPS', odometer: 'Contachilometri'},
     spreadsheet: {
         upload: 'Carica un foglio di calcolo',
         import: 'Importa foglio di calcolo',
@@ -1131,7 +1129,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `ha spostato questa spesa${reportName ? `da <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `ha spostato questa spesa dal tuo <a href="${reportUrl}">spazio personale</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `ha spostato questa spesa nel tuo <a href="${reportUrl}">spazio personale</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1253,7 +1250,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `ha annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha abilitato il proprio Expensify Wallet entro 30 giorni`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} ha aggiunto un conto bancario. Il pagamento di ${amount} è stato effettuato.`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}segnato come pagato`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}segnato come pagato${comment ? `, dicendo "${comment}"` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pagato con portafoglio`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}pagato con Expensify tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
@@ -1309,6 +1306,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Tariffa non valida per questo workspace. Seleziona una tariffa disponibile dal workspace.',
             endDateBeforeStartDate: 'La data di fine non può essere precedente alla data di inizio',
             endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
+            manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
+            dateRangeExceedsMaxDays: `L'intervallo di date non può superare i ${CONST.IOU.SPLITS_LIMIT} giorni.`,
+            invalidReadings: 'Inserisci sia la lettura iniziale che quella finale',
+            negativeDistanceNotAllowed: 'La lettura finale deve essere maggiore della lettura iniziale',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Se ignori questo errore, la ricevuta caricata verrà rimossa completamente. Sei sicuro?',
@@ -1460,6 +1461,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} giorni)`,
         splitByDate: 'Dividi per data',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapporto inoltrato a ${to} a causa del flusso di lavoro di approvazione personalizzato`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'ora' : 'ore'} @ ${rate} / ora`, hrs: 'ore'},
     },
     transactionMerge: {
         listPage: {
@@ -1823,6 +1825,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Registra le richieste Sentry nella console',
             sentryHighlightedSpanOps: 'Nomi degli span evidenziati',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: 'Cache della navigazione sinistra',
+            clearleftHandNavCache: 'Cancella',
         },
         debugConsole: {
             saveLog: 'Salva registro',
@@ -2112,6 +2116,12 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountEmptyTitle: 'Nessun amministratore disponibile',
         shareBankAccountEmptyDescription: "Non ci sono amministratori dell'area di lavoro con cui puoi condividere questo conto bancario.",
         shareBankAccountNoAdminsSelected: 'Seleziona un amministratore prima di continuare',
+        unshareBankAccount: 'Annulla condivisione conto bancario',
+        unshareBankAccountDescription:
+            "Tutti i seguenti hanno accesso a questo conto bancario. Puoi revocare l'accesso in qualsiasi momento. Completeremo comunque tutti i pagamenti in corso.",
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderà l'accesso a questo conto bancario aziendale. Completeremo comunque tutti i pagamenti in corso.`,
+        reachOutForHelp: 'È in uso con la carta Expensify. <concierge-link>Contatta il Concierge</concierge-link> se devi revocare la condivisione.',
+        unshareErrorModalTitle: 'Impossibile revocare la condivisione del conto bancario',
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -3092,6 +3102,7 @@ ${
         currencyHeader: 'Qual è la valuta del tuo conto bancario?',
         confirmationStepHeader: 'Controlla le tue informazioni.',
         confirmationStepSubHeader: 'Controlla attentamente i dettagli qui sotto e seleziona la casella delle condizioni per confermare.',
+        toGetStarted: 'Aggiungi un conto bancario personale per ricevere rimborsi, pagare fatture o abilitare il portafoglio Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Inserisci la password di Expensify',
@@ -3835,9 +3846,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Ultima sincronizzazione ${formattedDate}`,
             authenticationError: (connectionName: string) => `Impossibile connettersi a ${connectionName} a causa di un errore di autenticazione.`,
             learnMore: 'Scopri di più',
-            memberAlternateText: 'I membri possono inviare e approvare i report.',
-            adminAlternateText: 'Gli amministratori hanno pieno accesso di modifica a tutti i report e alle impostazioni dello spazio di lavoro.',
-            auditorAlternateText: 'I revisori possono visualizzare e commentare i report.',
+            memberAlternateText: 'Invia e approva i report.',
+            adminAlternateText: 'Gestisci i report e le impostazioni dello spazio di lavoro.',
+            auditorAlternateText: 'Visualizza e commenta i report.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -5575,6 +5586,20 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Sei sicuro di voler collegare ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'questa integrazione contabile'}? Questo rimuoverà tutte le connessioni contabili esistenti.`,
             enterCredentials: 'Inserisci le tue credenziali',
+            claimOffer: {
+                badgeText: 'Offerta disponibile!',
+                xero: {
+                    headline: 'Ottieni Xero gratis per 6 mesi!',
+                    description: '<muted-text><centered-text>Nuovo su Xero? I clienti Expensify ottengono 6 mesi gratuiti. Richiedi la tua offerta qui sotto.</centered-text></muted-text>',
+                    connectButton: 'Connetti a Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Ottieni il 5% di sconto sui viaggi Uber',
+                    description: `<muted-text><centered-text>Attiva Uber for Business tramite Expensify e risparmia il 5% su tutti i viaggi di lavoro fino a giugno. <a href="${CONST.UBER_TERMS_LINK}">Si applicano i termini.</a></centered-text></muted-text>`,
+                    connectButton: 'Connetti a Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6307,6 +6332,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `ha modificato l’indirizzo dell’azienda in "${newAddress}" (precedentemente "${previousAddress}")` : `imposta l’indirizzo dell’azienda su "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `ha aggiunto ${approverName} (${approverEmail}) come approvatore per il campo ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
@@ -6812,6 +6839,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             selectAllMatchingItems: 'Seleziona tutti gli elementi corrispondenti',
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
+        topSpenders: 'Maggiori spenditori',
     },
     genericErrorPage: {
         title: 'Uh-oh, qualcosa è andato storto!',
@@ -6948,6 +6976,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 removedConnection: ({connectionName}: ConnectionNameParams) => `connessione a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} rimossa`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connesso a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'ha lasciato la chat',
+                companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
+                    `La connessione ${feedName} non funziona. Per ripristinare le importazioni delle carte, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>`,
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della connessione.',
@@ -7107,6 +7137,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         error: {
             selectSuggestedAddress: 'Seleziona un indirizzo suggerito o usa la posizione attuale',
         },
+        odometer: {startReading: 'Inizia a leggere', endReading: 'Termina lettura', saveForLater: 'Salva per dopo', totalDistance: 'Distanza totale'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Pagella smarrita o danneggiata',
@@ -7899,7 +7930,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             addAdmin: 'Aggiungi amministratore',
             invite: 'Invita',
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
+            revokeAdminAccess: 'Revoca accesso amministratore',
+            cantRevokeAdminAccess: 'Impossibile revocare i privilegi di amministratore dal referente tecnico',
+            error: {removeAdmin: 'Impossibile rimuovere questo utente come amministratore. Riprova.'},
         },
+        members: {title: 'Membri', findMember: 'Trova membro'},
     },
     gps: {
         tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
@@ -7922,6 +7957,19 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             confirm: 'Scarta monitoraggio distanza',
         },
         zeroDistanceTripModal: {title: 'Impossibile creare la spesa', prompt: 'Non puoi creare una spesa con la stessa località di partenza e di arrivo.'},
+        locationRequiredModal: {
+            title: 'Accesso alla posizione richiesto',
+            prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per avviare il tracciamento della distanza GPS.',
+            allow: 'Consenti',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Accesso alla posizione in background richiesto',
+            prompt: 'Consenti l’accesso alla posizione in background nelle impostazioni del dispositivo (opzione “Consenti sempre”) per avviare il tracciamento della distanza tramite GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Posizione precisa richiesta',
+            prompt: 'Per favore, abilita la “posizione precisa” nelle impostazioni del dispositivo per avviare il tracciamento della distanza GPS.',
+        },
         desktop: {
             title: 'Tieni traccia della distanza sul tuo telefono',
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
