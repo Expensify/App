@@ -757,6 +757,35 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'Votre session a expiré.',
         signIn: 'Veuillez vous reconnecter.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Test biométrique',
+            authenticationSuccessful: 'Authentification réussie',
+            successfullyAuthenticatedUsing: ({authType}) => `Tu t'es authentifié avec succès en utilisant ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biométrie (${registered ? 'Enregistrée' : 'Non enregistrée'})`,
+            yourAttemptWasUnsuccessful: "Votre tentative d'authentification a échoué.",
+            youCouldNotBeAuthenticated: "Vous n'avez pas pu être authentifié",
+            areYouSureToReject: "Êtes-vous sûr ? L'authentification sera rejetée si vous fermez cet écran.",
+            rejectAuthentication: "Rejeter l'authentification",
+            test: 'Test',
+            biometricsAuthentication: 'Authentification biométrique',
+        },
+        pleaseEnableInSystemSettings: {
+            start: "Veuillez activer la vérification par visage/empreinte digitale ou définir un code d'accès de l'appareil dans vos ",
+            link: 'paramètres système',
+            end: '.',
+        },
+        oops: "Oups, quelque chose s'est mal passé",
+        looksLikeYouRanOutOfTime: 'On dirait que vous avez manqué de temps ! Veuillez réessayer chez le marchand.',
+        youRanOutOfTime: 'Le temps est écoulé',
+        letsVerifyItsYou: "Vérifions que c'est bien vous",
+        verifyYourself: {
+            biometrics: 'Identifiez-vous avec votre visage ou votre empreinte digitale',
+        },
+        enableQuickVerification: {
+            biometrics: 'Activez une vérification rapide et sécurisée avec votre visage ou votre empreinte digitale. Aucun mot de passe ou code requis.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abracadabra,

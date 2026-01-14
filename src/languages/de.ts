@@ -754,6 +754,35 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'Ihre Sitzung ist abgelaufen.',
         signIn: 'Bitte melden Sie sich erneut an.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Biometrie-Test',
+            authenticationSuccessful: 'Authentifizierung erfolgreich',
+            successfullyAuthenticatedUsing: ({authType}) => `Du hast dich erfolgreich mit ${authType} authentifiziert.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometrie (${registered ? 'Registriert' : 'Nicht registriert'})`,
+            yourAttemptWasUnsuccessful: 'Dein Authentifizierungsversuch war nicht erfolgreich.',
+            youCouldNotBeAuthenticated: 'Sie konnten nicht authentifiziert werden',
+            areYouSureToReject: 'Bist du sicher? Der Authentifizierungsversuch wird abgelehnt, wenn du diesen Bildschirm schließt.',
+            rejectAuthentication: 'Authentifizierung ablehnen',
+            test: 'Test',
+            biometricsAuthentication: 'Biometrie-Authentifizierung',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Bitte aktivieren Sie die Gesichts-/Fingerabdrucküberprüfung oder setzen Sie eine Geräte-Passcode in Ihren ',
+            link: 'Systemeinstellungen',
+            end: '.',
+        },
+        oops: 'Hoppla, etwas ist schief gelaufen',
+        looksLikeYouRanOutOfTime: 'Sieht aus, als wäre deine Zeit abgelaufen! Bitte versuche es erneut beim Händler.',
+        youRanOutOfTime: 'Die Zeit ist abgelaufen',
+        letsVerifyItsYou: 'Lass uns überprüfen, ob du es bist',
+        verifyYourself: {
+            biometrics: 'Verifiziere dich mit deinem Gesicht oder Fingerabdruck',
+        },
+        enableQuickVerification: {
+            biometrics: 'Schnelle, sichere Verifizierung mit deinem Gesicht oder Fingerabdruck aktivieren. Keine Passwörter oder Codes erforderlich.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abrakadabra,
