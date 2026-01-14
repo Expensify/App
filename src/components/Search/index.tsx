@@ -585,6 +585,18 @@ function Search({
                 };
             }
         }
+
+        for (const [transactionID, selectionInfo] of Object.entries(selectedTransactions)) {
+            // Skip if already processed (item is in current filteredData)
+            if (transactionID in newTransactionList) {
+                continue;
+            }
+            // Keep the selection if it was previously selected
+            if (selectionInfo.isSelected) {
+                newTransactionList[transactionID] = selectionInfo;
+            }
+        }
+
         if (isEmptyObject(newTransactionList) && Object.keys(selectedTransactions).length === 0) {
             return;
         }
@@ -607,7 +619,7 @@ function Search({
             if (isSearchTopmostFullScreenRoute() && currentSearchHash === hash) {
                 return;
             }
-            clearSelectedTransactions();
+            clearSelectedTransactions(hash);
             turnOffMobileSelectionMode();
         },
         [isFocused, clearSelectedTransactions, hash, currentSearchHash],

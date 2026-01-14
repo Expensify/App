@@ -248,7 +248,7 @@ function SearchPageNarrow({
                             title={translate('common.selectMultiple')}
                             onBackButtonPress={() => {
                                 topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                clearSelectedTransactions();
+                                clearSelectedTransactions(true);
                                 turnOffMobileSelectionMode();
                             }}
                         />

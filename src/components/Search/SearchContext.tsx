@@ -135,7 +135,15 @@ function SearchContextProvider({children}: ChildrenProps) {
     const clearSelectedTransactions: SearchContextProps['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
             if (typeof searchHashOrClearIDsFlag === 'boolean') {
-                setSelectedTransactions([]);
+                setSearchContextData((prevState) => ({
+                    ...prevState,
+                    selectedTransactions: {},
+                    selectedTransactionIDs: [],
+                    selectedReports: [],
+                    shouldTurnOffSelectionMode: true,
+                }));
+                shouldShowSelectAllMatchingItems(false);
+                selectAllMatchingItems(false);
                 return;
             }
 
@@ -157,13 +165,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             shouldShowSelectAllMatchingItems(false);
             selectAllMatchingItems(false);
         },
-        [
-            searchContextData.currentSearchHash,
-            searchContextData.selectedReports.length,
-            searchContextData.selectedTransactions,
-            searchContextData.shouldTurnOffSelectionMode,
-            setSelectedTransactions,
-        ],
+        [searchContextData.currentSearchHash, searchContextData.selectedReports.length, searchContextData.selectedTransactions, searchContextData.shouldTurnOffSelectionMode],
     );
 
     const removeTransaction: SearchContextProps['removeTransaction'] = useCallback(
