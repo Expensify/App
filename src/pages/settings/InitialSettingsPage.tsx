@@ -1,15 +1,15 @@
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import {differenceInDays} from 'date-fns';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -138,8 +139,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
 
-    const shouldLogout = useRef(false);
-
     const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
@@ -165,8 +164,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         return undefined;
     }, [allCards, bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, unsharedBankAccount?.errors, userWallet?.errors, walletTerms?.errors]);
 
-    const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
-
     const hasAccountBeenSwitched = useMemo(
         () => currentUserPersonalDetails.accountID !== previousUserPersonalDetails.accountID,
         [currentUserPersonalDetails.accountID, previousUserPersonalDetails.accountID],
@@ -185,18 +182,30 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         confirmReadyToOpenApp();
     }, []);
 
-    const toggleSignoutConfirmModal = (value: boolean) => {
-        setShouldShowSignoutConfirmModal(value);
-    };
+    const {showConfirmModal} = useConfirmModal();
+    const showSignOutModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('common.areYouSure'),
+            prompt: translate('initialSettingsPage.signOutConfirmationText'),
+            confirmText: translate('initialSettingsPage.signOut'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    }, [showConfirmModal, translate]);
 
     const signOut = useCallback(
-        (shouldForceSignout = false) => {
+        async (shouldForceSignout = false) => {
             if (!network.isOffline || shouldForceSignout) {
                 return signOutAndRedirectToSignIn();
             }
 
             // When offline, warn the user that any actions they took while offline will be lost if they sign out
-            toggleSignoutConfirmModal(true);
+            const result = await showSignOutModal();
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            signOut(true);
         },
         [network.isOffline],
     );
@@ -534,25 +543,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             >
                 {accountMenuItems}
                 {generalMenuItems}
-                <ConfirmModal
-                    danger
-                    title={translate('common.areYouSure')}
-                    prompt={translate('initialSettingsPage.signOutConfirmationText')}
-                    confirmText={translate('initialSettingsPage.signOut')}
-                    cancelText={translate('common.cancel')}
-                    isVisible={shouldShowSignoutConfirmModal}
-                    onConfirm={() => {
-                        toggleSignoutConfirmModal(false);
-                        shouldLogout.current = true;
-                    }}
-                    onCancel={() => toggleSignoutConfirmModal(false)}
-                    onModalHide={() => {
-                        if (!shouldLogout.current) {
-                            return;
-                        }
-                        signOut(true);
-                    }}
-                />
             </ScrollView>
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
         </ScreenWrapper>
