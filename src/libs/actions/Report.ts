@@ -635,13 +635,6 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         }
     }
 
-    if (isInSidePanel && (isConciergeChatReport(report) || isAdminRoom(report))) {
-        const pageHTML = capturePageHTML();
-        if (pageHTML) {
-            parameters.pageHTML = pageHTML;
-        }
-    }
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
