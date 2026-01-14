@@ -246,6 +246,212 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 )
 ```
 
+---
+
+### [PERF-6] Derive state from props
+
+- **Condition**: Flag when useEffect updates state based on props or other state, when the value could be computed directly
+
+- **Reasoning**: Computing derived values directly in the component body ensures they're always synchronized with props/state and avoids unnecessary re-renders.
+
+Good:
+
+```tsx
+function Form() {
+  const [firstName, setFirstName] = useState('Taylor');
+  const [lastName, setLastName] = useState('Swift');
+  
+  // ✅ Good: calculated during rendering
+  const fullName = firstName + ' ' + lastName;
+}
+```
+
+Bad:
+
+```tsx
+function Form() {
+  const [firstName, setFirstName] = useState('Taylor');
+  const [lastName, setLastName] = useState('Swift');
+  
+  // 🔴 Avoid: redundant state and unnecessary Effect
+  const [fullName, setFullName] = useState('');
+  useEffect(() => {
+    setFullName(firstName + ' ' + lastName);
+  }, [firstName, lastName]);
+}
+```
+
+---
+
+### [PERF-7] Control component resets via key prop
+
+- **Condition**: 
+  - Flag when useEffect resets all or most component state when a prop changes
+  - Should use `key` prop instead to reset the entire component
+
+- **Reasoning**: Using `key` prop for full resets is more React-idiomatic. When a prop changes and you need to reset all component state, the `key` prop causes React to unmount and remount the component, automatically resetting all state without needing useEffect.
+
+Good:
+
+```tsx
+function ProfilePage({ userId }) {
+  return <ProfileView key={userId} userId={userId} />;
+}
+
+function ProfileView({ userId }) {
+  const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(0);
+  // Component resets when userId changes due to key prop
+}
+```
+
+Bad:
+
+```tsx
+// 🔴 Avoid: resetting all state with useEffect
+function ProfilePage({ userId }) {
+  return <ProfileView userId={userId} />;
+}
+
+function ProfileView({ userId }) {
+  const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(0);
+  
+  useEffect(() => {
+    setComment(''); // Reset when userId changes
+    setRating(0);
+  }, [userId]);
+}
+```
+
+---
+
+### [PERF-8] Handle events in event handlers
+
+- **Condition**: Flag when useEffect responds to user events that should be handled in event handlers
+
+- **Reasoning**: Event handlers provide immediate response and clearer code flow. useEffect adds unnecessary render cycles and makes the relationship between user action and response less clear.
+
+Good:
+
+```tsx
+function BuyButton({ productId, onBuy }) {
+  function handleClick() {
+    // ✅ Good: handle event directly in event handler
+    onBuy();
+    showNotification('Item purchased!');
+  }
+  
+  return <button onClick={handleClick}>Buy</button>;
+}
+```
+
+Bad:
+
+```tsx
+function BuyButton({ productId, onBuy }) {
+  const [isBuying, setIsBuying] = useState(false);
+  
+  // 🔴 Avoid: handling events in useEffect
+  useEffect(() => {
+    if (isBuying) {
+      onBuy();
+      showNotification('Item purchased!');
+    }
+  }, [isBuying, onBuy]);
+  
+  return <button onClick={() => setIsBuying(true)}>Buy</button>;
+}
+```
+
+---
+
+### [PERF-9] Avoid useEffect chains
+
+- **Condition**: Flag when multiple useEffects form a chain where one effect's state update triggers another effect
+
+- **Reasoning**: Chains of effects create complex dependencies, timing issues, and unnecessary renders. Logic should be restructured to avoid interdependent effects.
+
+Good:
+
+```tsx
+function Form() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  
+  // ✅ Good: compute derived values directly
+  const fullName = firstName + ' ' + lastName;
+  const isValid = firstName.length > 0 && lastName.length > 0;
+  
+  return (
+    <form>
+      <input value={firstName} onChange={e => setFirstName(e.target.value)} />
+      <input value={lastName} onChange={e => setLastName(e.target.value)} />
+      {isValid && <button>Submit</button>}
+    </form>
+  );
+}
+```
+
+Bad:
+
+```tsx
+function Form() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [isValid, setIsValid] = useState(false);
+  
+  // 🔴 Avoid: chain of effects
+  useEffect(() => {
+    setFullName(firstName + ' ' + lastName);
+  }, [firstName, lastName]);
+  
+  useEffect(() => {
+    setIsValid(fullName.length > 0);
+  }, [fullName]);
+}
+```
+
+---
+
+### [PERF-10] Communicate with parent components without useEffect
+
+- **Condition**: Flag when useEffect calls parent callbacks to communicate state changes or pass data to parent components
+
+- **Reasoning**: Parent-child communication should not use useEffect. Instead, lift the state up to the parent component and pass it down as props. This follows React's unidirectional data flow pattern, eliminates synchronization issues, reduces unnecessary renders, and makes the data flow clearer. Use useEffect only when synchronizing with external systems, not for parent-child communication.
+
+Good:
+
+```tsx
+// Lifting state up
+function Parent() {
+  const [value, setValue] = useState('');
+  return <Child value={value} onChange={setValue} />;
+}
+
+function Child({ value, onChange }) {
+  return <input value={value} onChange={e => onChange(e.target.value)} />;
+}
+```
+
+Bad:
+
+```tsx
+// 🔴 Avoid: passing data via useEffect
+function Child({ onValueChange }) {
+  const [value, setValue] = useState('');
+  
+  useEffect(() => {
+    onValueChange(value);
+  }, [value, onValueChange]);
+  
+  return <input value={value} onChange={e => setValue(e.target.value)} />;
+}
+```
+
+---
+
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**

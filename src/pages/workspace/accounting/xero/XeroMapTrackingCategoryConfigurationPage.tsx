@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -100,7 +100,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="XeroMapTrackingCategoryConfigurationPage"
-            sections={optionsList.length ? [{data: optionsList}] : []}
+            data={optionsList}
             listItem={RadioListItem}
             onSelectRow={updateMapping}
             initiallyFocusedOptionKey={optionsList.find((option) => option.isSelected)?.keyForList}

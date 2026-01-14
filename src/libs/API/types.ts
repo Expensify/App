@@ -92,6 +92,7 @@ const WRITE_COMMANDS = {
     UPDATE_PERSONAL_DETAILS_FOR_WALLET: 'UpdatePersonalDetailsForWallet',
     VERIFY_IDENTITY: 'VerifyIdentity',
     ACCEPT_WALLET_TERMS: 'AcceptWalletTerms',
+    VERIFY_ADD_SECONDARY_LOGIN_CODE: 'VerifyAddSecondaryLoginCode',
     ANSWER_QUESTIONS_FOR_WALLET: 'AnswerQuestionsForWallet',
     REQUEST_ACCOUNT_VALIDATION_LINK: 'RequestAccountValidationLink',
     REQUEST_NEW_VALIDATE_CODE: 'RequestNewValidateCode',
@@ -100,6 +101,7 @@ const WRITE_COMMANDS = {
     SIGN_IN_USER: 'SigninUser',
     SIGN_IN_USER_WITH_LINK: 'SigninUserWithLink',
     REQUEST_UNLINK_VALIDATION_LINK: 'RequestUnlinkValidationLink',
+    UNSHARE_BANK_ACCOUNT: 'UnshareBankAccount',
     UNLINK_LOGIN: 'UnlinkLogin',
     ENABLE_TWO_FACTOR_AUTH: 'EnableTwoFactorAuth',
     DISABLE_TWO_FACTOR_AUTH: 'DisableTwoFactorAuth',
@@ -263,7 +265,6 @@ const WRITE_COMMANDS = {
     SET_POLICY_ATTENDEE_TRACKING_ENABLED: 'SetPolicyAttendeeTrackingEnabled',
     SET_POLICY_REQUIRE_COMPANY_CARDS_ENABLED: 'SetPolicyRequireCompanyCardsEnabled',
     SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED: 'SetPolicyCategoryDescriptionRequired',
-    SET_POLICY_CATEGORY_ATTENDEES_REQUIRED: 'SetPolicyCategoryAttendeesRequired',
     SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT: 'SetWorkspaceCategoryDescriptionHint',
     SET_POLICY_CATEGORY_RECEIPTS_REQUIRED: 'SetPolicyCategoryReceiptsRequired',
     REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED: 'RemoveWorkspaceCategoryReceiptsRequired',
@@ -532,6 +533,7 @@ const WRITE_COMMANDS = {
     SET_TECHNICAL_CONTACT_EMAIL: 'SetTechnicalContactEmail',
     TOGGLE_CONSOLIDATED_DOMAIN_BILLING: 'ToggleConsolidatedDomainBilling',
     ADD_DOMAIN_ADMIN: 'AddDomainAdmin',
+    REMOVE_DOMAIN_ADMIN: 'RemoveDomainAdmin',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -573,6 +575,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DISPLAY_NAME]: Parameters.UpdateDisplayNameParams;
     [WRITE_COMMANDS.UPDATE_LEGAL_NAME]: Parameters.UpdateLegalNameParams;
     [WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH]: Parameters.UpdateDateOfBirthParams;
+    [WRITE_COMMANDS.VERIFY_ADD_SECONDARY_LOGIN_CODE]: Parameters.VerifyAddSecondaryLoginCodeParams;
     [WRITE_COMMANDS.UPDATE_PHONE_NUMBER]: Parameters.UpdatePhoneNumberParams;
     [WRITE_COMMANDS.UPDATE_POLICY_ADDRESS]: Parameters.UpdatePolicyAddressParams;
     [WRITE_COMMANDS.UPDATE_HOME_ADDRESS]: Parameters.UpdateHomeAddressParams;
@@ -790,7 +793,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_RULES_ENABLED]: Parameters.SetPolicyRulesEnabledParams;
     [WRITE_COMMANDS.SET_POLICY_REQUIRE_COMPANY_CARDS_ENABLED]: Parameters.SetPolicyRequireCompanyCardsEnabledParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED]: Parameters.SetPolicyCategoryDescriptionRequiredParams;
-    [WRITE_COMMANDS.SET_POLICY_CATEGORY_ATTENDEES_REQUIRED]: Parameters.SetPolicyCategoryAttendeesRequiredParams;
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT]: Parameters.SetWorkspaceCategoryDescriptionHintParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_REQUIRED]: Parameters.SetPolicyCategoryReceiptsRequiredParams;
     [WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED]: Parameters.RemovePolicyCategoryReceiptsRequiredParams;
@@ -891,6 +893,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RESOLVE_DUPLICATES]: Parameters.ResolveDuplicatesParams;
     [WRITE_COMMANDS.MERGE_TRANSACTION]: Parameters.MergeTransactionParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE]: Parameters.UpdateSubscriptionTypeParams;
+    [WRITE_COMMANDS.UNSHARE_BANK_ACCOUNT]: Parameters.UnshareBankAccountParams;
     [WRITE_COMMANDS.SIGN_UP_USER]: Parameters.SignUpUserParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY]: Parameters.UpdateSubscriptionAddNewUsersAutomaticallyParams;
@@ -1084,6 +1087,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_DOMAIN]: Parameters.DomainParams;
     [WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL]: Parameters.SetTechnicalContactEmailParams;
     [WRITE_COMMANDS.TOGGLE_CONSOLIDATED_DOMAIN_BILLING]: Parameters.ToggleConsolidatedDomainBillingParams;
+    [WRITE_COMMANDS.REMOVE_DOMAIN_ADMIN]: Parameters.RemoveDomainAdminParams;
     [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: Parameters.AddAdminToDomainParams;
 };
 
@@ -1205,7 +1209,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_ONFIDO_FLOW]: null;
     [READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE]: null;
-    [READ_COMMANDS.OPEN_SEARCH_PAGE]: null;
+    [READ_COMMANDS.OPEN_SEARCH_PAGE]: Parameters.OpenSearchPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
     [READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN]: Parameters.SignInWithShortLivedAuthTokenParams;
@@ -1280,6 +1284,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     CALCULATE_BILL_NEW_DOT: 'CalculateBillNewDot',
 
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
+    COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1308,6 +1313,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: Parameters.AcceptSpotnanaTermsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

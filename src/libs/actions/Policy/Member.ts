@@ -424,6 +424,11 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
                 ...optimisticMembersState[employeeEmail],
                 submitsTo: policy?.owner,
             };
+            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
+            successMembersState[employeeEmail] = {
+                ...successMembersState[employeeEmail],
+                submitsTo: policy?.owner,
+            };
             failureMembersState[employeeEmail] = {
                 ...failureMembersState[employeeEmail],
                 submitsTo: employee?.submitsTo,
@@ -434,6 +439,11 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
                 ...optimisticMembersState[employeeEmail],
                 forwardsTo: policy?.owner,
             };
+            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
+            successMembersState[employeeEmail] = {
+                ...successMembersState[employeeEmail],
+                forwardsTo: policy?.owner,
+            };
             failureMembersState[employeeEmail] = {
                 ...failureMembersState[employeeEmail],
                 forwardsTo: employee?.forwardsTo,
@@ -442,11 +452,19 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
         if (employee?.overLimitForwardsTo && selectedMemberEmails.includes(employee?.overLimitForwardsTo)) {
             optimisticMembersState[employeeEmail] = {
                 ...optimisticMembersState[employeeEmail],
-                overLimitForwardsTo: policy?.owner,
+                overLimitForwardsTo: '',
+                approvalLimit: null,
+            };
+            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
+            successMembersState[employeeEmail] = {
+                ...successMembersState[employeeEmail],
+                overLimitForwardsTo: '',
+                approvalLimit: null,
             };
             failureMembersState[employeeEmail] = {
                 ...failureMembersState[employeeEmail],
                 overLimitForwardsTo: employee?.overLimitForwardsTo,
+                approvalLimit: employee?.approvalLimit,
             };
         }
     }
