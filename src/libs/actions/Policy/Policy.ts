@@ -82,14 +82,12 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
-import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -451,7 +449,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             .filter((p) => p && p.id !== activePolicyID && p.type !== CONST.POLICY.TYPE.PERSONAL && p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .sort((policyA, policyB) => localeCompare(policyB?.created ?? '', policyA?.created ?? ''))
             .at(0);
-
         const newActivePolicyID = mostRecentlyCreatedGroupPolicy?.id ?? personalPolicyID;
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
@@ -2475,6 +2472,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
             adminsChatReportID,
             onboardingPolicyID: policyID,
             onboardingPurposeSelected,
+            companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -2697,6 +2695,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const isWorkflowsOptionSelected = parts?.exportLayouts;
     const isPerDiemOptionSelected = parts?.perDiem;
     const isOverviewOptionSelected = parts?.overview;
+    const isTravelOptionSelected = parts?.travel;
 
     const outputCurrency = isOverviewOptionSelected ? policy?.outputCurrency : localCurrency;
 
@@ -2729,6 +2728,8 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 areReportFieldsEnabled: isReportsOptionSelected,
                 areConnectionsEnabled: isConnectionsOptionSelected,
                 arePerDiemRatesEnabled: isPerDiemOptionSelected,
+                isTravelEnabled: isTravelOptionSelected ? policy?.isTravelEnabled : undefined,
+                travelSettings: undefined,
                 workspaceAccountID: undefined,
                 tax: isTaxesOptionSelected ? policy?.tax : undefined,
                 employeeList: isMemberOptionSelected ? policy.employeeList : {[policy.owner]: policy?.employeeList?.[policy.owner]},
@@ -3298,8 +3299,6 @@ function openPolicyTaxesPage(policyID: string) {
 }
 
 function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: number) {
-    const authToken = NetworkStore.getAuthToken();
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3332,18 +3331,14 @@ function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: numb
 
     const params: OpenPolicyExpensifyCardsPageParams = {
         policyID,
-        authToken,
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE, params, {optimisticData, successData, failureData});
 }
 
 function openPolicyEditCardLimitTypePage(policyID: string, cardID: number) {
-    const authToken = NetworkStore.getAuthToken();
-
     const params: OpenPolicyEditCardLimitTypePageParams = {
         policyID,
-        authToken,
         cardID,
     };
 
@@ -3380,10 +3375,7 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
         return;
     }
 
-    const authToken = NetworkStore.getAuthToken();
-
     const params: RequestExpensifyCardLimitIncreaseParams = {
-        authToken,
         settlementBankAccountID,
     };
 
@@ -3763,7 +3755,7 @@ function createWorkspaceFromIOUPayment(
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
-            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
+            modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
@@ -4031,10 +4023,6 @@ function savePreferredExportMethod(policyID: string, exportMethod: ReportExportT
 }
 
 function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateToExpensifyCardPage = false) {
-    const authToken = NetworkStore.getAuthToken();
-    if (!authToken) {
-        return;
-    }
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -4073,7 +4061,7 @@ function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateT
         ],
     };
 
-    const parameters: EnablePolicyExpensifyCardsParams = {authToken, policyID, enabled};
+    const parameters: EnablePolicyExpensifyCardsParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS, parameters, onyxData);
 
@@ -4088,8 +4076,6 @@ function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateT
 }
 
 function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = true) {
-    const authToken = NetworkStore.getAuthToken();
-
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -4128,7 +4114,7 @@ function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = t
         ],
     };
 
-    const parameters: EnablePolicyCompanyCardsParams = {authToken, policyID, enabled};
+    const parameters: EnablePolicyCompanyCardsParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS, parameters, onyxData);
 
@@ -6232,12 +6218,6 @@ function clearAllPolicies() {
 }
 
 function updateInvoiceCompanyName(policyID: string, companyName: string) {
-    const authToken = NetworkStore.getAuthToken();
-
-    if (!authToken) {
-        return;
-    }
-
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
@@ -6287,7 +6267,6 @@ function updateInvoiceCompanyName(policyID: string, companyName: string) {
     ];
 
     const parameters: UpdateInvoiceCompanyNameParams = {
-        authToken,
         policyID,
         companyName,
     };
@@ -6296,12 +6275,6 @@ function updateInvoiceCompanyName(policyID: string, companyName: string) {
 }
 
 function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
-    const authToken = NetworkStore.getAuthToken();
-
-    if (!authToken) {
-        return;
-    }
-
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
@@ -6351,7 +6324,6 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
     ];
 
     const parameters: UpdateInvoiceCompanyWebsiteParams = {
-        authToken,
         policyID,
         companyWebsite,
     };

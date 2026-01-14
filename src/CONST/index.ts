@@ -32,6 +32,8 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
+const XERO_PARTNER_LINK = 'https://xero5440.partnerlinks.io/uzfjy4uegog2-v0pj1v';
+const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'org.me.mobiexpensifyg';
@@ -445,6 +447,8 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    XERO_PARTNER_LINK,
+    UBER_TERMS_LINK,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
@@ -725,11 +729,11 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
+        TIME_TRACKING: 'timeTracking',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
-        ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
     },
@@ -1226,6 +1230,7 @@ const CONST = {
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
+                CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS: 'CREATEDREPORTFORUNAPPROVEDTRANSACTIONS',
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
                 CHRONOS_OOO_LIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
@@ -1245,6 +1250,7 @@ const CONST = {
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
+                COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
@@ -1312,6 +1318,7 @@ const CONST = {
                     DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
                     DELETE_BUDGET: 'POLICYCHANGELOG_DELETE_BUDGET',
                     DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
+                    DELETE_CATEGORIES: 'POLICYCHANGELOG_DELETE_CATEGORIES',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
                     DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
                     DELETE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_SUB_RATE',
@@ -1351,6 +1358,7 @@ const CONST = {
                     UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
                     UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                    UPDATE_ADDRESS: 'POLICYCHANGELOG_UPDATE_ADDRESS',
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
@@ -1713,6 +1721,10 @@ const CONST = {
         },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
+        ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',
+        ATTRIBUTE_IS_TRANSACTION_THREAD: 'is_transaction_thread',
+        ATTRIBUTE_REPORT_TYPE: 'report_type',
+        ATTRIBUTE_CHAT_TYPE: 'chat_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
@@ -2881,6 +2893,8 @@ const CONST = {
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
+        // Maximum number of splits allowed for expenses
+        SPLITS_LIMIT: 30,
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
@@ -2913,6 +2927,8 @@ const CONST = {
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
+            DISTANCE_ODOMETER: 'distance-odometer',
+            TIME: 'time',
         },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
@@ -2924,7 +2940,10 @@ const CONST = {
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
+            DISTANCE_ODOMETER: 'distance-odometer',
+            TIME: 'time',
         },
+
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
@@ -5505,6 +5524,8 @@ const CONST = {
         DISTANCE_MAP: 'distance-map',
         DISTANCE_MANUAL: 'distance-manual',
         DISTANCE_GPS: 'distance-gps',
+        DISTANCE_ODOMETER: 'distance-odometer',
+        TIME: 'time',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,
@@ -5853,6 +5874,11 @@ const CONST = {
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
+    ONBOARDING_RHP_VARIANT: {
+        RHP_CONCIERGE_DM: 'rhpConciergeDm',
+        RHP_ADMINS_ROOM: 'rhpAdminsRoom',
+        CONTROL: 'control',
+    },
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_ACCOUNTING_MAPPING,
 
@@ -6648,6 +6674,7 @@ const CONST = {
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
     MIN_TAX_RATE_DECIMAL_PLACES: 2,
     DISTANCE_DECIMAL_PLACES: 2,
+    HOURS_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
@@ -6935,7 +6962,6 @@ const CONST = {
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
-            TAX: 'tax',
             EXPORTED_TO: 'exportedto',
             EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
@@ -7080,6 +7106,54 @@ const CONST = {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
                 [this.STATUS.EXPENSE.DRAFTS]: 'draft',
+                [this.TABLE_COLUMNS.RECEIPT]: 'receipt',
+                [this.TABLE_COLUMNS.DATE]: 'date',
+                [this.TABLE_COLUMNS.SUBMITTED]: 'submitted',
+                [this.TABLE_COLUMNS.APPROVED]: 'approved',
+                [this.TABLE_COLUMNS.POSTED]: 'posted',
+                [this.TABLE_COLUMNS.EXPORTED]: 'exported',
+                [this.TABLE_COLUMNS.MERCHANT]: 'merchant',
+                [this.TABLE_COLUMNS.DESCRIPTION]: 'description',
+                [this.TABLE_COLUMNS.FROM]: 'from',
+                [this.TABLE_COLUMNS.TO]: 'to',
+                [this.TABLE_COLUMNS.CATEGORY]: 'category',
+                [this.TABLE_COLUMNS.TAG]: 'tag',
+                [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'original-amount',
+                [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
+                [this.TABLE_COLUMNS.BILLABLE]: 'billable',
+                [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
+                [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
+                [this.TABLE_COLUMNS.TOTAL]: 'total',
+                [this.TABLE_COLUMNS.TYPE]: 'type',
+                [this.TABLE_COLUMNS.ACTION]: 'action',
+                [this.TABLE_COLUMNS.TAX_AMOUNT]: 'tax',
+                [this.TABLE_COLUMNS.TITLE]: 'title',
+                [this.TABLE_COLUMNS.ASSIGNEE]: 'assignee',
+                [this.TABLE_COLUMNS.IN]: 'in',
+                [this.TABLE_COLUMNS.COMMENTS]: 'comments',
+                [this.TABLE_COLUMNS.CARD]: 'card',
+                [this.TABLE_COLUMNS.POLICY_NAME]: 'policy-name',
+                [this.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawal-id',
+                [this.TABLE_COLUMNS.AVATAR]: 'avatar',
+                [this.TABLE_COLUMNS.STATUS]: 'status',
+                [this.TABLE_COLUMNS.EXPENSES]: 'expenses',
+                [this.TABLE_COLUMNS.FEED]: 'feed',
+                [this.TABLE_COLUMNS.WITHDRAWN]: 'withdrawn',
+                [this.TABLE_COLUMNS.BANK_ACCOUNT]: 'bank-account',
+                [this.TABLE_COLUMNS.REPORT_ID]: 'long-report-id',
+                [this.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'report-id',
+                [this.TABLE_COLUMNS.EXPORTED_TO]: 'exported-to',
+                [this.TABLE_COLUMNS.EXCHANGE_RATE]: 'exchange-rate',
+                [this.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: 'reimbursable-total',
+                [this.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: 'non-reimbursable-total',
+                [this.TABLE_COLUMNS.GROUP_FROM]: 'group-from',
+                [this.TABLE_COLUMNS.GROUP_EXPENSES]: 'group-expenses',
+                [this.TABLE_COLUMNS.GROUP_TOTAL]: 'group-total',
+                [this.TABLE_COLUMNS.GROUP_CARD]: 'group-card',
+                [this.TABLE_COLUMNS.GROUP_FEED]: 'group-feed',
+                [this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'group-bank-account',
+                [this.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'group-withdrawn',
+                [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
             };
         },
         NOT_MODIFIER: 'Not',
@@ -7120,6 +7194,7 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
             RECONCILIATION: 'reconciliation',
+            TOP_SPENDERS: 'topSpenders',
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {
@@ -7900,6 +7975,13 @@ const CONST = {
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
         },
+    },
+
+    DOMAIN: {
+        /** Onyx prefix for domain admin account IDs */
+        EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
+        /** Onyx prefix for domain security groups */
+        DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
     },
 } as const;
 
