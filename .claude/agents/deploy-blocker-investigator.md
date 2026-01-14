@@ -170,6 +170,10 @@ Brief explanation of why this recommendation (1-2 sentences).
 - What changed in the PR that relates to the bug
 - Whether it reproduces on production vs staging only
 
+### Verification
+- Which file(s) are affected by the bug
+- Confirmation that the PR modifies these files
+
 ### Root Cause
 Technical explanation of what went wrong in the code.
 
