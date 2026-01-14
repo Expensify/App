@@ -19,7 +19,7 @@ type ApproveMoneyRequestParams = {
      *   oldReportActionID: string;
      * }>
      */
-    optimisticDuplicatedReportActionIDs?: string;
+    optimisticReportActionCopyIDs?: string;
 
     /** The optimistic action ID for the report created for unapproved transactions */
     optimisticCreatedReportForUnapprovedTransactionsActionID?: string;
