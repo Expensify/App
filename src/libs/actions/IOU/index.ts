@@ -1536,7 +1536,6 @@ function removeMoneyRequestOdometerImage(transactionID: string, imageType: 'star
     });
 }
 
-
 /**
  * Set the distance rate of a transaction.
  * Used when creating a new transaction or moving an existing one from Self DM
