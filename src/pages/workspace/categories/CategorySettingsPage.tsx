@@ -219,7 +219,7 @@ function CategorySettingsPage({
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.enableCategory')}</Text>
+                                <Text style={[styles.flexShrink1, styles.mr2]} accessible={false}>{translate('workspace.categories.enableCategory')}</Text>
                                 <Switch
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
@@ -296,7 +296,7 @@ function CategorySettingsPage({
                             <OfflineWithFeedback pendingAction={policyCategory?.pendingFields?.areCommentsRequired}>
                                 <View style={[styles.mt2, styles.mh5]}>
                                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.categoryRules.requireDescription')}</Text>
+                                        <Text style={[styles.flexShrink1, styles.mr2]} accessible={false}>{translate('workspace.rules.categoryRules.requireDescription')}</Text>
                                         <Switch
                                             isOn={policyCategory?.areCommentsRequired ?? false}
                                             accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}

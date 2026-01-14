@@ -735,9 +735,11 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={CONST.ROLE.MENUITEM}
-                                accessibilityLabel={title ? title.toString() : ''}
-                                accessible
+                                {...(interactive && {
+                                    role: CONST.ROLE.MENUITEM,
+                                    accessibilityLabel: title ? title.toString() : '',
+                                    accessible: true,
+                                })}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >
