@@ -12,6 +12,7 @@
 { 
   let nameOperator = false;
   let expectingNestedQuote = false;
+  let isColumnsContext = false;
 }
 
 // rules to match re-defined search syntax keys.
@@ -78,14 +79,19 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
-columns = "columns"i {return "columns"}
+columns = "columns"i { 
+  isColumnsContext = true;
+  return "columns";
+}
 
 // Value transformation rules
 values
-  = perDiem
+  = &{ return isColumnsContext; } columnsValues
+  / perDiem
   / draft
-  / originalAmount
-  / taxRate
+
+columnsValues
+  = originalAmount
   / taxAmount
   / policyName
   / withdrawalId
@@ -141,12 +147,16 @@ filterOperator
       if (nameOperator) {
         expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
       }
+      isColumnsContext = false;
       return o;
   }
 
 alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
 
-logicalAnd = _ { return "and"; }
+logicalAnd = _ { 
+  isColumnsContext = false;
+  return "and";
+}
 
 _ "whitespace" = [ \t\r\n\xA0]* //handle no-breaking space
 
