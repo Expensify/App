@@ -30,20 +30,27 @@ function SearchFiltersCategoryPage() {
     });
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
 
-    const availableNonPersonalPolicyCategoriesSelector = useCallback((policyCategories: OnyxCollection<PolicyCategories>) =>
-        Object.fromEntries(
-            Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
-                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`) {
-                    return false;
-                }
-                const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                return availableCategories.length > 0;
-            }),
-        ), [personalPolicyID]);
-    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
-        canBeMissing: false,
-        selector: availableNonPersonalPolicyCategoriesSelector,
-    }, [availableNonPersonalPolicyCategoriesSelector]);
+    const availableNonPersonalPolicyCategoriesSelector = useCallback(
+        (policyCategories: OnyxCollection<PolicyCategories>) =>
+            Object.fromEntries(
+                Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
+                    if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`) {
+                        return false;
+                    }
+                    const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                    return availableCategories.length > 0;
+                }),
+            ),
+        [personalPolicyID],
+    );
+    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(
+        ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+        {
+            canBeMissing: false,
+            selector: availableNonPersonalPolicyCategoriesSelector,
+        },
+        [availableNonPersonalPolicyCategoriesSelector],
+    );
 
     const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
         .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))
