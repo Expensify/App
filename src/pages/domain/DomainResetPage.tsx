@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -22,25 +22,42 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {domainNameSelector} from '@src/selectors/Domain';
+import {adminAccountIDsSelector, domainNameSelector} from '@src/selectors/Domain';
 import INPUT_IDS from '@src/types/form/ResetDomainForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainResetDomainPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.RESET_DOMAIN>;
 
 function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
+    const {domainAccountID, accountID} = route.params;
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
 
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`, {canBeMissing: true});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`, {canBeMissing: true});
+
+    // Selectors used this way bc when useOnyx with it the metadata is wrong + we're already have domain data here
+    const domainName = domainNameSelector(domain);
+    const adminAccountIDs = adminAccountIDsSelector(domain);
+    const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
+    const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
+
+    useEffect(() => {
+        // Make sure reset domain page cannot be accessed if there is more than 1 admin
+        if (isLoadingDomain || domainHasOnlyOneAdmin) {
+            return;
+        }
+        Navigation.goBack(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, accountID));
+    }, [accountID, domainAccountID, domainHasOnlyOneAdmin, isLoadingDomain]);
 
     const missingDomainData = !domain || !domainName;
+    const isSubmitDisabled = missingDomainData || !domainHasOnlyOneAdmin;
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.route}`;
 
     const handleResetDomain = () => {
-        if (missingDomainData) {
-            Log.hmmm('Domain data is missing');
+        if (isSubmitDisabled) {
+            Log.hmmm('Domain data is missing or there are more than 1 admin left');
             return;
         }
         resetDomain(route.params.domainAccountID, domainName, domain);
@@ -80,7 +97,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
                 submitButtonText={translate('domain.admins.resetDomain')}
                 style={[styles.flexGrow1, styles.mh5]}
                 isSubmitActionDangerous
-                isSubmitDisabled={missingDomainData}
+                isSubmitDisabled={isSubmitDisabled}
             >
                 <View
                     fsClass={CONST.FULLSTORY.CLASS.UNMASK}
