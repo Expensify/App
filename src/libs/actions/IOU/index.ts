@@ -9348,7 +9348,7 @@ function getReportFromHoldRequestsOnyxData({
     recipient: Participant;
     policy: OnyxEntry<OnyxTypes.Policy>;
     createdTimestamp?: string;
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>,
+    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
 }): {
     optimisticHoldReportID: string;
