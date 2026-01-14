@@ -11215,6 +11215,7 @@ describe('ReportUtils', () => {
 
             it('should log a warning when policyExpenseReportID is missing during categorization', async () => {
                 // Given a transaction and an active policy, but no corresponding policy expense report in Onyx
+                const logWarnSpy = jest.spyOn(Log, 'warn');
                 const transaction = createRandomTransaction(4);
                 const activePolicy: Policy = {
                     ...createRandomPolicy(105),
@@ -11233,7 +11234,7 @@ describe('ReportUtils', () => {
                 createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, activePolicy);
 
                 // Then it should log a warning and not navigate
-                expect(Log.warn).toHaveBeenCalledWith('policyExpenseReportID is not valid during expense categorizing');
+                expect(logWarnSpy).toHaveBeenCalledWith('policyExpenseReportID is not valid during expense categorizing');
                 expect(Navigation.navigate).not.toHaveBeenCalled();
             });
         });
