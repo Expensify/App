@@ -828,6 +828,18 @@ function isPersonalCard(card?: Card) {
 }
 
 /**
+ * Check if the given card is a personal card from OldDot.
+ * These cards do not have a domainName and are owned by the current user.
+ */
+function isPersonalCardFromOldDot(card: Card | undefined, currentUserAccountID: number): boolean {
+    if (!card) {
+        return false;
+    }
+
+    return !card.domainName && card.accountID === currentUserAccountID;
+}
+
+/**
  * Filter out personal (including cash) cards from the card list.
  */
 function filterPersonalCards(cards: CardList | undefined): CardList {
@@ -980,6 +992,7 @@ export {
     getEligibleBankAccountsForUkEuCard,
     filterPersonalCards,
     isPersonalCard,
+    isPersonalCardFromOldDot,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     isMaskedCardNumberEqual,

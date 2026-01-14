@@ -31,12 +31,11 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterPersonalCards, maskCardNumber} from '@libs/CardUtils';
+import {filterPersonalCards} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
@@ -47,7 +46,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
+import type {PaymentMethodPressHandlerParams} from './types';
 import useWalletSectionIllustration from './useWalletSectionIllustration';
 
 const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
@@ -154,21 +153,6 @@ function WalletPage() {
             }
             navigateToBankAccountRoute(accountPolicyID, ROUTES.SETTINGS_WALLET);
         }
-    };
-
-    const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
-        paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
-        setPaymentMethod({
-            isSelectedPaymentMethodDefault: false,
-            selectedPaymentMethod: {},
-            formattedSelectedPaymentMethod: {
-                title: maskCardNumber(cardData?.cardName, cardData?.bank),
-                description: cardData ? getDescriptionForPolicyDomainCard(cardData.domainName) : '',
-                icon,
-            },
-            selectedPaymentMethodType: '',
-            methodID: cardID ?? CONST.DEFAULT_NUMBER_ID,
-        });
     };
 
     const addBankAccountPressed = () => {
@@ -382,28 +366,6 @@ function WalletPage() {
         ],
     );
 
-    const cardThreeDotsMenuItems = useMemo(
-        () => [
-            ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
-            {
-                text: translate('workspace.common.viewTransactions'),
-                icon: icons.MoneySearch,
-                onSelected: () => {
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query: buildCannedSearchQuery({
-                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                                cardID: String(paymentMethod.methodID),
-                            }),
-                        }),
-                    );
-                },
-            },
-        ],
-        [bottomMountItem, icons.MoneySearch, paymentMethod.methodID, shouldUseNarrowLayout, translate],
-    );
-
     if (isLoadingApp) {
         return (
             <ScreenWrapper
@@ -466,8 +428,7 @@ function WalletPage() {
                                 <PaymentMethodList
                                     shouldShowAddBankAccount={false}
                                     shouldShowAssignedCards
-                                    onPress={assignedCardPressed}
-                                    threeDotsMenuItems={cardThreeDotsMenuItems}
+                                    onPress={() => {}}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 />

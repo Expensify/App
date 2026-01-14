@@ -7,6 +7,7 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
+import getBankIcon from '@components/Icon/BankIcons';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -26,6 +27,7 @@ import {
     getPlaidInstitutionIconUrl,
     isExpensifyCard,
     isExpensifyCardPendingAction,
+    isPersonalCardFromOldDot,
     lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@libs/CardUtils';
@@ -37,6 +39,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccount, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {BankName} from '@src/types/onyx/Bank';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -174,6 +177,7 @@ function PaymentMethodList({
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
@@ -195,28 +199,42 @@ function PaymentMethodList({
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
+            const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-                // Filter by active cards associated with a domain
-                .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
+                // Include active company cards (domain) and active personal cards from OldDot (no domain + owned by current user)
+                .filter(
+                    (card) =>
+                        !isExpensifyCard(card) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) && (!!card.domainName || isPersonalCardFromOldDot(card, currentUserAccountID)),
+                );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
-
+            console.log('cardList', cardList);
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+                const isPersonalOldDotCard = isPersonalCardFromOldDot(card, currentUserAccountID);
+                const isCSVCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+                const icon = isPersonalOldDotCard
+                    ? isCSVCard
+                        ? getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons)
+                        : getBankIcon({styles, bankName: card.bank as BankName, isCard: true}).icon
+                    : getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
 
                 if (!isExpensifyCard(card)) {
-                    const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
+                    const cardDisplayName = maskCardNumber(card.cardName, card.bank);
+                    const cardDescription = isPersonalOldDotCard
+                        ? lastFourPAN
+                        : lastFourPAN
+                          ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
+                          : getDescriptionForPolicyDomainCard(card.domainName);
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        plaidUrl,
-                        title: maskCardNumber(card.cardName, card.bank),
-                        description: lastFourPAN
-                            ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                            : getDescriptionForPolicyDomainCard(card.domainName),
+                        plaidUrl: isPersonalOldDotCard ? undefined : plaidUrl,
+                        title: cardDisplayName,
+                        description: cardDescription,
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         canDismissError: false,
@@ -231,20 +249,9 @@ function PaymentMethodList({
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
-                        iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                         isMethodActive: activePaymentMethodID === card.cardID,
-                        onPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-                            pressHandler({
-                                event: e,
-                                cardData: card,
-                                icon: {
-                                    icon,
-                                    iconStyles: [styles.cardIcon],
-                                    iconWidth: variables.cardIconWidth,
-                                    iconHeight: variables.cardIconHeight,
-                                },
-                                cardID: card.cardID,
-                            }),
+                        onPress: () =>
+                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute('0', (card.bank || 'unknown') as never, String(card.cardID), ROUTES.SETTINGS_WALLET)),
                     });
                     continue;
                 }
@@ -281,7 +288,7 @@ function PaymentMethodList({
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
                     description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(String(card.cardID))),
                     onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                         pressHandler({
                             event: e,
@@ -385,6 +392,7 @@ function PaymentMethodList({
         filterCurrency,
         isLoadingCardList,
         cardList,
+        session?.accountID,
         illustrations,
         companyCardFeedIcons,
         onPress,

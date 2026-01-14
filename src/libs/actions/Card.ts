@@ -10,7 +10,11 @@ import type {
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
     RevealExpensifyCardDetailsParams,
+    SetCardReimbursableSettingParams,
+    UnassignCompanyCard,
     StartIssueNewCardFlowParams,
+    UpdateCardTransactionStartDateParams,
+    UpdateCompanyCardNameParams,
     UpdateExpensifyCardLimitParams,
     UpdateExpensifyCardLimitTypeParams,
     UpdateExpensifyCardTitleParams,
@@ -236,6 +240,360 @@ function clearCardListErrors(cardID: number) {
  */
 function clearActivatedCardPin() {
     Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, '');
+}
+
+function clearCardErrorField(cardID: number, fieldName: string) {
+    Onyx.merge(ONYXKEYS.CARD_LIST, {
+        [cardID]: {
+            errorFields: {
+                [fieldName]: null,
+            },
+        },
+    });
+}
+
+function clearCardNameValuePairsErrorField(cardID: number, fieldName: string) {
+    Onyx.merge(ONYXKEYS.CARD_LIST, {
+        [cardID]: {
+            nameValuePairs: {
+                errorFields: {
+                    [fieldName]: null,
+                },
+            },
+        },
+    });
+}
+
+function setCardReimbursableSetting(cardID: number, markTransactionsAsReimbursable: boolean, previousValue?: boolean) {
+    const authToken = NetworkStore.getAuthToken();
+    if (!authToken) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    markTransactionsAsReimbursable,
+                    pendingFields: {
+                        markTransactionsAsReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: {
+                        markTransactionsAsReimbursable: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    pendingFields: {
+                        markTransactionsAsReimbursable: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    ...(previousValue === undefined ? {} : {markTransactionsAsReimbursable: previousValue}),
+                    pendingFields: {
+                        markTransactionsAsReimbursable: null,
+                    },
+                    errorFields: {
+                        markTransactionsAsReimbursable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: SetCardReimbursableSettingParams = {
+        authToken,
+        cardID,
+        reimbursable: markTransactionsAsReimbursable,
+    };
+
+    API.write(WRITE_COMMANDS.SET_CARD_REIMBURSABLE_SETTING, parameters, {optimisticData, finallyData, failureData});
+}
+
+function syncCompanyCard(cardID: number, lastScrapeResult?: number) {
+    const authToken = NetworkStore.getAuthToken();
+    if (!authToken) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    isLoadingLastUpdated: true,
+                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
+                    pendingFields: {
+                        lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: {
+                        lastScrape: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    isLoadingLastUpdated: false,
+                    pendingFields: {
+                        lastScrape: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    lastScrapeResult,
+                    isLoadingLastUpdated: false,
+                    pendingFields: {
+                        lastScrape: null,
+                    },
+                    errorFields: {
+                        lastScrape: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        authToken,
+        cardID,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD, parameters, {optimisticData, finallyData, failureData});
+}
+
+function unassignCompanyCard(card: Card) {
+    const authToken = NetworkStore.getAuthToken();
+    if (!authToken) {
+        return;
+    }
+
+    const cardID = card.cardID;
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: null,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    pendingAction: null,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const parameters: UnassignCompanyCard = {
+        authToken,
+        cardID,
+    };
+
+    API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, {optimisticData, successData, failureData});
+}
+
+function updateAssignedCardName(cardID: string, newCardTitle: string, oldCardTitle?: string) {
+    const authToken = NetworkStore.getAuthToken();
+    if (!authToken) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        cardTitle: newCardTitle,
+                        pendingFields: {
+                            cardTitle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        errorFields: {
+                            cardTitle: null,
+                        },
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
+            value: {
+                [cardID]: newCardTitle,
+            },
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        pendingFields: {
+                            cardTitle: null,
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        cardTitle: oldCardTitle,
+                        pendingFields: {
+                            cardTitle: null,
+                        },
+                        errorFields: {
+                            cardTitle: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        },
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
+            value: {
+                [cardID]: oldCardTitle,
+            },
+        },
+    ];
+
+    const parameters: UpdateCompanyCardNameParams = {
+        authToken,
+        cardID: Number(cardID),
+        cardName: newCardTitle,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME, parameters, {optimisticData, finallyData, failureData});
+}
+
+function updateAssignedCardTransactionStartDate(cardID: string, newStartDate: string, oldStartDate?: string) {
+    const authToken = NetworkStore.getAuthToken();
+    if (!authToken) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    scrapeMinDate: newStartDate,
+                    pendingFields: {
+                        scrapeMinDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: {
+                        scrapeMinDate: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    pendingFields: {
+                        scrapeMinDate: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    scrapeMinDate: oldStartDate,
+                    pendingFields: {
+                        scrapeMinDate: null,
+                    },
+                    errorFields: {
+                        scrapeMinDate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateCardTransactionStartDateParams = {
+        authToken,
+        cardID: Number(cardID),
+        startDate: newStartDate,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_CARD_TRANSACTION_START_DATE, parameters, {optimisticData, finallyData, failureData});
 }
 
 function clearReportVirtualCardFraudForm() {
@@ -1082,6 +1440,13 @@ export {
     issueExpensifyCard,
     openCardDetailsPage,
     clearActivatedCardPin,
+    clearCardErrorField,
+    clearCardNameValuePairsErrorField,
+    setCardReimbursableSetting,
+    syncCompanyCard,
+    unassignCompanyCard,
+    updateAssignedCardName,
+    updateAssignedCardTransactionStartDate,
     toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
     updateSelectedFeed,
