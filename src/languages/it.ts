@@ -7972,6 +7972,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             button: 'Scarica l’app',
         },
         notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per completare"},
+        continueGpsTripModal: {
+            title: 'Continue GPS trip recording?',
+            prompt: 'Looks like the app closed during your last GPS trip. Would you like to continue recording from that trip?',
+            confirm: 'Continue trip',
+            cancel: 'View trip',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

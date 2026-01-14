@@ -5,6 +5,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import GPSTripStateChecker from '@components/GPSTripStateChecker';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
@@ -707,6 +708,7 @@ function AuthScreens() {
                 />
             </RootStack.Navigator>
             <SearchRouterModal />
+            <GPSTripStateChecker />
             <OpenAppFailureModal />
             <PriorityModeController />
             <OpenConfirmNavigateExpensifyClassicModal />

@@ -7948,6 +7948,12 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             button: 'Baixar o app',
         },
         notification: {title: 'Rastreamento de GPS em andamento', body: 'Vá para o app para finalizar'},
+        continueGpsTripModal: {
+            title: 'Continue GPS trip recording?',
+            prompt: 'Looks like the app closed during your last GPS trip. Would you like to continue recording from that trip?',
+            confirm: 'Continue trip',
+            cancel: 'View trip',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
