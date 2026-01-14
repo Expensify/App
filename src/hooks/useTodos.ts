@@ -137,9 +137,10 @@ export default function useTodos() {
 
     // Build SearchResults-formatted data for each to-do category
     const todoSearchResultsData = useMemo(() => {
-        const buildData = (reports: Report[]): TodoSearchResultsData | undefined => {
+        const buildData = (reports: Report[]): TodoSearchResultsData => {
             if (reports.length === 0) {
-                return undefined;
+                // Return empty object like the Search API would when there's no data
+                return {} as TodoSearchResultsData;
             }
             return buildSearchResultsData(
                 reports,

@@ -76,13 +76,14 @@ function SearchContextProvider({children}: ChildrenProps) {
     const currentSearchResults = useMemo((): SearchResults | undefined => {
         if (shouldUseLiveData) {
             const liveData = todoSearchResultsData[currentSearchKey];
-            if (liveData) {
-                const searchInfo: SearchResultsInfo = snapshotSearchResults?.search ?? defaultSearchInfo;
-                return {
-                    search: searchInfo,
-                    data: liveData,
-                };
-            }
+            const searchInfo: SearchResultsInfo = snapshotSearchResults?.search ?? defaultSearchInfo;
+            const hasResults = Object.keys(liveData).length > 0;
+            // For to-do searches, always return a valid SearchResults object (even with empty data)
+            // This ensures we show the empty state instead of loading/blocking views
+            return {
+                search: {...searchInfo, isLoading: false, hasResults},
+                data: liveData,
+            };
         }
 
         return snapshotSearchResults ?? undefined;

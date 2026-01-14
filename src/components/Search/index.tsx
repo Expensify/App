@@ -364,7 +364,9 @@ function Search({
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
+    // For to-do searches, we never show loading state since the data is always available locally from Onyx
     const shouldShowLoadingState =
+        !isTodoSearch(searchKey) &&
         !isOffline &&
         (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) || (hasErrors && !searchRequestResponseStatusCode));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
