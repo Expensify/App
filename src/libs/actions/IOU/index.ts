@@ -9281,6 +9281,8 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
     return {holdReportActions, holdTransactions};
 }
 
+type OptimisticReportActionCopyIDs = Record<string, string>;
+
 /**
  * Gets duplicate workflow actions for a partial expense report.
  * Used when splitting held expenses into a new partial report to maintain action history.
@@ -9296,19 +9298,18 @@ function getDuplicateActionsForPartialReport(
     Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
     Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
     Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
-    OptimisticHoldReportExpenseActionID[],
+    OptimisticReportActionCopyIDs,
 ] {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-    const optimisticReportActionCopyIDs: OptimisticHoldReportExpenseActionID[] = [];
+    const optimisticReportActionCopyIDs: OptimisticReportActionCopyIDs = {};
 
     if (!sourceReportID || !targetReportID) {
         return [optimisticData, successData, failureData, optimisticReportActionCopyIDs];
     }
 
     const sourceReportActions = getAllReportActions(sourceReportID);
-    console.log('sourceReportActions', sourceReportActions)
 
     // Match the backend's WORKFLOW_ACTIONS list
     const workflowActionTypes = [
@@ -9342,7 +9343,7 @@ function getDuplicateActionsForPartialReport(
                 pendingAction: null,
             };
             copiedActionsFailure[newActionID] = null;
-            optimisticReportActionCopyIDs.push({optimisticReportActionID: newActionID, oldReportActionID: action.reportActionID});
+            optimisticReportActionCopyIDs[action.reportActionID] = newActionID;
         }
     }
 
@@ -9636,9 +9637,9 @@ function getReportFromHoldRequestsOnyxData({
     // Copy submission/approval actions to the new report
     const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure, optimisticReportActionCopyIDs] = getDuplicateActionsForPartialReport(
         iouReport?.reportID,
-        optimisticExpenseReport.reportID
+        optimisticExpenseReport.reportID,
     );
-   
+
     if (isApprovalFlow && optimisticReportActionCopyIDs.length > 0) {
         optimisticData.push(...copiedActionsOptimistic);
         successData.push(...copiedActionsSuccess);
