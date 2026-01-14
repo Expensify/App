@@ -33,7 +33,7 @@ jest.mock('@libs/actions/IOU', () => ({
     initSplitExpense: jest.fn(),
 }));
 
-jest.mock('@libs/actions/IOU/HoldAction', () => ({
+jest.mock('@libs/actions/IOU/Hold', () => ({
     unholdRequest: jest.fn(),
 }));
 

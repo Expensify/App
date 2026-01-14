@@ -67,7 +67,7 @@ const RORY_ACCOUNT_ID = 3;
 
 OnyxUpdateManager();
 
-describe('actions/IOU/HoldAction', () => {
+describe('actions/IOU/Hold', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
