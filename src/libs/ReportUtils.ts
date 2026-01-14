@@ -2477,7 +2477,7 @@ function isPolicyExpenseChatAdmin(report: OnyxEntry<Report>, policies: OnyxColle
  * Checks if the current user is the admin of the policy.
  */
 function isPolicyAdmin(policy: OnyxEntry<Policy>): boolean {
-    if (!policy) {
+    if (!policy || !policy.policyID) {
         return false;
     }
 
