@@ -128,7 +128,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Constant**: `CONST.TELEMETRY.SPAN_SKELETON`
 **Sentry Name**: `ManualSkeleton`
 **Threshold**: 10s minimum duration (only sent if visible 10+ seconds)
-**What's Measured**: Skeleton components visible longer than expected
+**What's Measured**: Number of skeleton components visible longer than expected
 **Start**: Skeleton component mounted ([`src/libs/telemetry/useSkeletonSpan.ts`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/telemetry/useSkeletonSpan.ts#L13))
 **End**: Component unmounts ([`src/libs/telemetry/useSkeletonSpan.ts`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/telemetry/useSkeletonSpan.ts#L24))
 **Span ID**: `${CONST.TELEMETRY.SPAN_SKELETON}_${component}_${reactId}`
@@ -137,7 +137,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 ### Authentication Failures
 
 **Constants**: `CONST.TELEMETRY.TAG_AUTHENTICATION_FUNCTION`, `CONST.TELEMETRY.TAG_AUTHENTICATION_ERROR_TYPE`, `CONST.TELEMETRY.TAG_AUTHENTICATION_JSON_CODE` ([`src/CONST/index.ts`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/CONST/index.ts#L1700-L1702))
-**What's Measured**: Authentication failures tracked via `Sentry.captureException()` using [`trackAuthenticationError()`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/telemetry/trackAuthenticationError.ts#L23)
+**What's Measured**: Numbert of authentication failures tracked via `Sentry.captureException()` using [`trackAuthenticationError()`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/telemetry/trackAuthenticationError.ts#L23)
 **Error Types**:
 - `missing_params`: Missing required auth parameters ([`Authentication.ts:66`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/Authentication.ts#L66))
 - `network_retry`: Network failure during reauthentication ([`Authentication.ts:158`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/Authentication.ts#L158))
@@ -149,7 +149,8 @@ This document lists all implemented telemetry metrics in the Expensify App.
 ### ANRs (Application Not Responding)
 
 **Goal**: Track error conditions for trend analysis to identify when the app becomes unresponsive.
-**Status**: Metrics TBD
+**Status**: ANRs are tracked automatically with default Sentry configuration. Keep in mind that ANRs is only supported on Android.
+**What's Measured**: Number of "Application Not Responding" errors
 
 ## Feature Health
 
