@@ -3,7 +3,7 @@ import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useTodos from '@hooks/useTodos';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType, isTodoSearch} from '@libs/SearchUIUtils';
+import {isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
