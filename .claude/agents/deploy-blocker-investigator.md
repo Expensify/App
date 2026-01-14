@@ -59,7 +59,7 @@ Find the current deploy checklist:
 gh issue list --label "StagingDeployCash" --state open --json number,title,body --limit 1
 ```
 
-This lists all PRs in the current staging deploy. If the bug is staging-only, the cause is likely one of these PRs.
+This lists all PRs in the current staging deploy. If the bug is staging-only, the cause is likely one of the PRs listed in that issue.
 
 ### Step 3: Find the causing PR
 
@@ -81,7 +81,7 @@ gh pr diff <PR_NUMBER>
 
 2. **Check recent changes** to the affected file:
 ```bash
-git log --oneline -10 -- src/pages/Search/SearchColumnsPage.tsx
+git log --oneline -10 -- <affected_file>
 ```
 
 3. **Confirm the PR modifies these files**:
@@ -115,20 +115,23 @@ Post your findings and apply appropriate label changes.
 
 ## Decision Tree
 
-After identifying the causing PR and determining your recommendation:
+After identifying the causing PR:
 
 ```
-┌─ Is the causing PR in `Expensify/App`?
+┌─ Is there an App PR that caused or contributed to the issue?
 │
 ├─ YES → Classification = Frontend bug
 │        → KEEP `DeployBlockerCash` (App deploy is blocked)
 │        → REMOVE `DeployBlocker` if present
+│        → Recommend reverting the App PR
 │
-└─ NO (fix is in backend)
+└─ NO (no App PR involved—bug is purely in backend code)
          → Classification = Backend bug
          → REMOVE `DeployBlockerCash` if present
          → KEEP `DeployBlocker` (Backend deploy is blocked)
 ```
+
+**Note:** If an App PR ships a feature the backend doesn't yet support, that's still a Frontend bug—the App PR should be reverted so we don't ship broken functionality.
 
 ---
 
@@ -185,7 +188,7 @@ Technical explanation of what went wrong in the code.
 ## Constraints
 
 **DO NOT:**
-- Remove `DeployBlockerCash` if the causing PR is in `Expensify/App`
+- Remove `DeployBlockerCash` if there's an App PR that caused or contributed to the issue
 - Remove both blocker labels simultaneously
 - Make assumptions about code you haven't read
 - Recommend DEMOTE for bugs affecting core functionality (auth, payments, data loss)
@@ -208,37 +211,33 @@ Technical explanation of what went wrong in the code.
 
 ---
 
-## Commands
+## Command Reference
 
 **Important:**
 - Do not use heredocs, temp files, or shell redirects. Pass the comment body directly to `gh issue comment --body`.
 - Call scripts by name only (e.g., `removeDeployBlockerLabel.sh`), not with full paths. The `.claude/scripts/` directory is in PATH.
 
 ```bash
-# Step 1: Check current labels on the issue
+# Check current labels on the issue
 gh issue view "$ISSUE_URL" --json labels --jq '.labels[].name'
 
-# Step 2: Get StagingDeployCash checklist
+# Get StagingDeployCash checklist
 gh issue list --label "StagingDeployCash" --state open --json number,body --limit 1
 
-# Step 3: View a PR's details
+# View a PR's details
 gh pr view <PR_NUMBER> --json title,body,author,files,mergedAt
 gh pr diff <PR_NUMBER>
 
-# Step 4: Verify the PR touches affected code
-# Use the Grep tool to find files related to the affected feature
+# Verify the PR touches affected code
 git log --oneline -10 -- <affected_file>
 gh pr view <PR_NUMBER> --json files --jq '.files[].path'
 
-# Step 6: Post your findings (use single quotes for the body)
+# Post your findings (use single quotes for the body)
 gh issue comment "$ISSUE_URL" --body '## 🔍 Investigation Summary
 ...your comment here...
 '
 
-# Step 7: Remove label ONLY if decision tree warrants it
-# For Backend bugs (fix is NOT in App):
-removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlockerCash
-
-# For Frontend bugs (fix IS in App):
-removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlocker
+# Remove label (only if decision tree warrants it)
+removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlockerCash  # For Backend bugs
+removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlocker      # For Frontend bugs
 ```
