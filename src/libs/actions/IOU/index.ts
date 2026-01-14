@@ -11793,12 +11793,12 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     });
 }
 
-function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxCode});
+function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null, isDraft: boolean = true) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxCode});
 }
 
-function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number | null) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
+function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number | null, isDraft: boolean = true) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxAmount});
 }
 
 /**
