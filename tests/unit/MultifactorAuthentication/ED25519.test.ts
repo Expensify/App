@@ -1,7 +1,10 @@
 import {Buffer} from 'buffer';
+import {TextEncoder} from 'util';
 import {bytesToHex, concatBytes, createBinaryData, generateKeyPair, hexToBytes, randomBytes, sha256, signToken, utf8ToBytes} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
 import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+
+global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('MultifactorAuthentication Biometrics ED25519 helpers', () => {
     it('generates a valid hex-encoded key pair', () => {
