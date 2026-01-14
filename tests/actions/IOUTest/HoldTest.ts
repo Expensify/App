@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
-import {putOnHold, unholdRequest} from '@libs/actions/IOU/HoldAction';
+import {putOnHold, unholdRequest} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 // eslint-disable-next-line no-restricted-syntax

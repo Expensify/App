@@ -54,7 +54,7 @@ import {
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {dismissRejectUseExplanation} from '@userActions/IOU';
-import {duplicateExpenseTransaction as duplicateTransactionAction} from '@userActions/IOU/DuplicateAction';
+import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

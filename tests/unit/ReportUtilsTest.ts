@@ -8,7 +8,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {putOnHold} from '@libs/actions/IOU/HoldAction';
+import {putOnHold} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
