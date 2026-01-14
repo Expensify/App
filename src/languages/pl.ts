@@ -7936,6 +7936,11 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             button: 'Pobierz aplikację',
         },
         notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby zakończyć'},
+        signOutWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to discard the trip and sign out?',
+            confirm: 'Discard and sign out',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -8079,6 +8079,11 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Seguimiento GPS en curso',
             body: 'Ve a la app para finalizar',
         },
+        signOutWarningTripInProgress: {
+            title: 'Seguimiento por GPS en curso',
+            prompt: '¿Seguro que quieres descartar el viaje y cerrar sesión?',
+            confirm: 'Descartar y cerrar sesión',
+        },
     },
 };
 

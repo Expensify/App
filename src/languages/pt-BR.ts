@@ -7948,6 +7948,11 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             button: 'Baixar o app',
         },
         notification: {title: 'Rastreamento de GPS em andamento', body: 'Vá para o app para finalizar'},
+        signOutWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to discard the trip and sign out?',
+            confirm: 'Discard and sign out',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

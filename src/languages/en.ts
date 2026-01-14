@@ -7080,6 +7080,11 @@ const translations = {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
         },
+        signOutWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to discard the trip and sign out?',
+            confirm: 'Discard and sign out',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',

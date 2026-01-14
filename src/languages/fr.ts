@@ -7995,6 +7995,11 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             button: 'Télécharger l’application',
         },
         notification: {title: 'Suivi GPS en cours', body: 'Allez dans l’application pour terminer'},
+        signOutWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to discard the trip and sign out?',
+            confirm: 'Discard and sign out',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

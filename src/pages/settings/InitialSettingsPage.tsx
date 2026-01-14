@@ -1,5 +1,6 @@
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import {differenceInDays} from 'date-fns';
+import {stopLocationUpdatesAsync} from 'expo-location';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
@@ -32,6 +33,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {checkIfFeedConnectionIsBroken, filterPersonalCards, hasPendingExpensifyCardAction} from '@libs/CardUtils';
@@ -42,6 +44,7 @@ import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUt
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {openExternalLink, openOldDotLink} from '@userActions/Link';
@@ -131,6 +134,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
@@ -189,276 +193,240 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         setShouldShowSignoutConfirmModal(value);
     };
 
-    const signOut = useCallback(
-        (shouldForceSignout = false) => {
-            if (!network.isOffline || shouldForceSignout) {
-                return signOutAndRedirectToSignIn();
-            }
+    const signOut = (shouldForceSignout = false) => {
+        if ((!network.isOffline && !gpsDraftDetails?.isTracking) || shouldForceSignout) {
+            return signOutAndRedirectToSignIn();
+        }
 
-            // When offline, warn the user that any actions they took while offline will be lost if they sign out
-            toggleSignoutConfirmModal(true);
-        },
-        [network.isOffline],
-    );
+        // When offline, warn the user that any actions they took while offline will be lost if they sign out
+        toggleSignoutConfirmModal(true);
+    };
 
-    const surveyCompletedWithinLastMonth = useMemo(() => {
+    const isSurveyCompletedWithinLastMonth = () => {
         const surveyThresholdInDays = 30;
         if (!tryNewDot?.classicRedirect?.timestamp || !tryNewDot?.classicRedirect?.dismissed) {
             return false;
         }
         const daysSinceLastSurvey = differenceInDays(new Date(), new Date(tryNewDot.classicRedirect.timestamp));
         return daysSinceLastSurvey < surveyThresholdInDays;
-    }, [tryNewDot?.classicRedirect?.timestamp, tryNewDot?.classicRedirect?.dismissed]);
+    };
+
+    const surveyCompletedWithinLastMonth = isSurveyCompletedWithinLastMonth();
+
+    const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email);
+
+    const accountMenuItemsDataItems: MenuData[] = [
+        {
+            translationKey: 'common.profile',
+            icon: icons.Profile,
+            screenName: SCREENS.SETTINGS.PROFILE.ROOT,
+            brickRoadIndicator: profileBrickRoadIndicator,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
+        },
+        {
+            translationKey: 'common.wallet',
+            icon: icons.Wallet,
+            screenName: SCREENS.SETTINGS.WALLET.ROOT,
+            brickRoadIndicator: walletBrickRoadIndicator,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
+            badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
+        },
+        {
+            translationKey: 'common.preferences',
+            icon: icons.Gear,
+            screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
+        },
+        {
+            translationKey: 'initialSettingsPage.security',
+            icon: icons.Lock,
+            screenName: SCREENS.SETTINGS.SECURITY,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
+        },
+    ];
+
+    const subscriptionPlanItem: MenuData = {
+        translationKey: 'allSettingsScreen.subscription',
+        icon: icons.CreditCard,
+        screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
+        brickRoadIndicator:
+            !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)
+                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                : undefined,
+        badgeText: freeTrialText,
+        badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
+        action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
+    };
 
     /**
-     * Return a list of menu items data for account section
-     * @returns object with translationKey, style and items for the account section
+     * Object with translationKey, style and items for the account section
      */
-    const accountMenuItemsData: Menu = useMemo(() => {
-        const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email);
-        const items: MenuData[] = [
-            {
-                translationKey: 'common.profile',
-                icon: icons.Profile,
-                screenName: SCREENS.SETTINGS.PROFILE.ROOT,
-                brickRoadIndicator: profileBrickRoadIndicator,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
+    const accountMenuItemsData: Menu = {
+        sectionStyle: styles.accountSettingsSectionContainer,
+        sectionTranslationKey: 'initialSettingsPage.account',
+        items: subscriptionPlan ? [accountMenuItemsDataItems.at(0), subscriptionPlanItem, ...accountMenuItemsDataItems.slice(1)].filter((value) => !!value) : accountMenuItemsDataItems,
+    };
+
+    const classicRedirectMenuItem: MenuData | null = tryNewDot?.classicRedirect?.isLockedToNewDot
+        ? null
+        : {
+              translationKey: 'exitSurvey.goToExpensifyClassic',
+              icon: icons.ExpensifyLogoNew,
+              ...(CONFIG.IS_HYBRID_APP
+                  ? {
+                        action: () => closeReactNativeApp({shouldSetNVP: true}),
+                    }
+                  : {
+                        action() {
+                            if (surveyCompletedWithinLastMonth) {
+                                openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                                return;
+                            }
+
+                            const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
+
+                            resetExitSurveyForm(() => {
+                                if (shouldOpenSurveyReasonPage) {
+                                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                            });
+                        },
+                    }),
+          };
+
+    const signOutTranslationKey = isSupportAuthToken() && hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+
+    const generalMenuItemsDataItems: MenuData[] = [
+        ...(classicRedirectMenuItem && tryNewDot?.nudgeMigration ? [classicRedirectMenuItem] : []),
+        {
+            translationKey: 'initialSettingsPage.help',
+            icon: icons.QuestionMark,
+            iconRight: icons.NewWindow,
+            shouldShowRightIcon: true,
+            link: CONST.NEWHELP_URL,
+            action: () => {
+                openExternalLink(CONST.NEWHELP_URL);
             },
-            {
-                translationKey: 'common.wallet',
-                icon: icons.Wallet,
-                screenName: SCREENS.SETTINGS.WALLET.ROOT,
-                brickRoadIndicator: walletBrickRoadIndicator,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
-                badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
+        },
+        {
+            translationKey: 'initialSettingsPage.whatIsNew',
+            icon: icons.TreasureChest,
+            iconRight: icons.NewWindow,
+            shouldShowRightIcon: true,
+            link: CONST.WHATS_NEW_URL,
+            action: () => {
+                openExternalLink(CONST.WHATS_NEW_URL);
             },
-            {
-                translationKey: 'common.preferences',
-                icon: icons.Gear,
-                screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
+        },
+        {
+            translationKey: 'initialSettingsPage.about',
+            icon: icons.Info,
+            screenName: SCREENS.SETTINGS.ABOUT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_ABOUT),
+        },
+        {
+            translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
+            icon: icons.Lightbulb,
+            screenName: SCREENS.SETTINGS.TROUBLESHOOT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
+        },
+        {
+            translationKey: 'sidebarScreen.saveTheWorld',
+            icon: icons.Heart,
+            screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD),
+        },
+        {
+            translationKey: signOutTranslationKey,
+            icon: icons.Exit,
+            action: () => {
+                signOut(false);
             },
-            {
-                translationKey: 'initialSettingsPage.security',
-                icon: icons.Lock,
-                screenName: SCREENS.SETTINGS.SECURITY,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
-            },
-        ];
-
-        if (subscriptionPlan) {
-            items.splice(1, 0, {
-                translationKey: 'allSettingsScreen.subscription',
-                icon: icons.CreditCard,
-                screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
-                brickRoadIndicator:
-                    !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)
-                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                        : undefined,
-                badgeText: freeTrialText,
-                badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
-            });
-        }
-
-        return {
-            sectionStyle: styles.accountSettingsSectionContainer,
-            sectionTranslationKey: 'initialSettingsPage.account',
-            items,
-        };
-    }, [
-        loginList,
-        privatePersonalDetails,
-        vacationDelegate,
-        session?.email,
-        icons.Profile,
-        icons.Gear,
-        icons.Lock,
-        icons.Wallet,
-        icons.CreditCard,
-        walletBrickRoadIndicator,
-        hasActivatedWallet,
-        userWallet?.currentBalance,
-        subscriptionPlan,
-        styles.accountSettingsSectionContainer,
-        styles.badgeSuccess,
-        privateSubscription?.errors,
-        stripeCustomerId,
-        retryBillingSuccessful,
-        billingDisputePending,
-        retryBillingFailed,
-        fundList,
-        freeTrialText,
-        billingStatus,
-    ]);
-
-    const classicRedirectMenuItem: MenuData | null = useMemo(() => {
-        if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
-            return null;
-        }
-
-        const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
-
-        return {
-            translationKey: 'exitSurvey.goToExpensifyClassic',
-            icon: icons.ExpensifyLogoNew,
-            ...(CONFIG.IS_HYBRID_APP
-                ? {
-                      action: () => closeReactNativeApp({shouldSetNVP: true}),
-                  }
-                : {
-                      action() {
-                          if (surveyCompletedWithinLastMonth) {
-                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-                              return;
-                          }
-
-                          resetExitSurveyForm(() => {
-                              if (shouldOpenSurveyReasonPage) {
-                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
-                                  return;
-                              }
-                              Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
-                          });
-                      },
-                  }),
-        };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, tryNewDot?.classicRedirect?.dismissed, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth]);
+        },
+    ];
 
     /**
-     * Return a list of menu items data for general section
-     * @returns object with translationKey, style and items for the general section
+     * Object with translationKey, style and items for the general section
      */
-    const generalMenuItemsData: Menu = useMemo(() => {
-        const signOutTranslationKey = isSupportAuthToken() && hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
-        return {
-            sectionStyle: {
-                ...styles.pt4,
-            },
-            sectionTranslationKey: 'initialSettingsPage.general',
-            items: [
-                ...(classicRedirectMenuItem && tryNewDot?.nudgeMigration ? [classicRedirectMenuItem] : []),
-                {
-                    translationKey: 'initialSettingsPage.help',
-                    icon: icons.QuestionMark,
-                    iconRight: icons.NewWindow,
-                    shouldShowRightIcon: true,
-                    link: CONST.NEWHELP_URL,
-                    action: () => {
-                        openExternalLink(CONST.NEWHELP_URL);
-                    },
-                },
-                {
-                    translationKey: 'initialSettingsPage.whatIsNew',
-                    icon: icons.TreasureChest,
-                    iconRight: icons.NewWindow,
-                    shouldShowRightIcon: true,
-                    link: CONST.WHATS_NEW_URL,
-                    action: () => {
-                        openExternalLink(CONST.WHATS_NEW_URL);
-                    },
-                },
-                {
-                    translationKey: 'initialSettingsPage.about',
-                    icon: icons.Info,
-                    screenName: SCREENS.SETTINGS.ABOUT,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_ABOUT),
-                },
-                {
-                    translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                    icon: icons.Lightbulb,
-                    screenName: SCREENS.SETTINGS.TROUBLESHOOT,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
-                },
-                {
-                    translationKey: 'sidebarScreen.saveTheWorld',
-                    icon: icons.Heart,
-                    screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD),
-                },
-                {
-                    translationKey: signOutTranslationKey,
-                    icon: icons.Exit,
-                    action: () => {
-                        signOut(false);
-                    },
-                },
-            ],
-        };
-    }, [icons, styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, signOut]);
+    const generalMenuItemsData: Menu = {
+        sectionStyle: {
+            ...styles.pt4,
+        },
+        sectionTranslationKey: 'initialSettingsPage.general',
+        items: generalMenuItemsDataItems,
+    };
 
     /**
      * Return JSX.Element with menu items
      * @param menuItemsData list with menu items data
      * @returns the menu items for passed data
      */
-    const getMenuItemsSection = useCallback(
-        (menuItemsData: Menu) => {
-            const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
-                if (!isScreenFocused) {
-                    return;
-                }
+    const getMenuItemsSection = (menuItemsData: Menu) => {
+        const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
+            if (!isScreenFocused) {
+                return;
+            }
 
-                if (typeof link === 'function') {
-                    link?.()?.then((url) =>
-                        showContextMenu({
-                            type: CONST.CONTEXT_MENU_TYPES.LINK,
-                            event,
-                            selection: url,
-                            contextMenuAnchor: popoverAnchor.current,
-                        }),
-                    );
-                } else if (link) {
+            if (typeof link === 'function') {
+                link?.()?.then((url) =>
                     showContextMenu({
                         type: CONST.CONTEXT_MENU_TYPES.LINK,
                         event,
-                        selection: link,
+                        selection: url,
                         contextMenuAnchor: popoverAnchor.current,
-                    });
-                }
-            };
+                    }),
+                );
+            } else if (link) {
+                showContextMenu({
+                    type: CONST.CONTEXT_MENU_TYPES.LINK,
+                    event,
+                    selection: link,
+                    contextMenuAnchor: popoverAnchor.current,
+                });
+            }
+        };
 
-            return (
-                <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
-                    <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
-                    {menuItemsData.items.map((item) => {
-                        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-                        const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
+        return (
+            <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
+                <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
+                {menuItemsData.items.map((item) => {
+                    const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                    const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
 
-                        return (
-                            <MenuItem
-                                key={keyTitle}
-                                wrapperStyle={styles.sectionMenuItem}
-                                title={keyTitle}
-                                icon={item.icon}
-                                iconType={item.iconType}
-                                disabled={isExecuting}
-                                onPress={singleExecution(item.action)}
-                                iconStyles={item.iconStyles}
-                                badgeText={item.badgeText}
-                                badgeStyle={item.badgeStyle}
-                                fallbackIcon={item.fallbackIcon}
-                                brickRoadIndicator={item.brickRoadIndicator}
-                                shouldStackHorizontally={item.shouldStackHorizontally}
-                                ref={popoverAnchor}
-                                shouldBlockSelection={!!item.link}
-                                onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                                focused={isFocused}
-                                isPaneMenu
-                                iconRight={item.iconRight}
-                                shouldShowRightIcon={item.shouldShowRightIcon}
-                                shouldIconUseAutoWidthStyle
-                            />
-                        );
-                    })}
-                </View>
-            );
-        },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, isScreenFocused, focusedRouteName, isExecuting, singleExecution],
-    );
+                    return (
+                        <MenuItem
+                            key={keyTitle}
+                            wrapperStyle={styles.sectionMenuItem}
+                            title={keyTitle}
+                            icon={item.icon}
+                            iconType={item.iconType}
+                            disabled={isExecuting}
+                            onPress={singleExecution(item.action)}
+                            iconStyles={item.iconStyles}
+                            badgeText={item.badgeText}
+                            badgeStyle={item.badgeStyle}
+                            fallbackIcon={item.fallbackIcon}
+                            brickRoadIndicator={item.brickRoadIndicator}
+                            shouldStackHorizontally={item.shouldStackHorizontally}
+                            ref={popoverAnchor}
+                            shouldBlockSelection={!!item.link}
+                            onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
+                            focused={isFocused}
+                            isPaneMenu
+                            iconRight={item.iconRight}
+                            shouldShowRightIcon={item.shouldShowRightIcon}
+                            shouldIconUseAutoWidthStyle
+                        />
+                    );
+                })}
+            </View>
+        );
+    };
 
-    const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
-    const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
+    const accountMenuItems = getMenuItemsSection(accountMenuItemsData);
+    const generalMenuItems = getMenuItemsSection(generalMenuItemsData);
 
     const headerContent = (
         <View style={[styles.ph5, styles.pv4]}>
@@ -517,6 +485,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
+    const confirmModalTitle = gpsDraftDetails?.isTracking ? translate('gps.signOutWarningTripInProgress.title') : translate('common.areYouSure');
+    const confirmModalPrompt = gpsDraftDetails?.isTracking ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
+    const confirmModalConfirmText = gpsDraftDetails?.isTracking ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -536,12 +508,18 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {generalMenuItems}
                 <ConfirmModal
                     danger
-                    title={translate('common.areYouSure')}
-                    prompt={translate('initialSettingsPage.signOutConfirmationText')}
-                    confirmText={translate('initialSettingsPage.signOut')}
+                    title={confirmModalTitle}
+                    prompt={confirmModalPrompt}
+                    confirmText={confirmModalConfirmText}
                     cancelText={translate('common.cancel')}
                     isVisible={shouldShowSignoutConfirmModal}
                     onConfirm={() => {
+                        if (gpsDraftDetails?.isTracking) {
+                            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
+                                console.error('[GPS distance request] Failed to stop location tracking', error),
+                            );
+                            resetGPSDraftDetails();
+                        }
                         toggleSignoutConfirmModal(false);
                         shouldLogout.current = true;
                     }}
