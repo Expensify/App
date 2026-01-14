@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -34,7 +34,7 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
             if (config?.invoiceItem !== value && policyID) {
                 updateNetSuiteInvoiceItem(policyID, value, config?.invoiceItem);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID), {compareParams: false});
         },
         [policyID, config?.invoiceItem],
     );
@@ -59,11 +59,11 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteInvoiceItemSelectPage"
-            sections={netsuiteInvoiceItemOptions.length ? [{data: netsuiteInvoiceItemOptions}] : []}
+            data={netsuiteInvoiceItemOptions}
             listItem={RadioListItem}
             onSelectRow={updateInvoiceItem}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID), {compareParams: false})}
             title="workspace.netsuite.invoiceItem.label"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}

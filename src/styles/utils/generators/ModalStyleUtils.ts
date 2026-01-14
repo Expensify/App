@@ -48,6 +48,7 @@ type GetModalStylesStyleUtil = {
             shouldDisableBottomSafeAreaPadding?: boolean;
             modalOverlapsWithTopSafeArea?: boolean;
         },
+        shouldDisplayBelowModals?: boolean,
     ) => GetModalStyles;
 };
 
@@ -60,6 +61,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
+        shouldDisplayBelowModals = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -222,6 +224,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     alignItems: 'center',
                     justifyContent: 'flex-end',
                     height: '100%',
+                    zIndex: shouldDisplayBelowModals ? variables.modalLowestZIndex : variables.modalBaseZIndex,
                 };
                 modalContainerStyle = {
                     width: '100%',
@@ -254,6 +257,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     position: 'absolute',
                     alignItems: 'center',
                     justifyContent: 'flex-end',
+                    zIndex: shouldDisplayBelowModals ? variables.modalLowestZIndex : variables.popoverZIndex,
                 };
                 modalContainerStyle = {
                     borderRadius: variables.componentBorderRadiusLarge,
