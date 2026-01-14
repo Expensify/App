@@ -2106,6 +2106,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: '可疑交易',
         suspiciousBannerDescription: '我们注意到您的卡上有可疑交易。请点击下方进行查看。',
         cardLocked: '在我们团队审核您公司的账户期间，您的卡已被暂时锁定。',
+        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
+        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
         cardDetails: {
             cardNumber: '虚拟卡号',
             expiration: '到期',

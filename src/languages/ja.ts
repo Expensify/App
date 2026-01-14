@@ -2135,6 +2135,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: '不審な取引',
         suspiciousBannerDescription: 'お客様のカードで不審な取引を検知しました。確認するには下をタップしてください。',
         cardLocked: '弊社チームがあなたの会社のアカウントを確認している間、カードは一時的にロックされています。',
+        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
+        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
         cardDetails: {
             cardNumber: 'バーチャルカード番号',
             expiration: '有効期限',
