@@ -116,6 +116,10 @@ type TransactionParams = {
     distance?: number;
     odometerStart?: number;
     odometerEnd?: number;
+    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
+    count?: number;
+    rate?: number;
+    unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -248,6 +252,12 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
     return transaction?.comment?.type === CONST.TRANSACTION.TYPE.TIME;
 }
 
@@ -273,6 +283,9 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     }
     if (isPerDiemRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    }
+    if (isTimeRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.TIME;
     }
 
     return CONST.IOU.REQUEST_TYPE.MANUAL;
@@ -403,6 +416,10 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         odometerStart,
         odometerEnd,
+        type,
+        count,
+        rate,
+        unit,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -453,6 +470,14 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     }
 
     const isManualTransaction = !isPerDiemTransaction && !isMapDistanceTransaction && !isManualDistanceTransaction && !splitExpenses && !receipt?.source;
+    if (type === CONST.TRANSACTION.TYPE.TIME) {
+        commentJSON.units = {
+            count,
+            rate,
+            unit,
+        };
+        commentJSON.type = type;
+    }
 
     return {
         ...(!isEmptyObject(pendingFields) ? {pendingFields} : {}),
@@ -936,6 +961,31 @@ function getOriginalCurrency(transaction: Transaction): string {
 function getOriginalAmount(transaction: Transaction): number {
     const amount = transaction?.originalAmount ?? 0;
     return Math.abs(amount);
+}
+
+function getConvertedAmount(
+    transaction: OnyxInputOrEntry<Transaction>,
+    isFromExpenseReport = false,
+    isFromTrackedExpense = false,
+    allowNegative = false,
+    disableOppositeConversion = false,
+): number {
+    // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
+        return Math.abs(transaction?.convertedAmount ?? 0);
+    }
+
+    if (disableOppositeConversion) {
+        return transaction?.convertedAmount ?? 0;
+    }
+
+    // Expense report case:
+    // The amounts are stored using an opposite sign and negative values can be set,
+    // we need to return an opposite sign than is saved in the transaction object
+    const convertedAmount = transaction?.convertedAmount ?? 0;
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    return convertedAmount ? -convertedAmount : 0;
 }
 
 /**
@@ -2662,6 +2712,7 @@ export {
     shouldReuseInitialTransaction,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    getConvertedAmount,
     shouldShowExpenseBreakdown,
     isTimeRequest,
 };
