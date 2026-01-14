@@ -13,12 +13,15 @@ import coordinatesToString from '@pages/iou/request/step/IOURequestStepDistanceG
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
 
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+
+    useUpdateGpsTripOnReconnect();
 
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
