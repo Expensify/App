@@ -7,7 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,7 +32,6 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {environmentURL} = useEnvironment();
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`, {canBeMissing: true});
 
@@ -53,7 +51,6 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
 
     const missingDomainData = !domain || !domainName;
     const isSubmitDisabled = missingDomainData || !domainHasOnlyOneAdmin;
-    const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.route}`;
 
     const handleResetDomain = () => {
         if (isSubmitDisabled) {
@@ -105,7 +102,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
                 >
                     <View style={styles.mt5}>
                         <RenderHTML
-                            html={translate('domain.admins.resetDomainInfo', {contactMethodRoute})}
+                            html={translate('domain.admins.resetDomainInfo')}
                             onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
                         />
                     </View>
