@@ -8,6 +8,7 @@ import Log from '@libs/Log';
 import triggerNotifications from '@libs/Notification/triggerNotifications';
 import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
+import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
@@ -73,6 +74,13 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateI
                     Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
                     return Promise.resolve();
                 }
+
+                trackExpenseApiError({
+                    command: request.command,
+                    jsonCode: Number(response.jsonCode),
+                    message: response.message,
+                });
+
                 return updateHandler(request.failureData);
             }
             return Promise.resolve();
