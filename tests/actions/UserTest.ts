@@ -285,13 +285,13 @@ describe('actions/User', () => {
                     command: unknown,
                     params: unknown,
                     options?: {
-                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
+                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: OnyxKey; value: OnyxMergeInput<OnyxKey>}>;
                     },
                 ) => {
                     if (options?.optimisticData) {
                         for (const update of options.optimisticData) {
                             if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                                Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
+                                Onyx.merge(update.key, update.value);
                             }
                         }
                     }
@@ -512,13 +512,13 @@ describe('actions/User', () => {
                     command: unknown,
                     params: unknown,
                     options?: {
-                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
+                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: OnyxKey; value: OnyxMergeInput<OnyxKey>}>;
                     },
                 ) => {
                     if (options?.optimisticData) {
                         for (const update of options.optimisticData) {
                             if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                                Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
+                                Onyx.merge(update.key, update.value);
                             }
                         }
                     }
@@ -576,6 +576,41 @@ describe('actions/User', () => {
                 isLoading: true,
                 errorFields: {},
             });
+        });
+    });
+
+    describe('lockAccount', () => {
+        it('should execute with explicit accountID ', async () => {
+            const accountID = 123456;
+            UserActions.lockAccount(accountID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(
+                'LockAccount',
+                {accountID},
+                expect.objectContaining({
+                    optimisticData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    successData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    failureData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                }),
+            );
+        });
+
+        it('should execute without accountID (uses current user)', async () => {
+            UserActions.lockAccount();
+
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(
+                'LockAccount',
+                {accountID: 0},
+                expect.objectContaining({
+                    optimisticData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    successData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    failureData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                }),
+            );
         });
     });
 });
