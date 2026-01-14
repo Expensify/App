@@ -19,7 +19,7 @@ type ApproveMoneyRequestParams = {
      * }
      * where optimisticReportActionID is the optimistic report action ID and oldReportActionID is the old report action ID
      */
-    optimisticReportActionCopyIDs?: Record<string, string>;
+    optimisticReportActionCopyIDs?: string;
 
     /** The optimistic action ID for the report created for unapproved transactions */
     optimisticCreatedReportForUnapprovedTransactionsActionID?: string;
