@@ -9308,6 +9308,7 @@ function getDuplicateActionsForPartialReport(
     }
 
     const sourceReportActions = getAllReportActions(sourceReportID);
+    console.log('sourceReportActions', sourceReportActions)
 
     // Match the backend's WORKFLOW_ACTIONS list
     const workflowActionTypes = [
@@ -9330,6 +9331,7 @@ function getDuplicateActionsForPartialReport(
 
     for (const action of Object.values(sourceReportActions)) {
         if (action && (workflowActionTypes as readonly string[]).includes(action.actionName)) {
+            console.log('action.actionName', action.actionName)
             const newActionID = NumberUtils.rand64();
             copiedActions[newActionID] = {
                 ...action,
@@ -9635,11 +9637,14 @@ function getReportFromHoldRequestsOnyxData({
     // Copy submission/approval actions to the new report
     const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure, optimisticDuplicatedReportActionIDs] = getDuplicateActionsForPartialReport(
         iouReport?.reportID,
-        optimisticExpenseReport.reportID,
+        optimisticExpenseReport.reportID
     );
-    optimisticData.push(...copiedActionsOptimistic);
-    successData.push(...copiedActionsSuccess);
-    failureData.push(...copiedActionsFailure);
+   
+    if (isApprovalFlow && optimisticDuplicatedReportActionIDs.length > 0) {
+        optimisticData.push(...copiedActionsOptimistic);
+        successData.push(...copiedActionsSuccess);
+        failureData.push(...copiedActionsFailure);
+    }
     // add optimistic system message explaining the created report for unapproved transactions
     if (isApprovalFlow && optimisticCreatedReportForUnapprovedAction) {
         optimisticData.push({
