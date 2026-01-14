@@ -682,6 +682,7 @@ describe('ReportActionsUtils', () => {
             const movedTransactionAction: ReportAction = {
                 created: '2022-11-13 22:27:01.825',
                 reportActionID: '8401445780099177',
+                reportID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 originalMessage: {
                     fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
@@ -692,6 +693,7 @@ describe('ReportActionsUtils', () => {
             const addCommentAction: ReportAction = {
                 created: '2022-11-12 22:27:01.825',
                 reportActionID: '6401435781022176',
+                reportID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 originalMessage: {
                     html: 'Hello world',
