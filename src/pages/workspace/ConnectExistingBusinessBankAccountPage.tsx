@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -14,7 +14,6 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
-import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';

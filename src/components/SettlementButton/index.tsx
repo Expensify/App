@@ -98,7 +98,6 @@ function SettlementButton({
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
-    const policyCurrency = policy?.outputCurrency;
     const {accountID, email} = useCurrentUserPersonalDetails();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
@@ -609,7 +608,6 @@ function SettlementButton({
             policy={lastPaymentPolicy}
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
-            policyCurrency={policyCurrency}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<string>
