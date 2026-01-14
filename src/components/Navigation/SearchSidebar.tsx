@@ -1,6 +1,6 @@
 import type {ParamListBase} from '@react-navigation/native';
 import {searchResultsSelector} from '@selectors/Snapshot';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
@@ -33,13 +33,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
     const {lastSearchType, setLastSearchType} = useSearchContext();
 
-    const queryJSON = useMemo(() => {
-        if (!params?.q) {
-            return undefined;
-        }
-
-        return buildSearchQueryJSON(params.q, params.rawQuery);
-    }, [params?.q, params?.rawQuery]);
+    const queryJSON = params?.q ? buildSearchQueryJSON(params.q, params.rawQuery) : undefined;
 
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {
