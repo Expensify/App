@@ -109,7 +109,8 @@ function mapTransactionItemToSelectedEntry(
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
-    const amount = item.modifiedAmount ?? item.amount;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const amount = item.modifiedAmount || item.amount;
 
     return [
         item.keyForList,
@@ -119,7 +120,7 @@ function mapTransactionItemToSelectedEntry(
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
@@ -245,7 +246,7 @@ function Search({
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {accountID, email, login} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
@@ -297,6 +298,7 @@ function Search({
     });
 
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
@@ -321,7 +323,7 @@ function Search({
         clearTransactionsAndSetHashAndKey();
 
         // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
@@ -346,7 +348,6 @@ function Search({
         }
 
         // We don't want to run the effect on isFocused change as we only need it to early return when it is false.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
 
@@ -367,7 +368,6 @@ function Search({
         }
 
         // We only want this effect to handle the switching of mobile selection mode state when screen size changes.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
 
@@ -425,6 +425,7 @@ function Search({
             currentUserEmail: email ?? '',
             translate,
             formatPhoneNumber,
+            bankAccountList,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: searchKey,
@@ -432,6 +433,7 @@ function Search({
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
+            allTransactionViolations: violations,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -449,6 +451,8 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        bankAccountList,
+        violations,
     ]);
 
     useEffect(() => {
@@ -468,7 +472,6 @@ function Search({
         handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
 
         // We don't need to run the effect on change of isFocused.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
 
@@ -539,7 +542,7 @@ function Search({
                         canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
                         canUnhold: canUnholdRequest,
-                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, transactionItem.policy),
+                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', transactionItem.policy),
                         hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                         canChangeReport: canEditFieldOfMoneyRequest(
                             transactionItem.reportAction,
@@ -592,7 +595,7 @@ function Search({
                     canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
                     canUnhold: canUnholdRequest,
-                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, transactionItem.policy),
+                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', transactionItem.policy),
                     hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                     canChangeReport: canEditFieldOfMoneyRequest(
                         transactionItem.reportAction,
@@ -626,7 +629,7 @@ function Search({
         setSelectedTransactions(newTransactionList, filteredData);
 
         isRefreshingSelection.current = true;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 
     useEffect(() => {
