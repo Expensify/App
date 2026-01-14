@@ -159,6 +159,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
+    /** Whether the expense is a time expense */
+    isTimeRequest?: boolean;
+
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
@@ -250,6 +253,7 @@ function MoneyRequestConfirmationList({
     iouIsReimbursable = true,
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
+    isTimeRequest = false,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -348,7 +352,7 @@ function MoneyRequestConfirmationList({
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
@@ -433,7 +437,7 @@ function MoneyRequestConfirmationList({
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
     }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
@@ -843,7 +847,7 @@ function MoneyRequestConfirmationList({
         }
         setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy);
         // Keep 'transaction' out to ensure that we auto select the option only once
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
 
     // Auto select the tag if there is only one enabled tag and it is required
@@ -868,7 +872,7 @@ function MoneyRequestConfirmationList({
             setMoneyRequestTag(transactionID, updatedTagsString);
         }
         // Keep 'transaction' out to ensure that we auto select the option only once
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policyTagLists, policyTags]);
 
     /**
@@ -1234,5 +1238,6 @@ export default memo(
         prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
         prevProps.reportActionID === nextProps.reportActionID &&
         prevProps.action === nextProps.action &&
-        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt,
+        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
+        prevProps.isTimeRequest === nextProps.isTimeRequest,
 );
