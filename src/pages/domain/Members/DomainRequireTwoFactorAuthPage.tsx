@@ -42,7 +42,7 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
-                    title={translate('domain.members.disableTwoFactorAuth')}
+                    title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onBackButtonPress={() => {
                         Navigation.goBack(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID));
                     }}
