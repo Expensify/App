@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {initSplitExpense} from '@libs/actions/IOU';
@@ -150,7 +151,7 @@ function useSelectedTransactionsActions({
         setIsDeleteModalVisible(false);
     };
 
-    let computedOptions: PopoverMenuItem[] = [];
+    let computedOptions: Array<DropdownOption<string>> = [];
     if (selectedTransactionIDs.length) {
         const options = [];
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
