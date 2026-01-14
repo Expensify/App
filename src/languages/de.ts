@@ -7990,6 +7990,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             button: 'App herunterladen',
         },
         notification: {title: 'GPS-Tracking läuft', body: 'Wechsel zur App, um abzuschließen'},
+        continueGpsTripModal: {
+            title: 'Continue GPS trip recording?',
+            prompt: 'Looks like the app closed during your last GPS trip. Would you like to continue recording from that trip?',
+            confirm: 'Continue trip',
+            cancel: 'View trip',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
