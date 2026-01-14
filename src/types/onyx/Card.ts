@@ -294,6 +294,9 @@ type WorkspaceCardsList = CardList & {
  * Pending action for a company card assignment
  */
 type FailedCompanyCardAssignment = {
+    /** The encrypted card number */
+    encryptedCardNumber: string;
+
     /** The domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
 
