@@ -22,7 +22,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy} from '@src/types/onyx';
+import type {Card, FailedCompanyCardAssignment, Policy} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
 import type {
     AddNewCardFeedData,
@@ -316,9 +316,22 @@ function assignWorkspaceCompanyCard(
     if (!data || !policy?.id) {
         return;
     }
-    const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = ''} = data;
+    const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = '', cardholder} = data;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
     const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+
+    const failedCardAssignment: FailedCompanyCardAssignment = {
+        domainOrWorkspaceAccountID,
+        feed,
+        cardholder,
+        cardName,
+        cardNumber: encryptedCardNumber,
+        encryptedCardNumber,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        errors: {
+            failed: translate('workspace.companyCards.assignCardFailedError'),
+        },
+    };
 
     const parameters: AssignCompanyCardParams = {
         policyID: policy.id,
@@ -331,7 +344,7 @@ function assignWorkspaceCompanyCard(
     };
     const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, policy.id);
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.ASSIGN_CARD> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.ASSIGN_CARD | typeof ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -362,6 +375,13 @@ function assignWorkspaceCompanyCard(
                         pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feed}`,
+                value: {
+                    [encryptedCardNumber]: failedCardAssignment,
                 },
             },
         ],
@@ -446,6 +466,16 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
     };
 
     API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
+}
+
+function resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID: number, feed: CompanyCardFeedWithDomainID | undefined, cardNumber: string) {
+    if (!feed) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feed}`, {
+        [cardNumber]: null,
+    });
 }
 
 function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed, lastScrapeResult?: number) {
@@ -980,6 +1010,7 @@ export {
     addNewCompanyCardsFeed,
     assignWorkspaceCompanyCard,
     unassignWorkspaceCompanyCard,
+    resetFailedWorkspaceCompanyCardAssignment,
     updateWorkspaceCompanyCard,
     updateCompanyCardName,
     updateCardTransactionStartDate,
