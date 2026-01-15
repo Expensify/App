@@ -182,6 +182,16 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return hasDistanceCustomUnit(transaction);
 }
 
+function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    return hasDistanceCustomUnit(transaction);
+}
+
 function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType') && !isUpdatedMergeTransaction) {
@@ -2576,6 +2586,7 @@ export {
     getValidDuplicateTransactionIDs,
     isDistanceRequest,
     isMapDistanceRequest,
+    isGPSDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isFetchingWaypointsFromServer,
