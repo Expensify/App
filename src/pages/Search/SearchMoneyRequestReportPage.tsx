@@ -244,6 +244,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
             return !!reportID && !doesReportIDLookValid;
         },
+        
         // isLoadingApp intentionally omitted to avoid re-computing after initial load completes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportID, reportMetadata?.isLoadingInitialReportActions, doesReportIDLookValid],
