@@ -310,8 +310,11 @@ type FailedCompanyCardAssignment = {
     /** The name of the card */
     cardName: string;
 
-    /** The card number */
-    cardNumber: string;
+    /** Custom card name */
+    customCardName?: string;
+
+    /** Failed company card assignment */
+    hasFailedCardAssignment: boolean;
 
     /** Encrypted card number */
     encryptedCardNumber: string;
@@ -321,6 +324,15 @@ type FailedCompanyCardAssignment = {
 
     /** Collection of form field errors  */
     errorFields?: OnyxCommon.ErrorFields;
+
+    /** Whether the card is deleted */
+    isCardDeleted: boolean;
+
+    /** Whether the card is assigned */
+    isAssigned: boolean;
+
+    /** Assigned card */
+    assignedCard: Card | undefined;
 
     /**
      * The type of action that's pending

@@ -325,8 +325,11 @@ function assignWorkspaceCompanyCard(
         feed,
         cardholder,
         cardName,
-        cardNumber: encryptedCardNumber,
+        assignedCard: undefined,
+        isAssigned: true,
+        isCardDeleted: false,
         encryptedCardNumber,
+        hasFailedCardAssignment: true,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         errors: {
             failed: translate('workspace.companyCards.assignCardFailedError'),

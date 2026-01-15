@@ -12,7 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEncryptedCardNumber} from '@libs/CardUtils';
+import {getDomainOrWorkspaceAccountID, getEncryptedCardNumber} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -56,11 +56,15 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     } = useCompanyCards({policyID: policy?.id});
     const isDirectCardFeed = cardFeedType === 'directFeed';
 
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
+
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
+    const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feedName ?? ''}`, {canBeMissing: true});
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
 
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
@@ -104,8 +108,14 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         ? []
         : (cardNames?.map((cardName) => {
               const encryptedCardNumber = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
-              const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName);
-              const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
+              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[encryptedCardNumber];
+
+              if (failedCompanyCardAssignment) {
+                return failedCompanyCardAssignment;
+              }
+              const assignedCard = Object
+                .values(assignedCards ?? {})
+                .find((card: Card) => (card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName));
 
               return {
                   cardName,
@@ -113,6 +123,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                   customCardName: assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined,
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                   isAssigned: !!assignedCard,
+                  hasFailedCardAssignment: false,
                   assignedCard,
                   cardholder: assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined,
               };
@@ -216,6 +227,8 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             key={`${item.cardName}_${index}`}
             item={item}
             policyID={policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)}
+            feed={feedName}
+            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
             CardFeedIcon={cardFeedIcon}
             isPlaidCardFeed={isDirectCardFeed}
             onAssignCard={onAssignCard}

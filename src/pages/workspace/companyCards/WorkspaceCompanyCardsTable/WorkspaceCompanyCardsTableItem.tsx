@@ -41,10 +41,10 @@ type WorkspaceCompanyCardTableItemData = {
     hasFailedCardAssignment: boolean;
 
     /** Errors */
-    errors: Errors;
+    errors?: Errors;
 
     /** Pending action */
-    pendingAction: PendingAction;
+    pendingAction?: PendingAction;
 
     /** Whether the card is deleted */
     isCardDeleted: boolean;
