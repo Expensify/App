@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
-import type {Report as ReportOnyxType, NewGroupChatDraft} from '@src/types/onyx';
+import type {NewGroupChatDraft, Report as ReportOnyxType} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -123,7 +123,12 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
         return null;
     }
 
-    return <GroupChatNameInternal report={report} groupChatDraft={groupChatDraft} />;
+    return (
+        <GroupChatNameInternal
+            report={report}
+            groupChatDraft={groupChatDraft}
+        />
+    );
 }
 
 export default GroupChatNameEditPage;
