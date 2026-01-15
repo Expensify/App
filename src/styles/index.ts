@@ -5045,7 +5045,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         twoFARequiredOverlay: {
-            zIndex: 20 // must be greater than floatingCameraButton.zIndex
+            zIndex: 20, // must be greater than floatingCameraButton.zIndex
         },
 
         twoFARequiredContainer: {

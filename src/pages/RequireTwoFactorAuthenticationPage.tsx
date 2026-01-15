@@ -2,7 +2,6 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import Button from '@components/Button';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Icon from '@components/Icon';
