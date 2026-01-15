@@ -1020,8 +1020,8 @@ function MenuItem({
                                                                     ? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))
                                                                     : theme.icon
                                                             }
-                                                            width={shouldDimIconRight ? variables.iconSizeNormal : variables.iconSizeSmall}
-                                                            height={shouldDimIconRight ? variables.iconSizeNormal : variables.iconSizeSmall}
+                                                            width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
+                                                            height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                         />
                                                     </View>
                                                 )}
