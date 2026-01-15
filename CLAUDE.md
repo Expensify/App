@@ -248,11 +248,6 @@ npm run web
 - **Start command**: `npm run web`
 - **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
 
-### Dev Environment Sign-In
-- **Email**: Use random Gmail address (e.g., `user+<random-number>@gmail.com`)
-- **Magic code**: Always `000000` (six zeros)
-- **Onboarding**: Skip all optional steps
-
 ### Browser Testing
 Use the `/playwright-app-testing` skill to test and debug the App in a browser. Use this skill after making frontend changes to verify your work, or when the user requests testing.
 

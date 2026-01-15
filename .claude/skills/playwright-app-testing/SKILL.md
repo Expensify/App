@@ -1,6 +1,6 @@
 ---
 name: playwright-app-testing
-description: Test the Expensify App using Playwright browser automation
+description: Test the Expensify App using Playwright browser automation. Use when user requests browser testing, after making frontend changes, or when debugging UI issues
 alwaysApply: false
 ---
 
