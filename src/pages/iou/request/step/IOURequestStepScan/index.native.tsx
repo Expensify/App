@@ -64,11 +64,11 @@ import {
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
-    startSplitBill,
     trackExpense,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import type {GpsPoint} from '@userActions/IOU';
+import {startSplitBill} from '@userActions/IOU/Split';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

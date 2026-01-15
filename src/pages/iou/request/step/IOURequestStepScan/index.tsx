@@ -63,10 +63,10 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMultipleMoneyRequestParticipantsFromReport,
-    startSplitBill,
     trackExpense,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
+import {startSplitBill} from '@userActions/IOU/Split';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
