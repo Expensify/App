@@ -24,6 +24,9 @@ type WorkspaceCompanyCardTableItemData = {
     /** Card number */
     cardName: string;
 
+    /** Encrypted card number */
+    encryptedCardNumber: string;
+
     /** Card name */
     customCardName?: string;
 
@@ -72,7 +75,7 @@ type WorkspaceCompanyCardTableItemProps = {
     columnCount: number;
 
     /** On assign card callback */
-    onAssignCard: (cardID: string) => void;
+    onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
 };
 
 function WorkspaceCompanyCardTableItem({
@@ -115,15 +118,7 @@ function WorkspaceCompanyCardTableItem({
     const leftColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const leftColumnSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
-    const resetFailedCompanyCardAssignment = () => {
-        if (!failedCompanyCardAssignment) {
-            return;
-        }
-
-        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feed, cardName);
-    };
-
-    const assignCard = () => onAssignCard(cardName);
+    const assignCard = () => onAssignCard(cardName, encryptedCardNumber);
 
     return (
         <OfflineWithFeedback

@@ -54,6 +54,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card number */
     cardNumber?: string;
 
+    /** Encrypted card number */
+    encryptedCardNumber?: string;
+
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 

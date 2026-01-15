@@ -33,7 +33,7 @@ type WorkspaceCompanyCardsTableProps = {
     policy: Policy | undefined;
 
     /** On assign card callback */
-    onAssignCard: (cardID: string) => void;
+    onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
 
     /** Whether to disable assign card button */
     isAssigningCardDisabled: boolean;
@@ -106,22 +106,16 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
         : (cardNames?.map((cardName) => {
-              const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
-
-              const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
-
-              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardName];
-
-              const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
-
-              const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
-
-              const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-              const isAssigned = !!assignedCard;
-
-              return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, failedCompanyCardAssignment};
-          }) ?? []);
+            const encryptedCardNumber = isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
+            const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : (card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName));
+            const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
+            const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
+            const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
+            const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const isAssigned = !!assignedCard;
+            
+            return {cardName, encryptedCardNumber, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder};
+        }) ?? []);
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
 

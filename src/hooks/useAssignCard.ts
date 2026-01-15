@@ -72,7 +72,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const getInitialAssignCardStep = useInitialAssignCardStep({policyID, selectedFeed: feedName});
 
-    const assignCard = (cardID?: string) => {
+    const assignCard = (cardID?: string, encryptedCardNumber?: string) => {
         if (isAssigningCardDisabled) {
             return;
         }
@@ -98,7 +98,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
         clearAddNewCardFlow();
         clearAssignCardStepAndData();
 
-        const initialAssignCardStep = getInitialAssignCardStep(cardID);
+        const initialAssignCardStep = getInitialAssignCardStep(cardID, encryptedCardNumber);
 
         if (!initialAssignCardStep) {
             return;
@@ -149,7 +149,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const plaidAccessToken = feedData?.plaidAccessToken;
     const hasImportedPlaidAccounts = useRef(false);
 
-    const getInitialAssignCardStep = (cardID: string | undefined): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
+    const getInitialAssignCardStep = (cardID: string | undefined, encryptedCardNumber?: string): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
         if (!selectedFeed) {
             return;
         }
@@ -157,7 +157,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
         const cardToAssign: Partial<AssignCardData> = {
             bankName,
             cardNumber: cardID,
-            encryptedCardNumber: cardID,
+            encryptedCardNumber,
         };
 
         // Refetch plaid card list
