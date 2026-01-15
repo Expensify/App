@@ -175,6 +175,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionIDsPendingDeletion: deletedTransactionIDs,
                     selectedTransactionIDs: transactionIDs,
                     hash: currentSearchHash,
+                    allTransactionViolationsParam: transactionViolations,
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {

@@ -62,7 +62,7 @@ const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
 OnyxUpdateManager();
-describe('actions/DuplicateAction', () => {
+describe('actions/Duplicate', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
