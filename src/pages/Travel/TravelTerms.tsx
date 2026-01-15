@@ -91,7 +91,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [travelProvisioning, domain]);
 
     const toggleTravelTerms = () => {
