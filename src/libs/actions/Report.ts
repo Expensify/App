@@ -192,6 +192,7 @@ import type {
     NewGroupChatDraft,
     Onboarding,
     OnboardingPurpose,
+    PersonalDetails,
     PersonalDetailsList,
     Policy,
     PolicyEmployee,
@@ -949,17 +950,34 @@ function clearAvatarErrors(reportID: string) {
     });
 }
 
+type ParticipantInfo = {
+    login: string;
+    accountID?: number;
+    personalDetails?: PersonalDetails;
+};
+
+function buildParticipantInfoFromLoginsAndDetails(logins: string[], personalDetails?: OnyxEntry<PersonalDetailsList>, accountIDs?: number[]): ParticipantInfo[] {
+    return logins.map((login, index) => {
+        const accountID = accountIDs?.[index];
+        return {
+            login,
+            accountID,
+            personalDetails: accountID && personalDetails?.[accountID] ? personalDetails[accountID] : undefined,
+        };
+    });
+}
+
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
  * @param reportID The ID of the report to open
  * @param reportActionID The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat.
- * @param participantLoginList The list of users that are included in a new chat, not including the user creating it
+ * @param participants List of participants with their login and optional personal details (only needed when creating a new report)
+ * @param reportOwnerPersonalDetails Personal details of the report owner (only needed when creating a new report)
  * @param newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
- * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  * @param avatar The avatar file to upload for a new group chat
  * @param isNewThread Whether this is a new thread being created
  * @param transaction The transaction object for legacy transactions that don't have a transaction thread or money request preview yet
@@ -971,11 +989,11 @@ function clearAvatarErrors(reportID: string) {
 function openReport(
     reportID: string | undefined,
     reportActionID?: string,
-    participantLoginList: string[] = [],
+    participants: ParticipantInfo[] = [],
+    reportOwnerPersonalDetails?: PersonalDetails,
     newReportObject?: OptimisticChatReport,
     parentReportActionID?: string,
     isFromDeepLink = false,
-    participantAccountIDList: number[] = [],
     avatar?: File | CustomRNImageManipulatorResult,
     isNewThread = false,
     transaction?: Transaction,
@@ -986,6 +1004,16 @@ function openReport(
 ) {
     if (!reportID) {
         return;
+    }
+
+    const participantLoginList = participants.map((p) => p.login);
+    const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
+    const participantPersonalDetails: PersonalDetailsList = {};
+    for (const p of participants) {
+        if (!p.accountID || !p.personalDetails) {
+            continue;
+        }
+        participantPersonalDetails[p.accountID] = p.personalDetails;
     }
 
     const optimisticReport = reportActionsExist(reportID)
@@ -1262,7 +1290,7 @@ function openReport(
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            emailCreatingAction = allPersonalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
+            emailCreatingAction = reportOwnerPersonalDetails?.login ?? '';
         }
         const optimisticCreatedAction = buildOptimisticCreatedReportAction(emailCreatingAction);
         optimisticData.push(
@@ -1300,7 +1328,7 @@ function openReport(
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
-            const isOptimisticAccount = !allPersonalDetails?.[accountID];
+            const isOptimisticAccount = !participantPersonalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
                 continue;
@@ -1459,15 +1487,30 @@ function createTransactionThreadReport(
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    // Get owner personal details for the transaction thread
+    const ownerAccountID = optimisticTransactionThread.ownerAccountID;
+    const personalDetailsSelector = (allDetails: OnyxEntry<PersonalDetailsList>) => {
+        if (!allDetails || !ownerAccountID) {
+            return {};
+        }
+        const filtered: PersonalDetailsList = {};
+        if (allDetails[ownerAccountID]) {
+            filtered[ownerAccountID] = allDetails[ownerAccountID];
+        }
+        return filtered;
+    };
+    const relevantPersonalDetails = personalDetailsSelector(allPersonalDetails);
+    const ownerPersonalDetails = ownerAccountID ? (relevantPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
+
     openReport(
         optimisticTransactionThreadReportID,
         undefined,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        deprecatedCurrentUserLogin ? [deprecatedCurrentUserLogin] : [],
+        [],
+        ownerPersonalDetails,
         optimisticTransactionThread,
         iouReportAction?.reportActionID,
         false,
-        [],
         undefined,
         false,
         transaction,
@@ -1487,6 +1530,7 @@ function createTransactionThreadReport(
  */
 function navigateToAndOpenReport(
     userLogins: string[],
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     shouldDismissModal = true,
     reportName?: string,
     avatarUri?: string,
@@ -1513,8 +1557,16 @@ function navigateToAndOpenReport(
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             });
         }
+
+        // Build participant info array with logins and personal details
+        const participants = buildParticipantInfoFromLoginsAndDetails(userLogins, personalDetails, participantAccountIDs);
+
+        // Get owner personal details
+        const ownerAccountID = newChat?.ownerAccountID;
+        const ownerPersonalDetails = ownerAccountID ? (personalDetails?.[ownerAccountID] ?? undefined) : undefined;
+
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
+        openReport(newChat?.reportID, '', participants, ownerPersonalDetails, newChat, undefined, false, avatarFile);
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -1541,16 +1593,39 @@ function navigateToAndOpenReport(
  * This will find an existing chat, or create a new one if none exists, for the given accountID or set of accountIDs. It will then navigate to this chat.
  *
  * @param participantAccountIDs of user logins to start a chat report with.
+ * @param personalDetails Optional personal details to use. If not provided, will use allPersonalDetails from Onyx subscription.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number) {
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, personalDetails?: OnyxEntry<PersonalDetailsList>) {
     let newChat: OptimisticChatReport | undefined;
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
         newChat = buildOptimisticChatReport({
             participantList: [...participantAccountIDs, currentUserAccountID],
         });
+
+        const detailsToUse = personalDetails ?? allPersonalDetails;
+
+        // Build participant info array from account IDs and personal details
+        const ownerAccountID = newChat?.ownerAccountID;
+        const participants = participantAccountIDs
+            .map((accountID): ParticipantInfo | null => {
+                const personalDetail = detailsToUse?.[accountID];
+                if (!personalDetail?.login) {
+                    return null;
+                }
+                return {
+                    login: personalDetail.login,
+                    accountID,
+                    personalDetails: personalDetail,
+                };
+            })
+            .filter((p): p is ParticipantInfo => p !== null);
+
+        // Get owner personal details
+        const ownerPersonalDetails = ownerAccountID ? (detailsToUse?.[ownerAccountID] ?? undefined) : undefined;
+
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', [], newChat, '0', false, participantAccountIDs);
+        openReport(newChat?.reportID, '', participants, ownerPersonalDetails, newChat, '0', false);
     }
     const report = chat ?? newChat;
 
@@ -1564,7 +1639,12 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
  * @param parentReportAction the parent comment of a thread
  * @param parentReportID The reportID of the parent
  */
-function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
+function navigateToAndOpenChildReport(
+    childReportID: string | undefined,
+    parentReportAction: Partial<ReportAction> = {},
+    parentReportID?: string,
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
+) {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
     if (childReport?.reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
@@ -1588,7 +1668,18 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
 
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
+            const participantAccountIDsForDetails = Object.keys(newChat.participants ?? {}).map(Number);
+
+            const detailsToUse = personalDetails ?? allPersonalDetails;
+
+            // Build participant info array with logins and personal details
+            const participants = buildParticipantInfoFromLoginsAndDetails(participantLogins, detailsToUse, participantAccountIDsForDetails);
+
+            // Get owner personal details
+            const ownerAccountID = newChat.ownerAccountID;
+            const ownerPersonalDetails = ownerAccountID ? (detailsToUse?.[ownerAccountID] ?? undefined) : undefined;
+
+            openReport(newChat.reportID, '', participants, ownerPersonalDetails, newChat, parentReportAction.reportActionID, false, undefined, true);
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
@@ -2503,7 +2594,31 @@ function toggleSubscribeToChildReport(
         });
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
-        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
+
+        const relevantAccountIDs = newChat.ownerAccountID ? [...participantAccountIDs, newChat.ownerAccountID] : participantAccountIDs;
+        const personalDetailsSelector = (allDetails: OnyxEntry<PersonalDetailsList>) => {
+            if (!allDetails) {
+                return {};
+            }
+            const filtered: PersonalDetailsList = {};
+            for (const accountID of relevantAccountIDs) {
+                if (!allDetails[accountID]) {
+                    continue;
+                }
+                filtered[accountID] = allDetails[accountID];
+            }
+            return filtered;
+        };
+        const relevantPersonalDetails = personalDetailsSelector(allPersonalDetails);
+
+        // Build participant info array with logins and personal details
+        const participants = buildParticipantInfoFromLoginsAndDetails(participantLogins, relevantPersonalDetails, participantAccountIDs);
+
+        // Get owner personal details
+        const ownerAccountID = newChat.ownerAccountID;
+        const ownerPersonalDetails = ownerAccountID ? (relevantPersonalDetails?.[ownerAccountID] ?? undefined) : undefined;
+
+        openReport(newChat.reportID, '', participants, ownerPersonalDetails, newChat, parentReportAction.reportActionID);
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReportID, parentReportAction?.reportActionID);
     }
@@ -2917,7 +3032,7 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], allPersonalDetails, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
@@ -6591,3 +6706,5 @@ export {
     setOptimisticTransactionThread,
     prepareOnyxDataForCleanUpOptimisticParticipants,
 };
+
+export type {ParticipantInfo};

@@ -1,6 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -11,6 +12,7 @@ import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
@@ -24,7 +26,13 @@ type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string; currentUserAccountID: number}) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {
+        reportID?: string;
+        accountID?: number;
+        login?: string;
+        currentUserAccountID: number;
+        personalDetails: OnyxEntry<PersonalDetailsList>;
+    }) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
 };
@@ -55,7 +63,7 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, currentUserAccountID}) => ({
+    message: ({reportID, accountID, login, currentUserAccountID, personalDetails}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -67,7 +75,7 @@ const PromotedActions = {
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], false);
+                navigateToAndOpenReport([login], personalDetails, false);
                 return;
             }
             if (accountID) {

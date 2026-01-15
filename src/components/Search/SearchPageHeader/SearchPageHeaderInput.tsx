@@ -69,6 +69,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID, true);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT, {canBeMissing: true});
     const shouldShowQuery = searchContext?.shouldShowSearchQuery ?? false;
@@ -295,7 +296,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         timestamp: endTime,
                     });
                 } else if ('login' in item) {
-                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                    navigateToAndOpenReport(item.login ? [item.login] : [], allPersonalDetails, false);
 
                     const endTime = Date.now();
                     Log.info('[CMD_K_DEBUG] Page user navigation handled', false, {
@@ -318,7 +319,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 throw error;
             }
         },
-        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue],
+        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, allPersonalDetails],
     );
 
     const updateAutocompleteSubstitutions = useCallback(

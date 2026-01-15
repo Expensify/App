@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -24,6 +25,7 @@ import {navigateToAndOpenReport, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -42,7 +44,25 @@ function NewChatConfirmPage() {
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+
+    const participantAccountIDs = useMemo(() => (newGroupDraft?.participants ?? []).map((p) => p.accountID).filter((id): id is number => id !== undefined), [newGroupDraft?.participants]);
+    const personalDetailsSelector = useCallback(
+        (allDetails: OnyxEntry<PersonalDetailsList>) => {
+            if (!allDetails) {
+                return {};
+            }
+            const filtered: PersonalDetailsList = {};
+            for (const accountID of participantAccountIDs) {
+                if (!allDetails[accountID]) {
+                    continue;
+                }
+                filtered[accountID] = allDetails[accountID];
+            }
+            return filtered;
+        },
+        [participantAccountIDs],
+    );
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false, selector: personalDetailsSelector}, [personalDetailsSelector]);
     const icons = useMemoizedLazyExpensifyIcons(['Camera']);
 
     const selectedOptions = useMemo((): Participant[] => {
@@ -99,8 +119,8 @@ function NewChatConfirmPage() {
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
-        navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
-    }, [newGroupDraft, avatarFile]);
+        navigateToAndOpenReport(logins, allPersonalDetails, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
+    }, [newGroupDraft, avatarFile, allPersonalDetails]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 
