@@ -52,8 +52,8 @@ function RequireTwoFactorAuthenticationPage() {
 
     return (
         <FocusTrapForModal active>
-            <SafeAreaView
-                style={[StyleSheet.absoluteFill]}
+            <View
+                style={[StyleSheet.absoluteFill, styles.twoFARequiredOverlay]}
                 testID="RequireTwoFactorAuthenticationPage"
             >
                 <View style={[styles.flex1, styles.appBG]}>
@@ -82,7 +82,7 @@ function RequireTwoFactorAuthenticationPage() {
                         </View>
                     </View>
                 </View>
-            </SafeAreaView>
+            </View>
         </FocusTrapForModal>
     );
 }
