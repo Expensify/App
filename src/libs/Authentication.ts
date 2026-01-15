@@ -211,9 +211,6 @@ function reauthenticate(command = ''): Promise<boolean> {
                 return true;
             })
             .catch((error) => {
-                // Ensure we always unblock the network queue, even on unexpected errors
-                setIsAuthenticating(false);
-
                 trackAuthenticationError(error as Error, {
                     errorType: 'unexpected_error',
                     functionName: 'reauthenticate',
