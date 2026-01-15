@@ -2289,6 +2289,7 @@ type RightModalNavigatorParamList = {
     };
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
+    [SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION]: NavigatorScreenParams<MultifactorAuthenticationParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2939,6 +2940,17 @@ type TestToolsModalModalNavigatorParamList = {
     };
 };
 
+type MultifactorAuthenticationParamList = {
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: undefined;
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: undefined;
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION]: {
+        notificationType: string;
+    };
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
+        promptType: string;
+    };
+};
+
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
@@ -3051,4 +3063,5 @@ export type {
     DomainSplitNavigatorParamList,
     DomainScreenName,
     SearchColumnsParamList,
+    MultifactorAuthenticationParamList,
 };
