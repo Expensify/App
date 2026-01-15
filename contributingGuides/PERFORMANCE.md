@@ -352,7 +352,7 @@ One of the most common issues is related to modals, popovers, and tooltips — e
 
 The solution is better control of invisible elements, making sure they are not included in the first render. This can be done, e.g., by a simple `return null`, smart usage of `lazy loading`, the `useTransition` hook, or the `<Deferred />` component.
 
-Another issue worth mentioning is unnecessary code execution, especially for elements that are never shown on a specific platform. In theory, we separate the logic between platforms by using index.tsx/index.native.tsx files, but sometimes platform-specific logic may slip in, causing unnecessary execution. For example, this may happen when logic specific to a wide layout (applicable only for desktop/web) is included.
+Another issue worth mentioning is unnecessary code execution, especially for elements that are never shown on a specific platform. In theory, we separate the logic between platforms by using index.tsx/index.native.tsx files, but sometimes platform-specific logic may slip in, causing unnecessary execution. For example, this may happen when logic specific to a wide layout (applicable only for web) is included.
 
 The last common issue is related to the use of `return null`. Sometimes we already know in the parent component that a specific child should not be rendered. In such cases, we unnecessarily execute the child's internal logic (calling hooks, sending requests) only to find out that the whole process was redundant.
 

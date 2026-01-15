@@ -1,151 +1,201 @@
 ---
 title: Using Reports in New Expensify
-description: Discover how to leverage New Expensify's advanced Reports feature for financial data management and expense tracking.
-keywords: [New Expensify, reports feature, filter expenses, create reports]
+description: Learn how to use Reports in New Expensify to search, filter, customize columns, and save reports for expenses, invoices, trips, and chats.
+keywords: [Reports, New Expensify, report filters, search commands, custom columns, saved reports, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns]
 ---
 
-Expensify's Reports feature introduces a powerful way to access and manage financial data across the platform. Focusing on resolving previous inefficiencies, Reports offers enhanced filtering, expanded search capabilities, and improved user experience across devices.
+<div id="new-expensify" markdown="1">
 
-## Main Uses
-
-- **Find specific transactions or expenses** - Easily locate individual expenses or invoices, such as a Starbucks receipt or unpaid invoices.
-- **Analyze spending patterns** - Use Reports to search by categories like "Meals & Entertainment" to review spending over a specific period.
-- **Streamline accounting processes** - Simplify month-end tasks by locating unsubmitted or unapproved reports.
-
-## Core Users
-
-- **Sole proprietors and employees** - Access personal transaction data quickly.
-- **Managers and finance teams** - Review team expenses and monitor unapproved reports.
-- **Accountants** - Simplify data discovery and improve efficiency in managing financial records.
-
-## Key Advantages
-
-- **Advanced filtering options** - Customize report results with filters for categories, statuses, and dates.
-- **Cross-platform consistency** - Enjoy a seamless experience across desktop and mobile platforms.
-- **Saved reports** - Save and revisit frequently used report queries for recurring tasks.
-
-![A photo of the Reports page]({{site.url}}/assets/images/ExpensifyHelp-Reports-1-v2.png){:width="100%"}
+Use the **Reports** tab in New Expensify to view and manage expenses, invoices, trips, chats, and more. You can search with keywords, apply filters, customize columns, and save searches to reuse later.
 
 ---
 
-# Report Filters
+# Where to find Reports in New Expensify
 
-Expensify’s report filters help users narrow down results to find specific data. Filters include:
+- **Web:** Go to the **Reports** tab in the navigation on the left.
+- **Mobile:** Tap **Reports** in the navigation tabs at the bottom.
 
-- **Type-based filters** - Categorize data by expenses, invoices, trips, and chats.
-- **Contextual filters** - Further refine results based on the selected type. For example:
-  - Expenses: Outstanding, Approved, Paid
-  - Invoices: Outstanding, Paid
-  - Trips: Draft, Upcoming, In Progress, Past
-- **Advanced filters** - Enable precise reports using query syntax (e.g., `type:expenses status:approved`).
-
-![A photo of common report filter]({{site.url}}/assets/images/ExpensifyHelp-SearchFormat.png){:width="100%"}
+You can also open **Reports** by clicking the magnifying glass icon in the top-right corner.
 
 ---
 
-# Search Formats
+# What you can view in Reports
 
-Using search formats allows you to define complex report parameters using simple text commands.
+Reports includes the following types of data:
 
-## Popular Searches for Employees
+- **Expenses**
+- **Expense Reports**
+- **Chats**
+- **Invoices**
+- **Trips**
+- **Tasks**
 
-- **Reports I need to submit:** `type:expense status:drafts from:"employee@yourdomain.com"`
-- **Expenses that haven’t been paid back yet:** `type:expense status:approved from:"employee@yourdomain.com" expense-type:cash`
-
-## Popular Searches for Admins
-
-- **Search by category (e.g., all "Meals & Entertainment" expenses):** `type:expenses category:"Meals & Entertainment"`
-- **Locate unapproved reports:** `status:unapproved`
-- **Unapproved employee expenses:** `type:expense status:outstanding`
-- **Unpaid employee expenses:** `type:expense status:approved`
-- **All card spend from December 2024:** `type:expense expense-type:card posted<=2024-12-31 posted>=2024-12-01`
-
-## Access Search Commands:
-- **Option 1:** Click Reports in the navigation tab (on the left on web, and at the bottom on mobile).
-- **Option 2:** Click the magnifying glass in the upper-right corner.
+Each type has its own filters and search options.
 
 ---
 
-# Reports Overview by Type
+# How to filter Reports
 
-## Expenses – Quickly Locate Your Expense Details
-Advanced filtering options in the Reports feature allow you to locate specific expenses without unnecessary scrolling or manual searches.
+Filter reports by type, status, category, or date to find specific information.
 
-**Use Filters To:**
-- View expenses by status, such as **Drafts**, **Outstanding**, or **Paid**.
-- Search for expenses by category (e.g., "Meals & Entertainment") or merchant (e.g., "Starbucks").
-- Analyze unapproved expenses to manage pending reimbursements or approvals efficiently.
+1. Go to the **Reports** tab.
+2. Enter a keyword in the search bar (optional). 
+3. Choose a type tab - **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
+4. Click **Filters**.
+5. Select filters such as:
+   - **Date:** This month, last month
+   - **Status:** Outstanding, Paid
+   - **From:** You, or someone else
+6. Click **View Results** to see the filtered results.
+
+![Reports page showing available report filtering options]({{site.url}}/assets/images/Filter-reports.png){:width="100%"}
+---
+
+## How to customize the Reports column view 
+
+On the web, you can customize which columns appear when viewing **Reports** or **Expenses**. This helps surface key details and tailor the view to your workflow.
+
+To customize columns:
+
+1. Go to the **Reports** tab on the left (web only).
+2. Run a search or apply filters if needed.
+3. Click the **Columns** icon (next to **Filters**).
+4. Use the checkboxes to show or hide specific columns.
+5. Drag and drop columns to rearrange their order.
+6. Click **Save** to save your column layout.
+
+You can choose from a wide range of columns, including:
+
+- **Date** – When the report or expense was created
+- **Submitted** – The date the report was submitted for approval
+- **Total** – The total amount of the report or expense
+- **Workspace** – The workspace the report belongs to
+- **Action** – Shows available actions like approve or reject
+
+To view the full list of available columns, click the **Columns** icon in the **Reports** tab.
 
 ---
 
-## Chats – Access Specific Conversations Instantly
-Your communication history is always accessible in one place, helping you stay organized and responsive.
+# How to group expenses by category or tag using Report Layout
 
-**Features Include:**
-- Search for specific messages by keyword or participant.
-- Filter chats by **Unread**, **Drafts**, or **All** to focus on relevant discussions.
-- Quickly locate conversations with links, attachments, or references to expenses and reports.
+Report Layout lets you group expenses inside a report to make reviews faster and easier.
+
+To group expenses:
+
+1. Open a report that contains more than one expense.
+2. Click the **More** icon (three dots) in the top-right corner of the report.
+3. Select **Group by category**, **Group by tag**, or **Don’t group**.
+
+Your selected layout will be remembered and applied to other reports you view.
+
+# How to use Reports search query commands
+
+Use search commands in the search bar to run advanced queries based on specific fields. 
+
+## Examples for employees
+
+Below are some example queries you can use depending on your role:
+
+- Draft expenses:  
+  `type:expense status:draft from:you@domain.com`
+
+- Approved cash expenses:  
+  `type:expense status:approved expense-type:cash from:you@domain.com`
+
+## Examples for Workspace Admins
+
+- All Meals & Entertainment expenses:  
+  `type:expense category:Meals & Entertainment`
+
+- Unapproved expenses:  
+  `type:expense status:unapproved`
+
+- Approved expenses not reimbursed:  
+  `type:expense status:approved`
+
+- Card spend from December 2024:  
+  `type:expense expense-type:card posted>=2024-12-01 posted<=2024-12-31`
 
 ---
 
-## Invoices – View and Manage Invoices Effortlessly
-The Invoices section of Reports provides a streamlined way to handle billing.
+# How to save a search
 
-**Key Functionalities:**
-- View invoices by status, such as **Outstanding** or **Paid**.
-- Filter invoices to locate specific client transactions quickly.
-- Access detailed invoice data, including amounts, due dates, and payment statuses.
+1. Run a search with filters or search commands.
+2. Click **Filters**, then select **Save report**.
+3. Enter a name, or use the suggested one.
 
----
+To view saved searches:
 
-## Trips – Navigate to Trip-Related Data with Ease
-The Trips section in Reports helps you stay on top of travel-related information:
+- **Web:** Go to the **Saved** section in the left-hand sidebar.
+- **Mobile:** Tap the **Type** dropdown at the top and select **Saved**.
 
-**Features Include:**
-- Filter trips by status, such as **Drafts**, **Upcoming**, **In Progress**, or **Past**.
-- Search for trip details using destination, dates, or traveler names.
-- Access hybrid reports for trips with multiple bookings to get a complete view of expenses and itineraries.
+To rename or delete a saved search, click the three dots next to it.
 
 ---
 
-# Using Filters
+# Report types
 
-**To refine report results using filters:**
+Each report type has specific filters and search tools for finding the information you need. 
 
-1. Press the **Reports** icon (🔍) to open the report router.
-2. Enter a keyword or phrase in the search bar.
-3. Select a **Type-based filter** (e.g., Expenses, Invoices) from the tab bar.
-4. Tap **Filters** to view advanced filtering options.
-5. Customize your report by applying filters such as category, status, or date.
-6. Press **Apply** to see the refined results.
+## Expenses
 
----
+- Filter by status: Unreported, Draft, Outstanding, Approved, Paid, or Done
+- Search by merchant, category, or tag
+- Helpful for tracking unsubmitted or reimbursed expenses
 
-# Saving Reports
+## Expense Reports
 
-**Save common report queries for quick reuse:**
+- Filter by status: Draft, Outstanding, Approved, Paid, or Done
+- Search by submitter or workspace
+- Ideal for surfacing reports that need approval or reimbursement
 
-1. Run a search using the report router and filters.
-2. Click **Save Report** from the Filters menu.
-3. Name your report or use the suggested syntax title.
-4. Access saved reports:
-   - **Web:** From the **Saved** section in the LHB.
-   - **Mobile:** From the **Type** menu at the top.
-5. Rename or delete saved reports using the ⋮ menu.
+## Chats
+
+- Filter by: Unread, Draft, or All
+- Search by participant or keyword
+- Helps you find conversations linked to expenses, reports, or actions
+
+## Invoices
+
+- Filter by status: Outstanding or Paid
+- Search by client, due date, or amount
+- Great for reviewing invoice history and payment status
+
+## Trips
+
+- Filter by status: Current or Past
+- Search by location, travel dates, or traveler
+- Use to view trip details, scheduled travel, and related expenses
+
+## Tasks
+
+- Filter by: Outstanding or Completed
+- Search by assignee or keyword
+- Use for tracking open setup steps or action items
 
 ---
 
 # FAQ
 
-## Why can’t I see some advanced filters?
-Advanced filters are enabled incrementally. If a filter isn’t visible, ensure that your workspace or account settings support the relevant feature (e.g., categories, statuses).
+## Why can’t I see some filters?
+Filters are enabled incrementally. If a filter isn’t visible, ensure that your workspace or account settings support the relevant feature (e.g., categories, statuses).
 
 ## Why are my mobile and desktop report experiences slightly different?
-Expensify ensures cross-platform consistency where possible. However, certain features, like the layout of filters or saved reports, are optimized for device-specific usability.
+Expensify ensures cross-platform consistency where possible. However, certain features (like customizable columns) are only available on web for larger screen layouts.
 
 ## How do I find unsubmitted reports?
-Use the following steps to locate unsubmitted reports:
-1. Go to the **Reports** page.
-2. Select **Expenses** from the Type-based filter.
-3. Apply the **Draft** contextual filter to view all unsubmitted reports.
+1. Go to the **Reports** tab.
+2. Select **Expense** from the Type filter.
+3. Apply the **Draft** filter to view all unsubmitted reports.
 
+## Can I change which columns appear in my reports?
+Yes! You can choose which columns to show or hide in the **Reports** and **Expenses** views on web. Use the **Columns** icon to customize your table layout.
+
+## Can I reorder the columns?
+Absolutely. Just drag and drop the columns in the order you prefer within the **Columns** settings panel.
+
+## Can I save different column views?
+Yes. Each saved search stores your column layout, filters, and sorting preferences. You can save multiple versions for different workflows.
+
+## Are custom columns available on mobile?
+No. The mobile experience uses a simplified card layout and does not support customizable columns.

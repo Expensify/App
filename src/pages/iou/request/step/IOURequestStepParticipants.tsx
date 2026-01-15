@@ -21,7 +21,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -90,7 +90,7 @@ function IOURequestStepParticipants({
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, optimisticTransactions]);
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
@@ -241,7 +241,7 @@ function IOURequestStepParticipants({
             const firstParticipantReportID = val.at(0)?.reportID;
             const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
             const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
-            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
+            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
             numberOfParticipants.current = val.length;
 
             // Use transactions array if available, otherwise use initialTransactionID directly
@@ -284,8 +284,12 @@ function IOURequestStepParticipants({
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             // We use || to be sure that if the first participant doesn't have a reportID, we generate a new one.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            selectedReportID.current = firstParticipantReportID || generateReportID();
+            if (isInvoice) {
+                selectedReportID.current = firstParticipantReportID && isInvoiceRoomWithID(firstParticipantReportID) ? firstParticipantReportID : generateReportID();
+            } else {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                selectedReportID.current = firstParticipantReportID || generateReportID();
+            }
 
             // IOUs are always reported. non-CREATE actions require a report
             if (!isPolicyExpenseChat || action !== CONST.IOU.ACTION.CREATE) {
@@ -408,12 +412,20 @@ function IOURequestStepParticipants({
             numberOfParticipants.current = 0;
         }
         // We don't want to clear out participants every time the transactions change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, action]);
 
     const isWorkspacesOnly = useMemo(() => {
-        return !!(initialTransaction?.amount && initialTransaction?.amount < 0);
-    }, [initialTransaction?.amount]);
+        if (isDistanceRequest(initialTransaction)) {
+            // For distance requests, only restrict to workspaces if a route exists and the distance is 0
+            // If no route exists yet, the distance hasn't been calculated and we should allow P2P
+            if (!hasRoute(initialTransaction, true)) {
+                return false;
+            }
+            return initialTransaction?.comment?.customUnit?.quantity === 0;
+        }
+        return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
+    }, [initialTransaction]);
 
     return (
         <StepScreenWrapper
