@@ -76,11 +76,11 @@ function WorkspaceCreateTaxPage({
                 return {};
             }
             return {
-                ...validateTaxName(policy, values),
-                ...validateTaxValue(values),
+                ...validateTaxName(policy, values, translate),
+                ...validateTaxValue(values, translate),
             };
         },
-        [policy],
+        [policy, translate],
     );
 
     return (
