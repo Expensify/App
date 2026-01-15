@@ -8191,9 +8191,9 @@ function completeSplitBill(
             createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
         });
 
-        optimisticData.push(...oneOnOneOptimisticData);
-        successData.push(...oneOnOneSuccessData);
-        failureData.push(...oneOnOneFailureData);
+        optimisticData.push(...(oneOnOneOptimisticData ?? []));
+        successData.push(...(oneOnOneSuccessData ?? []));
+        failureData.push(...(oneOnOneFailureData ?? []));
     }
 
     const {
