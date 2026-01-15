@@ -50,6 +50,8 @@ import useEmptyLHNIllustration from './useEmptyLHNIllustration';
 
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
 
+const currentUserAccountIDSelector = (session: OnyxEntry<{accountID?: number}>) => session?.accountID;
+
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
@@ -71,7 +73,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserAccountIDSelector, canBeMissing: true});
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const theme = useTheme();
