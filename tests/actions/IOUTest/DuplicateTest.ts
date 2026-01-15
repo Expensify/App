@@ -3,7 +3,7 @@
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU';
-import {duplicateExpenseTransaction, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/DuplicateAction';
+import {duplicateExpenseTransaction, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -66,7 +66,7 @@ const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
 OnyxUpdateManager();
-describe('actions/DuplicateAction', () => {
+describe('actions/Duplicate', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
