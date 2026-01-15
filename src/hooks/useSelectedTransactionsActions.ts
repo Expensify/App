@@ -1,7 +1,8 @@
 import {useCallback, useMemo, useState} from 'react';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
+import {initSplitExpense} from '@libs/actions/IOU';
+import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
@@ -27,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
@@ -71,11 +73,13 @@ function useSelectedTransactionsActions({
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
+    const {login} = useCurrentUserPersonalDetails();
     const selectedTransactionsList = useMemo(
         () =>
             selectedTransactionIDs.reduce((acc, transactionID) => {
@@ -215,14 +219,14 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action?.childReportID);
+                        unholdRequest(transactionID, action?.childReportID, policy);
                     }
                     clearSelectedTransactions(true);
                 },
             });
         }
 
-        const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(id));
+        const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? []));
         const canRejectTransactions =
             selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
         if (canRejectTransactions) {
@@ -329,7 +333,7 @@ function useSelectedTransactionsActions({
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
-        const canSplitTransaction = selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, policy);
+        const canSplitTransaction = selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', policy);
 
         if (canSplitTransaction) {
             options.push({
@@ -387,6 +391,7 @@ function useSelectedTransactionsActions({
         allReports,
         session?.accountID,
         showDeleteModal,
+        allTransactionViolations,
         expensifyIcons.Stopwatch,
         expensifyIcons.ThumbsDown,
         expensifyIcons.Table,
@@ -398,6 +403,7 @@ function useSelectedTransactionsActions({
         expensifyIcons.Trashcan,
         localeCompare,
         isOnSearch,
+        login,
     ]);
 
     return {

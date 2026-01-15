@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport, isSettled} from '@libs/ReportUtils';
+import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -33,6 +33,7 @@ import {
     getMerchant,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    getReimbursable,
     getTaxName,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
@@ -43,7 +44,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {PersonalDetails, Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -100,7 +101,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 };
 
 type TransactionItemRowProps = {
-    hash?: number;
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
     shouldUseNarrowLayout: boolean;
@@ -132,6 +132,7 @@ type TransactionItemRowProps = {
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
     customCardNames?: Record<number, string>;
+    reportActions?: ReportAction[];
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -144,11 +145,10 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
     }
 
     const merchantName = StringUtils.getFirstLine(merchant);
-    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
+    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchantName !== CONST.TRANSACTION.DEFAULT_MERCHANT ? merchantName : '';
 }
 
 function TransactionItemRow({
-    hash,
     transactionItem,
     report,
     shouldUseNarrowLayout,
@@ -180,6 +180,7 @@ function TransactionItemRow({
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
     customCardNames,
+    reportActions,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -364,7 +365,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
                 >
-                    <Text>{transactionItem.reimbursable ? translate('common.yes') : translate('common.no')}</Text>
+                    <Text>{getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}</Text>
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: (
@@ -555,10 +556,7 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                    <ExportedIconCell
-                        hash={hash}
-                        reportID={transactionItem.reportID}
-                    />
+                    <ExportedIconCell reportActions={reportActions} />
                 </View>
             ),
         }),
@@ -590,7 +588,7 @@ function TransactionItemRow({
             isAmountColumnWide,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
-            hash,
+            reportActions,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
@@ -685,7 +683,7 @@ function TransactionItemRow({
                     </View>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                         <View style={[styles.flexColumn, styles.flex1]}>
-                            {hasCategoryOrTag && (
+                            {hasCategoryOrTag && !isIOUReport(report) && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
                                     <CategoryCell
                                         transactionItem={transactionItem}

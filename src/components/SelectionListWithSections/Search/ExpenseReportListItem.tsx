@@ -34,27 +34,33 @@ function ExpenseReportListItem<TItem extends ListItem>({
     shouldSyncFocus,
     onCheckboxPress,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {currentSearchHash, currentSearchKey} = useSearchContext();
+    const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchContext();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
-    const snapshotData = snapshot?.data;
+    const searchData = currentSearchResults?.data;
 
     const snapshotReport = useMemo(() => {
-        return (snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
-    }, [snapshotData, reportItem.reportID]);
+        return (searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
+    }, [searchData, reportItem.reportID]);
 
     const snapshotPolicy = useMemo(() => {
-        return (snapshotData?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
-    }, [snapshotData, reportItem.policyID]);
+        return (searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
+    }, [searchData, reportItem.policyID]);
+
+    const reportActions = useMemo(() => {
+        const actionsData = searchData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`];
+        return actionsData ? Object.values(actionsData) : [];
+    }, [searchData, reportItem.reportID]);
 
     const isDisabledCheckbox = useMemo(() => {
         const isEmpty = reportItem.transactions.length === 0;
@@ -64,18 +70,20 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleOnButtonPress = useCallback(() => {
-        handleActionButtonPress(
-            currentSearchHash,
-            reportItem,
-            () => onSelectRow(reportItem as unknown as TItem),
+        handleActionButtonPress({
+            hash: currentSearchHash,
+            item: reportItem,
+            goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        );
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
+        });
     }, [
         currentSearchHash,
         reportItem,
@@ -83,8 +91,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
         snapshotReport,
         snapshotPolicy,
         lastPaymentMethod,
+        personalPolicyID,
         currentSearchKey,
         onDEWModalOpen,
+        isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
     ]);
@@ -177,10 +187,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
             {(hovered) => (
                 <View style={[styles.flex1]}>
                     <ExpenseReportListItemRow
-                        hash={currentSearchHash}
                         item={reportItem}
                         columns={columns}
                         policy={snapshotPolicy}
+                        reportActions={reportActions}
                         isActionLoading={isActionLoading ?? isLoading}
                         showTooltip={showTooltip}
                         canSelectMultiple={canSelectMultiple}
