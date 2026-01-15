@@ -133,7 +133,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     changeTransactionsReport(
                         selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
                         isASAPSubmitBetaEnabled,
-                        currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserPersonalDetails.accountID,
                         currentUserPersonalDetails?.email ?? '',
                         optimisticReport,
                         policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],

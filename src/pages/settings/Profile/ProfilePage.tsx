@@ -58,7 +58,7 @@ function ProfilePage() {
     const logins = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [loginList, session?.email, translate]);
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
-    const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const accountID = currentUserPersonalDetails.accountID;
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
     const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
 

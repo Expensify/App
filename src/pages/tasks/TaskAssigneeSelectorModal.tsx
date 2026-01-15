@@ -176,7 +176,7 @@ function TaskAssigneeSelectorModal() {
                     editTaskAssignee(
                         report,
                         parentReport,
-                        currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserPersonalDetails.accountID,
                         option?.login ?? '',
                         currentUserPersonalDetails.accountID,
                         hasOutstandingChildTask,

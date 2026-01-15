@@ -78,7 +78,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
 
     const disableState = !isTaskModifiable;
     const isDisableInteractive = disableState || !isOpen;
-    const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const accountID = currentUserPersonalDetails.accountID;
     const contextValue = useMemo(
         () => ({
             anchor: null,
