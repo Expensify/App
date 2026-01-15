@@ -233,7 +233,6 @@ function StatusPage() {
                 onSubmit={updateStatus}
                 validate={validateForm}
                 enabledWhenOffline
-                shouldScrollToEnd
             >
                 <View style={[styles.mh5, styles.mv1]}>
                     <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
