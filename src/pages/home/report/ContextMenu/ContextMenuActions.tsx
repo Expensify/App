@@ -772,7 +772,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     setClipboardMessage(getUnreportedTransactionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-                    Clipboard.setString(getMarkedReimbursedMessage(reportAction));
+                    Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(
                         getReimbursementQueuedActionMessage({reportAction, formatPhoneNumber: formatPhoneNumberPhoneUtils, reportOrID: reportID, shouldUseShortDisplayName: false}),
