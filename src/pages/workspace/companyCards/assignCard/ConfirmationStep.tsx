@@ -107,13 +107,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        // Pass customCardName as cardName to the backend
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, feed, {
-            ...cardToAssign,
-            cardName: cardToAssign?.customCardName ?? cardToAssign?.cardName,
-            cardholder,
-            bankName,
-        });
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, feed, {...cardToAssign, cardholder, bankName});
     };
 
     const editStep = (step: string) => {
