@@ -422,6 +422,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     );
 }
 
+BaseValidateCodeForm.displayName = 'SignInBaseValidateCodeForm';
+
 export default withToggleVisibilityView(BaseValidateCodeForm);
 
 export type {BaseValidateCodeFormRef};
