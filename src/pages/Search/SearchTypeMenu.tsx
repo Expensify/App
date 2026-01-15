@@ -101,57 +101,57 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID);
-            }
-
-            const isItemFocused = Number(key) === hash;
-            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
-
-            return {
-                ...baseMenuItem,
-                onPress: () => {
-                    setSearchContext(false);
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
-                },
-                rightComponent: (
-                    <SavedSearchItemThreeDotMenu
-                        menuItems={getOverflowMenu(title, Number(key), item.query)}
-                        isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                        hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
-                        shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
-                        renderTooltipContent={renderSavedSearchTooltip}
-                    />
-                ),
-                style: [styles.alignItemsCenter],
-                tooltipAnchorAlignment: {
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                },
-                tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
-                tooltipShiftVertical: variables.savedSearchShiftVertical,
-                tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
-                renderTooltipContent: renderSavedSearchTooltip,
-            };
-        },
-        [
-            hash,
-            getOverflowMenu,
-            shouldShowSavedSearchTooltip,
-            hideSavedSearchTooltip,
-            renderSavedSearchTooltip,
-            styles.alignItemsCenter,
-            styles.mh4,
-            styles.pv2,
-            styles.productTrainingTooltipWrapper,
-            personalDetails,
-            reports,
-            taxRates,
-            allCards,
-            allFeeds,
-            currentUserAccountID,
-            allPolicies,
-        ],
-    );
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID, false, translate);
+                            }
+                
+                            const isItemFocused = Number(key) === hash;
+                            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
+                
+                            return {
+                                ...baseMenuItem,
+                                onPress: () => {
+                                    setSearchContext(false);
+                                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                                },
+                                rightComponent: (
+                                    <SavedSearchItemThreeDotMenu
+                                        menuItems={getOverflowMenu(title, Number(key), item.query)}
+                                        isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                                        hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
+                                        shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
+                                        renderTooltipContent={renderSavedSearchTooltip}
+                                    />
+                                ),
+                                style: [styles.alignItemsCenter],
+                                tooltipAnchorAlignment: {
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                },
+                                tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
+                                tooltipShiftVertical: variables.savedSearchShiftVertical,
+                                tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
+                                renderTooltipContent: renderSavedSearchTooltip,
+                            };
+                        },
+                        [
+                            hash,
+                            getOverflowMenu,
+                            shouldShowSavedSearchTooltip,
+                            hideSavedSearchTooltip,
+                            renderSavedSearchTooltip,
+                            styles.alignItemsCenter,
+                            styles.mh4,
+                            styles.pv2,
+                            styles.productTrainingTooltipWrapper,
+                            personalDetails,
+                            reports,
+                            taxRates,
+                            allCards,
+                            allFeeds,
+                            currentUserAccountID,
+                            allPolicies,
+                            translate,
+                        ],    );
 
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);

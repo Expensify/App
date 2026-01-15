@@ -109,7 +109,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID);
+                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID, false, translate);
             }
 
             const isItemFocused = Number(key) === hash;
@@ -148,7 +148,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             savedSearchesMenuItems: menuItems,
             isSavedSearchActive: savedSearchFocused,
         };
-    }, [savedSearches, hash, getOverflowMenu, expensifyIcons.Bookmark, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID]);
+    }, [savedSearches, hash, getOverflowMenu, expensifyIcons.Bookmark, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID, translate]);
 
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active

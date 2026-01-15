@@ -19,7 +19,7 @@ const eligiblePoliciesSelector = (policies: OnyxCollection<Policy>) => {
 };
 
 const useCardFeedsForDisplay = () => {
-    const {localeCompare} = useLocalize();
+    const {localeCompare, translate} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [eligiblePoliciesIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
@@ -27,7 +27,7 @@ const useCardFeedsForDisplay = () => {
         canBeMissing: true,
     });
 
-    const cardFeedsByPolicy = useMemo(() => getCardFeedsForDisplayPerPolicy(allFeeds), [allFeeds]);
+    const cardFeedsByPolicy = useMemo(() => getCardFeedsForDisplayPerPolicy(allFeeds, translate), [allFeeds, translate]);
 
     const defaultCardFeed = useMemo(() => {
         if (!eligiblePoliciesIDs) {
@@ -61,7 +61,7 @@ const useCardFeedsForDisplay = () => {
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
-    const expensifyCards = getCardFeedsForDisplay({}, allCards);
+    const expensifyCards = getCardFeedsForDisplay({}, allCards, translate);
     const defaultExpensifyCard = Object.values(expensifyCards)?.at(0);
 
     return {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard};
