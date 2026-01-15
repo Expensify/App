@@ -331,7 +331,7 @@ function assignWorkspaceCompanyCard(
     };
     const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, policy.id);
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.ASSIGN_CARD | typeof ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.ASSIGN_CARD> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

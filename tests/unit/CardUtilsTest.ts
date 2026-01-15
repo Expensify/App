@@ -35,7 +35,6 @@ import {
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
-    isMaskedCardNumberEqual,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
@@ -1424,46 +1423,6 @@ describe('CardUtils', () => {
             const result = splitMaskedCardNumber('XXXX5678');
             expect(result.firstDigits).toBe('');
             expect(result.lastDigits).toBe('5678');
-        });
-    });
-
-    describe('isMaskedCardNumberEqual', () => {
-        it('should return true for identical masked card numbers', () => {
-            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXX5678')).toBe(true);
-        });
-
-        it('should return true for card numbers with matching first and last digits', () => {
-            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXXXX5678')).toBe(true);
-        });
-
-        it('should return false for card numbers with different first digits', () => {
-            expect(isMaskedCardNumberEqual('1234XXXX5678', '5678XXXX5678')).toBe(false);
-        });
-
-        it('should return false for card numbers with different last digits', () => {
-            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXX1234')).toBe(false);
-        });
-
-        it('should handle undefined card numbers', () => {
-            expect(isMaskedCardNumberEqual(undefined, '1234XXXX5678')).toBe(false);
-            expect(isMaskedCardNumberEqual('1234XXXX5678', undefined)).toBe(false);
-            expect(isMaskedCardNumberEqual(undefined, undefined)).toBe(false);
-        });
-
-        it('should handle custom mask character', () => {
-            expect(isMaskedCardNumberEqual('1234****5678', '1234****5678', '*')).toBe(true);
-        });
-
-        it('should return false when compareIfPatternDoesNotMatch is false and patterns differ', () => {
-            // '1234XXXX5678' has 4 first digits and 4 last digits
-            // '123XXXX5678' has 3 first digits and 4 last digits
-            // When compareIfPatternDoesNotMatch is false, it should return false because the patterns differ
-            expect(isMaskedCardNumberEqual('1234XXXX5678', '123XXXX5678', CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR, false)).toBe(false);
-        });
-
-        it('should return true when compareIfPatternDoesNotMatch is false and patterns match', () => {
-            // Both have 4 first digits and 4 last digits, so patterns match
-            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXXXX5678', CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR, false)).toBe(true);
         });
     });
 });
