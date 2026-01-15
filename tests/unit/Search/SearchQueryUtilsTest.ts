@@ -292,18 +292,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(
+            const result = buildUserReadableQueryString({
                 queryJSON,
-                undefined,
-                emptyReports,
-                emptyTaxRates,
-                emptyCardList,
-                emptyCardFeeds,
-                emptyPolicies,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
                 currentUserAccountID,
-                false,
-                translateLocal,
-            );
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
         });
@@ -322,18 +322,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(
+            const result = buildUserReadableQueryString({
                 queryJSON,
-                undefined,
-                emptyReports,
-                emptyTaxRates,
-                emptyCardList,
-                emptyCardFeeds,
-                emptyPolicies,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
                 currentUserAccountID,
-                false,
-                translateLocal,
-            );
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('type:expense status:all merchant:Uber');
         });
@@ -357,18 +357,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(
+            const result = buildUserReadableQueryString({
                 queryJSON,
-                undefined,
-                emptyReports,
-                emptyTaxRates,
-                emptyCardList,
-                emptyCardFeeds,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
                 policies,
                 currentUserAccountID,
-                false,
-                translateLocal,
-            );
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
         });

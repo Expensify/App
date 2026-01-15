@@ -643,7 +643,20 @@ function SearchAutocompleteList({
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID, false, translate) : query,
+            text: searchQueryJSON
+                ? buildUserReadableQueryString({
+                      queryJSON: searchQueryJSON,
+                      PersonalDetails: personalDetails,
+                      reports,
+                      taxRates,
+                      cardList: allCards,
+                      cardFeeds: allFeeds,
+                      policies,
+                      currentUserAccountID,
+                      autoCompleteWithSpace: false,
+                      translate,
+                  })
+                : query,
             singleIcon: expensifyIcons.History,
             searchQuery: query,
             keyForList: timestamp,
