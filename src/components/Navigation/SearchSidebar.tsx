@@ -45,7 +45,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
         setLastSearchType(currentSearchResults.search.type);
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults?.search?.type]);
 
-    const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !!currentSearchResults?.search?.isLoading;
+    const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!currentSearchResults?.search?.isLoading;
 
     if (shouldUseNarrowLayout) {
         return null;
