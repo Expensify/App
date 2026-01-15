@@ -384,7 +384,7 @@ function MoneyRequestConfirmationListFooter({
 
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
-    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest || isScan;
+    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
     const shouldHideAutoFillValues = isScan && !shouldShowSmartScanFields;
     const amountDisplayValue = shouldHideAutoFillValues ? '' : formattedAmount;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -500,7 +500,7 @@ function MoneyRequestConfirmationListFooter({
                     rightLabelIcon={getRightLabelIcon('amount')}
                 />
             ),
-            shouldShow: (shouldShowSmartScanFields || isScan) && shouldShowAmountField,
+            shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
             shouldShowAboveShowMore: false,
         },
         {
