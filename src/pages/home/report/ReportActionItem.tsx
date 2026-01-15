@@ -34,6 +34,7 @@ import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReac
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
+import useLocalize from '@hooks/useLocalize';
 
 type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID'> & {
     /** All the data of the report collection */
@@ -89,6 +90,7 @@ function ReportActionItem({
     isTryNewDotNVPDismissed,
     ...props
 }: ReportActionItemProps) {
+    const {translate} = useLocalize();
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
     const originalReportID = useOriginalReportID(reportID, action);
@@ -149,6 +151,7 @@ function ReportActionItem({
             isCurrentUserTheOnlyParticipant={isCurrentUserTheOnlyParticipant}
             missingPaymentMethod={missingPaymentMethod}
             reimbursementDeQueuedOrCanceledActionMessage={getReimbursementDeQueuedOrCanceledActionMessage(
+                translate,
                 action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
                 report,
             )}

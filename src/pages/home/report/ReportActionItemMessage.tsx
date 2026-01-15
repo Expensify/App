@@ -122,7 +122,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? getOriginalMessage(action) : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = getIOUReportActionDisplayMessage(action, transaction, report);
+            iouMessage = getIOUReportActionDisplayMessage(translate, action, transaction, report);
         }
     }
 
