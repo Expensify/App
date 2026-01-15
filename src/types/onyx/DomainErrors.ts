@@ -41,6 +41,6 @@ type DomainErrors = {
             errors: OnyxCommon.Errors;
         }
     >;
-};
+} & GeneralDomainAdminErrors;
 
 export default DomainErrors;

@@ -31,6 +31,11 @@ type DomainPendingAction = {
     useTechnicalContactBillingCard?: OnyxCommon.PendingAction;
 
     /**
+     * Pending action for the domain itself
+     */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /**
      * Pending action for members
      */
     members?: Record<number, OnyxCommon.PendingAction>;
