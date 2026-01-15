@@ -14,6 +14,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {hideContextMenu, showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
+import { isSafari } from '@libs/Browser';
 
 /*
  * This is a default anchor component for regular links.
@@ -80,6 +81,7 @@ function BaseAnchorForCommentsOnly({
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             role={CONST.ROLE.LINK}
+            tabIndex={isSafari() ? 0 : -1}
             accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
         >
