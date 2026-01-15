@@ -918,8 +918,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Je ruimte',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welkom bij ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Gebruik de knop + om een uitgave te ${additionalText}.`,
-        askConcierge: 'Stel vragen en krijg 24/7 realtime ondersteuning.',
-        conciergeSupport: '24/7 ondersteuning',
+        askConcierge: ' Uw 24/7 AI-uitgavenassistent is er om u te helpen.',
+        conciergeSupport: 'uw 24/7-uitgavenassistent',
         create: 'Maken',
         iouTypes: {
             pay: 'Betalen',
