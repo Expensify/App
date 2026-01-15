@@ -451,13 +451,14 @@ function Search({
                 currentUserEmail: email ?? '',
                 translate,
                 formatPhoneNumber,
+                bankAccountList,
                 isActionLoadingSet,
             });
             return {...item, transactions: transactions1 as TransactionListItemType[]};
         });
 
         return enriched;
-    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet]);
+    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, bankAccountList, isActionLoadingSet]);
 
     const hasLoadedAllTransactions = useMemo(() => {
         if (!validGroupBy) {
