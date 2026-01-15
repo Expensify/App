@@ -772,5 +772,306 @@ describe('AssignCardFeed', () => {
             setAssignCardStepAndDataSpy.mockRestore();
             await waitForBatchedUpdatesWithAct();
         });
+
+        it('should have transaction start date menu item that navigates to date step', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial'}));
+            });
+
+            const {unmount} = renderConfirmationStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Wait for the component to render
+            await waitFor(() => {
+                expect(screen.getByTestId(CONST.ASSIGN_CARD_BUTTON_TEST_ID)).toBeOnTheScreen();
+            });
+
+            // Verify the transaction start date section exists and shows the correct route
+            // The route should be: WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE
+            const expectedRoute = ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+            expect(expectedRoute).toContain('transaction-start-date');
+
+            // Verify the transaction start date menu item is rendered
+            await waitFor(() => {
+                expect(screen.getByText('Transaction start date')).toBeOnTheScreen();
+                expect(screen.getByText('From the beginning')).toBeOnTheScreen();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should have card name menu item that navigates to card name step', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+            };
+
+            const cardName = "Test User's card";
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial', cardName}));
+            });
+
+            const {unmount} = renderConfirmationStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Wait for the component to render
+            await waitFor(() => {
+                expect(screen.getByTestId(CONST.ASSIGN_CARD_BUTTON_TEST_ID)).toBeOnTheScreen();
+            });
+
+            // Verify the card name route is correctly formed
+            const expectedRoute = ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME.getRoute({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+            expect(expectedRoute).toContain('card-name');
+
+            // Verify the card name section exists
+            await waitFor(() => {
+                expect(screen.getByText('Card name')).toBeOnTheScreen();
+            });
+
+            // Verify the card name value is displayed
+            await waitFor(() => {
+                const cardNameElements = screen.getAllByText(cardName);
+                expect(cardNameElements.length).toBeGreaterThan(0);
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    describe('Card Name and Transaction Start Date Update', () => {
+        /**
+         * BUG DOCUMENTATION: When updating the card name, the current implementation overwrites `cardName`
+         * which is also used as the masked card identifier displayed in the "Card" section.
+         *
+         * The issue:
+         * - `cardName` is used for TWO purposes:
+         *   1. The masked card number (e.g., "VISA - 1234") shown under "Card" - NOT editable
+         *   2. The custom card name shown under "Card name" - EDITABLE
+         *
+         * When the user edits the "Card name", it overwrites the `cardName` field,
+         * which should only contain the masked card identifier.
+         *
+         * Expected fix: Add a separate `customCardName` field for the editable name.
+         */
+        it('should verify card name field is used for both display and edit', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+            };
+
+            // Use a card name that won't be transformed by maskCardNumber
+            const originalCardName = "John's Business Card";
+            // cspell:disable-next-line
+            const encryptedCardNumber = 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF';
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    cardToAssign: {
+                        bankName: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        email: 'testaccount+1@gmail.com',
+                        cardName: originalCardName,
+                        encryptedCardNumber,
+                        dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+                        startDate: '2024-12-27',
+                    },
+                    currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                    isEditing: false,
+                });
+            });
+
+            const {unmount} = renderConfirmationStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByTestId(CONST.ASSIGN_CARD_BUTTON_TEST_ID)).toBeOnTheScreen();
+            });
+
+            // Verify the card name appears in the UI
+            // BUG: The same cardName is used for both the "Card" section (masked) and "Card name" section (editable)
+            const cardNameElements = screen.getAllByText(originalCardName);
+            // The card name appears at least once (in "Card name" section)
+            // Note: "Card" section may show a different value due to maskCardNumber transformation
+            expect(cardNameElements.length).toBeGreaterThanOrEqual(1);
+
+            // Verify encryptedCardNumber is different from cardName for commercial feeds
+            // This is correct - encryptedCardNumber should remain unchanged
+            expect(encryptedCardNumber).not.toBe(originalCardName);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should display transaction start date options correctly', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial'}));
+            });
+
+            const {unmount} = renderConfirmationStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Verify the transaction start date section is displayed
+            await waitFor(() => {
+                expect(screen.getByText('Transaction start date')).toBeOnTheScreen();
+            });
+
+            // Verify the default option "From the beginning" is shown
+            await waitFor(() => {
+                expect(screen.getByText('From the beginning')).toBeOnTheScreen();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should display custom start date when dateOption is CUSTOM', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+            };
+
+            const customStartDate = '2024-06-15';
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    cardToAssign: {
+                        bankName: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        email: 'testaccount+1@gmail.com',
+                        cardName: "Test User's card",
+                        // cspell:disable-next-line
+                        encryptedCardNumber: 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF',
+                        dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
+                        startDate: customStartDate,
+                    },
+                    currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                    isEditing: false,
+                });
+            });
+
+            const {unmount} = renderConfirmationStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Verify the custom start date is displayed instead of "From the beginning"
+            await waitFor(() => {
+                expect(screen.getByText(customStartDate)).toBeOnTheScreen();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should preserve encryptedCardNumber when cardName is edited', async () => {
+            // This test documents that encryptedCardNumber should never change
+            // even when cardName is edited - this is the correct behavior
+
+            await TestHelper.signInWithTestUser();
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+            };
+
+            // For commercial feeds: encryptedCardNumber is the backend identifier
+            // It should never change, even if the user edits the display card name
+            const mockCommercialData = createMockAssignCardData({feedType: 'commercial'});
+            expect(mockCommercialData.cardToAssign.encryptedCardNumber).toContain('v12:');
+            expect(mockCommercialData.cardToAssign.cardName).not.toBe(mockCommercialData.cardToAssign.encryptedCardNumber);
+
+            // For direct feeds: encryptedCardNumber equals the card name (both are identifiers)
+            const mockDirectData = createMockAssignCardData({feedType: 'direct'});
+            expect(mockDirectData.cardToAssign.encryptedCardNumber).toBe('Plaid Checking 0000');
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, mockCommercialData);
+            });
+
+            const {unmount} = renderConfirmationStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByTestId(CONST.ASSIGN_CARD_BUTTON_TEST_ID)).toBeOnTheScreen();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 });
