@@ -10,17 +10,24 @@ You can add a personal bank account to receive reimbursements in over **190 coun
 
 # Add a U.S. Bank Account
 
-For U.S. accounts, Expensify uses **Plaid**, a secure third-party provider that verifies your banking information.
+For U.S. accounts, Expensify offers two ways to connect your bank account:
+
+- **Automatically via Plaid** — Securely link your bank account using your login credentials.
+- **Manually enter your bank details** — Add your routing and account number without using Plaid.
 
 To connect a U.S. bank account:
 
 1. Go to **Account > Wallet > Bank Accounts**.
 2. Click **Add Bank Account**.
 3. Select **United States** as your country.
-4. Follow the **Plaid** connection flow:
-   - Choose your bank.
-   - Enter your credentials.
-5. Once complete, your account will appear in the **Bank Accounts** section.
+4. Choose one of the following:
+   - **Connect with Plaid**:
+     - Select your bank from the list.
+     - Enter your online banking credentials.
+   - **Enter bank details manually**:
+     - Select **Enter bank details manually** at the bottom of the screen.
+     - Enter your routing number and account number.
+5. Once connected, your bank will appear in the **Bank Accounts** section.
 
 ![Click Add bank account on the Wallet page]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-1.png){:width="100%"}
 
