@@ -138,13 +138,6 @@ Onyx.connect({
     },
 });
 
-let deprecatedAllTransactionViolations: OnyxCollection<TransactionViolations> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => (deprecatedAllTransactionViolations = value),
-});
-
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
@@ -1396,16 +1389,6 @@ function getTransactionViolations(
         transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter(
             (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
         ) ?? [];
-
-    if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
-        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
-    }
-
-    return violations;
-}
-
-function getTransactionViolationsOfTransaction(transactionID: string) {
-    const violations = deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
 
     if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
         return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
@@ -2685,7 +2668,6 @@ export {
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
-    getTransactionViolationsOfTransaction,
     hasTransactionBeenRejected,
     isExpenseSplit,
     getAttendeesListDisplayString,
