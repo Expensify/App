@@ -1675,7 +1675,25 @@ function buildOnyxDataForTestDriveIOU(
 }
 
 /** Builds the Onyx data for an expense */
-function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+function buildOnyxDataForMoneyRequest(
+    moneyRequestParams: BuildOnyxDataForMoneyRequestParams,
+): OnyxData<
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+    | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+    | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+    | typeof ONYXKEYS.RECENTLY_USED_CURRENCIES
+    | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
+    | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS
+    | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+    | typeof ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING
+    | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+    | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+> {
     const {
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
@@ -1710,9 +1728,47 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
 
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.RECENTLY_USED_CURRENCIES
+            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
+            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        >
+    > = [];
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
+        >
+    > = [];
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
+        >
+    > = [];
+
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS>;
     if (isScanRequest) {
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_SCAN;
@@ -1913,10 +1969,10 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         iouAction = optimisticIOUReportAction;
 
         optimisticData.push(
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: DateUtils.getDBTime(date.valueOf())},
             },
             {
@@ -2265,7 +2321,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     // We don't need to compute violations unless we're on a paid policy
     if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        return [optimisticData, successData, failureData];
+        return {optimisticData, successData, failureData};
     }
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
@@ -2341,7 +2397,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    return [optimisticData, successData, failureData];
+    return {optimisticData, successData, failureData};
 }
 
 type BuildOnyxDataForTrackExpenseParams = {
@@ -3310,7 +3366,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     });
 
     // STEP 5: Build Onyx Data
-    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
+    const {optimisticData, successData, failureData} = buildOnyxDataForMoneyRequest({
         participant,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
@@ -3632,7 +3688,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     });
 
     // STEP 5: Build Onyx Data
-    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
+    const {optimisticData, successData, failureData} = buildOnyxDataForMoneyRequest({
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
         policyParams: {
@@ -7213,7 +7269,11 @@ function createSplitsAndOnyxData({
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, currentUserAccountID, currentUserEmailForIOUSplit);
 
         // STEP 5: Build Onyx Data
-        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
+        const {
+            optimisticData: oneOnOneOptimisticData,
+            successData: oneOnOneSuccessData,
+            failureData: oneOnOneFailureData,
+        } = buildOnyxDataForMoneyRequest({
             isNewChatReport: isNewOneOnOneChatReport,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
             isOneOnOneSplit: true,
@@ -7265,9 +7325,9 @@ function createSplitsAndOnyxData({
         };
 
         splits.push(individualSplit);
-        optimisticData.push(...oneOnOneOptimisticData);
-        successData.push(...oneOnOneSuccessData);
-        failureData.push(...oneOnOneFailureData);
+        optimisticData.push(...(oneOnOneOptimisticData ?? []));
+        successData.push(...(oneOnOneSuccessData ?? []));
+        failureData.push(...(oneOnOneFailureData ?? []));
     }
 
     optimisticData.push({
@@ -8083,7 +8143,11 @@ function completeSplitBill(
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
-        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
+        const {
+            optimisticData: oneOnOneOptimisticData,
+            successData: oneOnOneSuccessData,
+            failureData: oneOnOneFailureData,
+        } = buildOnyxDataForMoneyRequest({
             isNewChatReport: isNewOneOnOneChatReport,
             isOneOnOneSplit: true,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
