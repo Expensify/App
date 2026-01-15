@@ -436,6 +436,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The date the report was exported */
         exported?: string;
 
+        /** Whether the report's state/status is pending */
+        hasPendingReportState?: boolean;
+
         /**
          * Whether we should show the report year.
          * This is true if at least one report in the dataset was created in past years

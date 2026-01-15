@@ -156,7 +156,6 @@ type GetReportSectionsParams = {
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
-    shouldSkipActionFiltering?: boolean;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -377,7 +376,6 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
-    shouldSkipActionFiltering?: boolean;
 };
 
 /**
@@ -1727,7 +1725,6 @@ function getReportSections({
     allTransactionViolations,
     bankAccountList,
     reportActions = {},
-    shouldSkipActionFiltering = false,
 }: GetReportSectionsParams): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -1745,6 +1742,7 @@ function getReportSections({
     const allViolations = getViolations(data);
 
     const queryJSON = getCurrentSearchQueryJSON();
+    const actionFromQuery = queryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)?.filters?.at(0)?.value;
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     const {reportKeys, transactionKeys} = Object.keys(data).reduce(
@@ -1792,11 +1790,6 @@ function getReportSections({
                         shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](reportItem) : false;
                     }
                 }
-                const actionFromQuery = queryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)?.filters?.at(0)?.value;
-
-                if (!shouldSkipActionFiltering && actionFromQuery && isValidActionFilter(actionFromQuery)) {
-                    shouldShow = shouldShow && actionFilterMapping[actionFromQuery](reportItem);
-                }
             }
 
             if (shouldShow) {
@@ -1812,11 +1805,15 @@ function getReportSections({
 
                 const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
                 const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';
-
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
 
                 const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
                 const policy = getPolicyFromKey(data, reportItem);
+
+                let hasPendingReportState;
+                if (actionFromQuery && isValidActionFilter(actionFromQuery)) {
+                    hasPendingReportState = !actionFilterMapping[actionFromQuery](reportItem);
+                }
 
                 const hasAnyViolationsForReport = hasAnyViolations(
                     reportItem.reportID,
@@ -1850,6 +1847,7 @@ function getReportSections({
                     formattedFrom,
                     formattedTo,
                     formattedStatus,
+                    hasPendingReportState,
                     transactions,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                     shouldShowYear: shouldShowYearCreatedReport,
@@ -2109,7 +2107,6 @@ function getSections({
     isActionLoadingSet,
     cardFeeds,
     allTransactionViolations,
-    shouldSkipActionFiltering,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -2130,7 +2127,6 @@ function getSections({
             allTransactionViolations,
             bankAccountList,
             reportActions,
-            shouldSkipActionFiltering,
         });
     }
 
