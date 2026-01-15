@@ -449,16 +449,16 @@ function Search({
                 data: snapshot.data,
                 currentAccountID: accountID,
                 currentUserEmail: email ?? '',
+                bankAccountList,
                 translate,
                 formatPhoneNumber,
-                bankAccountList,
                 isActionLoadingSet,
             });
             return {...item, transactions: transactions1 as TransactionListItemType[]};
         });
 
         return enriched;
-    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, bankAccountList, isActionLoadingSet]);
+    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet, bankAccountList]);
 
     const hasLoadedAllTransactions = useMemo(() => {
         if (!validGroupBy) {
