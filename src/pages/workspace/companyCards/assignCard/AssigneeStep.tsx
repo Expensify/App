@@ -73,9 +73,10 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const submit = (assignee: ListItem) => {
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
+        const defaultCardName = getDefaultCardName(memberName);
         const cardToAssign: Partial<AssignCardData> = {
             email: assignee?.login ?? '',
-            ...(!assignCard?.cardToAssign?.cardName ? {cardName: getDefaultCardName(memberName)} : {}),
+            ...(!assignCard?.cardToAssign?.customCardName ? {customCardName: defaultCardName} : {}),
         };
 
         Keyboard.dismiss();
@@ -86,6 +87,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
             if (assignCard?.cardToAssign?.encryptedCardNumber) {
                 cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
+                cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
                 cardToAssign.startDate = !isEditing
                     ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
                     : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
@@ -122,6 +124,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         if (assignCard?.cardToAssign?.encryptedCardNumber) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
+            cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
             cardToAssign.startDate = !isEditing
                 ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
                 : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));

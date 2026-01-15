@@ -34,8 +34,15 @@ type AssignCardData = {
     /** The name of the feed */
     bankName: CompanyCardFeed;
 
-    /** The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234") */
+    /** The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234"). This is the original card identifier and should not be edited. */
     cardName: string;
+
+    /**
+     * The custom card name that can be edited by the user.
+     * Initially set to cardName, but can be changed in CardNameStep.
+     * This value is sent to the backend as the card name when assigning.
+     */
+    customCardName: string;
 
     /** The transaction start date of the card */
     startDate: string;

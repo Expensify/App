@@ -6,6 +6,7 @@ import {
     filterInactiveCards,
     getCompanyCardFeed,
     getCompanyFeeds,
+    getDefaultCardName,
     getDomainOrWorkspaceAccountID,
     getPlaidCountry,
     getPlaidInstitutionId,
@@ -205,7 +206,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             cardToAssign.email = userEmail;
             const personalDetails = getPersonalDetailByEmail(userEmail);
             const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
-            cardToAssign.cardName = `${memberName}'s card`;
+            cardToAssign.customCardName = getDefaultCardName(memberName);
 
             return {
                 initialStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,

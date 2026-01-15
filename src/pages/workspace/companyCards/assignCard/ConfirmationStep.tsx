@@ -104,7 +104,13 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, feed, {...cardToAssign, cardholder, bankName});
+        // Pass customCardName as cardName to the backend
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, feed, {
+            ...cardToAssign,
+            cardName: cardToAssign?.customCardName ?? cardToAssign?.cardName,
+            cardholder,
+            bankName,
+        });
     };
 
     const editStep = (step: string) => {
@@ -177,7 +183,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.cardName')}
-                    title={cardToAssign?.cardName}
+                    title={cardToAssign?.customCardName}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                 />

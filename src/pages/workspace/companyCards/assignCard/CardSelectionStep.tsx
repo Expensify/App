@@ -105,8 +105,10 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
         const cardName = selectedCard?.cardName ?? '';
 
+        const customCardName = assignCard?.cardToAssign?.customCardName ?? '';
+
         setAssignCardStepAndData({
-            cardToAssign: {encryptedCardNumber: cardSelected, cardName},
+            cardToAssign: {encryptedCardNumber: cardSelected, cardName, customCardName},
             isEditing: false,
         });
 
