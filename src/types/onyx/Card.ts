@@ -4,7 +4,6 @@ import type {CompanyCardFeedWithDomainID} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
-
 /** Model of Expensify card status changes */
 type CardStatusChanges = {
     /** Card status change date */

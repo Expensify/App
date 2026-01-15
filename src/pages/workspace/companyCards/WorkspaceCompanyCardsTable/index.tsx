@@ -111,11 +111,9 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
               const failedCompanyCardAssignment = failedCompanyCardAssignments?.[encryptedCardNumber];
 
               if (failedCompanyCardAssignment) {
-                return failedCompanyCardAssignment;
+                  return failedCompanyCardAssignment;
               }
-              const assignedCard = Object
-                .values(assignedCards ?? {})
-                .find((card: Card) => (card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName));
+              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName);
 
               return {
                   cardName,
