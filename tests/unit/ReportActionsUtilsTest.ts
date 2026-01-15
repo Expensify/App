@@ -2745,7 +2745,7 @@ describe('ReportActionsUtils', () => {
             expect(result).not.toContain(transactionID3);
         });
 
-        it('should include transactionInOnyx if it matches reportID and is not already in the list', () => {
+        it('should include transactionID parameter if it matches reportID and is not already in the filtered list', () => {
             const transactionInOnyxID = 'transaction-in-onyx';
             const allTransactions: Record<string, Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID1}`]: createMockTransaction(transactionID1, expenseReportID),
@@ -2894,10 +2894,15 @@ describe('ReportActionsUtils', () => {
                 } as Transaction,
             };
 
+            const getExpenseReportTransactionIDsSpy = jest.spyOn(ReportActionsUtils, 'getExpenseReportTransactionIDs').mockReturnValue([transactionID]);
+
             const result = getTransactionIDsForIOUAction(expenseIOUAction, reportTransactionIDs, allTransactions, false);
 
+            expect(getExpenseReportTransactionIDsSpy).toHaveBeenCalledWith(allTransactions, expenseReportID, transactionID, false);
             expect(result).toEqual([transactionID]);
             expect(result).not.toEqual(reportTransactionIDs);
+
+            getExpenseReportTransactionIDsSpy.mockRestore();
         });
 
         it('should pass isOffline flag to getExpenseReportTransactionIDs', () => {
@@ -2923,10 +2928,15 @@ describe('ReportActionsUtils', () => {
                 } as Transaction,
             };
 
+            const getExpenseReportTransactionIDsSpy = jest.spyOn(ReportActionsUtils, 'getExpenseReportTransactionIDs').mockReturnValue([transactionID, transactionWithAddPending]);
+
             const result = getTransactionIDsForIOUAction(expenseIOUAction, reportTransactionIDs, allTransactions, true);
 
+            expect(getExpenseReportTransactionIDsSpy).toHaveBeenCalledWith(allTransactions, expenseReportID, transactionID, true);
             expect(result).toContain(transactionID);
             expect(result).toContain(transactionWithAddPending);
+
+            getExpenseReportTransactionIDsSpy.mockRestore();
         });
     });
 });
