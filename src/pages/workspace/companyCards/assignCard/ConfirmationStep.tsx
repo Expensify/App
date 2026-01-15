@@ -99,7 +99,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        const cardNumberToCheck = cardToAssign?.cardNumber ?? cardToAssign?.encryptedCardNumber;
+        const cardNumberToCheck = cardToAssign?.encryptedCardNumber ?? cardToAssign?.cardNumber;
         if (cardNumberToCheck && isCardAlreadyAssigned(cardNumberToCheck, workspaceCardFeeds)) {
             setCardError(getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.cardAlreadyAssignedError'));
             return;
@@ -152,7 +152,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={cardToAssign?.encryptedCardNumber ?? maskCardNumber(cardToAssign?.cardNumber ?? '', cardToAssign?.bankName)}
+                    title={maskCardNumber(cardToAssign?.cardNumber ?? '', cardToAssign?.bankName)}
                     interactive={false}
                 />
                 <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>

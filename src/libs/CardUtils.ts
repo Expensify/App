@@ -845,25 +845,20 @@ function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string 
     };
 }
 
-function isCardAlreadyAssigned(cardNumber: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): boolean {
-    if (!cardNumber || !workspaceCardFeeds) {
+function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): boolean {
+    if (!cardNumberToCheck || !workspaceCardFeeds) {
         return false;
     }
-    for (const workspaceCards of Object.values(workspaceCardFeeds)) {
+
+    return Object.values(workspaceCardFeeds).some((workspaceCards) => {
         if (!workspaceCards) {
-            continue;
+            return false;
         }
         const {cardList, ...assignedCards} = workspaceCards;
-        for (const card of Object.values(assignedCards)) {
-            if (card?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                continue;
-            }
-            if (card?.cardName === cardNumber) {
-                return true;
-            }
-        }
-    }
-    return false;
+        return Object.values(assignedCards).some(
+            (card) => card?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (card?.encryptedCardNumber === cardNumberToCheck || card?.cardName === cardNumberToCheck),
+        );
+    });
 }
 
 function getEncryptedCardNumber(isDirectCardFeed: boolean, cardName: string, cardList: Record<string, string> | undefined): string {
