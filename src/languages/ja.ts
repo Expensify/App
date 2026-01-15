@@ -7890,12 +7890,8 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         },
         preciseLocationRequiredModal: {title: '正確な位置情報が必要です', prompt: 'GPS距離の追跡を開始するには、デバイスの設定で「正確な位置情報」を有効にしてください。'},
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
-        notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
-        signOutWarningTripInProgress: {
-            title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to discard the trip and sign out?',
-            confirm: 'Discard and sign out',
-        },
+        notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動してください'},
+        signOutWarningTripInProgress: {title: 'GPS追跡を実行中', prompt: 'この出張を破棄してサインアウトしてもよろしいですか？', confirm: '破棄してサインアウト'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -1172,7 +1172,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: '您确定要删除这些报销吗？',
         }),
         deleteReport: '删除报表',
-        deleteReportConfirmation: '您确定要删除此报表吗？',
+        deleteReportConfirmation: '您确定要删除此报告吗？',
         settledExpensify: '已支付',
         done: '完成',
         settledElsewhere: '在其他地方已支付',
@@ -7741,12 +7741,8 @@ ${reportName}
         androidBackgroundLocationRequiredModal: {title: '需要后台位置访问权限', prompt: '请在设备设置中允许应用使用“始终允许”位置访问权限，以开始 GPS 距离跟踪。'},
         preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},
         desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
-        notification: {title: '正在进行 GPS 跟踪', body: '前往应用完成'},
-        signOutWarningTripInProgress: {
-            title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to discard the trip and sign out?',
-            confirm: 'Discard and sign out',
-        },
+        notification: {title: 'GPS 跟踪进行中', body: '前往应用完成'},
+        signOutWarningTripInProgress: {title: 'GPS 跟踪进行中', prompt: '您确定要放弃此行程并登出吗？', confirm: '放弃并退出'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
