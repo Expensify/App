@@ -60,10 +60,11 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
-            if (result.action === ModalActions.CONFIRM) {
-                removeFromGroupChat(report?.reportID, [accountID]);
-                Navigation.goBack(backTo);
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
             }
+            removeFromGroupChat(report?.reportID, [accountID]);
+            Navigation.goBack(backTo);
         });
     }, [showConfirmModal, translate, displayName, report?.reportID, accountID, backTo]);
 

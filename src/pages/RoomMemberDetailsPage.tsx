@@ -62,10 +62,11 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
-            if (result.action === ModalActions.CONFIRM) {
-                removeFromRoom(report?.reportID, [accountID]);
-                Navigation.goBack(backTo);
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
             }
+            removeFromRoom(report?.reportID, [accountID]);
+            Navigation.goBack(backTo);
         });
     }, [showConfirmModal, translate, displayName, report?.reportID, accountID, backTo]);
 

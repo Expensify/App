@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -87,12 +87,13 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             danger: true,
             shouldEnableNewFocusManagement: true,
         }).then((result) => {
-            if (result.action === ModalActions.CONFIRM) {
-                goBack();
-                setTimeout(() => {
-                    deleteReportField(report.reportID, reportField);
-                }, CONST.ANIMATED_TRANSITION);
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
             }
+            goBack();
+            setTimeout(() => {
+                deleteReportField(report.reportID, reportField);
+            }, CONST.ANIMATED_TRANSITION);
         });
     };
 
