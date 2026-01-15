@@ -166,7 +166,7 @@ function MoneyRequestParticipantsSelector({
                 onFinish();
             }
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, policy, activeAdminWorkspaces],
     );
 
@@ -252,7 +252,6 @@ function MoneyRequestParticipantsSelector({
                 countryCode,
                 participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             availableOptions.personalDetails?.length,

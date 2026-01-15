@@ -11,6 +11,7 @@ import type {Emoji} from '@assets/emojis/types';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -168,8 +169,8 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
  */
 const debouncedBroadcastUserIsTyping = lodashDebounce(
-    (reportID: string) => {
-        broadcastUserIsTyping(reportID);
+    (reportID: string, currentUserAccountID: number) => {
+        broadcastUserIsTyping(reportID, currentUserAccountID);
     },
     1000,
     {
@@ -250,6 +251,7 @@ function ComposerWithSuggestions({
         }
         return draftComment;
     });
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const commentRef = useRef(value);
 
@@ -264,7 +266,7 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -444,7 +446,7 @@ function ComposerWithSuggestions({
                 saveReportDraftComment(reportID, newCommentConverted);
             }
             if (newCommentConverted) {
-                debouncedBroadcastUserIsTyping(reportID);
+                debouncedBroadcastUserIsTyping(reportID, currentUserAccountID);
             }
         },
         [
@@ -458,6 +460,7 @@ function ComposerWithSuggestions({
             debouncedSaveReportComment,
             selection?.end,
             selection?.start,
+            currentUserAccountID,
         ],
     );
 
@@ -689,7 +692,7 @@ function ComposerWithSuggestions({
     useEffect(() => {
         const isModalVisible = modal?.isVisible;
         if (isModalVisible && !prevIsModalVisible) {
-            // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+            // eslint-disable-next-line no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
 
@@ -721,7 +724,7 @@ function ComposerWithSuggestions({
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useImperativeHandle(
