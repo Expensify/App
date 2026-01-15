@@ -245,7 +245,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return !!reportID && !doesReportIDLookValid;
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [reportID, reportMetadata?.isLoadingInitialReportActions],
+        [reportID, reportMetadata?.isLoadingInitialReportActions, doesReportIDLookValid],
     );
     const prevShouldShowAccessErrorPage = usePrevious(shouldShowAccessErrorPage);
     const participantCount = Object.keys(report?.participants ?? {}).length;
