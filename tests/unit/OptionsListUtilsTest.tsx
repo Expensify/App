@@ -3195,7 +3195,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, policy);
+            const option = getReportOption(participant, undefined, jest.fn(), policy, undefined);
 
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
@@ -3250,7 +3250,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, policy);
+            const option = getReportOption(participant, undefined, jest.fn(), policy, undefined);
 
             expect(option.text).toBe('Test Workspace with Submit');
             // The submitsTo logic may or may not apply depending on complex approval rules
@@ -3273,7 +3273,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, jest.fn(), undefined, undefined);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -3309,7 +3309,7 @@ describe('OptionsListUtils', () => {
                 isSelfDM: true,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, jest.fn(), undefined, undefined);
 
             // The option.isSelfDM is set by createOption based on the report type
             // Just verify the alternateText is correct for self DM
@@ -3344,7 +3344,7 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, jest.fn(), undefined, undefined);
 
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.alternateText).toBe(translateLocal('workspace.common.invoices'));
@@ -3366,7 +3366,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, jest.fn(), undefined, undefined);
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -3387,7 +3387,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, jest.fn(), undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -3409,7 +3409,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, undefined);
+            const option = getReportOption(participant, undefined, jest.fn(), undefined, undefined);
 
             expect(option).toBeDefined();
         });
@@ -3420,6 +3420,7 @@ describe('OptionsListUtils', () => {
             const result = getUserToInviteOption({
                 searchValue: 'Jeff Amazon',
                 loginList: {},
+                translate: jest.fn(),
             });
             expect(result).toBeNull();
         });
@@ -3429,6 +3430,7 @@ describe('OptionsListUtils', () => {
                 searchValue: 'Jeff Amazon',
                 shouldAcceptName: true,
                 loginList: {},
+                translate: jest.fn(),
             });
             expect(result).not.toBeNull();
             expect(result?.login).toBe('Jeff Amazon');

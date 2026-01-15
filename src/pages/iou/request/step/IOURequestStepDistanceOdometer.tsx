@@ -105,6 +105,7 @@ function IOURequestStepDistanceOdometer({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
@@ -360,7 +361,7 @@ function IOURequestStepDistanceOdometer({
             const derivedReports = (reportAttributesDerived as ReportAttributesDerivedValue | undefined)?.reports;
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, derivedReports);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, translate, policy, derivedReports);
             });
 
             if (shouldSkipConfirmation) {
