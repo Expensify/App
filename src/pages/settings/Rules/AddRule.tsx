@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setNameValuePair, updateDraftRule} from '@libs/actions/User';
-import {extractRuleFromForm} from '@libs/ExpenseRuleUtils';
+import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRatesNamesAndValues, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import {availableNonPersonalPolicyCategoriesSelector} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCategoryPage';
@@ -23,6 +24,10 @@ import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
+type AddRuleProps = {
+    hash?: string;
+};
+
 type SectionType = {
     titleTranslationKey: TranslationPaths;
     items: Array<
@@ -34,6 +39,14 @@ type SectionType = {
           }
         | undefined
     >;
+};
+
+const navigateTo = (field: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, hash?: string) => {
+    if (hash) {
+        Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash, field));
+    } else {
+        Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(field));
+    }
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) => {
@@ -61,7 +74,7 @@ const tagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => {
     return tagListsUnpacked.map(getTagNamesFromTagsLists).flat().length > 0;
 };
 
-function AddRule() {
+function AddRule({hash}: AddRuleProps) {
     const {translate} = useLocalize();
     const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
@@ -102,7 +115,15 @@ function AddRule() {
         if (!form) {
             return;
         }
-        setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, [...expenseRules, extractRuleFromForm(form, selectedTaxRate)], expenseRules, true, true);
+
+        const newRule = extractRuleFromForm(form, selectedTaxRate);
+        let newRules;
+        if (hash) {
+            newRules = expenseRules.map((rule) => (getKeyForRule(rule) === hash ? newRule : rule));
+        } else {
+            newRules = [...expenseRules, newRule];
+        }
+        setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, newRules, expenseRules, true, true);
 
         Navigation.goBack();
     };
@@ -115,7 +136,7 @@ function AddRule() {
                     descriptionTranslationKey: 'common.merchant',
                     required: true,
                     title: form?.merchantToMatch,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.MERCHANT)),
+                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.MERCHANT, hash),
                 },
             ],
         },
@@ -125,48 +146,48 @@ function AddRule() {
                 {
                     descriptionTranslationKey: 'expenseRulesPage.addRule.renameMerchant',
                     title: form?.merchant,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT)),
+                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT, hash),
                 },
                 hasPolicyCategories
                     ? {
                           descriptionTranslationKey: 'expenseRulesPage.addRule.updateCategory',
                           title: form?.category,
-                          onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.CATEGORY)),
+                          onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.CATEGORY, hash),
                       }
                     : undefined,
                 hasPolicyTags
                     ? {
                           descriptionTranslationKey: 'expenseRulesPage.addRule.updateTag',
                           title: form?.tag,
-                          onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.TAG)),
+                          onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.TAG, hash),
                       }
                     : undefined,
                 hasTaxRates
                     ? {
                           descriptionTranslationKey: 'expenseRulesPage.addRule.updateTaxRate',
                           title: selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.value})` : undefined,
-                          onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.TAX)),
+                          onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.TAX, hash),
                       }
                     : undefined,
                 {
                     descriptionTranslationKey: 'expenseRulesPage.addRule.changeDescription',
                     title: form?.category,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION)),
+                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION, hash),
                 },
                 {
                     descriptionTranslationKey: 'common.reimbursable',
                     title: form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : '',
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE)),
+                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE, hash),
                 },
                 {
                     descriptionTranslationKey: 'common.billable',
                     title: form?.billable ? translate(form.billable === 'true' ? 'common.yes' : 'common.no') : '',
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.BILLABLE)),
+                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.BILLABLE, hash),
                 },
                 {
                     descriptionTranslationKey: 'expenseRulesPage.addRule.addToReport',
                     title: form?.report,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.REPORT)),
+                    onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.REPORT, hash),
                 },
             ],
         },

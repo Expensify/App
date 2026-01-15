@@ -160,6 +160,16 @@ const SCREENS = {
             ADD_REIMBURSABLE: 'Settings_Rules_Add_Reimbursable',
             ADD_BILLABLE: 'Settings_Rules_Add_Billable',
             ADD_REPORT: 'Settings_Rules_Add_Report',
+            EDIT: 'Settings_Rules_Edit',
+            EDIT_MERCHANT: 'Settings_Rules_Edit_Merchant',
+            EDIT_RENAME_MERCHANT: 'Settings_Rules_Edit_Rename_Merchant',
+            EDIT_CATEGORY: 'Settings_Rules_Edit_Category',
+            EDIT_TAG: 'Settings_Rules_Edit_Tag',
+            EDIT_TAX: 'Settings_Rules_Edit_Tax',
+            EDIT_DESCRIPTION: 'Settings_Rules_Edit_Description',
+            EDIT_REIMBURSABLE: 'Settings_Rules_Edit_Reimbursable',
+            EDIT_BILLABLE: 'Settings_Rules_Edit_Billable',
+            EDIT_REPORT: 'Settings_Rules_Edit_Report',
         },
 
         WALLET: {

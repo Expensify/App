@@ -383,6 +383,12 @@ const ROUTES = {
             return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
         },
     },
+    SETTINGS_RULES_EDIT: {
+        route: 'settings/rules/edit/:hash/:field?',
+        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
+            return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        },
+    },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
     SETTINGS_PHONE_NUMBER: 'settings/profile/phone',

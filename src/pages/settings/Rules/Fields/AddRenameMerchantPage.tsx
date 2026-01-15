@@ -1,11 +1,17 @@
 import React from 'react';
 import RuleTextBase from '@components/Rule/RuleTextBase';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 
-function AddRenameMerchantPage() {
+type AddRenameMerchantPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_RENAME_MERCHANT>;
+
+function AddRenameMerchantPage({route}: AddRenameMerchantPageProps) {
     return (
         <RuleTextBase
             fieldID={CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT}
+            hash={route.params?.hash}
             labelKey="common.merchant"
             titleKey="expenseRulesPage.addRule.renameMerchant"
             testID="AddRenameMerchantPage"

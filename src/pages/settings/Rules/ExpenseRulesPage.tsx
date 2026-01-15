@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -24,7 +24,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {clearDraftRule, setNameValuePair} from '@libs/actions/User';
+import {clearDraftRule, setDraftRule, setNameValuePair} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,12 +47,70 @@ function ExpenseRulesPage() {
     const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
     const styles = useThemeStyles();
 
+    useEffect(() => {
+        // Clear selection when rule is changed as hash is outdated
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedRules([]);
+    }, [expenseRules]);
+
     const hasRules = expenseRules.length > 0;
     const isLoading = !hasRules && isLoadingOnyxValue(expenseRulesResult);
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const isInSelectionMode = shouldUseNarrowLayout ? canSelectMultiple : selectedRules.length > 0;
+
+    const toggleRule = (rule: ListItem) => {
+        setSelectedRules((prev) => {
+            if (prev.includes(rule.keyForList)) {
+                return prev.filter((key) => key !== rule.keyForList);
+            }
+            return [...prev, rule.keyForList];
+        });
+    };
+
+    const toggleAllRules = () => {
+        const someSelected = expenseRules.some((rule) => selectedRules.includes(getKeyForRule(rule)));
+        setSelectedRules(someSelected ? [] : expenseRules.map((rule) => getKeyForRule(rule)));
+    };
+
+    const navigateToNewRulePage = () => {
+        clearDraftRule();
+        Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute());
+    };
+
+    const navigateToEditRulePage = (hash?: string) => {
+        if (!hash) {
+            return;
+        }
+        const expenseRule = expenseRules.find((rule) => getKeyForRule(rule) === hash);
+        if (!expenseRule) {
+            return;
+        }
+        setDraftRule({
+            ...expenseRule,
+            tax: expenseRule.tax?.field_id_TAX ? expenseRule.tax.field_id_TAX.externalID : undefined,
+        });
+        Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash));
+    };
+
+    const onSelectRow = (item: ListItem) => {
+        if (shouldUseNarrowLayout && isMobileSelectionModeEnabled) {
+            toggleRule(item);
+            return;
+        }
+        navigateToEditRulePage(item.keyForList);
+    };
+
+    const handleDeleteRules = () => {
+        if (selectedRules.length > 0) {
+            const rulesToDelete = expenseRules.filter((rule) => !selectedRules.includes(getKeyForRule(rule)));
+            setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, rulesToDelete, expenseRules, true, true);
+        }
+        setDeleteConfirmModalVisible(false);
+        setSelectedRules([]);
+    };
+
     const headerDropdownOptions: Array<DropdownOption<DeepValueOf<typeof CONST.EXPENSE_RULES.BULK_ACTION_TYPES>>> = [
         {
             icon: icons.Trashcan,
@@ -66,9 +124,7 @@ function ExpenseRulesPage() {
             icon: icons.Pencil,
             text: translate('expenseRulesPage.editRule.title'),
             value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.EDIT,
-            onSelected: () => {
-                // setDeleteConfirmModalVisible(true);
-            },
+            onSelected: () => navigateToEditRulePage(selectedRules.at(0)),
         });
     }
 
@@ -92,36 +148,6 @@ function ExpenseRulesPage() {
     });
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(rulesList);
-
-    const toggleRule = (rule: ListItem) => {
-        setSelectedRules((prev) => {
-            if (prev.includes(rule.keyForList)) {
-                return prev.filter((key) => key !== rule.keyForList);
-            }
-            return [...prev, rule.keyForList];
-        });
-    };
-
-    const toggleAllRules = () => {
-        const someSelected = expenseRules.some((rule) => selectedRules.includes(getKeyForRule(rule)));
-        setSelectedRules(someSelected ? [] : expenseRules.map((rule) => getKeyForRule(rule)));
-    };
-
-    const navigateToNewRulePage = () => {
-        clearDraftRule();
-        Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute());
-    };
-
-    const navigateToRuleSettings = () => {};
-
-    const handleDeleteRules = () => {
-        if (selectedRules.length > 0) {
-            const rulesToDelete = expenseRules.filter((rule) => !selectedRules.includes(getKeyForRule(rule)));
-            setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, rulesToDelete, expenseRules, true, true);
-        }
-        setDeleteConfirmModalVisible(false);
-        setSelectedRules([]);
-    };
 
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
@@ -221,7 +247,7 @@ function ExpenseRulesPage() {
                     ListItem={TableListItem}
                     onCheckboxPress={toggleRule}
                     onSelectAll={expenseRules.length > 0 ? toggleAllRules : undefined}
-                    onSelectRow={navigateToRuleSettings}
+                    onSelectRow={onSelectRow}
                     onTurnOnSelectionMode={(item) => item && toggleRule(item)}
                     selectedItems={selectedRules}
                     shouldHeaderBeInsideList

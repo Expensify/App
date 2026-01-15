@@ -12,6 +12,7 @@ import {isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/ExpenseRuleForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type TextBaseProps = {
     fieldID: InputID;
@@ -25,8 +26,10 @@ type TextBaseProps = {
 
 function TextBase({fieldID, hint, isRequired, title, label, onSubmit, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: TextBaseProps) {
     const {translate} = useLocalize();
-    const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
+    const [form, formMetadata] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
     const styles = useThemeStyles();
+
+    const isLoading = isLoadingOnyxValue(formMetadata);
 
     const currentValue = form?.[fieldID] ?? '';
     const {inputCallbackRef} = useAutoFocusInput();
@@ -53,6 +56,10 @@ function TextBase({fieldID, hint, isRequired, title, label, onSubmit, characterL
 
         return errors;
     };
+
+    if (isLoading) {
+        return null;
+    }
 
     return (
         <FormProvider

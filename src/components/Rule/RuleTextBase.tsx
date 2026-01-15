@@ -30,20 +30,27 @@ type RuleTextBaseProps = {
     /** The translation key for the hint text to display below the TextInput */
     hintKey?: TranslationPaths;
 
-    /** Whter this field is required */
+    /** Whether this field is required */
     isRequired?: boolean;
 
     /** The character limit for the input */
     characterLimit?: number;
+
+    /** The rule identifier */
+    hash?: string;
 };
 
-function RuleTextBase({fieldID, hintKey, isRequired, titleKey, labelKey, testID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: RuleTextBaseProps) {
+function RuleTextBase({fieldID, hintKey, isRequired, titleKey, labelKey, testID, hash, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: RuleTextBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const goBack = () => {
+        Navigation.goBack(hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute());
+    };
+
     const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXPENSE_RULE_FORM>) => {
         updateDraftRule(values);
-        Navigation.goBack(ROUTES.SETTINGS_RULES_ADD.getRoute());
+        goBack();
     };
 
     return (
@@ -56,9 +63,7 @@ function RuleTextBase({fieldID, hintKey, isRequired, titleKey, labelKey, testID,
         >
             <HeaderWithBackButton
                 title={translate(titleKey)}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SETTINGS_RULES_ADD.getRoute());
-                }}
+                onBackButtonPress={goBack}
             />
             <TextBase
                 fieldID={fieldID}

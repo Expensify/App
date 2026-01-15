@@ -53,7 +53,7 @@ function extractRuleFromForm(form: ExpenseRuleForm, taxRate?: TaxRate) {
 }
 
 function getKeyForRule(rule: ExpenseRule) {
-    return `${rule.merchantToMatch}-${StringUtils.hash(JSON.stringify(rule))}`;
+    return `${StringUtils.hash(JSON.stringify(rule))}`;
 }
 
 export {formatExpenseRuleChanges, extractRuleFromForm, getKeyForRule};

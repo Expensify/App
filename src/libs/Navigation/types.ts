@@ -220,6 +220,37 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.RULES.EDIT]: {
+        hash: string;
+        field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_MERCHANT]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_RENAME_MERCHANT]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_CATEGORY]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_TAG]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_TAX]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_DESCRIPTION]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_REIMBURSABLE]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_BILLABLE]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_REPORT]: {
+        hash: string;
+    };
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;

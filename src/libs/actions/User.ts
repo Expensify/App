@@ -1640,6 +1640,10 @@ function updateIsVerifiedValidateActionCode(isVerifiedValidateActionCode: boolea
     });
 }
 
+function setDraftRule(ruleData: Partial<ExpenseRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
+}
+
 function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.merge(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
 }
@@ -1691,6 +1695,7 @@ export {
     respondToProactiveAppReview,
     verifyAddSecondaryLoginCode,
     updateIsVerifiedValidateActionCode,
+    setDraftRule,
     updateDraftRule,
     clearDraftRule,
 };
