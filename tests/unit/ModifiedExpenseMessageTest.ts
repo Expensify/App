@@ -177,7 +177,7 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
-        describe('when the amount is changed while the original value was partial', () => {
+        describe('when the amount is changed from zero', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -190,7 +190,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the amount to $18.00`;
+                const expectedResult = `changed the amount to $18.00 (previously $0.00)`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 

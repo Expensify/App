@@ -162,6 +162,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -728,6 +729,35 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'La tua sessione è scaduta.',
         signIn: 'Accedi di nuovo.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Test biometrico',
+            authenticationSuccessful: 'Autenticazione riuscita',
+            successfullyAuthenticatedUsing: ({authType}) => `Ti sei autenticato con successo utilizzando ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometria (${registered ? 'Registrata' : 'Non registrata'})`,
+            yourAttemptWasUnsuccessful: 'Il tuo tentativo di autenticazione non è riuscito.',
+            youCouldNotBeAuthenticated: 'Non è stato possibile autenticarti',
+            areYouSureToReject: "Sei sicuro? L'autenticazione sarà rifiutata se chiudi questa schermata.",
+            rejectAuthentication: 'Rifiuta autenticazione',
+            test: 'Test',
+            biometricsAuthentication: 'Autenticazione biometrica',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Si prega di abilitare la verifica facciale/impronta digitale o impostare un codice di accesso del dispositivo nelle tue ',
+            link: 'impostazioni di sistema',
+            end: '.',
+        },
+        oops: 'Ops, qualcosa è andato storto',
+        looksLikeYouRanOutOfTime: 'Sembra che il tempo sia scaduto! Per favore, riprova presso il commerciante.',
+        youRanOutOfTime: 'Il tempo è scaduto',
+        letsVerifyItsYou: 'Verifichiamo che sei tu',
+        verifyYourself: {
+            biometrics: 'Verificati con il tuo viso o impronta digitale',
+        },
+        enableQuickVerification: {
+            biometrics: 'Abilita una verifica rapida e sicura utilizzando il tuo viso o impronta digitale. Nessuna password o codice necessario.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abracadabra,
@@ -1106,7 +1136,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: (reportName: string) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransactionTo: (reportUrl: string, reportName?: string) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: (reportUrl: string, reportName?: string) => `ha spostato questa spesa${reportName ? `da <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: (reportUrl: string) => `ha spostato questa spesa dal tuo <a href="${reportUrl}">spazio personale</a>`,
         unreportedTransaction: (reportUrl: string) => `ha spostato questa spesa nel tuo <a href="${reportUrl}">spazio personale</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
@@ -1284,6 +1313,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Tariffa non valida per questo workspace. Seleziona una tariffa disponibile dal workspace.',
             endDateBeforeStartDate: 'La data di fine non può essere precedente alla data di inizio',
             endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
+            manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
+            dateRangeExceedsMaxDays: `L'intervallo di date non può superare i ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             invalidReadings: 'Inserisci sia la lettura iniziale che quella finale',
             negativeDistanceNotAllowed: 'La lettura finale deve essere maggiore della lettura iniziale',
         },
@@ -1437,6 +1468,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} giorni)`,
         splitByDate: 'Dividi per data',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapporto inoltrato a ${to} a causa del flusso di lavoro di approvazione personalizzato`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'ora' : 'ore'} @ ${rate} / ora`, hrs: 'ore'},
     },
     transactionMerge: {
         listPage: {
@@ -3076,6 +3108,7 @@ ${
         currencyHeader: 'Qual è la valuta del tuo conto bancario?',
         confirmationStepHeader: 'Controlla le tue informazioni.',
         confirmationStepSubHeader: 'Controlla attentamente i dettagli qui sotto e seleziona la casella delle condizioni per confermare.',
+        toGetStarted: 'Aggiungi un conto bancario personale per ricevere rimborsi, pagare fatture o abilitare il portafoglio Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Inserisci la password di Expensify',
@@ -5557,6 +5590,20 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Sei sicuro di voler collegare ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'questa integrazione contabile'}? Questo rimuoverà tutte le connessioni contabili esistenti.`,
             enterCredentials: 'Inserisci le tue credenziali',
+            claimOffer: {
+                badgeText: 'Offerta disponibile!',
+                xero: {
+                    headline: 'Ottieni Xero gratis per 6 mesi!',
+                    description: '<muted-text><centered-text>Nuovo su Xero? I clienti Expensify ottengono 6 mesi gratuiti. Richiedi la tua offerta qui sotto.</centered-text></muted-text>',
+                    connectButton: 'Connetti a Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Ottieni il 5% di sconto sui viaggi Uber',
+                    description: `<muted-text><centered-text>Attiva Uber for Business tramite Expensify e risparmia il 5% su tutti i viaggi di lavoro fino a giugno. <a href="${CONST.UBER_TERMS_LINK}">Si applicano i termini.</a></centered-text></muted-text>`,
+                    connectButton: 'Connetti a Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
@@ -6169,6 +6216,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Regole di categoria',
                 approver: 'Approvatore',
                 requireDescription: 'Richiedi descrizione',
+                requireFields: 'Rendi obbligatori i campi',
+                requiredFieldsTitle: 'Campi obbligatori',
+                requiredFieldsDescription: (categoryName: string) => `Questo si applicherà a tutte le spese classificate come <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Richiedi partecipanti',
                 descriptionHint: 'Suggerimento per la descrizione',
                 descriptionHintDescription: (categoryName: string) =>
                     `Ricorda ai dipendenti di fornire informazioni aggiuntive per la spesa in “${categoryName}”. Questo suggerimento appare nel campo descrizione sulle spese.`,
@@ -6289,6 +6340,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `ha modificato l’indirizzo dell’azienda in "${newAddress}" (precedentemente "${previousAddress}")` : `imposta l’indirizzo dell’azienda su "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `ha aggiunto ${approverName} (${approverEmail}) come approvatore per il campo ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
@@ -6562,6 +6615,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         },
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `ha modificato la formula del nome del report personalizzato in "${newValue}" (precedentemente "${oldValue}")`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser
+                ? `ha modificato il pagatore autorizzato in "${newReimburser}" (precedentemente "${previousReimburser}")`
+                : `ha cambiato il pagatore autorizzato in "${newReimburser}"`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -7158,6 +7215,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data precedente a ${maxAge} giorni`,
         missingCategory: 'Categoria mancante',
         missingComment: 'Descrizione richiesta per la categoria selezionata',
+        missingAttendees: 'Più partecipanti obbligatori per questa categoria',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Manca ${tagName ?? 'etichetta'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7887,8 +7945,17 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
             revokeAdminAccess: 'Revoca accesso amministratore',
             cantRevokeAdminAccess: 'Impossibile revocare i privilegi di amministratore dal referente tecnico',
-            error: {removeAdmin: 'Impossibile rimuovere questo utente come amministratore. Riprova.'},
+            error: {
+                removeAdmin: 'Impossibile rimuovere questo utente come amministratore. Riprova.',
+                removeDomain: 'Impossibile rimuovere questo dominio. Riprova.',
+                removeDomainNameInvalid: 'Inserisci il tuo nome di dominio per reimpostarlo.',
+            },
+            resetDomain: 'Reimposta dominio',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `Per favore digita <strong>${domainName}</strong> per confermare il ripristino del dominio.`,
+            enterDomainName: 'Inserisci qui il tuo nome di dominio',
+            resetDomainInfo: `Questa azione è <strong>permanente</strong> e i seguenti dati verranno eliminati: <br/> <ul><li>Connessioni alle carte aziendali e tutte le spese non riportate da tali carte</li> <li>Impostazioni SAML e di gruppo</li> </ul> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/>Nota: puoi rimuovere questo dominio dall'elenco dei tuoi domini eliminando l'email associata dalle tue <a href="#">modalità di contatto</a>.`,
         },
+        members: {title: 'Membri', findMember: 'Trova membro'},
     },
     gps: {
         tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
@@ -7911,6 +7978,19 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             confirm: 'Scarta monitoraggio distanza',
         },
         zeroDistanceTripModal: {title: 'Impossibile creare la spesa', prompt: 'Non puoi creare una spesa con la stessa località di partenza e di arrivo.'},
+        locationRequiredModal: {
+            title: 'Accesso alla posizione richiesto',
+            prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per avviare il tracciamento della distanza GPS.',
+            allow: 'Consenti',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Accesso alla posizione in background richiesto',
+            prompt: 'Consenti l’accesso alla posizione in background nelle impostazioni del dispositivo (opzione “Consenti sempre”) per avviare il tracciamento della distanza tramite GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Posizione precisa richiesta',
+            prompt: 'Per favore, abilita la “posizione precisa” nelle impostazioni del dispositivo per avviare il tracciamento della distanza GPS.',
+        },
         desktop: {
             title: 'Tieni traccia della distanza sul tuo telefono',
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',

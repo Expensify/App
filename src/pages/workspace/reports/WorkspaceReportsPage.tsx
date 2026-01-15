@@ -231,7 +231,7 @@ function WorkspaceReportFieldsPage({
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
-                                    title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
+                                    title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue ?? '')}
                                     shouldShowRightIcon
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
@@ -243,7 +243,7 @@ function WorkspaceReportFieldsPage({
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                                 titleStyle={toggleTitleStyle}
-                                isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
+                                isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.deletable}
                                 onToggle={(isEnabled) => {
                                     if (isEnabled && !isControlPolicy(policy)) {
                                         Navigation.navigate(
