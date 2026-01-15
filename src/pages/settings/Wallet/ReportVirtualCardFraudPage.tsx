@@ -47,6 +47,11 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
         return <NotFoundPage />;
     }
 
+    const domain = virtualCard?.domainName;
+    const domainCards = Object.values(cardList ?? {}).filter((card) => card?.domainName === domain);
+    const physicalCardFromDomain = domainCards.find((card) => !card?.nameValuePairs?.isVirtual);
+    const fallbackCardID = physicalCardFromDomain?.cardID ?? domainCards[0]?.cardID ?? cardID;
+
     return (
         <ScreenWrapper testID="ReportVirtualCardFraudPage">
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
@@ -54,10 +59,10 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
                     title={translate('reportFraudPage.title')}
                     onBackButtonPress={() => {
                         if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD) {
-                            Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID));
+                            Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(fallbackCardID)));
                             return;
                         }
-                        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+                        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(fallbackCardID)));    
                     }}
                 />
                 <View style={[styles.flex1, styles.justifyContentBetween]}>
