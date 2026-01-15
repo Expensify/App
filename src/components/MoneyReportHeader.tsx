@@ -1573,7 +1573,7 @@ function MoneyReportHeader({
                 handleDeleteTransactions();
             }
         });
-    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo, chatReport?.reportID]);
+    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo, chatReport?.reportID, currentSearchQueryJSON?.hash]);
 
     const showExportAgainModal = useCallback(() => {
         if (!connectedIntegration) {
