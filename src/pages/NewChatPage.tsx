@@ -121,8 +121,8 @@ function useOptions() {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             currentUserEmail: personalData.login,
+            currentUserAccountID,
         },
-        currentUserAccountID,
     );
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
@@ -273,9 +273,6 @@ function NewChatPage({ref}: NewChatPageProps) {
             selectedOptions as OptionData[],
             recentReports,
             personalDetails,
-            undefined,
-            undefined,
-            undefined,
             reportAttributesDerived,
             currentUserAccountID,
         );

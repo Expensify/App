@@ -104,10 +104,12 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                currentUserAccountID: accountID,
+                currentUserEmail: currentUserPersonalDetails.login,
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
+    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode, accountID, currentUserPersonalDetails.login]);
 
     const filteredOptions = useMemo(() => {
         return filterAndOrderOptions(
@@ -119,8 +121,9 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
                 canInviteUser: false,
+                currentUserEmail: currentUserPersonalDetails.login,
+                currentUserAccountID: accountID,
             },
-            accountID,
         );
     }, [optionsList, cleanSearchTerm, countryCode, loginList, accountID]);
 

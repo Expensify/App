@@ -214,11 +214,10 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             initialSelectedOptions,
             orderedAvailableOptions.recentReports,
             orderedAvailableOptions.personalDetails,
-            personalDetails,
-            true,
-            undefined,
             reportAttributesDerived,
             currentUserAccountID,
+            personalDetails,
+            true,
         );
 
         newSections.push({

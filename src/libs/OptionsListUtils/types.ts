@@ -255,6 +255,7 @@ type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
     currentUserEmail: string | undefined;
+    currentUserAccountID: number | undefined;
 };
 
 type OrderOptionsConfig =

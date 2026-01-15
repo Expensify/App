@@ -99,8 +99,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
                 canInviteUser: false,
                 currentUserEmail,
+                currentUserAccountID,
             },
-            currentUserAccountID,
         );
 
         const {currentUserOption} = unselectedOptions;
@@ -124,11 +124,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            personalDetails,
-            true,
-            undefined,
             reportAttributesDerived,
             currentUserAccountID,
+            personalDetails,
+            true,
         );
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);

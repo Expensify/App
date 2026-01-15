@@ -194,7 +194,7 @@ function SearchAutocompleteList({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails.login;
-    const currentUserAccountID = currentUserPersonalDetails.accountID ?? -1;
+    const currentUserAccountID = currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();

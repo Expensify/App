@@ -97,12 +97,12 @@ function RoomInvitePage({
             options.personalDetails,
             nvpDismissedProductTraining,
             loginList,
+            currentUserAccountID,
+            currentUserPersonalDetails.login,
             betas ?? [],
             excludedUsers,
             false,
             CONST.DEFAULT_COUNTRY_CODE,
-            currentUserAccountID,
-            currentUserPersonalDetails.login,
         );
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, MemberForList> = {};
@@ -145,8 +145,7 @@ function RoomInvitePage({
             debouncedSearchTerm,
             countryCode,
             loginList,
-            {excludeLogins: excludedUsers, currentUserEmail: currentUserPersonalDetails.login},
-            currentUserAccountID,
+            {excludeLogins: excludedUsers, currentUserEmail: currentUserPersonalDetails.login, currentUserAccountID},
         );
 
         return filteredOptions;

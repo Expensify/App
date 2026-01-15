@@ -101,8 +101,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                 selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 currentUserEmail,
+                currentUserAccountID,
             },
-            currentUserAccountID,
         );
     }, [defaultOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, currentUserAccountID, currentUserEmail]);
 
@@ -117,11 +117,10 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            personalDetails,
-            false,
-            undefined,
             reportAttributesDerived,
             currentUserAccountID,
+            personalDetails,
+            false,
         );
 
         newSections.push(formattedResults.section);

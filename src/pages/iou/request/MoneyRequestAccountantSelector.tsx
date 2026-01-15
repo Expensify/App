@@ -92,6 +92,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
+                currentUserAccountID,
+                currentUserEmail,
             },
             countryCode,
         );
@@ -114,18 +116,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(
-            defaultOptions,
-            debouncedSearchTerm,
-            countryCode,
-            loginList,
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-                currentUserEmail,
-            },
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, {
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            currentUserEmail,
             currentUserAccountID,
-        );
+        });
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
@@ -146,11 +142,10 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             [],
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            personalDetails,
-            true,
-            undefined,
             reportAttributesDerived,
             currentUserAccountID,
+            personalDetails,
+            true,
         );
         newSections.push(formatResults.section);
 

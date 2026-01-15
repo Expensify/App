@@ -2145,11 +2145,13 @@ function getValidOptions(
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
         shouldAcceptName = false,
+        currentUserAccountID = undefined,
+        currentUserEmail = undefined,
         ...config
-    }: GetOptionsConfig = {},
+    }: GetOptionsConfig = {currentUserAccountID: undefined, currentUserEmail: undefined},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
 ): Options {
-    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
+    const restrictedLogins = getRestrictedLogins({...config, currentUserAccountID, currentUserEmail}, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
@@ -2168,7 +2170,7 @@ function getValidOptions(
             loginsToExclude[option.login] = true;
         }
     }
-    const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, currentUserAccountID, currentUserEmail, ...getValidReportsConfig} = config;
+    const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
 
     // Get valid recent reports:
     let recentReportOptions: Array<SearchOption<Report>> = [];
@@ -2333,6 +2335,7 @@ function getValidOptions(
             {
                 excludeLogins: loginsToExclude,
                 currentUserEmail,
+                currentUserAccountID,
                 shouldAcceptName,
             },
         );
@@ -2521,12 +2524,12 @@ function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     loginList: OnyxEntry<Login>,
+    currentUserAccountID: number | undefined,
+    currentUserEmail: string | undefined,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-    currentUserAccountID: number | undefined,
-    currentUserEmail: string | undefined,
 ): Options {
     return getValidOptions(
         {personalDetails, reports: []},
@@ -2608,11 +2611,11 @@ function formatSectionsFromSearchTerm(
     selectedOptions: SearchOptionData[],
     filteredRecentReports: SearchOptionData[],
     filteredPersonalDetails: SearchOptionData[],
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    currentUserAccountID: number | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    currentUserAccountID: number | undefined,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -2778,7 +2781,7 @@ function filterUserToInvite(
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
     config?: FilterUserToInviteConfig,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}} = config ?? {};
+    const {canInviteUser = true, excludeLogins = {}, currentUserEmail} = config ?? {};
     if (!canInviteUser) {
         return null;
     }
@@ -2803,6 +2806,7 @@ function filterUserToInvite(
         loginsToExclude,
         countryCode,
         loginList,
+        currentUserEmail,
         ...config,
     });
 }
@@ -2837,14 +2841,7 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
     return isMatch ? report : undefined;
 }
 
-function filterOptions(
-    options: Options,
-    searchInputValue: string,
-    countryCode: number,
-    loginList: OnyxEntry<Login>,
-    config: FilterUserToInviteConfig | undefined,
-    currentUserAccountID: number | undefined,
-): Options {
+function filterOptions(options: Options, searchInputValue: string, countryCode: number, loginList: OnyxEntry<Login>, config: FilterUserToInviteConfig): Options {
     const trimmedSearchInput = searchInputValue.trim();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2853,7 +2850,7 @@ function filterOptions(
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
     const recentReports = filterReports(options.recentReports, searchTerms);
-    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms, currentUserAccountID);
+    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms, config.currentUserAccountID);
     const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
     const userToInvite = filterUserToInvite(
         {
@@ -2918,17 +2915,10 @@ function combineOrderingOfReportsAndPersonalDetails(
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions(
-    options: Options,
-    searchInputValue: string,
-    countryCode: number,
-    loginList: OnyxEntry<Login>,
-    config: FilterAndOrderConfig = {},
-    currentUserAccountID: number | undefined,
-): Options {
+function filterAndOrderOptions(options: Options, searchInputValue: string, countryCode: number, loginList: OnyxEntry<Login>, config: FilterAndOrderConfig): Options {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, config, currentUserAccountID);
+        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, config);
     }
 
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);

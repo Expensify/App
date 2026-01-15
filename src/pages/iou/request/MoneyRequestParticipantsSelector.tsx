@@ -290,11 +290,10 @@ function MoneyRequestParticipantsSelector({
             participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             [],
             [],
-            personalDetails,
-            true,
-            undefined,
             reportAttributesDerived,
             currentUserAccountID,
+            personalDetails,
+            true,
         );
 
         newSections.push(formatResults.section);
