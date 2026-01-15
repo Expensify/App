@@ -53,6 +53,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
 
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
@@ -63,16 +64,17 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
 
         setNavigationActionToMicrotaskQueue(() => {
-            changeTransactionsReport(
-                selectedTransactionIDs,
+            changeTransactionsReport({
+                transactionIDs: selectedTransactionIDs,
                 isASAPSubmitBetaEnabled,
-                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                session?.email ?? '',
+                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: session?.email ?? '',
                 newReport,
-                allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 reportNextStep,
-                allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-            );
+                policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                allTransactionsCollection: allTransactions,
+            });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
         });
@@ -84,7 +86,13 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!selectedReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionIDs, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        changeTransactionsReport({
+            transactionIDs: selectedTransactionIDs,
+            isASAPSubmitBetaEnabled,
+            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            email: session?.email ?? '',
+            allTransactionsCollection: allTransactions,
+        });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
