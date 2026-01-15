@@ -3120,6 +3120,19 @@ function getForwardsToUpdateMessage(translate: LocalizedTranslate, action: Repor
     return translate('workspaceActions.changedForwardsTo', {approver: approvers, forwardsTo: forwardsToEmail, previousForwardsTo});
 }
 
+function getReimburserUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER>);
+
+    if (originalMessage?.reimburser?.email && originalMessage?.previousReimburser?.email) {
+        const newReimburser = formatPhoneNumber(originalMessage.reimburser.email);
+        const previousReimburser = formatPhoneNumber(originalMessage.previousReimburser.email);
+
+        return translate('workspaceActions.changedReimburser', {newReimburser, previousReimburser});
+    }
+
+    return getReportActionText(action);
+}
+
 function getWorkspaceReimbursementUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED>) ?? {};
 
@@ -3765,6 +3778,7 @@ export {
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,
     getForwardsToUpdateMessage,
+    getReimburserUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,

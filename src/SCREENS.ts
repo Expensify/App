@@ -690,6 +690,7 @@ const SCREENS = {
         CATEGORY_DESCRIPTION_HINT: 'Category_Description_Hint',
         CATEGORY_APPROVER: 'Category_Approver',
         CATEGORY_REQUIRE_RECEIPTS_OVER: 'Category_Require_Receipts_Over',
+        CATEGORY_REQUIRED_FIELDS: 'Category_Required_Fields',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         CATEGORIES_IMPORT: 'Categories_Import',
         CATEGORIES_IMPORTED: 'Categories_Imported',
@@ -878,6 +879,7 @@ const SCREENS = {
         ADD_ADMIN: 'Domain_Add_Admin',
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
+        RESET_DOMAIN: 'Domain_Reset',
         ADD_MEMBER: 'Domain_Add_Member',
     },
 } as const;

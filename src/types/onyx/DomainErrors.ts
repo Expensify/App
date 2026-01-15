@@ -33,6 +33,6 @@ type DomainErrors = {
      * Errors related to specific domain member, keyed by their accountID
      */
     memberErrors?: Record<number, GeneralDomainErrors>;
-};
+} & GeneralDomainAdminErrors;
 
 export default DomainErrors;
