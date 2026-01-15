@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {deleteMoneyRequest, getIOURequestPolicyID, initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU';
-import {getIOUActionForTransactions} from '@libs/actions/IOU/DuplicateAction';
+import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
@@ -173,6 +173,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionIDsPendingDeletion: deletedTransactionIDs,
                     selectedTransactionIDs: transactionIDs,
                     hash: currentSearchHash,
+                    allTransactionViolationsParam: transactionViolations,
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {

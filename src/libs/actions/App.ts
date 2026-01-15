@@ -270,8 +270,16 @@ function getOnyxDataForOpenOrReconnect(
     isFullReconnect = false,
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
-): OnyxData {
-    const result: OnyxData = {
+): OnyxData<
+    typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.IS_LOADING_REPORT_DATA | typeof ONYXKEYS.HAS_LOADED_APP | typeof ONYXKEYS.IS_LOADING_APP | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
+> {
+    const result: OnyxData<
+        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
+        | typeof ONYXKEYS.HAS_LOADED_APP
+        | typeof ONYXKEYS.IS_LOADING_APP
+        | typeof ONYXKEYS.COLLECTION.REPORT
+        | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -531,7 +539,7 @@ function savePolicyDraftByNewWorkspace({
         makeMeAdmin,
         policyName,
         policyID,
-        engagementChoice: introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ? CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE : CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
         currency,
         file,
         lastUsedPaymentMethod,
