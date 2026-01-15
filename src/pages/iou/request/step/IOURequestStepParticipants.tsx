@@ -350,11 +350,13 @@ function IOURequestStepParticipants({
                     },
                 ]);
             }
-            if (isCategorizing) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
-            } else {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID, undefined, true));
-            }
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                if (isCategorizing) {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
+                } else {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID, undefined, true));
+                }
+            });
             return;
         }
 
@@ -377,7 +379,9 @@ function IOURequestStepParticipants({
             // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             if (backTo) {
                 // We don't want to compare params because we just changed the participants.
-                Navigation.goBack(route, {compareParams: false});
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.goBack(route, {compareParams: false});
+                });
             } else {
                 // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
                 // More information can be found here: https://github.com/Expensify/App/issues/73728
