@@ -866,6 +866,10 @@ function isCardAlreadyAssigned(cardNumber: string, workspaceCardFeeds: OnyxColle
     return false;
 }
 
+function getEncryptedCardNumber(isDirectCardFeed: boolean, cardName: string, cardList: Record<string, string> | undefined): string {
+    return isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
+}
+
 export {
     getAssignedCardSortKey,
     isExpensifyCard,
@@ -933,6 +937,7 @@ export {
     COMPANY_CARD_BANK_ICON_NAMES,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
+    getEncryptedCardNumber,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};

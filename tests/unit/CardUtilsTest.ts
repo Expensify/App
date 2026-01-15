@@ -23,6 +23,7 @@ import {
     getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
+    getEncryptedCardNumber,
     getFeedType,
     getFilteredCardList,
     getMonthFromExpirationDateString,
@@ -1423,6 +1424,95 @@ describe('CardUtils', () => {
             const result = splitMaskedCardNumber('XXXX5678');
             expect(result.firstDigits).toBe('');
             expect(result.lastDigits).toBe('5678');
+        });
+    });
+
+    describe('encryptedCardNumber transformation for card assignment', () => {
+        describe('Custom/Commercial feeds (VCF, MCF, etc.)', () => {
+            const isDirectCardFeed = false;
+
+            it('should return encryptedCardNumber from cardList for commercial feeds', () => {
+                const cardList = {
+                    '490901XXXXXX1234': 'v12:74E3CA3C4C0FA02FDCF754FENCRYPTED1',
+                    '490901XXXXXX5678': 'v12:74E3CA3C4C0FA02FDCF754FENCRYPTED2',
+                };
+                const cardName = '490901XXXXXX1234';
+
+                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
+
+                expect(result).toBe('v12:74E3CA3C4C0FA02FDCF754FENCRYPTED1');
+                expect(result).not.toBe(cardName);
+            });
+
+            it('should return correct encryptedCardNumber when cardName differs from encryptedCardNumber', () => {
+                // This is the bug fix scenario - ensuring we get the actual encrypted value
+                // and not the cardName/cardID
+                const cardList = {
+                    'VISA ****1234': 'encrypted_abc123xyz',
+                    'VISA ****5678': 'encrypted_def456uvw',
+                };
+                const cardName = 'VISA ****1234';
+
+                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
+
+                expect(result).toBe('encrypted_abc123xyz');
+                expect(result).not.toBe(cardName);
+            });
+
+            it('should return empty string when cardName is not found in cardList', () => {
+                const cardList = {
+                    '490901XXXXXX1234': 'v12:encrypted1',
+                };
+                const cardName = '490901XXXXXX9999'; // Not in cardList
+
+                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
+
+                expect(result).toBe('');
+            });
+
+            it('should return empty string when cardList is undefined', () => {
+                const cardName = '490901XXXXXX1234';
+
+                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, undefined);
+
+                expect(result).toBe('');
+            });
+        });
+
+        describe('Direct feeds (Plaid, OAuth - Chase, etc.)', () => {
+            const isDirectCardFeed = true;
+
+            it('should return cardName as encryptedCardNumber for direct feeds', () => {
+                const cardName = 'CREDIT CARD...6607';
+                const cardList = undefined; // Direct feeds typically don't populate cardList
+
+                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
+
+                expect(result).toBe(cardName);
+                expect(result).toBe('CREDIT CARD...6607');
+            });
+
+            it('should return cardName for Plaid feeds', () => {
+                const cardName = 'Plaid Checking 0000';
+                const cardList = undefined;
+
+                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
+
+                expect(result).toBe('Plaid Checking 0000');
+            });
+
+            it('should return cardName even if cardList has data (direct feed takes precedence)', () => {
+                // Edge case: even if cardList exists, direct feeds should use cardName
+                const cardList = {
+                    'CREDIT CARD...6607': 'some_encrypted_value',
+                };
+                const cardName = 'CREDIT CARD...6607';
+
+                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
+
+                expect(result).toBe(cardName);
+                expect(result).not.toBe('some_encrypted_value');
+            });
         });
     });
 });

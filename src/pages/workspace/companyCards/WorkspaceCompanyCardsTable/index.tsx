@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getEncryptedCardNumber} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -102,7 +103,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
         : (cardNames?.map((cardName) => {
-              const encryptedCardNumber = isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
+              const encryptedCardNumber = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
               const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName);
               const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
 

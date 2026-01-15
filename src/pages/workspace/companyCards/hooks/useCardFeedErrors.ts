@@ -34,7 +34,7 @@ function useCompanyCardFeedErrors({policyID, feedName}: UseCompanyCardFeedErrors
         const hasFeedError = feedNameFn ? !!selectedFeed?.errors : false;
         const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), feedNameFn);
 
-        const shouldShowRBR =  hasFeedError || isFeedConnectionBroken;
+        const shouldShowRBR = hasFeedError || isFeedConnectionBroken;
 
         return {
             shouldShowRBR,
