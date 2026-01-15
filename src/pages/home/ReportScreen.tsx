@@ -807,7 +807,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             interactionTask = InteractionManager.runAfterInteractions(() => {
-                subscribeToReportLeavingEvents(reportIDFromRoute);
+                subscribeToReportLeavingEvents(reportIDFromRoute, currentUserAccountID);
                 didSubscribeToReportLeavingEvents.current = true;
             });
         }
@@ -817,7 +817,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
             interactionTask.cancel();
         };
-    }, [report?.reportID, didSubscribeToReportLeavingEvents, reportIDFromRoute, report?.pendingFields]);
+    }, [report?.reportID, didSubscribeToReportLeavingEvents, reportIDFromRoute, report?.pendingFields, currentUserAccountID]);
 
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
