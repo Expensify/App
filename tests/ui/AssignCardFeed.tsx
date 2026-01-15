@@ -10,13 +10,13 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import * as useSearchSelectorModule from '@hooks/useSearchSelector';
-import {getEmptyOptions} from '@libs/OptionsListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {getEmptyOptions} from '@libs/OptionsListUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import * as CompanyCardsActions from '@userActions/CompanyCards';
 import AssigneeStep from '@pages/workspace/companyCards/assignCard/AssigneeStep';
 import ConfirmationStep from '@pages/workspace/companyCards/assignCard/ConfirmationStep';
+import * as CompanyCardsActions from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -79,13 +79,19 @@ jest.mock('react-native-plaid-link-sdk', () => ({
     usePlaidEmitter: jest.fn(),
 }));
 
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback?.()),
+    dismissModal: jest.fn(),
+    getTopmostReportId: jest.fn(),
+}));
+
 // Create a stack navigator for the settings pages.
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 // Renders the AssigneeStep inside a navigation container with necessary providers.
-const renderAssigneeStep = (
-    initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE],
-) => {
+const renderAssigneeStep = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
@@ -104,9 +110,7 @@ const renderAssigneeStep = (
 };
 
 // Renders the ConfirmationStep inside a navigation container with necessary providers.
-const renderConfirmationStep = (
-    initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION],
-) => {
+const renderConfirmationStep = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
@@ -128,17 +132,18 @@ const renderConfirmationStep = (
  * Creates mock assign card data for testing.
  *
  * Note on card identifiers:
- * - cardName: The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234")
+ * - cardName: The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234"). This is immutable.
+ * - customCardName: The user-friendly editable card name (e.g., "John's card"). This is what users can edit.
+ *   - Initially set to "[User's name]'s card" format in AssigneeStep
+ *   - Falls back to cardName if not set (e.g., in CardSelectionStep)
  * - encryptedCardNumber: The identifier sent to backend
  *   - For direct feeds (Plaid/OAuth): equals cardName
  *   - For commercial feeds (Visa/Mastercard/Amex): encrypted value from cardList
  */
-const createMockAssignCardData = (options: {
-    feedType: 'commercial' | 'direct';
-    email?: string;
-    cardName?: string;
-}) => {
-    const {feedType, email = 'testaccount+1@gmail.com', cardName = "Test User's card"} = options;
+const createMockAssignCardData = (options: {feedType: 'commercial' | 'direct'; email?: string; cardName?: string; customCardName?: string}) => {
+    const {feedType, email = 'testaccount+1@gmail.com', cardName = 'VISA - 1234'} = options;
+    // customCardName defaults to user-friendly format "Test's card" if not provided
+    const customCardName = options.customCardName ?? "Test's card";
 
     // For commercial feeds, encryptedCardNumber is different from the display card name
     // For direct feeds, encryptedCardNumber equals the card name
@@ -151,6 +156,7 @@ const createMockAssignCardData = (options: {
             bankName,
             email,
             cardName,
+            customCardName,
             encryptedCardNumber,
             dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
             startDate: '2024-12-27',
@@ -876,20 +882,14 @@ describe('AssignCardFeed', () => {
 
     describe('Card Name and Transaction Start Date Update', () => {
         /**
-         * BUG DOCUMENTATION: When updating the card name, the current implementation overwrites `cardName`
-         * which is also used as the masked card identifier displayed in the "Card" section.
-         *
-         * The issue:
-         * - `cardName` is used for TWO purposes:
-         *   1. The masked card number (e.g., "VISA - 1234") shown under "Card" - NOT editable
-         *   2. The custom card name shown under "Card name" - EDITABLE
-         *
-         * When the user edits the "Card name", it overwrites the `cardName` field,
-         * which should only contain the masked card identifier.
-         *
-         * Expected fix: Add a separate `customCardName` field for the editable name.
+         * Card name handling:
+         * - `cardName`: The original masked card number (e.g., "VISA - 1234"). Immutable, used for "Card" section.
+         * - `customCardName`: The user-friendly editable card name (e.g., "John's card"). Used for "Card name" section.
+         *   - Initially set to "[User's name]'s card" format in AssigneeStep
+         * - When user edits "Card name", only `customCardName` is updated, `cardName` remains unchanged.
+         * - When assigning, `customCardName` is sent to the backend as the card name.
          */
-        it('should verify card name field is used for both display and edit', async () => {
+        it('should display customCardName in the editable Card name section', async () => {
             await TestHelper.signInWithTestUser();
 
             const policy = {
@@ -898,10 +898,10 @@ describe('AssignCardFeed', () => {
                 workspaceAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
-            // Use a card name that won't be transformed by maskCardNumber
-            const originalCardName = "John's Business Card";
-            // cspell:disable-next-line
-            const encryptedCardNumber = 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF';
+            // cardName is the original masked card number
+            const originalCardName = 'VISA - 1234';
+            // customCardName is the user-friendly name (e.g., "John's card")
+            const userFriendlyCardName = "John's card";
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
@@ -911,7 +911,9 @@ describe('AssignCardFeed', () => {
                         bankName: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
                         email: 'testaccount+1@gmail.com',
                         cardName: originalCardName,
-                        encryptedCardNumber,
+                        customCardName: userFriendlyCardName,
+                        // cspell:disable-next-line
+                        encryptedCardNumber: 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF',
                         dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
                         startDate: '2024-12-27',
                     },
@@ -932,19 +934,39 @@ describe('AssignCardFeed', () => {
                 expect(screen.getByTestId(CONST.ASSIGN_CARD_BUTTON_TEST_ID)).toBeOnTheScreen();
             });
 
-            // Verify the card name appears in the UI
-            // BUG: The same cardName is used for both the "Card" section (masked) and "Card name" section (editable)
-            const cardNameElements = screen.getAllByText(originalCardName);
-            // The card name appears at least once (in "Card name" section)
-            // Note: "Card" section may show a different value due to maskCardNumber transformation
-            expect(cardNameElements.length).toBeGreaterThanOrEqual(1);
-
-            // Verify encryptedCardNumber is different from cardName for commercial feeds
-            // This is correct - encryptedCardNumber should remain unchanged
-            expect(encryptedCardNumber).not.toBe(originalCardName);
+            // Verify the customCardName (user-friendly name) is displayed in the editable "Card name" section
+            await waitFor(() => {
+                expect(screen.getByText(userFriendlyCardName)).toBeOnTheScreen();
+            });
 
             unmount();
             await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should keep cardName and customCardName as separate fields', async () => {
+            // Verify that cardName (masked card number) and customCardName (user-friendly name) are independent
+            const mockData = createMockAssignCardData({
+                feedType: 'commercial',
+                cardName: 'VISA - 1234',
+                customCardName: "John's card",
+            });
+
+            // cardName is the masked card number, customCardName is the user-friendly name
+            expect(mockData.cardToAssign.cardName).toBe('VISA - 1234');
+            expect(mockData.cardToAssign.customCardName).toBe("John's card");
+            expect(mockData.cardToAssign.cardName).not.toBe(mockData.cardToAssign.customCardName);
+        });
+
+        it('should initialize customCardName with user-friendly format when not provided', async () => {
+            // When customCardName is not explicitly set, it defaults to user-friendly format "Test's card"
+            const mockData = createMockAssignCardData({
+                feedType: 'commercial',
+                cardName: 'VISA - 5678',
+            });
+
+            expect(mockData.cardToAssign.cardName).toBe('VISA - 5678');
+            // customCardName defaults to user-friendly format, not cardName
+            expect(mockData.cardToAssign.customCardName).toBe("Test's card");
         });
 
         it('should display transaction start date options correctly', async () => {
@@ -994,6 +1016,7 @@ describe('AssignCardFeed', () => {
             };
 
             const customStartDate = '2024-06-15';
+            const cardName = "Test User's card";
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
@@ -1002,7 +1025,8 @@ describe('AssignCardFeed', () => {
                     cardToAssign: {
                         bankName: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
                         email: 'testaccount+1@gmail.com',
-                        cardName: "Test User's card",
+                        cardName,
+                        customCardName: cardName,
                         // cspell:disable-next-line
                         encryptedCardNumber: 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF',
                         dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
@@ -1030,9 +1054,8 @@ describe('AssignCardFeed', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should preserve encryptedCardNumber when cardName is edited', async () => {
-            // This test documents that encryptedCardNumber should never change
-            // even when cardName is edited - this is the correct behavior
+        it('should preserve encryptedCardNumber and cardName when customCardName is edited', async () => {
+            // encryptedCardNumber and cardName should never change when user edits customCardName
 
             await TestHelper.signInWithTestUser();
 
@@ -1043,10 +1066,16 @@ describe('AssignCardFeed', () => {
             };
 
             // For commercial feeds: encryptedCardNumber is the backend identifier
-            // It should never change, even if the user edits the display card name
-            const mockCommercialData = createMockAssignCardData({feedType: 'commercial'});
+            // cardName is the original masked card number
+            // Both should remain unchanged when customCardName is edited
+            const mockCommercialData = createMockAssignCardData({
+                feedType: 'commercial',
+                cardName: 'VISA - 1234',
+                customCardName: "John's Business Card",
+            });
             expect(mockCommercialData.cardToAssign.encryptedCardNumber).toContain('v12:');
-            expect(mockCommercialData.cardToAssign.cardName).not.toBe(mockCommercialData.cardToAssign.encryptedCardNumber);
+            expect(mockCommercialData.cardToAssign.cardName).toBe('VISA - 1234');
+            expect(mockCommercialData.cardToAssign.customCardName).toBe("John's Business Card");
 
             // For direct feeds: encryptedCardNumber equals the card name (both are identifiers)
             const mockDirectData = createMockAssignCardData({feedType: 'direct'});
@@ -1068,6 +1097,11 @@ describe('AssignCardFeed', () => {
 
             await waitFor(() => {
                 expect(screen.getByTestId(CONST.ASSIGN_CARD_BUTTON_TEST_ID)).toBeOnTheScreen();
+            });
+
+            // Verify the edited customCardName is displayed
+            await waitFor(() => {
+                expect(screen.getByText("John's Business Card")).toBeOnTheScreen();
             });
 
             unmount();
