@@ -35,7 +35,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report as ReportType} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 import getFileSize from './getFileSize';
@@ -52,19 +52,41 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const personalDetail = useCurrentUserPersonalDetails();
+
+    const report = getReportOrDraftReport(reportOrAccountID);
+    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
+
+    const ownerAccountID = report?.ownerAccountID;
+    const personalDetailsSelector = useCallback(
+        (allDetails: OnyxEntry<PersonalDetailsList>) => {
+            if (!allDetails) {
+                return {};
+            }
+            const filtered: PersonalDetailsList = {};
+            const participantAccountIDs = displayReport?.participantsList?.map((p) => p.accountID).filter((id): id is number => id !== undefined) ?? [];
+            for (const accountID of participantAccountIDs) {
+                if (!allDetails[accountID]) {
+                    continue;
+                }
+                filtered[accountID] = allDetails[accountID];
+            }
+            if (ownerAccountID && allDetails[ownerAccountID]) {
+                filtered[ownerAccountID] = allDetails[ownerAccountID];
+            }
+            return filtered;
+        },
+        [displayReport, ownerAccountID],
+    );
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true, selector: personalDetailsSelector});
     const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-
-    const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const ancestors = useAncestors(report);
-    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
     const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
@@ -148,7 +170,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 personalDetails: personalDetails?.[u.accountID] ?? undefined,
                             })) ?? [];
 
-                    const ownerAccountID = report.ownerAccountID;
                     const ownerPersonalDetails = ownerAccountID && personalDetails?.[ownerAccountID] ? personalDetails[ownerAccountID] : undefined;
 
                     openReport(report.reportID, '', participants, ownerPersonalDetails, report);

@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
@@ -44,7 +44,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
@@ -68,7 +68,6 @@ const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionIt
 
 function ProfilePage({route}: ProfilePageProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector, canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -76,6 +75,28 @@ function ProfilePage({route}: ProfilePageProps) {
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const loginParams = route.params?.login;
+
+    const personalDetailsSelector = useCallback(
+        (allDetails: OnyxEntry<PersonalDetailsList>) => {
+            if (!allDetails) {
+                return {};
+            }
+            const filtered: PersonalDetailsList = {};
+            if (allDetails[accountID]) {
+                filtered[accountID] = allDetails[accountID];
+            }
+            if (loginParams) {
+                const foundDetails = Object.values(allDetails).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
+                if (foundDetails && foundDetails.accountID) {
+                    filtered[foundDetails.accountID] = foundDetails;
+                }
+            }
+            return filtered;
+        },
+        [accountID, loginParams],
+    );
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true, selector: personalDetailsSelector});
     const isCurrentUser = session?.accountID === accountID;
     const reportKey = useMemo(() => {
         const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
@@ -92,7 +113,6 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
 
     const isValidAccountID = isValidAccountRoute(accountID);
-    const loginParams = route.params?.login;
 
     const details = useMemo((): OnyxEntry<PersonalDetails> => {
         // Check if we have the personal details already in Onyx
