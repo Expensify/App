@@ -718,9 +718,7 @@ function MenuItem({
                     <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                {...(interactive && {
-                                    onPress: shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction,
-                                })}
+                                onPress={interactive ? (shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction) : undefined}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -745,16 +743,10 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                {...(interactive
-                                    ? {
-                                          role: CONST.ROLE.MENUITEM,
-                                          accessibilityLabel: title ? title.toString() : '',
-                                          focusable: true,
-                                      }
-                                    : {
-                                          focusable: false,
-                                      })}
-                                accessible={shouldBeAccessible && interactive ? true : false}
+                                role={interactive ? CONST.ROLE.MENUITEM : undefined}
+                                accessibilityLabel={interactive ? (title ? title.toString() : '') : undefined}
+                                focusable={interactive}
+                                accessible={shouldBeAccessible && interactive}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
