@@ -16,7 +16,7 @@ import {getEmptyOptions} from '@libs/OptionsListUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AssigneeStep from '@pages/workspace/companyCards/assignCard/AssigneeStep';
 import ConfirmationStep from '@pages/workspace/companyCards/assignCard/ConfirmationStep';
-import * as CompanyCardsActions from '@userActions/CompanyCards';
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -85,6 +85,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback?.()),
     dismissModal: jest.fn(),
     getTopmostReportId: jest.fn(),
+}));
+
+jest.mock('@userActions/CompanyCards', () => ({
+    setAssignCardStepAndData: jest.fn(),
 }));
 
 // Create a stack navigator for the settings pages.
@@ -690,8 +694,6 @@ describe('AssignCardFeed', () => {
         it('should call setAssignCardStepAndData when editing assignee in confirmation step', async () => {
             await TestHelper.signInWithTestUser();
 
-            const setAssignCardStepAndDataSpy = jest.spyOn(CompanyCardsActions, 'setAssignCardStepAndData');
-
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
@@ -719,15 +721,14 @@ describe('AssignCardFeed', () => {
             });
 
             unmount();
-            setAssignCardStepAndDataSpy.mockRestore();
             await waitForBatchedUpdatesWithAct();
         });
 
         it('should navigate back to assignee step when back button is pressed on confirmation step', async () => {
             await TestHelper.signInWithTestUser();
 
-            const goBackSpy = jest.spyOn(Navigation, 'goBack');
-            const setAssignCardStepAndDataSpy = jest.spyOn(CompanyCardsActions, 'setAssignCardStepAndData');
+            const mockedSetAssignCardStepAndData = jest.mocked(setAssignCardStepAndData);
+            const mockedGoBack = jest.mocked(Navigation.goBack);
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
@@ -761,10 +762,10 @@ describe('AssignCardFeed', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Verify setAssignCardStepAndData was called with isEditing: true
-            expect(setAssignCardStepAndDataSpy).toHaveBeenCalledWith({isEditing: true});
+            expect(mockedSetAssignCardStepAndData).toHaveBeenCalledWith({isEditing: true});
 
             // Verify goBack was called to navigate to assignee step
-            expect(goBackSpy).toHaveBeenCalledWith(
+            expect(mockedGoBack).toHaveBeenCalledWith(
                 ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({
                     policyID: policy.id,
                     feed: COMMERCIAL_FEED,
@@ -774,8 +775,8 @@ describe('AssignCardFeed', () => {
             );
 
             unmount();
-            goBackSpy.mockRestore();
-            setAssignCardStepAndDataSpy.mockRestore();
+            mockedSetAssignCardStepAndData.mockClear();
+            mockedGoBack.mockClear();
             await waitForBatchedUpdatesWithAct();
         });
 
