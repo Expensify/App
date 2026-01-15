@@ -5729,6 +5729,16 @@ const CONST = {
     },
 
     /**
+     * Feature flag to disable the missingAttendees violation feature.
+     * Set to true to disable the feature if regressions are found.
+     * When true:
+     * - Prevents new missingAttendees violations from being created
+     * - Removes existing missingAttendees violations from transaction lists
+     * - Hides "Require attendees" toggle in category settings
+     */
+    IS_ATTENDEES_REQUIRED_FEATURE_DISABLED: true,
+
+    /**
      * Constants for types of violation.
      */
     VIOLATION_TYPES: {
