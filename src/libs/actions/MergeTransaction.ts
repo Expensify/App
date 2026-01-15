@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
-import type {UpdateMoneyRequestData} from './IOU';
+import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU';
 
 /**
  * Setup merge transaction data for merging flow
@@ -205,7 +205,7 @@ function getOnyxTargetTransactionData({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
 }) {
-    let data: UpdateMoneyRequestData;
+    let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Compare mergeTransaction with targetTransaction and remove fields with same values
