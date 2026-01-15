@@ -8080,6 +8080,15 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Miembros',
             findMember: 'Buscar miembro',
         },
+        groups: {
+            title: 'Grupos',
+            memberCount: () => {
+                return {
+                    one: '1 miembro',
+                    other: (count: number) => `${count} miembros`,
+                };
+            },
+        },
     },
     gps: {
         tooltip: '¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.',
