@@ -21,6 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
+import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -29,7 +30,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -63,14 +63,27 @@ function TransactionListItem<TItem extends ListItem>({
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
+    // Use active policy (user's current workspace) as fallback for self DM tracking expenses
+    // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    // Use report's policyID as fallback when transaction doesn't have policyID directly
+    // Use active policy as final fallback for SelfDM (tracking expenses)
+    // NOTE: Using || instead of ?? to treat empty string "" as falsy
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyID;
+    const [parentPolicy] = originalUseOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: (policy) => policy?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+    });
     const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
-    }, [snapshot, transactionItem.policyID]);
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {}) as Policy;
+    }, [snapshot, policyID]);
+    // Fetch policy categories directly from Onyx since they are not included in the search snapshot
+    const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {canBeMissing: true});
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {canBeMissing: true});
-    const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(transactionItem.policyID)}`, {canBeMissing: true});
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
@@ -122,20 +135,34 @@ function TransactionListItem<TItem extends ListItem>({
         transactionItem.shouldShowYearExported,
     ]);
 
-    // Use parentReport/parentPolicy as fallbacks when snapshotReport/snapshotPolicy are empty
-    // to fix offline issues where newly created reports aren't in the search snapshot yet
-    const reportForViolations = isEmptyObject(snapshotReport) ? parentReport : snapshotReport;
-    const policyForViolations = isEmptyObject(snapshotPolicy) ? parentPolicy : snapshotPolicy;
+    // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
+    // like isAttendeeTrackingEnabled is not missing
+    // Use snapshotReport/snapshotPolicy as fallbacks to fix offline issues where
+    // newly created reports aren't in the search snapshot yet
+    const policyForViolations = parentPolicy ?? snapshotPolicy;
+    const reportForViolations = parentReport ?? snapshotReport;
 
     const transactionViolations = useMemo(() => {
-        return mergeProhibitedViolations(
-            (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
-                (violation: TransactionViolation) =>
-                    !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations) &&
-                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transactionItem),
-            ),
+        const onyxViolations = (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
+            (violation: TransactionViolation) =>
+                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations) &&
+                shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transactionItem),
         );
-    }, [policyForViolations, reportForViolations, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID]);
+
+        // Sync missingAttendees violation with current policy category settings (can be removed later when BE handles this)
+        // Use live transaction data (attendees, category) to ensure we check against current state, not stale snapshot
+        const attendeeOnyxViolations = syncMissingAttendeesViolation(
+            onyxViolations,
+            policyCategories,
+            transaction?.category ?? transactionItem.category ?? '',
+            transaction?.comment?.attendees ?? transactionItem.attendees,
+            currentUserDetails,
+            policyForViolations?.isAttendeeTrackingEnabled ?? false,
+            policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
+        );
+
+        return mergeProhibitedViolations(attendeeOnyxViolations);
+    }, [policyForViolations, reportForViolations, policyCategories, transactionItem, currentUserDetails, violations]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
