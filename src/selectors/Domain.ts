@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, Domain, DomainPendingActions, DomainSettings, SamlMetadata} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
@@ -37,7 +37,7 @@ function adminAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
 
     return (
         Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
-            if (!key.startsWith(ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX) || value === undefined || value === null) {
+            if (!key.startsWith(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX) || value === undefined || value === null) {
                 return acc;
             }
 
@@ -55,6 +55,40 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
     };
 };
 
+/**
+ * Extracts a list of member IDs (accountIDs) from the domain object.
+ * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
+ * and returns a unique list of numbers.
+ *
+ * @param domain - The domain object from Onyx
+ * @returns An array of unique member account IDs
+ */
+function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
+    if (!domain) {
+        return getEmptyArray<number>();
+    }
+
+    const memberIDs = Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
+        if (key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX)) {
+            const securityGroup = value as DomainSecurityGroup;
+
+            const sharedMembers = securityGroup?.shared ?? {};
+
+            for (const id of Object.keys(sharedMembers)) {
+                const accountID = Number(id);
+                if (!Number.isNaN(accountID)) {
+                    acc.push(accountID);
+                }
+            }
+        }
+        return acc;
+    }, []);
+
+    const uniqueIDs = [...new Set(memberIDs)];
+
+    return uniqueIDs.length > 0 ? uniqueIDs : getEmptyArray<number>();
+}
+
 const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
@@ -66,7 +100,8 @@ export {
     domainNameSelector,
     metaIdentitySelector,
     adminAccountIDsSelector,
-    technicalContactSettingsSelector,
+    memberAccountIDsSelector,
     domainEmailSelector,
     adminPendingActionSelector,
+    technicalContactSettingsSelector,
 };
