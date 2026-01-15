@@ -1433,14 +1433,14 @@ describe('CardUtils', () => {
 
             it('should return encryptedCardNumber from cardList for commercial feeds', () => {
                 const cardList = {
-                    '490901XXXXXX1234': 'v12:74E3CA3C4C0FA02FDCF754FENCRYPTED1',
-                    '490901XXXXXX5678': 'v12:74E3CA3C4C0FA02FDCF754FENCRYPTED2',
+                    '490901XXXXXX1234': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1',
+                    '490901XXXXXX5678': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED2',
                 };
                 const cardName = '490901XXXXXX1234';
 
                 const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
 
-                expect(result).toBe('v12:74E3CA3C4C0FA02FDCF754FENCRYPTED1');
+                expect(result).toBe('v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1');
                 expect(result).not.toBe(cardName);
             });
 
