@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getValidWaypoints} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -17,7 +18,7 @@ import type {TranslationParameters, TranslationPaths} from '@src/languages/types
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {GpsPoint} from './index';
@@ -215,6 +216,20 @@ function createTransaction({
     }
 }
 
+function getMoneyRequestParticipantOptions(
+    currentUserAccountID: number,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+): Array<Participant | OptionData> {
+    const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
+    return selectedParticipants.map((participant) => {
+        const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
+    });
+}
+
 function handleMoneyRequestStepScanParticipants({
     iouType,
     policy,
@@ -275,11 +290,7 @@ function handleMoneyRequestStepScanParticipants({
     // to the confirmation step.
     // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (!initialTransaction?.isFromGlobalCreate && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
-        const participants = selectedParticipants.map((participant) => {
-            const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-            return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
-        });
+        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, reportAttributesDerived);
 
         if (shouldSkipConfirmation) {
             const firstReceiptFile = files.at(0);
@@ -485,11 +496,8 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
-        const participants = selectedParticipants.map((participant) => {
-            const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-            return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
-        });
+        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, reportAttributesDerived);
+
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
