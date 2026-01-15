@@ -51,7 +51,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
-    
+
     const handleRemoveUser = useCallback(() => {
         showConfirmModal({
             danger: true,

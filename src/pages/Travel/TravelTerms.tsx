@@ -108,63 +108,61 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
     // Add beta support for FullPageNotFound that is universal across travel pages
     return (
-        <>
-            <ScreenWrapper
-                shouldEnableMaxHeight
-                testID="TravelTerms"
-            >
-                <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
-                    <HeaderWithBackButton
-                        title={translate('travel.termsAndConditions.header')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                    />
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
-                        <View style={styles.flex1}>
-                            <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
-                            <View style={[styles.renderHTML, styles.mt4]}>
-                                <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
-                            </View>
-                            <CheckboxWithLabel
-                                style={styles.mt6}
-                                accessibilityLabel={translate('travel.termsAndConditions.label')}
-                                onInputChange={toggleTravelTerms}
-                                label={translate('travel.termsAndConditions.label')}
-                            />
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            testID="TravelTerms"
+        >
+            <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
+                <HeaderWithBackButton
+                    title={translate('travel.termsAndConditions.header')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
+                    <View style={styles.flex1}>
+                        <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
+                        <View style={[styles.renderHTML, styles.mt4]}>
+                            <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
                         </View>
-
-                        <FormAlertWithSubmitButton
-                            buttonText={translate('common.continue')}
-                            isDisabled={!hasAcceptedTravelTerms}
-                            onSubmit={() => {
-                                if (!hasAcceptedTravelTerms) {
-                                    setErrorMessage(translate('travel.termsAndConditions.error'));
-                                    return;
-                                }
-                                if (errorMessage) {
-                                    setErrorMessage('');
-                                }
-
-                                asyncOpenURL(
-                                    acceptSpotnanaTerms(domain, policyID).then((response) => {
-                                        if (response?.jsonCode !== 200) {
-                                            return Promise.reject();
-                                        }
-                                        if (response?.spotnanaToken) {
-                                            return buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
-                                        }
-                                    }),
-                                    (travelDotURL) => travelDotURL ?? '',
-                                );
-                            }}
-                            message={errorMessage}
-                            isAlertVisible={!!errorMessage}
-                            containerStyles={[styles.mh0, styles.mt5]}
-                            isLoading={isLoading}
+                        <CheckboxWithLabel
+                            style={styles.mt6}
+                            accessibilityLabel={translate('travel.termsAndConditions.label')}
+                            onInputChange={toggleTravelTerms}
+                            label={translate('travel.termsAndConditions.label')}
                         />
-                    </ScrollView>
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        </>
+                    </View>
+
+                    <FormAlertWithSubmitButton
+                        buttonText={translate('common.continue')}
+                        isDisabled={!hasAcceptedTravelTerms}
+                        onSubmit={() => {
+                            if (!hasAcceptedTravelTerms) {
+                                setErrorMessage(translate('travel.termsAndConditions.error'));
+                                return;
+                            }
+                            if (errorMessage) {
+                                setErrorMessage('');
+                            }
+
+                            asyncOpenURL(
+                                acceptSpotnanaTerms(domain, policyID).then((response) => {
+                                    if (response?.jsonCode !== 200) {
+                                        return Promise.reject();
+                                    }
+                                    if (response?.spotnanaToken) {
+                                        return buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
+                                    }
+                                }),
+                                (travelDotURL) => travelDotURL ?? '',
+                            );
+                        }}
+                        message={errorMessage}
+                        isAlertVisible={!!errorMessage}
+                        containerStyles={[styles.mh0, styles.mt5]}
+                        isLoading={isLoading}
+                    />
+                </ScrollView>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
     );
 }
 

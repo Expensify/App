@@ -53,7 +53,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
     const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isUserPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
-    
+
     const handleRemoveUser = useCallback(() => {
         showConfirmModal({
             danger: true,
