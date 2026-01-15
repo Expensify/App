@@ -217,11 +217,10 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
 }
 
 /**
- * Ensure all write requests on the sequential queue have finished responding before running read requests.
- * Responses from read requests can overwrite the optimistic data inserted by
- * write requests that use the same Onyx keys and haven't responded yet.
+ * Ensure all write requests on the sequential queue have finished responding before running a command.
+ * Responses from requests can overwrite the optimistic data inserted by write requests that use the same Onyx keys and haven't responded yet.
  */
-function waitForWrites<TCommand extends ReadCommand>(command: TCommand) {
+function waitForWrites<TCommand extends ReadCommand | WriteCommand | SideEffectRequestCommand>(command: TCommand) {
     if (getPersistedRequestsLength() > 0) {
         Log.info(`[API] '${command}' is waiting on ${getPersistedRequestsLength()} write commands`);
     }
