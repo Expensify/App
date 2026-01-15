@@ -87,8 +87,8 @@ function isSubmitAction(
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     violations?: OnyxCollection<TransactionViolation[]>,
-    currentUserEmail?: string,
-    currentUserAccountID?: number,
+    currentUserEmail: string | undefined,
+    currentUserAccountID: number | undefined,
     reportMetadata?: OnyxEntry<ReportMetadata>,
 ) {
     if (isArchivedReport(reportNameValuePairs)) {

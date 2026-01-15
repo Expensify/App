@@ -3046,7 +3046,7 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
     }
 }
 
-function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
+function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin: string | undefined) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
         {text: translate('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
         {text: translate('common.expenseReport'), value: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
