@@ -439,6 +439,32 @@ describe('mergeTransactionRequest', () => {
         };
         const mergeTransactionID = 'merge789';
 
+        // Sample violations for testing
+        const targetViolations: TransactionViolation[] = [
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                showInReview: true,
+            },
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.MISSING_TAG,
+                showInReview: true,
+            },
+        ];
+        const sourceViolations: TransactionViolation[] = [
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                showInReview: true,
+            },
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.OVER_LIMIT,
+                showInReview: true,
+            },
+        ];
+
         // Set up initial state in Onyx
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
@@ -461,6 +487,9 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
+            targetTransactionThreadReport: {reportID: 'target-report-456'},
+            targetTransactionThreadParentReport: undefined,
         });
 
         await mockFetch?.resume?.();
