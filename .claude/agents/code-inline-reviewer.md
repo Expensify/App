@@ -901,6 +901,9 @@ addPrReaction.sh <PR_NUMBER>
 <Reasoning>
 
 <Suggested, specific fix preferably with a code snippet>
+
+---
+Was this suggestion helpful? React with 👍 or 👎 to help us improve.
 ```
 
 **CRITICAL**: You must actually call the createInlineComment.sh script for each violation. Don't just describe what you found - create the actual inline comments!
