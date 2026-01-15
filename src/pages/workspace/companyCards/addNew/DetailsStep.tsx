@@ -62,7 +62,7 @@ function DetailsStep() {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID], translate);
 
             switch (feedProvider) {
                 case CONST.COMPANY_CARD.FEED_BANK_NAME.VISA:

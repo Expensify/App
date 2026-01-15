@@ -30,7 +30,7 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.website && !isValidWebsite(Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
                 errors.website = translate('bankAccount.error.website');

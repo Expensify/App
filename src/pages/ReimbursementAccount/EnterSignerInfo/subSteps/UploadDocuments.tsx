@@ -69,7 +69,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
             setIsPDSandFSGDownloadedTouched(true);
-            return getFieldRequiredErrors(values, STEP_FIELDS);
+            return getFieldRequiredErrors(values, STEP_FIELDS, translate);
         },
         [STEP_FIELDS],
     );

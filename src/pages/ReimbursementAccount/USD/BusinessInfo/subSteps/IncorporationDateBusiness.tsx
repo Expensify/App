@@ -28,7 +28,7 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.incorporationDate && !isValidDate(values.incorporationDate)) {
                 errors.incorporationDate = translate('common.error.dateInvalid');

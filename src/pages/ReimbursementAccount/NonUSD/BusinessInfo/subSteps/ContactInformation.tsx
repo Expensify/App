@@ -33,7 +33,7 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values[BUSINESS_CONTACT_NUMBER] && !isValidPhoneInternational(values[BUSINESS_CONTACT_NUMBER])) {
                 errors[BUSINESS_CONTACT_NUMBER] = translate('common.error.phoneNumber');

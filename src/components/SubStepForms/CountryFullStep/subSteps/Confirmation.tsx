@@ -67,7 +67,7 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     };
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return getFieldRequiredErrors(values, [COUNTRY]);
+        return getFieldRequiredErrors(values, [COUNTRY], translate);
     }, []);
 
     useEffect(() => {
