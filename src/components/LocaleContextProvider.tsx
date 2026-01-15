@@ -81,8 +81,6 @@ const LocaleContext = createContext<LocaleContextProps>({
     preferredLocale: undefined,
 });
 
-const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
-
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
@@ -136,7 +134,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails?.timezone?.selected]);
 
-    const collator = useMemo(() => new Intl.Collator(currentLocale, COLLATOR_OPTIONS), [currentLocale]);
+    const collator = useMemo(() => new Intl.Collator(currentLocale, CONST.COLLATOR_OPTIONS), [currentLocale]);
 
     const translate = useMemo<LocaleContextProps['translate']>(
         () =>

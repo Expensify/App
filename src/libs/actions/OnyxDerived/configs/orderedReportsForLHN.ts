@@ -9,13 +9,27 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 let isFullyComputed = false;
 
-const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
+// Cache the collator to avoid creating a new one on every compute
+let cachedCollator: Intl.Collator | null = null;
+let cachedLocale: string | null = null;
 
 /**
  * Helper to create locale comparison function from a locale string (because we can't call useLocalize in this file)
  */
 function createLocaleCompare(locale: string | null | undefined): (a: string, b: string) => number {
-    const collator = new Intl.Collator(locale ?? CONST.LOCALES.DEFAULT, COLLATOR_OPTIONS);
+    const effectiveLocale = locale ?? CONST.LOCALES.DEFAULT;
+
+    // Reuse cached collator if locale hasn't changed
+    if (cachedCollator && cachedLocale === effectiveLocale) {
+        const collator = cachedCollator;
+        return (a, b) => collator.compare(a, b);
+    }
+
+    // Create and cache new collator
+    cachedCollator = new Intl.Collator(effectiveLocale, CONST.COLLATOR_OPTIONS);
+    cachedLocale = effectiveLocale;
+
+    const collator = cachedCollator;
     return (a, b) => collator.compare(a, b);
 }
 
@@ -152,21 +166,6 @@ export default createOnyxDerivedValueConfig({
         const shouldDoIncrementalUpdate = reportsToUpdate.size > 0 && isFullyComputed && !!currentValue;
         let reportsToDisplay: ReportsToDisplayInLHN = {};
 
-        // Convert policies to the expected format for SidebarUtils
-        const partialPolicies: OnyxCollection<PartialPolicyForSidebar> = {};
-        if (policies) {
-            for (const [key, policy] of Object.entries(policies)) {
-                if (policy) {
-                    partialPolicies[key] = {
-                        type: policy.type,
-                        name: policy.name,
-                        avatarURL: policy.avatarURL,
-                        employeeList: policy.employeeList,
-                    };
-                }
-            }
-        }
-
         if (shouldDoIncrementalUpdate) {
             // Incremental update
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
@@ -184,6 +183,22 @@ export default createOnyxDerivedValueConfig({
         } else {
             // Full computation
             Log.info('[orderedReportsForLHN] building reportsToDisplay from scratch');
+
+            // Convert policies to the expected format for SidebarUtils
+            const partialPolicies: OnyxCollection<PartialPolicyForSidebar> = {};
+            if (policies) {
+                for (const [key, policy] of Object.entries(policies)) {
+                    if (policy) {
+                        partialPolicies[key] = {
+                            type: policy.type,
+                            name: policy.name,
+                            avatarURL: policy.avatarURL,
+                            employeeList: policy.employeeList,
+                        };
+                    }
+                }
+            }
+
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
                 undefined,
                 reports,

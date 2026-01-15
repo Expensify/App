@@ -3012,6 +3012,13 @@ const CONST = {
 
     LOCALES,
 
+    COLLATOR_OPTIONS: {
+        usage: 'sort',
+        sensitivity: 'variant',
+        numeric: true,
+        caseFirst: 'upper',
+    } as Intl.CollatorOptions,
+
     PRONOUNS_LIST: [
         'coCos',
         'eEyEmEir',
