@@ -124,6 +124,8 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                   hasFailedCardAssignment: false,
                   assignedCard,
                   cardholder: assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined,
+                  errors: assignedCard?.errors,
+                  pendingAction: assignedCard?.pendingAction,
               };
           }) ?? []);
 
