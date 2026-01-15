@@ -80,7 +80,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         },
         [displayReport, ownerAccountID],
     );
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true, selector: personalDetailsSelector});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true, selector: personalDetailsSelector}, [personalDetailsSelector]);
     const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');

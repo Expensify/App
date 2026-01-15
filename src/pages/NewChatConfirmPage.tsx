@@ -62,7 +62,7 @@ function NewChatConfirmPage() {
         },
         [participantAccountIDs],
     );
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false, selector: personalDetailsSelector});
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false, selector: personalDetailsSelector}, [personalDetailsSelector]);
     const icons = useMemoizedLazyExpensifyIcons(['Camera']);
 
     const selectedOptions = useMemo((): Participant[] => {

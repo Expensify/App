@@ -97,7 +97,7 @@ function ProfilePage({route}: ProfilePageProps) {
         },
         [accountID, loginParams],
     );
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true, selector: personalDetailsSelector});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true, selector: personalDetailsSelector}, [personalDetailsSelector]);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportKey = useMemo(() => {
         const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
