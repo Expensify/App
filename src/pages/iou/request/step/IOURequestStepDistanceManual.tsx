@@ -348,7 +348,7 @@ function IOURequestStepDistanceManual({
         if (isLoadingSelectedTab) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Clear form error when tab changes
         setFormError('');
     }, [selectedTab, isLoadingSelectedTab]);
 
