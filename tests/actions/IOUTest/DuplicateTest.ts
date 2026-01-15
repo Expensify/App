@@ -727,16 +727,20 @@ describe('actions/Duplicate', () => {
 
         it('should create a duplicate time expense successfully', async () => {
             const transactionID = 'time-1';
+            const HOURLY_RATE = 9.99;
+            const HOURS_WORKED = 15;
+            const AMOUNT_CENTS = Math.round(HOURS_WORKED * HOURLY_RATE * 100);
+
             const mockTimeExpenseTransaction = {
                 ...mockTransaction,
                 transactionID,
-                amount: 14995,
+                amount: AMOUNT_CENTS,
                 comment: {
                     type: 'time' as const,
                     units: {
                         unit: 'h' as const,
-                        count: 15,
-                        rate: 9.99,
+                        count: HOURS_WORKED,
+                        rate: HOURLY_RATE,
                     },
                 },
             };
@@ -765,13 +769,15 @@ describe('actions/Duplicate', () => {
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                 waitForCollectionCallback: true,
                 callback: (allTransactions) => {
-                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                    const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
+                    expect(transactions).toHaveLength(1);
+                    duplicatedTransaction = transactions.at(0);
                 },
             });
 
             expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
-            expect(duplicatedTransaction?.comment?.units?.count).toEqual(15);
-            expect(duplicatedTransaction?.comment?.units?.rate).toEqual(9.99);
+            expect(duplicatedTransaction?.comment?.units?.count).toEqual(HOURS_WORKED);
+            expect(duplicatedTransaction?.comment?.units?.rate).toEqual(HOURLY_RATE);
             expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
             expect(duplicatedTransaction?.comment?.type).toBe('time');
             expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
