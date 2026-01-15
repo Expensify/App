@@ -4991,7 +4991,7 @@ function deleteAppReport(
     reportID: string | undefined,
     currentUserEmailParam: string,
     reportTransactions: Record<string, Transaction>,
-    transactionsViolations: Record<string, TransactionViolations>,
+    allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
 ) {
     if (!reportID) {
@@ -5106,7 +5106,7 @@ function deleteAppReport(
         // 1. Update the transaction and its violations
         if (transactionID) {
             const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const transactionViolations = transactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
 
             optimisticData.push(
                 {
@@ -5331,7 +5331,7 @@ function deleteAppReport(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID, currentUserEmailParam, bankAccountList)},
+            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID, currentUserEmailParam, allTransactionViolations, bankAccountList)},
         });
     }
 

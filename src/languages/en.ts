@@ -59,6 +59,7 @@ import type {
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
+    MultifactorAuthenticationTranslationParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
     NextStepParams,
@@ -544,10 +545,6 @@ const translations = {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
-        downloadFailedEmptyReportDescription: () => ({
-            one: "You can't export an empty report.",
-            other: () => `You can't export empty reports.`,
-        }),
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
@@ -739,6 +736,35 @@ const translations = {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
+    },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Biometrics test',
+            authenticationSuccessful: 'Authentication successful',
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `You’ve successfully authenticated using ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometrics (${registered ? 'Registered' : 'Not registered'})`,
+            yourAttemptWasUnsuccessful: 'Your authentication attempt was unsuccessful.',
+            youCouldNotBeAuthenticated: 'You couldn’t be authenticated',
+            areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
+            rejectAuthentication: 'Reject authentication',
+            test: 'Test',
+            biometricsAuthentication: 'Biometrics authentication',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Please enable face/fingerprint verification or set a device passcode in your ',
+            link: 'system settings',
+            end: '.',
+        },
+        oops: 'Oops, something went wrong',
+        looksLikeYouRanOutOfTime: 'Looks like you ran out of time! Please try again at the merchant.',
+        youRanOutOfTime: 'You ran out of time',
+        letsVerifyItsYou: 'Let’s verify it’s you',
+        verifyYourself: {
+            biometrics: 'Verify yourself with your face or fingerprint',
+        },
+        enableQuickVerification: {
+            biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1189,14 +1215,8 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
-        deleteReport: () => ({
-            one: 'Delete report',
-            other: 'Delete reports',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Are you sure that you want to delete this report?',
-            other: 'Are you sure that you want to delete these reports?',
-        }),
+        deleteReport: 'Delete report',
+        deleteReportConfirmation: 'Are you sure that you want to delete this report?',
         settledExpensify: 'Paid',
         done: 'Done',
         settledElsewhere: 'Paid elsewhere',
@@ -6120,6 +6140,10 @@ const translations = {
                 title: 'Category rules',
                 approver: 'Approver',
                 requireDescription: 'Require description',
+                requireFields: 'Require fields',
+                requiredFieldsTitle: 'Required fields',
+                requiredFieldsDescription: (categoryName: string) => `This will apply to all expenses categorized as <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Require attendees',
                 descriptionHint: 'Description hint',
                 descriptionHintDescription: (categoryName: string) =>
                     `Remind employees to provide additional information for “${categoryName}” spend. This hint appears in the description field on expenses.`,
@@ -7157,6 +7181,7 @@ const translations = {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
+        missingAttendees: 'Multiple attendees required for this category',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7884,7 +7909,13 @@ const translations = {
             cantRevokeAdminAccess: "Can't revoke admin access from the technical contact",
             error: {
                 removeAdmin: 'Unable to remove this user as an Admin. Please try again.',
+                removeDomain: 'Unable to remove this domain. Please try again.',
+                removeDomainNameInvalid: 'Please enter your domain name to reset it.',
             },
+            resetDomain: 'Reset domain',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `Please type <strong>${domainName}</strong> to confirm the domain reset.`,
+            enterDomainName: 'Enter your domain name here',
+            resetDomainInfo: `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <ul><li>Company card connections and any unreported expenses from those cards</li> <li>SAML and group settings</li> </ul> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/>Note: You can clear this domain from your domains list by removing the associated email from your <a href="#">contact methods</a>.`,
         },
         members: {
             title: 'Members',
