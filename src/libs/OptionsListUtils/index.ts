@@ -659,7 +659,7 @@ function getLastMessageTextForReport({
             : undefined;
         // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
-            const reportName = computeReportName(iouReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+            const reportName = computeReportName(iouReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
@@ -961,7 +961,7 @@ function createOption(
             allReportNameValuePairs,
             personalDetailsForCompute,
             allReportActions,
-            currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserAccountID,
         );
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')

@@ -166,7 +166,7 @@ function TaskAssigneeSelectorModal() {
             if (report) {
                 if (option.accountID !== report.managerID) {
                     const {report: assigneeChatReport, isOptimisticReport} = setAssigneeValue(
-                        currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserPersonalDetails.accountID,
                         assigneePersonalDetails,
                         report.reportID,
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
@@ -176,7 +176,7 @@ function TaskAssigneeSelectorModal() {
                     editTaskAssignee(
                         report,
                         parentReport,
-                        currentUserPersonalDetails.accountID,
+                        currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         option?.login ?? '',
                         currentUserPersonalDetails.accountID,
                         hasOutstandingChildTask,
