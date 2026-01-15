@@ -348,6 +348,7 @@ function IOURequestStepDistanceManual({
         if (isLoadingSelectedTab) {
             return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setFormError('');
     }, [selectedTab, isLoadingSelectedTab]);
 
@@ -378,6 +379,7 @@ function IOURequestStepDistanceManual({
                 style={styles.iouAmountTextInput}
                 containerStyle={styles.iouAmountTextInputContainer}
                 autoGrowExtraSpace={variables.w80}
+                touchableInputWrapperStyle={styles.heightUndefined}
                 errorText={formError}
                 footer={
                     <Button
