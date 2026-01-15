@@ -38,7 +38,7 @@ import {handlePreventSearchAPI, queueExportSearchWithTemplate} from '@libs/actio
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
@@ -726,6 +726,10 @@ function MoneyRequestReportActionsList({
                                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
                                 Navigation.goBack(backToRoute);
 
+                                if (!backToRoute && !navigationRef.canGoBack()) {
+                                    handleDeleteTransactions();
+                                    return;
+                                }
                                 // When deleting IOUs on the search route, as soon as Navigation.goBack returns to the search route,
                                 // the search API may be triggered.
                                 // At this point, the transaction has not yet been deleted on the server, which causes the report

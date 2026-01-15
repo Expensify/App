@@ -43,7 +43,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {
@@ -1549,6 +1549,11 @@ function MoneyReportHeader({
             if (shouldNavigateBack) {
                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
                 Navigation.goBack(backToRoute);
+
+                if (!backToRoute && !navigationRef.canGoBack()) {
+                    handleDeleteTransactions();
+                    return;
+                }
 
                 // When deleting IOUs on the search route, as soon as Navigation.goBack returns to the search route,
                 // the search API may be triggered.
