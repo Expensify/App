@@ -416,10 +416,7 @@ ___
 *To ensure proposals are measurable and based on realistic scenarios, you must meet the following criteria:*
 
 - [ ] **Test Environment:** I tested on a high-traffic account (instructions to create this [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts)).
-- [ ] **Thresholds:** My proposal meets **at least one** of the following:
-    - [ ] > 20% reduction in Render Count
-    - [ ] > 20% reduction in Execution Time
-    - [ ] > 100ms reduction in Perceived Latency
+- [ ] **Thresholds:** My proposal reduces Perceived Latency by at least 100ms
 
 ## 5. Pattern Detection & Prevention
 *Can we prevent this from happening again?*
