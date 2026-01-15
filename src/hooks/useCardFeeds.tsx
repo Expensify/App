@@ -1,5 +1,5 @@
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
-import {getAllCardFeedsStatus, getCombinedCardFeedsFromAllFeeds} from '@libs/CardFeedUtils';
+import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CombinedCardFeed, CombinedCardFeeds, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardFeedsStatus} from '@src/types/onyx/CardFeeds';
@@ -32,9 +32,9 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
         workspaceFeeds = getCombinedCardFeedsFromAllFeeds(allFeeds, shouldIncludeFeedPredicate);
     }
 
-    const cardFeedsStatus = getAllCardFeedsStatus(allFeeds);
+    const workspaceCardFeedsStatus = getWorkspaceCardFeedsStatus(allFeeds);
 
-    return [workspaceFeeds, allFeedsResult, defaultFeed, cardFeedsStatus];
+    return [workspaceFeeds, allFeedsResult, defaultFeed, workspaceCardFeedsStatus];
 };
 
 export default useCardFeeds;

@@ -173,6 +173,11 @@ type CardFeedsStatus = {
     errors?: OnyxCommon.Errors;
 };
 
+/**
+ * Collection of card feeds status by domain ID
+ */
+type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
+
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
@@ -284,6 +289,7 @@ export type {
     CardFeedProvider,
     CardFeedData,
     CardFeedsStatus,
+    CardFeedsStatusByDomainID,
     CompanyFeeds,
     CompanyCardFeedWithDomainID,
     CustomCardFeedData,

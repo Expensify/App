@@ -27,7 +27,7 @@ type UseCompanyCardsResult = Partial<{
     assignedCards: CardList;
     cardNames: string[];
     allCardFeeds: CombinedCardFeeds;
-    cardFeedsStatus: CardFeedsStatus;
+    workspaceCardFeedsStatus: CardFeedsStatus;
     companyCardFeeds: CompanyFeeds;
     selectedFeed: CombinedCardFeed;
 }> & {
@@ -49,7 +49,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
     const policyIDKey = policyID || CONST.DEFAULT_MISSING_ID;
 
     const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDKey}`, {canBeMissing: true});
-    const [allCardFeeds, allCardFeedsMetadata, defaultFeed, cardFeedsStatus] = useCardFeeds(policyID);
+    const [allCardFeeds, allCardFeedsMetadata, , workspaceCardFeedsStatus] = useCardFeeds(policyID);
 
     const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);
     const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
@@ -87,7 +87,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
 
     return {
         allCardFeeds,
-        cardFeedsStatus,
+        workspaceCardFeedsStatus,
         feedName,
         companyCardFeeds,
         cardList,

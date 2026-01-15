@@ -57,7 +57,7 @@ function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, compa
         feedName,
         cardList,
         assignedCards,
-        cardFeedsStatus,
+        workspaceCardFeedsStatus: cardFeedsStatus,
         cardNames,
         cardFeedType,
         selectedFeed,

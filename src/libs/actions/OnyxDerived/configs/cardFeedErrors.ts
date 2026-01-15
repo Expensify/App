@@ -1,11 +1,10 @@
-import type {LETTER_DEFAULTS} from '@libs/Avatars/PresetAvatarCatalog';
 import {getCombinedCardFeedsFromAllFeeds} from '@libs/CardFeedUtils';
 import {getCompanyCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
-import type {CardErrors, CardFeedErrorsObject, FeedErrors} from '@src/types/onyx/DerivedValues';
+import type {CardErrors, CardFeedErrorsObject} from '@src/types/onyx/DerivedValues';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 export default createOnyxDerivedValueConfig({
@@ -49,7 +48,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             const hasFeedError = feedNameWithDomainID ? !!selectedFeed?.errors : false;
-            let isFeedConnectionBroken = isCardConnectionBroken(card);
+            const isFeedConnectionBroken = isCardConnectionBroken(card);
             const shouldShowRBR = hasFailedCardAssignments || hasFeedError || isFeedConnectionBroken;
 
             if (isFeedConnectionBroken) {
