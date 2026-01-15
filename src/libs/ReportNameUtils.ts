@@ -353,7 +353,13 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     return payerPaidAmountMessage;
 }
 
-function computeReportNameBasedOnReportAction(translate: LocalizedTranslate, parentReportAction?: ReportAction, report?: Report, reportPolicy?: Policy, parentReport?: Report): string | undefined {
+function computeReportNameBasedOnReportAction(
+    translate: LocalizedTranslate,
+    parentReportAction?: ReportAction,
+    report?: Report,
+    reportPolicy?: Policy,
+    parentReport?: Report,
+): string | undefined {
     if (!parentReportAction) {
         return undefined;
     }
@@ -531,7 +537,13 @@ function computeReportNameBasedOnReportAction(translate: LocalizedTranslate, par
     return undefined;
 }
 
-function computeChatThreadReportName(translate: LocalizedTranslate, report: Report, reportNameValuePairs: ReportNameValuePairs, reports: OnyxCollection<Report>, parentReportAction?: ReportAction): string | undefined {
+function computeChatThreadReportName(
+    translate: LocalizedTranslate,
+    report: Report,
+    reportNameValuePairs: ReportNameValuePairs,
+    reports: OnyxCollection<Report>,
+    parentReportAction?: ReportAction,
+): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
     }
