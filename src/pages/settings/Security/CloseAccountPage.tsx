@@ -33,8 +33,6 @@ function CloseAccountPage() {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
 
-    const [reasonForLeaving, setReasonForLeaving] = useState('');
-
     const {showConfirmModal} = useConfirmModal();
     const showCloseAccountWarningModal = useCallback(() => {
         return showConfirmModal({
@@ -55,8 +53,7 @@ function CloseAccountPage() {
     useEffect(() => () => clearError(), []);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
-        setReasonForLeaving(values.reasonForLeaving);
-        void (async () => {
+        (async () => {
             const result = await showCloseAccountWarningModal();
             if (result.action !== ModalActions.CONFIRM) {
                 return;

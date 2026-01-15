@@ -342,7 +342,7 @@ function SecuritySettingsPage() {
                 modalClose(() => {
                     setShouldShowDelegatePopoverMenu(false);
                     setSelectedEmail(undefined);
-                    void (async () => {
+                    (async () => {
                         const result = await showRemoveCopilotModal();
                         if (result.action === ModalActions.CLOSE) {
                             setSelectedDelegate(undefined);
