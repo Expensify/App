@@ -5469,6 +5469,10 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
+    MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE: {
+        SUCCESS: 'success',
+        FAILURE: 'failure',
+    },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
         ERR_2FA: 'err_2fa',
