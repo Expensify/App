@@ -1810,9 +1810,9 @@ function getReportSections({
                 const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
                 const policy = getPolicyFromKey(data, reportItem);
 
-                let hasPendingReportState;
+                let isReportStatePending;
                 if (actionFromQuery && isValidActionFilter(actionFromQuery)) {
-                    hasPendingReportState = !actionFilterMapping[actionFromQuery](reportItem);
+                    isReportStatePending = !actionFilterMapping[actionFromQuery](reportItem);
                 }
 
                 const hasAnyViolationsForReport = hasAnyViolations(
@@ -1847,7 +1847,7 @@ function getReportSections({
                     formattedFrom,
                     formattedTo,
                     formattedStatus,
-                    hasPendingReportState,
+                    isReportStatePending,
                     transactions,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                     shouldShowYear: shouldShowYearCreatedReport,

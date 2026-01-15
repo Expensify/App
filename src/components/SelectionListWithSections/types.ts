@@ -437,7 +437,7 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         exported?: string;
 
         /** Whether the report's state/status is pending */
-        hasPendingReportState?: boolean;
+        isReportStatePending?: boolean;
 
         /**
          * Whether we should show the report year.

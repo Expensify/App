@@ -13,7 +13,7 @@ type StatusCellProps = {
     /** The statusNum of the report */
     statusNum?: number;
 
-    /** Whether the report's state/status is pending*/
+    /** Whether the report's state/status is pending */
     isPending?: boolean;
 };
 

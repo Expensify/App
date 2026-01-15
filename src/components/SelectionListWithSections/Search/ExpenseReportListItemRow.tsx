@@ -113,7 +113,7 @@ function ExpenseReportListItemRow({
                 <StatusCell
                     stateNum={item.stateNum}
                     statusNum={item.statusNum}
-                    isPending={item.hasPendingReportState}
+                    isPending={item.isReportStatePending}
                 />
             </View>
         ),
