@@ -232,8 +232,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         visibleTransactions,
     ]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
+    const shouldShowAccessErrorPage = useMemo(
         (): boolean => {
             if (isLoadingApp !== false) {
                 return false;
@@ -248,15 +247,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportID, reportMetadata?.isLoadingInitialReportActions],
     );
-    const prevShouldShowNotFoundPage = usePrevious(shouldShowNotFoundPage);
+    const prevShouldShowAccessErrorPage = usePrevious(shouldShowAccessErrorPage);
     const participantCount = Object.keys(report?.participants ?? {}).length;
 
     useEffect(() => {
-        if (!shouldShowNotFoundPage || prevShouldShowNotFoundPage) {
+        if (!shouldShowAccessErrorPage || prevShouldShowAccessErrorPage) {
             return;
         }
 
-        Log.info('[SearchMoneyRequestReportPage] shouldShowNotFoundPage changed to true', false, {
+        Log.info('[SearchMoneyRequestReportPage] shouldShowAccessErrorPage changed to true', false, {
             reportIDFromRoute,
             reportID,
             doesReportIDLookValid,
@@ -276,11 +275,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         isLoadingApp,
         ownerAccountID,
         participantCount,
-        prevShouldShowNotFoundPage,
+        prevShouldShowAccessErrorPage,
         reportID,
         reportIDFromRoute,
         reportMetadata?.isLoadingInitialReportActions,
-        shouldShowNotFoundPage,
+        shouldShowAccessErrorPage,
     ]);
 
     return (
@@ -293,7 +292,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         offlineIndicatorStyle={styles.mtAuto}
                     >
                         <FullPageNotFoundView
-                            shouldShow={shouldShowNotFoundPage}
+                            shouldShow={shouldShowAccessErrorPage}
                             subtitleKey="notFound.noAccess"
                             subtitleStyle={[styles.textSupporting]}
                             shouldDisplaySearchRouter
