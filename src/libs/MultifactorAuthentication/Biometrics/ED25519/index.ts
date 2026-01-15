@@ -2,26 +2,27 @@ import {etc, hashes, keygen, sign, verify} from '@noble/ed25519';
 import type {Bytes} from '@noble/ed25519';
 import {sha256, sha512} from '@noble/hashes/sha2';
 import {utf8ToBytes} from '@noble/hashes/utils';
-import {Buffer} from 'buffer';
 import 'react-native-get-random-values';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
-import type {Base64URL, ChallengeFlags, MultifactorAuthenticationChallengeObject, SignedChallenge} from './types';
+import Base64URL from '@src/utils/Base64URL';
+import type {Base64URLString} from '@src/utils/Base64URL';
+import type {ChallengeFlags, MultifactorAuthenticationChallengeObject, SignedChallenge} from './types';
 
 /**
  * ED25519 helpers used to construct and sign multifactor authentication challenges.
  * Wraps `@noble/ed25519` to produce WebAuthn-like payloads that the server can verify.
  */
+
+/**
+ * Required polyfills for React Native to support ED25519 cryptographic operations.
+ * Provides implementations for getRandomValues and SHA-512 hashing.
+ * It is required for internal operations, even if it is not explicitly used in the app code.
+ * @see https://github.com/paulmillr/noble-ed25519?tab=readme-ov-file#react-native-polyfill-getrandomvalues-and-sha512
+ */
 hashes.sha512 = sha512;
 hashes.sha512Async = (m: Uint8Array) => Promise.resolve(sha512(m));
 
 const {hexToBytes, concatBytes, bytesToHex, randomBytes} = etc;
-
-/**
- * Converts a string into a URL-safe base64 representation.
- */
-function base64URL(value: string): Base64URL {
-    return Buffer.from(value).toString('base64').replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
-}
 
 /**
  * Generates a new ED25519 key pair encoded as hex strings.
@@ -30,8 +31,13 @@ function generateKeyPair() {
     const {secretKey, publicKey} = keygen();
 
     return {
+        /**
+         * The private key is stored in hex as it is not exchanged with the API,
+         * and the @noble library works great with Hex<->Bytes operations
+         * */
         privateKey: bytesToHex(secretKey),
-        publicKey: bytesToHex(publicKey),
+
+        publicKey: Base64URL.encode(publicKey),
     };
 }
 
@@ -41,64 +47,92 @@ function generateKeyPair() {
  */
 function createFlag(up: boolean, uv: boolean): ChallengeFlags {
     let flag = 0;
+
+    // Set bit 0
+    // (User Presence, user touched the security key or interacted with the authenticator)
     if (up) {
-        flag |= 0x01; // Set bit 0
+        flag |= 0x01;
     }
+
+    // Set bit 2
+    // (User Verified, user has successfully authenticated with the authenticator)
     if (uv) {
-        flag |= 0x04; // Set bit 2
+        flag |= 0x04;
     }
+
     return flag;
 }
 /* eslint-enable no-bitwise */
 
 /**
- * Creates the binary authenticator data buffer for a relying party identifier.
- * The result is in a form of concatBytes of the RPID, FLAGS, and SIGN_COUNT.
+ * Creates the binary authenticator data buffer for a Relying Party Identifier.
+ * The result is in the form of concatBytes of the RPID, FLAGS, and SIGN_COUNT.
+ *
+ * RPID - Relying Party Identifier Hash (SHA-256 hash of the rpId)
+ * FLAGS - Bitmask describing user presence and verification state
+ *
+ * SIGN_COUNT - This exists to support hardware authenticator devices.
+ * It contains a monotonically increasing integer. The API currently will not validate this field.
+ *
+ * @see https://www.w3.org/TR/webauthn-2/#sctn-authenticator-data
  */
 function createBinaryData(rpId: string): Bytes {
     const rpIdBytes = utf8ToBytes(rpId);
-    const RPID = sha256(rpIdBytes);
 
+    // Per WebAuthn spec, RPID is hashed to guarantee a consistent length
+    const hashedRpId = sha256(rpIdBytes);
+
+    // User Presence (UP) is true, User Verification (UV) is true
+    // This is because we only create challenges after successful biometric verification
     const flagsArray = new Uint8Array([createFlag(true, true)]);
 
-    const signCount = 0; // Not used in our implementation
+    const signCount = 0;
 
+    // Creating a 4-byte buffer for the signCount
     const buffer = new ArrayBuffer(4);
+
     const view = new DataView(buffer);
-    view.setUint32(0, signCount, false); // writing the signCount as a big-endian 32-bit integer
+
+    // Writing the signCount as a big-endian 32-bit integer because WebAuthn expects it in this format
+    view.setUint32(0, signCount, false);
+
+    // Creating a Uint8Array from the buffer to get the byte representation
     const signCountArray = new Uint8Array(buffer);
 
-    return concatBytes(RPID, flagsArray, signCountArray);
+    // Concatenate hashedRpId, flagsArray, and signCountArray to form the final binary data
+    return concatBytes(hashedRpId, flagsArray, signCountArray);
 }
 
 /**
  * Signs a multifactor authentication challenge for the given account identifier and key.
  * Returns a WebAuthn-compatible signed challenge structure.
  */
-function signToken(accountID: number, token: MultifactorAuthenticationChallengeObject, key: string): SignedChallenge {
-    const rawId: Base64URL = base64URL(`${accountID}_${VALUES.KEY_ALIASES.PUBLIC_KEY}`);
+function signToken(token: MultifactorAuthenticationChallengeObject, privateKey: string): SignedChallenge {
+    const rawId: Base64URLString = Base64URL.encode(VALUES.KEY_ALIASES.PUBLIC_KEY);
     const type = VALUES.ED25519_TYPE;
 
     const binaryData = createBinaryData(token.rpId);
-    const authenticatorData: Base64URL = base64URL(bytesToHex(binaryData));
+    const authenticatorData: Base64URLString = Base64URL.encode(binaryData);
 
     const tokenBytes = utf8ToBytes(JSON.stringify(token));
 
+    // Since the token can be of variable length, it is hashed to guarantee that binaryData is always a fixed length.
+    // This comes from the WebAuthN spec, with which we maintain compatibility here for easier interoperability on the backend.
     const message = concatBytes(binaryData, sha256(tokenBytes));
-    const keyInBytes = hexToBytes(key);
+    const keyInBytes = hexToBytes(privateKey);
 
     const signatureRaw = sign(message, keyInBytes);
-    const signature: Base64URL = base64URL(bytesToHex(signatureRaw));
+    const signature: Base64URLString = Base64URL.encode(signatureRaw);
 
     return {
         rawId,
         type,
         response: {
             authenticatorData,
-            clientDataJSON: base64URL(JSON.stringify(token)),
+            clientDataJSON: Base64URL.encode(JSON.stringify(token)),
             signature,
         },
     };
 }
 
-export {generateKeyPair, signToken, createBinaryData, hexToBytes, concatBytes, sha256, utf8ToBytes, verify, bytesToHex, randomBytes, base64URL};
+export {generateKeyPair, signToken, createBinaryData, concatBytes, sha256, utf8ToBytes, verify, randomBytes};

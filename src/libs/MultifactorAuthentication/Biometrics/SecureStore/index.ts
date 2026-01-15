@@ -4,6 +4,8 @@ import type {SecureStoreMethods, SecureStoreValues} from './types';
 /**
  * Platform SecureStore constants used by the multifactor authentication biometrics flow.
  * Normalizes supported auth types and storage policies exposed by `expo-secure-store`.
+ *
+ * @see https://docs.expo.dev/versions/latest/sdk/securestore/
  */
 const SECURE_STORE_VALUES = {
     AUTH_TYPE: {
@@ -36,6 +38,10 @@ const SECURE_STORE_VALUES = {
             NAME: 'OpticID',
         },
     },
+    /**
+     * A flag that ensures data is stored securely and is only accessible
+     * when the device has at least passcode set and is currently unlocked.
+     */
     WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: SecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
 } as const satisfies SecureStoreValues;
 
