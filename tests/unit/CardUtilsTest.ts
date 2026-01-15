@@ -23,7 +23,6 @@ import {
     getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
-    getEncryptedCardNumber,
     getFeedType,
     getFilteredCardList,
     getMonthFromExpirationDateString,
@@ -33,6 +32,7 @@ import {
     getSelectedFeed,
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
+    hasOnlyOneCardToAssign,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
@@ -731,37 +731,31 @@ describe('CardUtils', () => {
     });
 
     describe('getFilteredCardList', () => {
-        it('Should return filtered custom feed cards list', () => {
+        it('Should return filtered custom feed cards list as UnassignedCard array', () => {
             const cardsList = getFilteredCardList(customFeedCardsList, undefined, undefined);
-            expect(cardsList).toStrictEqual({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '480801XXXXXX2566': 'ENCRYPTED_CARD_NUMBER',
-            });
+            expect(cardsList).toStrictEqual([
+                {cardName: '480801XXXXXX2111', cardID: 'ENCRYPTED_CARD_NUMBER'},
+                {cardName: '480801XXXXXX2566', cardID: 'ENCRYPTED_CARD_NUMBER'},
+            ]);
         });
 
-        it('Should return filtered direct feed cards list with a single card', () => {
+        it('Should return filtered direct feed cards list with a single card (cardName equals cardID)', () => {
             const cardsList = getFilteredCardList(directFeedCardsSingleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE].accountList, undefined);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            expect(cardsList).toStrictEqual({'CREDIT CARD...6607': 'CREDIT CARD...6607'});
+            expect(cardsList).toStrictEqual([{cardName: 'CREDIT CARD...6607', cardID: 'CREDIT CARD...6607'}]);
         });
 
-        it('Should return filtered direct feed cards list with multiple cards', () => {
+        it('Should return filtered direct feed cards list with multiple cards (cardName equals cardID)', () => {
             const cardsList = getFilteredCardList(directFeedCardsMultipleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE].accountList, undefined);
-            expect(cardsList).toStrictEqual({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                'CREDIT CARD...1233': 'CREDIT CARD...1233',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                'CREDIT CARD...3333': 'CREDIT CARD...3333',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                'CREDIT CARD...7788': 'CREDIT CARD...7788',
-            });
+            expect(cardsList).toStrictEqual([
+                {cardName: 'CREDIT CARD...1233', cardID: 'CREDIT CARD...1233'},
+                {cardName: 'CREDIT CARD...3333', cardID: 'CREDIT CARD...3333'},
+                {cardName: 'CREDIT CARD...7788', cardID: 'CREDIT CARD...7788'},
+            ]);
         });
 
-        it('Should return empty object if no data was provided', () => {
+        it('Should return empty array if no data was provided', () => {
             const cardsList = getFilteredCardList(undefined, undefined, undefined);
-            expect(cardsList).toStrictEqual({});
+            expect(cardsList).toStrictEqual([]);
         });
 
         it('Should handle the case when all cards are already assigned in other workspaces', () => {
@@ -796,7 +790,7 @@ describe('CardUtils', () => {
                 },
             } as unknown as WorkspaceCardsList;
             const filteredCards = getFilteredCardList(customFeedWithAllAssignedCards, undefined, mockAllWorkspaceCards);
-            expect(filteredCards).toStrictEqual({});
+            expect(filteredCards).toStrictEqual([]);
         });
 
         it('Should filter out cards that are already assigned in another workspace (custom feed)', () => {
@@ -834,7 +828,7 @@ describe('CardUtils', () => {
             } as unknown as WorkspaceCardsList;
 
             const filteredCards = getFilteredCardList(customFeedWorkspaceCardsList, undefined, undefined);
-            expect(filteredCards).toStrictEqual({});
+            expect(filteredCards).toStrictEqual([]);
         });
 
         it('Should filter out cards that are already assigned in another workspace (direct feed)', () => {
@@ -864,7 +858,26 @@ describe('CardUtils', () => {
             } as unknown as OnyxCollection<WorkspaceCardsList>;
             const accountList = [assignedCard1, assignedCard2, unassignedCard];
             const filteredCards = getFilteredCardList(undefined, accountList, mockAllWorkspaceCards);
-            expect(filteredCards).toStrictEqual({[`${unassignedCard}`]: unassignedCard});
+            expect(filteredCards).toStrictEqual([{cardName: unassignedCard, cardID: unassignedCard}]);
+        });
+    });
+
+    describe('hasOnlyOneCardToAssign', () => {
+        it('should return true when there is exactly one unassigned card', () => {
+            const cards = [{cardName: 'VISA ****1234', cardID: 'encrypted_123'}];
+            expect(hasOnlyOneCardToAssign(cards)).toBe(true);
+        });
+
+        it('should return false when there are multiple unassigned cards', () => {
+            const cards = [
+                {cardName: 'VISA ****1234', cardID: 'encrypted_123'},
+                {cardName: 'VISA ****5678', cardID: 'encrypted_456'},
+            ];
+            expect(hasOnlyOneCardToAssign(cards)).toBe(false);
+        });
+
+        it('should return false when there are no unassigned cards', () => {
+            expect(hasOnlyOneCardToAssign([])).toBe(false);
         });
     });
 
@@ -1427,91 +1440,66 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('encryptedCardNumber transformation for card assignment', () => {
-        describe('Custom/Commercial feeds (VCF, MCF, etc.)', () => {
-            const isDirectCardFeed = false;
+    describe('UnassignedCard type through getFilteredCardList', () => {
+        describe('Commercial feeds (VCF, MCF, etc.) - cardID is encrypted value', () => {
+            it('should return UnassignedCard with cardID being the encrypted value from cardList', () => {
+                const workspaceCardsList = {
+                    cardList: {
+                        '490901XXXXXX1234': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1',
+                        '490901XXXXXX5678': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED2',
+                    },
+                } as unknown as WorkspaceCardsList;
 
-            it('should return encryptedCardNumber from cardList for commercial feeds', () => {
-                const cardList = {
-                    '490901XXXXXX1234': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1',
-                    '490901XXXXXX5678': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED2',
-                };
-                const cardName = '490901XXXXXX1234';
+                const result = getFilteredCardList(workspaceCardsList, undefined, undefined);
+                const firstCard = result.at(0);
 
-                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
-
-                expect(result).toBe('v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1');
-                expect(result).not.toBe(cardName);
+                expect(result).toHaveLength(2);
+                expect(firstCard).toEqual({
+                    cardName: '490901XXXXXX1234',
+                    cardID: 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1',
+                });
+                expect(firstCard?.cardName).not.toBe(firstCard?.cardID);
             });
 
-            it('should return correct encryptedCardNumber when cardName differs from encryptedCardNumber', () => {
-                // This is the bug fix scenario - ensuring we get the actual encrypted value
-                // and not the cardName/cardID
-                const cardList = {
-                    'VISA ****1234': 'encrypted_abc123xyz',
-                    'VISA ****5678': 'encrypted_def456uvw',
-                };
-                const cardName = 'VISA ****1234';
+            it('should correctly distinguish cardName from cardID for commercial feeds', () => {
+                const workspaceCardsList = {
+                    cardList: {
+                        'VISA ****1234': 'encrypted_abc123xyz',
+                    },
+                } as unknown as WorkspaceCardsList;
 
-                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
+                const result = getFilteredCardList(workspaceCardsList, undefined, undefined);
+                const firstCard = result.at(0);
 
-                expect(result).toBe('encrypted_abc123xyz');
-                expect(result).not.toBe(cardName);
-            });
-
-            it('should return empty string when cardName is not found in cardList', () => {
-                const cardList = {
-                    '490901XXXXXX1234': 'v12:encrypted1',
-                };
-                const cardName = '490901XXXXXX9999'; // Not in cardList
-
-                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
-
-                expect(result).toBe('');
-            });
-
-            it('should return empty string when cardList is undefined', () => {
-                const cardName = '490901XXXXXX1234';
-
-                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, undefined);
-
-                expect(result).toBe('');
+                expect(firstCard?.cardName).toBe('VISA ****1234');
+                expect(firstCard?.cardID).toBe('encrypted_abc123xyz');
+                expect(firstCard?.cardName).not.toBe(firstCard?.cardID);
             });
         });
 
-        describe('Direct feeds (Plaid, OAuth - Chase, etc.)', () => {
-            const isDirectCardFeed = true;
+        describe('Direct feeds (Plaid, OAuth) - cardName equals cardID', () => {
+            it('should return UnassignedCard with cardID equal to cardName for direct feeds', () => {
+                const accountList = ['CREDIT CARD...6607', 'CREDIT CARD...1234'];
 
-            it('should return cardName as encryptedCardNumber for direct feeds', () => {
-                const cardName = 'CREDIT CARD...6607';
-                const cardList = undefined; // Direct feeds typically don't populate cardList
+                const result = getFilteredCardList(undefined, accountList, undefined);
+                const firstCard = result.at(0);
 
-                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
-
-                expect(result).toBe(cardName);
-                expect(result).toBe('CREDIT CARD...6607');
+                expect(result).toHaveLength(2);
+                expect(firstCard).toEqual({
+                    cardName: 'CREDIT CARD...6607',
+                    cardID: 'CREDIT CARD...6607',
+                });
+                expect(firstCard?.cardName).toBe(firstCard?.cardID);
             });
 
-            it('should return cardName for Plaid feeds', () => {
-                const cardName = 'Plaid Checking 0000';
-                const cardList = undefined;
+            it('should return cardName equal to cardID for Plaid feeds', () => {
+                const accountList = ['Plaid Checking 0000'];
 
-                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
+                const result = getFilteredCardList(undefined, accountList, undefined);
+                const firstCard = result.at(0);
 
-                expect(result).toBe('Plaid Checking 0000');
-            });
-
-            it('should return cardName even if cardList has data (direct feed takes precedence)', () => {
-                // Edge case: even if cardList exists, direct feeds should use cardName
-                const cardList = {
-                    'CREDIT CARD...6607': 'some_encrypted_value',
-                };
-                const cardName = 'CREDIT CARD...6607';
-
-                const result = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
-
-                expect(result).toBe(cardName);
-                expect(result).not.toBe('some_encrypted_value');
+                expect(firstCard?.cardName).toBe('Plaid Checking 0000');
+                expect(firstCard?.cardID).toBe('Plaid Checking 0000');
             });
         });
     });
