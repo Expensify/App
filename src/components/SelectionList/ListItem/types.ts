@@ -334,9 +334,6 @@ type SplitListItemType = ListItem &
         onSplitExpenseValueChange: (transactionID: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => void;
 
         onInputFocus?: (item: SplitListItemType) => void;
-
-        /** Whether to allow negative amounts in the input */
-        allowNegativeAmount?: boolean;
     };
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
