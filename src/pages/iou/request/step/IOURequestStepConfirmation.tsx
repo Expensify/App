@@ -61,8 +61,8 @@ import {
 } from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
+    getAttendees,
     getDefaultTaxCode,
-    getOriginalAttendees,
     getRateID,
     getRequestType,
     getValidWaypoints,
@@ -306,9 +306,9 @@ function IOURequestStepConfirmation({
                 }
                 return participant.accountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, policyTags, translate, reportAttributesDerived, reportDrafts);
+                    : getReportOption(participant, policyTags, translate, policy, reportAttributesDerived, reportDrafts);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, policyTags, translate, reportAttributesDerived, reportDrafts],
+        [transaction?.participants, iouType, personalDetails, policyTags, translate, policy, reportAttributesDerived, reportDrafts],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
@@ -1398,7 +1398,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getOriginalAttendees(transaction, currentUserPersonalDetails)}
+                        iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}

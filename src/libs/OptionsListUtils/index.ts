@@ -995,6 +995,7 @@ function getReportOption(
     participant: Participant,
     policyTags: OnyxEntry<PolicyTagLists>,
     translate: LocalizedTranslate,
+    policy: OnyxEntry<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     reportDrafts?: OnyxCollection<Report>,
 ): OptionData {
@@ -1028,7 +1029,6 @@ function getReportOption(
         option.alternateText = translateLocal('workspace.common.workspace');
 
         if (report?.policyID) {
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
             const submitToAccountID = getSubmitToAccountID(policy, report);
             const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
             const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
