@@ -22,6 +22,7 @@ import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -155,6 +156,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const activePolicy = useActivePolicy();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
     const backTo = route.params.backTo;
@@ -181,6 +183,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -328,13 +331,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
-                leaveGroupChat(report.reportID, quickAction?.chatReportID?.toString() === report.reportID);
+                leaveGroupChat(report.reportID, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID);
                 return;
             }
             const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-            leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+            leaveRoom(report.reportID, currentUserPersonalDetails.accountID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report]);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
@@ -440,6 +443,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         CONST.IOU.ACTION.SUBMIT,
                         actionableWhisperReportActionID,
                         introSelected,
+                        activePolicy,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                     );
@@ -453,7 +457,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.CATEGORIZE, actionableWhisperReportActionID, introSelected);
+                        createDraftTransactionAndNavigateToParticipantSelector(
+                            iouTransactionID,
+                            actionReportID,
+                            CONST.IOU.ACTION.CATEGORIZE,
+                            actionableWhisperReportActionID,
+                            introSelected,
+                            activePolicy,
+                        );
                     },
                 });
                 items.push({
@@ -463,7 +474,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SHARE, actionableWhisperReportActionID, introSelected);
+                        createDraftTransactionAndNavigateToParticipantSelector(
+                            iouTransactionID,
+                            actionReportID,
+                            CONST.IOU.ACTION.SHARE,
+                            actionableWhisperReportActionID,
+                            introSelected,
+                            activePolicy,
+                        );
                     },
                 });
             }
@@ -584,6 +602,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         introSelected,
+        activePolicy,
         parentReport,
     ]);
 
@@ -616,6 +635,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         report={report}
                         policy={policy}
                         participants={participants}
+                        currentUserAccountID={currentUserPersonalDetails.accountID}
                     />
                 </View>
             );
@@ -671,6 +691,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         participants,
         moneyRequestReport?.reportID,
         expensifyIcons.Camera,
+        currentUserPersonalDetails?.accountID,
     ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, !!reportNameValuePairs?.private_isArchived);
@@ -679,7 +700,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const result: PromotedAction[] = [];
 
         if (canJoin) {
-            result.push(PromotedActions.join(report));
+            result.push(PromotedActions.join(report, currentUserPersonalDetails.accountID));
         }
 
         if (report) {
@@ -689,7 +710,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         result.push(PromotedActions.share(report, backTo));
 
         return result;
-    }, [canJoin, report, backTo]);
+    }, [canJoin, report, backTo, currentUserPersonalDetails.accountID]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
@@ -851,6 +872,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isSingleTransactionView,
                 isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
+                allTransactionViolationsParam: allTransactionViolations,
             });
         } else if (iouTransactionID) {
             deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, isSingleTransactionView);
