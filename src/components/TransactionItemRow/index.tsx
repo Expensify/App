@@ -605,7 +605,6 @@ function TransactionItemRow({
             isTaxAmountColumnWide,
             isLargeScreenWidth,
             currentUserAccountID,
-            hash,
             reportActions,
         ],
     );

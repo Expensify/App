@@ -5998,7 +5998,7 @@ function getReportName(
             receiverPolicy: invoiceReceiverPolicy,
             personalDetails,
             policies,
-            currentUserAccountID: currentUserAccountID,
+            currentUserAccountID,
         });
     }
 
@@ -6020,7 +6020,7 @@ function getReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails, currentUserAccountID: currentUserAccountID});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails, currentUserAccountID});
 
     const finalName = formattedName || (report?.reportName ?? '');
 

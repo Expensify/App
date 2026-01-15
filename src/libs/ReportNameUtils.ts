@@ -743,7 +743,7 @@ function computeReportName(
             receiverPolicyID = (receiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = receiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`] : undefined;
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID: currentUserAccountID});
+        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID});
     }
 
     if (isSelfDM(report)) {
@@ -764,7 +764,7 @@ function computeReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID: currentUserAccountID});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID});
 
     const finalName = formattedName ?? report?.reportName ?? '';
 
