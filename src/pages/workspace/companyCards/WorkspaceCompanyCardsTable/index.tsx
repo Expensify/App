@@ -102,16 +102,20 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
         : (cardNames?.map((cardName) => {
-            const encryptedCardNumber = isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
-            const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : (card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName));
-            const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
-            const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
-            const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
-            const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            const isAssigned = !!assignedCard;
-            
-            return {cardName, encryptedCardNumber, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder};
-        }) ?? []);
+              const encryptedCardNumber = isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
+              const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName);
+              const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
+
+              return {
+                  cardName,
+                  encryptedCardNumber,
+                  customCardName: assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined,
+                  isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                  isAssigned: !!assignedCard,
+                  assignedCard,
+                  cardholder: assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined,
+              };
+          }) ?? []);
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
 

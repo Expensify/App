@@ -305,5 +305,5 @@ export type {
     CardLimitType,
     FilteredCardList,
     ProvisioningCardData,
-    AssignableCardsList
+    AssignableCardsList,
 };
