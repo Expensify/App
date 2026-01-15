@@ -384,7 +384,11 @@ function MoneyRequestConfirmationListFooter({
 
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
-    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
+    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest || isScan;
+    const shouldHideAutoFillValues = isScan && !shouldShowSmartScanFields;
+    const amountDisplayValue = shouldHideAutoFillValues ? '' : formattedAmount;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const dateDisplayValue = shouldHideAutoFillValues ? '' : (iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     // Determines whether the tax fields can be modified.
     // The tax fields can only be modified if the component is not in read-only mode
     // and it is not a distance request.
@@ -475,7 +479,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
                     shouldShowRightIcon={!isReadOnly && !isDistanceRequest}
-                    title={formattedAmount}
+                    title={amountDisplayValue}
                     description={translate('iou.amount')}
                     interactive={!isReadOnly}
                     onPress={() => {
@@ -492,10 +496,12 @@ function MoneyRequestConfirmationListFooter({
                     disabled={didConfirm}
                     brickRoadIndicator={shouldDisplayFieldError && isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayFieldError && isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
+                    rightLabel={getRightLabel('amount')}
+                    rightLabelIcon={getRightLabelIcon('amount')}
                 />
             ),
-            shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
-            isRequired: true,
+            shouldShow: (shouldShowSmartScanFields || isScan) && shouldShowAmountField,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -529,7 +535,7 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: true,
-            isRequired: true,
+            shouldShowAboveShowMore: true,
         },
         {
             item: (
@@ -557,7 +563,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
-            isRequired: true,
+            shouldShowAboveShowMore: true,
         },
         {
             item: (
@@ -595,7 +601,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
-            isRequired: false,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -623,7 +629,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowMerchant,
-            isRequired: false,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -670,15 +676,14 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowCategories,
-            isRequired: false,
+            shouldShowAboveShowMore: isCategoryRequired,
         },
         {
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.date')}
                     shouldShowRightIcon={!isReadOnly}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                    title={dateDisplayValue}
                     description={translate('common.date')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -693,10 +698,12 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayFieldError && isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayFieldError && isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                    rightLabel={getRightLabel('date', true)}
+                    rightLabelIcon={getRightLabelIcon('date')}
                 />
             ),
             shouldShow: shouldShowDate,
-            isRequired: false,
+            shouldShowAboveShowMore: false,
         },
         ...policyTagLists.map(({name}, index) => {
             const tagVisibilityItem = tagVisibility.at(index);
@@ -730,7 +737,7 @@ function MoneyRequestConfirmationListFooter({
                     />
                 ),
                 shouldShow,
-                isRequired: false,
+                shouldShowAboveShowMore: isTagRequired,
             };
         }),
         {
@@ -754,7 +761,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
-            isRequired: false,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -777,7 +784,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
-            isRequired: false,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -802,7 +809,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowAttendees,
-            isRequired: false,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -822,7 +829,7 @@ function MoneyRequestConfirmationListFooter({
             ),
             shouldShow: shouldShowReimbursable,
             isSupplementary: true,
-            isRequired: false,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -841,7 +848,7 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: shouldShowBillable,
-            isRequired: false,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -863,7 +870,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isPolicyExpenseChat,
-            isRequired: false,
+            shouldShowAboveShowMore: false,
         },
     ];
 
@@ -1147,11 +1154,14 @@ function MoneyRequestConfirmationListFooter({
                     </View>
                 )}
 
-                {fields.filter((field) => field.shouldShow && (field.isRequired ?? false)).map((field) => field.item)}
+                {fields.filter((field) => field.shouldShow && (field.shouldShowAboveShowMore ?? false)).map((field) => field.item)}
 
-                {!shouldRestrictHeight && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => <View key={field.item.key}>{field.item}</View>)}
+                {!shouldRestrictHeight &&
+                    fields
+                        .filter((field) => field.shouldShow && !(field.shouldShowAboveShowMore ?? false))
+                        .map((field) => <View key={field.item.key}>{field.item}</View>)}
 
-                {shouldRestrictHeight && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
+                {shouldRestrictHeight && fields.some((field) => field.shouldShow && !(field.shouldShowAboveShowMore ?? false)) && (
                     <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
                         <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
                         <Button
