@@ -561,7 +561,11 @@ function getCompanyCardFeedWithDomainID(feedName: CompanyCardFeedWithNumber, dom
     return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
 }
 
-function splitCompanyCardFeedWithDomainID(feedName: CompanyCardFeedWithDomainID): {feedName: CompanyCardFeed; domainID: number | undefined} {
+function splitCompanyCardFeedWithDomainID(feedName: CompanyCardFeedWithDomainID | undefined): {feedName: CompanyCardFeed | undefined; domainID: number | undefined} {
+    if (!feedName) {
+        return {feedName: undefined, domainID: undefined};
+    }
+
     const feedNameParts = feedName.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
 
     if (feedNameParts.length !== 2) {
@@ -845,7 +849,7 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
         return '' as CompanyCardFeed;
     }
 
-    return splitCompanyCardFeedWithDomainID(feedWithDomainID as CompanyCardFeedWithDomainID).feedName;
+    return splitCompanyCardFeedWithDomainID(feedWithDomainID as CompanyCardFeedWithDomainID).feedName ?? ('' as CompanyCardFeed);
 }
 
 /**
