@@ -2690,6 +2690,8 @@ function getWorkspaceCategoriesUpdatedMessage(action: ReportAction): string {
 
 function getWorkspaceTaxUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {taxName, oldValue, newValue, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX>) ?? {};
+    const normalizeTaxValue = (value: unknown): string | number | boolean | undefined =>
+        typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? value : undefined;
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX && taxName) {
         return translate('workspaceActions.addTax', {taxName});
@@ -2700,7 +2702,12 @@ function getWorkspaceTaxUpdateMessage(translate: LocalizedTranslate, action: Rep
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX && taxName) {
-        return translate('workspaceActions.updateTax', {taxName, oldValue, newValue, updatedField});
+        return translate('workspaceActions.updateTax', {
+            taxName,
+            updatedField,
+            oldValue: normalizeTaxValue(oldValue),
+            newValue: normalizeTaxValue(newValue),
+        });
     }
 
     return getReportActionText(action);
@@ -2849,7 +2856,7 @@ function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, a
     const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (customUnitName && rateName) {
-        return translate('workspaceActions.addCustomUnitRate', customUnitName, rateName);
+        return translate('workspaceActions.addCustomUnitRate', {customUnitName, rateName});
     }
 
     return getReportActionText(action);
@@ -2943,7 +2950,7 @@ function getWorkspaceReportFieldAddMessage(translate: LocalizedTranslate, action
     const {fieldName, fieldType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (fieldName && fieldType) {
-        return translate('workspaceActions.addedReportField', translate(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(), fieldName);
+        return translate('workspaceActions.addedReportField', {fieldType: translate(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(), fieldName});
     }
 
     return getReportActionText(action);
