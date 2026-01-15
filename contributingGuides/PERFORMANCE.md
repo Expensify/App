@@ -401,16 +401,27 @@ ___
 - [ ] Sentry (If you have access)
 
 ## 3. Before/After Metrics
-*Please fill out the table below. If a metric is not applicable, write N/A.*
+*Please fill out the metrics below. If a metric is not applicable, write N/A.*
 
-| Metric | Before | After | Improvement |
-| :--- | :--- | :--- | :--- |
-| **Render Count** | | | |
-| **Execution Time** | | | |
-| **Perceived Latency** | | | |
+*Render Count:*
+  - Before:
+  - After:
+  - Improvement:
 
-* **Device Used:** (e.g. iPhone 13, Pixel 6, Chrome on M1 Mac)
-* **Evidence:** *(Attach screenshots of the profiler or logs for both Before and After below this section)*
+*Execution Time:*
+  - Before:
+  - After:
+  - Improvement:
+
+*Perceived Latency:*
+  - Before:
+  - After:
+  - Improvement:
+
+*Device Used:* (e.g. iPhone 13, Pixel 6, Chrome on M1 Mac) - Note: Don't use CPU throttling for these measurements!
+  - Device CPU: ___
+  - Device RAM: ___
+*Evidence:* (Attach screenshots of the profiler or logs for both Before and After below this section)*
 
 ## 4. Prerequisites & Eligibility
 *To ensure proposals are measurable and based on realistic scenarios, you must meet the following criteria:*
@@ -423,10 +434,15 @@ ___
     - [ ] > 100ms reduction in Perceived Latency
 
 ## 5. Pattern Detection & Prevention
-*Can we prevent this from happening again?*
+*Is the code logic being optimized something that should be prevented from being added to the app in the future (e.g., via an ESLint rule)?*
+- [ ] Yes (Proposal: _________________)
+- [ ] No (It's a valid pattern, just unoptimized here)
+
+*Other*
 - [ ] **App-wide Audit:** I have checked for other places in the app that have this same performance problem and fixed them.
 - [ ] **Shared Refactor:** This fixes a shared utility/component (e.g., `Avatar.ts`) used across the app.
 - [ ] **Localized Fix:** This only affects this specific view.
+
 
 ## 6. Automated Tests & QA
 *Tests are required by default. If you cannot add them, explain why.*
