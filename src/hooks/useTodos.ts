@@ -1,4 +1,5 @@
 import {useMemo} from 'react';
+// We need direct access to useOnyx from react-native-onyx to avoid using snapshots for live to-do data
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
@@ -15,7 +16,7 @@ type TodoSearchResultsData = SearchResults['data'];
  */
 function buildSearchResultsData(
     reports: Report[],
-    allTransactions: Record<string, Transaction> | undefined,
+    transactionsByReportID: Record<string, Transaction[]>,
     allPolicies: Record<string, unknown> | undefined,
     allReportActions: Record<string, Record<string, unknown>> | undefined,
     allReportNameValuePairs: Record<string, unknown> | undefined,
@@ -50,12 +51,12 @@ function buildSearchResultsData(
                 data[actionsKey] = allReportActions[actionsKey];
             }
         }
-    }
 
-    if (allTransactions) {
-        const reportIDs = new Set(reports.map((r) => r.reportID));
-        for (const [transactionKey, transaction] of Object.entries(allTransactions)) {
-            if (transaction?.reportID && reportIDs.has(transaction.reportID)) {
+        // Add transactions for this report using the pre-computed mapping
+        const reportTransactions = transactionsByReportID[report.reportID];
+        if (reportTransactions) {
+            for (const transaction of reportTransactions) {
+                const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
                 data[transactionKey] = transaction;
 
                 if (transactionViolations) {
@@ -91,13 +92,13 @@ export default function useTodos() {
         const reportsToApprove: Report[] = [];
         const reportsToPay: Report[] = [];
         const reportsToExport: Report[] = [];
+        const transactionsByReportID: Record<string, Transaction[]> = {};
 
         const reports = allReports ? Object.values(allReports) : [];
         if (reports.length === 0) {
-            return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
+            return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
         }
 
-        const transactionsByReportID: Record<string, Transaction[]> = {};
         if (allTransactions) {
             for (const transaction of Object.values(allTransactions)) {
                 if (!transaction?.reportID) {
@@ -130,10 +131,10 @@ export default function useTodos() {
             }
         }
 
-        return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
+        return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
     }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, accountID, login, bankAccountList]);
 
-    const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport} = todos;
+    const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID} = todos;
 
     // Build SearchResults-formatted data for each to-do category
     const todoSearchResultsData = useMemo(() => {
@@ -144,7 +145,7 @@ export default function useTodos() {
             }
             return buildSearchResultsData(
                 reports,
-                allTransactions as Record<string, Transaction> | undefined,
+                transactionsByReportID,
                 allPolicies as Record<string, unknown> | undefined,
                 allReportActions as Record<string, Record<string, unknown>> | undefined,
                 allReportNameValuePairs as Record<string, unknown> | undefined,
@@ -164,7 +165,7 @@ export default function useTodos() {
         reportsToApprove,
         reportsToPay,
         reportsToExport,
-        allTransactions,
+        transactionsByReportID,
         allPolicies,
         allReportActions,
         allReportNameValuePairs,
@@ -173,7 +174,10 @@ export default function useTodos() {
     ]);
 
     return {
-        ...todos,
+        reportsToSubmit,
+        reportsToApprove,
+        reportsToPay,
+        reportsToExport,
         todoSearchResultsData,
     };
 }

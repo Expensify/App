@@ -1,4 +1,5 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+// We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 import useTodos from '@hooks/useTodos';
@@ -14,6 +15,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchContextData, SearchContextProps, SearchQueryJSON, SelectedTransactions} from './types';
 
 // Default search info when building from live data
+// Used for to-do searches where we build SearchResults from live Onyx data instead of API snapshots
 const defaultSearchInfo: SearchResultsInfo = {
     offset: 0,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
