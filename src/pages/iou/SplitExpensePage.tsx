@@ -322,6 +322,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
                 isEditable: (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
+                allowNegativeAmount: transaction?.iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             } as SplitListItemType;
         });
 

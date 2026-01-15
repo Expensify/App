@@ -49,7 +49,7 @@ function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplit
                 }}
                 allowExceedingHundred
                 allowDecimal
-                allowNegative
+                allowNegative={splitItem.allowNegativeAmount ?? true}
             />
         );
     }
