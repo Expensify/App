@@ -4,7 +4,7 @@ import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useConfirmModal from '@hooks/useConfirmModal';

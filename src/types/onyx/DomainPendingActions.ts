@@ -34,6 +34,11 @@ type DomainPendingAction = {
      * Pending action for the 2FA toggle
      */
     twoFactorAuthRequired?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the domain itself
+     */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 export default DomainPendingAction;

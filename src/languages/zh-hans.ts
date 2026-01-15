@@ -185,6 +185,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -745,6 +746,35 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
         signIn: '请重新登录。',
+    },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: '生物特征测试',
+            authenticationSuccessful: '认证成功',
+            successfullyAuthenticatedUsing: ({authType}) => `您已成功使用${authType}进行认证。`,
+            troubleshootBiometricsStatus: ({registered}) => `生物特征（${registered ? '已注册' : '未注册'}）`,
+            yourAttemptWasUnsuccessful: '您的认证尝试未成功。',
+            youCouldNotBeAuthenticated: '无法认证您',
+            areYouSureToReject: '您确定要拒绝吗？如果您关闭此屏幕，认证尝试将被拒绝。',
+            rejectAuthentication: '拒绝认证',
+            test: '测试',
+            biometricsAuthentication: '生物特征认证',
+        },
+        pleaseEnableInSystemSettings: {
+            start: '请在',
+            link: '系统设置',
+            end: '中启用面部/指纹验证或设置设备密码。',
+        },
+        oops: '哎呀，出错了',
+        looksLikeYouRanOutOfTime: '看起来你的时间用完了！请在商户处再试一次。',
+        youRanOutOfTime: '时间已经用完',
+        letsVerifyItsYou: '让我们验证是不是你',
+        verifyYourself: {
+            biometrics: '用你的脸部或指纹进行身份验证',
+        },
+        enableQuickVerification: {
+            biometrics: '使用您的脸部或指纹启用快速安全验证。无需密码或代码。',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -3052,6 +3082,7 @@ ${
         currencyHeader: '您的银行账户使用什么货币？',
         confirmationStepHeader: '检查您的信息。',
         confirmationStepSubHeader: '请仔细核对以下详情，并勾选条款复选框以确认。',
+        toGetStarted: '添加个人银行账户以接收报销、支付发票或启用 Expensify 钱包。',
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入 Expensify 密码',
@@ -6069,6 +6100,10 @@ ${reportName}
                 title: '类别规则',
                 approver: '审批人',
                 requireDescription: '要求描述',
+                requireFields: '必填字段',
+                requiredFieldsTitle: '必填项',
+                requiredFieldsDescription: (categoryName: string) => `这将适用于所有被归类为 <strong>${categoryName}</strong> 的费用。`,
+                requireAttendees: '要求与会者',
                 descriptionHint: '描述提示',
                 descriptionHintDescription: (categoryName: string) => `提醒员工为“${categoryName}”支出提供更多信息。此提示将显示在报销单的描述字段中。`,
                 descriptionHintLabel: '提示',
@@ -6441,6 +6476,8 @@ ${reportName}
             }
         },
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将自定义报表名称公式更改为“${newValue}”（之前为“${oldValue}”）`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser ? `将授权付款人更改为“${newReimburser}”（原为“${previousReimburser}”）` : `已将授权付款人更改为“${newReimburser}”`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7027,6 +7064,7 @@ ${reportName}
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `日期早于 ${maxAge} 天`,
         missingCategory: '缺少类别',
         missingComment: '所选类别需要填写描述',
+        missingAttendees: '此类别需要多个参与者',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `缺少 ${tagName ?? '标签'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7723,7 +7761,11 @@ ${reportName}
             addAdminError: '无法将此成员添加为管理员。请重试。',
             revokeAdminAccess: '撤销管理员访问权限',
             cantRevokeAdminAccess: '无法撤销技术联系人的管理员访问权限',
-            error: {removeAdmin: '无法将此用户移除管理员角色。请重试。'},
+            error: {removeAdmin: '无法将此用户从管理员中移除。请重试。', removeDomain: '无法移除此域名。请重试。', removeDomainNameInvalid: '请输入您的域名以重置。'},
+            resetDomain: '重置域名',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `请输入 <strong>${domainName}</strong> 以确认重置该域名。`,
+            enterDomainName: '在此输入您的域名',
+            resetDomainInfo: `此操作是<strong>永久性的</strong>，并且以下数据将被删除：<br/> <ul><li>公司卡连接以及这些卡片上所有未报销的费用</li> <li>SAML 和群组设置</li> </ul> 所有账户、工作区、报表、费用以及其他数据将会保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域名从您的域名列表中清除。`,
         },
         members: {
             title: '成员',

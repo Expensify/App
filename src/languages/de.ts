@@ -185,6 +185,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -749,6 +750,35 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wird gestartet',
         expired: 'Ihre Sitzung ist abgelaufen.',
         signIn: 'Bitte melden Sie sich erneut an.',
+    },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Biometrie-Test',
+            authenticationSuccessful: 'Authentifizierung erfolgreich',
+            successfullyAuthenticatedUsing: ({authType}) => `Du hast dich erfolgreich mit ${authType} authentifiziert.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometrie (${registered ? 'Registriert' : 'Nicht registriert'})`,
+            yourAttemptWasUnsuccessful: 'Dein Authentifizierungsversuch war nicht erfolgreich.',
+            youCouldNotBeAuthenticated: 'Sie konnten nicht authentifiziert werden',
+            areYouSureToReject: 'Bist du sicher? Der Authentifizierungsversuch wird abgelehnt, wenn du diesen Bildschirm schließt.',
+            rejectAuthentication: 'Authentifizierung ablehnen',
+            test: 'Test',
+            biometricsAuthentication: 'Biometrie-Authentifizierung',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Bitte aktivieren Sie die Gesichts-/Fingerabdrucküberprüfung oder setzen Sie eine Geräte-Passcode in Ihren ',
+            link: 'Systemeinstellungen',
+            end: '.',
+        },
+        oops: 'Hoppla, etwas ist schief gelaufen',
+        looksLikeYouRanOutOfTime: 'Sieht aus, als wäre deine Zeit abgelaufen! Bitte versuche es erneut beim Händler.',
+        youRanOutOfTime: 'Die Zeit ist abgelaufen',
+        letsVerifyItsYou: 'Lass uns überprüfen, ob du es bist',
+        verifyYourself: {
+            biometrics: 'Verifiziere dich mit deinem Gesicht oder Fingerabdruck',
+        },
+        enableQuickVerification: {
+            biometrics: 'Schnelle, sichere Verifizierung mit deinem Gesicht oder Fingerabdruck aktivieren. Keine Passwörter oder Codes erforderlich.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -3113,6 +3143,7 @@ ${
         currencyHeader: 'Was ist die Währung deines Bankkontos?',
         confirmationStepHeader: 'Überprüfen Sie Ihre Angaben.',
         confirmationStepSubHeader: 'Überprüfen Sie die untenstehenden Angaben und aktivieren Sie das Kontrollkästchen für die Bedingungen, um zu bestätigen.',
+        toGetStarted: 'Fügen Sie ein persönliches Bankkonto hinzu, um Erstattungen zu erhalten, Rechnungen zu bezahlen oder die Expensify Wallet zu aktivieren.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-Passwort eingeben',
@@ -6229,6 +6260,10 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 title: 'Kategorierichtlinien',
                 approver: 'Genehmiger',
                 requireDescription: 'Beschreibung erforderlich',
+                requireFields: 'Felder verpflichtend machen',
+                requiredFieldsTitle: 'Pflichtfelder',
+                requiredFieldsDescription: (categoryName: string) => `Dies gilt für alle Ausgaben, die als <strong>${categoryName}</strong> kategorisiert sind.`,
+                requireAttendees: 'Teilnehmer erforderlich machen',
                 descriptionHint: 'Hinweis zur Beschreibung',
                 descriptionHintDescription: (categoryName: string) =>
                     `Mitarbeitende daran erinnern, zusätzliche Informationen für Ausgaben der Kategorie „${categoryName}“ anzugeben. Dieser Hinweis erscheint im Beschreibungsfeld von Ausgaben.`,
@@ -6621,6 +6656,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         },
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `benutzerdefinierte Berichtsnamensformel in „${newValue}“ geändert (zuvor „${oldValue}“)`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser ? `hat den autorisierten Zahler in „${newReimburser}“ geändert (zuvor „${previousReimburser}“)` : `den autorisierten Zahler in „${newReimburser}“ geändert`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -7216,6 +7253,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Datum älter als ${maxAge} Tage`,
         missingCategory: 'Fehlende Kategorie',
         missingComment: 'Beschreibung für ausgewählte Kategorie erforderlich',
+        missingAttendees: 'Für diese Kategorie sind mehrere Teilnehmer erforderlich',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Fehlende ${tagName ?? 'Tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7948,7 +7986,15 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             addAdminError: 'Dieser Benutzer kann nicht als Admin hinzugefügt werden. Bitte versuche es erneut.',
             revokeAdminAccess: 'Administratorzugriff widerrufen',
             cantRevokeAdminAccess: 'Adminzugriff kann dem technischen Ansprechpartner nicht entzogen werden',
-            error: {removeAdmin: 'Dieser Benutzer kann nicht als Admin entfernt werden. Bitte versuchen Sie es erneut.'},
+            error: {
+                removeAdmin: 'Dieser Benutzer kann nicht als Administrator entfernt werden. Bitte versuche es erneut.',
+                removeDomain: 'Diese Domain kann nicht entfernt werden. Bitte versuche es erneut.',
+                removeDomainNameInvalid: 'Bitte gib deinen Domainnamen ein, um ihn zurückzusetzen.',
+            },
+            resetDomain: 'Domain zurücksetzen',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `Bitte geben Sie <strong>${domainName}</strong> ein, um das Zurücksetzen der Domain zu bestätigen.`,
+            enterDomainName: 'Geben Sie hier Ihren Domänennamen ein',
+            resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <ul><li>Firmenkarten-Verbindungen und alle nicht eingereichten Ausgaben von diesen Karten</li> <li>SAML- und Gruppeneinstellungen</li> </ul> Alle Konten, Workspaces, Berichte, Ausgaben und anderen Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="#">Kontaktmethoden</a> löschen.`,
         },
         members: {
             title: 'Mitglieder',

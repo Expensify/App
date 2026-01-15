@@ -185,6 +185,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -749,6 +750,35 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Lançando o Expensify',
         expired: 'Sua sessão expirou.',
         signIn: 'Entre novamente.',
+    },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Teste biométrico',
+            authenticationSuccessful: 'Autenticação bem-sucedida',
+            successfullyAuthenticatedUsing: ({authType}) => `Você autenticou com sucesso utilizando ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometria (${registered ? 'Registrada' : 'Não registrada'})`,
+            yourAttemptWasUnsuccessful: 'Sua tentativa de autenticação não foi bem-sucedida.',
+            youCouldNotBeAuthenticated: 'Você não pôde ser autenticado',
+            areYouSureToReject: 'Tem certeza? A tentativa de autenticação será rejeitada se você fechar esta tela.',
+            rejectAuthentication: 'Rejeitar autenticação',
+            test: 'Teste',
+            biometricsAuthentication: 'Autenticação biométrica',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Por favor, habilite a verificação por rosto/impressão digital ou defina um código de acesso do dispositivo em suas ',
+            link: 'configurações do sistema',
+            end: '.',
+        },
+        oops: 'Ops, algo deu errado',
+        looksLikeYouRanOutOfTime: 'Parece que você ficou sem tempo! Por favor, tente novamente no comerciante.',
+        youRanOutOfTime: 'Você ficou sem tempo',
+        letsVerifyItsYou: 'Vamos verificar se é você',
+        verifyYourself: {
+            biometrics: 'Verifique sua identidade com seu rosto ou impressão digital',
+        },
+        enableQuickVerification: {
+            biometrics: 'Habilite a verificação rápida e segura usando seu rosto ou impressão digital. Sem senhas ou códigos necessários.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -3094,6 +3124,7 @@ ${
         currencyHeader: 'Qual é a moeda da sua conta bancária?',
         confirmationStepHeader: 'Verifique suas informações.',
         confirmationStepSubHeader: 'Verifique os detalhes abaixo e marque a caixa de termos para confirmar.',
+        toGetStarted: 'Adicione uma conta bancária pessoal para receber reembolsos, pagar faturas ou ativar a Carteira Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Digite a senha do Expensify',
@@ -6192,6 +6223,10 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 title: 'Regras de categoria',
                 approver: 'Aprovador',
                 requireDescription: 'Exigir descrição',
+                requireFields: 'Exigir campos',
+                requiredFieldsTitle: 'Campos obrigatórios',
+                requiredFieldsDescription: (categoryName: string) => `Isso será aplicado a todas as despesas categorizadas como <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Exigir participantes',
                 descriptionHint: 'Dica de descrição',
                 descriptionHintDescription: (categoryName: string) =>
                     `Lembre os funcionários de fornecer informações adicionais para gastos em “${categoryName}”. Essa dica aparece no campo de descrição das despesas.`,
@@ -6584,6 +6619,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         },
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `alterou a fórmula do nome do relatório personalizado para "${newValue}" (anteriormente "${oldValue}")`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser ? `alterou o pagador autorizado para "${newReimburser}" (anteriormente "${previousReimburser}")` : `alterou o pagador autorizado para "${newReimburser}"`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -7179,6 +7216,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data anterior a ${maxAge} dias`,
         missingCategory: 'Categoria ausente',
         missingComment: 'Descrição obrigatória para a categoria selecionada',
+        missingAttendees: 'Vários participantes são obrigatórios para esta categoria',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Faltando ${tagName ?? 'Tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7906,7 +7944,15 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             addAdminError: 'Não foi possível adicionar este membro como administrador. Tente novamente.',
             revokeAdminAccess: 'Revogar acesso de administrador',
             cantRevokeAdminAccess: 'Não é possível revogar o acesso de administrador do contato técnico',
-            error: {removeAdmin: 'Não foi possível remover este usuário como Administrador. Tente novamente.'},
+            error: {
+                removeAdmin: 'Não foi possível remover este usuário como Administrador. Tente novamente.',
+                removeDomain: 'Não foi possível remover este domínio. Tente novamente.',
+                removeDomainNameInvalid: 'Insira o nome do seu domínio para redefini-lo.',
+            },
+            resetDomain: 'Redefinir domínio',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `Digite <strong>${domainName}</strong> para confirmar a redefinição do domínio.`,
+            enterDomainName: 'Insira seu nome de domínio aqui',
+            resetDomainInfo: `Esta ação é <strong>permanente</strong> e os seguintes dados serão excluídos: <br/> <ul><li>Conexões de cartão corporativo e quaisquer despesas não reportadas desses cartões</li> <li>Configurações de SAML e de grupo</li> </ul> Todas as contas, workspaces, relatórios, despesas e outros dados permanecerão. <br/><br/>Observação: Você pode remover este domínio da sua lista de domínios excluindo o e-mail associado dos seus <a href="#">métodos de contato</a>.`,
         },
         members: {
             title: 'Membros',
