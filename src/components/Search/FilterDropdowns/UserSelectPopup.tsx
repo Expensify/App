@@ -7,7 +7,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -52,7 +52,7 @@ type UserSelectPopupProps = {
 };
 
 function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
-    const selectionListRef = useRef<SelectionListHandle | null>(null);
+    const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {options} = useOptionsList();

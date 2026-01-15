@@ -68,6 +68,7 @@ type SearchOptionData = Pick<
     | 'isChatRoom'
     | 'isInvoiceRoom'
     | 'isDefaultRoom'
+    | 'isDM'
 
     // Status properties
     | 'private_isArchived'
@@ -155,6 +156,7 @@ type GetValidReportsConfig = {
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
     shouldUnreadBeBold?: boolean;
+    shouldAlwaysIncludeDM?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -176,6 +178,7 @@ type IsValidReportsConfig = Pick<
     | 'excludeNonAdminWorkspaces'
     | 'isRestrictedToPreferredPolicy'
     | 'preferredPolicyID'
+    | 'shouldAlwaysIncludeDM'
 > & {
     currentUserAccountID: number | undefined;
 };
@@ -194,6 +197,7 @@ type GetOptionsConfig = {
     includeUserToInvite?: boolean;
     currentUserAccountID: number | undefined;
     currentUserEmail: string | undefined;
+    shouldAcceptName?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {

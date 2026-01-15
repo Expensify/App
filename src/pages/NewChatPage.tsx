@@ -103,6 +103,7 @@ function useOptions() {
             includeSelfDM: true,
             currentUserAccountID,
             currentUserEmail: personalData.login,
+            shouldAlwaysIncludeDM: true,
         },
         countryCode,
     );
@@ -337,8 +338,22 @@ function NewChatPage({ref}: NewChatPageProps) {
                 selectionListRef.current?.focusTextInput();
             }
             setSelectedOptions(newSelectedOptions);
+
+            if (personalData?.login && personalData?.accountID) {
+                const participants: SelectedParticipant[] = [
+                    ...newSelectedOptions.map((selectedOption) => ({
+                        login: selectedOption.login,
+                        accountID: selectedOption.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    })),
+                    {
+                        login: personalData.login,
+                        accountID: personalData.accountID,
+                    },
+                ];
+                setGroupDraft({participants});
+            }
         },
-        [selectedOptions, setSelectedOptions],
+        [selectedOptions, setSelectedOptions, personalData?.accountID, personalData?.login],
     );
 
     /**
@@ -356,12 +371,22 @@ function NewChatPage({ref}: NewChatPageProps) {
                 Navigation.dismissModalWithReport({reportID: option.reportID});
                 return;
             }
+
             if (selectedOptions.length && option) {
                 // Prevent excluded emails from being added to groups
                 if (option?.login && excludedGroupEmails.has(option.login)) {
                     return;
                 }
                 toggleOption(option);
+                return;
+            }
+
+            if (option?.reportID) {
+                Navigation.dismissModal({
+                    callback: () => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option?.reportID));
+                    },
+                });
                 return;
             }
 
@@ -385,7 +410,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & Option, isFocused?: boolean) => {
-            if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
+            if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login)) || !item.login) {
                 return null;
             }
 

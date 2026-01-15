@@ -85,7 +85,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 ...attendee,
                 reportID: CONST.DEFAULT_NUMBER_ID.toString(),
                 selected: true,
-                login: attendee.email,
+                login: attendee.email ? attendee.email : attendee.displayName,
                 ...getPersonalDetailByEmail(attendee.email),
             })),
         [attendees],
@@ -210,13 +210,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         const cleanSearchTerm = searchTerm.trim().toLowerCase();
         const formatResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
-            attendees.map((attendee) => ({
-                ...attendee,
-                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
-                selected: true,
-                login: attendee.email,
-                ...getPersonalDetailByEmail(attendee.email),
-            })),
+            initialSelectedOptions,
             orderedAvailableOptions.recentReports,
             orderedAvailableOptions.personalDetails,
             personalDetails,
@@ -280,6 +274,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         areOptionsInitialized,
         didScreenTransitionEnd,
         searchTerm,
+        initialSelectedOptions,
         attendees,
         orderedAvailableOptions.recentReports,
         orderedAvailableOptions.personalDetails,

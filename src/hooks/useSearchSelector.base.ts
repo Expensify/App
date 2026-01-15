@@ -287,6 +287,7 @@ function useSearchSelectorBase({
                     includeCurrentUser,
                     currentUserAccountID,
                     currentUserEmail,
+                    shouldAcceptName: true,
                 });
             default:
                 return getEmptyOptions();
