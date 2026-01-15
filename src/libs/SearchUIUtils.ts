@@ -147,6 +147,7 @@ type TransactionWithdrawalIDGroupSorting = ColumnSortMapping<TransactionWithdraw
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
+    policies: OnyxCollection<OnyxTypes.Policy>;
     currentSearch: SearchKey;
     currentAccountID: number | undefined;
     currentUserEmail: string;
@@ -364,6 +365,7 @@ type ArchivedReportsIDSet = ReadonlySet<string>;
 type GetSectionsParams = {
     type: SearchDataTypes;
     data: OnyxTypes.SearchResults['data'];
+    policies?: OnyxCollection<OnyxTypes.Policy>;
     currentAccountID: number | undefined;
     currentUserEmail: string;
     translate: LocalizedTranslate;
@@ -1720,6 +1722,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
  */
 function getReportSections({
     data,
+    policies,
     currentSearch,
     currentAccountID,
     currentUserEmail,
@@ -1818,7 +1821,8 @@ function getReportSections({
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
 
                 const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
-                const policy = getPolicyFromKey(data, reportItem);
+                const policyFromKey = getPolicyFromKey(data, reportItem);
+                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID ?? String(CONST.DEFAULT_NUMBER_ID)}`] ?? policyFromKey;
 
                 const hasAnyViolationsForReport = hasAnyViolations(
                     reportItem.reportID,
@@ -2098,6 +2102,7 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
 function getSections({
     type,
     data,
+    policies,
     currentAccountID,
     currentUserEmail,
     translate,
@@ -2123,6 +2128,7 @@ function getSections({
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         return getReportSections({
             data,
+            policies,
             currentSearch,
             currentAccountID,
             currentUserEmail,
@@ -3291,7 +3297,7 @@ function getColumnsToShow(
     });
 
     if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
-        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
+        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
         const result: SearchColumnType[] = [];
 
         // Add required columns that aren't in visibleColumns at the start
