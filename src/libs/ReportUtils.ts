@@ -4708,14 +4708,15 @@ function canEditFieldOfMoneyRequest(
     const reportPolicy = policy ?? getPolicy(moneyRequestReport?.policyID);
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
+    const isReportAuditor = isExpenseReport(moneyRequestReport) && isAuditor(moneyRequestReport);
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
-        return isAdmin || isManager || isRequestor;
+        return isAdmin || isManager || isReportAuditor || isRequestor;
     }
 
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isDistanceRequest(transaction)) {
-        return isAdmin || isManager || isRequestor;
+        return isAdmin || isManager || isReportAuditor || isRequestor;
     }
 
     if (
@@ -4731,7 +4732,7 @@ function canEditFieldOfMoneyRequest(
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
             (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction)) &&
-            (isAdmin || isManager || isRequestor) &&
+            (isAdmin || isManager || isReportAuditor || isRequestor) &&
             (isDeleteAction ? isRequestor : true)
         );
     }
@@ -4780,7 +4781,7 @@ function canEditFieldOfMoneyRequest(
             Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                 getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
             ).length > 1 ||
-            ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
+            ((isOwner || isAdmin || isManager || isReportAuditor) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
         );
     }
 
