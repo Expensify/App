@@ -99,8 +99,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        const cardNumberToCheck = cardToAssign?.encryptedCardNumber ?? cardToAssign?.cardName;
-        if (cardNumberToCheck && isCardAlreadyAssigned(cardNumberToCheck, workspaceCardFeeds)) {
+        if (cardToAssign?.encryptedCardNumber && isCardAlreadyAssigned(cardToAssign?.encryptedCardNumber, workspaceCardFeeds)) {
             setCardError(getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.cardAlreadyAssignedError'));
             return;
         }

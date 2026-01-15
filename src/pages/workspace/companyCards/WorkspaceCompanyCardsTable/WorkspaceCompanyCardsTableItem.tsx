@@ -116,7 +116,7 @@ function WorkspaceCompanyCardTableItem({
             return;
         }
 
-        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feed, cardName);
+        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feed, encryptedCardNumber);
     };
 
     const assignCard = () => onAssignCard(cardName, encryptedCardNumber);
