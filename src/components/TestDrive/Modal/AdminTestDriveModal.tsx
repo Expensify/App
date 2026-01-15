@@ -17,10 +17,6 @@ function AdminTestDriveModal() {
 
     const navigate = () => {
         Log.hmmm('[AdminTestDriveModal] Navigate function called');
-        if (shouldOpenRHPVariant()) {
-            Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
-            return;
-        }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Log.hmmm('[AdminTestDriveModal] Calling Navigation.navigate()');
