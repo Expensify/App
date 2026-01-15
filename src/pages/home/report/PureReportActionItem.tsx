@@ -238,7 +238,7 @@ type PureReportActionItemProps = {
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
     /** All transaction drafts */
-    allTransactionDrafts?: OnyxCollection<OnyxTypes.Transaction>;
+    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
 
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;

@@ -35,7 +35,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID'> & {
+type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'allTransactionDrafts'> & {
     /** All the data of the report collection */
     allReports: OnyxCollection<Report>;
 
