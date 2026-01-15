@@ -1,8 +1,8 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
@@ -12,11 +12,13 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -29,6 +31,7 @@ import {
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
@@ -37,7 +40,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
 import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
@@ -101,6 +104,19 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const oneTransactionID = reportTransactions.at(0)?.transactionID;
 
     const reportID = report?.reportID;
+    const doesReportIDLookValid = isValidReportIDFromPath(reportID);
+    const ownerAccountID = report?.ownerAccountID;
+    const ownerPersonalDetailsSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+        if (!ownerAccountID) {
+            return undefined;
+        }
+
+        return personalDetailsList?.[ownerAccountID];
+    }, [ownerAccountID]);
+    const [ownerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerPersonalDetailsSelector, canBeMissing: true}, [ownerPersonalDetailsSelector]);
+    const doesOwnerHavePersonalDetails = !!ownerPersonalDetails;
+    const doesOwnerHaveAvatar = !!ownerPersonalDetails?.avatar;
+    const doesOwnerHaveDefaultAvatar = isDefaultAvatar(ownerPersonalDetails?.avatar) || isPresetAvatar(ownerPersonalDetails?.avatar) || isLetterAvatar(ownerPersonalDetails?.originalFileName);
 
     // Prevents creating duplicate transaction threads for legacy transactions
     const hasCreatedLegacyThreadRef = useRef(false);
@@ -204,11 +220,45 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 return true;
             }
 
-            return !!reportID && !isValidReportIDFromPath(reportID);
+            return !!reportID && !doesReportIDLookValid;
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportID, reportMetadata?.isLoadingInitialReportActions],
     );
+    const prevShouldShowNotFoundPage = usePrevious(shouldShowNotFoundPage);
+    const participantCount = Object.keys(report?.participants ?? {}).length;
+
+    useEffect(() => {
+        if (!shouldShowNotFoundPage || prevShouldShowNotFoundPage) {
+            return;
+        }
+
+        Log.info('[SearchMoneyRequestReportPage] shouldShowNotFoundPage changed to true', false, {
+            reportIDFromRoute,
+            reportID,
+            doesReportIDLookValid,
+            isLoadingApp,
+            isLoadingInitialReportActions: reportMetadata?.isLoadingInitialReportActions,
+            ownerAccountID,
+            doesOwnerHavePersonalDetails,
+            doesOwnerHaveAvatar,
+            doesOwnerHaveDefaultAvatar,
+            participantCount,
+        });
+    }, [
+        doesOwnerHaveAvatar,
+        doesOwnerHaveDefaultAvatar,
+        doesOwnerHavePersonalDetails,
+        doesReportIDLookValid,
+        isLoadingApp,
+        ownerAccountID,
+        participantCount,
+        prevShouldShowNotFoundPage,
+        reportID,
+        reportIDFromRoute,
+        reportMetadata?.isLoadingInitialReportActions,
+        shouldShowNotFoundPage,
+    ]);
 
     if (shouldUseNarrowLayout) {
         return (
