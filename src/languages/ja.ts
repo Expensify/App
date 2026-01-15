@@ -7892,10 +7892,10 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
         notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
         continueGpsTripModal: {
-            title: 'Continue GPS trip recording?',
-            prompt: 'Looks like the app closed during your last GPS trip. Would you like to continue recording from that trip?',
-            confirm: 'Continue trip',
-            cancel: 'View trip',
+            title: 'GPS の走行記録を続けますか？',
+            prompt: '前回のGPS移動中にアプリが終了したようです。その移動の記録を続けますか？',
+            confirm: '出張を続ける',
+            cancel: '出張を表示',
         },
     },
 };
