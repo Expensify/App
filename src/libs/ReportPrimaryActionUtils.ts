@@ -129,15 +129,14 @@ function isSubmitAction(
     return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0 && transactionAreComplete;
 }
 
-function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
+function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy, currentUserAccountID?: number) {
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
     }
-
-    const currentUserAccountID = getCurrentUserAccountID();
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- currentUserAccountID can be undefined during migration
     const isCurrentUserManager = managerID === currentUserAccountID;
     if (!isCurrentUserManager) {
         return false;
@@ -449,7 +448,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isApproveAction(report, reportTransactions, policy)) {
+    if (isApproveAction(report, reportTransactions, policy, currentUserAccountID)) {
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 

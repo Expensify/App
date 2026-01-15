@@ -3683,7 +3683,7 @@ function toggleEmojiReaction(
 function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
-
+/** @deprecated This function is deprecated and will be removed soon after migration. Use the accountID from useCurrentUserPersonalDetails hook instead. */
 function getCurrentUserAccountID(): number {
     return deprecatedCurrentUserAccountID;
 }
