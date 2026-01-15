@@ -120,17 +120,21 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportID = report?.reportID;
     const doesReportIDLookValid = isValidReportIDFromPath(reportID);
     const ownerAccountID = report?.ownerAccountID;
-    const ownerPersonalDetailsSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
-        if (!ownerAccountID) {
-            return undefined;
-        }
+    const ownerPersonalDetailsSelector = useCallback(
+        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+            if (!ownerAccountID) {
+                return undefined;
+            }
 
-        return personalDetailsList?.[ownerAccountID];
-    }, [ownerAccountID]);
+            return personalDetailsList?.[ownerAccountID];
+        },
+        [ownerAccountID],
+    );
     const [ownerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerPersonalDetailsSelector, canBeMissing: true}, [ownerPersonalDetailsSelector]);
     const doesOwnerHavePersonalDetails = !!ownerPersonalDetails;
     const doesOwnerHaveAvatar = !!ownerPersonalDetails?.avatar;
-    const doesOwnerHaveDefaultAvatar = isDefaultAvatar(ownerPersonalDetails?.avatar) || isPresetAvatar(ownerPersonalDetails?.avatar) || isLetterAvatar(ownerPersonalDetails?.originalFileName);
+    const doesOwnerHaveDefaultAvatar =
+        isDefaultAvatar(ownerPersonalDetails?.avatar) || isPresetAvatar(ownerPersonalDetails?.avatar) || isLetterAvatar(ownerPersonalDetails?.originalFileName);
 
     // Prevents creating duplicate transaction threads for legacy transactions
     const hasCreatedLegacyThreadRef = useRef(false);
