@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@navigation/Navigation';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -47,17 +48,13 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
     useEffect(() => {
-        // Only redirect if blocked AND user is trying to start a new flow (currentStep is SELECT_BANK or undefined/initial state)
-        // Don't redirect if user is already in the middle of adding a feed (other steps)
-        // Don't redirect if user just successfully added a feed (isNewFeedConnected would be true in BankConnection)
-        const isInitialStep = !currentStep || currentStep === CONST.COMPANY_CARDS.STEP.SELECT_BANK;
-        if (!policyID || !isBlockedToAddNewFeeds || !isInitialStep) {
+        if (!policyID || !isBlockedToAddNewFeeds) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             forceReplace: true,
         });
-    }, [isBlockedToAddNewFeeds, policyID, currentStep]);
+    }, [isBlockedToAddNewFeeds, policyID]);
 
     useEffect(() => {
         return () => {
@@ -137,7 +134,11 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }
 
     return (
-        <>
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+        >
             <View style={styles.flex1}>{CurrentStep}</View>
             <ConfirmModal
                 isVisible={isModalVisible}
@@ -152,7 +153,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                     navigateToConciergeChat();
                 }}
             />
-        </>
+        </AccessOrNotFoundWrapper>
     );
 }
 
