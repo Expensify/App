@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import useOnyx from './useOnyx';
@@ -9,7 +10,9 @@ import useOnyx from './useOnyx';
  * Hook that returns all transactions, filtered by current search results if a search data is available
  */
 function useAllTransactions() {
-    const {currentSearchResults} = useSearchContext();
+    const searchContext = useSearchContext();
+    const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const [allTransactionsCollection] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
     const allTransactions = useMemo(() => {

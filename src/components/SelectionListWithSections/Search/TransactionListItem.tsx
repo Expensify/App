@@ -55,10 +55,11 @@ function TransactionListItem<TItem extends ListItem>({
     const theme = useTheme();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchContext();
+    const {currentSearchHash, currentSearchKey} = useSearchContext();
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const snapshotReport = useMemo(() => {
-        return (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
-    }, [currentSearchResults, transactionItem.reportID]);
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
+    }, [snapshot, transactionItem.reportID]);
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
@@ -75,14 +76,8 @@ function TransactionListItem<TItem extends ListItem>({
         selector: (policy) => policy?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
     });
     const snapshotPolicy = useMemo(() => {
-        return (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
-    }, [currentSearchResults, transactionItem.policyID]);
-
-    const exportedReportActions = useMemo(() => {
-        const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
-        return actionsData ? Object.values(actionsData) : [];
-    }, [currentSearchResults, transactionItem.reportID]);
-
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {}) as Policy;
+    }, [snapshot, policyID]);
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {canBeMissing: true});
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
@@ -252,6 +247,7 @@ function TransactionListItem<TItem extends ListItem>({
                             />
                         )}
                         <TransactionItemRow
+                            hash={currentSearchHash}
                             transactionItem={transactionItem}
                             report={transactionItem.report}
                             shouldShowTooltip={showTooltip}
@@ -274,7 +270,6 @@ function TransactionListItem<TItem extends ListItem>({
                             onArrowRightPress={onPress}
                             isHover={hovered}
                             customCardNames={customCardNames}
-                            reportActions={exportedReportActions}
                         />
                     </>
                 )}
