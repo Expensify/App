@@ -46,6 +46,7 @@ import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {
+    calculateAmount as calculateIOUAmount,
     formatCurrentUserToAttendee,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
@@ -12821,6 +12822,12 @@ export {
     getSearchOnyxUpdate,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
+    buildMinimalTransactionForFormula,
+    buildOnyxDataForMoneyRequest,
+    createSplitsAndOnyxData,
+    getDeleteTrackExpenseInformation,
+    getMoneyRequestInformation,
+    getOrCreateOptimisticSplitChatReport,
 };
 export type {
     GPSPoint as GpsPoint,
@@ -12833,4 +12840,6 @@ export type {
     PerDiemExpenseTransactionParams,
     UpdateMoneyRequestData,
     BasePolicyParams,
+    MoneyRequestInformationParams,
+    OneOnOneIOUReport,
 };
