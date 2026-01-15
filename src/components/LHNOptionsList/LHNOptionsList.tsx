@@ -71,7 +71,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const theme = useTheme();
@@ -295,7 +295,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isReportArchived={isReportArchived}
                     lastAction={lastAction}
                     lastActionReport={lastActionReport}
-                    currentUserAccountID={session?.accountID}
+                    currentUserAccountID={currentUserAccountID}
                 />
             );
         },
@@ -325,7 +325,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isScreenFocused,
             localeCompare,
             translate,
-            session?.accountID,
+            currentUserAccountID,
         ],
     );
 
