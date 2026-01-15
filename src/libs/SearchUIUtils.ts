@@ -157,7 +157,6 @@ type GetReportSectionsParams = {
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
-    shouldSkipActionFiltering?: boolean;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -368,7 +367,6 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
-    shouldSkipActionFiltering?: boolean;
 };
 
 /**
@@ -1719,7 +1717,6 @@ function getReportSections({
     allTransactionViolations,
     bankAccountList,
     reportActions = {},
-    shouldSkipActionFiltering = false,
 }: GetReportSectionsParams): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -2098,7 +2095,6 @@ function getSections({
     isActionLoadingSet,
     cardFeeds,
     allTransactionViolations,
-    shouldSkipActionFiltering,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -2120,7 +2116,6 @@ function getSections({
             allTransactionViolations,
             bankAccountList,
             reportActions,
-            shouldSkipActionFiltering,
         });
     }
 
