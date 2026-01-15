@@ -2881,7 +2881,7 @@ describe('ReportActionsUtils', () => {
             expect(result).toEqual(reportTransactionIDs);
         });
 
-        it('should call getExpenseReportTransactionIDs for expense reports', () => {
+        it('should route to getExpenseReportTransactionIDs for expense reports', () => {
             const expenseIOUAction = createMockIOUAction(expenseReportID, transactionID);
             const allTransactions: Record<string, Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
@@ -2894,18 +2894,13 @@ describe('ReportActionsUtils', () => {
                 } as Transaction,
             };
 
-            const getExpenseReportTransactionIDsSpy = jest.spyOn(ReportActionsUtils, 'getExpenseReportTransactionIDs').mockReturnValue([transactionID]);
-
             const result = getTransactionIDsForIOUAction(expenseIOUAction, reportTransactionIDs, allTransactions, false);
 
-            expect(getExpenseReportTransactionIDsSpy).toHaveBeenCalledWith(allTransactions, expenseReportID, transactionID, false);
             expect(result).toEqual([transactionID]);
             expect(result).not.toEqual(reportTransactionIDs);
-
-            getExpenseReportTransactionIDsSpy.mockRestore();
         });
 
-        it('should pass isOffline flag to getExpenseReportTransactionIDs', () => {
+        it('should include ADD pendingAction transactions when offline', () => {
             const expenseIOUAction = createMockIOUAction(expenseReportID, transactionID);
             const transactionWithAddPending = 'transaction-with-add-pending';
             const allTransactions: Record<string, Transaction> = {
@@ -2928,15 +2923,10 @@ describe('ReportActionsUtils', () => {
                 } as Transaction,
             };
 
-            const getExpenseReportTransactionIDsSpy = jest.spyOn(ReportActionsUtils, 'getExpenseReportTransactionIDs').mockReturnValue([transactionID, transactionWithAddPending]);
-
             const result = getTransactionIDsForIOUAction(expenseIOUAction, reportTransactionIDs, allTransactions, true);
 
-            expect(getExpenseReportTransactionIDsSpy).toHaveBeenCalledWith(allTransactions, expenseReportID, transactionID, true);
             expect(result).toContain(transactionID);
             expect(result).toContain(transactionWithAddPending);
-
-            getExpenseReportTransactionIDsSpy.mockRestore();
         });
     });
 });
