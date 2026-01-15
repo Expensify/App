@@ -47,7 +47,7 @@ function setupMergeTransactionDataAndNavigate(
     searchReports?: Report[],
     isSelectingSourceTransaction?: boolean,
     isOnSearch?: boolean,
-    policies?: OnyxEntry<Policy>[],
+    policies?: Array<OnyxEntry<Policy>>,
 ) {
     if (!transactions.length || transactions.length > 2) {
         return;

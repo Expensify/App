@@ -49,11 +49,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     });
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
-    const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
 
-    useEffect(() => {
+    const conflictFields = useMemo(() => {
         if (!transactionID || !targetTransaction || !sourceTransaction) {
-            return;
+            return [];
         }
 
         const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(
@@ -66,7 +65,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         );
 
         setMergeTransactionKey(transactionID, mergeableData);
-        setConflictFields(detectedConflictFields as MergeFieldKey[]);
+        return detectedConflictFields as MergeFieldKey[];
     }, [targetTransaction, sourceTransaction, transactionID, localeCompare, sourceTransactionReport, targetTransactionReport, targetTransactionPolicy, sourceTransactionPolicy]);
 
     // Handle selection

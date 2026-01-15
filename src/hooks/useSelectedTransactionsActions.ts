@@ -318,7 +318,7 @@ function useSelectedTransactionsActions({
                             [],
                             false,
                             isOnSearch,
-                            Array(selectedTransactionsList.length).fill(policy),
+                            selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
                         ),
                 });
             }
@@ -376,7 +376,7 @@ function useSelectedTransactionsActions({
         }
         return options;
     }, [
-        session?.email,
+        session,
         selectedTransactionIDs,
         report,
         selectedTransactionsList,
@@ -398,7 +398,6 @@ function useSelectedTransactionsActions({
         lastVisitedPath,
         allTransactions,
         allReports,
-        session?.accountID,
         showDeleteModal,
         allTransactionViolations,
         expensifyIcons.Stopwatch,
