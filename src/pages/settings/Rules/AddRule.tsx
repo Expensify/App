@@ -171,7 +171,7 @@ function AddRule({hash}: AddRuleProps) {
                     : undefined,
                 {
                     descriptionTranslationKey: 'expenseRulesPage.addRule.changeDescription',
-                    title: form?.category,
+                    title: form?.comment,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION, hash),
                 },
                 {

@@ -9,13 +9,18 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-function AddTagPage() {
+type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_TAG>;
+
+function AddTagPage({route}: AddTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -39,6 +44,8 @@ function AddTagPage() {
         return items;
     }, [allPolicyTagLists]);
 
+    const backToRoute = route.params?.hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(route.params.hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
+
     const onSave = (value?: string) => {
         updateDraftRule({tag: value});
     };
@@ -52,13 +59,11 @@ function AddTagPage() {
         >
             <HeaderWithBackButton
                 title={translate('common.tag')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SETTINGS_RULES_ADD.getRoute());
-                }}
+                onBackButtonPress={() => Navigation.goBack(backToRoute)}
             />
             <View style={[styles.flex1]}>
                 <SearchSingleSelectionPicker
-                    backToRoute={ROUTES.SETTINGS_RULES_ADD.getRoute()}
+                    backToRoute={backToRoute}
                     initiallySelectedItem={selectedTagItem}
                     items={tagItems}
                     onSaveSelection={onSave}

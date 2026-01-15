@@ -10,13 +10,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {availableNonPersonalPolicyCategoriesSelector} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCategoryPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-function AddCategoryPage() {
+type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_CATEGORY>;
+
+function AddCategoryPage({route}: AddCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -47,6 +52,8 @@ function AddCategoryPage() {
         return items;
     }, [allPolicyCategories]);
 
+    const backToRoute = route.params?.hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(route.params.hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
+
     const onSave = (value?: string) => {
         updateDraftRule({category: value});
     };
@@ -60,13 +67,11 @@ function AddCategoryPage() {
         >
             <HeaderWithBackButton
                 title={translate('expenseRulesPage.addRule.updateCategory')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SETTINGS_RULES_ADD.getRoute());
-                }}
+                onBackButtonPress={() => Navigation.goBack(backToRoute)}
             />
             <View style={[styles.flex1]}>
                 <SearchSingleSelectionPicker
-                    backToRoute={ROUTES.SETTINGS_RULES_ADD.getRoute()}
+                    backToRoute={backToRoute}
                     initiallySelectedItem={selectedCategoryItem}
                     items={categoryItems}
                     onSaveSelection={onSave}

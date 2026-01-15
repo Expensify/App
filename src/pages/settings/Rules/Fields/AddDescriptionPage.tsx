@@ -10,7 +10,7 @@ type AddDescriptionPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 function AddDescriptionPage({route}: AddDescriptionPageProps) {
     return (
         <RuleTextBase
-            fieldID={CONST.EXPENSE_RULES.FIELDS.MERCHANT}
+            fieldID={CONST.EXPENSE_RULES.FIELDS.DESCRIPTION}
             hash={route.params?.hash}
             labelKey="common.description"
             titleKey="expenseRulesPage.addRule.changeDescription"
