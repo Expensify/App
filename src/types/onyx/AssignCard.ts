@@ -31,7 +31,6 @@ type AssignCardData = {
      */
     encryptedCardNumber: string;
 
-
     /** The name of the feed */
     bankName: CompanyCardFeed;
 
