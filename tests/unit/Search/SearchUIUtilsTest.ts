@@ -39,6 +39,7 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    setNavigationActionToMicrotaskQueue: jest.fn((cb: () => void) => cb()),
 }));
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
