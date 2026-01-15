@@ -130,7 +130,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         },
         [ownerAccountID],
     );
-    const [ownerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerPersonalDetailsSelector, canBeMissing: true}, [ownerPersonalDetailsSelector]);
+    const [ownerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerPersonalDetailsSelector, canBeMissing: true}, [ownerAccountID]);
     const doesOwnerHavePersonalDetails = !!ownerPersonalDetails;
     const doesOwnerHaveAvatar = !!ownerPersonalDetails?.avatar;
     const doesOwnerHaveDefaultAvatar =
@@ -244,6 +244,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
             return !!reportID && !doesReportIDLookValid;
         },
+        // isLoadingApp intentionally omitted to avoid re-computing after initial load completes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportID, reportMetadata?.isLoadingInitialReportActions, doesReportIDLookValid],
     );
