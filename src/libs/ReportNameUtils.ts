@@ -145,7 +145,7 @@ const buildReportNameFromParticipantNames = ({
 }: {
     report: OnyxEntry<Report>;
     personalDetailsList?: Partial<PersonalDetailsList>;
-    currentUserAccountID: number;
+    currentUserAccountID?: number;
 }) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
@@ -261,7 +261,7 @@ function getInvoicesChatName({
     receiverPolicy: OnyxEntry<Policy>;
     personalDetails?: Partial<PersonalDetailsList>;
     policies?: Policy[];
-    currentUserAccountID: number;
+    currentUserAccountID?: number;
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
@@ -743,8 +743,7 @@ function computeReportName(
             receiverPolicyID = (receiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = receiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`] : undefined;
-        const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID: resolvedCurrentUserAccountID});
+        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID: currentUserAccountID});
     }
 
     if (isSelfDM(report)) {
@@ -765,8 +764,7 @@ function computeReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID: resolvedCurrentUserAccountID});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID: currentUserAccountID});
 
     const finalName = formattedName ?? report?.reportName ?? '';
 

@@ -5992,14 +5992,13 @@ function getReportName(
         formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
     }
 
-    const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
     if (isInvoiceRoom(report)) {
         formattedName = getInvoicesChatName({
             report,
             receiverPolicy: invoiceReceiverPolicy,
             personalDetails,
             policies,
-            currentUserAccountID: resolvedCurrentUserAccountID,
+            currentUserAccountID: currentUserAccountID,
         });
     }
 
@@ -6021,7 +6020,7 @@ function getReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails, currentUserAccountID: resolvedCurrentUserAccountID});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails, currentUserAccountID: currentUserAccountID});
 
     const finalName = formattedName || (report?.reportName ?? '');
 

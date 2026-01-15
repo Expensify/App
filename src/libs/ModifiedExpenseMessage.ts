@@ -166,10 +166,9 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // - A policy expense chat
     // - A 1:1 DM
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport})
-        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID: resolvedCurrentUserAccountID});
+        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {
