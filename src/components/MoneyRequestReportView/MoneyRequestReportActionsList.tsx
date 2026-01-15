@@ -2,7 +2,6 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
-import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -400,7 +399,7 @@ function MoneyRequestReportActionsList({
                     message: reportAction,
                     nextMessage: nextAction,
                     isEarliestReceivedOfflineMessage,
-                    accountID: currentUserAccountID,
+                    currentUserAccountID,
                     prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
                     unreadMarkerTime,
                     scrollingVerticalOffset: scrollingVerticalBottomOffset.current,

@@ -129,14 +129,15 @@ function isSubmitAction(
     return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0 && transactionAreComplete;
 }
 
-function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy, currentUserAccountID?: number) {
+function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
     }
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
+    const currentUserAccountID = getCurrentUserAccountID();
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- currentUserAccountID can be undefined during migration
     const isCurrentUserManager = managerID === currentUserAccountID;
     if (!isCurrentUserManager) {
         return false;
@@ -448,7 +449,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isApproveAction(report, reportTransactions, policy, currentUserAccountID)) {
+    if (isApproveAction(report, reportTransactions, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
