@@ -77,6 +77,4 @@ function PlaidStep({onNext}: SubStepProps) {
     );
 }
 
-PlaidStep.displayName = 'PlaidStep';
-
 export default PlaidStep;

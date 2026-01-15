@@ -40,7 +40,7 @@ const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList
     if (Object.keys(previousDisplayNames).length === 0) {
         previousDisplayNames = currentDisplayNames;
         previousPersonalDetails = personalDetails;
-        return false;
+        return Object.keys(currentDisplayNames).length > 0;
     }
 
     const currentKeys = Object.keys(currentDisplayNames);
@@ -90,6 +90,9 @@ export default createOnyxDerivedValueConfig({
             if (!displayNamesChanged) {
                 return currentValue ?? {reports: {}, locale: null};
             }
+        } else if (!sourceValues) {
+            previousDisplayNames = {};
+            previousPersonalDetails = undefined;
         }
 
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports

@@ -25,6 +25,4 @@ function TextWithMiddleEllipsis({text, style, textStyle}: TextWithMiddleEllipsis
     );
 }
 
-TextWithMiddleEllipsis.displayName = 'TextWithMiddleEllipsis';
-
 export default TextWithMiddleEllipsis;

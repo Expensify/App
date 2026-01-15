@@ -49,7 +49,5 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
     return <InitialURLContext.Provider value={initialUrlContext}>{children}</InitialURLContext.Provider>;
 }
 
-InitialURLContextProvider.displayName = 'InitialURLContextProvider';
-
 export default InitialURLContextProvider;
 export {InitialURLContext};

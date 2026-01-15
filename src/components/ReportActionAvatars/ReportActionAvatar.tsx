@@ -246,12 +246,7 @@ function ReportActionAvatarSubscript({
                     accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                     icon={secondaryAvatar}
                 >
-                    <View
-                        style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}
-                        // Hover on overflowed part of icon will not work on Electron if dragArea is true
-                        // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
-                        dataSet={{dragArea: false}}
-                    >
+                    <View style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}>
                         <ProfileAvatar
                             useProfileNavigationWrapper={useProfileNavigationWrapper}
                             iconAdditionalStyles={[
@@ -282,9 +277,6 @@ function ReportActionAvatarSubscript({
                         styles.dFlex,
                         styles.justifyContentCenter,
                     ]}
-                    // Hover on overflowed part of icon will not work on Electron if dragArea is true
-                    // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
-                    dataSet={{dragArea: false}}
                 >
                     <Icon
                         src={getCardFeedIcon(subscriptCardFeed, illustrations, companyCardFeedIcons)}
@@ -327,7 +319,7 @@ function ReportActionAvatarMultipleHorizontal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {localeCompare} = useLocalize();
+    const {localeCompare, formatPhoneNumber} = useLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
@@ -368,7 +360,10 @@ function ReportActionAvatarMultipleHorizontal({
         return [firstRow, secondRow];
     }, [icons, maxAvatarsInRow, shouldDisplayAvatarsInRows]);
 
-    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
+    const tooltipTexts = useMemo(
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber],
+    );
 
     return avatarRows.map((avatars, rowIndex) => (
         <View
@@ -478,8 +473,12 @@ function ReportActionAvatarMultipleDiagonal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {formatPhoneNumber} = useLocalize();
 
-    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
+    const tooltipTexts = useMemo(
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber],
+    );
     const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 

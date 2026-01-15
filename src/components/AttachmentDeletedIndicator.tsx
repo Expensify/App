@@ -47,6 +47,4 @@ function AttachmentDeletedIndicator({containerStyles}: AttachmentDeletedIndicato
     );
 }
 
-AttachmentDeletedIndicator.displayName = 'AttachmentDeletedIndicator';
-
 export default AttachmentDeletedIndicator;

@@ -49,8 +49,8 @@ type MenuItem = {
 };
 
 function AboutPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['PalmTree'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug']);
+    const illustrations = useMemoizedLazyIllustrations(['PalmTree']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -131,7 +131,7 @@ function AboutPage() {
             </View>
         ),
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
@@ -139,7 +139,7 @@ function AboutPage() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={AboutPage.displayName}
+            testID="AboutPage"
         >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.about')}
@@ -178,7 +178,5 @@ function AboutPage() {
         </ScreenWrapper>
     );
 }
-
-AboutPage.displayName = 'AboutPage';
 
 export default AboutPage;

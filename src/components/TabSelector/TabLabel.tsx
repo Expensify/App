@@ -32,6 +32,4 @@ function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1, hasIcon =
     );
 }
 
-TabLabel.displayName = 'TabLabel';
-
 export default TabLabel;

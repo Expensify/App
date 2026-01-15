@@ -94,6 +94,4 @@ function USDVerifiedBankAccountFlow({
     return null;
 }
 
-USDVerifiedBankAccountFlow.displayName = 'USDVerifiedBankAccountFlow';
-
 export default USDVerifiedBankAccountFlow;

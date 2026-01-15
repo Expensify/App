@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 import {execSync} from 'child_process';
+import fs from 'fs';
 import dedent from '@libs/StringUtils/dedent';
 import Git from '@scripts/utils/Git';
 
@@ -9,9 +10,30 @@ import Git from '@scripts/utils/Git';
 jest.mock('child_process');
 const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
 
+// Test constants for untracked files tests
+const MOCK_COMPONENT_CONTENT = 'const Component = () => null;\n';
+const MOCK_MULTI_LINE_COMPONENT_CONTENT = 'const Component = () => {\n  return <div>Hello</div>;\n};\n\nexport default Component;\n';
+const UNTRACKED_FILE_PATH = 'src/untracked.tsx';
+
+/**
+ * Helper to create a mock implementation for execSync that handles both git diff and git ls-files commands.
+ */
+function createMockExecSync(diffOutput: string, untrackedFilesOutput: string) {
+    return (command: string) => {
+        if (command.includes('git diff')) {
+            return diffOutput;
+        }
+        if (command.includes('git ls-files')) {
+            return untrackedFilesOutput;
+        }
+        return '';
+    };
+}
+
 describe('Git', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     describe('isValidRef', () => {
@@ -957,6 +979,186 @@ describe('Git', () => {
             expect(file.removedLines.size).toBe(5);
             expect(file.addedLines.size).toBe(0);
             expect(file.modifiedLines.size).toBe(0);
+        });
+    });
+
+    describe('getUntrackedFiles', () => {
+        it('returns array of untracked file paths', () => {
+            mockExecSync.mockReturnValue('src/new-file.ts\nsrc/another-file.tsx\n');
+
+            const result = Git.getUntrackedFiles();
+
+            expect(result).toEqual(['src/new-file.ts', 'src/another-file.tsx']);
+            expect(mockExecSync).toHaveBeenCalledWith('git ls-files --others --exclude-standard', {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+                stdio: 'pipe',
+            });
+        });
+
+        it('filters untracked files by file paths (single and multiple)', () => {
+            mockExecSync.mockReturnValue('src/file1.ts\nsrc/file2.tsx\nsrc/components/Button.tsx\n');
+
+            // Single file path
+            expect(Git.getUntrackedFiles('src/file1.ts')).toEqual(['src/file1.ts']);
+
+            // Multiple file paths
+            expect(Git.getUntrackedFiles(['src/file1.ts', 'src/components/Button.tsx'])).toEqual(['src/file1.ts', 'src/components/Button.tsx']);
+
+            // Directory path
+            expect(Git.getUntrackedFiles('src/components')).toEqual(['src/components/Button.tsx']);
+        });
+
+        it('returns empty array when git command fails or no untracked files exist', () => {
+            mockExecSync.mockReturnValue('');
+            expect(Git.getUntrackedFiles()).toEqual([]);
+
+            mockExecSync.mockImplementation(() => {
+                throw new Error('fatal: not a git repository');
+            });
+            expect(Git.getUntrackedFiles()).toEqual([]);
+        });
+    });
+
+    describe('diff with shouldIncludeUntrackedFiles', () => {
+        let mockExistsSync: jest.SpyInstance;
+        let mockReadFileSync: jest.SpyInstance;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            mockExistsSync = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+            jest.spyOn(fs, 'statSync').mockReturnValue({isFile: () => true} as fs.Stats);
+            mockReadFileSync = jest.spyOn(fs, 'readFileSync');
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('does not include untracked files by default or when shouldIncludeUntrackedFiles is false', () => {
+            mockExecSync.mockReturnValue('');
+
+            // Default (not provided)
+            Git.diff('main');
+            expect(mockExecSync).toHaveBeenCalledTimes(1);
+
+            jest.clearAllMocks();
+
+            // Explicit false
+            Git.diff('main', undefined, undefined, false);
+            expect(mockExecSync).toHaveBeenCalledTimes(1);
+
+            // Verify git ls-files was not called
+            const calls = mockExecSync.mock.calls.map((call) => call[0]);
+            expect(calls).not.toContain(expect.stringContaining('git ls-files'));
+        });
+
+        it('does not include untracked files when toRef is provided even if shouldIncludeUntrackedFiles is true', () => {
+            mockExecSync.mockReturnValue('');
+
+            Git.diff('main', 'HEAD', undefined, true);
+
+            expect(mockExecSync).toHaveBeenCalledTimes(1);
+            const calls = mockExecSync.mock.calls.map((call) => call[0]);
+            expect(calls).not.toContain(expect.stringContaining('git ls-files'));
+        });
+
+        it('includes untracked files when shouldIncludeUntrackedFiles is true and toRef is undefined', () => {
+            mockExecSync.mockImplementation(createMockExecSync('', `${UNTRACKED_FILE_PATH}\n`));
+            mockReadFileSync.mockReturnValue(MOCK_COMPONENT_CONTENT);
+
+            const result = Git.diff('main', undefined, undefined, true);
+
+            expect(result.hasChanges).toBe(true);
+            expect(result.files).toHaveLength(1);
+
+            const file = result.files.at(0);
+            expect(file?.filePath).toBe(UNTRACKED_FILE_PATH);
+            expect(file?.diffType).toBe('added');
+            expect(file?.hunks).toHaveLength(1);
+            expect(Array.from(file?.addedLines ?? [])).toEqual([1, 2]);
+        });
+
+        it('merges tracked changes with untracked files', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/src/tracked.ts b/src/tracked.ts
+                index 1234567..abcdefg 100644
+                --- a/src/tracked.ts
+                +++ b/src/tracked.ts
+                @@ -1,1 +1,1 @@
+                -old
+                +new
+            `);
+
+            mockExecSync.mockImplementation(createMockExecSync(mockDiffOutput, `${UNTRACKED_FILE_PATH}\n`));
+            mockReadFileSync.mockReturnValue(MOCK_COMPONENT_CONTENT);
+
+            const result = Git.diff('main', undefined, undefined, true);
+
+            expect(result.hasChanges).toBe(true);
+            expect(result.files).toHaveLength(2);
+
+            const trackedFile = result.files.find((f) => f.filePath === 'src/tracked.ts');
+            const untrackedFile = result.files.find((f) => f.filePath === UNTRACKED_FILE_PATH);
+
+            expect(trackedFile?.diffType).toBe('modified');
+            expect(untrackedFile?.diffType).toBe('added');
+        });
+
+        it('filters untracked files by filePaths parameter', () => {
+            mockExecSync.mockImplementation(createMockExecSync('', 'src/file1.tsx\nsrc/file2.tsx\nsrc/file3.tsx\n'));
+            mockReadFileSync.mockReturnValue(MOCK_COMPONENT_CONTENT);
+
+            const result = Git.diff('main', undefined, ['src/file1.tsx', 'src/file3.tsx'], true);
+
+            expect(result.files).toHaveLength(2);
+            expect(result.files.some((f) => f.filePath === 'src/file1.tsx')).toBe(true);
+            expect(result.files.some((f) => f.filePath === 'src/file3.tsx')).toBe(true);
+            expect(result.files.some((f) => f.filePath === 'src/file2.tsx')).toBe(false);
+        });
+
+        it('handles multi-line untracked files correctly', () => {
+            mockExecSync.mockImplementation(createMockExecSync('', `${UNTRACKED_FILE_PATH}\n`));
+            mockReadFileSync.mockReturnValue(MOCK_MULTI_LINE_COMPONENT_CONTENT);
+
+            const result = Git.diff('main', undefined, undefined, true);
+
+            const file = result.files.at(0);
+            expect(file?.hunks.at(0)?.newCount).toBe(6);
+            expect(file?.hunks.at(0)?.lines).toHaveLength(6);
+            expect(Array.from(file?.addedLines ?? [])).toEqual([1, 2, 3, 4, 5, 6]);
+        });
+
+        it('skips untracked files that do not exist or cannot be read', () => {
+            mockExecSync.mockImplementation(createMockExecSync('', 'src/nonexistent.tsx\n'));
+
+            // File does not exist
+            mockExistsSync.mockReturnValue(false);
+            expect(Git.diff('main', undefined, undefined, true).files).toHaveLength(0);
+
+            // File cannot be read
+            mockExistsSync.mockReturnValue(true);
+            mockReadFileSync.mockImplementation(() => {
+                throw new Error('Permission denied');
+            });
+            expect(Git.diff('main', undefined, undefined, true).files).toHaveLength(0);
+        });
+
+        it('handles git ls-files command failure gracefully', () => {
+            mockExecSync.mockImplementation((command: string) => {
+                if (command.includes('git diff')) {
+                    return '';
+                }
+                if (command.includes('git ls-files')) {
+                    throw new Error('fatal: not a git repository');
+                }
+                return '';
+            });
+
+            const result = Git.diff('main', undefined, undefined, true);
+
+            expect(result.hasChanges).toBe(false);
+            expect(result.files).toHaveLength(0);
         });
     });
 });

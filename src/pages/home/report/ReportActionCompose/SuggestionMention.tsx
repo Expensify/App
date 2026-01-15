@@ -73,7 +73,6 @@ function SuggestionMention({
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     const policy = usePolicy(policyID);
-    // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -81,7 +80,7 @@ function SuggestionMention({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar']);
 
     const currentReportID = useCurrentReportID();
     const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`];
@@ -124,10 +123,8 @@ function SuggestionMention({
 
     // Used to detect if the selection has changed since the last suggestion insertion
     // If so, we reset the suggestionInsertionIndexRef
-    // eslint-disable-next-line react-compiler/react-compiler
     const hasSelectionChanged = !(selection.end === selection.start && selection.start === suggestionInsertionIndexRef.current);
     if (hasSelectionChanged) {
-        // eslint-disable-next-line react-compiler/react-compiler
         suggestionInsertionIndexRef.current = null;
     }
 
@@ -497,7 +494,5 @@ function SuggestionMention({
         />
     );
 }
-
-SuggestionMention.displayName = 'SuggestionMention';
 
 export default SuggestionMention;

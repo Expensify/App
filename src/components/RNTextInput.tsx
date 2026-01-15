@@ -39,7 +39,5 @@ function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMAS
     );
 }
 
-RNTextInputWithRef.displayName = 'RNTextInputWithRef';
-
 export default RNTextInputWithRef;
 export type {AnimatedTextInputRef};

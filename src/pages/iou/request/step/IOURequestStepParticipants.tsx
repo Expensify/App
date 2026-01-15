@@ -7,7 +7,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -22,7 +21,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -42,6 +41,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -77,7 +77,6 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -91,7 +90,7 @@ function IOURequestStepParticipants({
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, optimisticTransactions]);
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
@@ -242,7 +241,7 @@ function IOURequestStepParticipants({
             const firstParticipantReportID = val.at(0)?.reportID;
             const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
             const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
-            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
+            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
             numberOfParticipants.current = val.length;
 
             // Use transactions array if available, otherwise use initialTransactionID directly
@@ -285,8 +284,12 @@ function IOURequestStepParticipants({
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             // We use || to be sure that if the first participant doesn't have a reportID, we generate a new one.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            selectedReportID.current = firstParticipantReportID || generateReportID();
+            if (isInvoice) {
+                selectedReportID.current = firstParticipantReportID && isInvoiceRoomWithID(firstParticipantReportID) ? firstParticipantReportID : generateReportID();
+            } else {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                selectedReportID.current = firstParticipantReportID || generateReportID();
+            }
 
             // IOUs are always reported. non-CREATE actions require a report
             if (!isPolicyExpenseChat || action !== CONST.IOU.ACTION.CREATE) {
@@ -328,7 +331,7 @@ function IOURequestStepParticipants({
             const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
             setMoneyRequestTag(transaction.transactionID, tag);
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
-            setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? policyForMovingExpenses : undefined, isMovingTransactionFromTrackExpense);
+            setMoneyRequestCategory(transaction.transactionID, category, undefined);
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
@@ -383,20 +386,7 @@ function IOURequestStepParticipants({
                 });
             }
         });
-    }, [
-        action,
-        participants,
-        iouType,
-        initialTransaction,
-        transactions,
-        initialTransactionID,
-        reportID,
-        waitForKeyboardDismiss,
-        isMovingTransactionFromTrackExpense,
-        policyForMovingExpenses,
-        introSelected,
-        backTo,
-    ]);
+    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -422,19 +412,27 @@ function IOURequestStepParticipants({
             numberOfParticipants.current = 0;
         }
         // We don't want to clear out participants every time the transactions change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, action]);
 
     const isWorkspacesOnly = useMemo(() => {
-        return !!(initialTransaction?.amount && initialTransaction?.amount < 0);
-    }, [initialTransaction?.amount]);
+        if (isDistanceRequest(initialTransaction)) {
+            // For distance requests, only restrict to workspaces if a route exists and the distance is 0
+            // If no route exists yet, the distance hasn't been calculated and we should allow P2P
+            if (!hasRoute(initialTransaction, true)) {
+                return false;
+            }
+            return initialTransaction?.comment?.customUnit?.quantity === 0;
+        }
+        return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
+    }, [initialTransaction]);
 
     return (
         <StepScreenWrapper
             headerTitle={headerTitle}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepParticipants.displayName}
+            testID="IOURequestStepParticipants"
         >
             {!!skipConfirmation && (
                 <FormHelpMessage
@@ -445,7 +443,7 @@ function IOURequestStepParticipants({
                 />
             )}
             <MoneyRequestParticipantsSelector
-                participants={participants}
+                participants={isSplitRequest ? participants : getEmptyArray()}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
                 iouType={iouType}
@@ -457,7 +455,5 @@ function IOURequestStepParticipants({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));

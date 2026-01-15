@@ -13,7 +13,7 @@ import BillingBanner from './BillingBanner';
 function PreTrialBillingBanner() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['TreasureChest'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['TreasureChest']);
     const navigateToChat = () => {
         const reportUsedForOnboarding = getChatUsedForOnboarding();
 
@@ -40,7 +40,5 @@ function PreTrialBillingBanner() {
         />
     );
 }
-
-PreTrialBillingBanner.displayName = 'PreTrialBillingBanner';
 
 export default PreTrialBillingBanner;

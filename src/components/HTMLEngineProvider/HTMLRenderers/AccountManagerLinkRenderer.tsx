@@ -46,6 +46,4 @@ function AccountManagerLinkRenderer({tnode, style}: AccountManagerLinkRendererPr
     );
 }
 
-AccountManagerLinkRenderer.displayName = 'AccountManagerLinkRenderer';
-
 export default AccountManagerLinkRenderer;

@@ -22,6 +22,4 @@ function ErrorBodyText() {
     );
 }
 
-ErrorBodyText.displayName = 'ErrorBodyText';
-
 export default ErrorBodyText;

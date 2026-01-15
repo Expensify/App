@@ -55,7 +55,7 @@ function IOURequestStepUpgrade({
     const isCategorizing = upgradePath === CONST.UPGRADE_PATHS.CATEGORIES;
     const isReporting = upgradePath === CONST.UPGRADE_PATHS.REPORTS;
     const platform = getPlatform();
-    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+    const isWeb = platform === CONST.PLATFORM.WEB;
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -70,13 +70,13 @@ function IOURequestStepUpgrade({
 
     const navigateWithMicrotask = useCallback(
         (route: Route) => {
-            if (isWebOrDesktop) {
+            if (isWeb) {
                 Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
             } else {
                 Navigation.navigate(route);
             }
         },
-        [isWebOrDesktop],
+        [isWeb],
     );
 
     const afterUpgradeAcknowledged = useCallback(() => {
@@ -155,8 +155,8 @@ function IOURequestStepUpgrade({
             ],
             adminParticipant,
             hasOutstandingChildRequest: false,
-            introSelectedParam: introSelected,
-            activePolicyIDParam: activePolicyID,
+            introSelected,
+            activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
@@ -192,8 +192,8 @@ function IOURequestStepUpgrade({
             currency: params.currency,
             file: params.avatarFile as File,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-            introSelectedParam: introSelected,
-            activePolicyIDParam: activePolicyID,
+            introSelected,
+            activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
@@ -253,6 +253,7 @@ function IOURequestStepUpgrade({
                 isVisible={isUpgradeWarningModalOpen}
                 shouldShowCancelButton={false}
                 onConfirm={handleConfirmUpgradeWarning}
+                onCancel={handleConfirmUpgradeWarning}
                 title={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning')}
                 prompt={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt')}
                 confirmText={translate('common.buttonConfirm')}

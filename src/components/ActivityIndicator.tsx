@@ -40,6 +40,4 @@ function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, e
     );
 }
 
-ActivityIndicator.displayName = 'ActivityIndicator';
-
 export default ActivityIndicator;

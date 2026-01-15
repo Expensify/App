@@ -34,7 +34,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
     const policyID = policy?.id;
     const config = policy?.connections?.netsuite.options.config;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT>>();
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle<ListItem>>(null);
 
     const {items} = policy?.connections?.netsuite?.options.data ?? {};
     const selectedItem = useMemo(() => findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem), [items, config?.invoiceItem]);
@@ -84,7 +84,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
             onBackButtonPress={goBack}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteInvoiceItemPreferenceSelectPage.displayName}
+            displayName="NetSuiteInvoiceItemPreferenceSelectPage"
             policyID={policyID}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldUseScrollView={false}
@@ -135,7 +135,5 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
         </ConnectionLayout>
     );
 }
-
-NetSuiteInvoiceItemPreferenceSelectPage.displayName = 'NetSuiteInvoiceItemPreferenceSelectPage';
 
 export default withPolicyConnections(NetSuiteInvoiceItemPreferenceSelectPage);

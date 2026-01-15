@@ -3,8 +3,8 @@ import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -35,6 +35,7 @@ type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
  * a message.
  */
 function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected, onPressOpenPicker = () => {}, onEmojiPickerClosed = () => {}}: MiniQuickEmojiReactionsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const ref = useRef<View>(null);
@@ -69,6 +70,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
                     onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))}
+                    sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.QUICK_REACTION}
                 >
                     <Text
                         style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}
@@ -89,12 +91,13 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                 })}
                 isDelayButtonStateComplete={false}
                 tooltipText={translate('emojiReactions.addReactionTooltip')}
+                sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.EMOJI_PICKER_BUTTON}
             >
                 {({hovered, pressed}) => (
                     <Icon
                         width={variables.iconSizeMedium}
                         height={variables.iconSizeMedium}
-                        src={Expensicons.AddReaction}
+                        src={icons.AddReaction}
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
                     />
                 )}
@@ -102,7 +105,5 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
         </View>
     );
 }
-
-MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 
 export default MiniQuickEmojiReactions;

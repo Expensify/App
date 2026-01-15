@@ -167,13 +167,12 @@ function AccountDetailsPage() {
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={AccountDetailsPage.displayName}
+            testID="AccountDetailsPage"
             shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => Navigation.dismissModal()}
-                shouldDisplayHelpButton={false}
             />
             <FullPageOfflineBlockingView>
                 <FormProvider
@@ -230,7 +229,5 @@ function AccountDetailsPage() {
         </ScreenWrapper>
     );
 }
-
-AccountDetailsPage.displayName = 'AccountDetailsPage';
 
 export default AccountDetailsPage;

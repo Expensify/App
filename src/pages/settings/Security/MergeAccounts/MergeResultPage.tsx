@@ -221,7 +221,7 @@ function MergeResultPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={MergeResultPage.displayName}
+            testID="MergeResultPage"
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
@@ -229,7 +229,6 @@ function MergeResultPage() {
                 onBackButtonPress={() => {
                     Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
-                shouldDisplayHelpButton={false}
             />
             <ConfirmationPage
                 containerStyle={{...styles.flexGrow1, ...styles.mt3}}
@@ -253,7 +252,5 @@ function MergeResultPage() {
         </ScreenWrapper>
     );
 }
-
-MergeResultPage.displayName = 'MergeResultPage';
 
 export default MergeResultPage;

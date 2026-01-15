@@ -46,6 +46,4 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
     );
 }
 
-Enable2FACard.displayName = 'Enable2FAPrompt';
-
 export default Enable2FACard;

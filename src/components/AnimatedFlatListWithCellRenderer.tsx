@@ -3,6 +3,7 @@
  * This should be updated when the original implementation updates
  * Taken from: https://github.com/software-mansion/react-native-reanimated/blob/main/packages/react-native-reanimated/src/component/FlatList.tsx
  */
+// eslint-disable-next-line no-restricted-imports
 import React, {forwardRef, useRef} from 'react';
 import type {FlatListProps, CellRendererProps as RNCellRendererProps} from 'react-native';
 import {FlatList} from 'react-native';
@@ -68,7 +69,6 @@ function FlatListForwardRefRender<Item = any>(props: AnimatedFlatListWithCellRen
     // We set it to 1, so we have peace until
     // there are 960 fps screens.
     if (!('scrollEventThrottle' in restProps)) {
-        // eslint-disable-next-line react-compiler/react-compiler
         restProps.scrollEventThrottle = 1;
     }
 

@@ -129,7 +129,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
 
     return (
         <ScreenWrapper
-            testID={ReportChangeApproverPage.displayName}
+            testID="ReportChangeApproverPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -163,7 +163,5 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         </ScreenWrapper>
     );
 }
-
-ReportChangeApproverPage.displayName = 'ReportChangeApproverPage';
 
 export default withReportOrNotFound()(ReportChangeApproverPage);

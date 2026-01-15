@@ -43,7 +43,7 @@ function NewChatConfirmPage() {
     const personalData = useCurrentUserPersonalDetails();
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const icons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Camera']);
 
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
@@ -123,11 +123,11 @@ function NewChatConfirmPage() {
         readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
 
         // we only need to run this when the component re-mounted and when the onyx is loaded completely
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newGroupDraftMetaData]);
 
     return (
-        <ScreenWrapper testID={NewChatConfirmPage.displayName}>
+        <ScreenWrapper testID="NewChatConfirmPage">
             <HeaderWithBackButton
                 title={translate('common.group')}
                 onBackButtonPress={navigateBack}
@@ -135,7 +135,6 @@ function NewChatConfirmPage() {
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     source={stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
@@ -181,7 +180,5 @@ function NewChatConfirmPage() {
         </ScreenWrapper>
     );
 }
-
-NewChatConfirmPage.displayName = 'NewChatConfirmPage';
 
 export default NewChatConfirmPage;

@@ -4,22 +4,24 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
+import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Account} from '@src/types/onyx';
+import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getStateFromPath from './helpers/getStateFromPath';
@@ -36,14 +38,13 @@ import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import type {
-    ExpenseReportNavigatorParamList,
     NavigationPartialRoute,
     NavigationRef,
     NavigationRoute,
     NavigationStateRoute,
     ReportsSplitNavigatorParamList,
+    RightModalNavigatorParamList,
     RootNavigatorParamList,
-    SearchMoneyRequestReportParamList,
     State,
 } from './types';
 
@@ -61,6 +62,16 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         account = value;
+    },
+});
+
+let sidePanelNVP: OnyxEntry<SidePanel>;
+// `connectWithoutView` is used here because we want to avoid unnecessary re-renders when the side panel NVP changes
+// Also it is not directly connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_SIDE_PANEL,
+    callback: (value) => {
+        sidePanelNVP = value;
     },
 });
 
@@ -130,9 +141,25 @@ const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmos
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
 /**
+ * Close the side panel on narrow layout when navigating to a different screen.
+ */
+function closeSidePanelOnNarrowScreen() {
+    const isExtraLargeScreenWidth = Dimensions.get('window').width > variables.sidePanelResponsiveWidthBreakpoint;
+
+    if (!sidePanelNVP?.openNarrowScreen || isExtraLargeScreenWidth) {
+        return;
+    }
+    SidePanelActions.closeSidePanel(true);
+}
+
+/**
  * Returns the current active route.
  */
 function getActiveRoute(): string {
+    if (!navigationRef.isReady()) {
+        return '';
+    }
+
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
     if (!currentRoute?.name) {
         return '';
@@ -236,6 +263,7 @@ function navigate(route: Route, options?: LinkToOptions) {
         }
     }
     linkTo(navigationRef.current, route, options);
+    closeSidePanelOnNarrowScreen();
 }
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
@@ -587,25 +615,21 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
     if (!state) {
         return;
     }
-
     const topmostRightModalNavigator = state.routes?.at(-1);
 
     if (!topmostRightModalNavigator || topmostRightModalNavigator.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return;
     }
 
-    const topmostSuperWideRHPModalStack = topmostRightModalNavigator.state?.routes.findLast((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name));
+    const topmostSuperWideRHP = topmostRightModalNavigator.state?.routes.findLast((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name));
 
-    if (!topmostSuperWideRHPModalStack) {
+    if (!topmostSuperWideRHP) {
         return;
     }
 
-    const topmostSuperWideRHP = topmostSuperWideRHPModalStack.state?.routes.findLast(
-        (route) => route.name === SCREENS.EXPENSE_REPORT_RHP || route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT,
-    );
     const topmostReportParams = topmostSuperWideRHP?.params as
-        | SearchMoneyRequestReportParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT]
-        | ExpenseReportNavigatorParamList[typeof SCREENS.EXPENSE_REPORT_RHP]
+        | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]
+        | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT]
         | undefined;
 
     return topmostReportParams?.reportID;
@@ -646,7 +670,7 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
         let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
-            dismissToPreviousRHP();
+            dismissToSuperWideRHP();
             return;
         }
 
@@ -793,6 +817,10 @@ function dismissToPreviousRHP() {
     return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
 }
 
+function navigateBackToLastSuperWideRHPScreen() {
+    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
+}
+
 function dismissToSuperWideRHP() {
     // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
     if (getIsNarrowLayout()) {
@@ -800,7 +828,26 @@ function dismissToSuperWideRHP() {
         return;
     }
     // On wide layouts, dismiss back to the Super Wide RHP modal stack
-    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
+    navigateBackToLastSuperWideRHPScreen();
+}
+
+function getTopmostReportIDInSearchRHP(state = navigationRef.getRootState()): string | undefined {
+    if (!state) {
+        return undefined;
+    }
+
+    const lastRoute = state.routes?.at(-1);
+    if (lastRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return undefined;
+    }
+
+    const nestedRoutes = lastRoute.state?.routes ?? [];
+    const lastSearchReport = [...nestedRoutes].reverse().find((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+
+    const params = lastSearchReport?.params;
+    const reportID = params && 'reportID' in params ? params.reportID : undefined;
+
+    return typeof reportID === 'string' ? reportID : undefined;
 }
 
 export default {
@@ -840,6 +887,9 @@ export default {
     isValidateLoginFlow,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
+    getTopmostReportIDInSearchRHP,
+    getTopmostSuperWideRHPReportID,
+    navigateBackToLastSuperWideRHPScreen,
 };
 
 export {navigationRef};

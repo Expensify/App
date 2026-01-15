@@ -44,7 +44,7 @@ type TagSettingsPageProps =
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const {translate} = useLocalize();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
@@ -146,7 +146,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={TagSettingsPage.displayName}
+                testID="TagSettingsPage"
             >
                 <HeaderWithBackButton
                     title={getCleanedTagName(tagName)}
@@ -258,7 +258,5 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-TagSettingsPage.displayName = 'TagSettingsPage';
 
 export default TagSettingsPage;

@@ -134,7 +134,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedTagsPage.displayName}
+            testID="ImportedTagsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -159,7 +159,5 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ImportedTagsPage.displayName = 'ImportedTagsPage';
 
 export default ImportedTagsPage;

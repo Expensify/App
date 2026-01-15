@@ -193,6 +193,7 @@ function ReportActionsList({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {canBeMissing: true});
 
     const backTo = route?.params?.backTo as string;
     // Display the new message indicator when comment linking and not close to the newest message.
@@ -243,7 +244,7 @@ function ReportActionsList({
     useEffect(() => {
         setUnreadMarkerTime(reportLastReadTime);
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
@@ -283,7 +284,6 @@ function ReportActionsList({
             const nextAction = sortedVisibleReportActions.at(index + 1);
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
-            // eslint-disable-next-line react-compiler/react-compiler
             const shouldDisplayNewMarker =
                 reportAction &&
                 shouldDisplayNewMarkerOnReportAction({
@@ -345,7 +345,7 @@ function ReportActionsList({
 
         setUnreadMarkerTime(mostRecentReportActionCreated);
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction?.created]);
 
     const lastActionIndex = lastAction?.reportActionID;
@@ -353,7 +353,6 @@ function ReportActionsList({
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
-    // eslint-disable-next-line react-compiler/react-compiler
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
     const sortedVisibleReportActionsRef = useRef(sortedVisibleReportActions);
@@ -425,7 +424,7 @@ function ReportActionsList({
 
             readActionSkipped.current = true;
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, reportMetadata?.hasOnceLoadedReportActions]);
 
     const handleAppVisibilityMarkAsRead = useCallback(() => {
@@ -466,7 +465,7 @@ function ReportActionsList({
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
 
     const prevHandleReportChangeMarkAsRead = useRef<() => void>(null);
@@ -499,7 +498,7 @@ function ReportActionsList({
             setIsFloatingMessageCounterVisible(false);
             reportScrollManager.scrollToBottom();
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
@@ -603,7 +602,7 @@ function ReportActionsList({
 
         return cleanup;
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     const reportActionsListFSClass = FS.getChatFSClass(report);
@@ -618,20 +617,14 @@ function ReportActionsList({
         InteractionManager.runAfterInteractions(() => {
             reportScrollManager.scrollToBottom();
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            if (isSearchTopmostFullScreenRoute()) {
-                if (Navigation.getReportRHPActiveRoute()) {
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo}));
-                } else {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: report.reportID, backTo}));
-                }
-            } else {
+            if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
             }
             openReport(report.reportID);
@@ -732,6 +725,8 @@ function ReportActionsList({
                     linkedTransactionRouteError={actionLinkedTransactionRouteError}
                     userBillingFundID={userBillingFundID}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
+                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
                 />
             );
         },
@@ -759,6 +754,8 @@ function ReportActionsList({
             userBillingFundID,
             isTryNewDotNVPDismissed,
             isReportArchived,
+            reportNameValuePairs?.origin,
+            reportNameValuePairs?.originalID,
         ],
     );
 
@@ -795,7 +792,6 @@ function ReportActionsList({
     const listHeaderComponent = useMemo(() => {
         // In case of an error we want to display the header no matter what.
         if (!canShowHeader) {
-            // eslint-disable-next-line react-compiler/react-compiler
             hasHeaderRendered.current = true;
             return null;
         }
@@ -866,11 +862,8 @@ function ReportActionsList({
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[
-                        styles.chatContentScrollView,
-                        shouldScrollToEndAfterLayout ? styles.visibilityHidden : styles.visibilityVisible,
-                        shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
-                    ]}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
+                    shouldHideContent={shouldScrollToEndAfterLayout}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
                     showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
@@ -898,8 +891,6 @@ function ReportActionsList({
         </>
     );
 }
-
-ReportActionsList.displayName = 'ReportActionsList';
 
 export default memo(ReportActionsList);
 

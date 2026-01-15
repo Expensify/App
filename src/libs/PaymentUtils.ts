@@ -224,7 +224,8 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
 function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined, policyID?: string | undefined) {
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
     const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
-    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyID);
+    // payment method is equal to policyID when user selects "Pay via workspace" option
+    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyID || activePolicy.id === paymentMethod);
 
     let paymentType;
     switch (paymentMethod) {

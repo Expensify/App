@@ -23,11 +23,16 @@ function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseEr
         BootSplash.hide().then(() => setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN));
         setErrorContent(errorObject.message);
     };
-    const updateRequired = errorContent === CONST.ERROR.UPDATE_REQUIRED;
+
+    let FallbackComponent = GenericErrorPage;
+
+    if (errorContent === CONST.ERROR.UPDATE_REQUIRED) {
+        FallbackComponent = UpdateRequiredView;
+    }
 
     return (
         <ErrorBoundary
-            FallbackComponent={updateRequired ? UpdateRequiredView : GenericErrorPage}
+            FallbackComponent={FallbackComponent}
             onError={catchError}
         >
             {children}
@@ -35,5 +40,4 @@ function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseEr
     );
 }
 
-BaseErrorBoundary.displayName = 'BaseErrorBoundary';
 export default BaseErrorBoundary;

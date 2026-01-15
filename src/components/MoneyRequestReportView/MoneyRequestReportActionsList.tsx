@@ -53,7 +53,7 @@ import {
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
@@ -175,6 +175,8 @@ function MoneyRequestReportActionsList({
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
+    const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
@@ -222,7 +224,7 @@ function MoneyRequestReportActionsList({
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
-            const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction);
+            const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
 
             return (
                 isActionVisibleOnMoneyReport &&
@@ -233,7 +235,7 @@ function MoneyRequestReportActionsList({
         });
 
         return filteredActions.toReversed();
-    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs]);
+    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction]);
 
     const reportActionSize = useRef(visibleReportActions.length);
     const lastAction = visibleReportActions.at(-1);
@@ -300,7 +302,7 @@ function MoneyRequestReportActionsList({
     useEffect(() => {
         setUnreadMarkerTime(reportLastReadTime);
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     useEffect(() => {
@@ -329,7 +331,7 @@ function MoneyRequestReportActionsList({
                 readActionSkipped.current = true;
             }
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
 
     useEffect(() => {
@@ -361,7 +363,7 @@ function MoneyRequestReportActionsList({
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
 
     /**
@@ -404,7 +406,6 @@ function MoneyRequestReportActionsList({
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
 
-            // eslint-disable-next-line react-compiler/react-compiler
             if (shouldDisplayNewMarker) {
                 return [reportAction.reportActionID, index];
             }
@@ -527,7 +528,7 @@ function MoneyRequestReportActionsList({
         };
 
         // This effect handles subscribing to events, so we only want to run it on mount, and in case reportID changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     useEffect(() => {
@@ -578,6 +579,8 @@ function MoneyRequestReportActionsList({
                     isReportArchived={isReportArchived}
                     draftMessage={matchingDraftMessageString}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
+                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
                 />
             );
         },
@@ -601,6 +604,8 @@ function MoneyRequestReportActionsList({
             draftMessage,
             isTryNewDotNVPDismissed,
             isReportArchived,
+            reportNameValuePairs?.origin,
+            reportNameValuePairs?.originalID,
         ],
     );
 
@@ -641,8 +646,8 @@ function MoneyRequestReportActionsList({
 
         didLayout.current = true;
 
-        markOpenReportEnd(reportID);
-    }, [reportID]);
+        markOpenReportEnd(report);
+    }, [report]);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
     // Wrapped into useCallback to stabilize children re-renders
@@ -826,7 +831,5 @@ function MoneyRequestReportActionsList({
         </View>
     );
 }
-
-MoneyRequestReportActionsList.displayName = 'MoneyRequestReportActionsList';
 
 export default MoneyRequestReportActionsList;

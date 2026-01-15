@@ -127,6 +127,4 @@ function ConfirmationStep({
     );
 }
 
-ConfirmationStep.displayName = 'ConfirmationStep';
-
 export default ConfirmationStep;

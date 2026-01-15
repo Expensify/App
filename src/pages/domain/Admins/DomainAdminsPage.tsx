@@ -1,145 +1,102 @@
-import {adminAccountIDsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SearchBar from '@components/SearchBar';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import SelectionList from '@components/SelectionListWithSections';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import Badge from '@components/Badge';
+import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import {clearAdminError} from '@userActions/Domain';
 import {getCurrentUserAccountID} from '@userActions/Report';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
 
-type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
-    accountID: number;
-    login: string;
-};
-
 function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {domainAccountID} = route.params;
-
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Members'] as const);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const illustrations = useMemoizedLazyIllustrations(['UserShield']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
 
-    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
+
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        canBeMissing: true,
+    });
+
+    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminPendingActionSelector,
+    });
+
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-
-    const data: AdminOption[] = [];
-    for (const accountID of adminAccountIDs ?? []) {
-        const details = personalDetails?.[accountID];
-        data.push({
-            keyForList: String(accountID),
-            accountID,
-            login: details?.login ?? '',
-            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-            alternateText: formatPhoneNumber(details?.login ?? ''),
-            icons: [
-                {
-                    source: details?.avatar ?? icons.FallbackAvatar,
-                    name: formatPhoneNumber(details?.login ?? ''),
-                    type: CONST.ICON_TYPE_AVATAR,
-                    id: accountID,
-                },
-            ],
-        });
-    }
-
-    const filterMember = (adminOption: AdminOption, searchQuery: string) => {
-        const results = tokenizedSearch([adminOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
-        return results.length > 0;
-    };
-    const sortMembers = (adminOptions: AdminOption[]) => sortAlphabetically(adminOptions, 'text', localeCompare);
-    const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
-
-    const getCustomListHeader = () => {
-        if (filteredData.length === 0) {
-            return null;
-        }
-
-        return (
-            <CustomListHeader
-                canSelectMultiple={false}
-                leftHeaderText={translate('domain.admins.title')}
-            />
-        );
-    };
-
-    const listHeaderContent =
-        data.length > CONST.SEARCH_ITEM_LIMIT ? (
-            <SearchBar
-                inputValue={inputValue}
-                onChangeText={setInputValue}
-                label={translate('domain.admins.findAdmin')}
-                shouldShowEmptyState={!filteredData.length}
-            />
-        ) : null;
-
-    if (isLoadingOnyxValue(domainMetadata)) {
-        return <FullScreenLoadingIndicator />;
-    }
+    const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+        canBeMissing: false,
+        selector: technicalContactSettingsSelector,
+    });
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
+    const getCustomRightElement = (accountID: number) => {
+        const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
+        const login = personalDetails?.[accountID]?.login;
+        if (!technicalContactEmail || !login || technicalContactEmail !== login) {
+            return null;
+        }
+        return <Badge text={translate('domain.admins.primaryContact')} />;
+    };
+
+    const getCustomRowProps = (accountID: number) => ({
+        errors: domainErrors?.adminErrors?.[accountID]?.errors,
+        pendingAction: domainPendingAction?.[accountID]?.pendingAction,
+    });
+
+    const headerContent = isAdmin ? (
+        <>
+            <Button
+                success
+                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
+                text={translate('domain.admins.addAdmin')}
+                icon={icons.Plus}
+                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+            />
+            <Button
+                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
+                text={translate('domain.admins.settings')}
+                icon={icons.Gear}
+                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+            />
+        </>
+    ) : null;
+
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
-            testID={DomainAdminsPage.displayName}
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!isAdmin}
-                shouldForceFullScreen
-            >
-                <HeaderWithBackButton
-                    title={translate('domain.admins.title')}
-                    onBackButtonPress={Navigation.popToSidebar}
-                    icon={illustrations.Members}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                />
-                <SelectionList
-                    sections={[{data: filteredData}]}
-                    canSelectMultiple={false}
-                    listHeaderContent={listHeaderContent}
-                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                    ListItem={TableListItem}
-                    onSelectRow={() => {}}
-                    shouldShowListEmptyContent={false}
-                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
-                    showScrollIndicator={false}
-                    addBottomSafeAreaPadding
-                    customListHeader={getCustomListHeader()}
-                />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+        <BaseDomainMembersPage
+            domainAccountID={domainAccountID}
+            accountIDs={adminAccountIDs ?? []}
+            headerTitle={translate('domain.admins.title')}
+            searchPlaceholder={translate('domain.admins.findAdmin')}
+            headerIcon={illustrations.UserShield}
+            headerContent={headerContent}
+            getCustomRightElement={getCustomRightElement}
+            getCustomRowProps={getCustomRowProps}
+            onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}
+            onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
+        />
     );
 }
 

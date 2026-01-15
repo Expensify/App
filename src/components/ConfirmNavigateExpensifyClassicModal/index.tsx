@@ -5,6 +5,4 @@ function OpenConfirmNavigateExpensifyClassicModal() {
     return <BaseConfirmNavigateExpensifyClassicModal />;
 }
 
-OpenConfirmNavigateExpensifyClassicModal.displayName = 'OpenConfirmNavigateExpensifyClassicModal';
-
 export default OpenConfirmNavigateExpensifyClassicModal;

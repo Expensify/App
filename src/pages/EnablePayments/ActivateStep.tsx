@@ -48,6 +48,4 @@ function ActivateStep({userWallet}: ActivateStepProps) {
     );
 }
 
-ActivateStep.displayName = 'ActivateStep';
-
 export default ActivateStep;

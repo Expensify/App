@@ -19,7 +19,7 @@ function HelpLinks({containerStyles}: HelpLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <Icon
@@ -46,7 +46,5 @@ function HelpLinks({containerStyles}: HelpLinkProps) {
         </View>
     );
 }
-
-HelpLinks.displayName = 'HelpLinks';
 
 export default HelpLinks;
