@@ -9,6 +9,7 @@ import type {MergeTransaction as MergeTransactionType, Report, ReportAction, Tra
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -562,15 +563,7 @@ describe('mergeTransactionRequest', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
-            const oldReportActions = await new Promise<Record<string, ReportAction> | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
-                    callback: (actions) => {
-                        Onyx.disconnect(connection);
-                        resolve(actions ?? null);
-                    },
-                });
-            });
+            const oldReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}` as const);
 
             expect(oldReportActions?.[oldIOUAction.reportActionID]).toBeUndefined();
         });

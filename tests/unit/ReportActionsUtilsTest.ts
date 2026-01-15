@@ -2823,17 +2823,20 @@ describe('ReportActionsUtils', () => {
                 },
             }) as ReportAction;
 
-        beforeEach(() => {
-            jest.spyOn(require('../../src/libs/ReportUtils'), 'getReportOrDraftReport').mockImplementation((...args: unknown[]) => {
-                const reportID = args.at(0) as string | undefined;
-                if (reportID === expenseReportID) {
-                    return {...createRandomReport(0, undefined), reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE};
-                }
-                if (reportID === regularIOUReportID) {
-                    return {...createRandomReport(0, undefined), reportID: regularIOUReportID, type: CONST.REPORT.TYPE.IOU};
-                }
-                return null;
+        beforeEach(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
+                ...createRandomReport(0, undefined),
+                reportID: expenseReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
             });
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${regularIOUReportID}`, {
+                ...createRandomReport(0, undefined),
+                reportID: regularIOUReportID,
+                type: CONST.REPORT.TYPE.IOU,
+            });
+
+            await waitForBatchedUpdates();
 
             jest.spyOn(require('../../src/libs/ReportUtils'), 'isExpenseReport').mockImplementation((...args: unknown[]) => {
                 const reportOrID = args.at(0) as Report | string | null;

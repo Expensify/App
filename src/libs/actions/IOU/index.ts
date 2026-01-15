@@ -4224,7 +4224,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         updatedMoneyRequestReport = {
             ...iouReport,
             total: iouReport.total - diff,
-            type: iouReport.type,
         };
         if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
             updatedMoneyRequestReport.nonReimbursableTotal -= diff;
