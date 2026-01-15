@@ -4,7 +4,8 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
-import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
+import {initSplitExpense} from '@libs/actions/IOU';
+import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,6 +31,9 @@ jest.mock('@libs/actions/Search', () => ({
 
 jest.mock('@libs/actions/IOU', () => ({
     initSplitExpense: jest.fn(),
+}));
+
+jest.mock('@libs/actions/IOU/Hold', () => ({
     unholdRequest: jest.fn(),
 }));
 
