@@ -16,6 +16,7 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -69,7 +70,7 @@ const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionIt
 function ProfilePage({route}: ProfilePageProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector, canBeMissing: true});
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
@@ -97,16 +98,15 @@ function ProfilePage({route}: ProfilePageProps) {
         [accountID, loginParams],
     );
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true, selector: personalDetailsSelector});
-    const isCurrentUser = session?.accountID === accountID;
+    const isCurrentUser = currentUserAccountID === accountID;
     const reportKey = useMemo(() => {
-        const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
+        const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
 
         if (isAnonymousUserSession() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, isCurrentUser, reports, session?.accountID]);
-
+    }, [accountID, isCurrentUser, reports, currentUserAccountID]);
     const [report] = useOnyx(reportKey, {canBeMissing: true});
 
     const styles = useThemeStyles();
@@ -188,10 +188,10 @@ function ProfilePage({route}: ProfilePageProps) {
 
         // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
         if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
-            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, personalDetails}));
+            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID, personalDetails}));
         }
         return result;
-    }, [accountID, isCurrentUser, loginParams, report]);
+    }, [accountID, isCurrentUser, loginParams, report, currentUserAccountID]);
 
     return (
         <ScreenWrapper testID="ProfilePage">
@@ -291,7 +291,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={expensifyIcons.Pencil}
-                                onPress={() => navigateToPrivateNotes(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, navigateBackTo)}
+                                onPress={() => navigateToPrivateNotes(report, currentUserAccountID, navigateBackTo)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
