@@ -4607,7 +4607,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         description: '报表级别',
                         footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} 选择将应用于员工报表上的所有报销费用。`,
                     },
-                    footerContent: (importField: string) => `${startCase(importField)} 选择将应用于员工报表中的所有报销。`,
                 },
             },
         },

@@ -4691,7 +4691,6 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                         description: 'Nível de relatório',
                         footerContent: ({importField}: ImportFieldParams) => `A seleção de ${startCase(importField)} será aplicada a todas as despesas no relatório de um funcionário.`,
                     },
-                    footerContent: (importField: string) => `A seleção ${startCase(importField)} será aplicada a todas as despesas no relatório de um funcionário.`,
                 },
             },
         },

@@ -4691,7 +4691,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         description: 'Poziom raportu',
                         footerContent: ({importField}: ImportFieldParams) => `Wybór ${startCase(importField)} zostanie zastosowany do wszystkich wydatków w raporcie pracownika.`,
                     },
-                    footerContent: (importField: string) => `Wybrana opcja ${startCase(importField)} zostanie zastosowana do wszystkich wydatków w raporcie pracownika.`,
                 },
             },
         },

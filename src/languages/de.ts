@@ -4719,7 +4719,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         description: 'Berichtsebene',
                         footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)}-Auswahl gilt für alle Ausgaben auf dem Bericht eines Mitarbeiters.`,
                     },
-                    footerContent: (importField: string) => `${startCase(importField)}-Auswahl wird auf alle Ausgaben in dem Bericht eines Mitarbeiters angewendet.`,
                 },
             },
         },

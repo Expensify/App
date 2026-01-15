@@ -4706,7 +4706,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         description: 'Livello del report',
                         footerContent: ({importField}: ImportFieldParams) => `La selezione ${startCase(importField)} verrà applicata a tutte le spese nel rendiconto di un dipendente.`,
                     },
-                    footerContent: (importField: string) => `${startCase(importField)} la selezione verrà applicata a tutte le spese nel report di un dipendente.`,
                 },
             },
         },

@@ -4703,7 +4703,6 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                         description: 'Rapportniveau',
                         footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)}-selectie is van toepassing op alle onkosten op het rapport van een werknemer.`,
                     },
-                    footerContent: (importField: string) => `${startCase(importField)}-selectie wordt toegepast op alle uitgaven op het rapport van een werknemer.`,
                 },
             },
         },

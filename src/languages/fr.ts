@@ -4724,7 +4724,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         description: 'Niveau de rapport',
                         footerContent: ({importField}: ImportFieldParams) => `La sélection ${startCase(importField)} s’appliquera à toutes les dépenses sur le rapport d’un employé.`,
                     },
-                    footerContent: (importField: string) => `La sélection ${startCase(importField)} s’appliquera à toutes les dépenses du rapport d’un employé.`,
                 },
             },
         },
