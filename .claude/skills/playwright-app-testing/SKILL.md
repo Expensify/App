@@ -12,7 +12,6 @@ Use Playwright testing when:
 - User requests testing the App in a browser
 - Verifying fixes or improvements you've made to UI/frontend code
 - Debugging UI issues
-- Validating user-facing functionality after changes
 
 **Proactively use after making frontend changes** to verify your work functions correctly.
 
@@ -34,12 +33,11 @@ ps aux | grep "webpack" | grep -v grep
 
 1. **Verify server**: Check webpack process is running
 2. **Navigate**: Use `mcp__playwright__browser_navigate` to `https://dev.new.expensify.com:8082/`
-3. **Interact**: Use Playwright MCP tools as needed:
-   - `browser_snapshot` - Better than screenshot for understanding UI state
-   - `browser_click` - Click elements
-   - `browser_type` - Enter text
-   - `browser_take_screenshot` - Capture visual state
-   - `browser_fill_form` - Fill multiple form fields
+3. **Interact**: Use Playwright MCP tools including:
+   - **Inspection**: `browser_snapshot`, `browser_take_screenshot`, `browser_console_messages`
+   - **Interaction**: `browser_click`, `browser_type`, `browser_fill_form`, `browser_hover`
+   - **Navigation**: `browser_navigate_back`, `browser_tabs`, `browser_wait_for`
+   - All other Playwright tools as needed
 
 ## Dev Environment Sign-In
 
@@ -60,15 +58,14 @@ You: "I've updated the expense form validation"
 → Proactively use this skill to verify the changes work in browser
 
 Scenario 3: Investigating bug
-User: "The submit button doesn't work"
+User: "The submit button doesn't work on this page"
 → Use this skill to reproduce and verify the issue
 ```
 
 ## When NOT to Use This Skill
 
 Skip Playwright for:
-- Backend service testing (use curl/API calls)
-- Unit tests (use npm run test)
-- Type checking (use npm run typecheck)
+- Backend service testing
+- Unit tests
+- Type checking
 - Mobile native app testing (requires emulators/simulators)
-- Code that doesn't affect user-facing UI
