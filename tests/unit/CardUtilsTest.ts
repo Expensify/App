@@ -1366,7 +1366,7 @@ describe('CardUtils', () => {
         it('should split the feed name and domain ID', () => {
             const feedName = 'vcf#11111111';
             const {feedName: splitFeedName, domainID} = splitCompanyCardFeedWithDomainID(feedName);
-            expect(splitFeedName).toBe('visa');
+            expect(splitFeedName).toBe('vcf');
             expect(domainID).toBe(11111111);
         });
     });
