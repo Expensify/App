@@ -41,7 +41,6 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -385,6 +384,7 @@ function MoneyRequestConfirmationListFooter({
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
+    const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
     // The per diem custom unit
@@ -510,7 +510,7 @@ function MoneyRequestConfirmationListFooter({
                         }
 
                         if (isOdometerDistanceRequest) {
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()) as Route);
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID));
                             return;
                         }
 
@@ -737,7 +737,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key="attendees"
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!isReadOnly}
                     title={iouAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
                     description={`${translate('iou.attendees')} ${
                         iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
@@ -751,8 +751,10 @@ function MoneyRequestConfirmationListFooter({
 
                         Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
-                    interactive
+                    interactive={!isReadOnly}
                     shouldRenderAsHTML
+                    brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayAttendeesError ? translate(formError) : ''}
                 />
             ),
             shouldShow: shouldShowAttendees,

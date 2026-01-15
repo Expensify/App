@@ -5,7 +5,14 @@ import lodashHas from 'lodash/has';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
+import type {
+    ChangeTransactionsReportParams,
+    DismissViolationParams,
+    GetDuplicateTransactionDetailsParams,
+    GetRouteParams,
+    MarkAsCashParams,
+    TransactionThreadInfo,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
@@ -238,7 +245,10 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
 }
 
-function getOnyxDataForRouteRequest(transactionID: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): OnyxData {
+function getOnyxDataForRouteRequest(
+    transactionID: string,
+    transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
+): OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.TRANSACTION_BACKUP | typeof ONYXKEYS.COLLECTION.TRANSACTION> {
     let keyPrefix;
     switch (transactionState) {
         case CONST.TRANSACTION.STATE.DRAFT:
@@ -622,13 +632,12 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
     const optimisticReportActions = {
         [optimisticReportAction.reportActionID]: optimisticReportAction,
     };
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         optimisticData: [
             // Optimistically dismissing the violation, removing it from the list of violations
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 value: transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
             },
             // Optimistically adding the system message indicating we dismissed the violation
@@ -664,7 +673,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
 }
 
 function openDraftDistanceExpense() {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.NVP_RECENT_WAYPOINTS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -689,19 +698,32 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
-function changeTransactionsReport(
-    transactionIDs: string[],
-    isASAPSubmitBetaEnabled: boolean,
-    accountID: number,
-    email: string,
-    newReport?: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-    reportNextStep?: OnyxEntry<ReportNextStepDeprecated>,
-    policyCategories?: OnyxEntry<PolicyCategories>,
-) {
+type ChangeTransactionsReportProps = {
+    transactionIDs: string[];
+    isASAPSubmitBetaEnabled: boolean;
+    accountID: number;
+    email: string;
+    newReport?: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+    reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
+    policyCategories?: OnyxEntry<PolicyCategories>;
+    allTransactionsCollection: OnyxCollection<Transaction>;
+};
+
+function changeTransactionsReport({
+    transactionIDs,
+    isASAPSubmitBetaEnabled,
+    accountID,
+    email,
+    newReport,
+    policy,
+    reportNextStep,
+    policyCategories,
+    allTransactionsCollection,
+}: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
+    const transactions = transactionIDs.map((id) => allTransactionsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
@@ -1449,6 +1471,18 @@ function getDraftTransactions(draftTransactions?: OnyxCollection<Transaction>): 
     return Object.values(draftTransactions ?? allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
+function getDuplicateTransactionDetails(transactionID?: string) {
+    if (!transactionID) {
+        return;
+    }
+
+    const parameters: GetDuplicateTransactionDetailsParams = {
+        transactionID,
+    };
+
+    API.read(READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS, parameters);
+}
+
 export {
     saveWaypoint,
     removeWaypoint,
@@ -1467,4 +1501,5 @@ export {
     revert,
     changeTransactionsReport,
     setTransactionReport,
+    getDuplicateTransactionDetails,
 };

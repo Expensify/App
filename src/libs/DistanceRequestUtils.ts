@@ -6,6 +6,8 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrencySymbol} from './CurrencyUtils';
+// This will be fixed as part of https://github.com/Expensify/App/issues/66397
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P} from './TransactionUtils';
 
@@ -175,7 +177,7 @@ function getDistanceForDisplay(
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
 ): string {
-    if (!hasRoute || !unit || !distanceInMeters) {
+    if (!hasRoute || !unit) {
         return translate('iou.fieldPending');
     }
 
@@ -374,6 +376,8 @@ function getRate({
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
     }
     const mileageRatesForMovingExpenses = getMileageRates(policyForMovingExpenses, true, transaction?.comment?.customUnit?.customUnitRateID);
+    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);

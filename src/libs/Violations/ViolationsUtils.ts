@@ -8,11 +8,12 @@ import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
+import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -236,7 +237,7 @@ const ViolationsUtils = {
         isSelfDM?: boolean,
         iouReport?: OnyxEntry<Report> | null,
         isFromExpenseReport?: boolean,
-    ): OnyxUpdate {
+    ): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
         const isPartialTransaction = TransactionUtils.isPartial(updatedTransaction);
@@ -336,6 +337,7 @@ const ViolationsUtils = {
         // const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
+        const hasMissingAttendeesViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
         const isDistanceRequest = TransactionUtils.isDistanceRequest(updatedTransaction);
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
@@ -344,7 +346,7 @@ const ViolationsUtils = {
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
+        const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
         const canCalculateAmountViolations = policy.outputCurrency === currency;
@@ -384,6 +386,40 @@ const ViolationsUtils = {
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment = !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy;
+        const attendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees ?? [];
+        const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
+        // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
+        const ownerAccountID = iouReport?.ownerAccountID;
+        // Calculate attendees minus owner. When ownerAccountID is known, filter by accountID.
+        // When ownerAccountID is undefined (offline split where iouReport is unavailable),
+        // fallback to using login/email to identify the owner (similar to AttendeeUtils approach).
+        let attendeesMinusOwnerCount: number;
+        if (ownerAccountID !== undefined) {
+            // Normal case: filter by accountID
+            attendeesMinusOwnerCount = attendees.filter((a) => a?.accountID !== ownerAccountID).length;
+        } else {
+            // Offline scenario: ownerAccountID unavailable, use login/email as fallback
+            const currentUserEmail = getCurrentUserEmail();
+            if (currentUserEmail) {
+                // Filter by login or email to identify owner
+                attendeesMinusOwnerCount = attendees.filter((a) => {
+                    const attendeeIdentifier = a?.login ?? a?.email;
+                    return attendeeIdentifier !== currentUserEmail;
+                }).length;
+            } else {
+                // Can't identify owner at all - if there are attendees, assume owner is one of them
+                // This means we need at least 2 attendees to have a non-owner attendee
+                attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
+            }
+        }
+
+        const shouldShowMissingAttendees =
+            !isInvoiceTransaction &&
+            isAttendeeTrackingEnabled &&
+            !!policyCategories?.[categoryName ?? '']?.areAttendeesRequired &&
+            isControlPolicy &&
+            (attendees.length === 0 || attendeesMinusOwnerCount === 0);
+
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
         if (!hasFutureDateViolation && shouldDisplayFutureDateViolation) {
@@ -466,6 +502,25 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
+        const shouldProcessMissingAttendees = !CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED;
+
+        if (shouldProcessMissingAttendees) {
+            if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.MISSING_ATTENDEES,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                });
+            }
+
+            if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
+            }
+        } else if (hasMissingAttendeesViolation) {
+            // Feature flag is disabled - always remove missingAttendees violations
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
+        }
+
         if (isPolicyTrackTaxEnabled && !hasTaxOutOfPolicyViolation && !isTaxInPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
         }
@@ -535,6 +590,8 @@ const ViolationsUtils = {
                 return translate('violations.missingCategory');
             case 'missingComment':
                 return translate('violations.missingComment');
+            case 'missingAttendees':
+                return translate('violations.missingAttendees');
             case 'missingTag':
                 return translate('violations.missingTag', {tagName});
             case 'modifiedAmount':
@@ -665,7 +722,8 @@ const ViolationsUtils = {
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
-                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction) &&
+                    (!CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES)
                 );
             });
         });
