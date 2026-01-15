@@ -410,7 +410,6 @@ function uniqFast(items: string[]): string[] {
 
 /**
  * Get the last actor display name from last actor details.
- * @param lastActorDetails - Personal details of the last actor
  * @param currentUserAccountIDParam - Optional current user account ID to use (for cold start scenarios where module-level Onyx callbacks may not have been fired yet)
  */
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam?: number) {
@@ -436,7 +435,12 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
  * Should show the last actor display name from last actor details.
  * @param currentUserAccountIDParam - Optional current user account ID to use (for cold start scenarios)
  */
-function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, lastAction: OnyxEntry<ReportAction>, currentUserAccountIDParam?: number) {
+function shouldShowLastActorDisplayName(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    lastAction: OnyxEntry<ReportAction>,
+    currentUserAccountIDParam?: number,
+) {
     const reportID = report?.reportID;
     const lastReportAction = (reportID ? lastVisibleReportActions[reportID] : undefined) ?? lastAction;
 
