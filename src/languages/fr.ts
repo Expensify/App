@@ -185,6 +185,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -6667,6 +6668,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             previousForwardsTo
                 ? `a modifié le flux d’approbation pour ${approver} afin de ne plus transférer les rapports approuvés (auparavant transférés à ${previousForwardsTo})`
                 : `a modifié le flux d'approbation pour ${approver} afin de ne plus transférer les rapports approuvés`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser ? `a modifié le payeur autorisé en « ${newReimburser} » (auparavant « ${previousReimburser} »)` : `a modifié le payeur autorisé en « ${newReimburser} »`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

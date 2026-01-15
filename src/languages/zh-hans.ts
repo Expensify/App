@@ -185,6 +185,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -6475,6 +6476,8 @@ ${reportName}
             }
         },
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将自定义报表名称公式更改为“${newValue}”（之前为“${oldValue}”）`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser ? `将授权付款人更改为“${newReimburser}”（原为“${previousReimburser}”）` : `已将授权付款人更改为“${newReimburser}”`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
