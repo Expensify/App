@@ -43,7 +43,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const searchContext = useSearchContext();
+    const {currentSearchResults} = useSearchContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 
@@ -56,9 +56,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         () => getTransactionDetails(splitExpenseDraftTransaction, undefined, undefined, undefined, undefined, undefined, preferredLocale) ?? {},
         [splitExpenseDraftTransaction, preferredLocale],
     );
-
-    const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];

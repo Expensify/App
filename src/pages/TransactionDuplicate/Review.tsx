@@ -16,7 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {openReport} from '@libs/actions/Report';
-import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
+import {dismissDuplicateTransactionViolation, getDuplicateTransactionDetails} from '@libs/actions/Transaction';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -109,6 +109,13 @@ function TransactionDuplicateReview() {
         }
         openReport(route.params.threadReportID);
     }, [report?.reportID, route.params.threadReportID]);
+
+    useEffect(() => {
+        if (!transactionID) {
+            return;
+        }
+        getDuplicateTransactionDetails(transactionID);
+    }, [transactionID]);
 
     const isLoadingPage = (!report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false) || !reportAction?.reportActionID;
 
