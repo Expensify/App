@@ -38,14 +38,6 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NETWORK,
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
-
-    // Preserve IS_USING_IMPORTED_STATE so that when transitioning between accounts or to NewDot in HybridApp mode,
-    // we know if we're in imported state mode and should skip API calls that would cause infinite loading
-    ONYXKEYS.IS_USING_IMPORTED_STATE,
-
-    // Preserve PRESERVED_USER_SESSION so that when using imported state, we can restore the original account
-    // when the user exits imported state mode via clearOnyxAndResetApp()
-    ONYXKEYS.PRESERVED_USER_SESSION,
 ];
 
 type WithDelegatedAccess = {
