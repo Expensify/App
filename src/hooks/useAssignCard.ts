@@ -24,6 +24,7 @@ import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
+import useCardsList from './useCardsList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -41,7 +42,6 @@ type UseAssignCardProps = {
 };
 
 function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssignCardProps) {
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : ({} as CombinedCardFeed);
@@ -59,9 +59,8 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
 
-    const cardList = allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${feedName}`];
-
-    const filteredFeedCards = filterInactiveCards(cardList);
+    const [cardsList] = useCardsList(feedName);
+    const filteredFeedCards = filterInactiveCards(cardsList);
     const hasFeedError = feedName ? !!cardFeeds?.[feedName]?.errors : false;
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
