@@ -3,7 +3,7 @@ import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashSet from 'lodash/set';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
@@ -136,13 +136,6 @@ Onyx.connect({
     callback: (value) => {
         deprecatedAllReports = value;
     },
-});
-
-let deprecatedAllTransactionViolations: OnyxCollection<TransactionViolations> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => (deprecatedAllTransactionViolations = value),
 });
 
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction>): boolean {
@@ -533,7 +526,7 @@ function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boole
 
     // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
     // Control policies if the policy does not contain the attribute
-    return policy?.isAttendeeTrackingEnabled ?? true;
+    return policy?.isAttendeeTrackingEnabled ?? false;
 }
 
 /**
@@ -1397,10 +1390,6 @@ function getTransactionViolations(
     );
 }
 
-function getTransactionViolationsOfTransaction(transactionID: string) {
-    return deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-}
-
 /**
  * Check if a transaction has been rejected
  */
@@ -1538,6 +1527,7 @@ function shouldShowViolation(
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);
@@ -1553,6 +1543,10 @@ function shouldShowViolation(
 
     if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
         return isPolicyMember && !isSubmitter && !isReportOpen;
+    }
+
+    if (violationName === CONST.VIOLATIONS.MISSING_ATTENDEES) {
+        return isAttendeeTrackingEnabled;
     }
 
     if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
@@ -2092,7 +2086,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
  *
  */
 function removeTransactionFromDuplicateTransactionViolation(
-    onyxData: OnyxData,
+    onyxData: OnyxData<OnyxKey>,
     transactionID: string,
     transactions: OnyxCollection<Transaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
@@ -2666,7 +2660,6 @@ export {
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
-    getTransactionViolationsOfTransaction,
     hasTransactionBeenRejected,
     isExpenseSplit,
     getAttendeesListDisplayString,
