@@ -1426,9 +1426,16 @@ function getTransactionViolations(
         return undefined;
     }
 
-    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter(
-        (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
-    );
+    const violations =
+        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter(
+            (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+        ) ?? [];
+
+    if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
+    }
+
+    return violations;
 }
 
 /**
@@ -1848,7 +1855,8 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+            (!CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES),
     );
 }
 
