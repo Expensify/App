@@ -435,6 +435,11 @@ function IOURequestStepConfirmation({
             return;
         }
         if (isTimeRequest) {
+            if (isMovingTransactionFromTrackExpense) {
+                return Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID ?? reportID, undefined, action), {
+                    compareParams: false,
+                });
+            }
             return Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.getRoute(action, iouType, initialTransactionID, reportID));
         }
 
