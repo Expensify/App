@@ -47,6 +47,7 @@ function setupMergeTransactionDataAndNavigate(
     searchReports?: Report[],
     isSelectingSourceTransaction?: boolean,
     isOnSearch?: boolean,
+    policies?: OnyxEntry<Policy>[],
 ) {
     if (!transactions.length || transactions.length > 2) {
         return;
@@ -61,7 +62,12 @@ function setupMergeTransactionDataAndNavigate(
         }
     }
 
-    const {targetTransaction, sourceTransaction} = selectTargetAndSourceTransactionsForMerge(transactions.at(0), transactions.at(1));
+    const {targetTransaction, sourceTransaction, targetTransactionPolicy, sourceTransactionPolicy} = selectTargetAndSourceTransactionsForMerge(
+        transactions.at(0),
+        transactions.at(1),
+        policies?.at(0),
+        policies?.at(1),
+    );
     if (!targetTransaction || !sourceTransaction) {
         return;
     }
@@ -82,7 +88,14 @@ function setupMergeTransactionDataAndNavigate(
         }
 
         // If transactions are identical, skip to the confirmation page
-        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, searchReports);
+        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(
+            targetTransaction,
+            sourceTransaction,
+            localeCompare,
+            searchReports,
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+        );
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(navigationTransactionID, mergeableData);

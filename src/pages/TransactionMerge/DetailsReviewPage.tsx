@@ -56,14 +56,18 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             return;
         }
 
-        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, [
-            targetTransactionReport,
-            sourceTransactionReport,
-        ]);
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(
+            targetTransaction,
+            sourceTransaction,
+            localeCompare,
+            [targetTransactionReport, sourceTransactionReport],
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+        );
 
         setMergeTransactionKey(transactionID, mergeableData);
         setConflictFields(detectedConflictFields as MergeFieldKey[]);
-    }, [targetTransaction, sourceTransaction, transactionID, localeCompare, sourceTransactionReport, targetTransactionReport]);
+    }, [targetTransaction, sourceTransaction, transactionID, localeCompare, sourceTransactionReport, targetTransactionReport, targetTransactionPolicy, sourceTransactionPolicy]);
 
     // Handle selection
     const handleSelect = useCallback(
@@ -79,7 +83,14 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
-            const updatedValues = getMergeFieldUpdatedValues({transaction, field, fieldValue, mergeTransaction, searchReports: [targetTransactionReport, sourceTransactionReport]});
+            const updatedValues = getMergeFieldUpdatedValues({
+                transaction,
+                field,
+                fieldValue,
+                mergeTransaction,
+                searchReports: [targetTransactionReport, sourceTransactionReport],
+                policy: transaction.transactionID === targetTransaction?.transactionID ? targetTransactionPolicy : sourceTransactionPolicy,
+            });
 
             setMergeTransactionKey(transactionID, {
                 ...updatedValues,
@@ -89,7 +100,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction, transactionID, targetTransactionReport, sourceTransactionReport],
+        [mergeTransaction, transactionID, targetTransactionReport, sourceTransactionReport, targetTransaction?.transactionID, targetTransactionPolicy, sourceTransactionPolicy],
     );
 
     // Handle continue

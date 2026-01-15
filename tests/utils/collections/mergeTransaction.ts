@@ -27,5 +27,6 @@ export default function createRandomMergeTransaction(index: number): MergeTransa
         taxAmount: randAmount(),
         taxValue: randAmount().toString(),
         taxCode: randWord(),
+        taxName: randWord(),
     };
 }

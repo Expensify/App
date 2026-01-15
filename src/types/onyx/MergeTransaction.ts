@@ -82,6 +82,9 @@ type MergeTransaction = {
 
     /** Tax code of the transaction */
     taxCode: string;
+
+    /** Tax name to display in merge transaction flow */
+    taxName: string;
 };
 
 export default MergeTransaction;

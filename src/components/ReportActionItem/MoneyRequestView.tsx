@@ -135,9 +135,6 @@ type MoneyRequestViewProps = {
 
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
-
-    /** Tax name to display in merge transaction flow */
-    taxName?: string;
 };
 
 const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => {
@@ -161,7 +158,6 @@ function MoneyRequestView({
     updatedTransaction,
     isFromReviewDuplicates = false,
     mergeTransactionID,
-    taxName,
 }: MoneyRequestViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase']);
     const styles = useThemeStyles();
@@ -378,7 +374,7 @@ function MoneyRequestView({
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
-    const shouldShowTax = !!taxName || isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
+    const shouldShowTax = !!transaction?.taxName || isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -548,7 +544,7 @@ function MoneyRequestView({
     const decodedCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
-    const taxRateValue = taxName ?? taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateValue = transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle;
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
