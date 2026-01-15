@@ -710,7 +710,9 @@ function MenuItem({
                     <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                {...(interactive && {
+                                    onPress: shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction,
+                                })}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -735,11 +737,17 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                {...(interactive && {
-                                    role: CONST.ROLE.MENUITEM,
-                                    accessibilityLabel: title ? title.toString() : '',
-                                })}
-                                accessible={interactive}
+                                {...(interactive
+                                    ? {
+                                          role: CONST.ROLE.MENUITEM,
+                                          accessibilityLabel: title ? title.toString() : '',
+                                          accessible: true,
+                                          focusable: true,
+                                      }
+                                    : {
+                                          accessible: false,
+                                          focusable: false,
+                                      })}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >
