@@ -58,7 +58,7 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {getOriginalTransactionWithSplitInfo, isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -71,7 +71,6 @@ import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
@@ -100,7 +99,6 @@ function mapTransactionItemToSelectedEntry(
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
-
     return [
         item.keyForList,
         {
@@ -109,7 +107,7 @@ function mapTransactionItemToSelectedEntry(
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
@@ -126,7 +124,7 @@ function mapTransactionItemToSelectedEntry(
             groupExchangeRate: item.groupExchangeRate,
             reportID: item.reportID,
             policyID: item.report?.policyID,
-            amount: item.modifiedAmount ?? item.amount,
+            amount: hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount,
             groupAmount: item.groupAmount,
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
@@ -161,7 +159,7 @@ function prepareTransactionsList(
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
@@ -176,8 +174,7 @@ function prepareTransactionsList(
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            amount: Math.abs(item.modifiedAmount || item.amount),
+            amount: Math.abs(hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount),
             groupAmount: item.groupAmount,
             groupCurrency: item.groupCurrency,
             groupExchangeRate: item.groupExchangeRate,
@@ -245,48 +242,14 @@ function Search({
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const {accountID, email, login} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-
-    // Filter violations based on user visibility
-    const filteredViolations = useMemo(() => {
-        if (!violations || !searchResults?.data) {
-            return violations;
-        }
-
-        const filtered: Record<string, TransactionViolation[]> = {};
-
-        const transactionKeys = Object.keys(searchResults.data).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
-
-        for (const key of transactionKeys) {
-            const transaction = searchResults.data[key as keyof typeof searchResults.data] as Transaction;
-            if (!transaction || typeof transaction !== 'object' || !('transactionID' in transaction) || !('reportID' in transaction)) {
-                continue;
-            }
-
-            const report = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-            const policy = searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-
-            if (report && policy) {
-                const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-                if (transactionViolations) {
-                    const filteredTransactionViolations = mergeProhibitedViolations(
-                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, email ?? '', true, transaction)),
-                    );
-
-                    if (filteredTransactionViolations.length > 0) {
-                        filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
-                    }
-                }
-            }
-        }
-
-        return filtered;
-    }, [violations, searchResults, email]);
+    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useContext(WideRHPContext);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -297,6 +260,7 @@ function Search({
     });
 
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
@@ -419,10 +383,12 @@ function Search({
         const [filteredData1, allLength] = getSections({
             type,
             data: searchResults.data,
+            policies,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
             translate,
             formatPhoneNumber,
+            bankAccountList,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: searchKey,
@@ -430,6 +396,7 @@ function Search({
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
+            allTransactionViolations: violations,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -447,6 +414,9 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        policies,
+        bankAccountList,
+        violations,
     ]);
 
     useEffect(() => {
@@ -517,7 +487,7 @@ function Search({
                         canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
                         canUnhold: canUnholdRequest,
-                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, transactionItem.policy),
+                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', transactionItem.policy),
                         hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                         canChangeReport: canEditFieldOfMoneyRequest(
                             transactionItem.reportAction,
@@ -534,7 +504,7 @@ function Search({
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
-                        amount: transactionItem.modifiedAmount ?? transactionItem.amount,
+                        amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
                         groupAmount: transactionItem.groupAmount,
                         groupCurrency: transactionItem.groupCurrency,
                         groupExchangeRate: transactionItem.groupExchangeRate,
@@ -570,7 +540,7 @@ function Search({
                     canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
                     canUnhold: canUnholdRequest,
-                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, transactionItem.policy),
+                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', transactionItem.policy),
                     hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                     canChangeReport: canEditFieldOfMoneyRequest(
                         transactionItem.reportAction,
@@ -587,7 +557,7 @@ function Search({
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
-                    amount: transactionItem.modifiedAmount ?? transactionItem.amount,
+                    amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
                     groupAmount: transactionItem.groupAmount,
                     groupCurrency: transactionItem.groupCurrency,
                     groupExchangeRate: transactionItem.groupExchangeRate,
@@ -793,6 +763,13 @@ function Search({
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
                 }
+
+                if (item.transactions.length > 1) {
+                    markReportIDAsMultiTransactionExpense(reportID);
+                } else {
+                    unmarkReportIDAsMultiTransactionExpense(reportID);
+                }
+
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
@@ -811,7 +788,16 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [
+            isMobileSelectionModeEnabled,
+            markReportIDAsExpense,
+            toggleTransaction,
+            queryJSON,
+            handleSearch,
+            searchKey,
+            markReportIDAsMultiTransactionExpense,
+            unmarkReportIDAsMultiTransactionExpense,
+        ],
     );
 
     const currentColumns = useMemo(() => {
@@ -1084,7 +1070,7 @@ function Search({
                     }
                     queryJSON={queryJSON}
                     columns={columnsToShow}
-                    violations={filteredViolations}
+                    violations={violations}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
