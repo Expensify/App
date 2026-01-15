@@ -16,6 +16,7 @@ import * as IOU from '../../../src/libs/actions/IOU';
 import createRandomPolicy from '../../utils/collections/policies';
 import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
+import { startSplitBill } from '@libs/actions/IOU/Split';
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -29,8 +30,12 @@ jest.mock('@libs/actions/IOU', () => {
     return {
         ...actualNav,
         startMoneyRequest: jest.fn(),
-        startSplitBill: jest.fn(),
         requestMoney: jest.fn(() => ({iouReport: undefined})),
+    };
+});
+jest.mock('@libs/actions/IOU/Split', () => {
+    return {
+        startSplitBill: jest.fn(),
     };
 });
 jest.mock('@components/ProductTrainingContext', () => ({
@@ -57,6 +62,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
+        dismissModalWithReport: jest.fn(),
         navigationRef: mockRef,
     };
 });
@@ -291,7 +297,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             </OnyxListItemProvider>,
         );
         fireEvent.press(await screen.findByText(translateLocal('iou.splitExpense')));
-        expect(IOU.startSplitBill).toHaveBeenCalledTimes(1);
+        expect(startSplitBill).toHaveBeenCalledTimes(1);
     });
 
     it('should create a split expense for each scanned receipt', async () => {
@@ -340,7 +346,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             </OnyxListItemProvider>,
         );
         fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', 2)));
-        expect(IOU.startSplitBill).toHaveBeenCalledTimes(2);
+        expect(startSplitBill).toHaveBeenCalledTimes(2);
     });
 
     describe('Tax Calculation Tests', () => {
