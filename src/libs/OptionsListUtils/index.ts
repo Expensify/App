@@ -1079,12 +1079,8 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(
-    participant: Participant | SearchOptionData,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    isIOUInvoiceRoom?: boolean,
-): SearchOptionData {
-    const expenseReport = reportUtilsIsPolicyExpenseChat(participant) || isIOUInvoiceRoom ? getReportOrDraftReport(participant.reportID) : null;
+function getPolicyExpenseReportOption(participant: Participant | SearchOptionData, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): SearchOptionData {
+    const expenseReport = reportUtilsIsPolicyExpenseChat(participant) ? getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !isHiddenForCurrentUser(reportParticipant.notificationPreference))
@@ -1101,12 +1097,10 @@ function getPolicyExpenseReportOption(
         reportAttributesDerived,
     );
 
-    if (!isIOUInvoiceRoom) {
-        // Update text & alternateText because createOption returns workspace name only if report is owned by the user
-        option.text = getPolicyName({report: expenseReport});
-    }
+    // Update text & alternateText because createOption returns workspace name only if report is owned by the user
+    option.text = getPolicyName({report: expenseReport});
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    option.alternateText = isIOUInvoiceRoom ? translateLocal('workspace.common.invoices') : translateLocal('workspace.common.workspace');
+    option.alternateText = translateLocal('workspace.common.workspace');
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
     return option;
@@ -2604,12 +2598,10 @@ function formatSectionsFromSearchTerm(
     const selectedOptionsMapper = (participant: Participant) => {
         const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
         const isIOUInvoiceRoom = participant.accountID === CONST.DEFAULT_NUMBER_ID && !!participant.reportID && 'iouType' in participant && participant.iouType === 'invoice';
-        if (participant.isSelfDM) {
+        if (participant.isSelfDM || isIOUInvoiceRoom) {
             return getReportOption(participant, undefined, reportAttributesDerived);
         }
-        return isReportPolicyExpenseChat || isIOUInvoiceRoom
-            ? getPolicyExpenseReportOption(participant, reportAttributesDerived, isIOUInvoiceRoom)
-            : getParticipantsOption(participant, personalDetails);
+        return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
     };
 
     if (searchTerm === '') {
