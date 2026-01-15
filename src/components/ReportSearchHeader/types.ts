@@ -1,12 +1,9 @@
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
-import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
-import type {Report} from '@src/types/onyx';
+import type {ExpenseReportListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 
 type ReportSearchHeaderProps = {
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
-    report?: ExpenseReportListItemType,
+    report?: ExpenseReportListItemType;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;

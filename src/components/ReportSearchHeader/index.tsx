@@ -28,7 +28,18 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 parentNavigationStatusContainerStyles={statusContainerStyle}
             />
         );
-    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1, isLargeScreenWidth, styles.textMicro, styles.mt0Half]);
+    }, [
+        report,
+        transactions,
+        avatarBorderColor,
+        styles.fontWeightNormal,
+        styles.textLineHeightNormal,
+        styles.minHeight4,
+        styles.mt1,
+        isLargeScreenWidth,
+        styles.textMicro,
+        statusContainerStyle,
+    ]);
 
     return (
         <View
