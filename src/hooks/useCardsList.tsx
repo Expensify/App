@@ -1,6 +1,5 @@
 import type {ResultMetadata} from 'react-native-onyx';
 import {filterInactiveCards, splitCompanyCardFeedWithDomainID} from '@libs/CardUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
 import useOnyx from './useOnyx';
