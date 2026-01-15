@@ -6035,7 +6035,15 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
-                deleteMoneyRequest({transactionID: transaction.transactionID, reportAction: createIOUAction, transactions: {}, violations: {}, iouReport, chatReport});
+                deleteMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    allTransactionViolationsParam: {},
+                });
             }
 
             await waitForBatchedUpdates();
