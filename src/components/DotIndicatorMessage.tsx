@@ -6,14 +6,12 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
@@ -50,7 +48,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
 
@@ -75,7 +72,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         }
 
         if (href.endsWith('retry')) {
-            handleRetryPress(receiptError, dismissError, setShouldShowErrorModal, allBetas);
+            handleRetryPress(receiptError, dismissError, setShouldShowErrorModal);
         } else if (href.endsWith('download')) {
             fileDownload(translate, receiptError.source, receiptError.filename).finally(() => dismissError());
         }

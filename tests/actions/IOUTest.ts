@@ -9586,6 +9586,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
+                    allBetas: [CONST.BETAS.ALL],
                 });
                 await waitForBatchedUpdates();
 
@@ -9716,6 +9717,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
+                    allBetas: [CONST.BETAS.ALL],
                 });
 
                 await waitForBatchedUpdates();
