@@ -403,16 +403,6 @@ ___
 ## 3. Before/After Metrics
 *Please fill out the metrics below. If a metric is not applicable, write N/A.*
 
-*Render Count:*
-  - Before:
-  - After:
-  - Improvement:
-
-*Execution Time:*
-  - Before:
-  - After:
-  - Improvement:
-
 *Perceived Latency:*
   - Before:
   - After:
