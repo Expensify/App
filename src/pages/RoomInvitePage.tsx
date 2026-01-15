@@ -140,13 +140,11 @@ function RoomInvitePage({
         if (debouncedSearchTerm.trim() === '') {
             return defaultOptions;
         }
-        const filteredOptions = filterAndOrderOptions(
-            defaultOptions,
-            debouncedSearchTerm,
-            countryCode,
-            loginList,
-            {excludeLogins: excludedUsers, currentUserEmail: currentUserPersonalDetails.login, currentUserAccountID},
-        );
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, {
+            excludeLogins: excludedUsers,
+            currentUserEmail: currentUserPersonalDetails.login,
+            currentUserAccountID,
+        });
 
         return filteredOptions;
     }, [debouncedSearchTerm, defaultOptions, countryCode, loginList, excludedUsers, currentUserAccountID, currentUserPersonalDetails.login]);

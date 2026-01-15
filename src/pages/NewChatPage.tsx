@@ -112,18 +112,12 @@ function useOptions() {
 
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(
-        unselectedOptions,
-        debouncedSearchTerm,
-        countryCode,
-        loginList,
-        {
-            selectedOptions,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            currentUserEmail: personalData.login,
-            currentUserAccountID,
-        },
-    );
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, {
+        selectedOptions,
+        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        currentUserEmail: personalData.login,
+        currentUserAccountID,
+    });
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
 

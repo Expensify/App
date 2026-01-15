@@ -92,18 +92,12 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(
-            defaultOptions,
-            cleanSearchTerm,
-            countryCode,
-            loginList,
-            {
-                selectedOptions,
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                currentUserEmail,
-                currentUserAccountID,
-            },
-        );
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, {
+            selectedOptions,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            currentUserEmail,
+            currentUserAccountID,
+        });
     }, [defaultOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, currentUserAccountID, currentUserEmail]);
 
     const {sections, headerMessage} = useMemo(() => {

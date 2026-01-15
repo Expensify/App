@@ -112,19 +112,13 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode, accountID, currentUserPersonalDetails.login]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(
-            optionsList,
-            cleanSearchTerm,
-            countryCode,
-            loginList,
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-                canInviteUser: false,
-                currentUserEmail: currentUserPersonalDetails.login,
-                currentUserAccountID: accountID,
-            },
-        );
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, {
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            canInviteUser: false,
+            currentUserEmail: currentUserPersonalDetails.login,
+            currentUserAccountID: accountID,
+        });
     }, [optionsList, cleanSearchTerm, countryCode, loginList, accountID]);
 
     const listData = useMemo(() => {
