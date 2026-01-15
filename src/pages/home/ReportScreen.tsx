@@ -503,7 +503,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo((): boolean => {
-        const isLoading = !!isLoadingApp || !!isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
+        const isLoading = isLoadingApp !== false || !!isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
         const reportExists = !!reportID || !!isOptimisticDelete || !!userLeavingStatus;
         const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
 
@@ -512,6 +512,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         }
 
         if (isLoading) {
+            return false;
+        }
+
+        if (firstRender) {
             return false;
         }
 
@@ -529,6 +533,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         isOptimisticDelete,
         userLeavingStatus,
         currentReportIDFormRoute,
+        firstRender,
     ]);
 
     const createOneTransactionThreadReport = useCallback(() => {
