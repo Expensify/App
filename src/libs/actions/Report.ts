@@ -72,12 +72,13 @@ import getEnvironment from '@libs/Environment/getEnvironment';
 import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -173,7 +174,7 @@ import {
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getAmount, getCurrency, isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
+import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -181,6 +182,8 @@ import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     BankAccountList,
@@ -1983,12 +1986,35 @@ function handlePreexistingReport(report: Report) {
             });
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
         };
+
+        if (!navigationRef.isReady()) {
+            callback();
+            return;
+        }
+
+        const activeRouteInfo = navigationRef.getCurrentRoute();
+        const backTo = (activeRouteInfo?.params as {backTo?: Route})?.backTo;
+        const screenName = activeRouteInfo?.name;
+        const activeRoute = activeRouteInfo?.path;
+
+        const isOptimisticReportFocused = activeRoute?.includes(`/r/${reportID}`);
+
+        // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
+        // When user is editing a money request report (/e/:reportID route) and has
+        // an optimistic report in the background that should be replaced with preexisting report
+        const isOptimisticReportInBackground = screenName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && backTo && backTo.includes(`/r/${reportID}`);
+
         // Only re-route them if they are still looking at the optimistically created report
-        if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
+        if (isOptimisticReportFocused || isOptimisticReportInBackground) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.setParams({reportID: preexistingReportID.toString()});
+                if (isOptimisticReportFocused) {
+                    Navigation.setParams({reportID: preexistingReportID.toString()});
+                } else if (isOptimisticReportInBackground) {
+                    // Navigate to the correct backTo route with the preexisting report ID
+                    Navigation.navigate(backTo.replace(`/r/${reportID}`, `/r/${preexistingReportID}`) as Route);
+                }
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
@@ -3701,8 +3727,15 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
-        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-        Navigation.goBack(lastAccessedReportRoute);
+        // Check if route exists for super wide RHP vs regular full screen report
+        const topmostSuperWideRHP = Navigation.getTopmostSuperWideRHPReportID();
+
+        if (lastAccessedReportID === topmostSuperWideRHP && !getIsNarrowLayout()) {
+            Navigation.dismissToSuperWideRHP();
+        } else {
+            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+            Navigation.goBack(lastAccessedReportRoute);
+        }
     } else {
         const isChatThread = isChatThreadReportUtils(currentReport);
 
@@ -5591,7 +5624,7 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
-            modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
+            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
