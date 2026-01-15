@@ -39,6 +39,7 @@ import {
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
+    splitCompanyCardFeedWithDomainID,
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
@@ -1358,6 +1359,15 @@ describe('CardUtils', () => {
             const domainID = 11111111;
             const combinedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
             expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
+        });
+    });
+
+    describe('splitCompanyCardFeedWithDomainID', () => {
+        it('should split the feed name and domain ID', () => {
+            const feedName = 'vcf#11111111';
+            const {feedName: splitFeedName, domainID} = splitCompanyCardFeedWithDomainID(feedName);
+            expect(splitFeedName).toBe('visa');
+            expect(domainID).toBe(11111111);
         });
     });
 
