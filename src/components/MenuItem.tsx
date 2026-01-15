@@ -159,8 +159,8 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Overrides the icon for shouldShowRightIcon */
         iconRight?: IconAsset;
 
-        /** Should use normal icon size for the right icon */
-        shouldUseNormalIconSizeForRightIcon?: boolean;
+        /** Should dim and apply small size for right icon */
+        shouldDimIconRight?: boolean;
 
         /** Should render component on the right */
         shouldShowRightComponent?: boolean;
@@ -464,7 +464,7 @@ function MenuItem({
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
-    shouldUseNormalIconSizeForRightIcon = false,
+    shouldDimIconRight = false,
     iconRight,
     furtherDetailsIcon,
     furtherDetails,
@@ -1009,20 +1009,19 @@ function MenuItem({
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.pl6,
-                                                            isHovered ? styles.opacity1 : styles.opacitySemiTransparent,
-                                                            shouldUseNormalIconSizeForRightIcon && styles.opacity1,
+                                                            isHovered || shouldDimIconRight ? styles.opacity1 : styles.opacitySemiTransparent,
                                                             styles.alignItemsEnd,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight ?? icons.ArrowRight}
                                                             fill={
-                                                                shouldUseNormalIconSizeForRightIcon
+                                                                shouldDimIconRight
                                                                     ? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))
                                                                     : theme.icon
                                                             }
-                                                            width={shouldUseNormalIconSizeForRightIcon ? variables.iconSizeNormal : variables.iconSizeSmall}
-                                                            height={shouldUseNormalIconSizeForRightIcon ? variables.iconSizeNormal : variables.iconSizeSmall}
+                                                            width={shouldDimIconRight ? variables.iconSizeNormal : variables.iconSizeSmall}
+                                                            height={shouldDimIconRight ? variables.iconSizeNormal : variables.iconSizeSmall}
                                                         />
                                                     </View>
                                                 )}
