@@ -648,12 +648,6 @@ type OriginalMessagePolicyChangeLog = {
     /** New reimbursement choice */
     newChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
-    /** Old default title */
-    oldDefaultTitle?: string;
-
-    /** New default title */
-    newDefaultTitle?: string;
-
     /** Old owner email */
     oldOwnerEmail?: string;
 
