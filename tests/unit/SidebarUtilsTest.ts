@@ -1727,6 +1727,57 @@ describe('SidebarUtils', () => {
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
             });
 
+            it('shows "You:" prefix in a 1:1 chat when report actions are not loaded yet (cold start scenario)', async () => {
+                const session = {
+                    authToken: 'sensitive-auth-token',
+                    encryptedAuthToken: 'sensitive-encrypted-token',
+                    email: 'user@example.com',
+                    accountID: 2,
+                };
+
+                const report: Report = {
+                    ...createRandomReport(9999, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastMessageText: 'someMessage',
+                    lastMessageHtml: 'someMessage',
+                    lastActorAccountID: session.accountID,
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    participants: {
+                        [session.accountID]: {notificationPreference: 'always'},
+                        3: {notificationPreference: 'always'},
+                    },
+                };
+
+                await act(async () => {
+                    await Onyx.set(ONYXKEYS.SESSION, session);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+                    // Note: We intentionally do NOT set REPORT_ACTIONS to simulate cold start
+                    // where report actions haven't been loaded yet
+                });
+
+                const result = SidebarUtils.getOptionData({
+                    report,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: {
+                        [session.accountID]: {accountID: session.accountID},
+                    },
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    translate: translateLocal,
+                    localeCompare,
+                    lastAction: undefined,
+                    lastActionReport: undefined,
+                    isReportArchived: undefined,
+                    lastMessageTextFromReport: report.lastMessageText,
+                });
+
+                expect(result?.alternateText).toBe('You: someMessage');
+            });
+
             it('returns the last action message as an alternate text if the expense report is the one expense report', async () => {
                 const IOUTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_IOU` as const;
 
