@@ -17,6 +17,7 @@ type TodoSearchResultsData = SearchResults['data'];
 function buildSearchResultsData(
     reports: Report[],
     transactionsByReportID: Record<string, Transaction[]>,
+    allReports: Record<string, Report> | undefined,
     allPolicies: Record<string, unknown> | undefined,
     allReportActions: Record<string, Record<string, unknown>> | undefined,
     allReportNameValuePairs: Record<string, unknown> | undefined,
@@ -38,10 +39,21 @@ function buildSearchResultsData(
             }
         }
 
-        if (report.chatReportID && allReportNameValuePairs) {
-            const nvpKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`;
-            if (allReportNameValuePairs[nvpKey] && !data[nvpKey]) {
-                data[nvpKey] = allReportNameValuePairs[nvpKey];
+        if (report.chatReportID) {
+            // Add the chat report itself (needed by getChatReport > canIOUBePaid for pay eligibility checks)
+            if (allReports) {
+                const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`;
+                if (allReports[chatReportKey] && !data[chatReportKey]) {
+                    data[chatReportKey] = allReports[chatReportKey];
+                }
+            }
+
+            // Add the report name value pairs for the chat report
+            if (allReportNameValuePairs) {
+                const nvpKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`;
+                if (allReportNameValuePairs[nvpKey] && !data[nvpKey]) {
+                    data[nvpKey] = allReportNameValuePairs[nvpKey];
+                }
             }
         }
 
@@ -146,6 +158,7 @@ export default function useTodos() {
             return buildSearchResultsData(
                 reports,
                 transactionsByReportID,
+                allReports as Record<string, Report> | undefined,
                 allPolicies as Record<string, unknown> | undefined,
                 allReportActions as Record<string, Record<string, unknown>> | undefined,
                 allReportNameValuePairs as Record<string, unknown> | undefined,
@@ -166,6 +179,7 @@ export default function useTodos() {
         reportsToPay,
         reportsToExport,
         transactionsByReportID,
+        allReports,
         allPolicies,
         allReportActions,
         allReportNameValuePairs,
