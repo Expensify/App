@@ -185,6 +185,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -6629,6 +6630,10 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             previousForwardsTo
                 ? `heeft de goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten niet meer worden doorgestuurd (voorheen doorgestuurd naar ${previousForwardsTo})`
                 : `heeft de goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten niet meer worden doorgestuurd`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser
+                ? `heeft de gemachtigde betaler gewijzigd in "${newReimburser}" (voorheen "${previousReimburser}")`
+                : `heeft de gemachtigde betaler gewijzigd in "${newReimburser}"`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

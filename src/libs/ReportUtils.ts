@@ -204,6 +204,7 @@ import {
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getReimburserUpdateMessage,
     getRenamedAction,
     getReportAction,
     getReportActionActorAccountID,
@@ -5729,6 +5730,10 @@ function getReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getForwardsToUpdateMessage(translateLocal, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getReimburserUpdateMessage(translateLocal, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(parentReportAction)?.resolution) {
