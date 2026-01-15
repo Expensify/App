@@ -95,7 +95,12 @@ type CardErrors = {
  */
 type FeedErrors = {
     /**
-     *
+     * Whether to show the RBR for a specific feed within a workspace/domain.
+     * This will be true, if any of the below conditions are true:
+     * - There are failed card assignments for the feed.
+     * - There are errors for the workspace/domain.
+     * - There are errors for the feed.
+     * - The feed connection is broken.
      */
     shouldShowRBR: boolean;
     /**
@@ -103,15 +108,19 @@ type FeedErrors = {
      */
     hasFailedCardAssignments: boolean;
     /**
-     *
+     * Whether some workspace errors.
+     */
+    hasWorkspaceErrors: boolean;
+    /**
+     * Whether a specific feed within a workspace/domain has errors.
      */
     hasFeedError: boolean;
     /**
-     *
+     * Whether some feed connection is broken.
      */
     isFeedConnectionBroken: boolean;
     /**
-     *
+     * The errors of all cards for a specific feed within a workspace/domain.
      */
     cardErrors: Record<string, CardErrors>;
 };
@@ -159,6 +168,10 @@ type CardFeedErrors = {
      * Whether some feed has errors.
      */
     hasFeedErrors: boolean;
+    /**
+     * Whether some workspace has errors.
+     */
+    hasWorkspaceErrors: boolean;
     /**
      * Whether some failed card assignments.
      */

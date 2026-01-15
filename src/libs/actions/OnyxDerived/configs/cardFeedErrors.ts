@@ -1,4 +1,4 @@
-import {getCombinedCardFeedsFromAllFeeds} from '@libs/CardFeedUtils';
+import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
 import {getCompanyCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,6 +16,7 @@ export default createOnyxDerivedValueConfig({
         const rbrFeedNameWithDomainIDMapping: Record<string, boolean> = {};
         let isSomeFeedConnectionBroken = false;
         let hasSomeFeedErrors = false;
+        let hasSomeWorkspaceErrors = false;
         let hasSomeFailedCardAssignment = false;
 
         function addErrorsForCard(card: Card) {
@@ -24,6 +25,8 @@ export default createOnyxDerivedValueConfig({
             const feedNameWithDomainID = getCompanyCardFeedWithDomainID(bankName, workspaceAccountID);
 
             const combinedCompanyCardFeeds = getCombinedCardFeedsFromAllFeeds(cardFeeds);
+            const workspaceCardFeedsStatus = getWorkspaceCardFeedsStatus(cardFeeds);
+
             const selectedFeed = combinedCompanyCardFeeds?.[feedNameWithDomainID];
 
             const hasFailedCardAssignments = !isEmptyObject(
@@ -47,6 +50,7 @@ export default createOnyxDerivedValueConfig({
                 };
             }
 
+            const hasWorkspaceErrors = !!workspaceCardFeedsStatus?.[workspaceAccountID]?.errors;
             const hasFeedError = feedNameWithDomainID ? !!selectedFeed?.errors : false;
             const isFeedConnectionBroken = isCardConnectionBroken(card);
             const shouldShowRBR = hasFailedCardAssignments || hasFeedError || isFeedConnectionBroken;
@@ -59,6 +63,10 @@ export default createOnyxDerivedValueConfig({
                 hasSomeFeedErrors = true;
             }
 
+            if (hasWorkspaceErrors) {
+                hasSomeWorkspaceErrors = true;
+            }
+
             if (hasFailedCardAssignments) {
                 hasSomeFailedCardAssignment = true;
             }
@@ -69,9 +77,10 @@ export default createOnyxDerivedValueConfig({
 
             allFeedsErrors[bankName] = {
                 shouldShowRBR,
-                hasFailedCardAssignments,
+                hasWorkspaceErrors,
                 hasFeedError,
                 isFeedConnectionBroken,
+                hasFailedCardAssignments,
                 cardErrors,
             };
 
@@ -111,6 +120,7 @@ export default createOnyxDerivedValueConfig({
             shouldShowRBR,
             isFeedConnectionBroken: isSomeFeedConnectionBroken,
             hasFeedErrors: hasSomeFeedErrors,
+            hasWorkspaceErrors: hasSomeWorkspaceErrors,
             hasFailedCardAssignment: hasSomeFailedCardAssignment,
         };
     },
