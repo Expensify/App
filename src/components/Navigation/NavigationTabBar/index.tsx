@@ -85,7 +85,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         | DomainSplitNavigatorParamList[typeof SCREENS.DOMAIN.INITIAL];
     const {typeMenuSections} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox', 'MoneySearch', 'Buildings']);
 
     const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;
     const paramsDomainAccountID = params && 'domainAccountID' in params ? params.domainAccountID : undefined;
@@ -152,6 +152,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(orderedReportIDs, reportAttributes));
     }, [orderedReportIDs, reportAttributes]);
+
+    const navigateToNewDotHome = useCallback(() => {
+        if (selectedTab === NAVIGATION_TABS.NEW_DOT_HOME) {
+            return;
+        }
+        Navigation.navigate(ROUTES.NEW_DOT_HOME);
+    }, [selectedTab]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
@@ -279,6 +286,39 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                                 src={expensifyIcons.ExpensifyAppIcon}
                             />
                         </PressableWithFeedback>
+                        <PressableWithFeedback
+                            onPress={navigateToNewDotHome}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel="Home"
+                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel="NavigationTabBar.Home"
+                        >
+                            {({hovered}) => (
+                                <>
+                                    <View>
+                                        <Icon
+                                            src={expensifyIcons.Home}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.NEW_DOT_HOME, hovered)}
+                                            width={variables.iconBottomBar}
+                                            height={variables.iconBottomBar}
+                                        />
+                                    </View>
+                                    <Text
+                                        numberOfLines={2}
+                                        style={[
+                                            styles.textSmall,
+                                            styles.textAlignCenter,
+                                            styles.mt1Half,
+                                            selectedTab === NAVIGATION_TABS.NEW_DOT_HOME ? styles.textBold : styles.textSupporting,
+                                            styles.navigationTabBarLabel,
+                                        ]}
+                                    >
+                                        Home
+                                    </Text>
+                                </>
+                            )}
+                        </PressableWithFeedback>
+
                         <PressableWithFeedback
                             onPress={navigateToChats}
                             role={CONST.ROLE.TAB}
@@ -422,6 +462,35 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
             >
+                <PressableWithFeedback
+                    onPress={navigateToNewDotHome}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel="Home"
+                    wrapperStyle={styles.flex1}
+                    style={styles.navigationTabBarItem}
+                    sentryLabel="NavigationTabBar.Home"
+                >
+                    <View>
+                        <Icon
+                            src={expensifyIcons.Home}
+                            fill={selectedTab === NAVIGATION_TABS.NEW_DOT_HOME ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                    </View>
+                    <Text
+                        numberOfLines={1}
+                        style={[
+                            styles.textSmall,
+                            styles.textAlignCenter,
+                            styles.mt1Half,
+                            selectedTab === NAVIGATION_TABS.NEW_DOT_HOME ? styles.textBold : styles.textSupporting,
+                            styles.navigationTabBarLabel,
+                        ]}
+                    >
+                        Home
+                    </Text>
+                </PressableWithFeedback>
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.TAB}

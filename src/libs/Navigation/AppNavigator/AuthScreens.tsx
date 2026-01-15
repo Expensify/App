@@ -86,6 +86,7 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
+const loadNewDotHomePage = () => require<ReactComponentModule>('../../../pages/NewDotHomePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
@@ -524,9 +525,15 @@ function AuthScreens() {
                     NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
                     SCREENS.WORKSPACES_LIST,
+                    SCREENS.NEW_DOT_HOME,
                     SCREENS.SEARCH.ROOT,
                 ]}
             >
+                <RootStack.Screen
+                    name={SCREENS.NEW_DOT_HOME}
+                    options={rootNavigatorScreenOptions.fullScreenTabPage}
+                    getComponent={loadNewDotHomePage}
+                />
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
@@ -565,7 +572,7 @@ function AuthScreens() {
                 />
                 <RootStack.Screen
                     name={SCREENS.WORKSPACES_LIST}
-                    options={rootNavigatorScreenOptions.workspacesListPage}
+                    options={rootNavigatorScreenOptions.fullScreenTabPage}
                     component={WorkspacesListPage}
                 />
                 <RootStack.Screen
@@ -588,6 +595,7 @@ function AuthScreens() {
                     options={defaultScreenOptions}
                     getComponent={loadSubmitExpensePage}
                 />
+
                 <RootStack.Screen
                     name={SCREENS.REPORT_ATTACHMENTS}
                     options={attachmentModalScreenOptions}
