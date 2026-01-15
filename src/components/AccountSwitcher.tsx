@@ -166,7 +166,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             close(() => setShouldShowOfflineModal(true));
                             return;
                         }
-                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                        connect({email, currentUserAccountID: currentUserPersonalDetails.accountID, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
                     },
                 });
             });
