@@ -354,17 +354,13 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 
 /**
  * Get the participant option for a report.
- *
- * @param shouldAddCurrentUserPostfix - Whether to add the current user postfix (e.g., "(You)") when the participant is the current user
  */
-function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>, shouldAddCurrentUserPostfix?: boolean): Participant {
+function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    const displayName =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        participant?.displayName ||
-        formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text, true, shouldAddCurrentUserPostfix && currentUserAccountID === participant.accountID));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const displayName = participant?.displayName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
         keyForList: String(detail?.accountID ?? login),
@@ -390,7 +386,6 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         isSelected: participant.selected,
         selected: participant.selected, // Keep for backwards compatibility
         searchText: participant.searchText ?? undefined,
-        isSelfDM: !!detail?.accountID && detail?.accountID === currentUserAccountID,
     };
 }
 
@@ -2602,25 +2597,26 @@ function formatSectionsFromSearchTerm(
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    shouldAddCurrentUserPostfix?: boolean,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
+    const selectedOptionsMapper = (participant: Participant) => {
+        const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+        const isIOUInvoiceRoom = participant.accountID === CONST.DEFAULT_NUMBER_ID && !!participant.reportID && 'iouType' in participant && participant.iouType === 'invoice';
+        if (participant.isSelfDM) {
+            return getReportOption(participant, undefined, reportAttributesDerived);
+        }
+        return isReportPolicyExpenseChat || isIOUInvoiceRoom
+            ? getPolicyExpenseReportOption(participant, reportAttributesDerived, isIOUInvoiceRoom)
+            : getParticipantsOption(participant, personalDetails);
+    };
+
     if (searchTerm === '') {
         return {
             section: {
                 title: undefined,
-                data: shouldGetOptionDetails
-                    ? selectedOptions.map((participant) => {
-                          const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          const isIOUInvoiceRoom =
-                              participant.accountID === CONST.DEFAULT_NUMBER_ID && !!participant.reportID && 'iouType' in participant && participant.iouType === 'invoice';
-                          return isReportPolicyExpenseChat || isIOUInvoiceRoom
-                              ? getPolicyExpenseReportOption(participant, reportAttributesDerived, isIOUInvoiceRoom)
-                              : getParticipantsOption(participant, personalDetails, shouldAddCurrentUserPostfix);
-                      })
-                    : selectedOptions,
+                data: shouldGetOptionDetails ? selectedOptions.map(selectedOptionsMapper) : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
             },
         };
@@ -2631,7 +2627,14 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = getPersonalDetailSearchTerms({...participant, login: participant.login ?? personalDetails[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login})
+        let currentParticipant = participant;
+        if (currentParticipant.isSelfDM) {
+            currentParticipant = {...currentParticipant, accountID: currentUserAccountID};
+        }
+        const isPartOfSearchTerm = getPersonalDetailSearchTerms({
+            ...currentParticipant,
+            login: currentParticipant.login ?? personalDetails[currentParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login,
+        })
             .join(' ')
             .toLowerCase()
             .includes(cleanSearchTerm);
@@ -2644,15 +2647,7 @@ function formatSectionsFromSearchTerm(
     return {
         section: {
             title: undefined,
-            data: shouldGetOptionDetails
-                ? selectedParticipantsWithoutDetails.map((participant) => {
-                      const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      const isIOUInvoiceRoom = participant.accountID === CONST.DEFAULT_NUMBER_ID && !!participant.reportID && 'iouType' in participant && participant.iouType === 'invoice';
-                      return isReportPolicyExpenseChat || isIOUInvoiceRoom
-                          ? getPolicyExpenseReportOption(participant, reportAttributesDerived, isIOUInvoiceRoom)
-                          : getParticipantsOption(participant, personalDetails, shouldAddCurrentUserPostfix);
-                  })
-                : selectedParticipantsWithoutDetails,
+            data: shouldGetOptionDetails ? selectedParticipantsWithoutDetails.map(selectedOptionsMapper) : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
         },
     };

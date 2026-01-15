@@ -192,7 +192,6 @@ function MoneyRequestParticipantsSelector({
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
             isRestrictedToPreferredPolicy,
             preferredPolicyID,
-            shouldExcludeSelectedByReportID: true,
         }),
         [
             participants,
@@ -297,7 +296,6 @@ function MoneyRequestParticipantsSelector({
             true,
             undefined,
             reportAttributesDerived,
-            true,
         );
 
         newSections.push(formatResults.section);
