@@ -185,6 +185,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -751,6 +752,35 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'Twoja sesja wygasła.',
         signIn: 'Zaloguj się ponownie.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Test biometryczny',
+            authenticationSuccessful: 'Autentykacja zakończona sukcesem',
+            successfullyAuthenticatedUsing: ({authType}) => `Pomyślnie uwierzytelniono za pomocą ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometria (${registered ? 'Zarejestrowana' : 'Nie zarejestrowana'})`,
+            yourAttemptWasUnsuccessful: 'Twoja próba autentykacji była nieudana.',
+            youCouldNotBeAuthenticated: 'Nie udało się uwierzytelnić',
+            areYouSureToReject: 'Czy jesteś pewien? Próba autentykacji zostanie odrzucona, jeśli zamkniesz ten ekran.',
+            rejectAuthentication: 'Odrzuć autentykację',
+            test: 'Test',
+            biometricsAuthentication: 'Autentykacja biometryczna',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Włącz weryfikację twarzy/odcisku palca lub ustaw kod dostępu do urządzenia w ',
+            link: 'ustawieniach systemowych',
+            end: '.',
+        },
+        oops: 'Ups, coś poszło nie tak',
+        looksLikeYouRanOutOfTime: 'Wygląda na to, że zabrakło ci czasu! Spróbuj ponownie u sprzedawcy.',
+        youRanOutOfTime: 'Czas minął',
+        letsVerifyItsYou: 'Sprawdźmy, czy to ty',
+        verifyYourself: {
+            biometrics: 'Zweryfikuj się za pomocą twarzy lub odcisku palca',
+        },
+        enableQuickVerification: {
+            biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł ani kodów.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abrakadabra,
@@ -1303,6 +1333,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Stawka nie jest prawidłowa dla tego przestrzeni roboczej. Wybierz dostępną stawkę z tej przestrzeni roboczej.',
             endDateBeforeStartDate: 'Data zakończenia nie może być wcześniejsza niż data rozpoczęcia',
             endDateSameAsStartDate: 'Data zakończenia nie może być taka sama jak data rozpoczęcia',
+            manySplitsProvided: `Maksymalna liczba dozwolonych podziałów wynosi ${CONST.IOU.SPLITS_LIMIT}.`,
+            dateRangeExceedsMaxDays: `Zakres dat nie może przekraczać ${CONST.IOU.SPLITS_LIMIT} dni.`,
             negativeDistanceNotAllowed: 'Odczyt końcowy musi być większy niż odczyt początkowy',
             invalidReadings: 'Wprowadź zarówno odczyt początkowy, jak i końcowy',
         },
@@ -1456,6 +1488,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} do ${endDate} (${count} dni)`,
         splitByDate: 'Podziel według daty',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `raport przekazany do ${to} z powodu niestandardowego procesu zatwierdzania`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'godzina' : 'godziny'} @ ${rate} / godzinę`, hrs: 'godz.'},
     },
     transactionMerge: {
         listPage: {
@@ -3090,6 +3123,7 @@ ${
         currencyHeader: 'W jakiej walucie jest Twoje konto bankowe?',
         confirmationStepHeader: 'Sprawdź swoje dane.',
         confirmationStepSubHeader: 'Sprawdź poniższe szczegóły i zaznacz pole z warunkami, aby potwierdzić.',
+        toGetStarted: 'Dodaj osobiste konto bankowe, aby otrzymywać zwroty kosztów, opłacać faktury lub włączyć portfel Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Wprowadź hasło do Expensify',
@@ -6187,6 +6221,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Zasady kategorii',
                 approver: 'Akceptujący',
                 requireDescription: 'Wymagaj opisu',
+                requireFields: 'Wymagaj pól',
+                requiredFieldsTitle: 'Wymagane pola',
+                requiredFieldsDescription: (categoryName: string) => `To będzie miało zastosowanie do wszystkich wydatków skategoryzowanych jako <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Wymagaj uczestników',
                 descriptionHint: 'Podpowiedź opisu',
                 descriptionHintDescription: (categoryName: string) =>
                     `Przypominaj pracownikom o podaniu dodatkowych informacji dotyczących wydatków w kategorii „${categoryName}”. Ta podpowiedź pojawia się w polu opisu przy wydatkach.`,
@@ -6305,6 +6343,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         billcom: 'Bill.com',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `zmienił adres firmy na „${newAddress}” (wcześniej „${previousAddress}”)` : `ustaw adres firmy na „${newAddress}”`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `dodano ${approverName} (${approverEmail}) jako osobę zatwierdzającą dla pola ${field} „${name}”`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
@@ -6575,6 +6615,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             previousForwardsTo
                 ? `zmieniono proces zatwierdzania dla ${approver}, aby przestać przekazywać zatwierdzone raporty (wcześniej przekazywane do ${previousForwardsTo})`
                 : `zmieniono przepływ zatwierdzania dla ${approver}, aby nie przekazywać dalej zatwierdzonych raportów`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser
+                ? `zmieniono upoważnionego płatnika na „${newReimburser}” (wcześniej „${previousReimburser}”)`
+                : `zmienił(a) upoważnioną osobę dokonującą płatności na „${newReimburser}”`,
     },
     roomMembersPage: {
         memberNotFound: 'Użytkownik nie został znaleziony.',
@@ -7170,6 +7214,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data starsza niż ${maxAge} dni`,
         missingCategory: 'Brak kategorii',
         missingComment: 'Opis jest wymagany dla wybranej kategorii',
+        missingAttendees: 'Wymaganych jest wielu uczestników dla tej kategorii',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Brakujące ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7895,7 +7940,15 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             addAdminError: 'Nie można dodać tego członka jako administratora. Spróbuj ponownie.',
             revokeAdminAccess: 'Cofnij uprawnienia administratora',
             cantRevokeAdminAccess: 'Nie można odebrać uprawnień administratora kontaktowi technicznemu',
-            error: {removeAdmin: 'Nie można usunąć tego użytkownika jako administratora. Spróbuj ponownie.'},
+            error: {
+                removeAdmin: 'Nie można usunąć tego użytkownika jako administratora. Spróbuj ponownie.',
+                removeDomain: 'Nie można usunąć tej domeny. Spróbuj ponownie.',
+                removeDomainNameInvalid: 'Wprowadź swoją nazwę domeny, aby ją zresetować.',
+            },
+            resetDomain: 'Resetuj domenę',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `Wpisz proszę <strong>${domainName}</strong>, aby potwierdzić reset domeny.`,
+            enterDomainName: 'Wpisz tutaj swoją nazwę domeny',
+            resetDomainInfo: `Ta akcja jest <strong>trwała</strong> i następujące dane zostaną usunięte: <br/> <ul><li>Połączenia kart firmowych i wszystkie nierozliczone wydatki z tych kart</li> <li>Ustawienia SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
         members: {title: 'Członkowie', findMember: 'Znajdź członka'},
     },
