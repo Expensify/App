@@ -669,7 +669,7 @@ function getLastMessageTextForReport({
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate: translateLocal,  formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
+        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate: translateLocal, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translateLocal, lastReportAction, report);
