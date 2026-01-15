@@ -7,7 +7,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
-import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -690,6 +690,8 @@ describe('actions/Duplicate', () => {
                 },
             };
 
+            await Onyx.clear();
+
             duplicateExpenseTransaction({
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -721,6 +723,58 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.transactionID).toBeDefined();
             // The duplicated transaction should have a different transactionID than the original
             expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpenseTransaction.transactionID);
+        });
+
+        it('should create a duplicate time expense successfully', async () => {
+            const transactionID = 'time-1';
+            const mockTimeExpenseTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: 14995,
+                comment: {
+                    type: 'time' as const,
+                    units: {
+                        unit: 'h' as const,
+                        count: 15,
+                        rate: 9.99,
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockTimeExpenseTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.comment?.units?.count).toEqual(15);
+            expect(duplicatedTransaction?.comment?.units?.rate).toEqual(9.99);
+            expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
+            expect(duplicatedTransaction?.comment?.type).toBe('time');
+            expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
         });
     });
 
