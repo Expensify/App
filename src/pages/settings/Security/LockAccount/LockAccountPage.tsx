@@ -46,18 +46,17 @@ function LockAccountPage() {
             return;
         }
         setIsLoading(true);
-        lockAccount().then((response) => {
-            setIsLoading(false);
-            if (!response?.jsonCode) {
-                return;
-            }
+        const response = await lockAccount();
+        setIsLoading(false);
+        if (!response?.jsonCode) {
+            return;
+        }
 
-            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT);
-            } else {
-                Navigation.navigate(ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT);
-            }
-        });
+        if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+            Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT);
+        } else {
+            Navigation.navigate(ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT);
+        }
     }, [showConfirmModal, translate, session?.accountID, styles.mb5]);
 
     const lockAccountButton = (

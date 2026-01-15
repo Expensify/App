@@ -53,10 +53,11 @@ function DisablePage() {
         if (isEmpty(account?.errorFields?.requiresTwoFactorAuth ?? {})) {
             return;
         }
-        showTwoFactorAuthRequireModal().then(() => {
+        (async () => {
+            await showTwoFactorAuthRequireModal();
             closeModal();
-        });
-    }, [account?.errorFields?.requiresTwoFactorAuth]);
+        })();
+    }, [account?.errorFields?.requiresTwoFactorAuth, showTwoFactorAuthRequireModal, closeModal]);
 
     return (
         <TwoFactorAuthWrapper
