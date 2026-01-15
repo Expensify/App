@@ -1,6 +1,6 @@
 import {Buffer} from 'buffer';
 import {TextEncoder} from 'util';
-import {concatBytes, createBinaryData, generateKeyPair, randomBytes, sha256, signToken, utf8ToBytes} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
+import {concatBytes, createAuthenticatorData, generateKeyPair, randomBytes, sha256, signToken, utf8ToBytes} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
 import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 
@@ -22,8 +22,8 @@ describe('MultifactorAuthentication Biometrics ED25519 helpers', () => {
     it('creates deterministic binary data for a given rpId', () => {
         const rpId = 'example.com';
 
-        const first = createBinaryData(rpId);
-        const second = createBinaryData(rpId);
+        const first = createAuthenticatorData(rpId);
+        const second = createAuthenticatorData(rpId);
 
         expect(first).toBeInstanceOf(Uint8Array);
         expect(second).toBeInstanceOf(Uint8Array);

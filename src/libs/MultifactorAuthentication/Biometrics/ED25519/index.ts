@@ -76,7 +76,7 @@ function createFlag(up: boolean, uv: boolean): ChallengeFlags {
  *
  * @see https://www.w3.org/TR/webauthn-2/#sctn-authenticator-data
  */
-function createBinaryData(rpId: string): Bytes {
+function createAuthenticatorData(rpId: string): Bytes {
     const rpIdBytes = utf8ToBytes(rpId);
 
     // Per WebAuthn spec, RPID is hashed to guarantee a consistent length
@@ -107,32 +107,38 @@ function createBinaryData(rpId: string): Bytes {
  * Signs a multifactor authentication challenge for the given account identifier and key.
  * Returns a WebAuthn-compatible signed challenge structure.
  */
-function signToken(token: MultifactorAuthenticationChallengeObject, privateKey: string): SignedChallenge {
+function signToken(credentialRequestOptions: MultifactorAuthenticationChallengeObject, privateKey: string): SignedChallenge {
     const rawId: Base64URLString = Base64URL.encode(VALUES.KEY_ALIASES.PUBLIC_KEY);
     const type = VALUES.ED25519_TYPE;
 
-    const binaryData = createBinaryData(token.rpId);
-    const authenticatorData: Base64URLString = Base64URL.encode(binaryData);
+    const authenticatorDataBytes = createAuthenticatorData(credentialRequestOptions.rpId);
+    const authenticatorData: Base64URLString = Base64URL.encode(authenticatorDataBytes);
 
-    const tokenBytes = utf8ToBytes(JSON.stringify(token));
+    const clientDataJSON = JSON.stringify({challenge: credentialRequestOptions.challenge});
+    const clientDataBytes = utf8ToBytes(clientDataJSON);
 
-    // Since the token can be of variable length, it is hashed to guarantee that binaryData is always a fixed length.
-    // This comes from the WebAuthN spec, with which we maintain compatibility here for easier interoperability on the backend.
-    const message = concatBytes(binaryData, sha256(tokenBytes));
-    const keyInBytes = hexToBytes(privateKey);
+    /**
+     * Since the token can be of variable length, it is hashed to guarantee that binaryData is always a fixed length.
+     * This comes from the WebAuthN spec, with which we maintain compatibility here for easier interoperability on the backend.
+     */
+    const clientDataHash = sha256(clientDataBytes);
 
-    const signatureRaw = sign(message, keyInBytes);
-    const signature: Base64URLString = Base64URL.encode(signatureRaw);
+    // WebAuthn signature format: sign(authenticatorData || SHA-256(clientDataJSON))
+    const dataToSign = concatBytes(authenticatorDataBytes, clientDataHash);
+    const privateKeyBytes = hexToBytes(privateKey);
+
+    const signatureBytes = sign(dataToSign, privateKeyBytes);
+    const signature: Base64URLString = Base64URL.encode(signatureBytes);
 
     return {
         rawId,
         type,
         response: {
             authenticatorData,
-            clientDataJSON: Base64URL.encode(JSON.stringify(token)),
+            clientDataJSON: Base64URL.encode(clientDataJSON),
             signature,
         },
     };
 }
 
-export {generateKeyPair, signToken, createBinaryData, concatBytes, sha256, utf8ToBytes, verify, randomBytes};
+export {generateKeyPair, signToken, createAuthenticatorData, concatBytes, sha256, utf8ToBytes, verify, randomBytes};
