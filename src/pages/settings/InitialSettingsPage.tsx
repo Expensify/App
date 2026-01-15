@@ -233,6 +233,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
             },
             {
+                translationKey: 'expenseRulesPage.title',
+                icon: icons.Bolt,
+                screenName: SCREENS.SETTINGS.RULES.ROOT,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_RULES),
+            },
+            {
                 translationKey: 'common.preferences',
                 icon: icons.Gear,
                 screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
@@ -276,6 +282,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         icons.Lock,
         icons.Wallet,
         icons.CreditCard,
+        icons.Bolt,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,

@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule} from '@src/types/onyx';
 import {getCleanedTagName} from './PolicyUtils';
 
@@ -33,5 +34,20 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
     return changes.join(', ');
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {formatExpenseRuleChanges};
+function extractRuleFromForm(form: ExpenseRuleForm) {
+    const rule: ExpenseRule = {
+        billable: form.billable,
+        category: form.category,
+        comment: form.comment,
+        createReport: form.createReport,
+        merchant: form.merchant,
+        merchantToMatch: form.merchantToMatch,
+        reimbursable: form.reimbursable,
+        report: form.report,
+        tag: form.tag,
+        // tax: form.tax,
+    };
+    return rule;
+}
+
+export {formatExpenseRuleChanges, extractRuleFromForm};

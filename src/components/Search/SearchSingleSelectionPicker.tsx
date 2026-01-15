@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 type SearchSingleSelectionPickerItem = {
@@ -19,10 +20,20 @@ type SearchSingleSelectionPickerProps = {
     initiallySelectedItem: SearchSingleSelectionPickerItem | undefined;
     pickerTitle?: string;
     onSaveSelection: (value: string | undefined) => void;
+    backToRoute?: Route;
+    shouldShowResetButton?: boolean;
     shouldShowTextInput?: boolean;
 };
 
-function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchSingleSelectionPickerProps) {
+function SearchSingleSelectionPicker({
+    items,
+    initiallySelectedItem,
+    pickerTitle,
+    onSaveSelection,
+    backToRoute,
+    shouldShowResetButton = true,
+    shouldShowTextInput = true,
+}: SearchSingleSelectionPickerProps) {
     const {translate} = useLocalize();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -88,17 +99,17 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
 
     const applyChanges = useCallback(() => {
         onSaveSelection(selectedItem?.value);
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [onSaveSelection, selectedItem?.value]);
+        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+    }, [onSaveSelection, selectedItem?.value, backToRoute]);
 
     const footerContent = useMemo(
         () => (
             <SearchFilterPageFooterButtons
                 applyChanges={applyChanges}
-                resetChanges={resetChanges}
+                resetChanges={shouldShowResetButton ? resetChanges : undefined}
             />
         ),
-        [resetChanges, applyChanges],
+        [resetChanges, applyChanges, shouldShowResetButton],
     );
     return (
         <SelectionList

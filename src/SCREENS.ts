@@ -150,6 +150,15 @@ const SCREENS = {
 
         RULES: {
             ROOT: 'Settings_Rules',
+            ADD: 'Settings_Rules_Add',
+            ADD_MERCHANT: 'Settings_Rules_Add_Merchant',
+            ADD_RENAME_MERCHANT: 'Settings_Rules_Add_Rename_Merchant',
+            ADD_CATEGORY: 'Settings_Rules_Add_Category',
+            ADD_TAG: 'Settings_Rules_Add_Tag',
+            ADD_DESCRIPTION: 'Settings_Rules_Add_Description',
+            ADD_REIMBURSABLE: 'Settings_Rules_Add_Reimbursable',
+            ADD_BILLABLE: 'Settings_Rules_Add_Billable',
+            ADD_REPORT: 'Settings_Rules_Add_Report',
         },
 
         WALLET: {

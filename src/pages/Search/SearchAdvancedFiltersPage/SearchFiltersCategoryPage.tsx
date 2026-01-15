@@ -101,4 +101,5 @@ function SearchFiltersCategoryPage() {
     );
 }
 
+export {availableNonPersonalPolicyCategoriesSelector};
 export default SearchFiltersCategoryPage;

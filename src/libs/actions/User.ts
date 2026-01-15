@@ -49,6 +49,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {ExpenseRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -1639,6 +1640,14 @@ function updateIsVerifiedValidateActionCode(isVerifiedValidateActionCode: boolea
     });
 }
 
+function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
+}
+
+function clearDraftRule() {
+    Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, null);
+}
+
 export {
     closeAccount,
     setServerErrorsOnForm,
@@ -1682,4 +1691,6 @@ export {
     respondToProactiveAppReview,
     verifyAddSecondaryLoginCode,
     updateIsVerifiedValidateActionCode,
+    updateDraftRule,
+    clearDraftRule,
 };
