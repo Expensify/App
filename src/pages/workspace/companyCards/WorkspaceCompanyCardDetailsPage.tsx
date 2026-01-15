@@ -80,7 +80,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const globalCard = cardList?.[cardID];
     const isCardBeingUnassigned = globalCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const card = feedScopedCard ?? (isCardBeingUnassigned ? globalCard : undefined);
-    const isCardPendingDelete = card?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -113,7 +112,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
 
     // Don't show NotFoundPage if card is being unassigned or data is still loading
-    if ((!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardPendingDelete && !isUnassigningRef.current)) {
+    if ((!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigningRef.current)) {
         return <NotFoundPage />;
     }
 
