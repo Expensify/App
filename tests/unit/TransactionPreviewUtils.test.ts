@@ -222,8 +222,9 @@ describe('TransactionPreviewUtils', () => {
     });
 
     describe('createTransactionPreviewConditionals', () => {
+        const currentUserAccountID = 999;
         beforeAll(() => {
-            Onyx.merge(ONYXKEYS.SESSION, {accountID: 999});
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
         });
         afterAll(() => {
             Onyx.clear([ONYXKEYS.SESSION]);
@@ -287,6 +288,7 @@ describe('TransactionPreviewUtils', () => {
                         type: CONST.REPORT.ACTIONS.TYPE.IOU,
                     },
                 },
+                currentUserAccountID,
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowSplitShare).toBeTruthy();
@@ -355,6 +357,7 @@ describe('TransactionPreviewUtils', () => {
                         type: CONST.REPORT.ACTIONS.TYPE.IOU,
                     },
                 },
+                currentUserAccountID,
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowSplitShare).toBeTruthy();
