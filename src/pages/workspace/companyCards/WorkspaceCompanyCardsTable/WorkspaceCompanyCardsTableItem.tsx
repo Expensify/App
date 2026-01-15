@@ -133,11 +133,13 @@ function WorkspaceCompanyCardTableItem({
             onClose={resetFailedCompanyCardAssignment}
         >
             <PressableWithFeedback
-                role={CONST.ROLE.BUTTON}
+                role={isAssigned ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 style={[styles.mh5, styles.flexRow, styles.br3, styles.mb2, styles.highlightBG, styles.overflowHidden]}
                 accessibilityLabel="row"
-                hoverStyle={styles.hoveredComponentBG}
+                hoverStyle={isAssigned && styles.hoveredComponentBG}
                 disabled={isCardDeleted}
+                interactive={isAssigned}
+                pressDimmingValue={isAssigned ? undefined : 1}
                 onPress={() => {
                     if (!assignedCard) {
                         assignCard();
@@ -186,12 +188,12 @@ function WorkspaceCompanyCardTableItem({
                             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                                 <TextWithTooltip
                                     text={leftColumnTitle}
-                                    style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.justifyContentCenter]}
+                                    style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.justifyContentCenter, !isAssigned && styles.cursorText]}
                                 />
                                 {!!leftColumnSubtitle && (
                                     <TextWithTooltip
                                         text={leftColumnSubtitle}
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3, !isAssigned && styles.cursorText]}
                                     />
                                 )}
                             </View>
@@ -201,7 +203,7 @@ function WorkspaceCompanyCardTableItem({
                             <View style={[styles.flex1]}>
                                 <Text
                                     numberOfLines={1}
-                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre, !isAssigned && styles.cursorText]}
                                 >
                                     {cardName}
                                 </Text>
