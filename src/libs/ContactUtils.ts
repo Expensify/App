@@ -34,7 +34,7 @@ const getContacts = (
     localeCompare: LocaleContextProps['localeCompare'],
     countryCode: number,
     loginList: OnyxEntry<Login>,
-    currentUserEmail?: string,
+    currentUserEmail: string | undefined,
 ): Array<SearchOption<PersonalDetails>> => {
     return deviceContacts
         .map((contact) => {

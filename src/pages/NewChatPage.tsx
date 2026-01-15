@@ -1,6 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
@@ -63,8 +62,8 @@ function useOptions() {
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
     const personalData = useCurrentUserPersonalDetails();
+    const currentUserAccountID = personalData.accountID;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
@@ -237,10 +236,10 @@ function NewChatPage({ref}: NewChatPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
+    const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
     const {singleExecution} = useSingleExecution();

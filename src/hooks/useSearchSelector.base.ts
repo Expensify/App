@@ -1,4 +1,3 @@
-import {accountIDSelector, emailSelector} from '@selectors/Session';
 import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -8,6 +7,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDebounce from './useDebounce';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
@@ -165,8 +165,9 @@ function useSearchSelectorBase({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.login;
 
     const onListEndReached = useDebounce(
         useCallback(() => {

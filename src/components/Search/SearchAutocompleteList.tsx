@@ -1,4 +1,3 @@
-import {accountIDSelector, emailSelector} from '@selectors/Session';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -10,6 +9,7 @@ import type {SearchQueryItem, SearchQueryListItemProps} from '@components/Select
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -192,8 +192,9 @@ function SearchAutocompleteList({
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
-    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserLogin = currentUserPersonalDetails.login;
+    const currentUserAccountID = currentUserPersonalDetails.accountID ?? -1;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -631,6 +632,7 @@ function SearchAutocompleteList({
         betas,
         countryCode,
         loginList,
+        currentUserAccountID,
         currentUserLogin,
         groupByAutocompleteList,
         statusAutocompleteList,

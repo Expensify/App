@@ -177,7 +177,7 @@ type IsValidReportsConfig = Pick<
     | 'isRestrictedToPreferredPolicy'
     | 'preferredPolicyID'
 > & {
-    currentUserAccountID?: number;
+    currentUserAccountID: number | undefined;
 };
 
 type GetOptionsConfig = {
@@ -192,8 +192,8 @@ type GetOptionsConfig = {
     maxElements?: number;
     maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
-    currentUserAccountID?: number;
-    currentUserEmail?: string;
+    currentUserAccountID: number | undefined;
+    currentUserEmail: string | undefined;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -209,7 +209,7 @@ type GetUserToInviteConfig = {
     optionsToExclude?: GetOptionsConfig['selectedOptions'];
     countryCode?: number;
     loginList: OnyxEntry<Login>;
-    currentUserEmail?: string;
+    currentUserEmail: string | undefined;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -247,9 +247,10 @@ type PreviewConfig = {
     isSelected?: boolean;
 };
 
-type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'currentUserEmail'> & {
+type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
+    currentUserEmail: string | undefined;
 };
 
 type OrderOptionsConfig =

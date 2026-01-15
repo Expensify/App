@@ -2315,8 +2315,8 @@ type SearchOptionsConfig = {
     shouldShowGBR?: boolean;
     shouldUnreadBeBold?: boolean;
     loginList: OnyxEntry<Login>;
-    currentUserAccountID?: number;
-    currentUserEmail?: string;
+    currentUserAccountID: number | undefined;
+    currentUserEmail: string | undefined;
 };
 
 /**
@@ -2476,8 +2476,8 @@ function getMemberInviteOptions(
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-    currentUserAccountID?: number,
-    currentUserEmail?: string,
+    currentUserAccountID: number | undefined,
+    currentUserEmail: string | undefined,
 ): Options {
     return getValidOptions(
         {personalDetails, reports: []},
@@ -2563,7 +2563,7 @@ function formatSectionsFromSearchTerm(
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    currentUserAccountID?: number,
+    currentUserAccountID: number | undefined,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -2622,7 +2622,7 @@ function getFirstKeyForList(data?: Option[] | null) {
     return firstNonEmptyDataObj?.keyForList ? firstNonEmptyDataObj?.keyForList : '';
 }
 
-function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUserAccountID?: number) {
+function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUserAccountID: number | undefined) {
     if (currentUserAccountID !== undefined && item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
     }
@@ -2700,7 +2700,7 @@ function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]
     return filteredReports;
 }
 
-function filterPersonalDetails(personalDetails: SearchOptionData[], searchTerms: string[], currentUserAccountID?: number): SearchOptionData[] {
+function filterPersonalDetails(personalDetails: SearchOptionData[], searchTerms: string[], currentUserAccountID: number | undefined): SearchOptionData[] {
     return searchTerms.reduceRight(
         (items, term) =>
             filterArrayByMatch(items, term, (item) => {
@@ -2793,8 +2793,8 @@ function filterOptions(
     searchInputValue: string,
     countryCode: number,
     loginList: OnyxEntry<Login>,
-    config?: FilterUserToInviteConfig,
-    currentUserAccountID?: number,
+    config: FilterUserToInviteConfig | undefined,
+    currentUserAccountID: number | undefined,
 ): Options {
     const trimmedSearchInput = searchInputValue.trim();
 
@@ -2875,7 +2875,7 @@ function filterAndOrderOptions(
     countryCode: number,
     loginList: OnyxEntry<Login>,
     config: FilterAndOrderConfig = {},
-    currentUserAccountID?: number,
+    currentUserAccountID: number | undefined,
 ): Options {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
