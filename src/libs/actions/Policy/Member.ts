@@ -105,10 +105,10 @@ function buildRoomMembersOnyxData(
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT> {
     const report = ReportUtils.getRoom(roomType, policyID);
     const reportMetadata = ReportUtils.getReportMetadata(report?.reportID);
-    const roomMembers = {
-        optimisticData: [] as Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>>,
-        failureData: [] as Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>>,
-        successData: [] as Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>>,
+    const roomMembers: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT> = {
+        optimisticData: [],
+        failureData: [],
+        successData: [],
     };
 
     if (!report || accountIDs.length === 0) {
@@ -118,7 +118,7 @@ function buildRoomMembersOnyxData(
     const participantAccountIDs = [...Object.keys(report.participants ?? {}).map(Number), ...accountIDs];
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-    roomMembers.optimisticData.push(
+    roomMembers.optimisticData?.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
@@ -135,7 +135,7 @@ function buildRoomMembersOnyxData(
         },
     );
 
-    roomMembers.failureData.push(
+    roomMembers.failureData?.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
@@ -154,7 +154,7 @@ function buildRoomMembersOnyxData(
             },
         },
     );
-    roomMembers.successData.push({
+    roomMembers.successData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
         value: {
@@ -212,10 +212,10 @@ function removeOptimisticRoomMembers(
     policyID: string | undefined,
     accountIDs: number[],
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_METADATA> {
-    const roomMembers = {
-        optimisticData: [] as Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>>,
-        failureData: [] as Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>>,
-        successData: [] as Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>>,
+    const roomMembers: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_METADATA> = {
+        optimisticData: [],
+        failureData: [],
+        successData: [],
     };
 
     if (!policyID) {
@@ -231,21 +231,21 @@ function removeOptimisticRoomMembers(
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    roomMembers.optimisticData.push({
+    roomMembers.optimisticData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
         value: {
             pendingChatMembers,
         },
     });
-    roomMembers.failureData.push({
+    roomMembers.failureData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
         value: {
             pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
         },
     });
-    roomMembers.successData.push({
+    roomMembers.successData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
         value: {
