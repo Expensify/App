@@ -1978,7 +1978,7 @@ const translations: TranslationDeepObject<typeof en> = {
         whatIsTwoFactorAuth:
             'A autenticação de dois fatores (2FA) ajuda a manter sua conta segura. Ao fazer login, você precisará inserir um código gerado pelo seu aplicativo autenticador preferido.',
         disableTwoFactorAuth: 'Desativar autenticação de dois fatores',
-        explainProcessToRemove: 'Para desativar a autenticação em duas etapas (2FA), insira um código válido do seu aplicativo de autenticação.', //_/\__/_/  \_,_/\__/\__/\_,_/
+        explainProcessToRemove: 'Para desativar a autenticação em duas etapas (2FA), insira um código válido do seu aplicativo de autenticação.',
         explainProcessToRemoveWithRecovery: 'Para desativar a autenticação em duas etapas (2FA), insira um código de recuperação válido.',
         disabled: 'A autenticação em duas etapas agora está desativada',
         noAuthenticatorApp: 'Você não precisará mais de um app autenticador para entrar no Expensify.',

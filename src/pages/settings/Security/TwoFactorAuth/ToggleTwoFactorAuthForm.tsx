@@ -15,6 +15,7 @@ type BaseTwoFactorAuthFormProps = {
     /** Callback that is called when the text input is focused */
     onFocus?: () => void;
 
+    /** Whether the form should autofocus on mobile devices */
     shouldAutoFocusOnMobile?: boolean;
 
     /** Reference to the outer element */
