@@ -9,6 +9,7 @@ const DEFAULT_CARD_FEED_ERRORS: CardFeedErrors = {
     rbrFeedNameWithDomainIDMapping: {},
     isFeedConnectionBroken: false,
     hasFeedErrors: false,
+    hasWorkspaceErrors: false,
     hasFailedCardAssignment: false,
 };
 
