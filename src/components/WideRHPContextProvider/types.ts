@@ -57,6 +57,12 @@ type WideRHPContextType = {
 
     // Clear the arrays of wide and super wide rhp keys
     clearWideRHPKeys: () => void;
+
+    // Set that wide rhp is closing
+    setIsWideRHPClosing: (isClosing: boolean) => void;
+
+    // Set that super wide rhp is closing
+    setIsSuperWideRHPClosing: (isClosing: boolean) => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export

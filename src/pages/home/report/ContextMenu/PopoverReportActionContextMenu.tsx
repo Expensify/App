@@ -85,6 +85,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -333,7 +334,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
-    const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
     useEffect(() => {
         if (!originalReport) {
             return;
@@ -374,12 +375,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                             isSingleTransactionView: undefined,
                             isChatReportArchived: isReportArchived,
                             isChatIOUReportArchived,
+                            allTransactionViolationsParam: allTransactionViolations,
                         });
                     } else if (originalMessage?.IOUTransactionID) {
                         deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
                     }
                 } else if (isReportPreviewAction(currentReportAction)) {
-                    deleteAppReport(currentReportAction.childReportID, email ?? '', reportTransactions, violations, bankAccountList);
+                    deleteAppReport(currentReportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
                 } else if (currentReportAction) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {

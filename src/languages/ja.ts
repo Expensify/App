@@ -185,6 +185,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -553,10 +554,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: '値',
         downloadFailedTitle: 'ダウンロードに失敗しました',
         downloadFailedDescription: 'ダウンロードを完了できませんでした。後でもう一度お試しください。',
-        downloadFailedEmptyReportDescription: () => ({
-            one: '空のレポートはエクスポートできません。',
-            other: () => '空のレポートはエクスポートできません。',
-        }),
         filterLogs: 'ログをフィルター',
         network: 'ネットワーク',
         reportID: 'レポート ID',
@@ -1223,14 +1220,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'この経費を削除してもよろしいですか？',
             other: 'これらの経費を削除してもよろしいですか？',
         }),
-        deleteReport: () => ({
-            one: 'レポートを削除',
-            other: 'レポートを削除',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'このレポートを削除してもよろしいですか？',
-            other: 'これらのレポートを削除してもよろしいですか？',
-        }),
+        deleteReport: 'レポートを削除',
+        deleteReportConfirmation: 'このレポートを削除してもよろしいですか？',
         settledExpensify: '支払済み',
         done: '完了',
         settledElsewhere: '他で支払済み',
@@ -6210,6 +6201,10 @@ ${reportName}
                 title: 'カテゴリルール',
                 approver: '承認者',
                 requireDescription: '説明を必須にする',
+                requireFields: 'フィールドを必須にする',
+                requiredFieldsTitle: '必須項目',
+                requiredFieldsDescription: (categoryName: string) => `これは<strong>${categoryName}</strong>として分類されたすべての経費に適用されます。`,
+                requireAttendees: '参加者の入力を必須にする',
                 descriptionHint: '説明のヒント',
                 descriptionHintDescription: (categoryName: string) => `従業員に「${categoryName}」での支出について追加情報を提供するよう促します。このヒントは経費の説明欄に表示されます。`,
                 descriptionHintLabel: 'ヒント',
@@ -6593,6 +6588,8 @@ ${reportName}
         },
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `カスタムレポート名の数式を「${newValue}」（以前は「${oldValue}」）に変更しました`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser ? `認可された支払者を「${newReimburser}」（以前は「${previousReimburser}」）に変更しました` : `承認済み支払者を「${newReimburser}」に変更しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -7186,6 +7183,7 @@ ${reportName}
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `${maxAge}日より前の日付`,
         missingCategory: 'カテゴリ未設定',
         missingComment: '選択したカテゴリーには説明が必要です',
+        missingAttendees: 'このカテゴリには複数の参加者が必要です',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `${tagName ?? 'タグ'} が見つかりません`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

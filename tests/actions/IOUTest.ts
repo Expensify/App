@@ -110,6 +110,8 @@ const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
+    dismissToPreviousRHP: jest.fn(),
+    dismissToSuperWideRHP: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
@@ -4766,6 +4768,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived: true,
+                    allTransactionViolationsParam: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -4853,6 +4856,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived: true,
+                    allTransactionViolationsParam: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -4928,6 +4932,7 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    allTransactionViolationsParam: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5030,6 +5035,7 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    allTransactionViolationsParam: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5167,6 +5173,7 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    allTransactionViolationsParam: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5248,6 +5255,7 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    allTransactionViolationsParam: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5407,6 +5415,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived: undefined,
+                    allTransactionViolationsParam: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5513,6 +5522,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived: undefined,
+                    allTransactionViolationsParam: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -5603,6 +5613,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isSingleTransactionView: true,
+                    allTransactionViolationsParam: {},
                 });
             }
 
@@ -5658,6 +5669,7 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
+                    allTransactionViolationsParam: {},
                 });
             }
             // Then we expect to navigate to the chat report
@@ -5731,6 +5743,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 transactionIDsPendingDeletion: [],
                 selectedTransactionIDs,
+                allTransactionViolationsParam: {},
             });
             deleteMoneyRequest({
                 transactionID: transaction2.transactionID,
@@ -5741,6 +5754,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 transactionIDsPendingDeletion: [transaction1.transactionID],
                 selectedTransactionIDs,
+                allTransactionViolationsParam: {},
             });
 
             await waitForBatchedUpdates();
@@ -5758,6 +5772,141 @@ describe('actions/IOU', () => {
             expect(report?.total).toBe(10);
             expect(report?.unheldTotal).toBe(10);
             expect(report?.unheldNonReimbursableTotal).toBe(10);
+        });
+    });
+
+    describe('deleteMoneyRequest with allTransactionViolationsParam', () => {
+        it('should pass transaction violations to hasOutstandingChildRequest correctly', async () => {
+            // Given an expense report with a transaction
+            const expenseReport: Report = {
+                ...createRandomReport(20, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 100,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const transaction1: Transaction = {
+                ...createRandomTransaction(20),
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                reimbursable: true,
+            };
+
+            const moneyRequestAction1: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(20),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: '20',
+                originalMessage: {
+                    IOUReportID: expenseReport.reportID,
+                    amount: transaction1.amount,
+                    currency: transaction1.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: undefined,
+                previousMessage: undefined,
+            };
+
+            // When we set up the transaction and report in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            // And we call deleteMoneyRequest with transaction violations
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
+            };
+
+            deleteMoneyRequest({
+                transactionID: transaction1.transactionID,
+                reportAction: moneyRequestAction1,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                allTransactionViolationsParam: transactionViolations,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be deleted
+            const deletedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(deletedTransaction).toBeUndefined();
+        });
+
+        it('should handle empty transaction violations correctly', async () => {
+            // Given an expense report with a transaction
+            const expenseReport: Report = {
+                ...createRandomReport(21, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 50,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const transaction1: Transaction = {
+                ...createRandomTransaction(21),
+                amount: 50,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                reimbursable: true,
+            };
+
+            const moneyRequestAction1: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(21),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: '21',
+                originalMessage: {
+                    IOUReportID: expenseReport.reportID,
+                    amount: transaction1.amount,
+                    currency: transaction1.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: undefined,
+                previousMessage: undefined,
+            };
+
+            // When we set up the transaction and report in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            // And we call deleteMoneyRequest with empty transaction violations
+            deleteMoneyRequest({
+                transactionID: transaction1.transactionID,
+                reportAction: moneyRequestAction1,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                allTransactionViolationsParam: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be deleted
+            const deletedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(deletedTransaction).toBeUndefined();
         });
     });
 
