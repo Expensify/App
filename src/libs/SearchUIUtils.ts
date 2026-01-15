@@ -1982,6 +1982,7 @@ function getMemberSections(
 function getCardSections(
     data: OnyxTypes.SearchResults['data'],
     queryJSON: SearchQueryJSON | undefined,
+    translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
 ): [TransactionCardGroupListItemType[], number] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
@@ -2021,13 +2022,16 @@ function getCardSections(
                 transactionsQueryJSON,
                 ...personalDetails,
                 ...cardGroup,
-                formattedCardName: getCardDescription({
-                    cardID: cardGroup.cardID,
-                    bank: cardGroup.bank,
-                    cardName: cardGroup.cardName,
-                    lastFourPAN: cardGroup.lastFourPAN,
-                } as OnyxTypes.Card),
-                formattedFeedName: getCustomOrFormattedFeedName(cardGroup.bank as OnyxTypes.CompanyCardFeed, customFeedName) ?? '',
+                formattedCardName: getCardDescription(
+                    {
+                        cardID: cardGroup.cardID,
+                        bank: cardGroup.bank,
+                        cardName: cardGroup.cardName,
+                        lastFourPAN: cardGroup.lastFourPAN,
+                    } as OnyxTypes.Card,
+                    translate,
+                ),
+                formattedFeedName: getCustomOrFormattedFeedName(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, customFeedName) ?? '',
             };
         }
     }
@@ -2147,7 +2151,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, cardFeeds);
+                return getCardSections(data, queryJSON, translate, cardFeeds);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
         }

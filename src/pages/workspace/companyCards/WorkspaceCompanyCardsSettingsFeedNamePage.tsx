@@ -46,7 +46,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const feedName = selectedFeed ? getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
+    const feedName = selectedFeed ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed ? companyFeeds[selectedFeed] : undefined);
 
     const validate = useCallback(

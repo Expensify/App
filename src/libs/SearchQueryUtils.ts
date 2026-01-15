@@ -1,5 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+import {translateLocal} from 'tests/utils/TestHelper';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {
@@ -1037,7 +1039,8 @@ function getFilterDisplayValue(
         if (Number.isNaN(cardID)) {
             return filterValue;
         }
-        return getCardDescription(cardList?.[cardID]) || filterValue;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getCardDescription(cardList?.[cardID], translateLocal) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1120,7 +1123,8 @@ function getDisplayQueryFiltersForKey(
                 if (Number.isNaN(cardID)) {
                     acc.push({operator: filter.operator, value: cardID});
                 } else {
-                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID]) || cardID});
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID], translateLocal) || cardID});
                 }
             }
             return acc;
