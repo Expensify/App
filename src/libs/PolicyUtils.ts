@@ -112,6 +112,10 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: 
  */
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.ADMIN;
 
+const isPolicyAdminByID = (policyID: string): boolean => {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    return isPolicyAdmin(policy);
+};
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
@@ -1732,6 +1736,7 @@ export {
     isPendingDeletePolicy,
     isUserPolicyAdmin,
     isPolicyAdmin,
+    isPolicyAdminByID,
     isPolicyUser,
     isPolicyAuditor,
     hasEligibleActiveAdminFromWorkspaces,
