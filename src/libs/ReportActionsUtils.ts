@@ -36,7 +36,7 @@ import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
-import {formatMessageElementList, translate} from './Localize';
+import {formatMessageElementList, translate as translateWithLocale} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
@@ -383,7 +383,7 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
 
 function getMarkedReimbursedMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
-    return translate(IntlStore.getCurrentLocale(), 'iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
+    return translateWithLocale(IntlStore.getCurrentLocale(), 'iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
 }
 
 function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
