@@ -74,6 +74,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUseUserSkeletonView,
     shouldShowTooltips = true,
     shouldIgnoreFocus = false,
+    shouldShowRightCaret = false,
     shouldStopPropagation = false,
     shouldHeaderBeInsideList = false,
     shouldScrollToFocusedIndex = true,
@@ -123,10 +124,10 @@ function BaseSelectionList<TItem extends ListItem>({
                 if (isItemSelected(item) && (canSelectMultiple || acc.selectedOptions.length === 0)) {
                     acc.selectedOptions.push(item);
                 }
-                if (isItemDisabled) {
+                if (isItemDisabled || item?.isDisabledCheckbox) {
                     acc.disabledIndexes.push(idx);
 
-                    if (!item?.isDisabledCheckbox) {
+                    if (isItemDisabled) {
                         acc.disabledArrowKeyIndexes.push(idx);
                     }
                 }
@@ -343,7 +344,6 @@ function BaseSelectionList<TItem extends ListItem>({
                 <ListItemRenderer
                     ListItem={ListItem}
                     selectRow={selectRow}
-                    keyForList={item.keyForList}
                     showTooltip={shouldShowTooltips}
                     item={{
                         shouldAnimateInHighlight: isItemHighlighted,
@@ -352,7 +352,6 @@ function BaseSelectionList<TItem extends ListItem>({
                     }}
                     setFocusedIndex={setFocusedIndex}
                     index={index}
-                    normalizedIndex={index}
                     isFocused={isItemFocused}
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}
@@ -375,6 +374,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
                     shouldStopMouseLeavePropagation={false}
+                    shouldShowRightCaret={shouldShowRightCaret}
                 />
             </View>
         );
