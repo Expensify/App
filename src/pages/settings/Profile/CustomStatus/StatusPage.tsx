@@ -191,11 +191,7 @@ function StatusPage() {
     const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
     const renderDelegatorList = () => {
-        if (!vacationDelegate?.delegatorFor) {
-            return null;
-        }
-
-        return vacationDelegate.delegatorFor.map((delegatorEmail) => {
+        return vacationDelegate?.delegatorFor?.map((delegatorEmail) => {
             const delegatorDetails = getPersonalDetailByEmail(delegatorEmail);
             const formattedLogin = formatPhoneNumber(delegatorDetails?.login ?? '');
             const displayLogin = formattedLogin || delegatorEmail;
