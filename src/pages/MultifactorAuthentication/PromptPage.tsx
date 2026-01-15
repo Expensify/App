@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
@@ -26,7 +27,7 @@ function MultifactorAuthenticationPromptPage() {
 
     const onConfirm = () => {
         // Temporary navigation, expected behavior: let the MultifactorAuthentication know that the soft prompt was accepted
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_NOTIFICATION.getRoute('success'));
+        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_NOTIFICATION.getRoute(CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE.SUCCESS));
     };
 
     const showConfirmModal = () => {
@@ -44,7 +45,7 @@ function MultifactorAuthenticationPromptPage() {
 
         hideConfirmModal();
         // Temporary navigation, expected behavior: trigger the failure from the MultifactorAuthenticationContext
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_NOTIFICATION.getRoute('failure'));
+        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_NOTIFICATION.getRoute(CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE.FAILURE));
     };
 
     return (

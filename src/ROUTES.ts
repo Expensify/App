@@ -3698,7 +3698,7 @@ const ROUTES = {
     // for now a string is accepted to avoid blocking this PR.
     MULTIFACTOR_AUTHENTICATION_NOTIFICATION: {
         route: 'multifactor-authentication/notification/:notificationType',
-        getRoute: (notificationType: string) => `multifactor-authentication/notification/${notificationType}` as const,
+        getRoute: (notificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE>) => `multifactor-authentication/notification/${notificationType}` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_PROMPT: {

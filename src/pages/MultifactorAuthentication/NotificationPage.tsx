@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
 
@@ -36,7 +37,7 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
         Navigation.dismissModal();
     };
 
-    const isSuccessNotification = route.params.notificationType === 'success';
+    const isSuccessNotification = route.params.notificationType === CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE.SUCCESS;
 
     let headerTitle = translate(mockedConfigFailure.headerTitle);
     let title = translate(mockedConfigFailure.title);
@@ -45,6 +46,8 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
     if (isSuccessNotification) {
         headerTitle = translate(mockedConfigSuccess.headerTitle);
         title = translate(mockedConfigSuccess.title);
+        // TODO: Replace hardcoded 'FaceID' with the actual authentication type (e.g., 'FaceID', 'TouchID', 'Fingerprint')
+        // once the MFA context provides the auth method used. This will require adding authType to route params and to CONST.
         description = translate(mockedConfigSuccess.description, {authType: 'FaceID'});
     }
 

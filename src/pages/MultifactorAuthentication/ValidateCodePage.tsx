@@ -45,26 +45,35 @@ function MultifactorAuthenticationValidateCodePage() {
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
-    const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    const hasClearedInitialErrorsRef = useRef(false);
 
     // Derived state
-    const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
+    const hasError = !!account && !isEmptyObject(account?.errors);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const shouldDisableResendCode = isOffline ?? account?.isLoading;
     const shouldShowTimer = timeRemaining > 0 && !isOffline;
 
     // Timer handling
     useEffect(() => {
+        // Clear any existing timeout first
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+
         if (timeRemaining > 0) {
             timerRef.current = setTimeout(() => {
                 setTimeRemaining(timeRemaining - 1);
             }, 1000);
         }
+
         return () => {
+            if (!timerRef.current) {
+                return;
+            }
             clearTimeout(timerRef.current);
         };
     }, [timeRemaining]);
@@ -85,18 +94,14 @@ function MultifactorAuthenticationValidateCodePage() {
         inputRef.current.clear();
     }, [inputCode.length]);
 
-    // Handle needToClearError
+    // Clear any pre-existing errors on mount
     useEffect(() => {
-        if (!needToClearError) {
+        if (hasClearedInitialErrorsRef.current || !account?.errors) {
             return;
         }
-
-        if (account?.errors) {
-            clearAccountMessages();
-            return;
-        }
-        setNeedToClearError(false);
-    }, [account?.errors, needToClearError]);
+        hasClearedInitialErrorsRef.current = true;
+        clearAccountMessages();
+    }, [account?.errors]);
 
     // Reset formError when hasError changes
     useEffect(() => {
@@ -165,6 +170,8 @@ function MultifactorAuthenticationValidateCodePage() {
         setFormError({});
 
         // Temporary navigation, expected behavior: trigger submit from the MultifactorAuthenticationContext
+        // 'enable-biometrics' is a type of the MultifactorAuthentication prompt
+        // will be added as a part of scenario config in another PR to make it complacent with CONSISTENCY-2 (docs)
         Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
     };
 
@@ -184,7 +191,6 @@ function MultifactorAuthenticationValidateCodePage() {
                 <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterMagicCode', contactMethod)}</Text>
                 <View style={[styles.mh5]}>
                     <MagicCodeInput
-                        isDisableKeyboard
                         autoComplete="one-time-code"
                         name="multifactorAuthenticationValidateCode"
                         value={inputCode}

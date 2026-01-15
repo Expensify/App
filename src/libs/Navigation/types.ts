@@ -2944,7 +2944,7 @@ type MultifactorAuthenticationParamList = {
     [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION]: {
-        notificationType: string;
+        notificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE>;
     };
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
         promptType: string;
