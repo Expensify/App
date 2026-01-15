@@ -32,6 +32,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
+import {initSplitExpense, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@libs/actions/IOU/index';
+import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {filterPersonalCards, getCompanyCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -51,13 +53,12 @@ import {
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isExpenseReport,
@@ -99,7 +100,6 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import {initSplitExpense, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -169,6 +169,7 @@ function MoneyRequestView({
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
     const searchContext = useSearchContext();
@@ -383,6 +384,8 @@ function MoneyRequestView({
             getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
         [getViolationsForField],
     );
+    // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
@@ -406,6 +409,16 @@ function MoneyRequestView({
     const updatedTransactionDescription = getDescription(updatedTransaction) || undefined;
     const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
+
+    const shouldShowConvertedAmount =
+        transactionConvertedAmount &&
+        currency !== moneyRequestReport?.currency &&
+        !isManagedCardTransaction &&
+        transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID &&
+        !isFromMergeTransaction &&
+        !isFromReviewDuplicates &&
+        !getPendingFieldAction('amount') &&
+        !pendingAction;
 
     const saveBillable = (newBillable: boolean) => {
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
@@ -465,10 +478,8 @@ function MoneyRequestView({
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
-    if (currency !== moneyRequestReport?.currency && !isManagedCardTransaction && transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-        if (transactionConvertedAmount) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
-        }
+    if (shouldShowConvertedAmount) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
     }
 
     if (isFromMergeTransaction) {
@@ -479,8 +490,13 @@ function MoneyRequestView({
     }
 
     const hasErrors = hasMissingSmartscanFields(transaction);
-    // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+    const isMissingAttendeesViolation = getIsMissingAttendeesViolation(
+        policyCategories,
+        updatedTransaction?.category ?? categoryForDisplay,
+        actualAttendees,
+        currentUserPersonalDetails,
+        policy?.isAttendeeTrackingEnabled,
+    );
 
     const getErrorForField = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
         // Checks applied when creating a new expense
@@ -519,6 +535,10 @@ function MoneyRequestView({
         if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
             const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
             return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
+        }
+
+        if (field === 'attendees' && isMissingAttendeesViolation) {
+            return translate('violations.missingAttendees');
         }
 
         return '';
@@ -561,13 +581,7 @@ function MoneyRequestView({
 
                         if (isOdometerDistanceRequest) {
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction.transactionID,
-                                    transactionThreadReport.reportID,
-                                    getReportRHPActiveRoute(),
-                                ),
+                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
                             );
                             return;
                         }
@@ -742,8 +756,9 @@ function MoneyRequestView({
         );
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport) || parentReport?.reportName;
+    const reportNameToDisplay = isFromMergeTransaction
+        ? (updatedTransaction?.reportName ?? translate('common.none'))
+        : (parentReport?.reportName ?? computeReportName(parentReport, allReports, allPolicies, allTransactions));
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
@@ -1034,6 +1049,8 @@ function MoneyRequestView({
                             onPress={() => {
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID));
                             }}
+                            brickRoadIndicator={getErrorForField('attendees') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('attendees')}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML

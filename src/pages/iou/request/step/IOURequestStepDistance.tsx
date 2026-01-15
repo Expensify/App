@@ -322,7 +322,9 @@ function IOURequestStepDistance({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, isArchived, reportAttributesDerived);
+                return participantAccountID
+                    ? getParticipantsOption(participant, personalDetails)
+                    : getReportOption(participant, reportNameValuePairs?.private_isArchived, policy, reportAttributesDerived);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {

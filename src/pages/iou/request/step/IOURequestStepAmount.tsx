@@ -4,7 +4,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -12,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
@@ -98,7 +98,7 @@ function IOURequestStepAmount({
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
@@ -190,8 +190,8 @@ function IOURequestStepAmount({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const privateIsArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`);
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, reportAttributesDerived);
+                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 

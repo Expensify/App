@@ -659,16 +659,16 @@ function computeReportName(
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
-    isArchived?: boolean,
+    privateIsArchived?: string,
 ): string {
     if (!report || !report.reportID) {
         return '';
     }
 
-    const privateIsArchived = isArchived ?? !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
+    const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, privateIsArchived);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!privateIsArchivedValue);
 
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
@@ -683,7 +683,7 @@ function computeReportName(
         return Parser.htmlToText(report?.reportName ?? '').trim();
     }
 
-    const chatThreadReportName = computeChatThreadReportName(report, privateIsArchived, reports ?? {}, parentReportAction);
+    const chatThreadReportName = computeChatThreadReportName(report, !!privateIsArchivedValue, reports ?? {}, parentReportAction);
     if (chatThreadReportName) {
         return chatThreadReportName;
     }

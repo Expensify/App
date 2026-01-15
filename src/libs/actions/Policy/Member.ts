@@ -172,8 +172,8 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData {
-    const onyxData: OnyxData = {
+function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> {
+    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -526,6 +526,7 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
                     pendingChatMembers,
                 },
             },
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
@@ -570,6 +571,7 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
                     pendingChatMembers: null,
                 },
             },
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,

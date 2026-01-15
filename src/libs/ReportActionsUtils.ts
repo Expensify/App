@@ -2947,6 +2947,68 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
     return getReportActionText(action);
 }
 
+type CompanyAddressOriginalMessage = {
+    newAddress: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string};
+    oldAddress?: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
+};
+
+/**
+ * Format address as "street1, street2 (if exists), city, state zipCode"
+ */
+function formatAddressToString(address: CompanyAddressOriginalMessage['newAddress'] | null | undefined): string {
+    if (!address) {
+        return '';
+    }
+
+    const [street1Raw, street2Raw] = (address.addressStreet ?? '').split('\n');
+    const street1 = street1Raw?.trim() ?? '';
+    const street2 = street2Raw?.trim() ?? '';
+
+    const parts: string[] = [];
+
+    if (street1) {
+        parts.push(street1);
+    }
+    if (street2) {
+        parts.push(street2);
+    }
+    if (address.city) {
+        parts.push(address.city);
+    }
+
+    let stateZip = '';
+    if (address.state) {
+        stateZip = address.state;
+        if (address.zipCode) {
+            stateZip += ` ${address.zipCode}`;
+        }
+    } else if (address.zipCode) {
+        stateZip = address.zipCode;
+    }
+
+    if (stateZip) {
+        parts.push(stateZip);
+    }
+
+    return parts.join(', ');
+}
+
+function getCompanyAddressUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS>) as CompanyAddressOriginalMessage | undefined;
+
+    if (!originalMessage) {
+        return getReportActionText(action);
+    }
+
+    const newAddressStr = formatAddressToString(originalMessage.newAddress);
+    const oldAddressStr = formatAddressToString(originalMessage.oldAddress);
+
+    return translate('workspaceActions.changedCompanyAddress', {
+        newAddress: newAddressStr,
+        previousAddress: oldAddressStr || undefined,
+    });
+}
+
 function getWorkspaceFeatureEnabledMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {enabled, featureName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED>) ?? {};
 
@@ -3056,6 +3118,19 @@ function getForwardsToUpdateMessage(translate: LocalizedTranslate, action: Repor
     }
 
     return translate('workspaceActions.changedForwardsTo', {approver: approvers, forwardsTo: forwardsToEmail, previousForwardsTo});
+}
+
+function getReimburserUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER>);
+
+    if (originalMessage?.reimburser?.email && originalMessage?.previousReimburser?.email) {
+        const newReimburser = formatPhoneNumber(originalMessage.reimburser.email);
+        const previousReimburser = formatPhoneNumber(originalMessage.previousReimburser.email);
+
+        return translate('workspaceActions.changedReimburser', {newReimburser, previousReimburser});
+    }
+
+    return getReportActionText(action);
 }
 
 function getWorkspaceReimbursementUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
@@ -3699,9 +3774,11 @@ export {
     getWorkspaceUpdateFieldMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
+    getCompanyAddressUpdateMessage,
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,
     getForwardsToUpdateMessage,
+    getReimburserUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
