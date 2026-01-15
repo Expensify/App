@@ -15,11 +15,11 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
-    const shouldNavigateBack = useRef(false);
+    const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
     const isConfirmed = useRef(false);
 
     usePreventRemove(
-        hasUnsavedChanges || shouldNavigateBack.current,
+        hasUnsavedChanges || shouldNavigateBack,
         useCallback((e) => {
             blockedNavigationAction.current = e.data.action;
             navigateAfterInteraction(() => setIsVisible((prev) => !prev));
@@ -36,7 +36,7 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
             if (!hasUnsavedChanges) {
                 return;
             }
-            shouldNavigateBack.current = true;
+            setShouldNavigateBack(true);
             if (closing) {
                 window.history.go(1);
                 return;
@@ -54,11 +54,11 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
             navigationRef.current?.dispatch(blockedNavigationAction.current);
             return;
         }
-        if (!shouldNavigateBack.current) {
+        if (!shouldNavigateBack) {
             return;
         }
         navigationRef.current?.goBack();
-    }, []);
+    }, [shouldNavigateBack]);
 
     return (
         <ConfirmModal
@@ -75,14 +75,14 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
             onCancel={() => {
                 setIsVisible(false);
                 blockedNavigationAction.current = undefined;
-                shouldNavigateBack.current = false;
+                setShouldNavigateBack(false);
             }}
             onModalHide={() => {
                 if (isConfirmed.current) {
                     isConfirmed.current = false;
                     setNavigationActionToMicrotaskQueue(navigateBack);
                 } else {
-                    shouldNavigateBack.current = false;
+                    setShouldNavigateBack(false);
                     onCancel?.();
                 }
             }}
