@@ -379,7 +379,7 @@ type DismissDuplicateTransactionViolationProps = {
     expenseReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
-    allTransactionsCollection: OnyxCollection<Transaction>;
+    allTransactions: OnyxCollection<Transaction>;
 };
 
 /**
@@ -392,10 +392,10 @@ function dismissDuplicateTransactionViolation({
     expenseReport,
     policy,
     isASAPSubmitBetaEnabled,
-    allTransactionsCollection,
+    allTransactions,
 }: DismissDuplicateTransactionViolationProps) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
-    const currentTransactions = transactionIDs.map((id) => allTransactionsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
+    const currentTransactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction?.reportID, transaction?.transactionID));
     const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
@@ -698,7 +698,7 @@ type ChangeTransactionsReportProps = {
     policy?: OnyxEntry<Policy>;
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
-    allTransactionsCollection: OnyxCollection<Transaction>;
+    allTransactions: OnyxCollection<Transaction>;
 };
 
 function changeTransactionsReport({
@@ -710,11 +710,11 @@ function changeTransactionsReport({
     policy,
     reportNextStep,
     policyCategories,
-    allTransactionsCollection,
+    allTransactions,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    const transactions = transactionIDs.map((id) => allTransactionsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};

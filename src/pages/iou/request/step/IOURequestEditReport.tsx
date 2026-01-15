@@ -73,7 +73,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -91,7 +91,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
-            allTransactionsCollection: allTransactions,
+            allTransactions,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

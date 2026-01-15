@@ -125,7 +125,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -172,7 +172,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -234,7 +234,7 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -298,7 +298,7 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -350,7 +350,7 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 reportNextStep: undefined,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -413,7 +413,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -468,7 +468,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -520,7 +520,7 @@ describe('Transaction', () => {
                 accountID: customAccountID,
                 email: customEmail,
                 newReport: report,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -578,7 +578,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: expenseReport,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -636,7 +636,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: expenseReport,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -701,7 +701,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: newExpenseReport,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -765,7 +765,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: newExpenseReport,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -822,7 +822,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: fakeReport,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -881,7 +881,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: fakeReport,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -935,7 +935,7 @@ describe('Transaction', () => {
                 policy,
                 reportNextStep: undefined,
                 policyCategories,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
 
             await waitForBatchedUpdates();
@@ -1245,8 +1245,8 @@ describe('Transaction', () => {
                 },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
-            // Ensure transaction exists in the passed allTransactionsCollection mapping
-            const allTransactionsCollection = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
+            // Ensure transaction exists in the passed allTransactions mapping
+            const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
 
             // Ensure the child report actions collection exists
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
@@ -1258,7 +1258,7 @@ describe('Transaction', () => {
                 expenseReport: newReport,
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
-                allTransactionsCollection,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -1311,7 +1311,7 @@ describe('Transaction', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
-            const allTransactionsCollection = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
+            const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
 
             // Make the API fail
             mockFetch.fail();
@@ -1322,7 +1322,7 @@ describe('Transaction', () => {
                 expenseReport: newReport,
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
-                allTransactionsCollection,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -1348,7 +1348,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
 
             const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
-            const allTransactionsCollection = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
+            const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
 
             dismissDuplicateTransactionViolation({
                 transactionIDs: [transactionID],
@@ -1356,7 +1356,7 @@ describe('Transaction', () => {
                 expenseReport: newReport,
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
-                allTransactionsCollection,
+                allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -1396,7 +1396,7 @@ describe('Transaction', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
-                const allTransactionsCollection = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
+                const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
 
                 const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`));
                 await waitFor(() => {
@@ -1410,7 +1410,7 @@ describe('Transaction', () => {
                         expenseReport: newReport,
                         policy: undefined,
                         isASAPSubmitBetaEnabled: false,
-                        allTransactionsCollection,
+                        allTransactions,
                     });
                     await waitForBatchedUpdates();
                 });

@@ -8928,7 +8928,7 @@ describe('actions/IOU', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 newReport: result.current.report,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;

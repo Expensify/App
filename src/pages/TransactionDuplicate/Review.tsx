@@ -98,7 +98,7 @@ function TransactionDuplicateReview() {
             expenseReport,
             policy,
             isASAPSubmitBetaEnabled,
-            allTransactionsCollection: allTransactions,
+            allTransactions,
         });
         Navigation.goBack();
     };
