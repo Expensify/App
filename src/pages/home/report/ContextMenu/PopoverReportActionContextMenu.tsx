@@ -417,8 +417,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         composerToRefocusOnCloseEmojiPicker: composerToRefocusOnClose,
     }));
 
-    const reportAction = reportActionRef.current;
-
     return (
         <PopoverWithMeasuredContent
             isVisible={isPopoverVisible}
