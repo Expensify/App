@@ -743,7 +743,11 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={CONST.ROLE.MENUITEM}
+                                // When interactive={false}, the MenuItem is display-only and should not:
+                                // - Have role="menuitem" (incorrect WCAG semantics for static content)
+                                // - Be accessible to screen readers as an interactive element
+                                // - Be focusable via keyboard (tabindex="-1" instead of tabindex="0")
+                                role={interactive ? CONST.ROLE.MENUITEM : undefined}
                                 accessibilityLabel={title ? title.toString() : ''}
                                 accessible={shouldBeAccessible}
                                 tabIndex={tabIndex}

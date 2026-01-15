@@ -1,24 +1,29 @@
 /**
  * P0 Unit Tests for FocusTrapForScreen - Issue #76921
  *
- * STATUS: IMPLEMENTED AND PASSING (2026-01-13)
+ * STATUS: IMPLEMENTED AND PASSING (2026-01-14)
  *
- * These tests verify the context-aware focus restoration fix for Issue #76921
+ * These tests verify the focus restoration fix for Issue #76921
  * while ensuring no regression of Issue #46109 (blue frame on new tab).
  *
- * Implementation Details:
- * - `setReturnFocus` changed from `false` to a context-aware function
- * - Detects navigation vs initial page load by checking `document.activeElement`
- * - Captures previously focused element in `onActivate`
- * - Restores focus on back navigation, returns `false` on initial load
+ * Implementation Details (Phase 2 Architecture):
+ * - `initialFocus` callback handles navigation-based focus restoration (returning to a screen)
+ * - `setReturnFocus` handles non-navigation deactivation (click outside) - returns trigger if focusable
+ * - NavigationFocusManager captures elements on pointerdown/keydown (capture phase)
+ * - FocusTrapForScreen captures focus when screen loses focus, restores when it regains focus
+ * - `wasNavigatedTo` ref prevents focus restoration on initial page load (#46109)
  *
- * The fix has been applied to `src/components/FocusTrap/FocusTrapForScreen/index.web.tsx`
+ * The fix has been applied to:
+ * - `src/libs/NavigationFocusManager.ts` (new file)
+ * - `src/components/FocusTrap/FocusTrapForScreen/index.web.tsx`
+ * - `src/App.tsx` (initialize NavigationFocusManager)
  *
  * Test Categories:
  * P0-1: Initial page load - no focus restoration (guards #46109)
  * P0-2: Navigation back - focus restored to trigger element
  * P0-3: Input field focus preserved during navigation
  * P0-4: Previously focused element removed from DOM - fallback used
+ * P0-5: Element focusability checks
  */
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -38,6 +43,7 @@ let mockRouteName = 'TestScreen';
 type FocusTrapCallbacks = {
     onActivate?: () => void;
     setReturnFocus?: ((element: HTMLElement) => HTMLElement | false) | boolean;
+    initialFocus?: (() => HTMLElement | false) | boolean;
 };
 
 let capturedFocusTrapOptions: FocusTrapCallbacks = {};
@@ -221,52 +227,44 @@ describe('FocusTrapForScreen', () => {
     });
 
     describe('P0-1: Initial page load - no focus restoration (guards #46109)', () => {
-        it('should NOT restore focus when trap deactivates on initial page load', () => {
-            // Given: Initial page load (no prior navigation, no element focused)
+        it('should NOT restore focus via initialFocus on initial page load', () => {
+            // Given: Initial page load (no prior navigation, wasNavigatedTo is false)
             render(
                 <FocusTrapForScreen>
                     <div data-testid="content">Test Content</div>
                 </FocusTrapForScreen>,
             );
 
-            // Skip if new implementation not applied
-            if (!isSetReturnFocusFunction()) {
-                // Then: Current behavior - setReturnFocus: false means no restoration ever
-                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
-                return;
-            }
+            // Then: initialFocus should be a function (Phase 2 implementation)
+            expect(typeof capturedFocusTrapOptions.initialFocus).toBe('function');
 
-            // When: The setReturnFocus callback is invoked (trap deactivation)
-            const mockTriggerElement = createMockElement('button', 'trigger-button');
-            const result = callSetReturnFocus(mockTriggerElement);
+            // When: initialFocus is called (trap activation on initial load)
+            const initialFocusFn = capturedFocusTrapOptions.initialFocus as () => HTMLElement | false;
+            const result = initialFocusFn();
 
             // Then: Should return false (no focus restoration on initial load)
+            // because wasNavigatedTo.current is false
             expect(result).toBe(false);
         });
 
-        it('should NOT restore focus when activeElement is document.body on activation', () => {
-            // Given: No element is focused (activeElement is body)
+        it('should return trigger element from setReturnFocus for click-outside deactivation', () => {
+            // Given: Component is rendered
             render(
                 <FocusTrapForScreen>
                     <div data-testid="content">Test Content</div>
                 </FocusTrapForScreen>,
             );
 
-            // Skip if new implementation not applied
-            if (!isSetReturnFocusFunction()) {
-                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
-                return;
-            }
+            // Then: setReturnFocus should be a function
+            expect(typeof capturedFocusTrapOptions.setReturnFocus).toBe('function');
 
-            // When: onActivate is called
-            capturedFocusTrapOptions.onActivate?.();
-
-            // And: setReturnFocus is called
+            // When: setReturnFocus is called with a focusable trigger element
+            // (this happens on click-outside deactivation)
             const mockTriggerElement = createMockElement('button', 'trigger-button');
             const result = callSetReturnFocus(mockTriggerElement);
 
-            // Then: Should return false (no meaningful element was focused)
-            expect(result).toBe(false);
+            // Then: Should return the trigger element (for click-outside scenarios)
+            expect(result).toBe(mockTriggerElement);
         });
     });
 

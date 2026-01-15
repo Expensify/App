@@ -1,11 +1,12 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {FocusTrap} from 'focus-trap-react';
-import React, {useMemo, useRef} from 'react';
+import React, {useLayoutEffect, useMemo, useRef} from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import NavigationFocusManager from '@libs/NavigationFocusManager';
 import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
 
@@ -15,7 +16,7 @@ import type FocusTrapProps from './FocusTrapProps';
  * since they were captured.
  */
 function isElementFocusable(element: Element | null): boolean {
-    if (!element || !document.body.contains(element)) {
+    if (!element || element === document.body || element === document.documentElement || !document.body.contains(element)) {
         return false;
     }
 
@@ -51,12 +52,12 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     const route = useRoute();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // Track if this trap was activated via navigation (not initial page load)
-    // This is determined by whether a meaningful element was focused when the trap activated
-    const wasActivatedViaNavigation = useRef(false);
+    // Track previous focus state to detect transitions
+    const prevIsFocused = useRef(isFocused);
 
-    // Track the element that had focus before this trap activated
-    const previouslyFocusedElement = useRef<HTMLElement | null>(null);
+    // Track if this screen was navigated to (vs initial page load)
+    // This prevents focus restoration on initial page load (Issue #46109)
+    const wasNavigatedTo = useRef(false);
 
     const isActive = useMemo(() => {
         if (typeof focusTrapSettings?.active !== 'undefined') {
@@ -67,7 +68,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
             return false;
         }
 
-        // in top tabs only focus trap for currently shown tab should be active
+        // In top tabs only focus trap for currently shown tab should be active
         if (TOP_TAB_SCREENS.find((screen) => screen === route.name)) {
             return isFocused;
         }
@@ -79,6 +80,46 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
         return isFocused;
     }, [isFocused, shouldUseNarrowLayout, route.name, focusTrapSettings?.active]);
 
+    // Capture focus when screen loses focus (navigating away)
+    // useLayoutEffect runs synchronously, minimizing the timing window
+    useLayoutEffect(() => {
+        const wasFocused = prevIsFocused.current;
+        const isNowFocused = isFocused;
+
+        if (wasFocused && !isNowFocused) {
+            // Screen is losing focus (forward navigation) - capture the focused element
+            NavigationFocusManager.captureForRoute(route.key);
+        }
+
+        if (!wasFocused && isNowFocused) {
+            // Screen is gaining focus (back navigation or initial)
+            // Mark as navigated to if we have a stored element for this route
+            const hasStored = NavigationFocusManager.hasStoredFocus(route.key);
+
+            if (hasStored) {
+                // For screens where FocusTrap is not active (e.g., wide layout screens in WIDE_LAYOUT_INACTIVE_SCREENS),
+                // we need to manually restore focus since initialFocus callback won't be called.
+                // For active traps, initialFocus handles focus restoration.
+                if (!isActive) {
+                    const capturedElement = NavigationFocusManager.retrieveForRoute(route.key);
+                    if (capturedElement && isElementFocusable(capturedElement)) {
+                        // Defer focus to next event loop tick. useLayoutEffect runs before browser paint,
+                        // and immediate focus() may not work reliably. This is NOT a race condition
+                        // workaround - the element is already validated via isElementFocusable().
+                        setTimeout(() => {
+                            capturedElement.focus();
+                        }, 0);
+                    }
+                } else {
+                    // For active traps, let initialFocus handle it
+                    wasNavigatedTo.current = true;
+                }
+            }
+        }
+
+        prevIsFocused.current = isFocused;
+    }, [isFocused, route.key, isActive]);
+
     return (
         <FocusTrap
             active={isActive}
@@ -86,20 +127,8 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
             containerElements={focusTrapSettings?.containerElements?.length ? focusTrapSettings.containerElements : undefined}
             focusTrapOptions={{
                 onActivate: () => {
+                    // Blur non-input elements to prevent visual artifacts
                     const activeElement = document?.activeElement as HTMLElement;
-
-                    // Capture the currently focused element BEFORE blurring
-                    // Only capture if it's a meaningful element (not body)
-                    if (activeElement && activeElement !== document.body) {
-                        previouslyFocusedElement.current = activeElement;
-                        wasActivatedViaNavigation.current = true;
-                    } else {
-                        // Initial page load scenario - no meaningful element was focused
-                        previouslyFocusedElement.current = null;
-                        wasActivatedViaNavigation.current = false;
-                    }
-
-                    // Blur non-input elements as before
                     if (activeElement?.nodeName !== CONST.ELEMENT_NAME.INPUT && activeElement?.nodeName !== CONST.ELEMENT_NAME.TEXTAREA) {
                         activeElement?.blur();
                     }
@@ -110,34 +139,40 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
                 clickOutsideDeactivates: true,
                 fallbackFocus: document.body,
                 delayInitialFocus: CONST.ANIMATED_TRANSITION,
-                initialFocus: false,
-                setReturnFocus: (triggerElement) => {
-                    // Don't restore focus if this was an initial page load (not navigation)
-                    // This guards against Issue #46109 (blue frame on new tab)
-                    if (!wasActivatedViaNavigation.current) {
+
+                // initialFocus is called when the trap ACTIVATES (returning to a screen)
+                // This is the correct place to restore focus, NOT setReturnFocus
+                initialFocus: () => {
+                    // Don't restore focus on initial page load (Issue #46109)
+                    if (!wasNavigatedTo.current) {
                         return false;
                     }
 
-                    // If we have a previously focused element that is still focusable, use it
-                    const elementToReturn = previouslyFocusedElement.current;
+                    // Reset the flag
+                    wasNavigatedTo.current = false;
 
-                    // Clear refs after use
-                    previouslyFocusedElement.current = null;
-                    wasActivatedViaNavigation.current = false;
+                    // Retrieve the element captured when we left this screen
+                    const capturedElement = NavigationFocusManager.retrieveForRoute(route.key);
 
-                    // Check if element is still focusable (visible, not disabled, in DOM)
-                    if (elementToReturn && isElementFocusable(elementToReturn)) {
-                        return elementToReturn;
+                    // Use captured element if it's still focusable
+                    if (capturedElement && isElementFocusable(capturedElement)) {
+                        return capturedElement;
                     }
 
-                    // Fallback: use the element provided by focus-trap if it's focusable
+                    // Don't focus anything if no valid element
+                    return false;
+                },
+
+                // setReturnFocus handles non-navigation deactivation (e.g., click outside)
+                // It should NOT handle navigation focus restoration
+                setReturnFocus: (triggerElement) => {
+                    // For click-outside deactivation, return to trigger element if focusable
                     if (isElementFocusable(triggerElement)) {
                         return triggerElement;
                     }
-
-                    // If neither element is focusable, don't attempt focus restoration
                     return false;
                 },
+
                 ...(focusTrapSettings?.focusTrapOptions ?? {}),
             }}
         >
