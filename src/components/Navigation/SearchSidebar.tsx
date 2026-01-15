@@ -11,6 +11,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
 import SCREENS from '@src/SCREENS';
+import type {SearchResults} from '@src/types/onyx';
 import NavigationTabBar from './NavigationTabBar';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 import TopBar from './TopBar';
@@ -28,18 +29,22 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const route = state.routes.at(-1);
     const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
     const {lastSearchType, setLastSearchType, currentSearchResults} = useSearchContext();
+    const searchResults = currentSearchResults as SearchResults | undefined;
 
     const queryJSON = params?.q ? buildSearchQueryJSON(params.q, params.rawQuery) : undefined;
 
+    const searchType = searchResults?.search?.type;
+    const isSearchLoading = searchResults?.search?.isLoading;
+
     useEffect(() => {
-        if (!currentSearchResults?.search?.type) {
+        if (!searchType) {
             return;
         }
 
-        setLastSearchType(currentSearchResults.search.type);
-    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults?.search?.type]);
+        setLastSearchType(searchType);
+    }, [lastSearchType, queryJSON, setLastSearchType, searchType]);
 
-    const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!currentSearchResults?.search?.isLoading;
+    const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
     if (shouldUseNarrowLayout) {
         return null;

@@ -28,7 +28,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, SearchResults} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
@@ -56,7 +56,8 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchContext();
-    const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
+    const searchResults = currentSearchResults as SearchResults | undefined;
+    const snapshotReport = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
@@ -73,9 +74,9 @@ function TransactionListItem<TItem extends ListItem>({
         canBeMissing: true,
         selector: (policy) => policy?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
     });
-    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {}) as Policy;
+    const snapshotPolicy = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {}) as Policy;
 
-    const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
+    const actionsData = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
     const exportedReportActions = actionsData ? Object.values(actionsData) : [];
 
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
