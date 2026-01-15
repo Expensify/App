@@ -12,7 +12,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDomainOrWorkspaceAccountID, isMaskedCardNumberEqual} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -56,12 +55,9 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     } = useCompanyCards({policyID: policy?.id});
     const isDirectCardFeed = cardFeedType === 'directFeed';
 
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feedName ?? ''}`, {canBeMissing: true});
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
@@ -215,8 +211,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             key={`${item.cardName}_${index}`}
             item={item}
             policyID={policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)}
-            feed={feedName}
-            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
             CardFeedIcon={cardFeedIcon}
             isPlaidCardFeed={isDirectCardFeed}
             onAssignCard={onAssignCard}

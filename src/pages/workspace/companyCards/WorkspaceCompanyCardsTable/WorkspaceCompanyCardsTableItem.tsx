@@ -12,13 +12,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetFailedWorkspaceCompanyCardAssignment} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, PersonalDetails} from '@src/types/onyx';
 
 type WorkspaceCompanyCardTableItemData = {
     /** Card number */
@@ -36,9 +35,6 @@ type WorkspaceCompanyCardTableItemData = {
     /** Assigned card */
     assignedCard: Card | undefined;
 
-    /** Pending company card assignment */
-    failedCompanyCardAssignment: FailedCompanyCardAssignment | undefined;
-
     /** Whether the card is deleted */
     isCardDeleted: boolean;
 
@@ -52,12 +48,6 @@ type WorkspaceCompanyCardTableItemProps = {
 
     /** Policy ID */
     policyID: string;
-
-    /** Feed name */
-    feed: CompanyCardFeedWithDomainID | undefined;
-
-    /** Domain or workspace account ID */
-    domainOrWorkspaceAccountID: number;
 
     /** Card feed icon element */
     CardFeedIcon?: React.ReactNode;
@@ -81,8 +71,6 @@ type WorkspaceCompanyCardTableItemProps = {
 function WorkspaceCompanyCardTableItem({
     item,
     policyID,
-    feed,
-    domainOrWorkspaceAccountID,
     CardFeedIcon,
     isPlaidCardFeed,
     shouldUseNarrowTableLayout,
@@ -95,21 +83,9 @@ function WorkspaceCompanyCardTableItem({
     const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const {failedCompanyCardAssignment} = item;
-    let {cardName, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted} = item;
-    let errors = assignedCard?.errors;
-    let pendingAction = assignedCard?.pendingAction;
-
-    if (failedCompanyCardAssignment) {
-        cardName = failedCompanyCardAssignment.cardNumber;
-        customCardName = failedCompanyCardAssignment.cardName;
-        cardholder = failedCompanyCardAssignment.cardholder;
-        assignedCard = undefined;
-        isAssigned = true;
-        isCardDeleted = false;
-        errors = failedCompanyCardAssignment?.errors;
-        pendingAction = failedCompanyCardAssignment?.pendingAction;
-    }
+    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted} = item;
+    const errors = assignedCard?.errors;
+    const pendingAction = assignedCard?.pendingAction;
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
     const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
@@ -125,7 +101,6 @@ function WorkspaceCompanyCardTableItem({
             errorRowStyles={[styles.ph5, styles.mb4]}
             errors={errors}
             pendingAction={pendingAction}
-            onClose={resetFailedCompanyCardAssignment}
         >
             <PressableWithFeedback
                 role={isAssigned ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
