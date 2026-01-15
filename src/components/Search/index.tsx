@@ -449,6 +449,7 @@ function Search({
                 data: snapshot.data,
                 currentAccountID: accountID,
                 currentUserEmail: email ?? '',
+                bankAccountList,
                 translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
@@ -457,7 +458,7 @@ function Search({
         });
 
         return enriched;
-    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet]);
+    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet, bankAccountList]);
 
     const hasLoadedAllTransactions = useMemo(() => {
         if (!validGroupBy) {
