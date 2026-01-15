@@ -1,0 +1,153 @@
+# =============================================================================
+# Rules Reactions Tracker
+# =============================================================================
+#
+# Tracks reactions (👍/👎) on rule-related PR review comments and maintains
+# an aggregated view in a GitHub issue.
+#
+# This workflow:
+# 1. Fetches review comments from open PRs by a specific author
+# 2. Filters comments with thumbs up/down reactions
+# 3. Extracts rule prefixes from comments (pattern: "### ❌ PREFIX-NUMBER")
+# 4. Updates the tracking issue with reaction data
+# 5. Posts notifications for new negative feedback
+#
+# The tracking issue contains:
+# - Aggregated summary table (visible at top)
+# - Detailed reactions data table (in collapsed details block)
+#
+# =============================================================================
+
+name: Rules Reactions Tracker
+
+on:
+  # Run daily at 8:00 AM UTC
+  schedule:
+    - cron: "0 8 * * *"
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      since_date:
+        description: "Fetch PRs updated since this date (YYYY-MM-DD). Defaults to 30 days ago."
+        required: false
+        type: string
+      dry_run:
+        description: "Dry run - only fetch and display data, do not update issue"
+        required: false
+        type: boolean
+        default: false
+
+# Limit concurrent runs
+concurrency:
+  group: rules-reactions-tracker
+  cancel-in-progress: false
+
+jobs:
+  track-reactions:
+    name: Track Rule Reactions
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write # To update the tracking issue and post comments
+      pull-requests: read # To read PR review comments
+
+    env:
+      # Configuration - adjust these values as needed
+      TRACKING_ISSUE_NUMBER: "79390"
+      COMMENT_AUTHOR: "github-actions[bot]"
+      REACTIONS_FILTER: "+1,-1"
+      # How far back to look for updated PRs (in days)
+      LOOKBACK_DAYS: "30"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup jq
+        run: |
+          # jq is pre-installed on ubuntu-latest, verify it's available
+          jq --version
+
+      - name: Calculate since date
+        id: date
+        run: |
+          if [[ -n "${{ inputs.since_date }}" ]]; then
+            SINCE_DATE="${{ inputs.since_date }}"
+          else
+            # Default to LOOKBACK_DAYS days ago
+            SINCE_DATE=$(date -d "-${LOOKBACK_DAYS} days" '+%Y-%m-%d')
+          fi
+          echo "since_date=$SINCE_DATE" >> "$GITHUB_OUTPUT"
+          echo "Fetching PRs updated since: $SINCE_DATE"
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/fetch-pr-review-comments.sh
+          chmod +x scripts/update-issue-reactions.sh
+          chmod +x scripts/post-negative-feedback-comment.sh
+          chmod +x scripts/utils/reactions-common.sh
+
+      - name: Fetch PR review comments
+        id: fetch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Fetching comments from ${{ github.repository }}..."
+
+          # Fetch comments and save to file
+          ./scripts/fetch-pr-review-comments.sh \
+            "$COMMENT_AUTHOR" \
+            "${{ steps.date.outputs.since_date }}" \
+            "${{ github.repository }}" \
+            "$REACTIONS_FILTER" > comments.json 2> fetch.log
+
+          # Display fetch log
+          cat fetch.log
+
+          # Count results
+          COMMENT_COUNT=$(jq 'length' comments.json)
+          echo "Found $COMMENT_COUNT comments with reactions"
+          echo "comment_count=$COMMENT_COUNT" >> "$GITHUB_OUTPUT"
+
+          # Display comments for debugging
+          echo "Comments found:"
+          jq '.' comments.json
+
+      - name: Update tracking issue
+        if: ${{ inputs.dry_run != true && steps.fetch.outputs.comment_count != '0' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Updating tracking issue #$TRACKING_ISSUE_NUMBER..."
+
+          cat comments.json | ./scripts/update-issue-reactions.sh \
+            "${{ github.repository }}" \
+            "$TRACKING_ISSUE_NUMBER" 2>&1
+
+      - name: Skip update (dry run or no comments)
+        if: ${{ inputs.dry_run == true || steps.fetch.outputs.comment_count == '0' }}
+        run: |
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            echo "Dry run mode - skipping issue update"
+          else
+            echo "No comments found - skipping issue update"
+          fi
+
+      - name: Summary
+        run: |
+          echo "## Rules Reactions Tracker Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tracking Issue:** #$TRACKING_ISSUE_NUMBER" >> $GITHUB_STEP_SUMMARY
+          echo "- **Since Date:** ${{ steps.date.outputs.since_date }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Comments Found:** ${{ steps.fetch.outputs.comment_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run:** ${{ inputs.dry_run || false }}" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ steps.fetch.outputs.comment_count }}" != "0" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Comments Processed" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            jq '.' comments.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
