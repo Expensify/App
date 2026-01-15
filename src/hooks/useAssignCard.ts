@@ -72,7 +72,12 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const getInitialAssignCardStep = useInitialAssignCardStep({policyID, selectedFeed: feedName});
 
-    const assignCard = (cardID?: string, encryptedCardNumber?: string) => {
+    /**
+     * Initiates the card assignment flow.
+     * @param cardName - The masked card number displayed to users (e.g., "XXXX1234")
+     * @param cardID - The identifier sent to backend (equals cardName for direct feeds)
+     */
+    const assignCard = (cardName?: string, cardID?: string) => {
         if (isAssigningCardDisabled) {
             return;
         }
@@ -98,7 +103,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
         clearAddNewCardFlow();
         clearAssignCardStepAndData();
 
-        const initialAssignCardStep = getInitialAssignCardStep(cardID, encryptedCardNumber);
+        const initialAssignCardStep = getInitialAssignCardStep(cardName, cardID);
 
         if (!initialAssignCardStep) {
             return;
@@ -149,15 +154,20 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const plaidAccessToken = feedData?.plaidAccessToken;
     const hasImportedPlaidAccounts = useRef(false);
 
-    const getInitialAssignCardStep = (cardID: string | undefined, encryptedCardNumber?: string): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
+    /**
+     * Gets the initial step and card data for the assignment flow.
+     * @param cardName - The masked card number displayed to users
+     * @param cardID - The identifier sent to backend (equals cardName for direct feeds)
+     */
+    const getInitialAssignCardStep = (cardName: string | undefined, cardID?: string): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
         if (!selectedFeed) {
             return;
         }
 
         const cardToAssign: Partial<AssignCardData> = {
             bankName,
-            cardNumber: cardID,
-            encryptedCardNumber,
+            cardName,
+            encryptedCardNumber: cardID,
         };
 
         // Refetch plaid card list

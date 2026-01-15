@@ -85,7 +85,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         if (assignee?.login === assignCard?.cardToAssign?.email) {
             if (assignCard?.cardToAssign?.encryptedCardNumber) {
                 cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
-                cardToAssign.cardNumber = assignCard.cardToAssign.cardNumber;
+                cardToAssign.cardName = assignCard.cardToAssign.cardName;
                 cardToAssign.startDate = !isEditing
                     ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
                     : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
@@ -121,7 +121,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
         if (assignCard?.cardToAssign?.encryptedCardNumber) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
-            cardToAssign.cardNumber = assignCard.cardToAssign.cardNumber;
+            cardToAssign.cardName = assignCard.cardToAssign.cardName;
             cardToAssign.startDate = !isEditing
                 ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
                 : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));

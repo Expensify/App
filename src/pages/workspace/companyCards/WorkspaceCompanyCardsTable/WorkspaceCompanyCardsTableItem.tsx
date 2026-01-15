@@ -22,13 +22,19 @@ import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, PersonalDetails
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceCompanyCardTableItemData = {
-    /** Card number */
+    /**
+     * The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234").
+     */
     cardName: string;
 
-    /** Encrypted card number */
+    /**
+     * The card identifier sent to backend.
+     * For direct feeds (Plaid/OAuth): equals cardName
+     * For commercial feeds (Visa/Mastercard/Amex): encrypted value
+     */
     encryptedCardNumber: string;
 
-    /** Card name */
+    /** User-defined name for the card (e.g., "John's card") */
     customCardName?: string;
 
     /** Cardholder personal details */
@@ -81,8 +87,12 @@ type WorkspaceCompanyCardTableItemProps = {
     /** Number of columns in the table */
     columnCount: number;
 
-    /** On assign card callback */
-    onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
+    /**
+     * Callback when assigning a card.
+     * @param cardName - The masked card number displayed to users
+     * @param cardID - The identifier sent to backend (equals cardName for direct feeds)
+     */
+    onAssignCard: (cardName: string, cardID: string) => void;
 };
 
 function WorkspaceCompanyCardTableItem({

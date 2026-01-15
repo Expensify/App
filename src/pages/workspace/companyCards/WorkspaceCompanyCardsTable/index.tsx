@@ -12,7 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDomainOrWorkspaceAccountID, getEncryptedCardNumber} from '@libs/CardUtils';
+import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -107,17 +107,18 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
         : (cardNames?.map((cardName) => {
-              const encryptedCardNumber = getEncryptedCardNumber(isDirectCardFeed, cardName, cardList);
-              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[encryptedCardNumber];
+              // For direct feeds cardID equals cardName, for commercial feeds it's looked up from cardList
+              const cardID = isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
+              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardID];
 
               if (failedCompanyCardAssignment) {
                   return failedCompanyCardAssignment;
               }
-              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName);
+              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === cardID || card.cardName === cardName);
 
               return {
                   cardName,
-                  encryptedCardNumber,
+                  encryptedCardNumber: cardID,
                   customCardName: assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined,
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                   isAssigned: !!assignedCard,

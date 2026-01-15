@@ -22,7 +22,7 @@ import type {
     PrivatePersonalDetails,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {FilteredCardList} from '@src/types/onyx/Card';
+import type {UnassignedCard} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -560,8 +560,16 @@ function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean 
     return cardFeed?.expiration ? isBefore(fromUnixTime(cardFeed.expiration), new Date()) : false;
 }
 
-/** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: string[] | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
+/**
+ * Returns list of unassigned cards that can be assigned.
+ *
+ * This function normalizes the difference between:
+ * - Direct feeds (Plaid/OAuth): cards stored as string[] in accountList
+ * - Commercial feeds (Visa/Mastercard/Amex): cards stored as Record<displayName, encryptedValue> in cardList
+ *
+ * @returns Array of UnassignedCard objects with consistent displayName and cardIdentifier properties
+ */
+function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: string[] | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): UnassignedCard[] {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = new Set(Object.values(cards).map((card) => card.cardName));
 
@@ -580,16 +588,27 @@ function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: 
         }
     }
 
+    // For direct feeds (Plaid/OAuth): displayName === cardIdentifier
     if (accountList) {
-        const unassignedDirectFeedCards = accountList.filter((cardNumber) => !assignedCards.has(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
-        return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
+        return accountList
+            .filter((cardName) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
+            .map((cardName) => ({
+                cardName,
+                cardID: cardName,
+            }));
     }
 
-    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.has(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber)));
+    // For commercial feeds: displayName is the key, cardIdentifier is the encrypted value
+    return Object.entries(customFeedCardsToAssign ?? {})
+        .filter(([cardName]) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
+        .map(([cardName, encryptedCardNumber]) => ({
+            cardName,
+            cardID: encryptedCardNumber,
+        }));
 }
 
-function hasOnlyOneCardToAssign(list: FilteredCardList) {
-    return Object.keys(list).length === 1;
+function hasOnlyOneCardToAssign(list: UnassignedCard[]) {
+    return list.length === 1;
 }
 
 function getDefaultCardName(cardholder?: string) {
@@ -861,10 +880,6 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
     });
 }
 
-function getEncryptedCardNumber(isDirectCardFeed: boolean, cardName: string, cardList: Record<string, string> | undefined): string {
-    return isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
-}
-
 export {
     getAssignedCardSortKey,
     isExpensifyCard,
@@ -932,7 +947,6 @@ export {
     COMPANY_CARD_BANK_ICON_NAMES,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
-    getEncryptedCardNumber,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};

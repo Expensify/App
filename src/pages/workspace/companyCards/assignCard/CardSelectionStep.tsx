@@ -21,6 +21,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import type {UnassignedCard} from '@src/types/onyx/Card';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -57,12 +58,12 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
-    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
-        keyForList: encryptedCardNumber,
-        value: encryptedCardNumber,
-        text: maskCardNumber(cardNumber, feed),
-        alternateText: lastFourNumbersFromCardName(cardNumber),
-        isSelected: cardSelected === encryptedCardNumber,
+    const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
+        keyForList: card.cardID,
+        value: card.cardID,
+        text: maskCardNumber(card.cardName, feed),
+        alternateText: lastFourNumbersFromCardName(card.cardName),
+        isSelected: cardSelected === card.cardID,
         leftElement: plaidUrl ? (
             <PlaidCardFeedIcon
                 plaidUrl={plaidUrl}
@@ -100,13 +101,12 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             return;
         }
 
-        const cardNumber =
-            Object.entries(filteredCardList)
-                .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
-                ?.at(0) ?? '';
+        // Find the card by its ID to get the display name
+        const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
+        const cardName = selectedCard?.cardName ?? '';
 
         setAssignCardStepAndData({
-            cardToAssign: {encryptedCardNumber: cardSelected, cardNumber},
+            cardToAssign: {encryptedCardNumber: cardSelected, cardName},
             isEditing: false,
         });
 

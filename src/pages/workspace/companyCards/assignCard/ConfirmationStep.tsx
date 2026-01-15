@@ -151,7 +151,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={maskCardNumber(cardToAssign?.cardNumber ?? '', cardToAssign?.bankName)}
+                    title={maskCardNumber(cardToAssign?.cardName ?? '', cardToAssign?.bankName)}
                     interactive={false}
                 />
                 <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
