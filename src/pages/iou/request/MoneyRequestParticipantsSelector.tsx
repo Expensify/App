@@ -432,7 +432,7 @@ function MoneyRequestParticipantsSelector({
     }, [importAndSaveContacts, setContactPermissionState]);
 
     const importContactsButtonComponent = useMemo(() => {
-        const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
+        const shouldShowImportContactsButton = contactState?.permissionStatus !== RESULTS.UNAVAILABLE && (contactState?.showImportUI ?? showImportContacts);
         if (!shouldShowImportContactsButton || showLoadingPlaceholder || shouldShowListEmptyContent) {
             return null;
         }
@@ -442,20 +442,17 @@ function MoneyRequestParticipantsSelector({
                 icon={icons.UserPlus}
                 onPress={goToSettings}
                 shouldShowRightIcon
-                style={styles.ph0}
             />
         );
-    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, translate, styles.ph0, showLoadingPlaceholder, shouldShowListEmptyContent]);
+    }, [icons.UserPlus, contactState?.permissionStatus, contactState?.showImportUI, showImportContacts, translate, showLoadingPlaceholder, shouldShowListEmptyContent]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !selectedOptions.length) {
-            return importContactsButtonComponent;
+            return;
         }
 
         return (
             <>
-                {importContactsButtonComponent}
-
                 {shouldShowReferralBanner && !isCategorizeOrShareAction && (
                     <ReferralProgramCTA
                         referralContentType={referralContentType}
@@ -503,7 +500,6 @@ function MoneyRequestParticipantsSelector({
         shouldShowReferralBanner,
         isCategorizeOrShareAction,
         onFinish,
-        importContactsButtonComponent,
     ]);
 
     const onSelectRow = useCallback(
@@ -575,11 +571,14 @@ function MoneyRequestParticipantsSelector({
                 shouldSingleExecuteRowSelect
                 canShowProductTrainingTooltip={canShowManagerMcTest}
                 headerContent={
-                    <ImportContactButton
-                        showImportContacts={contactState?.showImportUI ?? showImportContacts}
-                        inputHelperText={inputHelperText}
-                        isInSearch
-                    />
+                    <>
+                        <ImportContactButton
+                            showImportContacts={contactState?.showImportUI ?? showImportContacts}
+                            inputHelperText={inputHelperText}
+                            isInSearch
+                        />
+                        {importContactsButtonComponent}
+                    </>
                 }
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
