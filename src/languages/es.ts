@@ -6119,10 +6119,17 @@ ${amount} para ${merchant} - ${date}`,
         deleteReportField: (fieldType, fieldName) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}) => `cambió el monto máximo de gasto requerido sin recibo a ${newValue} (previamente ${oldValue})`,
-        updateMaxExpenseAmount: ({oldValue, newValue}) => `cambió el monto máximo de gasto para violaciones a ${newValue} (previamente ${oldValue})`,
-        updateMaxExpenseAge: ({oldValue, newValue}) =>
-            `actualizó "Antigüedad máxima de gastos (días)" a "${newValue}" (previamente "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
+        setReceiptRequiredAmount: ({newValue}) => `estableció el importe requerido del recibo en "${newValue}"`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}) => `cambió el importe requerido del recibo a "${newValue}" (antes "${oldValue}")`,
+        removedReceiptRequiredAmount: ({oldValue}) => `eliminó el importe requerido del recibo (antes "${oldValue}")`,
+
+        setMaxExpenseAmount: ({newValue}) => `estableció el importe máximo del gasto en "${newValue}"`,
+        changedMaxExpenseAmount: ({oldValue, newValue}) => `cambió el importe máximo del gasto a "${newValue}" (antes "${oldValue}")`,
+        removedMaxExpenseAmount: ({oldValue}) => `eliminó el importe máximo del gasto (antes "${oldValue}")`,
+
+        setMaxExpenseAge: ({newValue}) => `estableció la antigüedad máxima del gasto en "${newValue}" días`,
+        changedMaxExpenseAge: ({oldValue, newValue}) => `cambió la antigüedad máxima del gasto a "${newValue}" días (antes "${oldValue}")`,
+        removedMaxExpenseAge: ({oldValue}) => `eliminó la antigüedad máxima del gasto (anteriormente "${oldValue}" días)`,
         updateDefaultBillable: ({oldValue, newValue}) => `actualizó "Volver a facturar gastos a clientes" a "${newValue}" (previamente "${oldValue}")`,
         updateDefaultReimbursable: ({oldValue, newValue}) => `actualizó "Valor predeterminado para gastos en efectivo" a "${newValue}" (previamente "${oldValue}")`,
         updateMonthlyOffset: ({oldValue, newValue}) => {
