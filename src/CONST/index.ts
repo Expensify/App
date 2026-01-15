@@ -729,10 +729,12 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
+        TIME_TRACKING: 'timeTracking',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
     },
@@ -1366,10 +1368,12 @@ const CONST = {
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
+                    UPDATE_MAX_EXPENSE_AGE: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AGE',
                     UPDATE_MULTIPLE_TAGS_APPROVER_RULES: 'POLICYCHANGELOG_UPDATE_MULTIPLE_TAGS_APPROVER_RULES',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
                     UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
+                    UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
@@ -2927,6 +2931,7 @@ const CONST = {
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
             DISTANCE_ODOMETER: 'distance-odometer',
+            TIME: 'time',
         },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
@@ -2939,6 +2944,7 @@ const CONST = {
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
             DISTANCE_ODOMETER: 'distance-odometer',
+            TIME: 'time',
         },
 
         REPORT_ACTION_TYPE: {
@@ -3337,6 +3343,7 @@ const CONST = {
             CONTROL: 'control',
         },
         DEFAULT_MAX_EXPENSE_AGE: 90,
+        DISABLED_MAX_EXPENSE_AGE: 10000000000,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
         DEFAULT_TAG_LIST: {
@@ -5522,6 +5529,7 @@ const CONST = {
         DISTANCE_MANUAL: 'distance-manual',
         DISTANCE_GPS: 'distance-gps',
         DISTANCE_ODOMETER: 'distance-odometer',
+        TIME: 'time',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,
@@ -5729,6 +5737,11 @@ const CONST = {
     },
 
     /**
+     * Constant for prefix of violations.
+     */
+    VIOLATIONS_PREFIX: 'violations.',
+
+    /**
      * Constants with different types for the modifiedAmount violation
      */
     MODIFIED_AMOUNT_VIOLATION_DATA: {
@@ -5782,6 +5795,7 @@ const CONST = {
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
+        MISSING_ATTENDEES: 'missingAttendees',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -5870,6 +5884,11 @@ const CONST = {
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
+    ONBOARDING_RHP_VARIANT: {
+        RHP_CONCIERGE_DM: 'rhpConciergeDm',
+        RHP_ADMINS_ROOM: 'rhpAdminsRoom',
+        CONTROL: 'control',
+    },
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_ACCOUNTING_MAPPING,
 
@@ -6665,6 +6684,7 @@ const CONST = {
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
     MIN_TAX_RATE_DECIMAL_PLACES: 2,
     DISTANCE_DECIMAL_PLACES: 2,
+    HOURS_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
@@ -6952,7 +6972,6 @@ const CONST = {
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
-            TAX: 'tax',
             EXPORTED_TO: 'exportedto',
             EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
@@ -7097,6 +7116,54 @@ const CONST = {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
                 [this.STATUS.EXPENSE.DRAFTS]: 'draft',
+                [this.TABLE_COLUMNS.RECEIPT]: 'receipt',
+                [this.TABLE_COLUMNS.DATE]: 'date',
+                [this.TABLE_COLUMNS.SUBMITTED]: 'submitted',
+                [this.TABLE_COLUMNS.APPROVED]: 'approved',
+                [this.TABLE_COLUMNS.POSTED]: 'posted',
+                [this.TABLE_COLUMNS.EXPORTED]: 'exported',
+                [this.TABLE_COLUMNS.MERCHANT]: 'merchant',
+                [this.TABLE_COLUMNS.DESCRIPTION]: 'description',
+                [this.TABLE_COLUMNS.FROM]: 'from',
+                [this.TABLE_COLUMNS.TO]: 'to',
+                [this.TABLE_COLUMNS.CATEGORY]: 'category',
+                [this.TABLE_COLUMNS.TAG]: 'tag',
+                [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'original-amount',
+                [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
+                [this.TABLE_COLUMNS.BILLABLE]: 'billable',
+                [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
+                [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
+                [this.TABLE_COLUMNS.TOTAL]: 'total',
+                [this.TABLE_COLUMNS.TYPE]: 'type',
+                [this.TABLE_COLUMNS.ACTION]: 'action',
+                [this.TABLE_COLUMNS.TAX_AMOUNT]: 'tax',
+                [this.TABLE_COLUMNS.TITLE]: 'title',
+                [this.TABLE_COLUMNS.ASSIGNEE]: 'assignee',
+                [this.TABLE_COLUMNS.IN]: 'in',
+                [this.TABLE_COLUMNS.COMMENTS]: 'comments',
+                [this.TABLE_COLUMNS.CARD]: 'card',
+                [this.TABLE_COLUMNS.POLICY_NAME]: 'policy-name',
+                [this.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawal-id',
+                [this.TABLE_COLUMNS.AVATAR]: 'avatar',
+                [this.TABLE_COLUMNS.STATUS]: 'status',
+                [this.TABLE_COLUMNS.EXPENSES]: 'expenses',
+                [this.TABLE_COLUMNS.FEED]: 'feed',
+                [this.TABLE_COLUMNS.WITHDRAWN]: 'withdrawn',
+                [this.TABLE_COLUMNS.BANK_ACCOUNT]: 'bank-account',
+                [this.TABLE_COLUMNS.REPORT_ID]: 'long-report-id',
+                [this.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'report-id',
+                [this.TABLE_COLUMNS.EXPORTED_TO]: 'exported-to',
+                [this.TABLE_COLUMNS.EXCHANGE_RATE]: 'exchange-rate',
+                [this.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: 'reimbursable-total',
+                [this.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: 'non-reimbursable-total',
+                [this.TABLE_COLUMNS.GROUP_FROM]: 'group-from',
+                [this.TABLE_COLUMNS.GROUP_EXPENSES]: 'group-expenses',
+                [this.TABLE_COLUMNS.GROUP_TOTAL]: 'group-total',
+                [this.TABLE_COLUMNS.GROUP_CARD]: 'group-card',
+                [this.TABLE_COLUMNS.GROUP_FEED]: 'group-feed',
+                [this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'group-bank-account',
+                [this.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'group-withdrawn',
+                [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
             };
         },
         NOT_MODIFIER: 'Not',

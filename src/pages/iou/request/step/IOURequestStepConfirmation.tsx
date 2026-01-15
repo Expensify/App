@@ -61,8 +61,8 @@ import {
 } from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
+    getAttendees,
     getDefaultTaxCode,
-    getOriginalAttendees,
     getRateID,
     getRequestType,
     getValidWaypoints,
@@ -251,6 +251,7 @@ function IOURequestStepConfirmation({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
     const {
         taskReport: viewTourTaskReport,
@@ -303,9 +304,9 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, reportDrafts);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived, reportDrafts);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, policy],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
@@ -433,6 +434,9 @@ function IOURequestStepConfirmation({
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, initialTransactionID, reportID));
             return;
         }
+        if (isTimeRequest) {
+            return Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.getRoute(action, iouType, initialTransactionID, reportID));
+        }
 
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
@@ -474,6 +478,7 @@ function IOURequestStepConfirmation({
         isMovingTransactionFromTrackExpense,
         participantsAutoAssignedFromRoute,
         backTo,
+        isTimeRequest,
     ]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -594,7 +599,7 @@ function IOURequestStepConfirmation({
                     action,
                     transactionParams: {
                         amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
-                        distance: isManualDistanceRequest && item.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
+                        distance: isManualDistanceRequest && typeof item.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
                         attendees: item.comment?.attendees,
                         currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
                         created: item.created,
@@ -616,6 +621,9 @@ function IOURequestStepConfirmation({
                         originalTransactionID: item.comment?.originalTransactionID,
                         source: item.comment?.source,
                         isLinkedTrackedExpenseReportArchived,
+                        ...(isTimeRequest
+                            ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR}
+                            : {}),
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport,
@@ -659,6 +667,7 @@ function IOURequestStepConfirmation({
             isViewTourTaskParentReportArchived,
             hasOutstandingChildTask,
             parentReportAction,
+            isTimeRequest,
         ],
     );
 
@@ -1026,12 +1035,14 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.INVOICE) {
                 const invoiceChatReport =
                     !isEmptyObject(report) && report?.reportID && doesReportReceiverMatchParticipant(report, receiverParticipantAccountID) ? report : existingInvoiceReport;
+                const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
                 sendInvoice({
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     transaction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     invoiceChatReport,
+                    invoiceChatReportID,
                     receiptFile: currentTransactionReceiptFile,
                     policy,
                     policyTagList: policyTags,
@@ -1155,6 +1166,7 @@ function IOURequestStepConfirmation({
             userLocation,
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
+            reportID,
         ],
     );
 
@@ -1324,8 +1336,7 @@ function IOURequestStepConfirmation({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields =
-        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
+    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
@@ -1384,7 +1395,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getOriginalAttendees(transaction, currentUserPersonalDetails)}
+                        iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}
@@ -1416,6 +1427,7 @@ function IOURequestStepConfirmation({
                         onToggleReimbursable={setReimbursable}
                         expensesNumber={transactions.length}
                         isReceiptEditable
+                        isTimeRequest={isTimeRequest}
                     />
                 </View>
             </DragAndDropProvider>
