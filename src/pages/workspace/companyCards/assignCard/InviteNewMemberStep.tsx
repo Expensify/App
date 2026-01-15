@@ -52,7 +52,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
     const goToNextStep = useCallback(() => {
         const cardToAssign: Partial<AssignCardData> = {
             email: assignCard?.cardToAssign?.invitingMemberEmail,
-            cardName: getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail),
+            customCardName: getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail),
             invitingMemberEmail: '',
         };
 
