@@ -104,7 +104,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
-        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID)}`;
+        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
 
     const logo = isReport
         ? getLogoForWorkspace(report, policy)
