@@ -52,18 +52,6 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
 import {getCurrentUserAccountID} from './Report';
 
-const allTransactions: OnyxCollection<Transaction> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    callback: (transaction, key) => {
-        if (!key || !transaction) {
-            return;
-        }
-        const transactionID = CollectionUtils.extractCollectionItemID(key);
-        allTransactions[transactionID] = transaction;
-    },
-});
-
 let allTransactionDrafts: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
