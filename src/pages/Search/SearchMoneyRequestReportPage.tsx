@@ -1,13 +1,15 @@
 import {PortalHost} from '@gorhom/portal';
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList} from 'react-native';
-import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
+import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -21,7 +23,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {
     getFilteredReportActionsForReportView,
     getIOUActionForTransactionID,
@@ -34,16 +36,18 @@ import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
-import {createTransactionThreadReport, openReport} from '@userActions/Report';
+import {createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
 import {ActionListContext} from '@src/pages/home/ReportScreenContext';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
+type SearchMoneyRequestPageProps =
+    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
+    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT>;
 
 const defaultReportMetadata = {
     isLoadingInitialReportActions: true,
@@ -58,12 +62,22 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {currentSearchHash} = useSearchContext();
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
+
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        // Update last visit time when the expense super wide RHP report is focused
+        if (!reportIDFromRoute || !isFocused || route.name !== SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
+            return;
+        }
+
+        updateLastVisitTime(reportIDFromRoute);
+    }, [reportIDFromRoute, isFocused, route.name]);
 
     const snapshotReport = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -139,6 +153,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         return {snapshotTransaction: transaction, snapshotViolations: violations};
     }, [snapshot?.data, allReportTransactions]);
+
+    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
+    const shouldShowSuperWideRHP = visibleTransactions.length > 1;
+
+    useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
 
     useEffect(() => {
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
@@ -260,8 +279,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         shouldShowNotFoundPage,
     ]);
 
-    if (shouldUseNarrowLayout) {
-        return (
+    return (
+        <WideRHPOverlayWrapper>
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
                     <ScreenWrapper
@@ -286,49 +305,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     key={report?.reportID}
                                     backToRoute={route.params.backTo}
                                 />
+                                <PortalHost name="suggestions" />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
                     </ScreenWrapper>
                 </ReactionListWrapper>
             </ActionListContext.Provider>
-        );
-    }
-
-    return (
-        <ActionListContext.Provider value={actionListValue}>
-            <ReactionListWrapper>
-                <ScreenWrapper
-                    testID="SearchMoneyRequestReportPage"
-                    shouldEnableMaxHeight
-                    offlineIndicatorStyle={styles.mtAuto}
-                >
-                    <View style={[styles.searchSplitContainer, styles.flexColumn, styles.flex1]}>
-                        <FullPageNotFoundView
-                            shouldShow={shouldShowNotFoundPage}
-                            subtitleKey="notFound.noAccess"
-                            subtitleStyle={[styles.textSupporting]}
-                            shouldDisplaySearchRouter
-                            shouldShowBackButton={shouldUseNarrowLayout}
-                            onBackButtonPress={Navigation.goBack}
-                        >
-                            <DragAndDropProvider isDisabled={isEditingDisabled}>
-                                <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                                    <MoneyRequestReportView
-                                        report={reportToUse}
-                                        reportMetadata={reportMetadata}
-                                        policy={policy}
-                                        shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                        key={report?.reportID}
-                                        backToRoute={route.params.backTo}
-                                    />
-                                </View>
-                                <PortalHost name="suggestions" />
-                            </DragAndDropProvider>
-                        </FullPageNotFoundView>
-                    </View>
-                </ScreenWrapper>
-            </ReactionListWrapper>
-        </ActionListContext.Provider>
+        </WideRHPOverlayWrapper>
     );
 }
 
