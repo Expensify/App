@@ -43,6 +43,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
@@ -123,6 +124,7 @@ function MoneyRequestReportPreviewContent({
     forwardedFSClass,
 }: MoneyRequestReportPreviewContentProps) {
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
+    const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
@@ -154,7 +156,7 @@ function MoneyRequestReportPreviewContent({
             hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
         }),
         // When transactions get updated these values may have changed, so that is a case where we also want to recompute them
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [transactions, iouReportID, action],
     );
 
@@ -169,12 +171,14 @@ function MoneyRequestReportPreviewContent({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const getCanIOUBePaid = useCallback(
-        (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, transactions, shouldShowOnlyPayElsewhere),
-        [iouReport, chatReport, policy, transactions],
+        (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, shouldShowOnlyPayElsewhere),
+        [iouReport, chatReport, policy, bankAccountList, transactions],
     );
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
@@ -216,7 +220,6 @@ function MoneyRequestReportPreviewContent({
     const currentReportName = iouReport?.reportID ? reportAttributes?.[iouReport.reportID]?.reportName : undefined;
     const reportPreviewName = useMemo(() => {
         return getMoneyReportPreviewName(action, iouReport, isInvoice, reportAttributes);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [action, iouReport, isInvoice, currentReportName]);
 
@@ -254,6 +257,7 @@ function MoneyRequestReportPreviewContent({
                         paymentMethodType: type,
                         chatReport,
                         invoiceReport: iouReport,
+                        invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
                         introSelected,
                         currentUserAccountIDParam: currentUserAccountID,
                         currentUserEmailParam: currentUserEmail,
@@ -264,7 +268,7 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                     });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy, policy);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, iouReportNextStep, undefined, true, activePolicy, policy);
                 }
             }
         },
@@ -274,17 +278,18 @@ function MoneyRequestReportPreviewContent({
             chatReport,
             showDelegateNoAccessModal,
             startAnimation,
+            iouReportNextStep,
             introSelected,
-            existingB2BInvoiceReport,
-            activePolicy,
             currentUserAccountID,
             currentUserEmail,
+            existingB2BInvoiceReport,
+            activePolicy,
             policy,
         ],
     );
 
     const confirmApproval = () => {
-        if (hasDynamicExternalWorkflow(policy)) {
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
             setIsDEWModalVisible(true);
             return;
         }
@@ -396,7 +401,7 @@ function MoneyRequestReportPreviewContent({
             }),
         );
         // We only want to animate the text when the text changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [previewMessage, previewMessageOpacity]);
 
     useEffect(() => {
@@ -442,7 +447,6 @@ function MoneyRequestReportPreviewContent({
         return {itemVisiblePercentThreshold: 100};
     }, []);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
         if (typeof newIndex === 'number') {
@@ -513,28 +517,34 @@ function MoneyRequestReportPreviewContent({
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
+
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction({
             isReportArchived: isIouReportArchived || isChatReportArchived,
             currentUserAccountID: currentUserDetails.accountID,
-            currentUserEmail: currentUserDetails.email ?? '',
+            currentUserLogin: currentUserDetails.login ?? '',
             report: iouReport,
             policy,
             transactions,
+            bankAccountList,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
+            isDEWSubmitPending,
             violationsData: transactionViolations,
         });
     }, [
+        bankAccountList,
         isIouReportArchived,
         isChatReportArchived,
         currentUserDetails.accountID,
-        currentUserDetails.email,
+        currentUserDetails.login,
         iouReport,
         policy,
         transactions,
@@ -543,6 +553,7 @@ function MoneyRequestReportPreviewContent({
         isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
         transactionViolations,
+        isDEWSubmitPending,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
@@ -559,7 +570,7 @@ function MoneyRequestReportPreviewContent({
                 success={isWaitingForSubmissionFromCurrentUser}
                 text={translate('common.submit')}
                 onPress={() => {
-                    if (hasDynamicExternalWorkflow(policy)) {
+                    if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
                         setIsDEWModalVisible(true);
                         return;
                     }

@@ -91,6 +91,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             .map((field): EnrichedPolicyReportField => {
                 const fieldValue = field.value ?? field.defaultValue;
                 const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy);
+                const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
 
                 const violation = isFieldDisabled ? undefined : getFieldViolation(violations, field);
@@ -99,7 +100,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
                 return {
                     ...field,
                     fieldValue,
-                    isFieldDisabled,
+                    isFieldDisabled: isFieldDisabled && !isDeletedFormulaField,
                     fieldKey,
                     violation,
                     violationTranslation,
