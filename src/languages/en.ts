@@ -2406,6 +2406,7 @@ const translations = {
             renameMerchant: 'Rename merchant',
             updateCategory: 'Update category',
             updateTag: 'Update tag',
+            updateTaxRate: 'Update tax rate',
             changeDescription: 'Change description',
             addToReport: 'Add to a report named',
             createReport: 'Create report if necessary',

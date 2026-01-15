@@ -49,7 +49,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {ExpenseRuleForm} from '@src/types/form';
+import type {ExpenseRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -1382,10 +1382,10 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
+function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true, shouldStringifyValue = false) {
     const parameters: SetNameValuePairParams = {
         name,
-        value,
+        value: shouldStringifyValue ? JSON.stringify(value) : value,
     };
 
     const optimisticData: OnyxUpdate[] = [

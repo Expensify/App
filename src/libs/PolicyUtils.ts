@@ -800,6 +800,25 @@ function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<st
     return allTaxRates;
 }
 
+/** Get a tax rate object built like Record<TaxID, TaxRate> */
+function getAllTaxRatesNamesAndValues(policies: OnyxCollection<Policy>): Record<string, TaxRate> {
+    const allTaxRates: Record<string, TaxRate> = {};
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy?.taxRates?.taxes) {
+            continue;
+        }
+
+        for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes)) {
+            if (!allTaxRates[taxRateKey]) {
+                allTaxRates[taxRateKey] = taxRate;
+            }
+        }
+    }
+
+    return allTaxRates;
+}
+
 /**
  * Whether the tax rate can be deleted and disabled
  */
@@ -1809,6 +1828,7 @@ export {
     getForwardsToAccount,
     getSubmitToAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
+    getAllTaxRatesNamesAndValues,
     getTagNamesFromTagsLists,
     getTagApproverRule,
     getDomainNameForPolicy,

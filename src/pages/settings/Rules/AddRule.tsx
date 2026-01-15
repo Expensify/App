@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setNameValuePair, updateDraftRule} from '@libs/actions/User';
 import {extractRuleFromForm} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import {getAllTaxRatesNamesAndValues, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import {availableNonPersonalPolicyCategoriesSelector} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCategoryPage';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -77,6 +77,13 @@ function AddRule() {
         selector: tagsSelector,
     });
 
+    const [allTaxRates] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: getAllTaxRatesNamesAndValues,
+    });
+    const hasTaxRates = Object.keys(allTaxRates ?? {}).length > 0;
+    const selectedTaxRate = form?.tax ? allTaxRates?.[form.tax] : undefined;
+
     const errorMessage = getErrorMessage(translate, form);
 
     useEffect(() => {
@@ -95,7 +102,7 @@ function AddRule() {
         if (!form) {
             return;
         }
-        setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, [...expenseRules, extractRuleFromForm(form)], expenseRules);
+        setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, [...expenseRules, extractRuleFromForm(form, selectedTaxRate)], expenseRules, true, true);
 
         Navigation.goBack();
     };
@@ -132,6 +139,13 @@ function AddRule() {
                           descriptionTranslationKey: 'expenseRulesPage.addRule.updateTag',
                           title: form?.tag,
                           onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.TAG)),
+                      }
+                    : undefined,
+                hasTaxRates
+                    ? {
+                          descriptionTranslationKey: 'expenseRulesPage.addRule.updateTaxRate',
+                          title: selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.value})` : undefined,
+                          onPress: () => Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute(CONST.EXPENSE_RULES.FIELDS.TAX)),
                       }
                     : undefined,
                 {

@@ -1,7 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ExpenseRuleForm} from '@src/types/form';
-import type {ExpenseRule} from '@src/types/onyx';
+import type {ExpenseRule, TaxRate} from '@src/types/onyx';
 import {getCleanedTagName} from './PolicyUtils';
+import StringUtils from './StringUtils';
 
 function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextProps['translate']): string {
     const changes: string[] = [];
@@ -34,7 +35,7 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
     return changes.join(', ');
 }
 
-function extractRuleFromForm(form: ExpenseRuleForm) {
+function extractRuleFromForm(form: ExpenseRuleForm, taxRate?: TaxRate) {
     const rule: ExpenseRule = {
         billable: form.billable,
         category: form.category,
@@ -45,9 +46,14 @@ function extractRuleFromForm(form: ExpenseRuleForm) {
         reimbursable: form.reimbursable,
         report: form.report,
         tag: form.tag,
-        // tax: form.tax,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        tax: form.tax && taxRate ? {field_id_TAX: {externalID: form.tax, value: taxRate.value}} : undefined,
     };
     return rule;
 }
 
-export {formatExpenseRuleChanges, extractRuleFromForm};
+function getKeyForRule(rule: ExpenseRule) {
+    return `${rule.merchantToMatch}-${StringUtils.hash(JSON.stringify(rule))}`;
+}
+
+export {formatExpenseRuleChanges, extractRuleFromForm, getKeyForRule};

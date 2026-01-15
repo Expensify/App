@@ -26,7 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDraftRule, setNameValuePair} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {formatExpenseRuleChanges} from '@libs/ExpenseRuleUtils';
+import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,7 +77,7 @@ function ExpenseRulesPage() {
         return {
             text: rule.merchantToMatch,
             alternateText: shouldUseNarrowLayout ? changes : undefined,
-            keyForList: rule.merchantToMatch,
+            keyForList: getKeyForRule(rule),
             rightElement: !shouldUseNarrowLayout && (
                 <View style={[styles.flex1]}>
                     <Text
@@ -103,8 +103,8 @@ function ExpenseRulesPage() {
     };
 
     const toggleAllRules = () => {
-        const someSelected = expenseRules.some((rule) => selectedRules.includes(rule.merchantToMatch));
-        setSelectedRules(someSelected ? [] : expenseRules.map((item) => item.merchantToMatch));
+        const someSelected = expenseRules.some((rule) => selectedRules.includes(getKeyForRule(rule)));
+        setSelectedRules(someSelected ? [] : expenseRules.map((rule) => getKeyForRule(rule)));
     };
 
     const navigateToNewRulePage = () => {
@@ -116,8 +116,8 @@ function ExpenseRulesPage() {
 
     const handleDeleteRules = () => {
         if (selectedRules.length > 0) {
-            const rulesToDelete = expenseRules.filter((rule) => !selectedRules.includes(rule.merchantToMatch));
-            setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, rulesToDelete, expenseRules);
+            const rulesToDelete = expenseRules.filter((rule) => !selectedRules.includes(getKeyForRule(rule)));
+            setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, rulesToDelete, expenseRules, true, true);
         }
         setDeleteConfirmModalVisible(false);
         setSelectedRules([]);

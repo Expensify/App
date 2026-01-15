@@ -405,6 +405,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddRenameMerchantPage').default,
     [SCREENS.SETTINGS.RULES.ADD_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddCategoryPage').default,
     [SCREENS.SETTINGS.RULES.ADD_TAG]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddTagPage').default,
+    [SCREENS.SETTINGS.RULES.ADD_TAX]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddTaxRatePage').default,
     [SCREENS.SETTINGS.RULES.ADD_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddDescriptionPage').default,
     [SCREENS.SETTINGS.RULES.ADD_REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddReimbursablePage').default,
     [SCREENS.SETTINGS.RULES.ADD_BILLABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddBillablePage').default,

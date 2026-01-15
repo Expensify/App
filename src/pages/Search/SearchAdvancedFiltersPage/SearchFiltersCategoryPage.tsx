@@ -20,6 +20,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 const availableNonPersonalPolicyCategoriesSelector = (policyCategories: OnyxCollection<PolicyCategories>) =>
     Object.fromEntries(
         Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getPersonalPolicy()?.id}`) {
                 return false;
             }

@@ -155,6 +155,7 @@ const SCREENS = {
             ADD_RENAME_MERCHANT: 'Settings_Rules_Add_Rename_Merchant',
             ADD_CATEGORY: 'Settings_Rules_Add_Category',
             ADD_TAG: 'Settings_Rules_Add_Tag',
+            ADD_TAX: 'Settings_Rules_Add_Tax',
             ADD_DESCRIPTION: 'Settings_Rules_Add_Description',
             ADD_REIMBURSABLE: 'Settings_Rules_Add_Reimbursable',
             ADD_BILLABLE: 'Settings_Rules_Add_Billable',

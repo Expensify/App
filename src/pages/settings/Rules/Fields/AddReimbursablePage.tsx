@@ -2,7 +2,7 @@ import React from 'react';
 import RuleBooleanBasePage from '@components/Rule/RuleBooleanBase';
 import CONST from '@src/CONST';
 
-function AddReimbursableePage() {
+function AddReimbursablePage() {
     return (
         <RuleBooleanBasePage
             fieldID={CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE}
@@ -11,4 +11,4 @@ function AddReimbursableePage() {
     );
 }
 
-export default AddReimbursableePage;
+export default AddReimbursablePage;

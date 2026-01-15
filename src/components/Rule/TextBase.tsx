@@ -34,6 +34,11 @@ function TextBase({fieldID, hint, isRequired, title, label, onSubmit, characterL
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXPENSE_RULE_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EXPENSE_RULE_FORM> = {};
         const fieldValue = values[fieldID] ?? '';
+
+        if (typeof fieldValue !== 'string') {
+            return errors;
+        }
+
         const trimmedValue = fieldValue.trim();
 
         if (isRequired && !isRequiredFulfilled(fieldValue)) {
@@ -64,7 +69,7 @@ function TextBase({fieldID, hint, isRequired, title, label, onSubmit, characterL
                     InputComponent={TextInput}
                     inputID={fieldID}
                     name={fieldID}
-                    defaultValue={currentValue}
+                    defaultValue={typeof currentValue === 'string' ? currentValue : undefined}
                     label={label}
                     accessibilityLabel={title}
                     role={CONST.ROLE.PRESENTATION}
