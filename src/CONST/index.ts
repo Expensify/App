@@ -1707,6 +1707,7 @@ const CONST = {
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
+        SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER: 'ManualNavigateToReportsTabRender',
         SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
@@ -5726,6 +5727,16 @@ const CONST = {
         DEFAULT: 5,
         CAROUSEL: 3,
     },
+
+    /**
+     * Feature flag to disable the missingAttendees violation feature.
+     * Set to true to disable the feature if regressions are found.
+     * When true:
+     * - Prevents new missingAttendees violations from being created
+     * - Removes existing missingAttendees violations from transaction lists
+     * - Hides "Require attendees" toggle in category settings
+     */
+    IS_ATTENDEES_REQUIRED_FEATURE_DISABLED: true,
 
     /**
      * Constants for types of violation.
