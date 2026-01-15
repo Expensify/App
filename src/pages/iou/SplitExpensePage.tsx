@@ -34,7 +34,7 @@ import {
     updateSplitExpenseAmountField,
     updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
-import {getIOUActionForTransactions} from '@libs/actions/IOU/DuplicateAction';
+import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -154,6 +154,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     }, [draftTransaction]);
 
     const onSaveSplitExpense = useCallback(() => {
+        if (splitExpenses.length > CONST.IOU.SPLITS_LIMIT) {
+            setErrorMessage(translate('iou.error.manySplitsProvided'));
+            return;
+        }
         if (splitExpenses.length <= 1 && !childTransactions.length) {
             const splitFieldDataFromOriginalTransactionWithoutID = {...splitFieldDataFromOriginalTransaction, transactionID: ''};
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
