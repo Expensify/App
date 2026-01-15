@@ -946,8 +946,8 @@ function Search({
             });
         }
 
-    // Exclude `queryJSON?.inputQuery` since it’s only telemetry metadata and would cause the span to start multiple times.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // Exclude `queryJSON?.inputQuery` since it’s only telemetry metadata and would cause the span to start multiple times.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShowLoadingState]);
 
     const onLayoutSkeleton = useCallback(() => {
