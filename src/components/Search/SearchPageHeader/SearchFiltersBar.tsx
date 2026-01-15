@@ -3,6 +3,7 @@ import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -298,8 +299,15 @@ function SearchFiltersBar({
 
             // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
-                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
                 updatedFilterFormValues.columns = [];
+                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                // Filter out invalid "has" values for the new type
+                if (updatedFilterFormValues.has && updatedFilterFormValues.type) {
+                    const validHasOptions = getHasOptions(translate, updatedFilterFormValues.type);
+                    const validHasValues = new Set(validHasOptions.map((option) => option.value));
+                    const filteredHasValues = updatedFilterFormValues.has.filter((hasValue) => validHasValues.has(hasValue as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+                    updatedFilterFormValues.has = filteredHasValues.length > 0 ? filteredHasValues : undefined;
+                }
             }
 
             if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
@@ -317,7 +325,7 @@ function SearchFiltersBar({
                 Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
-        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder],
+        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder, translate],
     );
 
     const openAdvancedFilters = useCallback(() => {
