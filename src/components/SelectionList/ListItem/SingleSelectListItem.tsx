@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
@@ -33,6 +34,8 @@ function SingleSelectListItem<TItem extends ListItem>({
                 shouldSelectOnPressEnter
                 containerBorderRadius={999}
                 accessibilityLabel="SingleSelectListItem"
+                accessibilityRole={CONST.ROLE.RADIO}
+                accessibilityState={{selected: item.isSelected}}
                 isChecked={item.isSelected}
                 onPress={() => onSelectRow(item)}
             />

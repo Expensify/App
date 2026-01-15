@@ -115,12 +115,14 @@ function TabSelectorItem({
     const children = (
         <AnimatedPressableWithFeedback
             accessibilityLabel={title}
+            accessibilityRole={CONST.ROLE.TAB}
+            accessibilityState={{selected: isActive}}
             style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
             wrapperStyle={[equalWidth ? styles.flex1 : styles.flexGrow1]}
             onPress={onPress}
             onHoverIn={() => setIsHovered(true)}
             onHoverOut={() => setIsHovered(false)}
-            role={CONST.ROLE.BUTTON}
+            role={CONST.ROLE.TAB}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
             ref={childRef}

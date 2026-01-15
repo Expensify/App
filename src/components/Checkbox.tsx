@@ -18,7 +18,7 @@ type CheckboxProps = Partial<ChildrenProps> &
         /** Whether checkbox is checked */
         isChecked?: boolean;
 
-        /** Whether checkbox is in the indeterminate (“mixed”) state */
+        /** Whether checkbox is in the indeterminate ("mixed") state */
         isIndeterminate?: boolean;
 
         /** A function that is called when the box/label is pressed */
@@ -51,6 +51,12 @@ type CheckboxProps = Partial<ChildrenProps> &
         /** An accessibility label for the checkbox */
         accessibilityLabel: string;
 
+        /** Accessibility role - defaults to checkbox, can be overridden to radio */
+        accessibilityRole?: 'checkbox' | 'radio';
+
+        /** Accessibility state */
+        accessibilityState?: {selected?: boolean; checked?: boolean};
+
         /** stop propagation of the mouse down event */
         shouldStopMouseDownPropagation?: boolean;
 
@@ -81,6 +87,8 @@ function Checkbox({
     caretSize = 14,
     onPress,
     accessibilityLabel,
+    accessibilityRole = CONST.ROLE.CHECKBOX,
+    accessibilityState,
     shouldStopMouseDownPropagation,
     shouldSelectOnPressEnter,
     wrapperStyle,
@@ -116,6 +124,12 @@ function Checkbox({
         onPress();
     };
 
+    const computedAccessibilityState = accessibilityState ?? (
+        accessibilityRole === CONST.ROLE.RADIO
+            ? {selected: isChecked}
+            : {checked: isIndeterminate ? 'mixed' : isChecked}
+    );
+
     return (
         <PressableWithFeedback
             testID={testID}
@@ -130,7 +144,8 @@ function Checkbox({
             ref={ref as PressableRef}
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceOrEnterKey}
-            role={CONST.ROLE.CHECKBOX}
+            role={accessibilityRole}
+            accessibilityState={computedAccessibilityState}
             /*  true  → checked
                 false → unchecked
                 mixed → indeterminate  */
