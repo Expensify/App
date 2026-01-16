@@ -203,7 +203,7 @@ function ReportActionsList({
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
-    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
+    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(false);
     const isAnonymousUser = useIsAnonymousUser();
 
     useEffect(() => {
@@ -522,6 +522,7 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
+            console.log('scrollToBottomForCurrentUserAction');
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
@@ -842,6 +843,9 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
+    const data = [...sortedVisibleReportActions].reverse();
+    const initialScrollIndex = data.findIndex((item) => item.reportActionID === reportActionID);
+
     return (
         <>
             <FloatingMessageCounter
@@ -859,8 +863,11 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={sortedVisibleReportActions}
+                    data={data}
                     renderItem={renderItem}
+                    // getItemType={(item) => {
+                    //     return item.actionName;
+                    // }}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
                     shouldHideContent={shouldScrollToEndAfterLayout}
@@ -883,6 +890,7 @@ function ReportActionsList({
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                     initialScrollKey={reportActionID}
+                    initialScrollIndex={initialScrollIndex > -1 ? initialScrollIndex : undefined}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}

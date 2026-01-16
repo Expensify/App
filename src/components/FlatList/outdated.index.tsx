@@ -1,8 +1,8 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
-import {FlashList} from '@shopify/flash-list';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {FlatList, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import {FlatList} from 'react-native';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
@@ -51,7 +51,6 @@ function MVCPFlatList<TItem>({
     initialNumToRender,
     shouldHideContent = false,
     ref,
-    CellRendererComponent,
     ...restProps
 }: CustomFlatListProps<TItem>) {
     const styles = useThemeStyles();
@@ -63,6 +62,7 @@ function MVCPFlatList<TItem>({
     const lastScrollOffsetRef = useRef(0);
     const isListRenderedRef = useRef(false);
     const mvcpAutoscrollToTopThresholdRef = useRef(mvcpAutoscrollToTopThreshold);
+    // eslint-disable-next-line react-compiler/react-compiler
     mvcpAutoscrollToTopThresholdRef.current = mvcpAutoscrollToTopThreshold;
 
     const getScrollOffset = useCallback((): number => {
@@ -219,10 +219,10 @@ function MVCPFlatList<TItem>({
             }
 
             setMergedRef(newRef);
-            // prepareForMaintainVisibleContentPosition();
-            // setupMutationObserver();
+            prepareForMaintainVisibleContentPosition();
+            setupMutationObserver();
         },
-        [setMergedRef],
+        [prepareForMaintainVisibleContentPosition, setMergedRef, setupMutationObserver],
     );
 
     useEffect(() => {
@@ -244,25 +244,23 @@ function MVCPFlatList<TItem>({
     );
 
     return (
-        <FlashList
+        <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
-            maintainVisibleContentPosition={{startRenderingFromBottom: !!restProps.inverted, autoscrollToBottomThreshold: 0.2, animateAutoScrollToBottom: false}}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
             horizontal={horizontal}
             onScroll={handleScroll}
             scrollEventThrottle={1}
-            // drawDistance={1000}
-            // ref={onRef}
+            ref={onRef}
             initialNumToRender={Math.max(0, initialNumToRender ?? 0) || undefined}
-            // CellRendererComponent={CellRendererComponent}
-            // onLayout={(e) => {
-            //     isListRenderedRef.current = true;
-            //     if (!mutationObserverRef.current) {
-            //         prepareForMaintainVisibleContentPosition();
-            //         setupMutationObserver();
-            //     }
-            //     restProps.onLayout?.(e);
-            // }}
+            onLayout={(e) => {
+                isListRenderedRef.current = true;
+                if (!mutationObserverRef.current) {
+                    prepareForMaintainVisibleContentPosition();
+                    setupMutationObserver();
+                }
+                restProps.onLayout?.(e);
+            }}
             contentContainerStyle={[restProps.contentContainerStyle, shouldHideContent && styles.visibilityHidden]}
         />
     );
