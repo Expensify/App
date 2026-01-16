@@ -475,6 +475,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
+            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             {headerContent}
             <ScrollView
                 ref={scrollViewRef}
@@ -505,7 +506,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     }}
                 />
             </ScrollView>
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
         </ScreenWrapper>
     );
 }
