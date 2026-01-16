@@ -856,6 +856,7 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         }
     }
 
+    // Return the unique approvers list
     return [...new Set([...categoryApprovers, ...tagApprovers])];
 }
 
