@@ -718,7 +718,10 @@ function MenuItem({
                     <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={interactive && (shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction)}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...(interactive && {
+                                    onPress: shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction,
+                                })}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -743,10 +746,13 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={interactive ? CONST.ROLE.MENUITEM : undefined}
-                                accessibilityLabel={interactive && (title ? title.toString() : '')}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...(interactive && {
+                                    accessibilityLabel: title ? title.toString() : '',
+                                    role: CONST.ROLE.MENUITEM,
+                                })}
                                 focusable={interactive}
-                                accessible={(shouldBeAccessible && interactive) ? true : undefined}
+                                accessible={shouldBeAccessible && interactive ? true : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
