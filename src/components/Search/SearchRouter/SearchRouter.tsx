@@ -156,8 +156,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const chatReport = report.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
-                const option = createOptionFromReport(report, personalDetails, undefined, {showPersonalDetails: true}, chatReport);
+                const option = createOptionFromReport(report, personalDetails, undefined, {showPersonalDetails: true}, reports);
                 reportForContextualSearch = option;
             }
 

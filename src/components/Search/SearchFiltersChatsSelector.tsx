@@ -64,8 +64,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
             const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
-            const chatReport = reportData?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportData.chatReportID}`] : undefined;
-            const report = getSelectedOptionData(createOptionFromReport({...reportData, reportID: id}, personalDetails, reportAttributesDerived, undefined, chatReport));
+            const report = getSelectedOptionData(createOptionFromReport({...reportData, reportID: id}, personalDetails, reportAttributesDerived, undefined, reports));
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
             const alternateText = getAlternateText(report, {}, isReportArchived, {});
             return {...report, alternateText};

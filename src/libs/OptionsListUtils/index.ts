@@ -864,9 +864,10 @@ function createOption(
     report: OnyxInputOrEntry<Report>,
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    chatReport?: OnyxEntry<Report>,
+    reports?: OnyxCollection<Report>,
 ): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
+    const chatReport = report?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
 
     // Initialize only the properties that are actually used in SearchOption context
     const result: SearchOptionData = {
@@ -947,7 +948,7 @@ function createOption(
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
 
         const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
-        const computedReportName = computeReportName(report, undefined, allPolicies, undefined, allReportNameValuePairs, personalDetailsForCompute, allReportActions);
+        const computedReportName = computeReportName(report, reports, allPolicies, undefined, allReportNameValuePairs, personalDetailsForCompute, allReportActions);
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;
@@ -1208,7 +1209,7 @@ function processReport(
     report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    chatReport?: OnyxEntry<Report>,
+    reports?: OnyxCollection<Report>,
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1232,7 +1233,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived, chatReport),
+            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived, reports),
         },
     };
 }
@@ -1245,8 +1246,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
     if (reports) {
         for (const report of Object.values(reports)) {
-            const chatReport = report?.chatReportID ? reports[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
-            const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived, chatReport);
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived, reports);
 
             if (reportMapEntry) {
                 const [accountID, reportValue] = reportMapEntry;
@@ -1261,7 +1261,6 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => {
         const mappedReport = reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-        const chatReport = mappedReport?.chatReportID && reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${mappedReport.chatReportID}`] : undefined;
         return {
             item: personalDetail,
             ...createOption(
@@ -1272,7 +1271,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                     showPersonalDetails: true,
                 },
                 reportAttributesDerived,
-                chatReport,
+                reports,
             ),
         };
     });
@@ -1361,8 +1360,7 @@ function createFilteredOptionList(
     // Step 5: Process the limited set of reports (performance optimization)
     const reportOptions: Array<SearchOption<Report>> = [];
     for (const report of limitedReports) {
-        const chatReport = report?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
-        const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived, chatReport);
+        const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived, reports);
 
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -1390,11 +1388,10 @@ function createFilteredOptionList(
         ? Object.values(personalDetails ?? {}).map((personalDetail) => {
               const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
               const mappedReport = reportMapForAccountIDs[accountID];
-              const chatReport = mappedReport?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${mappedReport.chatReportID}`] : undefined;
 
               return {
                   item: personalDetail,
-                  ...createOption([accountID], personalDetails, mappedReport, {showPersonalDetails: true}, reportAttributesDerived, chatReport),
+                  ...createOption([accountID], personalDetails, mappedReport, {showPersonalDetails: true}, reportAttributesDerived, reports),
               };
           })
         : [];
@@ -1410,13 +1407,13 @@ function createOptionFromReport(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     config?: PreviewConfig,
-    chatReport?: OnyxEntry<Report>,
+    reports?: OnyxCollection<Report>,
 ) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, config, reportAttributesDerived, chatReport),
+        ...createOption(accountIDs, personalDetails, report, config, reportAttributesDerived, reports),
     };
 }
 
