@@ -137,7 +137,7 @@ describe('OptionsListUtils', () => {
             currentUserEmail: MOCK_CURRENT_USER_EMAIL,
         });
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, {currentUserEmail: MOCK_CURRENT_USER_EMAIL}, MOCK_CURRENT_USER_ACCOUNT_ID);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, {currentUserEmail: MOCK_CURRENT_USER_EMAIL, currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID});
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -148,7 +148,7 @@ describe('OptionsListUtils', () => {
             currentUserEmail: MOCK_CURRENT_USER_EMAIL,
         });
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, {currentUserEmail: MOCK_CURRENT_USER_EMAIL}, MOCK_CURRENT_USER_ACCOUNT_ID);
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, {currentUserEmail: MOCK_CURRENT_USER_EMAIL, currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID});
         });
     });
 
@@ -183,12 +183,12 @@ describe('OptionsListUtils', () => {
                 options.personalDetails,
                 nvpDismissedProductTraining,
                 loginList,
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                MOCK_CURRENT_USER_EMAIL,
                 mockedBetas,
                 {},
                 false,
                 COUNTRY_CODE,
-                MOCK_CURRENT_USER_ACCOUNT_ID,
-                MOCK_CURRENT_USER_EMAIL,
             ),
         );
     });
@@ -235,11 +235,10 @@ describe('OptionsListUtils', () => {
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
-                mockedPersonalDetails,
-                true,
-                undefined,
                 undefined,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
+                mockedPersonalDetails,
+                true,
             ),
         );
     });
@@ -251,7 +250,7 @@ describe('OptionsListUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], mockedPersonalDetails, true, undefined, undefined, MOCK_CURRENT_USER_ACCOUNT_ID),
+            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], undefined, MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true),
         );
     });
 });

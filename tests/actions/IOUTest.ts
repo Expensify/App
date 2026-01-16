@@ -2318,6 +2318,8 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2339,6 +2341,8 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
@@ -2362,6 +2366,8 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
@@ -2382,6 +2388,8 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
                 policyRecentlyUsedCurrencies: [],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
