@@ -7,6 +7,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isValidEmail} from '@libs/ValidationUtils';
@@ -17,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {domainNameSelector} from '@src/selectors/Domain';
+import {adminAccountIDsSelector, domainNameSelector} from '@src/selectors/Domain';
 
 type DomainAddMemberProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_MEMBER>;
 
@@ -26,10 +27,28 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const {translate} = useLocalize();
 
     const {domainAccountID} = route.params;
+
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminAccountIDsSelector,
+    });
+
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
     const [email, setEmail] = useState<string | undefined>();
 
     const isEmailInvalid = !!domainName && !!email && !isValidEmail(`${email}@${domainName}`);
+    const isSubmitDisabled = !domainName || !email || !isAdmin;
+
+    const handleSubmit = () => {
+        if (isSubmitDisabled) {
+            return;
+        }
+
+        addMemberToDomain(domainAccountID, `${email}@${domainName}`);
+        Navigation.dismissModal();
+    };
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -62,17 +81,10 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
                 </View>
 
                 <FormAlertWithSubmitButton
-                    isDisabled={!email || isEmailInvalid}
+                    isDisabled={isSubmitDisabled}
                     isAlertVisible={false}
                     buttonText={translate('common.invite')}
-                    onSubmit={() => {
-                        if (!domainName || !email) {
-                            return;
-                        }
-
-                        addMemberToDomain(domainAccountID, `${email}@${domainName}`);
-                        Navigation.dismissModal();
-                    }}
+                    onSubmit={handleSubmit}
                     containerStyles={styles.p5}
                     enabledWhenOffline
                 />

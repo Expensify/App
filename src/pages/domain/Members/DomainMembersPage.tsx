@@ -1,4 +1,4 @@
-import {memberAccountIDsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, memberAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -12,6 +12,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import {getCurrentUserAccountID} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -25,6 +26,13 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminAccountIDsSelector,
+    });
+
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true});
@@ -34,7 +42,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         selector: memberAccountIDsSelector,
     });
 
-    const renderHeaderButtons = (
+    const renderHeaderButtons = isAdmin ? (
         <Button
             success
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
@@ -43,7 +51,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3, styles.alignItemsCenter]}
         />
-    );
+    ) : null;
 
     const getCustomRowProps = (_accountID: number, email?: string) => ({
         errors: email ? getLatestError(domainErrors?.memberErrors?.[email]?.errors) : undefined,
