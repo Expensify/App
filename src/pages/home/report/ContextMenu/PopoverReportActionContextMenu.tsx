@@ -22,7 +22,6 @@ import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import type {ComposerType} from '@libs/ComposerFocusManager';
-import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -305,7 +304,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             type: Actions.CLOSE_POPOVER,
         });
 
-        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose).then(() => {
+        ComposerFocusManager.refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose).then(() => {
             setComposerToRefocusOnClose(undefined);
         });
     };

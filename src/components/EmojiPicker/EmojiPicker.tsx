@@ -18,7 +18,6 @@ import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import type {ComposerType} from '@libs/ComposerFocusManager';
 import DomUtils from '@libs/DomUtils';
-import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -160,7 +159,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const handleModalHide = () => {
         onModalHide.current();
 
-        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose.current).then(() => {
+        ComposerFocusManager.refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose.current).then(() => {
             composerToRefocusOnClose.current = undefined;
         });
     };

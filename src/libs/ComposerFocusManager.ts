@@ -207,47 +207,38 @@ function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType
 // SECTION 3: REPORT COMPOSER FOCUS
 // ============================================
 
-// Default refs for backward compatibility (main context)
-const defaultComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
-const defaultEditComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
+const composerRefs: Record<FocusContext, RefObject<TextInput | null>> = {
+    main: React.createRef<TextInput>(),
+    sidePanel: React.createRef<TextInput>(),
+};
 
-// Context-aware refs and callbacks - each context (main screen vs side panel) has its own set
-const composerRefs = new Map<FocusContext, RefObject<TextInput | null>>([
-    ['main', defaultComposerRef],
-    ['sidePanel', React.createRef<TextInput>()],
-]);
+const editComposerRefs: Record<FocusContext, RefObject<TextInput | null>> = {
+    main: React.createRef<TextInput>(),
+    sidePanel: React.createRef<TextInput>(),
+};
 
-const editComposerRefs = new Map<FocusContext, RefObject<TextInput | null>>([
-    ['main', defaultEditComposerRef],
-    ['sidePanel', React.createRef<TextInput>()],
-]);
+const focusCallbacks: Record<FocusContext, FocusCallback | null> = {
+    main: null,
+    sidePanel: null,
+};
 
-const focusCallbacks = new Map<FocusContext, FocusCallback | null>([
-    ['main', null],
-    ['sidePanel', null],
-]);
-
-const priorityFocusCallbacks = new Map<FocusContext, FocusCallback | null>([
-    ['main', null],
-    ['sidePanel', null],
-]);
-
-// Backward compatibility - expose the main context refs directly
-const composerRef = defaultComposerRef;
-const editComposerRef = defaultEditComposerRef;
+const priorityFocusCallbacks: Record<FocusContext, FocusCallback | null> = {
+    main: null,
+    sidePanel: null,
+};
 
 /**
  * Get the composer ref for a specific context
  */
 function getComposerRef(context: FocusContext): RefObject<TextInput | null> {
-    return composerRefs.get(context) ?? defaultComposerRef;
+    return composerRefs[context];
 }
 
 /**
  * Get the edit composer ref for a specific context
  */
 function getEditComposerRef(context: FocusContext): RefObject<TextInput | null> {
-    return editComposerRefs.get(context) ?? defaultEditComposerRef;
+    return editComposerRefs[context];
 }
 
 /**
@@ -260,9 +251,9 @@ function getEditComposerRef(context: FocusContext): RefObject<TextInput | null> 
  */
 function onComposerFocus(callback: FocusCallback | null, isPriorityCallback = false, context: FocusContext = 'main') {
     if (isPriorityCallback) {
-        priorityFocusCallbacks.set(context, callback);
+        priorityFocusCallbacks[context] = callback;
     } else {
-        focusCallbacks.set(context, callback);
+        focusCallbacks[context] = callback;
     }
 }
 
@@ -278,8 +269,8 @@ function focusComposer(context: FocusContext = 'main') {
         return;
     }
 
-    const priorityCallback = priorityFocusCallbacks.get(context);
-    const regularCallback = focusCallbacks.get(context);
+    const priorityCallback = priorityFocusCallbacks[context];
+    const regularCallback = focusCallbacks[context];
 
     if (typeof priorityCallback !== 'function' && typeof regularCallback !== 'function') {
         return;
@@ -302,13 +293,13 @@ function focusComposer(context: FocusContext = 'main') {
  */
 function clearComposerFocus(isPriorityCallback = false, context: FocusContext = 'main') {
     if (isPriorityCallback) {
-        const editRef = editComposerRefs.get(context);
+        const editRef = editComposerRefs[context];
         if (editRef) {
             editRef.current = null;
         }
-        priorityFocusCallbacks.set(context, null);
+        priorityFocusCallbacks[context] = null;
     } else {
-        focusCallbacks.set(context, null);
+        focusCallbacks[context] = null;
     }
 }
 
@@ -317,7 +308,7 @@ function clearComposerFocus(isPriorityCallback = false, context: FocusContext = 
  */
 function isComposerFocused(): boolean {
     // Check if any composer in any context is focused
-    for (const ref of composerRefs.values()) {
+    for (const ref of Object.values(composerRefs)) {
         if (ref?.current?.isFocused()) {
             return true;
         }
@@ -331,7 +322,7 @@ function isComposerFocused(): boolean {
  */
 function isEditComposerFocused(): boolean {
     // Check if any edit composer in any context is focused
-    for (const ref of editComposerRefs.values()) {
+    for (const ref of Object.values(editComposerRefs)) {
         if (ref?.current?.isFocused()) {
             return true;
         }
@@ -345,13 +336,29 @@ function isEditComposerFocused(): boolean {
  * first responder in the UIResponder chain. (iOS only, no-op on Android)
  */
 function preventComposerFocusOnFirstResponderOnce(composerType: ComposerType = 'main') {
-    const ref = composerType === 'main' ? composerRefs.get('main') : editComposerRefs.get('main');
+    const ref = composerType === 'main' ? composerRefs.main : editComposerRefs.main;
 
     if (!ref) {
         return;
     }
 
     preventTextInputFocusOnFirstResponderOnce(ref);
+}
+
+/**
+ * Refocus the composer after preventing the first responder.
+ * @param composerToRefocusOnClose the composer to refocus on close
+ * @returns a promise that resolves when the composer is refocused
+ */
+function refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose?: ComposerType) {
+    return isWindowReadyToFocus().then(() => {
+        if (composerToRefocusOnClose === 'edit') {
+            editComposerRefs.main?.current?.focus();
+            return;
+        }
+
+        composerRefs.main?.current?.focus();
+    });
 }
 
 export default {
@@ -365,8 +372,6 @@ export default {
     refocusAfterModalFullyClosed,
 
     // Report composer focus
-    composerRef,
-    editComposerRef,
     getComposerRef,
     getEditComposerRef,
     onComposerFocus,
@@ -375,6 +380,7 @@ export default {
     isComposerFocused,
     isEditComposerFocused,
     preventComposerFocusOnFirstResponderOnce,
+    refocusComposerAfterPreventFirstResponder,
 };
 
 export type {FocusContext, ComposerType};
