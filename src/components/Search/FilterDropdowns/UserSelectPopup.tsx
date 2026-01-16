@@ -106,7 +106,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
                 currentUserAccountID,
-                currentUserEmail: currentUserEmail,
+                currentUserEmail,
             },
             countryCode,
         );
