@@ -231,7 +231,6 @@ function AuthScreens() {
             if (delegatorEmail) {
                 connect({
                     email: delegatorEmail,
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
                     delegatedAccess: account?.delegatedAccess,
                     credentials,
                     session,
