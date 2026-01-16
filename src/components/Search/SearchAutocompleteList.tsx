@@ -227,6 +227,11 @@ function SearchAutocompleteList({
     const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
 
     const groupByAutocompleteList = useMemo(() => {
+        // Only show group-by suggestions if the user has explicitly set a type filter
+        if (!typeFilter) {
+            return [];
+        }
+
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -235,7 +240,7 @@ function SearchAutocompleteList({
             default:
                 return [];
         }
-    }, [currentType]);
+    }, [currentType, typeFilter]);
 
     const statusAutocompleteList = useMemo(() => {
         let suggestedStatuses;
