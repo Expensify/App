@@ -9661,6 +9661,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
+                    iouReportNextStep: undefined,
                 });
 
                 await waitForBatchedUpdates();
