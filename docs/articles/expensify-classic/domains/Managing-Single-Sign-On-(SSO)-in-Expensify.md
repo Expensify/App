@@ -8,7 +8,7 @@ Set up secure and streamlined login across your organization by enabling SAML Si
 
 ---
 
-# Where to find SAML Single Sign-On (SSO) settings
+# Where to find SAML Single Sign-On (SSO) settingsin Expensify Classic 
 
 Before setting up SSO, make sure your domain is verified.  
 [Learn how to claim and verify your domain](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain#step-2-verify-domain-ownership)
