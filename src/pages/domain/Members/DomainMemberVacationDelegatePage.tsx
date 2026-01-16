@@ -9,7 +9,7 @@ import { getLoginByAccountID, getPersonalDetailByEmail } from '@libs/PersonalDet
 import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
 import type { SettingsNavigatorParamList } from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import { setDomainVacationDelegate } from '@userActions/Domain';
+import {deleteDomainVacationDelegate, setDomainVacationDelegate} from '@userActions/Domain';
 import { clearVacationDelegateError, deleteVacationDelegate } from '@userActions/VacationDelegate';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -28,15 +28,16 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
 
     const [vacationDelegate] = useVacationDelegate(String(domainAccountID), String(accountID));
     const onSelectRow = (option: Participant) => {
+        debugger;
+
         const memberLogin = getLoginByAccountID(accountID);
         const delegateLogin = option?.login;
 
         if (!memberLogin || !delegateLogin) {
             return;
         }
-
-        if (delegateLogin === vacationDelegate) {
-            deleteVacationDelegate(vacationDelegate);
+        if (delegateLogin === vacationDelegate?.delegate) {
+            deleteDomainVacationDelegate(vacationDelegate,domainAccountID,accountID);
             return;
         }
 
