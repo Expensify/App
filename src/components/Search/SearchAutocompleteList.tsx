@@ -193,7 +193,7 @@ function SearchAutocompleteList({
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserLogin = currentUserPersonalDetails.login;
+    const currentUserEmail = currentUserPersonalDetails.login;
     const currentUserAccountID = currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
@@ -219,9 +219,9 @@ function SearchAutocompleteList({
             shouldUnreadBeBold: true,
             loginList,
             currentUserAccountID,
-            currentUserEmail: currentUserLogin,
+            currentUserEmail,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserLogin]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -303,9 +303,9 @@ function SearchAutocompleteList({
     const workspaceList = useMemo(
         () =>
             Object.values(policies)
-                .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserLogin) && !singlePolicy?.isJoinRequestPending)
+                .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserEmail) && !singlePolicy?.isJoinRequestPending)
                 .map((singlePolicy) => ({id: singlePolicy?.id, name: singlePolicy?.name ?? ''})),
-        [policies, currentUserLogin],
+        [policies, currentUserEmail],
     );
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
@@ -429,12 +429,12 @@ function SearchAutocompleteList({
                     loginList,
                     shouldShowGBR: true,
                     currentUserAccountID,
-                    currentUserEmail: currentUserLogin,
+                    currentUserEmail,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
                     filterKey: autocompleteKey,
-                    text: participant.login === currentUserLogin ? CONST.SEARCH.ME : (participant.text ?? ''),
+                    text: participant.login === currentUserEmail ? CONST.SEARCH.ME : (participant.text ?? ''),
                     autocompleteID: String(participant.accountID),
                     mapKey: autocompleteKey,
                 }));
@@ -462,7 +462,7 @@ function SearchAutocompleteList({
                     loginList,
                     shouldShowGBR: true,
                     currentUserAccountID,
-                    currentUserEmail: currentUserLogin,
+                    currentUserEmail,
                 }).recentReports.filter((chat) => {
                     if (!chat.text) {
                         return false;
@@ -633,7 +633,7 @@ function SearchAutocompleteList({
         countryCode,
         loginList,
         currentUserAccountID,
-        currentUserLogin,
+        currentUserEmail,
         groupByAutocompleteList,
         statusAutocompleteList,
         feedAutoCompleteList,
