@@ -1045,7 +1045,7 @@ describe('PolicyUtils', () => {
             const policy = {
                 employeeList,
             };
-            const result = getPolicyEmployeeAccountIDs(policy, undefined);
+            const result = getPolicyEmployeeAccountIDs(policy);
             expect(result).toEqual([7, 1, 2, 3, 4, 5, 6]);
         });
 
@@ -1061,7 +1061,7 @@ describe('PolicyUtils', () => {
             const policy = {
                 employeeList: {},
             };
-            const result = getPolicyEmployeeAccountIDs(policy, 999);
+            const result = getPolicyEmployeeAccountIDs(policy);
             expect(result).toEqual([]);
         });
     });
