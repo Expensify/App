@@ -116,8 +116,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             onClose={item.canDismissError ? () => dismissError(item) : undefined}
             pendingAction={item.pendingAction}
             errors={item.errors}
-            errorRowStyles={styles.ph6}
-            shouldShowErrorMessages={false}
+            errorRowStyles={styles.ph8}
+            // shouldShowErrorMessages defaults to true - needed to display server-side deletion errors to the user
         >
             <MenuItem
                 onPress={handleRowPress}
