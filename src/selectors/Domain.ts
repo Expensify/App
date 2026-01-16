@@ -91,6 +91,34 @@ function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     return uniqueIDs.length > 0 ? uniqueIDs : getEmptyArray<number>();
 }
 
+/**
+ * Gets all security group IDs for a given account ID.
+ * It searches through all security groups in the domain and returns the group IDs
+ * where the account ID appears in the 'shared' property.
+ *
+ * @param domain - The domain object from Onyx
+ * @param accountID - The account ID to search for
+ * @returns An array of security group IDs that the account belongs to
+ */
+function selectSecurityGroupIDsForAccount(domain: Domain | undefined, accountID: number): number[] {
+    if (!domain) {
+        return [];
+    }
+
+    const accountIDStr = String(accountID);
+
+    return Object.entries(domain)
+        .filter(([key]) => key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX))
+        .filter(([, value]) => {
+            const groupData = value as {shared?: Record<string, string>};
+            return groupData?.shared && accountIDStr in groupData.shared;
+        })
+        .map(([key]) => {
+            // Extract the group ID from the key: "domain_securityGroup_<groupID>" -> "<groupID>"
+            return parseInt(key.replace(`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}`, ''), 10);
+        });
+}
+
 const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.members ?? {};
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
@@ -106,5 +134,6 @@ export {
     domainEmailSelector,
     adminPendingActionSelector,
     technicalContactSettingsSelector,
+    selectSecurityGroupIDsForAccount,
     memberPendingActionSelector,
 };

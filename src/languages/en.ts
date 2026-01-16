@@ -7924,6 +7924,7 @@ const translations = {
             title: 'Members',
             findMember: 'Find member',
             closeAccount: 'Close account',
+            closeAccountPrompt: 'Are you sure? This action is permanent.',
             forceCloseAccount: 'Force close account',
             safeCloseAccount: 'Close account safely',
             closeAccountInfo:

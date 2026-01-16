@@ -1,12 +1,19 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddAdminToDomainParams, DeleteDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
+import type {
+    AddAdminToDomainParams,
+    DeleteDomainParams,
+    RemoveDomainAdminParams,
+    DeleteDomainMemberParams,
+    SetTechnicalContactEmailParams,
+    ToggleConsolidatedDomainBillingParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, DomainSecurityGroup} from '@src/types/onyx';
+import type {Domain} from '@src/types/onyx';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
@@ -779,22 +786,22 @@ function clearDomainErrors(domainAccountID: number) {
 }
 
 /** Sends a request to remove user from a domain and close their account */
-function closeUserAccount(domainAccountID: number, securityGroupIDs: number[], accountID: number, force = false) {
-    const optimisticValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
-    for (const groupID of securityGroupIDs) {
-        optimisticValue[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`] = {
-            shared: {
-                [accountID]: null,
-            },
-        };
-    }
+function closeUserAccount(domainAccountID: number, domain: string, accountID: number, targetEmail: string, overrideProcessingReports = false) {
+    // const optimisticValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
+    // for (const groupID of securityGroupIDs) {
+    //     optimisticValue[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`] = {
+    //         shared: {
+    //             [accountID]: null,
+    //         },
+    //     };
+    // }
 
     const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: optimisticValue,
-        },
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+        //     value: optimisticValue,
+        // },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -813,7 +820,7 @@ function closeUserAccount(domainAccountID: number, securityGroupIDs: number[], a
             },
         },
     ];
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -821,29 +828,14 @@ function closeUserAccount(domainAccountID: number, securityGroupIDs: number[], a
                 members: {[accountID]: null},
             },
         },
-        // DEV
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            value: {
-                memberErrors: {
-                    [accountID]: {errors: {[Date.now()]: 'Unable to remove this user. Please try again.'}},
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                expensify_securityGroup_1: {
-                    shared: {
-                        [accountID]: 'read',
-                    },
-                },
-            },
-        },
     ];
-    API.write('', {force}, {optimisticData, successData, failureData});
+    const parameters: DeleteDomainMemberParams = {
+        domain,
+        targetEmail,
+        overrideProcessingReports,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_DOMAIN_MEMBER, parameters, {optimisticData, successData, failureData});
 }
 
 function clearDomainMemberError(domainAccountID: number, accountID: number) {

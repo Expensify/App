@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, selectSecurityGroupIDsForAccount} from '@selectors/Domain';
+import {adminAccountIDsSelector, domainNameSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -11,10 +11,12 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,7 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Domain, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
@@ -42,23 +44,27 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {showConfirmModal} = useConfirmModal();
 
-    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [_, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
 
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
-    const [securityGroupIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
-        selector: (domain: OnyxEntry<Domain>) => selectSecurityGroupIDsForAccount(domain, accountID),
-    });
+    // Commenting out data needed for optimistic updates for now
+    // // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    // const [securityGroupIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    //     canBeMissing: true,
+    //     selector: (domain: OnyxEntry<Domain>) => selectSecurityGroupIDsForAccount(domain, accountID),
+    // });
 
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
     });
+
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
     const memberLogin = personalDetails?.login ?? '';
@@ -70,16 +76,30 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
-    const handleForceCloseAccount = () => {
-        closeUserAccount(domainAccountID, securityGroupIDs ?? [], accountID, true);
+    const handleCloseAccount = async (force: boolean) => {
         setIsModalVisible(false);
+        const result = await showConfirmModal({
+            title: translate('domain.members.closeAccount'),
+            prompt: translate('domain.members.closeAccountPrompt'),
+            confirmText: translate('domain.members.closeAccount'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+            shouldShowCancelButton: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            setIsModalVisible(true);
+            return;
+        }
+        closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, force);
         Navigation.dismissModal();
     };
 
+    const handleForceCloseAccount = () => {
+        handleCloseAccount(true);
+    };
+
     const handleSafeCloseAccount = () => {
-        closeUserAccount(domainAccountID, securityGroupIDs ?? [], accountID);
-        setIsModalVisible(false);
-        Navigation.dismissModal();
+        handleCloseAccount(false);
     };
 
     return (

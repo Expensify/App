@@ -7,7 +7,6 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
-import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -32,7 +31,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             headerTitle={translate('domain.members.title')}
             searchPlaceholder={translate('domain.members.findMember')}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
-            headerIcon={illustrations.Profile}
         />
     );
 }
