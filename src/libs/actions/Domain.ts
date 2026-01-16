@@ -631,7 +631,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
 /**
  * Removes an error and pending actions after trying to add admin
  */
-function clearAdminError(domainAccountID: number, accountID: number) {
+function clearAdminError(domainAccountID: number, a: number) {
     const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -788,7 +788,7 @@ function clearDomainErrors(domainAccountID: number) {
 }
 
 function addMemberToDomain(domainAccountID: number, email: string) {
-    // eslint-disable rulesdir/no-default-id-values
+    /* eslint-disable rulesdir/no-default-id-values */
     const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
     const optimisticAccountID = generateAccountID(email);
 
@@ -918,7 +918,7 @@ function addMemberToDomain(domainAccountID: number, email: string) {
  * Removes an error and pending actions after trying to add admin
  */
 function clearMemberError(domainAccountID: number, email: string) {
-    // eslint-disable rulesdir/no-default-id-values
+    /* eslint-disable rulesdir/no-default-id-values */
     const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
     const optimisticAccountID = generateAccountID(email);
 
