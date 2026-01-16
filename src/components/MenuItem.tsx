@@ -718,7 +718,7 @@ function MenuItem({
                     <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={interactive ? (shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction) : undefined}
+                                onPress={interactive && (shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction)}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -744,9 +744,9 @@ function MenuItem({
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={interactive ? CONST.ROLE.MENUITEM : undefined}
-                                accessibilityLabel={interactive ? (title ? title.toString() : '') : undefined}
+                                accessibilityLabel={interactive && (title ? title.toString() : '')}
                                 focusable={interactive}
-                                accessible={shouldBeAccessible && interactive}
+                                accessible={(shouldBeAccessible && interactive) ? true : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
