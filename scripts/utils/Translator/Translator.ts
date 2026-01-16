@@ -1,5 +1,6 @@
 import {DomUtils, parseDocument} from 'htmlparser2';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+import type {StringWithContext} from './types';
 
 /**
  * Base Translator class standardizes interface for translators and implements common logging.
@@ -27,6 +28,11 @@ abstract class Translator {
      * Translate a string to the given locale.
      */
     protected abstract performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string>;
+
+    /**
+     * Estimate cost for translating the given strings across locales.
+     */
+    public abstract estimateCost(stringsToTranslate: StringWithContext[], targetLanguages: TranslationTargetLocale[]): Promise<number>;
 
     /**
      * Trim a string to keep logs readable.

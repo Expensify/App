@@ -383,11 +383,6 @@ class TranslationGenerator {
      * Skips prompting in dry-run mode since no real API calls are made.
      */
     private async promptForCostApproval(stringsToTranslate: Map<number, StringWithContext>): Promise<void> {
-        // Skip cost check in dry-run mode since no real API calls are made (cost is $0)
-        if (this.cli.flags['dry-run']) {
-            return;
-        }
-
         const numStrings = stringsToTranslate.size;
         const numLocales = this.targetLanguages.length;
 
@@ -395,8 +390,7 @@ class TranslationGenerator {
             return;
         }
 
-        const estimatedCost = await ChatGPTTranslator.estimateCost(Array.from(stringsToTranslate.values()), this.targetLanguages);
-
+        const estimatedCost = await this.translator.estimateCost(Array.from(stringsToTranslate.values()), this.targetLanguages);
         if (estimatedCost > COST_CONFIRMATION_THRESHOLD) {
             console.warn(
                 `${COLORS.YELLOW}${dedent(`

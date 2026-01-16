@@ -114,7 +114,7 @@ class ChatGPTTranslator extends Translator {
     /**
      * Estimate cost for translation runs based on current prompt structure.
      */
-    public static async estimateCost(
+    public async estimateCost(
         stringsToTranslate: StringWithContext[],
         targetLanguages: TranslationTargetLocale[],
     ): Promise<number> {

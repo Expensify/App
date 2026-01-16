@@ -5,6 +5,10 @@ class DummyTranslator extends Translator {
     protected performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
         return Promise.resolve(`[${targetLang}]${context ? `[ctx: ${context}]` : ''} ${text}`);
     }
+
+    public estimateCost(): Promise<number> {
+        return Promise.resolve(0);
+    }
 }
 
 export default DummyTranslator;
