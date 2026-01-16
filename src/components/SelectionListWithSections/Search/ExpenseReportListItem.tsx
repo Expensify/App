@@ -1,5 +1,7 @@
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -7,6 +9,7 @@ import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType, ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,8 +17,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
+import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
@@ -46,6 +52,11 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const currentUserDetails = useCurrentUserPersonalDetails();
+
+    // Fetch live policy categories from Onyx to sync violations at render time
+    const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`, {canBeMissing: true});
+    const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`, {canBeMissing: true});
 
     const searchData = currentSearchResults?.data;
 
@@ -66,6 +77,28 @@ function ExpenseReportListItem<TItem extends ListItem>({
         const isEmpty = reportItem.transactions.length === 0;
         return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox, reportItem.transactions.length]);
+
+    // Sync missingAttendees violation at render time for each transaction in the report
+    // This ensures violations show immediately when category settings change, without needing to click the row
+    const hasSyncedMissingAttendeesViolation = useMemo(() => {
+        const policy = parentPolicy ?? snapshotPolicy;
+        if (!policy?.isAttendeeTrackingEnabled || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
+            return false;
+        }
+
+        return reportItem?.transactions?.some((transaction) => {
+            const violations = syncMissingAttendeesViolation(
+                transaction.violations ?? [],
+                policyCategories,
+                transaction.category ?? '',
+                transaction.attendees,
+                currentUserDetails,
+                policy.isAttendeeTrackingEnabled ?? false,
+                policy.type === CONST.POLICY.TYPE.CORPORATE,
+            );
+            return violations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
+        });
+    }, [reportItem.transactions, policyCategories, parentPolicy, snapshotPolicy, currentUserDetails]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
@@ -134,8 +167,13 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
 
+    // Show violation description if either:
+    // 1. Pre-computed hasVisibleViolations from search data, OR
+    // 2. Synced missingAttendees violation computed at render time (for stale data)
+    const hasAnyVisibleViolations = reportItem?.hasVisibleViolations || hasSyncedMissingAttendeesViolation;
+
     const getDescription = useMemo(() => {
-        if (!reportItem?.hasVisibleViolations || !shouldShowViolationDescription) {
+        if (!hasAnyVisibleViolations || !shouldShowViolationDescription) {
             return;
         }
         return (
@@ -151,7 +189,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             </View>
         );
     }, [
-        reportItem?.hasVisibleViolations,
+        hasAnyVisibleViolations,
         shouldShowViolationDescription,
         styles.flexRow,
         styles.alignItemsCenter,
