@@ -42,6 +42,4 @@ function InvertedFlatListE2E({ref, ...props}: InvertedFlatListProps<ReportAction
     );
 }
 
-InvertedFlatListE2E.displayName = 'InvertedFlatListE2E';
-
 export default InvertedFlatListE2E;

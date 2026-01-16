@@ -81,7 +81,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
             <ScreenWrapper
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={NetSuiteCustomListSelectorModal.displayName}
+                testID="NetSuiteCustomListSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -102,7 +102,5 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
         </Modal>
     );
 }
-
-NetSuiteCustomListSelectorModal.displayName = 'NetSuiteCustomListSelectorModal';
 
 export default NetSuiteCustomListSelectorModal;

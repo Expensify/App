@@ -37,6 +37,4 @@ function LoginForm({scrollPageToTop, ref, ...rest}: LoginFormProps) {
     );
 }
 
-LoginForm.displayName = 'LoginForm';
-
 export default LoginForm;

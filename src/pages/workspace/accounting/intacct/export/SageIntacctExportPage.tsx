@@ -67,7 +67,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctExportPage.displayName}
+            displayName="SageIntacctExportPage"
             headerTitle="workspace.accounting.export"
             headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
             title="workspace.sageIntacct.exportDescription"
@@ -96,7 +96,5 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-SageIntacctExportPage.displayName = 'SageIntacctExportPage';
 
 export default withPolicyConnections(SageIntacctExportPage);

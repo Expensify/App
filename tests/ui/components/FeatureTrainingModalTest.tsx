@@ -57,7 +57,7 @@ describe('FeatureTrainingModal', () => {
         });
         it('renders svg image', () => {
             function Component() {
-                const illustrations = useMemoizedLazyIllustrations(['HoldExpense'] as const);
+                const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
                 return (
                     <FeatureTrainingModal
                         confirmText={CONFIRM_TEXT}

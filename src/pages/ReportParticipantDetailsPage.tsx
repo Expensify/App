@@ -33,7 +33,7 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>;
 
 function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -70,7 +70,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     }
 
     return (
-        <ScreenWrapper testID={ReportParticipantDetails.displayName}>
+        <ScreenWrapper testID="ReportParticipantDetails">
             <HeaderWithBackButton
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -140,7 +140,5 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
         </ScreenWrapper>
     );
 }
-
-ReportParticipantDetails.displayName = 'ReportParticipantDetails';
 
 export default withReportOrNotFound()(ReportParticipantDetails);

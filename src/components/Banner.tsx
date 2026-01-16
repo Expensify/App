@@ -147,8 +147,6 @@ function Banner({
     );
 }
 
-Banner.displayName = 'Banner';
-
 export default memo(Banner);
 
 export type {BannerProps};

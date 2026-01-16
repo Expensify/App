@@ -39,6 +39,4 @@ function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuesti
     );
 }
 
-SingleChoiceQuestion.displayName = 'SingleChoiceQuestion';
-
 export default SingleChoiceQuestion;

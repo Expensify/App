@@ -80,7 +80,7 @@ function ExpensifyCardMissingDetailsMagicCodePage({
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}
@@ -94,7 +94,5 @@ function ExpensifyCardMissingDetailsMagicCodePage({
         />
     );
 }
-
-ExpensifyCardMissingDetailsMagicCodePage.displayName = 'ExpensifyCardMissingDetailsMagicCodePage';
 
 export default ExpensifyCardMissingDetailsMagicCodePage;

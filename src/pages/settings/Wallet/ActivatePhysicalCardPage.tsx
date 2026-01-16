@@ -14,6 +14,4 @@ function ActivatePhysicalCardPage({
     return <ActivatePhysicalCardPageBase cardID={cardID} />;
 }
 
-ActivatePhysicalCardPage.displayName = 'ActivatePhysicalCardPage';
-
 export default ActivatePhysicalCardPage;

@@ -93,6 +93,4 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress}
     );
 }
 
-CardDetails.displayName = 'CardDetails';
-
 export default CardDetails;

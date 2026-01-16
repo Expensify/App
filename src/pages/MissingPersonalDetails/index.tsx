@@ -30,6 +30,4 @@ function MissingPersonalDetails() {
     );
 }
 
-MissingPersonalDetails.displayName = 'MissingPersonalDetails';
-
 export default MissingPersonalDetails;

@@ -1,7 +1,7 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import isEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
@@ -80,7 +80,7 @@ function EmptyStateComponent({
             case CONST.EMPTY_STATE_MEDIA.ILLUSTRATION:
                 return (
                     <ImageSVG
-                        style={headerContentStyles}
+                        style={StyleSheet.flatten(headerContentStyles)}
                         src={headerMedia}
                     />
                 );
@@ -149,5 +149,4 @@ function EmptyStateComponent({
     );
 }
 
-EmptyStateComponent.displayName = 'EmptyStateComponent';
 export default EmptyStateComponent;

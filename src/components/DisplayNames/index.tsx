@@ -62,6 +62,4 @@ function DisplayNames({
     );
 }
 
-DisplayNames.displayName = 'DisplayNames';
-
 export default DisplayNames;

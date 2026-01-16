@@ -83,6 +83,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
                 }}
+                shouldDisplayHelpButton={false}
             />
             <Text style={[styles.textHeadlineH1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 {translate('onboarding.employees.title')}
@@ -102,7 +103,5 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingEmployees.displayName = 'BaseOnboardingEmployees';
 
 export default BaseOnboardingEmployees;

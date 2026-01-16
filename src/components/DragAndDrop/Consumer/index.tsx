@@ -20,6 +20,4 @@ function DragAndDropConsumer({children, onDrop}: DragAndDropConsumerProps) {
     return <Portal hostName={dropZoneID}>{children}</Portal>;
 }
 
-DragAndDropConsumer.displayName = 'DragAndDropConsumer';
-
 export default DragAndDropConsumer;

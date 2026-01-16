@@ -7,6 +7,4 @@ function SageIntacctAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     return <SageIntacctAutoSyncPageBase policy={policy} />;
 }
 
-SageIntacctAutoSyncPage.displayName = 'SageIntacctAutoSyncPage';
-
 export default withPolicyConnections(SageIntacctAutoSyncPage);

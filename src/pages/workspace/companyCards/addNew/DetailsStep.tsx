@@ -27,7 +27,7 @@ function DetailsStep() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
 
@@ -69,46 +69,35 @@ function DetailsStep() {
                     if (!values[INPUT_IDS.BANK_ID]) {
                         errors[INPUT_IDS.BANK_ID] = translate('common.error.fieldRequired');
                     } else if (values[INPUT_IDS.BANK_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
-                        errors[INPUT_IDS.BANK_ID] = translate('common.error.characterLimitExceedCounter', {
-                            length: values[INPUT_IDS.BANK_ID].length,
-                            limit: CONST.STANDARD_LENGTH_LIMIT,
-                        });
+                        errors[INPUT_IDS.BANK_ID] = translate('common.error.characterLimitExceedCounter', values[INPUT_IDS.BANK_ID].length, CONST.STANDARD_LENGTH_LIMIT);
                     }
                     if (!values[INPUT_IDS.PROCESSOR_ID]) {
                         errors[INPUT_IDS.PROCESSOR_ID] = translate('common.error.fieldRequired');
                     } else if (values[INPUT_IDS.PROCESSOR_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
-                        errors[INPUT_IDS.PROCESSOR_ID] = translate('common.error.characterLimitExceedCounter', {
-                            length: values[INPUT_IDS.PROCESSOR_ID].length,
-                            limit: CONST.STANDARD_LENGTH_LIMIT,
-                        });
+                        errors[INPUT_IDS.PROCESSOR_ID] = translate('common.error.characterLimitExceedCounter', values[INPUT_IDS.PROCESSOR_ID].length, CONST.STANDARD_LENGTH_LIMIT);
                     }
                     if (!values[INPUT_IDS.COMPANY_ID]) {
                         errors[INPUT_IDS.COMPANY_ID] = translate('common.error.fieldRequired');
                     } else if (values[INPUT_IDS.COMPANY_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
-                        errors[INPUT_IDS.COMPANY_ID] = translate('common.error.characterLimitExceedCounter', {
-                            length: values[INPUT_IDS.COMPANY_ID].length,
-                            limit: CONST.STANDARD_LENGTH_LIMIT,
-                        });
+                        errors[INPUT_IDS.COMPANY_ID] = translate('common.error.characterLimitExceedCounter', values[INPUT_IDS.COMPANY_ID].length, CONST.STANDARD_LENGTH_LIMIT);
                     }
                     break;
                 case CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD:
                     if (!values[INPUT_IDS.DISTRIBUTION_ID]) {
                         errors[INPUT_IDS.DISTRIBUTION_ID] = translate('common.error.fieldRequired');
                     } else if (values[INPUT_IDS.DISTRIBUTION_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
-                        errors[INPUT_IDS.DISTRIBUTION_ID] = translate('common.error.characterLimitExceedCounter', {
-                            length: values[INPUT_IDS.DISTRIBUTION_ID].length,
-                            limit: CONST.STANDARD_LENGTH_LIMIT,
-                        });
+                        errors[INPUT_IDS.DISTRIBUTION_ID] = translate('common.error.characterLimitExceedCounter', values[INPUT_IDS.DISTRIBUTION_ID].length, CONST.STANDARD_LENGTH_LIMIT);
                     }
                     break;
                 case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
                     if (!values[INPUT_IDS.DELIVERY_FILE_NAME]) {
                         errors[INPUT_IDS.DELIVERY_FILE_NAME] = translate('common.error.fieldRequired');
                     } else if (values[INPUT_IDS.DELIVERY_FILE_NAME].length > CONST.STANDARD_LENGTH_LIMIT) {
-                        errors[INPUT_IDS.DELIVERY_FILE_NAME] = translate('common.error.characterLimitExceedCounter', {
-                            length: values[INPUT_IDS.DELIVERY_FILE_NAME].length,
-                            limit: CONST.STANDARD_LENGTH_LIMIT,
-                        });
+                        errors[INPUT_IDS.DELIVERY_FILE_NAME] = translate(
+                            'common.error.characterLimitExceedCounter',
+                            values[INPUT_IDS.DELIVERY_FILE_NAME].length,
+                            CONST.STANDARD_LENGTH_LIMIT,
+                        );
                     }
                     break;
                 default:
@@ -182,7 +171,7 @@ function DetailsStep() {
 
     return (
         <ScreenWrapper
-            testID={DetailsStep.displayName}
+            testID="DetailsStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -224,7 +213,5 @@ function DetailsStep() {
         </ScreenWrapper>
     );
 }
-
-DetailsStep.displayName = 'DetailsStep';
 
 export default DetailsStep;

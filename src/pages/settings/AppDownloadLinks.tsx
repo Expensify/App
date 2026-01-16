@@ -25,7 +25,7 @@ type DownloadMenuItem = MenuItemProps & {
 };
 
 function AppDownloadLinksPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Monitor', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Monitor', 'NewWindow']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);
@@ -49,19 +49,10 @@ function AppDownloadLinksPage() {
             icon: Expensicons.Apple,
             iconRight: icons.NewWindow,
         },
-        {
-            translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
-            action: () => {
-                openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
-            },
-            link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
-            icon: icons.Monitor,
-            iconRight: icons.NewWindow,
-        },
     ];
 
     return (
-        <ScreenWrapper testID={AppDownloadLinksPage.displayName}>
+        <ScreenWrapper testID="AppDownloadLinksPage">
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -102,7 +93,5 @@ function AppDownloadLinksPage() {
         </ScreenWrapper>
     );
 }
-
-AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
 export default AppDownloadLinksPage;

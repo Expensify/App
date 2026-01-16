@@ -48,7 +48,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: 
         return () => {
             interactionTask.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
@@ -134,7 +134,5 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: 
         />
     );
 }
-
-Lottie.displayName = 'Lottie';
 
 export default Lottie;

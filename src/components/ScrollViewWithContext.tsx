@@ -65,8 +65,6 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ref, ..
     );
 }
 
-ScrollViewWithContext.displayName = 'ScrollViewWithContext';
-
 export default ScrollViewWithContext;
 export {ScrollContext};
 export type {ScrollContextValue};

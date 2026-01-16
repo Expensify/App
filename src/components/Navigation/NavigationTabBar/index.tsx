@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FloatingCameraButton from '@components/FloatingCameraButton';
-import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
 // import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -85,10 +84,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         | DomainSplitNavigatorParamList[typeof SCREENS.DOMAIN.INITIAL];
     const {typeMenuSections} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings']);
 
     const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;
-    const paramsDomainAccountID = params && 'accountID' in params ? params.accountID : undefined;
+    const paramsDomainAccountID = params && 'domainAccountID' in params ? params.domainAccountID : undefined;
 
     const lastViewedPolicySelector = useCallback(
         (policies: OnyxCollection<Policy>) => {
@@ -173,7 +172,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
+            const parentSpan = startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
                 name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
                 op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
             });
@@ -181,6 +180,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             startSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS, {
                 name: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
                 op: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+                parentSpan,
             });
 
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
@@ -250,9 +250,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 )}
                 <View
                     style={styles.leftNavigationTabBarContainer}
-                    testID={NavigationTabBar.displayName}
+                    testID="NavigationTabBar"
                 >
-                    <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
                             accessibilityRole={CONST.ROLE.BUTTON}
@@ -406,7 +405,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             )}
             <View
                 style={styles.navigationTabBarContainer}
-                testID={NavigationTabBar.displayName}
+                testID="NavigationTabBar"
             >
                 <PressableWithFeedback
                     onPress={navigateToChats}
@@ -517,7 +516,5 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         </>
     );
 }
-
-NavigationTabBar.displayName = 'NavigationTabBar';
 
 export default memo(NavigationTabBar);

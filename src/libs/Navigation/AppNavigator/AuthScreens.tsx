@@ -45,7 +45,6 @@ import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
-import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -171,9 +170,7 @@ function AuthScreens() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
-    // eslint-disable-next-line react-compiler/react-compiler
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
-    // eslint-disable-next-line react-compiler/react-compiler
     isLoadingAppRef.current = isLoadingApp;
 
     const handleNetworkReconnect = () => {
@@ -191,7 +188,7 @@ function AuthScreens() {
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
         initializePusher();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session]);
 
     useAutoUpdateTimezone();
@@ -232,7 +229,14 @@ function AuthScreens() {
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
         if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
             if (delegatorEmail) {
-                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID, isFromOldDot: true})
+                connect({
+                    email: delegatorEmail,
+                    delegatedAccess: account?.delegatedAccess,
+                    credentials,
+                    session,
+                    activePolicyID,
+                    isFromOldDot: true,
+                })
                     ?.then((success) => {
                         App.setAppLoading(!!success);
                     })
@@ -254,8 +258,6 @@ function AuthScreens() {
         }
 
         App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID);
-
-        App.redirectThirdPartyDesktopSignIn();
 
         Download.clearDownloads();
 
@@ -303,7 +305,7 @@ function AuthScreens() {
                 if (Navigation.isOnboardingFlow()) {
                     return;
                 }
-                Modal.close(Session.callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
+                Session.callFunctionIfActionIsAllowed(() => Modal.close(() => Navigation.navigate(ROUTES.NEW)))();
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
@@ -327,7 +329,7 @@ function AuthScreens() {
         };
 
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -353,12 +355,7 @@ function AuthScreens() {
                     return;
                 }
 
-                if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
-                    Navigation.dismissToPreviousRHP();
-                    return;
-                }
-
-                if (shouldRenderTertiaryOverlay) {
+                if (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderTertiaryOverlay) {
                     Navigation.dismissToPreviousRHP();
                     return;
                 }
@@ -622,11 +619,6 @@ function AuthScreens() {
                     listeners={modalScreenListenersWithCancelSearch}
                 />
                 <RootStack.Screen
-                    name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
-                    options={rootNavigatorScreenOptions.fullScreen}
-                    component={DesktopSignInRedirectPage}
-                />
-                <RootStack.Screen
                     name={NAVIGATORS.SHARE_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={ShareModalStackNavigator}
@@ -723,8 +715,6 @@ function AuthScreens() {
         </ComposeProviders>
     );
 }
-
-AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
