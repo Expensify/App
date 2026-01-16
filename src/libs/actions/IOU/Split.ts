@@ -75,6 +75,29 @@ import type {MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActi
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
+type UpdateSplitTransactionsParams = {
+    allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
+    allReportsList: OnyxCollection<OnyxTypes.Report>;
+    allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+    transactionData: {
+        reportID: string;
+        originalTransactionID: string;
+        splitExpenses: SplitExpense[];
+        splitExpensesTotal?: number;
+    };
+    searchContext?: Partial<SearchContextProps>;
+    policyCategories: OnyxTypes.PolicyCategories | undefined;
+    policy: OnyxTypes.Policy | undefined;
+    policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined;
+    isASAPSubmitBetaEnabled: boolean;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
+};
+
 type SplitBillActionsParams = {
     participants: Participant[];
     currentUserLogin: string;
@@ -101,334 +124,6 @@ type SplitBillActionsParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
 };
-
-type UpdateSplitTransactionsParams = {
-    allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
-    allReportsList: OnyxCollection<OnyxTypes.Report>;
-    allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-    transactionData: {
-        reportID: string;
-        originalTransactionID: string;
-        splitExpenses: SplitExpense[];
-        splitExpensesTotal?: number;
-    };
-    searchContext?: Partial<SearchContextProps>;
-    policyCategories: OnyxTypes.PolicyCategories | undefined;
-    policy: OnyxTypes.Policy | undefined;
-    policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
-    iouReport: OnyxEntry<OnyxTypes.Report>;
-    firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined;
-    isASAPSubmitBetaEnabled: boolean;
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    policyRecentlyUsedCurrencies: string[];
-};
-
-/** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
- *
- * @param chatReportID - The group chat or workspace reportID
- * @param reportAction - The split action that lives in the chatReport above
- * @param updatedTransaction - The updated **draft** split transaction
- * @param sessionAccountID - accountID of the current user
- * @param sessionEmail - email of the current user
- */
-function completeSplitBill(
-    chatReportID: string,
-    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
-    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    sessionAccountID: number,
-    isASAPSubmitBetaEnabled: boolean,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    sessionEmail?: string,
-) {
-    if (!reportAction) {
-        return;
-    }
-
-    const parsedComment = getParsedComment(Parser.htmlToMarkdown(updatedTransaction?.comment?.comment ?? ''));
-    if (updatedTransaction?.comment) {
-        // eslint-disable-next-line no-param-reassign
-        updatedTransaction.comment.comment = parsedComment;
-    }
-    const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(sessionEmail);
-    const transactionID = updatedTransaction?.transactionID;
-    const unmodifiedTransaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-
-    // Save optimistic updated transaction and action
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                ...updatedTransaction,
-                receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.OPEN,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-            value: {
-                [reportAction.reportActionID]: {
-                    lastModified: DateUtils.getDBTime(),
-                    originalMessage: {
-                        whisperedTo: [],
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {pendingAction: null},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-            value: {pendingAction: null},
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                ...unmodifiedTransaction,
-                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-            value: {
-                [reportAction.reportActionID]: {
-                    ...reportAction,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
-                },
-            },
-        },
-    ];
-
-    const splitParticipants: Split[] = updatedTransaction?.comment?.splits ?? [];
-    const amount = updatedTransaction?.modifiedAmount;
-    const currency = updatedTransaction?.modifiedCurrency;
-
-    // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
-    const splitAmount = calculateIOUAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
-    const splitTaxAmount = calculateIOUAmount(splitParticipants.length - 1, updatedTransaction?.taxAmount ?? 0, currency ?? '', false);
-
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit}];
-    for (const participant of splitParticipants) {
-        // Skip creating the transaction for the current user
-        if (participant.email === currentUserEmailForIOUSplit) {
-            continue;
-        }
-        const isPolicyExpenseChat = !!participant.policyID;
-
-        if (!isPolicyExpenseChat) {
-            // In case this is still the optimistic accountID saved in the splits array, return early as we cannot know
-            // if there is an existing chat between the split creator and this participant
-            // Instead, we will rely on Auth generating the report IDs and the user won't see any optimistic chats or reports created
-            const participantPersonalDetails: OnyxTypes.PersonalDetails | null = getAllPersonalDetails()[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-            if (!participantPersonalDetails || participantPersonalDetails.isOptimisticPersonalDetail) {
-                splits.push({
-                    email: participant.email,
-                });
-                continue;
-            }
-        }
-
-        let oneOnOneChatReport: OnyxEntry<OnyxTypes.Report>;
-        let isNewOneOnOneChatReport = false;
-        if (isPolicyExpenseChat) {
-            // The expense chat reportID is saved in the splits array when starting a split expense with a workspace
-            oneOnOneChatReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`];
-        } else {
-            const existingChatReport = getChatByParticipants(participant.accountID ? [participant.accountID, sessionAccountID] : []);
-            isNewOneOnOneChatReport = !existingChatReport;
-            oneOnOneChatReport =
-                existingChatReport ??
-                buildOptimisticChatReport({
-                    participantList: participant.accountID ? [participant.accountID, sessionAccountID] : [],
-                });
-        }
-
-        let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false);
-
-        // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
-        const optimisticTransactionID = NumberUtils.rand64();
-        const optimisticExpenseReportID = generateReportID();
-
-        if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
-            const reportTransactions = buildMinimalTransactionForFormula(
-                optimisticTransactionID,
-                optimisticExpenseReportID,
-                updatedTransaction?.modifiedCreated,
-                splitAmount,
-                currency ?? '',
-                updatedTransaction?.modifiedMerchant,
-            );
-
-            oneOnOneIOUReport = isPolicyExpenseChat
-                ? buildOptimisticExpenseReport(
-                      oneOnOneChatReport?.reportID,
-                      participant.policyID,
-                      sessionAccountID,
-                      splitAmount,
-                      currency ?? '',
-                      undefined,
-                      undefined,
-                      optimisticExpenseReportID,
-                      reportTransactions,
-                  )
-                : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
-        } else if (isPolicyExpenseChat) {
-            if (typeof oneOnOneIOUReport?.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-                oneOnOneIOUReport.total -= splitAmount;
-            }
-        } else {
-            oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
-        }
-
-        const oneOnOneTransaction = buildOptimisticTransaction({
-            existingTransactionID: optimisticTransactionID,
-            originalTransactionID: transactionID,
-            transactionParams: {
-                amount: isPolicyExpenseChat ? -splitAmount : splitAmount,
-                currency: currency ?? '',
-                reportID: oneOnOneIOUReport?.reportID,
-                comment: parsedComment,
-                created: updatedTransaction?.modifiedCreated,
-                merchant: updatedTransaction?.modifiedMerchant,
-                receipt: {...updatedTransaction?.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
-                category: updatedTransaction?.category,
-                tag: updatedTransaction?.tag,
-                taxCode: updatedTransaction?.taxCode,
-                taxAmount: isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
-                billable: updatedTransaction?.billable,
-                reimbursable: updatedTransaction?.reimbursable,
-                source: CONST.IOU.TYPE.SPLIT,
-                filename: updatedTransaction?.receipt?.filename,
-            },
-        });
-        oneOnOneIOUReport.transactionCount = (oneOnOneIOUReport.transactionCount ?? 0) + 1;
-
-        const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
-            buildOptimisticMoneyRequestEntities({
-                iouReport: oneOnOneIOUReport,
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                amount: splitAmount,
-                currency: currency ?? '',
-                comment: parsedComment,
-                payeeEmail: currentUserEmailForIOUSplit,
-                participants: [participant],
-                transactionID: oneOnOneTransaction.transactionID,
-            });
-
-        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
-        if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
-        } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
-        }
-        const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
-
-        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
-            isNewChatReport: isNewOneOnOneChatReport,
-            isOneOnOneSplit: true,
-            shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
-            isASAPSubmitBetaEnabled,
-            currentUserAccountIDParam: sessionAccountID,
-            currentUserEmailParam: sessionEmail ?? '',
-            hasViolations,
-            optimisticParams: {
-                chat: {
-                    report: oneOnOneChatReport,
-                    createdAction: oneOnOneCreatedActionForChat,
-                    reportPreviewAction: oneOnOneReportPreviewAction,
-                },
-                iou: {
-                    report: oneOnOneIOUReport,
-                    createdAction: oneOnOneCreatedActionForIOU,
-                    action: oneOnOneIOUAction,
-                },
-                transactionParams: {
-                    transaction: oneOnOneTransaction,
-                    transactionThreadReport: optimisticTransactionThread,
-                    transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
-                },
-                policyRecentlyUsed: {},
-            },
-            quickAction,
-        });
-
-        splits.push({
-            email: participant.email,
-            accountID: participant.accountID,
-            policyID: participant.policyID,
-            iouReportID: oneOnOneIOUReport?.reportID,
-            chatReportID: oneOnOneChatReport?.reportID,
-            transactionID: oneOnOneTransaction.transactionID,
-            reportActionID: oneOnOneIOUAction.reportActionID,
-            createdChatReportActionID: oneOnOneCreatedActionForChat.reportActionID,
-            createdIOUReportActionID: oneOnOneCreatedActionForIOU.reportActionID,
-            reportPreviewReportActionID: oneOnOneReportPreviewAction.reportActionID,
-            transactionThreadReportID: optimisticTransactionThread.reportID,
-            createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
-        });
-
-        optimisticData.push(...oneOnOneOptimisticData);
-        successData.push(...oneOnOneSuccessData);
-        failureData.push(...oneOnOneFailureData);
-    }
-
-    const {
-        amount: transactionAmount,
-        currency: transactionCurrency,
-        created: transactionCreated,
-        merchant: transactionMerchant,
-        comment: transactionComment,
-        category: transactionCategory,
-        tag: transactionTag,
-        taxCode: transactionTaxCode,
-        taxAmount: transactionTaxAmount,
-        billable: transactionBillable,
-        reimbursable: transactionReimbursable,
-    } = getTransactionDetails(updatedTransaction) ?? {};
-
-    const parameters: CompleteSplitBillParams = {
-        transactionID,
-        amount: transactionAmount,
-        currency: transactionCurrency,
-        created: transactionCreated,
-        merchant: transactionMerchant,
-        comment: transactionComment,
-        category: transactionCategory,
-        tag: transactionTag,
-        splits: JSON.stringify(splits),
-        taxCode: transactionTaxCode,
-        taxAmount: transactionTaxAmount,
-        billable: transactionBillable,
-        reimbursable: transactionReimbursable,
-        description: parsedComment,
-    };
-
-    playSound(SOUNDS.DONE);
-    API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    dismissModalAndOpenReportInInboxTab(chatReportID);
-    notifyNewAction(chatReportID, sessionAccountID);
-}
 
 /**
  * @param amount - always in smallest currency unit
@@ -861,7 +556,7 @@ function startSplitBill({
             continue;
         }
 
-        const participantPersonalDetails = getAllPersonalDetails()[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+        const participantPersonalDetails = allPersonalDetails[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         if (!participantPersonalDetails) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -968,6 +663,311 @@ function startSplitBill({
 
     // Return the split transactionID for testing purpose
     return {splitTransactionID: splitTransaction.transactionID};
+}
+
+/** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
+ *
+ * @param chatReportID - The group chat or workspace reportID
+ * @param reportAction - The split action that lives in the chatReport above
+ * @param updatedTransaction - The updated **draft** split transaction
+ * @param sessionAccountID - accountID of the current user
+ * @param sessionEmail - email of the current user
+ */
+function completeSplitBill(
+    chatReportID: string,
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
+    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
+    sessionAccountID: number,
+    isASAPSubmitBetaEnabled: boolean,
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
+    sessionEmail?: string,
+) {
+    if (!reportAction) {
+        return;
+    }
+
+    const parsedComment = getParsedComment(Parser.htmlToMarkdown(updatedTransaction?.comment?.comment ?? ''));
+    if (updatedTransaction?.comment) {
+        // eslint-disable-next-line no-param-reassign
+        updatedTransaction.comment.comment = parsedComment;
+    }
+    const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(sessionEmail);
+    const transactionID = updatedTransaction?.transactionID;
+    const unmodifiedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+    // Save optimistic updated transaction and action
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                ...updatedTransaction,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.OPEN,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    lastModified: DateUtils.getDBTime(),
+                    originalMessage: {
+                        whisperedTo: [],
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {pendingAction: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
+            value: {pendingAction: null},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                ...unmodifiedTransaction,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    ...reportAction,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    const splitParticipants: Split[] = updatedTransaction?.comment?.splits ?? [];
+    const amount = Number(updatedTransaction?.modifiedAmount);
+    const currency = updatedTransaction?.modifiedCurrency;
+
+    // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
+    const splitAmount = calculateIOUAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
+    const splitTaxAmount = calculateIOUAmount(splitParticipants.length - 1, updatedTransaction?.taxAmount ?? 0, currency ?? '', false);
+
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit}];
+    for (const participant of splitParticipants) {
+        // Skip creating the transaction for the current user
+        if (participant.email === currentUserEmailForIOUSplit) {
+            continue;
+        }
+        const isPolicyExpenseChat = !!participant.policyID;
+
+        if (!isPolicyExpenseChat) {
+            // In case this is still the optimistic accountID saved in the splits array, return early as we cannot know
+            // if there is an existing chat between the split creator and this participant
+            // Instead, we will rely on Auth generating the report IDs and the user won't see any optimistic chats or reports created
+            const participantPersonalDetails: OnyxTypes.PersonalDetails | null = allPersonalDetails[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+            if (!participantPersonalDetails || participantPersonalDetails.isOptimisticPersonalDetail) {
+                splits.push({
+                    email: participant.email,
+                });
+                continue;
+            }
+        }
+
+        let oneOnOneChatReport: OnyxEntry<OnyxTypes.Report>;
+        let isNewOneOnOneChatReport = false;
+        if (isPolicyExpenseChat) {
+            // The expense chat reportID is saved in the splits array when starting a split expense with a workspace
+            oneOnOneChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`];
+        } else {
+            const existingChatReport = getChatByParticipants(participant.accountID ? [participant.accountID, sessionAccountID] : []);
+            isNewOneOnOneChatReport = !existingChatReport;
+            oneOnOneChatReport =
+                existingChatReport ??
+                buildOptimisticChatReport({
+                    participantList: participant.accountID ? [participant.accountID, sessionAccountID] : [],
+                });
+        }
+
+        let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
+        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false);
+
+        // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
+        const optimisticTransactionID = NumberUtils.rand64();
+        const optimisticExpenseReportID = generateReportID();
+
+        if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
+            const reportTransactions = buildMinimalTransactionForFormula(
+                optimisticTransactionID,
+                optimisticExpenseReportID,
+                updatedTransaction?.modifiedCreated,
+                splitAmount,
+                currency ?? '',
+                updatedTransaction?.modifiedMerchant,
+            );
+
+            oneOnOneIOUReport = isPolicyExpenseChat
+                ? buildOptimisticExpenseReport(
+                      oneOnOneChatReport?.reportID,
+                      participant.policyID,
+                      sessionAccountID,
+                      splitAmount,
+                      currency ?? '',
+                      undefined,
+                      undefined,
+                      optimisticExpenseReportID,
+                      reportTransactions,
+                  )
+                : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
+        } else if (isPolicyExpenseChat) {
+            if (typeof oneOnOneIOUReport?.total === 'number') {
+                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+                oneOnOneIOUReport.total -= splitAmount;
+            }
+        } else {
+            oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
+        }
+
+        const oneOnOneTransaction = buildOptimisticTransaction({
+            existingTransactionID: optimisticTransactionID,
+            originalTransactionID: transactionID,
+            transactionParams: {
+                amount: isPolicyExpenseChat ? -splitAmount : splitAmount,
+                currency: currency ?? '',
+                reportID: oneOnOneIOUReport?.reportID,
+                comment: parsedComment,
+                created: updatedTransaction?.modifiedCreated,
+                merchant: updatedTransaction?.modifiedMerchant,
+                receipt: {...updatedTransaction?.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
+                category: updatedTransaction?.category,
+                tag: updatedTransaction?.tag,
+                taxCode: updatedTransaction?.taxCode,
+                taxAmount: isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
+                billable: updatedTransaction?.billable,
+                reimbursable: updatedTransaction?.reimbursable,
+                source: CONST.IOU.TYPE.SPLIT,
+                filename: updatedTransaction?.receipt?.filename,
+            },
+        });
+        oneOnOneIOUReport.transactionCount = (oneOnOneIOUReport.transactionCount ?? 0) + 1;
+
+        const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+            buildOptimisticMoneyRequestEntities({
+                iouReport: oneOnOneIOUReport,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: splitAmount,
+                currency: currency ?? '',
+                comment: parsedComment,
+                payeeEmail: currentUserEmailForIOUSplit,
+                participants: [participant],
+                transactionID: oneOnOneTransaction.transactionID,
+            });
+
+        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
+        if (oneOnOneReportPreviewAction) {
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+        } else {
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
+        }
+        const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
+
+        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
+            isNewChatReport: isNewOneOnOneChatReport,
+            isOneOnOneSplit: true,
+            shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
+            isASAPSubmitBetaEnabled,
+            currentUserAccountIDParam: sessionAccountID,
+            currentUserEmailParam: sessionEmail ?? '',
+            hasViolations,
+            optimisticParams: {
+                chat: {
+                    report: oneOnOneChatReport,
+                    createdAction: oneOnOneCreatedActionForChat,
+                    reportPreviewAction: oneOnOneReportPreviewAction,
+                },
+                iou: {
+                    report: oneOnOneIOUReport,
+                    createdAction: oneOnOneCreatedActionForIOU,
+                    action: oneOnOneIOUAction,
+                },
+                transactionParams: {
+                    transaction: oneOnOneTransaction,
+                    transactionThreadReport: optimisticTransactionThread,
+                    transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+                },
+                policyRecentlyUsed: {},
+            },
+            quickAction,
+        });
+
+        splits.push({
+            email: participant.email,
+            accountID: participant.accountID,
+            policyID: participant.policyID,
+            iouReportID: oneOnOneIOUReport?.reportID,
+            chatReportID: oneOnOneChatReport?.reportID,
+            transactionID: oneOnOneTransaction.transactionID,
+            reportActionID: oneOnOneIOUAction.reportActionID,
+            createdChatReportActionID: oneOnOneCreatedActionForChat.reportActionID,
+            createdIOUReportActionID: oneOnOneCreatedActionForIOU.reportActionID,
+            reportPreviewReportActionID: oneOnOneReportPreviewAction.reportActionID,
+            transactionThreadReportID: optimisticTransactionThread.reportID,
+            createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
+        });
+
+        optimisticData.push(...oneOnOneOptimisticData);
+        successData.push(...oneOnOneSuccessData);
+        failureData.push(...oneOnOneFailureData);
+    }
+
+    const {
+        amount: transactionAmount,
+        currency: transactionCurrency,
+        created: transactionCreated,
+        merchant: transactionMerchant,
+        comment: transactionComment,
+        category: transactionCategory,
+        tag: transactionTag,
+        taxCode: transactionTaxCode,
+        taxAmount: transactionTaxAmount,
+        billable: transactionBillable,
+        reimbursable: transactionReimbursable,
+    } = getTransactionDetails(updatedTransaction) ?? {};
+
+    const parameters: CompleteSplitBillParams = {
+        transactionID,
+        amount: transactionAmount,
+        currency: transactionCurrency,
+        created: transactionCreated,
+        merchant: transactionMerchant,
+        comment: transactionComment,
+        category: transactionCategory,
+        tag: transactionTag,
+        splits: JSON.stringify(splits),
+        taxCode: transactionTaxCode,
+        taxAmount: transactionTaxAmount,
+        billable: transactionBillable,
+        reimbursable: transactionReimbursable,
+        description: parsedComment,
+    };
+
+    playSound(SOUNDS.DONE);
+    API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    dismissModalAndOpenReportInInboxTab(chatReportID);
+    notifyNewAction(chatReportID, sessionAccountID);
 }
 
 function updateSplitTransactions({
@@ -1200,8 +1200,8 @@ function updateSplitTransactions({
             }
 
             if (Object.keys(transactionChanges).length > 0) {
-                const transactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID}`];
-                const transactionIOUReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense?.reportID ?? transactionThreadReport?.parentReportID}`];
+                const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID}`];
+                const transactionIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense?.reportID ?? transactionThreadReport?.parentReportID}`];
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     transactionID: existingTransactionID,
                     transactionThreadReport,
@@ -1311,7 +1311,7 @@ function updateSplitTransactions({
                     errors: null,
                 },
             };
-            const transactionThread = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
+            const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
@@ -1336,7 +1336,7 @@ function updateSplitTransactions({
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
-                value: transactionThread,
+                value: transactionThread ?? null,
             });
         }
 
@@ -1517,7 +1517,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     }
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
 
         // After the modal is dismissed, remove the transaction thread report screen
         // to avoid navigating back to a report removed by the split transaction.

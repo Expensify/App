@@ -58,6 +58,7 @@ import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
+import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
@@ -961,6 +962,11 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string) {
         const rhpKey = rootState.routes.at(-1)?.state?.key;
         if (rhpKey) {
             const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === reportID).length > 0;
+            // When a report is opened in the super wide RHP, we need to dismiss to the first RHP to show the same report with new expense.
+            if (isReportOpenInSuperWideRHP(rootState)) {
+                Navigation.dismissToPreviousRHP();
+                return;
+            }
             // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
                 Navigation.dismissModal();
@@ -1120,6 +1126,8 @@ function initMoneyRequest({
         }
     }
 
+    const defaultMerchant = newIouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.TRANSACTION.DEFAULT_MERCHANT : CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+
     const newTransaction = {
         amount: 0,
         comment,
@@ -1130,7 +1138,7 @@ function initMoneyRequest({
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
-        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        merchant: defaultMerchant,
     };
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
@@ -6628,6 +6636,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
                 description: parsedComment,
+                isDistance: isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction),
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;

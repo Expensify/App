@@ -876,6 +876,10 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Emoji',
         collapse: 'Réduire',
         expand: 'Développer',
+        askConciergeToCreate: 'Demander à Concierge AI de créer une dépense...',
+        askConciergeToUpdate: 'Demander à Concierge AI de mettre à jour une dépense...',
+        askConciergeToCorrect: 'Demander à Concierge AI de corriger une dépense...',
+        addColleagueWithMention: 'Ajoutez un collègue avec une mention « @ »...',
     },
     reportActionContextMenu: {
         copyMessage: 'Copier le message',
@@ -905,6 +909,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Voulez-vous vraiment supprimer ce(tte) ${type} ?`;
         },
         onlyVisible: 'Visible uniquement pour',
+        explain: 'Expliquer',
+        explainMessage: 'Veuillez m’expliquer cela.',
         replyInThread: 'Répondre dans le fil',
         joinThread: 'Rejoindre la discussion',
         leaveThread: 'Quitter la discussion',
@@ -1498,6 +1504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitByDate: 'Scinder par date',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapport acheminé vers ${to} en raison d'un workflow d'approbation personnalisé`,
         timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'heure' : 'heures'} @ ${rate} / heure`, hrs: 'h'},
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Expliquer</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
@@ -6507,12 +6514,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         deleteReportField: (fieldType: string, fieldName?: string) => `${fieldType} de rapport "${fieldName}" supprimé`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `mis à jour « Empêcher l’auto-approbation » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `a modifié le montant maximal d’une dépense nécessitant un reçu à ${newValue} (auparavant ${oldValue})`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `a modifié le montant maximal d’une dépense pour les violations à ${newValue} (auparavant ${oldValue})`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `« Ancienneté maximale de la dépense (jours) » mise à jour sur « ${newValue} » (précédemment « ${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue} »)`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `définir la date de soumission du rapport mensuel sur « ${newValue} »`;
@@ -6668,6 +6669,16 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             previousForwardsTo
                 ? `a modifié le flux d’approbation pour ${approver} afin de ne plus transférer les rapports approuvés (auparavant transférés à ${previousForwardsTo})`
                 : `a modifié le flux d'approbation pour ${approver} afin de ne plus transférer les rapports approuvés`,
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `définir le montant requis du reçu sur « ${newValue} »`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `montant requis du reçu modifié à « ${newValue} » (précédemment « ${oldValue} »)`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `montant requis du reçu supprimé (précédemment « ${oldValue} »)`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `définir le montant maximal de la dépense sur « ${newValue} »`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `montant maximal de dépense modifié en « ${newValue} » (précédemment « ${oldValue} »)`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `montant maximal de dépense supprimé (précédemment « ${oldValue} »)`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `définir l’ancienneté maximale de la dépense sur « ${newValue} » jours`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `nombre maximal de jours avant une dépense modifiée à « ${newValue} » jours (auparavant « ${oldValue} »)`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximum des dépenses supprimé (auparavant « ${oldValue} » jours)`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `a modifié le payeur autorisé en « ${newReimburser} » (auparavant « ${previousReimburser} »)` : `a modifié le payeur autorisé en « ${newReimburser} »`,
     },
