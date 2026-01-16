@@ -165,7 +165,6 @@ function useSelectedTransactionsActions({
         setIsDeleteModalVisible(false);
     }, []);
 
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const computedOptions = useMemo(() => {
         if (!selectedTransactionIDs.length) {
             return [];
