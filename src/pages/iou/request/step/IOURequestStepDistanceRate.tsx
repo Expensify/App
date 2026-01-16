@@ -111,8 +111,6 @@ function IOURequestStepDistanceRate({
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, unit));
             const taxPercentage = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;
             taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
-            setMoneyRequestTaxAmount(transactionID, taxAmount);
-            setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null);
         }
 
         if (currentRateID !== customUnitRateID) {
@@ -134,6 +132,11 @@ function IOURequestStepDistanceRate({
                     updatedTaxCode: taxRateExternalID,
                 });
             }
+        }
+
+        if (!isEditing && taxAmount !== undefined) {
+            setMoneyRequestTaxAmount(transactionID, taxAmount);
+            setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null);
         }
 
         navigateBack();
