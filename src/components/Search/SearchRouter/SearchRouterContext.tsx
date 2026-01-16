@@ -33,11 +33,9 @@ const defaultSearchRouterActionsContext: SearchRouterActionsContextType = {
     unregisterSearchPageInput: () => {},
 };
 
-const SearchRouterStateContext =
-    React.createContext<SearchRouterStateContextType>({isSearchRouterDisplayed: false});
+const SearchRouterStateContext = React.createContext<SearchRouterStateContextType>({isSearchRouterDisplayed: false});
 
-const SearchRouterActionsContext =
-    React.createContext<SearchRouterActionsContextType>(defaultSearchRouterActionsContext);
+const SearchRouterActionsContext = React.createContext<SearchRouterActionsContextType>(defaultSearchRouterActionsContext);
 
 const isBrowserWithHistory = typeof window !== 'undefined' && typeof window.history !== 'undefined';
 const canListenPopState = typeof window !== 'undefined' && typeof window.addEventListener === 'function';
@@ -77,7 +75,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
 
     const openSearchRouter = () => {
         if (isBrowserWithHistory) {
-            window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '',)
+            window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
         }
         close(
             () => {
@@ -148,17 +146,11 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         unregisterSearchPageInput,
     };
 
-    const stateContextValue = {isSearchRouterDisplayed}
+    const stateContextValue = {isSearchRouterDisplayed};
 
     return (
-        <SearchRouterActionsContext.Provider
-            value={actionsContextValue}
-        >
-            <SearchRouterStateContext.Provider
-                value={stateContextValue}
-            >
-                {children}
-            </SearchRouterStateContext.Provider>
+        <SearchRouterActionsContext.Provider value={actionsContextValue}>
+            <SearchRouterStateContext.Provider value={stateContextValue}>{children}</SearchRouterStateContext.Provider>
         </SearchRouterActionsContext.Provider>
     );
 }
@@ -171,8 +163,4 @@ function useSearchRouterActions() {
     return useContext(SearchRouterActionsContext);
 }
 
-export {
-    SearchRouterContextProvider,
-    useSearchRouterState,
-    useSearchRouterActions,
-};
+export {SearchRouterContextProvider, useSearchRouterState, useSearchRouterActions};
