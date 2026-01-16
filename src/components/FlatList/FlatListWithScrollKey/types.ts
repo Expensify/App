@@ -1,5 +1,5 @@
-import type {FlatListProps, ListRenderItem, FlatList as RNFlatList} from 'react-native';
 import type {ForwardedRef} from 'react';
+import type {FlatListProps, ListRenderItem, FlatList as RNFlatList} from 'react-native';
 
 type BaseFlatListWithScrollKeyProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScrollIndex' | 'onContentSizeChange'> & {
     data: T[];

@@ -61,7 +61,6 @@ type ContextMenuItemProps = WithSentryLabel & {
 
     /** Whether the menu item should show loading icon */
     shouldShowLoadingSpinnerIcon?: boolean;
-
 };
 
 function ContextMenuItem({
