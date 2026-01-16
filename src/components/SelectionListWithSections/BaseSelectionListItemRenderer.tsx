@@ -69,8 +69,15 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
         return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
     };
 
+    // We add this render condition to allow customizing how an item is rendered in the list,
+    // without requiring that item to be a ListItem.
+    if (item.shouldOnlyRenderHeaderContent) {
+        return item.headerContent;
+    }
+
     return (
         <>
+            {item.headerContent && item.headerContent}
             <ListItem
                 item={item}
                 isFocused={isFocused}

@@ -1,5 +1,6 @@
 /* eslint-disable max-lines */
 import {findFocusedRoute} from '@react-navigation/native';
+import type {ReactNode} from '@types/react';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
@@ -899,6 +900,8 @@ type OptionData = {
     lastName?: string;
     avatar?: AvatarSource;
     timezone?: Timezone;
+    shouldOnlyRenderHeaderContent?: boolean;
+    headerContent?: ReactNode;
 } & Report &
     ReportNameValuePairs;
 

@@ -208,6 +208,12 @@ type ListItem<K extends string | number = string> = {
     /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
 
+    /** Allows us to render only the header content, making it easier to embed items other than ListItem into the list */
+    shouldOnlyRenderHeaderContent?: boolean;
+
+    /** Element to render above the ListItem */
+    headerContent?: ReactNode;
+
     /** Element to render below the ListItem */
     footerContent?: ReactNode;
 

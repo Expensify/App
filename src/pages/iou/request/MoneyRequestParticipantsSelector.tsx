@@ -272,6 +272,21 @@ function MoneyRequestParticipantsSelector({
         !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) &&
         inputHelperText === translate('common.noResultsFound');
 
+    const importContactsButtonComponent = useMemo(() => {
+        const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
+        if (!shouldShowImportContactsButton) {
+            return null;
+        }
+        return (
+            <MenuItem
+                title={translate('contact.importContacts')}
+                icon={icons.UserPlus}
+                onPress={goToSettings}
+                shouldShowRightIcon
+            />
+        );
+    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, translate]);
+
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
@@ -349,6 +364,16 @@ function MoneyRequestParticipantsSelector({
             headerMessage = inputHelperText;
         }
 
+        const sectionsLength = newSections.reduce((value, section) => value + section.data.length, 0);
+        if (sectionsLength > 0 && importContactsButtonComponent) {
+            // Always render the "Import contacts" button at the top of the list
+            newSections.unshift({
+                title: undefined,
+                data: [{shouldOnlyRenderHeaderContent: true, headerContent: importContactsButtonComponent}],
+                shouldShow: true,
+            });
+        }
+
         return [newSections, headerMessage];
     }, [
         areOptionsInitialized,
@@ -368,6 +393,7 @@ function MoneyRequestParticipantsSelector({
         isPerDiemRequest,
         showImportContacts,
         inputHelperText,
+        importContactsButtonComponent,
     ]);
 
     /**
@@ -430,21 +456,6 @@ function MoneyRequestParticipantsSelector({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
-
-    const importContactsButtonComponent = useMemo(() => {
-        const shouldShowImportContactsButton = contactState?.permissionStatus !== RESULTS.UNAVAILABLE && (contactState?.showImportUI ?? showImportContacts);
-        if (!shouldShowImportContactsButton || showLoadingPlaceholder || shouldShowListEmptyContent) {
-            return null;
-        }
-        return (
-            <MenuItem
-                title={translate('contact.importContacts')}
-                icon={icons.UserPlus}
-                onPress={goToSettings}
-                shouldShowRightIcon
-            />
-        );
-    }, [icons.UserPlus, contactState?.permissionStatus, contactState?.showImportUI, showImportContacts, translate, showLoadingPlaceholder, shouldShowListEmptyContent]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !selectedOptions.length) {
@@ -571,14 +582,11 @@ function MoneyRequestParticipantsSelector({
                 shouldSingleExecuteRowSelect
                 canShowProductTrainingTooltip={canShowManagerMcTest}
                 headerContent={
-                    <>
-                        <ImportContactButton
-                            showImportContacts={contactState?.showImportUI ?? showImportContacts}
-                            inputHelperText={inputHelperText}
-                            isInSearch
-                        />
-                        {importContactsButtonComponent}
-                    </>
+                    <ImportContactButton
+                        showImportContacts={contactState?.showImportUI ?? showImportContacts}
+                        inputHelperText={inputHelperText}
+                        isInSearch
+                    />
                 }
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
