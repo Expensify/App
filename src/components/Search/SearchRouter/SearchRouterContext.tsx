@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {closeSearch, openSearch} from './toggleSearch';
 
 type SearchRouterStateContextType = {
     isSearchRouterDisplayed: boolean;
@@ -47,6 +46,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
     const searchPageInputRef = useRef<AnimatedTextInputRef | undefined>(undefined);
+
     useEffect(() => {
         if (!canListenPopState) {
             return;
@@ -82,7 +82,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             }
             close(
                 () => {
-                    openSearch(setIsSearchRouterDisplayed);
+                    setIsSearchRouterDisplayed(true);
                     searchRouterDisplayedRef.current = true;
                 },
                 false,
@@ -90,7 +90,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             );
         };
         const closeSearchRouter = () => {
-            closeSearch(setIsSearchRouterDisplayed);
+            setIsSearchRouterDisplayed(false);
             searchRouterDisplayedRef.current = false;
             if (isBrowserWithHistory) {
                 const state = window.history.state as HistoryState | null;
