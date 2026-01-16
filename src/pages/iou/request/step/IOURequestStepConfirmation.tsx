@@ -434,14 +434,6 @@ function IOURequestStepConfirmation({
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, initialTransactionID, reportID));
             return;
         }
-        if (isTimeRequest) {
-            if (isMovingTransactionFromTrackExpense) {
-                return Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID ?? reportID, undefined, action), {
-                    compareParams: false,
-                });
-            }
-            return Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.getRoute(action, iouType, initialTransactionID, reportID));
-        }
 
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
@@ -483,7 +475,6 @@ function IOURequestStepConfirmation({
         isMovingTransactionFromTrackExpense,
         participantsAutoAssignedFromRoute,
         backTo,
-        isTimeRequest,
     ]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
