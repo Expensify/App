@@ -128,7 +128,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         }
 
         const focusedRoute = findFocusedRoute(state);
-        if (focusedRoute?.name === SCREENS.REPORT) {
+        if (focusedRoute?.name === SCREENS.REPORT || focusedRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
             // We're guaranteed that the type of params is of SCREENS.REPORT
             return (focusedRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID;
         }

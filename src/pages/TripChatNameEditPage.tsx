@@ -56,12 +56,12 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     const editName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
             if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                updateChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.TRIP_ROOM);
+                updateChatName(reportID, report.reportName, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.TRIP_ROOM);
             }
 
             return Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
         },
-        [reportID, currentChatName],
+        [reportID, currentChatName, report?.reportName],
     );
 
     return (
