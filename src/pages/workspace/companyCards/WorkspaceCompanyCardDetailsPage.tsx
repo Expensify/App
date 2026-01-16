@@ -37,6 +37,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -103,6 +104,13 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const updateCard = () => {
         updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult);
     };
+
+    const breakConnection = () => {
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult, true);
+    };
+
+    // Show "Break connection" option only in non-production environments (staging/dev)
+    const shouldShowBreakConnection = CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION;
 
     const lastScrape = useMemo(() => {
         if (!card?.lastScrape) {
@@ -255,6 +263,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             onPress={updateCard}
                         />
                     </OfflineWithFeedback>
+                    {shouldShowBreakConnection && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            disabled={isOffline || card?.isLoadingLastUpdated}
+                            title="Break connection (Testing)"
+                            onPress={breakConnection}
+                        />
+                    )}
                     <MenuItem
                         icon={expensifyIcons.RemoveMembers}
                         title={translate('workspace.moreFeatures.companyCards.unassignCard')}
