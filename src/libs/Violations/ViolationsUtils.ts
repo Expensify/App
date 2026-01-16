@@ -502,7 +502,7 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
-        const shouldProcessMissingAttendees = !CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED;
+        const shouldProcessMissingAttendees = CONST.IS_ATTENDEES_REQUIRED_ENABLED;
 
         if (shouldProcessMissingAttendees) {
             if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
@@ -723,7 +723,7 @@ const ViolationsUtils = {
                 return (
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
                     shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction) &&
-                    (!CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES)
+                    (CONST.IS_ATTENDEES_REQUIRED_ENABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES)
                 );
             });
         });

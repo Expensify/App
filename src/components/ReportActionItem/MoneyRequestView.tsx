@@ -443,14 +443,15 @@ function MoneyRequestView({
         );
     };
 
+    // eslint-disable-next-line no-console
     console.log('Debug Logs:', {
-        policy: policy,
-        'policy?.id': policy?.id,
-        'policy?.type': policy?.type,
-        'policy?.isAttendeeTrackingEnabled': policy?.isAttendeeTrackingEnabled,
-        iouType: iouType,
-        'shouldShowAttendees result': shouldShowAttendees,
-        actualAttendees: actualAttendees,
+        policy,
+        policyID: policy?.id,
+        policyType: policy?.type,
+        policyIsAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
+        iouType,
+        shouldShowAttendeesResult: shouldShowAttendees,
+        actualAttendees,
     });
 
     const saveReimbursable = (newReimbursable: boolean) => {
