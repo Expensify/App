@@ -55,10 +55,10 @@ If no Domain Admins can log in, you won’t be able to access SAML settings. In 
 
 ---
 
-# Common error messages and how to fix them
+# How to resolve common SAML SSO error messages 
 
 ## Signature validation failed  
-This typically happens when the certificate has expired expired, malformed, or doesn't match the one used by your IdP.  
+This typically happens when the certificate has expired expired, is malformed, or doesn't match the one used by your IdP.  
 **How to fix it:** Re-upload a properly formatted metadata file from your IdP.
 
 ---
