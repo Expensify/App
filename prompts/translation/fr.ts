@@ -3,6 +3,8 @@ import dedent from '@libs/StringUtils/dedent';
 export default dedent(`
     When translating to French, follow these rules:
 
+    - Maintain French capitalization norms for UI labels and keep labels concise.
+    - Avoid slang unless the source text is explicitly casual.
     - Ensure proper spacing between sentences when French strings are concatenated (especially after periods).
     - Apply a single, consistent French convention for file transfer verbs (“télécharger” vs “téléverser”) across the app.
     - Translate “e-receipts” using the standardized French typographic form “e-reçus”.
