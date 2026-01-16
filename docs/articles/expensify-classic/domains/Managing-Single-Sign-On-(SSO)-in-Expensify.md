@@ -9,14 +9,21 @@ Expensify supports Single Sign-On (SSO) through the SAML protocol, allowing you 
 
 ---
 
-# Accessing SAML Settings
-⚠️ **Pre-requisite:** Ensure your [domain is verified](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain#step-2-verify-domain-ownership).
+# Where to find SAML Single Sign-On (SSO) settings
+**Pre-requisite:** Ensure your [domain is verified](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain#step-2-verify-domain-ownership).
 
 1. Navigate to: **Settings > Domains > [Domain Name] > SAML**.  
 2. **From the Domains page:**  
    - Download Expensify's **Service Provider Metadata** to provide to your Identity Provider.  
    - Enter the **Identity Provider Metadata** from your SSO provider. (Contact your provider if unsure how to obtain this).  
    - Enable the **"SAML required for login"** option, ensuring users sign in via SSO only.
+
+---
+
+## Who can use SAML Single Sign-On (SSO)
+
+- Only **Domain Admins** on verified domains can configure SAML SSO.
+- SSO applies to all Workspace members with email addresses matching the verified domain.
 
 ---
 
