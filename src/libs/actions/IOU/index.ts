@@ -11419,6 +11419,7 @@ function completePaymentOnboarding(
         wasInvited: true,
         shouldSkipTestDriveModal: true,
         companySize: introSelected?.companySize as OnboardingCompanySize,
+        introSelected,
     });
 }
 function payMoneyRequest(
