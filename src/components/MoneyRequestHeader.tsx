@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -20,7 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
+import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {setNameValuePair} from '@libs/actions/User';
@@ -38,6 +38,7 @@ import {
     isCurrentUserSubmitter,
     isDM,
     isSelfDM,
+    navigateBackOnDeleteTransaction,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
 } from '@libs/ReportUtils';
@@ -99,7 +100,7 @@ type MoneyRequestHeaderProps = {
 function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isInNarrowPaneModal} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute<
         PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT> | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
     >();
@@ -170,6 +171,63 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+
+    // A flag to indicate whether the user chose to delete the transaction or not
+    const isTransactionDeleted = useRef<boolean>(false);
+
+    const deleteExpense = useCallback(() => {
+        if (!parentReportAction || !transaction) {
+            return;
+        }
+
+        if (isTrackExpenseAction(parentReportAction)) {
+            deleteTrackExpense({
+                chatReportID: report?.parentReportID,
+                chatReport: parentReport,
+                transactionID: transaction.transactionID,
+                reportAction: parentReportAction,
+                iouReport,
+                chatIOUReport,
+                transactions: duplicateTransactions,
+                violations: duplicateTransactionViolations,
+                isSingleTransactionView: true,
+                isChatReportArchived: isParentReportArchived,
+                isChatIOUReportArchived,
+                allTransactionViolationsParam: allTransactionViolations,
+            });
+        } else {
+            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
+            removeTransaction(transaction.transactionID);
+        }
+    }, [
+        parentReportAction,
+        transaction,
+        report?.parentReportID,
+        parentReport,
+        iouReport,
+        chatIOUReport,
+        duplicateTransactions,
+        duplicateTransactionViolations,
+        isParentReportArchived,
+        isChatIOUReportArchived,
+        allTransactionViolations,
+        currentSearchHash,
+        deleteTransactions,
+        removeTransaction,
+    ]);
+
+    // Perform the actual deletion after the component is unmounted.
+    // This prevents the "It's not here" page from appearing when the transaction thread
+    // is deleted before navigation occurs.
+    useEffect(() => {
+        return () => {
+            if (!isTransactionDeleted.current) {
+                return;
+            }
+            isTransactionDeleted.current = false;
+            deleteExpense();
+        };
+    }, [deleteExpense]);
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
@@ -553,31 +611,49 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     if (!parentReportAction || !transaction) {
                         throw new Error('Data missing');
                     }
+
+                    // Set the flag to indicate deletion was requested.
+                    // The actual deletion will happen in the cleanup effect when the component unmounts.
+                    // This prevents the "It's not here" page from appearing because the component
+                    // will be gone before the deletion affects the data.
+                    isTransactionDeleted.current = true;
+
+                    // Calculate the proper navigation URL based on what happens after deletion
+                    let urlToNavigateBack;
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense({
-                            chatReportID: report?.parentReportID,
-                            chatReport: parentReport,
-                            transactionID: transaction.transactionID,
-                            reportAction: parentReportAction,
+                        urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
+                            report?.parentReportID,
+                            parentReport,
+                            transaction.transactionID,
+                            parentReportAction,
                             iouReport,
                             chatIOUReport,
-                            transactions: duplicateTransactions,
-                            violations: duplicateTransactionViolations,
-                            isSingleTransactionView: true,
-                            isChatReportArchived: isParentReportArchived,
-                            isChatIOUReportArchived,
-                            allTransactionViolationsParam: allTransactionViolations,
-                        });
+                            isParentReportArchived,
+                            true, // isSingleTransactionView
+                        );
                     } else {
-                        deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
-                        removeTransaction(transaction.transactionID);
-                    }
-                    if (isInNarrowPaneModal) {
-                        Navigation.navigateBackToLastSuperWideRHPScreen();
-                        return;
+                        urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
+                            transaction.transactionID,
+                            parentReportAction,
+                            iouReport,
+                            chatIOUReport,
+                            isChatIOUReportArchived,
+                            true, // isSingleTransactionView
+                        );
                     }
 
-                    onBackButtonPress();
+                    // Navigate to the proper destination - this will trigger the component unmount and subsequent deletion
+                    // Check if the URL is the chat report (meaning the expense report is being deleted).
+                    // In that case, just dismiss the modal since navigateBackOnDeleteTransaction would try to
+                    // go through the expense report first, which is being deleted and would show "not found".
+                    const iouReportChatReportID = iouReport?.chatReportID ?? chatIOUReport?.chatReportID;
+                    const isNavigatingToChatReport = urlToNavigateBack && iouReportChatReportID && urlToNavigateBack.includes(iouReportChatReportID);
+
+                    if (!urlToNavigateBack || isNavigatingToChatReport) {
+                        Navigation.dismissModal();
+                    } else {
+                        navigateBackOnDeleteTransaction(urlToNavigateBack);
+                    }
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
