@@ -1,8 +1,8 @@
 import hashStr from '@libs/StringUtils/hash';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import OpenAIUtils from '../OpenAIUtils';
-import Translator from './Translator';
 import {buildTranslationInstructions, buildTranslationRequestInput} from './TranslationPromptUtils';
+import Translator from './Translator';
 
 /**
  * Session state for a single locale, maintaining conversation context across translations.

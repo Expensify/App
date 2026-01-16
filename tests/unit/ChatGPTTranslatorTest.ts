@@ -19,6 +19,7 @@ function mockResponse(text: string, responseID = 'resp_test_123') {
 describe('ChatGPTTranslator.performTranslation', () => {
     const apiKey = 'test-api-key';
     const targetLang: Locale = 'it' as Locale;
+    const maxRetries = 4;
     // eslint-disable-next-line no-template-curly-in-string
     const original = 'Hello ${name}!';
     // eslint-disable-next-line no-template-curly-in-string
@@ -58,7 +59,7 @@ describe('ChatGPTTranslator.performTranslation', () => {
         const result = await translator.performTranslation(targetLang, original);
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(ChatGPTTranslator.MAX_RETRIES + 1);
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(maxRetries + 1);
         expect(result).toBe(original);
     });
 
@@ -117,14 +118,17 @@ describe('ChatGPTTranslator.performTranslation', () => {
         // @ts-expect-error TS2445
         await translator.performTranslation(targetLang, original);
 
-        const calls = (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mock.calls;
+        const mockedUtils = MockedOpenAIUtils.prototype as jest.Mocked<OpenAIUtils>;
+        const calls = mockedUtils.promptResponses.mock.calls;
+        const firstCall = calls.at(0)?.at(0);
+        const secondCall = calls.at(1)?.at(0);
 
         // First call should have no previousResponseID
-        expect(calls[0][0].conversationID).toBe('conv_test_123');
-        expect(calls[0][0].previousResponseID).toBeUndefined();
+        expect(firstCall?.conversationID).toBe('conv_test_123');
+        expect(firstCall?.previousResponseID).toBeUndefined();
 
         // Second call should have the previous response ID from first successful call
-        expect(calls[1][0].conversationID).toBe('conv_test_123');
-        expect(calls[1][0].previousResponseID).toBe(firstResponseID);
+        expect(secondCall?.conversationID).toBe('conv_test_123');
+        expect(secondCall?.previousResponseID).toBe(firstResponseID);
     });
 });

@@ -5,10 +5,10 @@ import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 /**
  * Gets a locale-specific prompt if one exists for the target language.
  */
-export async function getLocaleSpecificPrompt(targetLang: TranslationTargetLocale): Promise<string> {
+async function getLocaleSpecificPrompt(targetLang: TranslationTargetLocale): Promise<string> {
     try {
-        const localePrompt = await import(`@prompts/translation/${targetLang}`);
-        return localePrompt.default || '';
+        const localePrompt = (await import(`@prompts/translation/${targetLang}`)) as {default?: string};
+        return localePrompt.default ?? '';
     } catch {
         return '';
     }
@@ -17,7 +17,7 @@ export async function getLocaleSpecificPrompt(targetLang: TranslationTargetLocal
 /**
  * Build the system instructions for a locale, using the base prompt and locale-specific prompt.
  */
-export async function buildTranslationInstructions(targetLang: TranslationTargetLocale): Promise<string> {
+async function buildTranslationInstructions(targetLang: TranslationTargetLocale): Promise<string> {
     let instructions = '<system_prompt>\n';
     instructions += '<base_prompt>\n';
     instructions += getBasePrompt(targetLang);
@@ -25,7 +25,7 @@ export async function buildTranslationInstructions(targetLang: TranslationTarget
 
     const localeSpecificPrompt = await getLocaleSpecificPrompt(targetLang);
     if (localeSpecificPrompt) {
-        instructions += '\n\n<locale_specific_prompt language="' + targetLang + '">\n';
+        instructions += `\n\n<locale_specific_prompt language="${targetLang}">\n`;
         instructions += localeSpecificPrompt;
         instructions += '\n</locale_specific_prompt>';
     }
@@ -37,7 +37,7 @@ export async function buildTranslationInstructions(targetLang: TranslationTarget
 /**
  * Build the user input for a translation request, including optional phrase context.
  */
-export function buildTranslationRequestInput(text: string, context?: string): string {
+function buildTranslationRequestInput(text: string, context?: string): string {
     let input = '<translation_request>\n';
 
     const contextPrompt = getContextPrompt(context);
@@ -54,3 +54,5 @@ export function buildTranslationRequestInput(text: string, context?: string): st
 
     return input;
 }
+
+export {getLocaleSpecificPrompt, buildTranslationInstructions, buildTranslationRequestInput};

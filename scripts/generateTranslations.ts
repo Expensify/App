@@ -24,8 +24,8 @@ import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
-import type Translator from './utils/Translator/Translator';
 import {buildTranslationInstructions, buildTranslationRequestInput} from './utils/Translator/TranslationPromptUtils';
+import type Translator from './utils/Translator/Translator';
 import TSCompilerUtils, {TransformerAction} from './utils/TSCompilerUtils';
 import type {TransformerResult} from './utils/TSCompilerUtils';
 
@@ -423,7 +423,7 @@ class TranslationGenerator {
         }
 
         let totalInputTokens = perLocaleInputTokens * numLocales;
-        let totalOutputTokens = perLocaleOutputTokens * numLocales;
+        const totalOutputTokens = perLocaleOutputTokens * numLocales;
 
         // Add system instruction tokens with prompt caching applied after the first request per locale
         const cachedRequestCount = Math.max(numStrings - 1, 0);
