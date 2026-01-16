@@ -225,7 +225,6 @@ function IOURequestStepScan({
 
     const tapGesture = Gesture.Tap()
         .enabled(device?.supportsFocus ?? false)
-        // eslint-disable-next-line react-compiler/react-compiler
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
@@ -433,7 +432,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
                 });
 
                 if (shouldSkipConfirmation) {
