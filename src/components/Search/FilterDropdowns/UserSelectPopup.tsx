@@ -60,7 +60,8 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const accountID = currentUserPersonalDetails.accountID;
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.login;
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -104,22 +105,22 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
-                currentUserAccountID: accountID,
-                currentUserEmail: currentUserPersonalDetails.login,
+                currentUserAccountID,
+                currentUserEmail: currentUserEmail,
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode, accountID, currentUserPersonalDetails.login]);
+    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode, currentUserAccountID, currentUserEmail]);
 
     const filteredOptions = useMemo(() => {
         return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
-            currentUserEmail: currentUserPersonalDetails.login,
-            currentUserAccountID: accountID,
+            currentUserEmail,
+            currentUserAccountID,
         });
-    }, [optionsList, cleanSearchTerm, countryCode, loginList, accountID]);
+    }, [optionsList, cleanSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
