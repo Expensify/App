@@ -314,6 +314,7 @@ function getCustomUnitRateID({
         return customUnitRateID;
     }
 
+    // For TrackDistanceExpense we will return the default rate of the policyForMovingExpenses.
     if (isPolicyExpenseChat || isTrackDistanceExpense) {
         const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
