@@ -57,7 +57,7 @@ Yes. Use the **Payment Type** filter to choose a payment option that works best 
 ## What if my plans change?
 
 You can cancel or modify the booking if the hotel’s policy allows.
-Cancellation policies are shown during booking. Changes made via support incur a $25 booking change fee.
+Cancellation policies are shown during booking. Changes made through support may incur a fee of up to $25.
 
 To modify or cancel a booking:
 1. Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
