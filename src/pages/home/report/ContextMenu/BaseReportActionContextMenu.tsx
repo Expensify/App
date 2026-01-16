@@ -145,6 +145,7 @@ function BaseReportActionContextMenu({
         'Bug',
         'Trashcan',
         'Checkmark',
+        'Concierge',
     ] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -230,6 +231,7 @@ function BaseReportActionContextMenu({
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
@@ -385,6 +387,7 @@ function BaseReportActionContextMenu({
                             translate,
                             harvestReport,
                             currentUserAccountID,
+                            currentUserPersonalDetails,
                         };
 
                         if ('renderContent' in contextAction) {
