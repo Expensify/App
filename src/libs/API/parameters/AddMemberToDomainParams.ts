@@ -1,5 +1,5 @@
 type AddMemberToDomainParams = {
-    emailList: string[];
+    email: string;
     domainAccountID: number;
 };
 

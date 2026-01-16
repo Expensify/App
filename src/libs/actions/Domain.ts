@@ -787,9 +787,10 @@ function clearDomainErrors(domainAccountID: number) {
     });
 }
 
-function addMemberToDomain(domainAccountID: number, targetEmail: string) {
+function addMemberToDomain(domainAccountID: number, email: string) {
+    // eslint-disable rulesdir/no-default-id-values
     const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
-    const optimisticAccountID = generateAccountID(targetEmail);
+    const optimisticAccountID = generateAccountID(email);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -924,7 +925,7 @@ function addMemberToDomain(domainAccountID: number, targetEmail: string) {
     ];
 
     const params: AddMemberToDomainParams = {
-        emailList: [targetEmail],
+        email,
         domainAccountID,
     };
 
