@@ -35,6 +35,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
+    dismissToSuperWideRHP: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => '23423423'),
     setNavigationActionToMicrotaskQueue: jest.fn(),
