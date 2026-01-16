@@ -55,10 +55,9 @@ function SearchEditMultipleAmountPage() {
 
     const saveAmount = (currentMoney: CurrentMoney) => {
         const newAmount = convertToBackendAmount(Number.parseFloat(currentMoney.amount));
-        const shouldUpdateCurrency = selectedCurrency !== initialCurrency;
+        // TODO: Currency update should be handled in a separate PR
         updateBulkEditDraftTransaction({
             amount: newAmount,
-            ...(shouldUpdateCurrency ? {currency: currentMoney.currency} : {}),
         });
         Navigation.goBack();
     };
@@ -91,6 +90,8 @@ function SearchEditMultipleAmountPage() {
                 amount={Math.abs(amount)}
                 currency={selectedCurrency}
                 isEditing
+                // TODO: Enable currency picker in a separate PR
+                isCurrencyPressable={false}
                 ref={(e: BaseTextInputRef | null) => {
                     textInput.current = e;
                 }}

@@ -112,9 +112,6 @@ function SearchEditMultiplePage() {
         if (draftTransaction.amount !== undefined && draftTransaction.amount !== 0) {
             changes.amount = Math.abs(draftTransaction.amount);
         }
-        if (draftTransaction.currency) {
-            changes.currency = draftTransaction.currency;
-        }
         if (draftTransaction.merchant) {
             changes.merchant = draftTransaction.merchant;
         }
@@ -151,9 +148,6 @@ function SearchEditMultiplePage() {
         Navigation.dismissModal();
     };
 
-    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const displayCurrency = draftTransaction?.currency ?? currency;
-
     const updateBillable = (billable: boolean) => {
         updateBulkEditDraftTransaction({billable});
     };
@@ -162,10 +156,11 @@ function SearchEditMultiplePage() {
         updateBulkEditDraftTransaction({reimbursable});
     };
 
+    // TODO: Currency editing should be handled in a separate PR
     const fields = [
         {
             description: translate('iou.amount'),
-            title: draftTransaction?.amount ? convertToDisplayString(Math.abs(draftTransaction.amount), displayCurrency) : '',
+            title: draftTransaction?.amount ? convertToDisplayString(Math.abs(draftTransaction.amount)) : '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
             disabled: hasCustomUnitTransaction || hasPartiallyEditableTransaction,
         },
