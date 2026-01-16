@@ -97,6 +97,7 @@ function IOURequestStepParticipants({
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID);
     const selectedParticipants = useRef<Participant[]>(participants);
+    
     // We can assume that shouldAutoReport is true as the initial value is not used. shouldAutoReport is only used after the selectedReportID changes in addParticipant where we'd update shouldAutoReport too
     const shouldAutoReport = useRef(true);
     const numberOfParticipants = useRef(participants?.length ?? 0);
