@@ -120,7 +120,17 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             countryCode,
         );
         return result;
-    }, [areOptionsInitialized, options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode, recentAttendeeLists, shouldAllowNameOnlyOptions]);
+    }, [
+        areOptionsInitialized,
+        options.reports,
+        options.personalDetails,
+        draftComments,
+        nvpDismissedProductTraining,
+        loginList,
+        countryCode,
+        recentAttendeeLists,
+        shouldAllowNameOnlyOptions,
+    ]);
 
     const unselectedOptions = useMemo(() => {
         if (!shouldAllowNameOnlyOptions) {
@@ -249,7 +259,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                     if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && personalDetails?.[option.accountID]) {
                         return option.accountID.toString();
                     }
-                    
+
                     // For name-only attendees, use displayName or login as identifier
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string
                     return option.displayName || option.login;
