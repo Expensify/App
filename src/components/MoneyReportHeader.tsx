@@ -1387,7 +1387,9 @@ function MoneyReportHeader({
                             false,
                         );
                         if (goBackRoute) {
-                            navigateOnDeleteExpense(goBackRoute);
+                            requestAnimationFrame(() => {
+                                navigateOnDeleteExpense(goBackRoute);
+                            });
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
