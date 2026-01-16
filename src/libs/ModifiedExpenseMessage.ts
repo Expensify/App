@@ -28,7 +28,7 @@ import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, 
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -44,7 +44,7 @@ let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 let currentUserLogin = '';
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         // When signed out, value is undefined
