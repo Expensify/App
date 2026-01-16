@@ -1,13 +1,13 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type { OnyxUpdate } from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {SetVacationDelegateParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type { SetVacationDelegateParams } from '@libs/API/parameters';
+import { SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {VacationDelegate} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { VacationDelegate } from '@src/types/onyx';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 
 function setVacationDelegate(creator: string, delegate: string, shouldOverridePolicyDiffWarning = false, currentDelegate?: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE>> = [

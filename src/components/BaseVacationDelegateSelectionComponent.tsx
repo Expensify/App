@@ -1,21 +1,22 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import React, { useEffect } from 'react';
+import { View } from 'react-native';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {getHeaderMessage} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import { searchInServer } from '@libs/actions/Report';
+import { formatPhoneNumber } from '@libs/LocalePhoneNumber';
+import { getHeaderMessage } from '@libs/OptionsListUtils';
+import { getPersonalDetailByEmail } from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Participant} from '@src/types/onyx/IOU';
+import type { Participant } from '@src/types/onyx/IOU';
 import HeaderWithBackButton from './HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import UserListItem from './SelectionListWithSections/UserListItem';
+
 
 type BaseVacationDelegateSelectionComponentProps = {
     /** Current vacation delegate login */
@@ -27,7 +28,7 @@ type BaseVacationDelegateSelectionComponentProps = {
     /** Title for the header */
     headerTitle: string;
 
-    /** Function to call when back button is pressed */
+    /** Function to call when the back button is pressed */
     onBackButtonPress?: () => void;
 };
 
@@ -122,13 +123,9 @@ function BaseVacationDelegateSelectionComponent({currentVacationDelegate, onSele
         })),
     }));
 
-    const headerMessage = getHeaderMessage(
-        (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-        !!availableOptions.userToInvite,
-        debouncedSearchTerm.trim(),
-        countryCode,
-        false,
-    );
+    const hasAvailableItems = availableOptions.recentReports?.length > 0 || availableOptions.personalDetails?.length > 0;
+
+    const headerMessage = getHeaderMessage(hasAvailableItems, !!availableOptions.userToInvite, debouncedSearchTerm.trim(), countryCode, false);
 
     return (
         <>

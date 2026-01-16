@@ -1,15 +1,18 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type { OnyxUpdate } from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddAdminToDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {getAuthToken} from '@libs/Network/NetworkStore';
+import type { AddAdminToDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, SetVacationDelegateParams, ToggleConsolidatedDomainBillingParams } from '@libs/API/parameters';
+import { READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
+import { getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey } from '@libs/ErrorUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import { getAuthToken } from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
-import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
-import {ScimTokenState} from './ScimToken/ScimTokenUtils';
+import type { ScimTokenWithState } from './ScimToken/ScimTokenUtils';
+import { ScimTokenState } from './ScimToken/ScimTokenUtils';
+
 
 /**
  * Fetches a validation code that the user is supposed to put in the domain's DNS records to verify it
@@ -698,6 +701,104 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
     API.write(WRITE_COMMANDS.REMOVE_DOMAIN_ADMIN, parameters, {optimisticData, successData, failureData});
 }
 
+function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountID: number, creator: string, delegate: string,previousDelegate:string, shouldOverridePolicyDiffWarning = false) {
+    debugger;
+
+    const vacationDelegateKey = `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const,
+            value: {
+                [vacationDelegateKey]: {
+                    delegate,
+                    creator,
+                    previousDelegate,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const,
+            value: {
+                vacationDelegate: {
+                    [domainMemberAccountID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const,
+            value: {
+                vacationDelegateErrors: {
+                    [domainMemberAccountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                vacationDelegateErrors: {
+                    [domainMemberAccountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                vacationDelegate: {
+                    [domainMemberAccountID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                vacationDelegate: {
+                    [domainMemberAccountID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                vacationDelegateErrors: {
+                    [domainMemberAccountID]: {
+                        errors: null,
+                    }
+                },
+            },
+        },
+    ];
+
+
+    debugger;
+    // Will be replaced with new api call
+    Onyx.update(optimisticData);
+    return new Promise((resolve) => {
+        resolve();
+    });
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -719,4 +820,5 @@ export {
     addAdminToDomain,
     clearAdminError,
     revokeDomainAdminAccess,
+    setDomainVacationDelegate
 };

@@ -1,5 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+
 /**
  * Basic errors for domain admins
  */
@@ -28,6 +29,11 @@ type DomainErrors = {
      * Errors related to the "use technical contact billing card" setting
      */
     useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to a specific domain vacation delegate, keyed by member adminID
+     */
+    vacationDelegateErrors?: Record<number, GeneralDomainAdminErrors>;
 };
 
 export default DomainErrors;
