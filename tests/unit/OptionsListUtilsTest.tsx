@@ -2611,7 +2611,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, {showChatPreviewLine: true});
+            const result = createOption([1, 2], PERSONAL_DETAILS, {}, report, {showChatPreviewLine: true});
 
             expect(result.alternateText).toBe('Iron Man owes ₫34');
         });
@@ -2999,7 +2999,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, policy);
+            const option = getReportOption(participant, policy, undefined, undefined);
 
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
@@ -3054,7 +3054,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, policy);
+            const option = getReportOption(participant, policy, undefined, undefined);
 
             expect(option.text).toBe('Test Workspace with Submit');
             // The submitsTo logic may or may not apply depending on complex approval rules
@@ -3077,7 +3077,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, undefined, undefined);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -3113,7 +3113,7 @@ describe('OptionsListUtils', () => {
                 isSelfDM: true,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, undefined, undefined);
 
             // The option.isSelfDM is set by createOption based on the report type
             // Just verify the alternateText is correct for self DM
@@ -3148,7 +3148,7 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, undefined, undefined);
 
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.alternateText).toBe(translateLocal('workspace.common.invoices'));
@@ -3170,7 +3170,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, undefined, undefined);
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -3191,7 +3191,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -3213,9 +3213,123 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, undefined);
+            const option = getReportOption(participant, undefined, undefined, undefined, undefined);
 
             expect(option).toBeDefined();
+        });
+
+        it('should include receiver policy in policies lookup for invoice reports', async () => {
+            const reportID = '109';
+            const senderPolicyID = 'senderPolicy';
+            const receiverPolicyID = 'receiverPolicy';
+            const senderPolicy: Policy = {
+                id: senderPolicyID,
+                name: 'Sender Workspace',
+                role: 'admin',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'sender@test.com',
+                outputCurrency: 'USD',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                isPolicyExpenseChatEnabled: true,
+            };
+            const receiverPolicy: Policy = {
+                id: receiverPolicyID,
+                name: 'Receiver Workspace',
+                role: 'admin',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'receiver@test.com',
+                outputCurrency: 'USD',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                isPolicyExpenseChatEnabled: true,
+            };
+            const report: Report = {
+                reportID,
+                reportName: 'Invoice Report',
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID: senderPolicyID,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                    policyID: receiverPolicyID,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${senderPolicyID}`, senderPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`, receiverPolicy);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                isInvoiceRoom: true,
+            };
+
+            // Test with receiverPolicy provided
+            const option = getReportOption(participant, senderPolicy, receiverPolicy, undefined);
+
+            expect(option).toBeDefined();
+            expect(option.isInvoiceRoom).toBe(true);
+        });
+
+        it('should include chat receiver policy in policies lookup for invoice reports with chat report', async () => {
+            const reportID = '110';
+            const chatReportID = '111';
+            const senderPolicyID = 'senderPolicy2';
+            const chatReceiverPolicyID = 'chatReceiverPolicy';
+            const senderPolicy: Policy = {
+                id: senderPolicyID,
+                name: 'Sender Workspace 2',
+                role: 'admin',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'sender2@test.com',
+                outputCurrency: 'USD',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                isPolicyExpenseChatEnabled: true,
+            };
+            const chatReceiverPolicy: Policy = {
+                id: chatReceiverPolicyID,
+                name: 'Chat Receiver Workspace',
+                role: 'admin',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'chatreceiver@test.com',
+                outputCurrency: 'USD',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                isPolicyExpenseChatEnabled: true,
+            };
+            const chatReport: Report = {
+                reportID: chatReportID,
+                reportName: 'Chat Report for Invoice',
+                type: CONST.REPORT.TYPE.CHAT,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                    policyID: chatReceiverPolicyID,
+                },
+            };
+            const report: Report = {
+                reportID,
+                reportName: 'Invoice Report with Chat',
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID: senderPolicyID,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                chatReportID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${senderPolicyID}`, senderPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`, chatReceiverPolicy);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                isInvoiceRoom: true,
+            };
+
+            // Test with chatReceiverPolicy provided
+            const option = getReportOption(participant, senderPolicy, undefined, chatReceiverPolicy);
+
+            expect(option).toBeDefined();
+            expect(option.isInvoiceRoom).toBe(true);
         });
     });
 

@@ -124,6 +124,9 @@ function IOURequestStepScan({
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
+    const [chatReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${(chatReport?.invoiceReceiver as {policyID?: string})?.policyID}`, {canBeMissing: true});
+    const [receiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${(report?.invoiceReceiver as {policyID?: string})?.policyID}`, {canBeMissing: true});
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
     const platform = getPlatform(true);
@@ -432,7 +435,9 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
+                    return participantAccountID
+                        ? getParticipantsOption(participant, personalDetails)
+                        : getReportOption(participant, policy, receiverPolicy, chatReceiverPolicy, reportAttributesDerived);
                 });
 
                 if (shouldSkipConfirmation) {
@@ -563,6 +568,8 @@ function IOURequestStepScan({
             personalPolicy?.autoReporting,
             selfDMReportID,
             policyRecentlyUsedCurrencies,
+            receiverPolicy,
+            chatReceiverPolicy,
         ],
     );
 

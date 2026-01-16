@@ -110,6 +110,9 @@ function IOURequestStepDistanceMap({
         [optimisticWaypoints, transaction?.comment?.waypoints],
     );
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
+    const [chatReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${(chatReport?.invoiceReceiver as {policyID?: string})?.policyID}`, {canBeMissing: true});
+    const [receiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${(report?.invoiceReceiver as {policyID?: string})?.policyID}`, {canBeMissing: true});
 
     const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
     // When online, fetch the backup route to ensure the map is populated even if the user does not save the transaction.
@@ -326,7 +329,9 @@ function IOURequestStepDistanceMap({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountIDParam);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
+                return participantAccountID
+                    ? getParticipantsOption(participant, personalDetails)
+                    : getReportOption(participant, policy, receiverPolicy, chatReceiverPolicy, reportAttributesDerived);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
@@ -464,6 +469,8 @@ function IOURequestStepDistanceMap({
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
+        receiverPolicy,
+        chatReceiverPolicy,
     ]);
 
     const getError = () => {

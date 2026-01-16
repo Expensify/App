@@ -868,6 +868,7 @@ function getLastMessageTextForReport({
 function createOption(
     accountIDs: number[],
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    policies: OnyxCollection<Policy>,
     report: OnyxInputOrEntry<Report>,
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
@@ -953,7 +954,7 @@ function createOption(
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
 
         const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
-        const computedReportName = computeReportName(report, allReports, allPolicies, undefined, allReportNameValuePairs, personalDetailsForCompute, allReportActions);
+        const computedReportName = computeReportName(report, allReports, policies ?? allPolicies, undefined, allReportNameValuePairs, personalDetailsForCompute, allReportActions);
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;
@@ -998,15 +999,29 @@ function createOption(
 function getReportOption(
     participant: Participant,
     policy: OnyxEntry<Policy>,
+    receiverPolicy: OnyxEntry<Policy>,
+    chatReceiverPolicy: OnyxEntry<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     reportDrafts?: OnyxCollection<Report>,
 ): OptionData {
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
+    const policies: Record<string, OnyxEntry<Policy>> = {};
+    if (policy && policy.id) {
+        policies[policy.id] = policy;
+    }
+    if (receiverPolicy && receiverPolicy.id) {
+        policies[receiverPolicy.id] = receiverPolicy;
+    }
+    if (chatReceiverPolicy && chatReceiverPolicy.id) {
+        policies[chatReceiverPolicy.id] = chatReceiverPolicy;
+    }
+
     const option = createOption(
         visibleParticipantAccountIDs,
         allPersonalDetails ?? {},
+        policies,
         !isEmptyObject(report) ? report : undefined,
         {
             showChatPreviewLine: false,
@@ -1055,6 +1070,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
     const option = createOption(
         visibleParticipantAccountIDs,
         allPersonalDetails ?? {},
+        allPolicies,
         !isEmptyObject(report) ? report : undefined,
         {
             showChatPreviewLine: false,
@@ -1099,6 +1115,7 @@ function getPolicyExpenseReportOption(participant: Participant | SearchOptionDat
     const option = createOption(
         visibleParticipantAccountIDs,
         allPersonalDetails ?? {},
+        allPolicies,
         !isEmptyObject(expenseReport) ? expenseReport : null,
         {
             showChatPreviewLine: false,
@@ -1237,7 +1254,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
+            ...createOption(accountIDs, personalDetails, allPolicies, report, undefined, reportAttributesDerived),
         },
     };
 }
@@ -1268,6 +1285,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
         ...createOption(
             [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
             personalDetails,
+            allPolicies,
             reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
             {
                 showPersonalDetails: true,
@@ -1390,7 +1408,7 @@ function createFilteredOptionList(
 
               return {
                   item: personalDetail,
-                  ...createOption([accountID], personalDetails, reportMapForAccountIDs[accountID], {showPersonalDetails: true}, reportAttributesDerived),
+                  ...createOption([accountID], personalDetails, allPolicies, reportMapForAccountIDs[accountID], {showPersonalDetails: true}, reportAttributesDerived),
               };
           })
         : [];
@@ -1406,7 +1424,7 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, config, reportAttributesDerived),
+        ...createOption(accountIDs, personalDetails, allPolicies, report, config, reportAttributesDerived),
     };
 }
 
@@ -1719,7 +1737,7 @@ function getUserToInviteOption({
             login: searchValue,
         },
     };
-    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, {
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, allPolicies, null, {
         showChatPreviewLine,
     });
     userToInvite.isOptimisticAccount = true;
