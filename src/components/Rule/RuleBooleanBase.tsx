@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FixedFooter from '@components/FixedFooter';
@@ -38,6 +38,15 @@ type RuleBooleanBasePageProps = {
 
 const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
 
+const getInitialSelectedItem = (formValue?: string | boolean) =>
+    booleanValues.find((value) => {
+        if (!formValue) {
+            return false;
+        }
+        const booleanValue = formValue === 'true' ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+        return booleanValue === value;
+    }) ?? null;
+
 function RuleBooleanBasePage({fieldID, titleKey, hash}: RuleBooleanBasePageProps) {
     const {translate} = useLocalize();
     const [form, formMetadata] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
@@ -46,35 +55,23 @@ function RuleBooleanBasePage({fieldID, titleKey, hash}: RuleBooleanBasePageProps
     const isLoading = isLoadingOnyxValue(formMetadata);
     const prevIsLoading = usePrevious(isLoading);
 
-    // Called only first time when Onyx loading finished
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const getInitialValue = () =>
-        booleanValues.find((value) => {
-            if (!form?.[fieldID]) {
-                return false;
-            }
-            const booleanValue = form[fieldID] === 'true' ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
-            return booleanValue === value;
-        }) ?? null;
-
-    const [selectedItem, setSelectedItem] = useState<string | null>(getInitialValue);
+    const [selectedItem, setSelectedItem] = useState<string | null>(() => getInitialSelectedItem(form?.[fieldID]));
 
     useEffect(() => {
         if (isLoading || !prevIsLoading) {
             return;
         }
+        // Called only first time when Onyx loading finished
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedItem(getInitialValue());
-    }, [isLoading, prevIsLoading, getInitialValue]);
+        setSelectedItem(getInitialSelectedItem(form?.[fieldID]));
+    }, [isLoading, prevIsLoading, form, fieldID]);
 
-    const items = useMemo(() => {
-        return booleanValues.map((value) => ({
-            value,
-            keyForList: value,
-            text: translate(`common.${value}`),
-            isSelected: selectedItem === value,
-        }));
-    }, [selectedItem, translate]);
+    const items = booleanValues.map((value) => ({
+        value,
+        keyForList: value,
+        text: translate(`common.${value}`),
+        isSelected: selectedItem === value,
+    }));
 
     const onSelectItem = useCallback((selectedValue: BooleanFilterItem) => {
         const newValue = selectedValue.isSelected ? null : selectedValue.value;
