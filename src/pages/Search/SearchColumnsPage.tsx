@@ -34,6 +34,8 @@ type ColumnItem = {
     leftElement: React.JSX.Element;
 };
 
+type ActiveList = 'group' | 'type';
+
 function SearchColumnsPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -123,12 +125,18 @@ function SearchColumnsPage() {
     const typeColumnsList = allColumnsList.filter((column) => allTypeCustomColumns.includes(column.keyForList));
     const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
 
+    // Track which list is active for keyboard navigation to prevent conflicts when both lists are rendered
+    const [activeList, setActiveList] = useState<ActiveList>(groupBy ? 'group' : 'type');
+
     const isDefaultState =
         columns.length === defaultColumns.length &&
         columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
 
-    const onSelectItem = (item: ListItem) => {
+    const onSelectItem = (item: ListItem, listType: ActiveList) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
+
+        // Set the active list for keyboard navigation
+        setActiveList(listType);
 
         if (requiredColumns.has(updatedColumnId)) {
             return;
@@ -159,6 +167,9 @@ function SearchColumnsPage() {
         });
     };
 
+    const onSelectGroupItem = (item: ListItem) => onSelectItem(item, 'group');
+    const onSelectTypeItem = (item: ListItem) => onSelectItem(item, 'type');
+
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
@@ -188,12 +199,23 @@ function SearchColumnsPage() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
     };
 
-    const renderItem = ({item}: {item: ListItem}) => {
+    const renderGroupItem = ({item}: {item: ListItem}) => {
         return (
             <MultiSelectListItem
                 item={item}
                 showTooltip={false}
-                onSelectRow={onSelectItem}
+                onSelectRow={onSelectGroupItem}
+                isDisabled={item.isDisabled}
+            />
+        );
+    };
+
+    const renderTypeItem = ({item}: {item: ListItem}) => {
+        return (
+            <MultiSelectListItem
+                item={item}
+                showTooltip={false}
+                onSelectRow={onSelectTypeItem}
                 isDisabled={item.isDisabled}
             />
         );
@@ -225,7 +247,9 @@ function SearchColumnsPage() {
                                 data={groupColumnsList}
                                 keyExtractor={(item) => item.value}
                                 onDragEnd={onGroupDragEnd}
-                                renderItem={renderItem}
+                                onSelectRow={onSelectGroupItem}
+                                isKeyboardActive={activeList === 'group'}
+                                renderItem={renderGroupItem}
                             />
 
                             <View style={styles.dividerLine} />
@@ -241,7 +265,9 @@ function SearchColumnsPage() {
                         data={typeColumnsList}
                         keyExtractor={(item) => item.value}
                         onDragEnd={onTypeDragEnd}
-                        renderItem={renderItem}
+                        onSelectRow={onSelectTypeItem}
+                        isKeyboardActive={activeList === 'type'}
+                        renderItem={renderTypeItem}
                     />
                 </ScrollView>
             </View>

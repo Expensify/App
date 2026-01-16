@@ -19,6 +19,12 @@ type DraggableListProps<T> = {
     /** Called after the animation has been completed. Returns updated ordering of data  */
     onDragEnd?: (params: DraggableListData<T>) => void;
 
+    /** Called when a row is selected via Enter key */
+    onSelectRow?: (item: T) => void;
+
+    /** Whether keyboard navigation is active for this list. Defaults to true. */
+    isKeyboardActive?: boolean;
+
     /** Rendered at the bottom of all the items. Just like in the FlatList. */
     ListFooterComponent?: React.ReactElement;
 
@@ -31,6 +37,8 @@ type SortableItemProps = {
     children: React.ReactNode | React.ReactNode[];
     /** Whether dragging is disabled for this item */
     disabled?: boolean;
+    /** Whether this item is currently focused for keyboard navigation */
+    isFocused?: boolean;
 };
 
 export default DraggableListProps;
