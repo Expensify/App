@@ -215,9 +215,6 @@ function splitBill({
     notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
-const allPersonalDetails = getAllPersonalDetails();
-const allTransactions = getAllTransactions();
-const allReports = getAllReports();
 
 /**
  * @param amount - always in the smallest currency unit
@@ -560,7 +557,7 @@ function startSplitBill({
             continue;
         }
 
-        const participantPersonalDetails = allPersonalDetails[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+        const participantPersonalDetails = getAllPersonalDetails()[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         if (!participantPersonalDetails) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -698,7 +695,7 @@ function completeSplitBill(
     }
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(sessionEmail);
     const transactionID = updatedTransaction?.transactionID;
-    const unmodifiedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const unmodifiedTransaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     // Save optimistic updated transaction and action
     const optimisticData: OnyxUpdate[] = [
@@ -780,7 +777,7 @@ function completeSplitBill(
             // In case this is still the optimistic accountID saved in the splits array, return early as we cannot know
             // if there is an existing chat between the split creator and this participant
             // Instead, we will rely on Auth generating the report IDs and the user won't see any optimistic chats or reports created
-            const participantPersonalDetails: OnyxTypes.PersonalDetails | null = allPersonalDetails[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+            const participantPersonalDetails: OnyxTypes.PersonalDetails | null = getAllPersonalDetails()[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
             if (!participantPersonalDetails || participantPersonalDetails.isOptimisticPersonalDetail) {
                 splits.push({
                     email: participant.email,
@@ -793,7 +790,7 @@ function completeSplitBill(
         let isNewOneOnOneChatReport = false;
         if (isPolicyExpenseChat) {
             // The expense chat reportID is saved in the splits array when starting a split expense with a workspace
-            oneOnOneChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`];
+            oneOnOneChatReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`];
         } else {
             const existingChatReport = getChatByParticipants(participant.accountID ? [participant.accountID, sessionAccountID] : []);
             isNewOneOnOneChatReport = !existingChatReport;
@@ -804,7 +801,7 @@ function completeSplitBill(
                 });
         }
 
-        let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
+        let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
         const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false);
 
         // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
@@ -1204,8 +1201,8 @@ function updateSplitTransactions({
             }
 
             if (Object.keys(transactionChanges).length > 0) {
-                const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID}`];
-                const transactionIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense?.reportID ?? transactionThreadReport?.parentReportID}`];
+                const transactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID}`];
+                const transactionIOUReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense?.reportID ?? transactionThreadReport?.parentReportID}`];
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     transactionID: existingTransactionID,
                     transactionThreadReport,
@@ -1315,7 +1312,7 @@ function updateSplitTransactions({
                     errors: null,
                 },
             };
-            const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
+            const transactionThread = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
