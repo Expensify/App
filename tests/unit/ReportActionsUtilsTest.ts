@@ -16,6 +16,9 @@ import {
     getCreatedReportForUnapprovedTransactionsMessage,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getPolicyChangeLogMaxExpenseAgeMessage,
+    getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
     isIOUActionMatchingTransactionList,
@@ -2316,6 +2319,144 @@ describe('ReportActionsUtils', () => {
             // Then it should return the routed due to DEW message with the correct "to" value
             const expected = translateLocal('iou.routedDueToDEW', {to});
             expect(actual).toBe(expected);
+        });
+    });
+
+    describe('getPolicyChangeLogMaxExpenseAmountMessage', () => {
+        it('should return set message when setting from disabled to a value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmount: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                    newMaxExpenseAmount: 10000,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            expect(result).toBe('set max expense amount to "$100.00"');
+        });
+
+        it('should return removed message when setting to disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmount: 10000,
+                    newMaxExpenseAmount: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            expect(result).toBe('removed max expense amount (previously "$100.00")');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmount: 10000,
+                    newMaxExpenseAmount: 50000,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            expect(result).toBe('changed max expense amount to "$500.00" (previously "$100.00")');
+        });
+    });
+
+    describe('getPolicyChangeLogMaxExpenseAgeMessage', () => {
+        it('should return set message when setting from disabled to a value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAge: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                    newMaxExpenseAge: 30,
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, action);
+            expect(result).toBe('set max expense age to "30" days');
+        });
+
+        it('should return removed message when setting to disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAge: 30,
+                    newMaxExpenseAge: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, action);
+            expect(result).toBe('removed max expense age (previously "30" days)');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAge: 30,
+                    newMaxExpenseAge: 60,
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, action);
+            expect(result).toBe('changed max expense age to "60" days (previously "30")');
+        });
+    });
+
+    describe('getPolicyChangeLogMaxExpenseAmountNoReceiptMessage', () => {
+        it('should return set message when setting from disabled to a value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoReceipt: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                    newMaxExpenseAmountNoReceipt: 2500,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            expect(result).toBe('set receipt required amount to "$25.00"');
+        });
+
+        it('should return removed message when setting to disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoReceipt: 2500,
+                    newMaxExpenseAmountNoReceipt: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            expect(result).toBe('removed receipt required amount (previously "$25.00")');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoReceipt: 2500,
+                    newMaxExpenseAmountNoReceipt: 7500,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            expect(result).toBe('changed receipt required amount to "$75.00" (previously "$25.00")');
         });
     });
 
