@@ -27,10 +27,13 @@ import {
     isIOUReport,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
+    isSettled,
     isWorkspaceEligibleForReportChange,
 } from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {DismissedProductTraining, PersonalDetailsList} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
@@ -70,6 +73,10 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         (policyID?: string) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
             if (!policyID || !policy) {
+                return;
+            }
+            if (shouldRestrictUserBillableActions(policy.id)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
             const {backTo} = route.params;
@@ -132,7 +139,14 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy),
+        additionalFilter: (newPolicy) => {
+            const isReportSettled = isSettled(report);
+            const isEligible = isWorkspaceEligibleForReportChange(submitterEmail, newPolicy, report);
+            if (isReportSettled) {
+                return isEligible && isPolicyAdmin(newPolicy, session?.email);
+            }
+            return isEligible;
+        },
     });
 
     const textInputOptions = useMemo(
