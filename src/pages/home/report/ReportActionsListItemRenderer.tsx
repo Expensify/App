@@ -103,6 +103,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Report name value pairs originalID */
     reportNameValuePairsOriginalID?: string;
+
+    /** Whether this component is inside the side panel */
+    isInSidePanel?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -138,6 +141,7 @@ function ReportActionsListItemRenderer({
     isReportArchived = false,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
+    isInSidePanel = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -270,6 +274,7 @@ function ReportActionsListItemRenderer({
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}
             reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
+            isInSidePanel={isInSidePanel}
         />
     );
 }

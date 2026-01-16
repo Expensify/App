@@ -66,6 +66,9 @@ type ReportActionsViewProps = {
 
     /** If the report is a transaction thread report */
     isReportTransactionThread?: boolean;
+
+    /** Whether this view is inside the side panel */
+    isInSidePanel?: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -79,6 +82,7 @@ function ReportActionsView({
     hasNewerActions,
     hasOlderActions,
     isReportTransactionThread,
+    isInSidePanel = false,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -331,6 +335,7 @@ function ReportActionsView({
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                 hasCreatedActionAdded={shouldAddCreatedAction}
+                isInSidePanel={isInSidePanel}
             />
             <UserTypingEventListener report={report} />
         </>

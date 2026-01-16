@@ -121,6 +121,9 @@ type ReportActionsListProps = {
 
     /** Whether the optimistic CREATED report action was added */
     hasCreatedActionAdded?: boolean;
+
+    /** Whether this list is inside the side panel */
+    isInSidePanel?: boolean;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -160,6 +163,7 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
+    isInSidePanel = false,
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -733,6 +737,7 @@ function ReportActionsList({
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                     reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    isInSidePanel={isInSidePanel}
                 />
             );
         },
@@ -762,6 +767,7 @@ function ReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
+            isInSidePanel,
         ],
     );
 

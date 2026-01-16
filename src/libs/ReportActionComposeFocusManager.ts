@@ -9,36 +9,75 @@ import preventTextInputFocusOnFirstResponderOnce from './preventTextInputFocusOn
 
 type ComposerType = 'main' | 'edit';
 
+type FocusContext = 'main' | 'sidePanel';
+
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
-const composerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
+// Default refs for backward compatibility (main context)
+const defaultComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
+const defaultEditComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
 
-// There are two types of composer: general composer (edit composer) and main composer.
-// The general composer callback will take priority if it exists.
-const editComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
-// There are two types of focus callbacks: priority and general
-// Priority callback would take priority if it existed
-let priorityFocusCallback: FocusCallback | null = null;
-let focusCallback: FocusCallback | null = null;
+// Context-aware refs and callbacks - each context (main screen vs side panel) has its own set
+const composerRefs = new Map<FocusContext, RefObject<TextInput | null>>([
+    ['main', defaultComposerRef],
+    ['sidePanel', React.createRef<TextInput>()],
+]);
+
+const editComposerRefs = new Map<FocusContext, RefObject<TextInput | null>>([
+    ['main', defaultEditComposerRef],
+    ['sidePanel', React.createRef<TextInput>()],
+]);
+
+const focusCallbacks = new Map<FocusContext, FocusCallback | null>([
+    ['main', null],
+    ['sidePanel', null],
+]);
+
+const priorityFocusCallbacks = new Map<FocusContext, FocusCallback | null>([
+    ['main', null],
+    ['sidePanel', null],
+]);
+
+// Backward compatibility - expose the main context refs directly
+const composerRef = defaultComposerRef;
+const editComposerRef = defaultEditComposerRef;
+
+/**
+ * Get the composer ref for a specific context
+ */
+function getComposerRef(context: FocusContext): RefObject<TextInput | null> {
+    return composerRefs.get(context) ?? defaultComposerRef;
+}
+
+/**
+ * Get the edit composer ref for a specific context
+ */
+function getEditComposerRef(context: FocusContext): RefObject<TextInput | null> {
+    return editComposerRefs.get(context) ?? defaultEditComposerRef;
+}
 
 /**
  * Register a callback to be called when focus is requested.
  * Typical uses of this would be call the focus on the ReportActionComposer.
  *
  * @param callback callback to register
+ * @param isPriorityCallback whether this is a priority callback (edit composer)
+ * @param context the focus context ('main' or 'sidePanel')
  */
-function onComposerFocus(callback: FocusCallback | null, isPriorityCallback = false) {
+function onComposerFocus(callback: FocusCallback | null, isPriorityCallback = false, context: FocusContext = 'main') {
     if (isPriorityCallback) {
-        priorityFocusCallback = callback;
+        priorityFocusCallbacks.set(context, callback);
     } else {
-        focusCallback = callback;
+        focusCallbacks.set(context, callback);
     }
 }
 
 /**
  * Request focus on the ReportActionComposer
+ * @param shouldFocusForNonBlurInputOnTapOutside whether to focus for non-blur input on tap outside
+ * @param context the focus context ('main' or 'sidePanel')
  */
-function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
+function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean, context: FocusContext = 'main') {
     /** Do not trigger the refocusing when the active route is not the report screen */
     const navigationState = navigationRef.getState();
     const focusedRoute = findFocusedRoute(navigationState);
@@ -46,72 +85,122 @@ function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
         return;
     }
 
-    if (typeof priorityFocusCallback !== 'function' && typeof focusCallback !== 'function') {
+    const priorityCallback = priorityFocusCallbacks.get(context);
+    const regularCallback = focusCallbacks.get(context);
+
+    if (typeof priorityCallback !== 'function' && typeof regularCallback !== 'function') {
         return;
     }
 
-    if (typeof priorityFocusCallback === 'function') {
-        priorityFocusCallback(shouldFocusForNonBlurInputOnTapOutside);
+    if (typeof priorityCallback === 'function') {
+        priorityCallback(shouldFocusForNonBlurInputOnTapOutside);
         return;
     }
 
-    if (typeof focusCallback === 'function') {
-        focusCallback();
+    if (typeof regularCallback === 'function') {
+        regularCallback();
     }
 }
 
 /**
  * Clear the registered focus callback
+ * @param isPriorityCallback whether to clear the priority callback
+ * @param context the focus context ('main' or 'sidePanel')
  */
-function clear(isPriorityCallback = false) {
+function clear(isPriorityCallback = false, context: FocusContext = 'main') {
     if (isPriorityCallback) {
-        editComposerRef.current = null;
-        priorityFocusCallback = null;
+        const editRef = editComposerRefs.get(context);
+        if (editRef) {
+            editRef.current = null;
+        }
+        priorityFocusCallbacks.set(context, null);
     } else {
-        focusCallback = null;
+        focusCallbacks.set(context, null);
     }
 }
 
 /**
  * Exposes the current focus state of the report action composer.
+ * @param context the focus context ('main' or 'sidePanel'). If undefined, checks if ANY composer is focused.
  */
-function isFocused(): boolean {
-    return !!composerRef.current?.isFocused();
+function isFocused(context?: FocusContext): boolean {
+    if (context === undefined) {
+        // Check if any composer in any context is focused
+        for (const ref of composerRefs.values()) {
+            if (ref?.current?.isFocused()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    const ref = composerRefs.get(context);
+    return !!ref?.current?.isFocused();
 }
 
 /**
  * Exposes the current focus state of the edit message composer.
+ * @param context the focus context ('main' or 'sidePanel'). If undefined, checks if ANY edit composer is focused.
  */
-function isEditFocused(): boolean {
-    return !!editComposerRef.current?.isFocused();
+function isEditFocused(context?: FocusContext): boolean {
+    if (context === undefined) {
+        // Check if any edit composer in any context is focused
+        for (const ref of editComposerRefs.values()) {
+            if (ref?.current?.isFocused()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    const ref = editComposerRefs.get(context);
+    return !!ref?.current?.isFocused();
+}
+
+/**
+ * Check if any composer (main or edit) in the side panel context is focused
+ */
+function isSidePanelFocused(): boolean {
+    const sidePanelComposerRef = composerRefs.get('sidePanel');
+    const sidePanelEditRef = editComposerRefs.get('sidePanel');
+    return !!sidePanelComposerRef?.current?.isFocused() || !!sidePanelEditRef?.current?.isFocused();
 }
 
 /**
  * This will prevent the composer's text input from focusing the next time it becomes the
  * first responder in the UIResponder chain. (iOS only, no-op on Android)
+ * @param context the focus context ('main' or 'sidePanel')
  */
-function preventComposerFocusOnFirstResponderOnce() {
-    preventTextInputFocusOnFirstResponderOnce(composerRef);
+function preventComposerFocusOnFirstResponderOnce(context: FocusContext = 'main') {
+    const ref = composerRefs.get(context);
+    if (ref) {
+        preventTextInputFocusOnFirstResponderOnce(ref);
+    }
 }
 
 /**
  * This will prevent the edit composer's text input from focusing the next time it becomes the
  * first responder in the UIResponder chain. (iOS only, no-op on Android)
+ * @param context the focus context ('main' or 'sidePanel')
  */
-function preventEditComposerFocusOnFirstResponderOnce() {
-    preventTextInputFocusOnFirstResponderOnce(editComposerRef);
+function preventEditComposerFocusOnFirstResponderOnce(context: FocusContext = 'main') {
+    const ref = editComposerRefs.get(context);
+    if (ref) {
+        preventTextInputFocusOnFirstResponderOnce(ref);
+    }
 }
 
 export default {
     composerRef,
+    editComposerRef,
+    getComposerRef,
+    getEditComposerRef,
     onComposerFocus,
     focus,
     clear,
     isFocused,
-    editComposerRef,
     isEditFocused,
+    isSidePanelFocused,
     preventComposerFocusOnFirstResponderOnce,
     preventEditComposerFocusOnFirstResponderOnce,
 };
 
-export type {ComposerType};
+export type {ComposerType, FocusContext};

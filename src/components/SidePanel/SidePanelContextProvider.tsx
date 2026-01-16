@@ -84,8 +84,8 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             setIsSidePanelTransitionEnded(false);
             SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
 
-            // Focus the composer after closing the Side Panel
-            focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
+            // Focus the main composer after closing the Side Panel
+            focusComposerWithDelay(ReportActionComposeFocusManager.getComposerRef('main').current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
         },
         [isExtraLargeScreenWidth, sidePanelNVP],
     );

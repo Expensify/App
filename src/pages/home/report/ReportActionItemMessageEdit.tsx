@@ -43,6 +43,7 @@ import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import type {FocusContext} from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
@@ -85,6 +86,9 @@ type ReportActionItemMessageEditProps = {
     /** Whether report is from group policy */
     isGroupPolicyReport: boolean;
 
+    /** Whether this component is inside the side panel */
+    isInSidePanel?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>;
 };
@@ -108,8 +112,10 @@ function ReportActionItemMessageEdit({
     index,
     isGroupPolicyReport,
     shouldDisableEmojiPicker = false,
+    isInSidePanel = false,
     ref,
 }: ReportActionItemMessageEditProps) {
+    const focusContext: FocusContext = isInSidePanel ? 'sidePanel' : 'main';
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const {email} = useCurrentUserPersonalDetails();
     const theme = useTheme();
@@ -176,16 +182,16 @@ function ReportActionItemMessageEdit({
         // Remove focus callback on unmount to avoid stale callbacks
         () => {
             if (textInputRef.current) {
-                ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+                ReportActionComposeFocusManager.getEditComposerRef(focusContext).current = textInputRef.current;
             }
             return () => {
-                if (ReportActionComposeFocusManager.editComposerRef.current !== textInputRef.current) {
+                if (ReportActionComposeFocusManager.getEditComposerRef(focusContext).current !== textInputRef.current) {
                     return;
                 }
-                ReportActionComposeFocusManager.clear(true);
+                ReportActionComposeFocusManager.clear(true, focusContext);
             };
         },
-        [],
+        [focusContext],
     );
 
     // We consider the report action active if it's focused, its emoji picker is open or its context menu is open
@@ -207,8 +213,8 @@ function ReportActionItemMessageEdit({
         ReportActionComposeFocusManager.onComposerFocus(() => {
             focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
             emojiPickerSelectionRef.current = undefined;
-        }, true);
-    }, [focus]);
+        }, true, focusContext);
+    }, [focus, focusContext]);
 
     // show the composer after editing is complete for devices that hide the composer during editing.
     useEffect(() => () => setShouldShowComposeInput(true), []);
@@ -283,10 +289,10 @@ function ReportActionItemMessageEdit({
         deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
-            ReportActionComposeFocusManager.clear(true);
+            ReportActionComposeFocusManager.clear(true, focusContext);
             // Wait for report action compose re-mounting on mWeb
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
+            InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus(undefined, focusContext));
         }
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -295,7 +301,7 @@ function ReportActionItemMessageEdit({
                 reportScrollManager.scrollToIndex(index, false);
             });
         }
-    }, [action, index, reportID, reportScrollManager, isActive]);
+    }, [action, index, reportID, reportScrollManager, isActive, focusContext]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
@@ -536,7 +542,7 @@ function ReportActionItemMessageEdit({
                             onFocus={() => {
                                 setIsFocused(true);
                                 if (textInputRef.current) {
-                                    ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+                                    ReportActionComposeFocusManager.getEditComposerRef(focusContext).current = textInputRef.current;
                                 }
                                 startScrollBlock();
                                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -604,7 +610,7 @@ function ReportActionItemMessageEdit({
                                 if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
                                     return;
                                 }
-                                ReportActionComposeFocusManager.focus();
+                                ReportActionComposeFocusManager.focus(undefined, focusContext);
                             }}
                             onEmojiSelected={addEmojiToTextBox}
                             emojiPickerID={action.reportActionID}

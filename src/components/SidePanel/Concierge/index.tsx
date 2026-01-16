@@ -12,7 +12,7 @@ const CONCIERGE_REPORT_KEY = 'Report-Concierge-Key';
 function Concierge({navigation}: Pick<ExtraContentProps, 'navigation'>) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const route = !!conciergeReportID && ({name: SCREENS.REPORT, params: {reportID: conciergeReportID}, key: CONCIERGE_REPORT_KEY} as const);
+    const route = !!conciergeReportID && ({name: SCREENS.REPORT, params: {reportID: '803938620872427'}, key: CONCIERGE_REPORT_KEY} as const);
 
     if (!route) {
         return null;

@@ -33,6 +33,7 @@ import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/Keyboar
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import type {FocusContext} from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -138,6 +139,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Whether the main composer was hidden */
         didHideComposerInput?: boolean;
 
+        /** Whether this composer is inside the side panel */
+        isInSidePanel?: boolean;
+
         /** Reference to the outer element */
         ref?: ForwardedRef<ComposerRef>;
     };
@@ -230,6 +234,9 @@ function ComposerWithSuggestions({
 
     // Fullstory
     forwardedFSClass,
+
+    // Side panel
+    isInSidePanel = false,
 }: ComposerWithSuggestionsProps) {
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
@@ -237,6 +244,7 @@ function ComposerWithSuggestions({
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
     const {isSidePanelHiddenOrLargeScreen} = useSidePanel();
+    const focusContext: FocusContext = isInSidePanel ? 'sidePanel' : 'main';
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -264,7 +272,9 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    // Side panel composer should never auto-focus - main composer takes priority on page load
+    const shouldAutoFocus =
+        !isInSidePanel && (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -286,13 +296,13 @@ function ComposerWithSuggestions({
      */
     const setTextInputRef = useCallback(
         (el: TextInput) => {
-            ReportActionComposeFocusManager.composerRef.current = el;
+            ReportActionComposeFocusManager.getComposerRef(focusContext).current = el;
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
                 animatedRef(el);
             }
         },
-        [animatedRef],
+        [animatedRef, focusContext],
     );
 
     const resetKeyboardInput = useCallback(() => {
@@ -604,9 +614,9 @@ function ComposerWithSuggestions({
                 }
 
                 focus(true);
-            }, shouldTakeOverFocus);
+            }, shouldTakeOverFocus, focusContext);
         },
-        [focus, isFocused, isSidePanelHiddenOrLargeScreen],
+        [focus, isFocused, isSidePanelHiddenOrLargeScreen, focusContext],
     );
 
     /**
@@ -667,7 +677,7 @@ function ComposerWithSuggestions({
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             addKeyDownPressListener(focusComposerOnKeyPress);
             // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
-            ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
+            ReportActionComposeFocusManager.getComposerRef(focusContext).current = textInputRef.current;
             setUpComposeFocusManager();
         });
         addKeyDownPressListener(focusComposerOnKeyPress);
@@ -675,13 +685,13 @@ function ComposerWithSuggestions({
         setUpComposeFocusManager();
 
         return () => {
-            ReportActionComposeFocusManager.clear();
+            ReportActionComposeFocusManager.clear(false, focusContext);
 
             removeKeyDownPressListener(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
         };
-    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager, isSidePanelHiddenOrLargeScreen]);
+    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager, isSidePanelHiddenOrLargeScreen, focusContext]);
 
     const prevIsModalVisible = usePrevious(modal?.isVisible);
     const prevIsFocused = usePrevious(isFocused);

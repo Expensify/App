@@ -19,11 +19,17 @@ function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: M
         refSave = ref;
     }
     if (!isFocused && !onyxFocused && !modal.willAlertModalBecomeVisible && !modal.isVisible && refSave) {
-        if (!ReportActionComposeFocusManager.isFocused()) {
+        // Don't steal focus if any composer (main or edit, in any context) is focused
+        const isAnyComposerFocused = ReportActionComposeFocusManager.isFocused() || ReportActionComposeFocusManager.isEditFocused();
+        if (!isAnyComposerFocused) {
             // Focusing will fail when it is called immediately after closing modal so we call it after interaction.
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                refSave?.focus();
+                // Double-check that no composer is focused before stealing focus
+                const isAnyComposerFocusedNow = ReportActionComposeFocusManager.isFocused() || ReportActionComposeFocusManager.isEditFocused();
+                if (!isAnyComposerFocusedNow) {
+                    refSave?.focus();
+                }
             });
         } else {
             refSave = undefined;

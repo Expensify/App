@@ -592,6 +592,7 @@ function ReportActionCompose({
                             onValueChange={onValueChange}
                             didHideComposerInput={didHideComposerInput}
                             forwardedFSClass={fsClass}
+                            isInSidePanel={isInSidePanel}
                         />
                         {shouldDisplayDualDropZone && (
                             <DualDropZone
