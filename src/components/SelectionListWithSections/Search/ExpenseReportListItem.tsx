@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
+import {isInvoiceReport, isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,6 +86,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             return false;
         }
 
+        const isInvoice = isInvoiceReport(reportItem) || reportItem.type === CONST.REPORT.TYPE.INVOICE;
         return reportItem?.transactions?.some((transaction) => {
             const violations = syncMissingAttendeesViolation(
                 transaction.violations ?? [],
@@ -95,10 +96,11 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 currentUserDetails,
                 policy.isAttendeeTrackingEnabled ?? false,
                 policy.type === CONST.POLICY.TYPE.CORPORATE,
+                isInvoice,
             );
             return violations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         });
-    }, [reportItem.transactions, policyCategories, parentPolicy, snapshotPolicy, currentUserDetails]);
+    }, [reportItem, policyCategories, parentPolicy, snapshotPolicy, currentUserDetails]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
@@ -170,6 +172,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // Show violation description if either:
     // 1. Pre-computed hasVisibleViolations from search data, OR
     // 2. Synced missingAttendees violation computed at render time (for stale data)
+    // We're using || instead of ?? because the variables are boolean
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasAnyVisibleViolations = reportItem?.hasVisibleViolations || hasSyncedMissingAttendeesViolation;
 
     const getDescription = useMemo(() => {

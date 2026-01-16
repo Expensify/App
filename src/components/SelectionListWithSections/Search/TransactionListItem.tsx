@@ -170,7 +170,7 @@ function TransactionListItem<TItem extends ListItem>({
         );
 
         return mergeProhibitedViolations(attendeeOnyxViolations);
-    }, [policyForViolations, reportForViolations, policyCategories, transactionItem, currentUserDetails, violations]);
+    }, [policyForViolations, reportForViolations, policyCategories, transactionItem, currentUserDetails, transaction?.category, transaction?.comment, violations]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 

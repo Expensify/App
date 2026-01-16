@@ -444,13 +444,13 @@ function MoneyRequestView({
     };
 
     console.log('Debug Logs:', {
-        'policy': policy,
+        policy: policy,
         'policy?.id': policy?.id,
         'policy?.type': policy?.type,
         'policy?.isAttendeeTrackingEnabled': policy?.isAttendeeTrackingEnabled,
-        'iouType': iouType,
+        iouType: iouType,
         'shouldShowAttendees result': shouldShowAttendees,
-        'actualAttendees': actualAttendees,
+        actualAttendees: actualAttendees,
     });
 
     const saveReimbursable = (newReimbursable: boolean) => {
