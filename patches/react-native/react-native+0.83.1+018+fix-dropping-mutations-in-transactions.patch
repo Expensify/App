@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
-index 3ccff28..3cc20c3 100644
+index 801c8f1..005a00f 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
-@@ -611,7 +611,7 @@ void FabricUIManagerBinding::schedulerDidFinishTransaction(
+@@ -615,7 +615,7 @@ void FabricUIManagerBinding::schedulerDidFinishTransaction(
                mountingTransaction->getSurfaceId();
          });
  
@@ -47,12 +47,12 @@ index d7dd1bc..d95d779 100644
 +
  } // namespace facebook::react
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
-index 277e9f4..38629db 100644
+index 7841b5a..4e91679 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
-@@ -85,6 +85,14 @@ class MountingTransaction final {
+@@ -83,6 +83,14 @@ class MountingTransaction final {
     */
-   void mergeWith(MountingTransaction&& transaction);
+   void mergeWith(MountingTransaction &&transaction);
  
 +  /*
 +   * Checks whether the two transactions can be safely merged. Due to
@@ -60,7 +60,7 @@ index 277e9f4..38629db 100644
 +   * REMOVE -> DELETE | CREATE -> INSERT (2 transactions) may get changed to
 +   * INSERT -> REMOVE -> DELETE and the state will diverge from there.
 +   */
-+  bool canMergeWith(MountingTransaction& transaction);
++  bool canMergeWith(MountingTransaction &transaction);
 +
   private:
    SurfaceId surfaceId_;

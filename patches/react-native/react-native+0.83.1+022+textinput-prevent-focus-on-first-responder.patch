@@ -37,10 +37,10 @@ index 9143695..046b753 100644
        onClear: true,
        onChange: true,
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-index 3ea6d67..61309ef 100644
+index 03262de..3b7f6fb 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-@@ -820,6 +820,11 @@ export interface TextInputProps
+@@ -817,6 +817,11 @@ export interface TextInputProps
     */
    multiline?: boolean | undefined;
  
@@ -52,7 +52,7 @@ index 3ea6d67..61309ef 100644
    /**
     * Callback that is called when the text input is blurred
     *
-@@ -1077,4 +1082,9 @@ export class TextInput extends TextInputBase {
+@@ -1074,4 +1079,9 @@ export class TextInput extends TextInputBase {
     * Sets the start and end positions of text selection.
     */
    setSelection: (start: number, end: number) => void;
@@ -63,22 +63,22 @@ index 3ea6d67..61309ef 100644
 +  preventFocusOnFirstResponderOnce: () => void;
  }
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
-index ad2bf61..2ca6e97 100644
+index ede5607..6d1e2a4 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
-@@ -1059,6 +1059,7 @@ export interface TextInputInstance extends HostInstance {
-   +isFocused: () => boolean;
-   +getNativeRef: () => ?HostInstance;
-   +setSelection: (start: number, end: number) => void;
-+  +preventFocusOnFirstResponderOnce: () => void;
+@@ -1064,6 +1064,7 @@ declare class _TextInputInstance extends ReactNativeElement {
+   isFocused(): boolean;
+   getNativeRef(): ?ReactNativeElement;
+   setSelection(start: number, end: number): void;
++  preventFocusOnFirstResponderOnce(): void;
  }
  
- /**
+ export type TextInputInstance = _TextInputInstance;
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-index fb29328..90fc6f2 100644
+index 5d05624..bbb6465 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-@@ -481,6 +481,11 @@ function InternalTextInput(props: TextInputProps): React.Node {
+@@ -487,6 +487,11 @@ function InternalTextInput(props: TextInputProps): React.Node {
                );
              }
            },
@@ -106,7 +106,7 @@ index 9da8899..bf87ffd 100644
  
  export default supportedCommands;
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index 9f4863a..18980d7 100644
+index d30983f..eb57eb8 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 @@ -76,6 +76,16 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
@@ -137,7 +137,7 @@ index 9f4863a..18980d7 100644
    if (newTextInputProps.acceptDragAndDropTypes != oldTextInputProps.acceptDragAndDropTypes) {
      if (!newTextInputProps.acceptDragAndDropTypes.has_value()) {
        _backedTextInputView.acceptDragAndDropTypes = nil;
-@@ -390,6 +404,15 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+@@ -393,6 +407,15 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
  
  - (BOOL)textInputShouldBeginEditing
  {
@@ -153,7 +153,7 @@ index 9f4863a..18980d7 100644
    return YES;
  }
  
-@@ -613,6 +636,16 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+@@ -616,6 +639,16 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
    _comingFromJS = NO;
  }
  
@@ -203,10 +203,10 @@ index f674d98..6ad10ec 100644
    RCTLogError(@"%@ received command %@, which is not a supported command.", @"TextInput", commandName);
  #endif
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
-index 6273740..211be13 100644
+index ac3adc4..5a84c01 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
-@@ -127,6 +127,12 @@ BaseTextInputProps::BaseTextInputProps(
+@@ -123,6 +123,12 @@ BaseTextInputProps::BaseTextInputProps(
            "multiline",
            sourceProps.multiline,
            {false})),
@@ -219,7 +219,7 @@ index 6273740..211be13 100644
        disableKeyboardShortcuts(convertRawProp(
            context,
            rawProps,
-@@ -228,6 +234,7 @@ void BaseTextInputProps::setProp(
+@@ -224,6 +230,7 @@ void BaseTextInputProps::setProp(
      RAW_SET_PROP_SWITCH_CASE_BASIC(multiline);
      RAW_SET_PROP_SWITCH_CASE_BASIC(disableKeyboardShortcuts);
      RAW_SET_PROP_SWITCH_CASE_BASIC(acceptDragAndDropTypes);
@@ -228,10 +228,10 @@ index 6273740..211be13 100644
  }
  
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
-index 5802350..b3f34cc 100644
+index 8994a42..332b3d1 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
-@@ -80,6 +80,8 @@ class BaseTextInputProps : public ViewProps, public BaseTextProps {
+@@ -77,6 +77,8 @@ class BaseTextInputProps : public ViewProps, public BaseTextProps {
  
    bool multiline{false};
  
