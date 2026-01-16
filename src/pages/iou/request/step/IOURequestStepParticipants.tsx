@@ -37,6 +37,7 @@ import {createDraftWorkspace} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -373,17 +374,17 @@ function IOURequestStepParticipants({
             action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
         );
 
-        // eslint-disable-next-line no-nested-ternary
-        const route = isCategorizing
-            ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
-            : isMerchantRequired
-              ? ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
-                    action,
-                    iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
-                    initialTransactionID,
-                    newReportID,
-                )
-              : iouConfirmationPageRoute;
+        let route: Route = iouConfirmationPageRoute;
+        if (isCategorizing) {
+            route = ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute);
+        } else if (isMerchantRequired) {
+            route = ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                action,
+                iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
+                initialTransactionID,
+                newReportID,
+            );
+        }
 
         Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
         waitForKeyboardDismiss(() => {
