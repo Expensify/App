@@ -32,6 +32,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
+import {initSplitExpense, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@libs/actions/IOU/index';
+import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {filterPersonalCards, getCompanyCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -51,13 +53,12 @@ import {
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isExpenseReport,
@@ -99,12 +100,10 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import {initSplitExpense, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import reportsSelector from '@src/selectors/Attributes';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -170,13 +169,10 @@ function MoneyRequestView({
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
-    const searchContext = useSearchContext();
-    const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
-
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const {currentSearchResults} = useSearchContext();
 
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
     let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: true});
@@ -242,6 +238,7 @@ function MoneyRequestView({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isZeroExpensesBetaEnabled = isBetaEnabled(CONST.BETAS.ZERO_EXPENSES);
 
     const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
@@ -275,8 +272,11 @@ function MoneyRequestView({
         tag: transactionTag,
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
+        convertedAmount: transactionConvertedAmount,
     } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {};
-    const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isZeroTransactionAmount = transactionAmount === 0;
+    const isEmptyMerchant =
+        transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transactionMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction, !!mergeTransactionID);
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
@@ -289,9 +289,10 @@ function MoneyRequestView({
     // Use the updated transaction amount in merge flow to have correct positive/negative sign
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
     const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
-    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
+    const shouldDisplayTransactionAmount = (isDistanceRequest && hasRoute) || !isDistanceRequest;
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
-    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (actualAttendees?.length ?? 1), actualCurrency) : '';
+    const formattedPerAttendeeAmount =
+        shouldDisplayTransactionAmount && actualAmount !== undefined ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
 
     const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
@@ -324,7 +325,7 @@ function MoneyRequestView({
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, policy);
+    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -385,6 +386,8 @@ function MoneyRequestView({
             getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
         [getViolationsForField],
     );
+    // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
@@ -397,17 +400,29 @@ function MoneyRequestView({
     let rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
-    let amountTitle = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
+    let amountTitle = formattedTransactionAmount?.toString() || '';
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
     }
 
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
-
     const updatedTransactionDescription = getDescription(updatedTransaction) || undefined;
-    const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isEmptyUpdatedMerchant =
+        updatedTransaction?.modifiedMerchant === '' ||
+        updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
+        updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
+
+    const shouldShowConvertedAmount =
+        transactionConvertedAmount &&
+        currency !== moneyRequestReport?.currency &&
+        !isManagedCardTransaction &&
+        transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID &&
+        !isFromMergeTransaction &&
+        !isFromReviewDuplicates &&
+        !getPendingFieldAction('amount') &&
+        !pendingAction;
 
     const saveBillable = (newBillable: boolean) => {
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
@@ -416,7 +431,8 @@ function MoneyRequestView({
         }
         updateMoneyRequestBillable(
             transaction.transactionID,
-            transactionThreadReport?.reportID,
+            transactionThreadReport,
+            parentReport,
             newBillable,
             policy,
             policyTagList,
@@ -434,7 +450,8 @@ function MoneyRequestView({
         }
         updateMoneyRequestReimbursable(
             transaction.transactionID,
-            transactionThreadReport?.reportID,
+            transactionThreadReport,
+            parentReport,
             newReimbursable,
             policy,
             policyTagList,
@@ -465,6 +482,9 @@ function MoneyRequestView({
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
+    if (shouldShowConvertedAmount) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
+    }
 
     if (isFromMergeTransaction) {
         // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,
@@ -474,15 +494,20 @@ function MoneyRequestView({
     }
 
     const hasErrors = hasMissingSmartscanFields(transaction);
-    // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+    const isMissingAttendeesViolation = getIsMissingAttendeesViolation(
+        policyCategories,
+        updatedTransaction?.category ?? categoryForDisplay,
+        actualAttendees,
+        currentUserPersonalDetails,
+        policy?.isAttendeeTrackingEnabled,
+    );
 
     const getErrorForField = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
         // Checks applied when creating a new expense
         // NOTE: receipt field can return multiple violations, so we need to handle it separately
         const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
             amount: {
-                isError: transactionAmount === 0,
+                isError: isZeroTransactionAmount && !isZeroExpensesBetaEnabled,
                 translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
             },
             merchant: {
@@ -514,6 +539,10 @@ function MoneyRequestView({
         if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
             const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
             return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
+        }
+
+        if (field === 'attendees' && isMissingAttendeesViolation) {
+            return translate('violations.missingAttendees');
         }
 
         return '';
@@ -556,13 +585,7 @@ function MoneyRequestView({
 
                         if (isOdometerDistanceRequest) {
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction.transactionID,
-                                    transactionThreadReport.reportID,
-                                    getReportRHPActiveRoute(),
-                                ),
+                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
                             );
                             return;
                         }
@@ -737,10 +760,9 @@ function MoneyRequestView({
         );
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportNameToDisplay = isFromMergeTransaction
         ? (updatedTransaction?.reportName ?? translate('common.none'))
-        : getReportName(parentReport, reportAttributes) || parentReport?.reportName;
+        : (parentReport?.reportName ?? computeReportName(parentReport, allReports, allPolicies, allTransactions));
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
@@ -1031,6 +1053,8 @@ function MoneyRequestView({
                             onPress={() => {
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID));
                             }}
+                            brickRoadIndicator={getErrorForField('attendees') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('attendees')}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML
