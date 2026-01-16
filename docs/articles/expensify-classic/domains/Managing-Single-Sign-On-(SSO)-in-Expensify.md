@@ -8,31 +8,34 @@ Set up secure and streamlined login across your organization by enabling SAML Si
 
 ---
 
-# Where to find SAML Single Sign-On (SSO) settingsin Expensify Classic 
+# Where to find SAML Single Sign-On (SSO) settings in Expensify Classic 
 
-Before setting up SSO, make sure your domain is verified.  
+To set up SAML Single Sign-On (SSO), verify your domain. 
 [Learn how to claim and verify your domain](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain#step-2-verify-domain-ownership)
 
 Once your domain is verified:
 
 1. Go to **Settings > Domains > [Domain Name] > SAML**.
-2. From the **SAML** section:
-   - Download Expensify’s **Service Provider metadata** to upload to your IdP.
-   - Enter your **IdP metadata** or upload the file from your provider.
-   - Toggle **SAML required for login** to enforce SSO-only login.
+2. Toggle **SAML Login** to **Enabled**.
 
 ---
 
 # Who can manage SAML Single Sign-On (SSO)
 
-- Only **Domain Admins** can configure SAML for verified domains.
-- SAML login applies to all Workspace members whose emails match the verified domain.
+ Only **Domain Admins** can configure SAML for verified domains. SAML login applies to all Domain members whose email addresses match the verified domain.
 
 ---
 
-# How to set up SAML Single Sign-On (SSO) with your identity provider
+# How to set up SAML Single Sign-On (SSO) 
 
-Follow these links for configuration steps with your identity provider:
+1. Go to **Settings > Domains > [Domain Name] > SAML**.
+2. Toggle **SAML Login** to **Enabled**.
+3. Download Expensify’s **Service Provider metadata** to upload to your IdP.
+4. Paste your IdP metadata in the **Identity Provider MetaData** field.
+5. Test logging in to confirm that SAML SSO is configured correctly (recommended) 
+6. Enable **Required for login** to ensure  members sign in via SSO only.
+   
+Select your Identity (SAML) Provider for detailed steps on configuring SAML Single Sign-On (SSO): 
 
 - [Amazon Web Services (AWS SSO)](https://static.global.sso.amazonaws.com/app-202a715cb67cddd9/instructions/index.htm)
 - [Google Workspace / SAML (Gsuite)](https://support.google.com/a/answer/7371682)
@@ -59,7 +62,6 @@ Follow these links for configuration steps with your identity provider:
 ## If setup fails or login doesn't work:
 
 - Use [samltool.com](https://samltool.com) to validate your IdP metadata and certificate.
-- Confirm that your public certificate is in **PEM** format.
 - Make sure the email domain in your IdP exactly matches your verified domain in Expensify.
 - Review the [SAML SSO troubleshooting guide](LINK) for step-by-step help resolving common errors.
 
@@ -68,21 +70,17 @@ Follow these links for configuration steps with your identity provider:
 - Standard setup: `https://expensify.com`
 - Multi-domain setup: `https://expensify.com/yourdomain.com`
 
-## Can I manage multiple domains with one Entity ID?
-
-Yes, managing multiple domains with one Entity ID is supported. Contact Concierge or your Account Manager to enable this feature.
+Managing multiple domains with one Entity ID is supported. Contact Concierge or your Account Manager to enable this feature.
 
 # Advanced configurations for SAML Single Sign-On (SSO)
 
 ## Okta SCIM API and SAML provisioning
 
-Once SAML is enabled:
+Once SAML is configured: 
 
-1. Go to `Domains > [Domain Name] > SAML`.
-2. Toggle on both **Enable SAML login** and **Require SAML login**.
-3. In Okta, add Expensify as an app and configure attribute mappings.
-4. Request SCIM API access via **concierge@expensify.com**.
-5. Add the SCIM token in your Okta provisioning settings.
+1. In Okta, add Expensify as an app and configure attribute mappings.
+2. Request SCIM API access via **concierge@expensify.com**.
+3. Add the SCIM token in your Okta provisioning settings.
 
 Refer to Okta’s documentation for complete instructions.
 
@@ -110,20 +108,21 @@ To avoid setup errors during certificate renewal:
 
 Yes, as long as all members are part of the same verified domain, SAML access applies across all Workspaces they belong to.
 
-## How can I confirm my SAML Single Sign-On (SSO) setup is correct?
+## How can I confirm my SAML Single Sign-On (SSO) setup is working?
 
 Before enabling **Require SAML login**, make sure your SAML connection is working by testing both SP-initiated and IdP-initiated logins. You should also confirm that:
 
 - The correct certificate and endpoints are in your Expensify metadata
 - Members can log in successfully using the SAML flow
 
-## Can I test a new SAML Single Sign-On (SSO) setup without locking users out?
+## Can I test a new SAML Single Sign-On (SSO) setup without locking members out?
 
-Yes. Disable **Require SAML login** before making changes. This allows users to log in with email and password if SAML setup fails. Once you’ve confirmed that login works, you can re-enable enforcement.
+Yes. Disable **Require SAML login** before making changes. This allows members to log in with email and password if SAML setup fails. Once you’ve confirmed that login works, you can re-enable enforcement.
 
-## What happens if a member can’t log in after SAML Single Sign-On (SSO) is enabled?
+## What do I do if a member can’t log in after SAML Single Sign-On (SSO) is enabled?
 
-First, confirm that the member’s email matches your verified domain and that their account exists in your Identity Provider (IdP) with the correct access permissions.
+First, confirm that the member’s email matches your verified domain and that their account exists in your Identity Provider (IdP) with the correct access permissions. If they’re still unable to log in, follow the steps in [Troubleshoot SAML SSO login](LINK) to identify and resolve the issue.
 
-If they’re still unable to log in, follow the steps in [Troubleshoot SAML SSO login](LINK) to identify and resolve the issue.
+## Are custom NameID, ACS, or SLO URLs supported in SAML Single Sign-On (SSO)?
 
+No, the NameID Format, Login URL (ACS URL), and Logout URL (SLO URL) are static and cannot be modified.
