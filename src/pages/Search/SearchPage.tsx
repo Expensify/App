@@ -467,7 +467,20 @@ function SearchPage({route}: SearchPageProps) {
                 clearSelectedTransactions();
             });
         });
-    }, [isOffline, showConfirmModal, translate, selectedTransactionsKeys, hash, clearSelectedTransactions, queryJSON?.type, selectedReportIDs, currentUserPersonalDetails?.login, allTransactions, allTransactionViolations, bankAccountList]);
+    }, [
+        isOffline,
+        showConfirmModal,
+        translate,
+        selectedTransactionsKeys,
+        hash,
+        clearSelectedTransactions,
+        queryJSON?.type,
+        selectedReportIDs,
+        currentUserPersonalDetails?.login,
+        allTransactions,
+        allTransactionViolations,
+        bankAccountList,
+    ]);
 
     const onBulkPaySelected = useCallback(
         (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
