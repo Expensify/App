@@ -33,6 +33,10 @@ const SECURE_STORE_VALUES = {
             CODE: SecureStore.AUTH_TYPE.TOUCH_ID,
             NAME: 'TouchID',
         },
+        /**
+         * OpticID is reserved by apple, used on Apple Vision Pro and not iOS.
+         * It is declared here for completeness but is not currently supported.
+         */
         OPTIC_ID: {
             CODE: SecureStore.AUTH_TYPE.OPTIC_ID,
             NAME: 'OpticID',

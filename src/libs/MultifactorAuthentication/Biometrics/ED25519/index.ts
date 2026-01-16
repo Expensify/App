@@ -32,9 +32,13 @@ function generateKeyPair() {
 
     return {
         /**
-         * The private key is stored in hex as it is not exchanged with the API,
-         * and the @noble library works great with Hex<->Bytes operations
-         * */
+         * The public key is stored as url-encoded base64 because that is what the server expects.
+         * The encoding is arbitrary, and base64 was chosen because it is shorter than hex, so less
+         * overall data is stored and shipped across the wire. The private key is never exchanged with
+         * the server, so compatibility with the encoding format is not important. Hex is used instead
+         * because the @noble library ships with some convenience methods for converting between
+         * Hex<->Bytes, and the documented examples use those methods.
+         */
         privateKey: bytesToHex(secretKey),
 
         publicKey: Base64URL.encode(publicKey),
