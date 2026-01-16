@@ -2267,6 +2267,17 @@ ${amount}，商户：${merchant} - ${date}`,
         admins: '管理员',
         payer: '付款方',
         paymentAccount: '付款账户',
+        shareBankAccount: {
+            shareTitle: '共享银行账户访问权限？',
+            shareDescription: ({admin}: {admin: string}) => `您需要与 ${admin} 共享银行账户访问权限，才能将其设置为付款人。`,
+            validationTitle: '银行账户等待验证',
+            validationDescription: ({admin, validationLink}: {admin: string; validationLink: string}) =>
+                `您需要<a href="${validationLink}">验证此银行账户</a>。验证完成后，您可以将银行账户访问权限分享给 ${admin}，使其成为付款人。`,
+            errorTitle: '无法更改付款人',
+            errorDescription: ({admin}: {admin: string}) => `${admin} 没有此银行账户的访问权限，因此您无法将其设置为付款人。`,
+            errorDescriptionLink: ({admin}: {admin: string}) => `请联系 ${admin}`,
+            errorDescriptionLastPart: `如果需要分享银行账户，请联系 ${admin}。`,
+        },
     },
     reportFraudPage: {
         title: '报告虚拟卡欺诈',

@@ -16,6 +16,9 @@ import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, Section} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -27,6 +30,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {getRouteForCurrentStep as getReimbursementAccountRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -34,8 +38,10 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {clearShareBankAccount, clearShareBankAccountErrors, shareBankAccount} from '@userActions/BankAccounts';
 import {setWorkspacePayer} from '@userActions/Policy/Policy';
+import {navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -53,6 +59,7 @@ type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
 function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const policyName = policy?.name ?? '';
     const bankAccountID = policy?.achAccount?.bankAccountID;
     const {isOffline} = useNetwork();
@@ -176,12 +183,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
     const headerMessage = searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : '';
 
-    const handleShareBankAccount = () => {
-        // setShowShareModal(true);
-        // setShowValidationModal(true);
-        setShowErrorModal(true);
-    };
-
     const handleConfirm = () => {
         setShowShareModal(false);
         if (!bankAccountID) {
@@ -203,6 +204,29 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         }
 
         shareBankAccount(Number(bankAccountID), [authorizedPayerEmail]);
+    };
+
+    const handleShareBankAccount = () => {
+        if (!selectedPayer) {
+            return;
+        }
+        const isAccountAlreadyShared = policy?.achAccount?.sharees ? policy.achAccount.sharees.includes(selectedPayer) : false;
+
+        if (isAccountAlreadyShared) {
+            handleConfirm();
+            return;
+        }
+
+        if (policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
+            setShowValidationModal(true);
+            return;
+        }
+
+        if (policy?.achAccount?.state !== CONST.BANK_ACCOUNT.STATE.PENDING && policy?.achAccount?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) {
+            setShowErrorModal(true);
+            return;
+        }
+        setShowShareModal(true);
     };
 
     const setPolicyAuthorizedPayer = (member: MemberOption) => {
@@ -323,14 +347,16 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             <ConfirmModal
                 title={translate('workflowsPayerPage.shareBankAccount.validationTitle')}
                 isVisible={showValidationModal}
-                onConfirm={() => setShowValidationModal(false)}
+                onConfirm={() => {
+                    setShowValidationModal(false);
+                }}
                 success
                 prompt={
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML
                             html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
-                                validationLink: '',
+                                validationLink: `${environmentURL}/${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy?.id, getReimbursementAccountRouteForCurrentStep(CONST.BANK_ACCOUNT.STEP.VALIDATION))}`,
                             })}
                         />
                     </View>
@@ -341,17 +367,32 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             <ConfirmModal
                 title={translate('workflowsPayerPage.shareBankAccount.errorTitle')}
                 isVisible={showErrorModal}
-                onConfirm={() => setShowErrorModal(false)}
+                onConfirm={() => {
+                    setShowErrorModal(false);
+                }}
                 success
                 prompt={
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
+                    <Text style={[styles.renderHTML, styles.flexRow]}>
+                        <Text>
+                            {translate('workflowsPayerPage.shareBankAccount.errorDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
-                                chatLink: '',
                             })}
-                        />
-                    </View>
+                        </Text>
+                        <TextLink
+                            onPress={() => {
+                                if (!selectedPayerDetails?.accountID || !policy?.ownerAccountID) {
+                                    return;
+                                }
+                                setShowErrorModal(false);
+                                navigateToAndOpenReportWithAccountIDs([selectedPayerDetails.accountID], policy.ownerAccountID);
+                            }}
+                        >
+                            {translate('workflowsPayerPage.shareBankAccount.errorDescriptionLink', {
+                                admin: selectedPayerDetails?.displayName ?? '',
+                            })}
+                        </TextLink>
+                        <Text>{translate('workflowsPayerPage.shareBankAccount.errorDescriptionLastPart')}</Text>
+                    </Text>
                 }
                 shouldShowCancelButton={false}
                 confirmText={translate('common.buttonConfirm')}

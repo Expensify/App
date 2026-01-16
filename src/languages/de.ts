@@ -2314,6 +2314,17 @@ ${amount} für ${merchant} – ${date}`,
         admins: 'Admins',
         payer: 'Zahler',
         paymentAccount: 'Zahlungskonto',
+        shareBankAccount: {
+            shareTitle: 'Bankkontozugriff teilen?',
+            shareDescription: ({admin}: {admin: string}) => `Sie müssen ${admin} den Bankkontozugriff gewähren, damit dieser als Zahler eingetragen werden kann.`,
+            validationTitle: 'Bankkonto wartet auf Validierung',
+            validationDescription: ({admin, validationLink}: {admin: string; validationLink: string}) =>
+                `Sie müssen <a href="${validationLink}">dieses Bankkonto validieren</a>. Anschließend können Sie den Zugriff auf das Bankkonto mit ${admin} teilen, um ihn/sie als Zahler festzulegen.`,
+            errorTitle: 'Zahler kann nicht geändert werden',
+            errorDescription: ({admin}: {admin: string}) => `${admin} hat keinen Zugriff auf dieses Bankkonto, daher können Sie ihn/sie nicht als Zahler festlegen.`,
+            errorDescriptionLink: ({admin}: {admin: string}) => `Kontaktieren Sie ${admin}`,
+            errorDescriptionLastPart: `wenn das Bankkonto geteilt werden soll.`,
+        },
     },
     reportFraudPage: {
         title: 'Virtuelle Kartenbetrugsfälle melden',

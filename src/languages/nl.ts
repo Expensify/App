@@ -2307,6 +2307,17 @@ ${amount} voor ${merchant} - ${date}`,
         admins: 'Beheerders',
         payer: 'Betaler',
         paymentAccount: 'Betaalrekening',
+        shareBankAccount: {
+            shareTitle: 'Bankrekeningtoegang delen?',
+            shareDescription: ({admin}: {admin: string}) => `U moet bankrekeningtoegang delen met ${admin} om hem/haar de betaler te maken.`,
+            validationTitle: 'Bankrekening wacht op validatie',
+            validationDescription: ({admin, validationLink}: {admin: string; validationLink: string}) =>
+                `U moet deze bankrekening valideren. Zodra dat is gedaan, kunt u de toegang tot de bankrekening delen met ${admin} om hem/haar de betaler te maken.`,
+            errorTitle: 'Betaler kan niet worden gewijzigd',
+            errorDescription: ({admin}: {admin: string}) => `${admin} heeft geen toegang tot deze bankrekening, dus u kunt hem/haar niet de betaler maken.`,
+            errorDescriptionLink: ({admin}: {admin: string}) => `Chat met ${admin}`,
+            errorDescriptionLastPart: `als de bankrekening moet worden gedeeld.`,
+        },
     },
     reportFraudPage: {
         title: 'Fraude met virtuele kaart melden',
