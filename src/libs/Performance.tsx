@@ -1,7 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import isObject from 'lodash/isObject';
 import lodashTransform from 'lodash/transform';
-import React, {forwardRef, Profiler} from 'react';
+import React, {Profiler} from 'react';
 import {Alert, InteractionManager} from 'react-native';
 import performance, {PerformanceObserver, setResourceLoggingEnabled} from 'react-native-performance';
 import type {PerformanceEntry, PerformanceMark, PerformanceMeasure} from 'react-native-performance';
@@ -165,7 +165,9 @@ function printPerformanceMetrics(): void {
 
 function subscribeToMeasurements(callback: (entry: PerformanceEntry) => void): () => void {
     const observer = new PerformanceObserver((list) => {
-        list.getEntriesByType('measure').forEach(callback);
+        for (const entry of list.getEntriesByType('measure')) {
+            callback(entry);
+        }
     });
 
     observer.observe({type: 'measure', buffered: true});
@@ -221,19 +223,20 @@ function withRenderTrace({id}: WrappedComponentConfig) {
         return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P> => WrappedComponent;
     }
 
-    return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P & React.RefAttributes<unknown>> => {
-        const WithRenderTrace: React.ComponentType<P & React.RefAttributes<unknown>> = forwardRef((props: P, ref) => (
-            <Profiler
-                id={id}
-                onRender={traceRender}
-            >
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={ref}
-                />
-            </Profiler>
-        ));
+    return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P> => {
+        function WithRenderTrace(props: P) {
+            return (
+                <Profiler
+                    id={id}
+                    onRender={traceRender}
+                >
+                    <WrappedComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                </Profiler>
+            );
+        }
 
         WithRenderTrace.displayName = `withRenderTrace(${getComponentDisplayName(WrappedComponent as React.ComponentType)})`;
         return WithRenderTrace;

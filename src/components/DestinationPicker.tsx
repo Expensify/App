@@ -9,6 +9,7 @@ import type {Destination} from '@libs/PerDiemRequestUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import RadioListItem from './SelectionListWithSections/RadioListItem';
 import type {ListItem} from './SelectionListWithSections/types';
@@ -70,6 +71,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
 
     return (
         <SelectionList
+            key={selectedDestination}
             sections={sections}
             headerMessage={headerMessage}
             textInputValue={searchValue}
@@ -78,12 +80,10 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
             shouldHideKeyboardOnScroll={false}
+            shouldUpdateFocusedIndex
         />
     );
 }
-
-DestinationPicker.displayName = 'DestinationPicker';
 
 export default DestinationPicker;

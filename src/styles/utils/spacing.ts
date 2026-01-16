@@ -243,6 +243,10 @@ export default {
         marginLeft: 44,
     },
 
+    ml13: {
+        marginLeft: 52,
+    },
+
     ml18: {
         marginLeft: 72,
     },
@@ -345,6 +349,10 @@ export default {
 
     mb0: {
         marginBottom: 0,
+    },
+
+    mbHalf: {
+        marginBottom: 2,
     },
 
     mb1: {
@@ -573,6 +581,10 @@ export default {
 
     pr0: {
         paddingRight: 0,
+    },
+
+    pr0half: {
+        paddingRight: 2,
     },
 
     pr1: {

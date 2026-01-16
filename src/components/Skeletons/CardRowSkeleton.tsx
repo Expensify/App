@@ -3,6 +3,7 @@ import {Circle, Rect} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
@@ -25,6 +26,7 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useSkeletonSpan('CardRowSkeleton');
 
     return (
         <ItemListSkeletonView
@@ -40,15 +42,13 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                         r={20}
                     />
                     <Rect
-                        x={66}
-                        y={22}
+                        transform={[{translateX: 66}, {translateY: 22}]}
                         width={longBarWidth}
                         height={barHeight}
                     />
 
                     <Rect
-                        x={66}
-                        y={36}
+                        transform={[{translateX: 66}, {translateY: 36}]}
                         width={shortBarWidth}
                         height={barHeight}
                     />
@@ -57,16 +57,24 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                         <>
                             <Rect
                                 // We have to calculate this value to make sure the element is aligned to the button on the right side.
-                                x={windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}
-                                y={28}
+                                transform={[
+                                    {
+                                        translateX: windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth,
+                                    },
+                                    {translateY: 28},
+                                ]}
                                 width={20}
                                 height={barHeight}
                             />
 
                             <Rect
                                 // We have to calculate this value to make sure the element is aligned to the right border.
-                                x={windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}
-                                y={28}
+                                transform={[
+                                    {
+                                        translateX: windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding,
+                                    },
+                                    {translateY: 28},
+                                ]}
                                 width={50}
                                 height={barHeight}
                             />
@@ -77,7 +85,5 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
         />
     );
 }
-
-CardRowSkeleton.displayName = 'CardRowSkeleton';
 
 export default CardRowSkeleton;

@@ -9,9 +9,16 @@ import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, Tran
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {translateLocal} from '../utils/TestHelper';
 
+// Mock getCurrentUserEmail from Report actions
+const MOCK_CURRENT_USER_EMAIL = 'test@expensify.com';
+jest.mock('@libs/actions/Report', () => ({
+    getCurrentUserEmail: jest.fn(() => MOCK_CURRENT_USER_EMAIL),
+}));
+
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
 };
 
 const missingCategoryViolation = {
@@ -79,6 +86,7 @@ const missingTagViolation = {
 const tagOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
 };
 
 const smartScanFailedViolation = {
@@ -365,7 +373,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
 
-        it('should only return smartscanFailed violation for smart scan failed transactions', () => {
+        it('should keep other violations while adding smartscanFailed for smart scan failed transactions', () => {
             const partialTransaction = {
                 ...transaction,
                 amount: 0,
@@ -375,7 +383,43 @@ describe('getViolationsOnyxData', () => {
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
-            expect(result.value).toEqual([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}]);
+            expect(result.value).toEqual(
+                expect.arrayContaining([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}, missingCategoryViolation]),
+            );
+        });
+
+        it('should not add smartscanFailed when scan failed but required fields are filled', () => {
+            const transactionWithEnteredDetails = {
+                ...transaction,
+                amount: 10000,
+                merchant: 'Coffee Shop',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transactionWithEnteredDetails, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
+        });
+
+        it('should not add smartscanFailed when scan failed but modified fields are filled (amount and merchant)', () => {
+            const transactionWithModifiedDetails = {
+                ...transaction,
+                amount: 0,
+                modifiedAmount: 12345,
+                merchant: '',
+                modifiedMerchant: 'Manual Merchant',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(
+                transactionWithModifiedDetails as unknown as Transaction,
+                transactionViolations,
+                policy,
+                policyTags,
+                policyCategories,
+                false,
+                false,
+            );
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
         });
     });
 
@@ -420,7 +464,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation}]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}]));
         });
 
         it('should add a tagOutOfPolicy violation when policy requires tags and tag is not in the policy', () => {
@@ -449,7 +493,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
 
         it('should add missingTag violation to existing violations if transaction does not have a tag', () => {
@@ -458,7 +502,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
     });
 
@@ -518,6 +562,7 @@ describe('getViolationsOnyxData', () => {
             const someTagLevelsRequiredViolation = {
                 name: 'someTagLevelsRequired',
                 type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
                 data: {
                     errorIndexes: [0, 1, 2],
                 },
@@ -558,6 +603,203 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = undefined;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
             expect(result.value).toEqual(expect.arrayContaining([missingDepartmentTag, missingRegionTag, missingProjectTag]));
+        });
+    });
+
+    describe('missingAttendees violation', () => {
+        const missingAttendeesViolation = {
+            name: CONST.VIOLATIONS.MISSING_ATTENDEES,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        };
+
+        const ownerAccountID = 123;
+        const otherAccountID = 456;
+
+        let iouReport: Report;
+
+        beforeEach(() => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.isAttendeeTrackingEnabled = true;
+            policyCategories = {
+                Meals: {
+                    name: 'Meals',
+                    enabled: true,
+                    areAttendeesRequired: true,
+                },
+            };
+            transaction.category = 'Meals';
+            iouReport = {
+                reportID: '1234',
+                ownerAccountID,
+            } as Report;
+        });
+
+        (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED ? it.skip : it)('should add missingAttendees violation when no attendees are present', () => {
+            transaction.comment = {attendees: []};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED ? it.skip : it)('should add missingAttendees violation when only owner is an attendee', () => {
+            transaction.comment = {
+                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        it('should not add missingAttendees violation when there is at least one non-owner attendee', () => {
+            transaction.comment = {
+                attendees: [
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        it('should remove missingAttendees violation when attendees are added', () => {
+            transactionViolations = [missingAttendeesViolation];
+            transaction.comment = {
+                attendees: [
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        it('should not add missingAttendees violation when attendee tracking is disabled', () => {
+            policy.isAttendeeTrackingEnabled = false;
+            transaction.comment = {attendees: []};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        it('should not add missingAttendees violation when category does not require attendees', () => {
+            policyCategories.Meals.areAttendeesRequired = false;
+            transaction.comment = {attendees: []};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        describe('optimistic / offline scenarios (iouReport is undefined)', () => {
+            // In offline scenarios, iouReport is undefined so we can't get ownerAccountID.
+            // The code falls back to using getCurrentUserEmail() to identify the owner by login/email.
+            (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED ? it.skip : it)('should correctly calculate violation when iouReport is undefined but attendees have matching email', () => {
+                // When iouReport is undefined, we use getCurrentUserEmail() as fallback
+                // If only the current user (matching MOCK_CURRENT_USER_EMAIL) is an attendee, violation should show
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // Violation should be added since the only attendee is the current user (owner)
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should not add violation when iouReport is undefined but there are non-owner attendees (by email)', () => {
+                // When there are attendees with different emails than the current user, no violation
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [
+                        {email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''},
+                        {email: 'other@example.com', displayName: 'Other User', avatarUrl: ''},
+                    ],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // Violation should NOT be added since there's a non-owner attendee
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should remove violation when non-owner attendee is added (offline)', () => {
+                // If violation existed and a non-owner attendee is added, violation should be removed
+                transactionViolations = [missingAttendeesViolation];
+                transaction.comment = {
+                    attendees: [
+                        {email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''},
+                        {email: 'other@example.com', displayName: 'Other User', avatarUrl: ''},
+                    ],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // Violation should be removed
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED ? it.skip : it)('should preserve violation when only owner attendee remains (offline)', () => {
+                // If violation existed and only owner attendee remains, violation stays
+                transactionViolations = [missingAttendeesViolation];
+                transaction.comment = {
+                    attendees: [{email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // Violation should be preserved
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+        });
+
+        describe('fallback case (iouReport undefined AND getCurrentUserEmail returns falsy)', () => {
+            // This tests the edge case where we cannot identify the owner at all:
+            // - ownerAccountID is undefined (iouReport unavailable)
+            // - getCurrentUserEmail() returns falsy (no current user email)
+            // In this case, we assume owner is one of the attendees, so we need at least 2 attendees
+            // for there to be a non-owner attendee.
+
+            beforeEach(() => {
+                // Mock getCurrentUserEmail to return empty string
+                jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('');
+            });
+
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
+
+            (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED ? it.skip : it)("should add missingAttendees violation when no attendees are present (can't identify owner)", () => {
+                transactionViolations = [];
+                transaction.comment = {attendees: []};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // With 0 attendees, attendeesMinusOwnerCount = Math.max(0, 0 - 1) = 0, violation should be added
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED ? it.skip : it)('should add missingAttendees violation when only 1 attendee exists (assumed to be owner)', () => {
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: 'anyone@example.com', displayName: 'Someone', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // With 1 attendee, attendeesMinusOwnerCount = Math.max(0, 1 - 1) = 0, violation should be added
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should not add missingAttendees violation when 2+ attendees exist (assumes owner is one of them)', () => {
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [
+                        {email: 'person1@example.com', displayName: 'Person 1', avatarUrl: ''},
+                        {email: 'person2@example.com', displayName: 'Person 2', avatarUrl: ''},
+                    ],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // With 2 attendees, attendeesMinusOwnerCount = Math.max(0, 2 - 1) = 1, no violation
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should remove missingAttendees violation when second attendee is added', () => {
+                transactionViolations = [missingAttendeesViolation];
+                transaction.comment = {
+                    attendees: [
+                        {email: 'person1@example.com', displayName: 'Person 1', avatarUrl: ''},
+                        {email: 'person2@example.com', displayName: 'Person 2', avatarUrl: ''},
+                    ],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // Violation should be removed since we now have 2 attendees
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
         });
     });
 });
@@ -602,8 +844,47 @@ describe('getViolations', () => {
 
         await Onyx.multiSet({...transactionCollectionDataSet});
 
-        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation);
-        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation);
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+
+        expect(isSmartScanDismissed).toBeTruthy();
+        expect(isDuplicateViolationDismissed).toBeFalsy();
+    });
+
+    it('should check if violation is dismissed or not (with report and policy params)', async () => {
+        const policy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: CARLOS_EMAIL,
+            isPolicyExpenseChatEnabled: false,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+            outputCurrency: CONST.CURRENCY.USD,
+        };
+
+        const report: Report = {
+            reportID: 'test-report-id',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CARLOS_ACCOUNT_ID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
 
         expect(isSmartScanDismissed).toBeTruthy();
         expect(isDuplicateViolationDismissed).toBeFalsy();
@@ -625,7 +906,48 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
+    });
+
+    it('should return filtered out dismissed violations (with report and policy params)', async () => {
+        const policy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: CARLOS_EMAIL,
+            isPolicyExpenseChatEnabled: false,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            outputCurrency: CONST.CURRENCY.USD,
+        };
+
+        const report: Report = {
+            reportID: 'test-report-id',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CARLOS_ACCOUNT_ID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        const transactionViolationsCollection = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        // Should filter out the smartScanFailedViolation
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -643,7 +965,47 @@ describe('getViolations', () => {
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
-        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection);
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined);
+        expect(hasWarningTypeViolationRes).toBeTruthy();
+    });
+
+    it('checks if transaction has warning type violation after filtering dismissed violations (with report and policy params)', async () => {
+        const policy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: CARLOS_EMAIL,
+            isPolicyExpenseChatEnabled: false,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+            outputCurrency: CONST.CURRENCY.USD,
+            pendingAction: undefined,
+        };
+
+        const report: Report = {
+            reportID: 'test-report-id',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CARLOS_ACCOUNT_ID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        const transactionViolationsCollection = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
         expect(hasWarningTypeViolationRes).toBeTruthy();
     });
 });
@@ -767,28 +1129,28 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
     it('should return false when violations is null', () => {
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
-    it('should return false when transactions is null', () => {
+    it('should return false when transactions is empty', () => {
         const violations = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, []);
         expect(result).toBe(false);
     });
 
     it('should return false when no violations exist for transactions', () => {
         const violations = {};
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -800,7 +1162,7 @@ describe('hasVisibleViolationsForUser', () => {
         // Mock shouldShowViolation to return true for missing category
         jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockReturnValue(true);
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
     });
 
@@ -822,7 +1184,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -847,7 +1209,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
     });
 
@@ -883,7 +1245,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction, secondTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction, secondTransaction]);
         expect(result).toBe(true);
     });
 });

@@ -18,6 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {openExternalLink} from '@libs/actions/Link';
 import {clearImportedSpreadsheetMemberData, importPolicyMembers} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,10 +53,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     useEffect(() => {
         return () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                clearImportedSpreadsheetMemberData();
-            });
+            clearImportedSpreadsheetMemberData();
         };
     }, []);
 
@@ -73,7 +71,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             {} as Record<string, number>,
         );
         // getAccountIDsByLogins function uses the personalDetails data from the connection, so we need to re-run this logic when the personal detail is changed.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newMembers, personalDetails]);
 
@@ -95,7 +92,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        closeImportPage();
     };
 
     const onRoleChange = (item: ListItemType) => {
@@ -142,7 +139,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         <ScreenWrapper
             shouldEnableMaxHeight
             shouldUseCachedViewportHeight
-            testID={ImportedMembersConfirmationPage.displayName}
+            testID="ImportedMembersConfirmationPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -207,6 +204,11 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 closeImportPageAndModal={closeImportPageAndModal}
+                shouldHandleNavigationBack={false}
+                onModalHide={() => {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
+                }}
             />
             <WorkspaceMemberDetailsRoleSelectionModal
                 isVisible={isRoleSelectionModalVisible}
@@ -217,7 +219,5 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         </ScreenWrapper>
     );
 }
-
-ImportedMembersConfirmationPage.displayName = 'ImportedMembersConfirmationPage';
 
 export default ImportedMembersConfirmationPage;

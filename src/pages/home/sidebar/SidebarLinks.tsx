@@ -10,6 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp, setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -43,7 +44,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
 
     useEffect(() => {
         ReportActionContextMenu.hideContextMenu(false);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     /**
@@ -66,6 +67,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
                 (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
                 shouldBlockReportNavigation
             ) {
+                cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
@@ -75,7 +77,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
     return (
@@ -99,7 +101,5 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
         </View>
     );
 }
-
-SidebarLinks.displayName = 'SidebarLinks';
 
 export default memo(SidebarLinks);

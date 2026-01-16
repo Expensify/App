@@ -14,6 +14,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
@@ -58,13 +59,16 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
+    const isPerDiemTransaction = isPerDiemRequest(transaction);
+    const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
 
     const handleGoBack = () => {
         if (isEditing) {
-            Navigation.dismissModal();
+            Navigation.dismissToSuperWideRHP();
         } else {
             Navigation.goBack(backTo);
         }
@@ -120,17 +124,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             );
 
             if (isEditing) {
-                changeTransactionsReport(
-                    [transaction.transactionID],
-
+                changeTransactionsReport({
+                    transactionIDs: [transaction.transactionID],
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    report,
-                    allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-                    undefined,
-                    allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                );
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    newReport: report,
+                    policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                    reportNextStep: undefined,
+                    policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                    allTransactions,
+                });
                 removeTransaction(transaction.transactionID);
             }
         });
@@ -163,10 +167,16 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport([transaction.transactionID], isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled,
+                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: session?.email ?? '',
+                allTransactions,
+            });
             removeTransaction(transaction.transactionID);
         });
     };
@@ -174,12 +184,13 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 
-    const createReportForPolicy = () => {
-        if (!policyForMovingExpensesID) {
+    const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!isPerDiemTransaction && !policyForMovingExpenses?.id) {
             return;
         }
 
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
         handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
     };
 
@@ -191,7 +202,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     });
 
     const createReport = () => {
-        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (isPerDiemTransaction) {
+            handleCreateReport();
+            return;
+        }
+        if (!isPerDiemTransaction && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
@@ -220,12 +235,10 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 isUnreported={isUnreported}
                 shouldShowNotFoundPage={shouldShowNotFoundPage}
                 isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
-                createReport={action === CONST.IOU.ACTION.EDIT ? createReport : undefined}
+                createReport={action === CONST.IOU.ACTION.EDIT && (policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction) ? createReport : undefined}
             />
         </>
     );
 }
-
-IOURequestStepReport.displayName = 'IOURequestStepReport';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepReport));

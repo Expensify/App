@@ -6,8 +6,6 @@ keywords: [New Expensify, Uber for Business, Uber integration, automate Uber rec
 
 <div id="new-expensify" markdown="1">
 
-**Note: This feature is currently in beta. Please reach out to Concierge to request access!**
-
 Connect your Expensify workspace to Uber for Business to automatically import Uber Rides and Uber Eats receipts for your team. This guide walks you through setup, employee management, and receipt import.
 
 # Connect the Uber for Business Integration

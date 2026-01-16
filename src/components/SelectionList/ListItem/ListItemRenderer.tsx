@@ -7,12 +7,11 @@ import {isMobileChrome} from '@libs/Browser';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import type {BaseListItemProps, ExtendedTargetedEvent, ListItem} from './types';
 
-type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
+type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow' | 'keyForList'> &
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
-        normalizedIndex: number;
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
@@ -39,7 +38,6 @@ function ListItemRenderer<TItem extends ListItem>({
     alternateTextNumberOfLines,
     shouldIgnoreFocus,
     setFocusedIndex,
-    normalizedIndex,
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
@@ -47,6 +45,9 @@ function ListItemRenderer<TItem extends ListItem>({
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
     shouldHighlightSelectedItem,
+    shouldDisableHoverStyle,
+    shouldStopMouseLeavePropagation,
+    shouldShowRightCaret,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -77,7 +78,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
                 shouldPreventEnterKeySubmit
                 rightHandSideComponent={rightHandSideComponent}
-                keyForList={item.keyForList ?? ''}
+                keyForList={item.keyForList}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
@@ -90,7 +91,7 @@ function ListItemRenderer<TItem extends ListItem>({
                     if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
                         return;
                     }
-                    setFocusedIndex(normalizedIndex);
+                    setFocusedIndex(index);
                 }}
                 shouldSyncFocus={shouldSyncFocus}
                 wrapperStyle={wrapperStyle}
@@ -98,12 +99,13 @@ function ListItemRenderer<TItem extends ListItem>({
                 titleContainerStyles={titleContainerStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                shouldDisableHoverStyle={shouldDisableHoverStyle}
+                shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
+                shouldShowRightCaret={shouldShowRightCaret}
             />
             {item.footerContent && item.footerContent}
         </>
     );
 }
-
-ListItemRenderer.displayName = 'BaseSelectionListItemRenderer';
 
 export default ListItemRenderer;

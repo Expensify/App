@@ -42,7 +42,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress}
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
 
     return (
-        <View fsClass={CONST.FULLSTORY.CLASS.MASK}>
+        <View>
             {pan?.length > 0 && (
                 <MenuItemWithTopDescription
                     description={translate('cardPage.cardDetails.cardNumber')}
@@ -50,6 +50,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress}
                     interactive={false}
                     copyValue={pan}
                     copyable
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             )}
             {expiration?.length > 0 && (
@@ -58,6 +59,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress}
                     title={expiration}
                     interactive={false}
                     copyable
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             )}
             {cvv?.length > 0 && (
@@ -66,6 +68,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress}
                     title={cvv}
                     interactive={false}
                     copyable
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             )}
             {pan?.length > 0 && (
@@ -76,6 +79,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress}
                         title={getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
                         interactive={false}
                         copyable
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <TextLink
                         style={[styles.link, styles.mh5, styles.mb3]}
@@ -88,7 +92,5 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress}
         </View>
     );
 }
-
-CardDetails.displayName = 'CardDetails';
 
 export default CardDetails;

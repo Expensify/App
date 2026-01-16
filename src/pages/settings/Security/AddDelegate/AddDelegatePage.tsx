@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useLocalize from '@hooks/useLocalize';
@@ -54,7 +55,7 @@ function AddDelegatePage() {
             debouncedSearchTerm,
             countryCode,
         );
-    }, [availableOptions, debouncedSearchTerm, countryCode]);
+    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, debouncedSearchTerm, countryCode]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -91,7 +92,7 @@ function AddDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [availableOptions, translate]);
+    }, [availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
@@ -100,7 +101,7 @@ function AddDelegatePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={AddDelegatePage.displayName}
+            testID="AddDelegatePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -125,7 +126,5 @@ function AddDelegatePage() {
         </ScreenWrapper>
     );
 }
-
-AddDelegatePage.displayName = 'AddDelegatePage';
 
 export default AddDelegatePage;

@@ -1,14 +1,15 @@
 import type {ReactElement, RefObject} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
 
-type SelectionListProps<TItem extends ListItem> = {
+type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Array of items to display in the list */
     data: TItem[];
 
     /** Reference to the SelectionList component */
-    ref?: React.Ref<SelectionListHandle>;
+    ref?: React.Ref<SelectionListHandle<TItem>>;
 
     /** Component to render for each list item */
     ListItem: ValidListItem;
@@ -25,11 +26,17 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Called when "Select All" button is pressed */
     onSelectAll?: () => void;
 
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
     /** Called when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Called when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
+
+    /** Callback to fire when an error is dismissed */
+    onDismissError?: (item: TItem) => void;
 
     /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content */
     onEndReached?: () => void;
@@ -38,13 +45,16 @@ type SelectionListProps<TItem extends ListItem> = {
     onEndReachedThreshold?: number;
 
     /** Configuration for the confirm button */
-    confirmButtonConfig?: ConfirmButtonOptions<TItem>;
+    confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 
     /** Custom header content to render instead of the default select all header */
     customListHeader?: React.ReactNode;
 
     /** Custom content to display in the header of list component. */
     customListHeaderContent?: React.JSX.Element | null;
+
+    /** Custom component to render while data is loading */
+    customLoadingPlaceholder?: React.JSX.Element;
 
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
@@ -65,17 +75,23 @@ type SelectionListProps<TItem extends ListItem> = {
     selectedItems?: readonly string[];
 
     style?: {
-        /** Styles to apply to the list */
+        /** Styles for the list */
         listStyle?: StyleProp<ViewStyle>;
 
-        /** Styles applied for the title of the list item */
+        /** Styles for the list container */
+        containerStyle?: StyleProp<ViewStyle>;
+
+        /** Styles for the title of the list item */
         listItemTitleStyles?: StyleProp<TextStyle>;
 
         /** Styles for the list item wrapper */
         listItemWrapperStyle?: StyleProp<ViewStyle>;
 
-        /** Styles to apply to the list container */
-        containerStyle?: StyleProp<ViewStyle>;
+        /** Styles for the list header wrapper */
+        listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** Styles for the title container of the list item */
+        listItemTitleContainerStyles?: StyleProp<ViewStyle>;
     };
 
     /** Function that determines if an item is selected */
@@ -111,6 +127,9 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
+    /** Whether scroll position should change when focused item changes */
+    disableMaintainingScrollPosition?: boolean;
+
     /** Whether to use the user skeleton view */
     shouldUseUserSkeletonView?: boolean;
 
@@ -120,8 +139,14 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Whether to ignore focus events */
     shouldIgnoreFocus?: boolean;
 
+    /** Whether to show the right caret icon */
+    shouldShowRightCaret?: boolean;
+
     /** Whether to stop automatic propagation on pressing enter key */
     shouldStopPropagation?: boolean;
+
+    /** Whether to place customListHeader in the list so it scrolls with data */
+    shouldHeaderBeInsideList?: boolean;
 
     /** Whether to scroll to the focused item */
     shouldScrollToFocusedIndex?: boolean;
@@ -141,8 +166,18 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
+    /** Whether to clear the text input when a row is selected */
+    shouldClearInputOnSelect?: boolean;
+
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether hover style should be disabled */
+    shouldDisableHoverStyle?: boolean;
+    setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type TextInputOptions = {
@@ -176,8 +211,11 @@ type TextInputOptions = {
     /** Whether the text input should be shown as a header inside list */
     shouldBeInsideList?: boolean;
 
+    /** Whether the text input autofocus should be disabled */
+    disableAutoFocus?: boolean;
+
     /** Reference to the text input component */
-    ref?: RefObject<BaseTextInputRef | null> | ((ref: BaseTextInputRef | null) => void);
+    ref?: RefObject<BaseTextInputRef | null>;
 };
 
 type ConfirmButtonOptions<TItem extends ListItem> = {
@@ -199,7 +237,7 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type SelectionListHandle = {
+type SelectionListHandle<TItem extends ListItem> = {
     /** Scrolls to and highlights the specified items */
     scrollAndHighlightItem: (items: string[]) => void;
 
@@ -208,6 +246,12 @@ type SelectionListHandle = {
 
     /** Updates the focused index and optionally scrolls to it */
     updateFocusedIndex: (newFocusedIndex: number, shouldScroll?: boolean) => void;
+
+    /** Scrolls to the focused input on SplitExpensePage */
+    scrollToFocusedInput: (item: TItem) => void;
+
+    /** Sets the focus to the textInput component */
+    focusTextInput: () => void;
 };
 
 type DataDetailsType<TItem extends ListItem> = {

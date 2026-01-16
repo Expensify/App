@@ -75,6 +75,4 @@ function InitialListValueSelector({value = '', label = '', rightLabel, subtitle 
     );
 }
 
-InitialListValueSelector.displayName = 'InitialListValueSelector';
-
 export default InitialListValueSelector;

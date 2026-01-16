@@ -3,10 +3,10 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -39,6 +39,7 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['TreasureChest']);
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
@@ -47,7 +48,6 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);
     const [isDismissed, setIsDismissed] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     useEffect(() => {
         const intervalID = setInterval(() => {
             setDiscountInfo(getEarlyDiscountInfo(firstDayFreeTrial));
@@ -118,18 +118,10 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     }
 
     const title = isSubscriptionPage ? (
-        <RenderHTML
-            html={translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle', {
-                discountType: discountInfo?.discountType,
-            })}
-        />
+        <RenderHTML html={translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle', discountInfo?.discountType)} />
     ) : (
         <View style={[styles.justifyContentBetween, styles.flexRow]}>
-            <RenderHTML
-                html={translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle', {
-                    discountType: discountInfo?.discountType,
-                })}
-            />
+            <RenderHTML html={translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle', discountInfo?.discountType)} />
             {shouldUseNarrowLayout && dismissButton}
         </View>
     );
@@ -138,19 +130,12 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
         <BillingBanner
             title={title}
             style={!isSubscriptionPage && [styles.hoveredComponentBG, styles.borderBottom]}
-            subtitle={translate('subscription.billingBanner.earlyDiscount.subtitle', {
-                days: discountInfo?.days,
-                hours: discountInfo?.hours,
-                minutes: discountInfo?.minutes,
-                seconds: discountInfo?.seconds,
-            })}
+            subtitle={translate('subscription.billingBanner.earlyDiscount.subtitle', discountInfo?.days, discountInfo?.hours, discountInfo?.minutes, discountInfo?.seconds)}
             subtitleStyle={[styles.mt1, styles.mutedNormalTextLabel, isSubscriptionPage && StyleUtils.getTextColorStyle(theme.trialTimer)]}
-            icon={Illustrations.TreasureChest}
+            icon={illustrations.TreasureChest}
             rightComponent={!isSubscriptionPage && rightComponent}
         />
     );
 }
-
-EarlyDiscountBanner.displayName = 'EarlyDiscountBanner';
 
 export default EarlyDiscountBanner;

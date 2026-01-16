@@ -53,7 +53,7 @@ function RulesMaxExpenseAgePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesMaxExpenseAgePage.displayName}
+                testID="RulesMaxExpenseAgePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.maxExpenseAge')}
@@ -91,7 +91,5 @@ function RulesMaxExpenseAgePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesMaxExpenseAgePage.displayName = 'RulesMaxExpenseAgePage';
 
 export default RulesMaxExpenseAgePage;

@@ -6,6 +6,7 @@ import type {SvgProps} from 'react-native-svg';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
@@ -14,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -67,9 +69,10 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Cash', 'FallbackAvatar']);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
 
@@ -86,7 +89,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
             if (isMoneyRequestReport(report)) {
                 // generate subtitle from participants
                 return getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => getDisplayNameForParticipant({accountID}))
+                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber}))
                     .join(' & ');
             }
 
@@ -94,8 +97,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived]);
+    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber]);
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
@@ -112,7 +116,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     let svgLogoFillColor: string | undefined;
 
     if (!logo && policy && !policy.avatarURL) {
-        svgLogo = getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
+        svgLogo = getDefaultWorkspaceAvatar(policy.name) || icons.FallbackAvatar;
 
         const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
         logoBackgroundColor = defaultWorkspaceAvatarColors.backgroundColor?.toString();
@@ -120,7 +124,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     }
 
     return (
-        <ScreenWrapper testID={ShareCodePage.displayName}>
+        <ScreenWrapper testID="ShareCodePage">
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo) : undefined)}
@@ -159,7 +163,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         <MenuItem
                             isAnonymousAction
                             title={translate('common.download')}
-                            icon={Expensicons.Download}
+                            icon={icons.Download}
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onPress={() => qrCodeRef.current?.download?.()}
                         />
@@ -167,7 +171,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
                     <MenuItem
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
-                        icon={Expensicons.Cash}
+                        icon={icons.Cash}
                         onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRoute()))}
                         shouldShowRightIcon
                     />
@@ -176,7 +180,5 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         </ScreenWrapper>
     );
 }
-
-ShareCodePage.displayName = 'ShareCodePage';
 
 export default ShareCodePage;

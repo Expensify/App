@@ -6,12 +6,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 type FooterProps<TItem extends ListItem> = {
     footerContent?: React.ReactNode;
-    confirmButtonConfig?: ConfirmButtonOptions<TItem>;
+    confirmButtonOptions?: ConfirmButtonOptions<TItem>;
     addBottomSafeAreaPadding?: boolean;
 };
 
-function Footer<TItem extends ListItem>({footerContent, confirmButtonConfig, addBottomSafeAreaPadding = false}: FooterProps<TItem>) {
+function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, addBottomSafeAreaPadding = false}: FooterProps<TItem>) {
     const styles = useThemeStyles();
+    const {showButton: showConfirmButton, text: confirmButtonText, onConfirm, style: confirmButtonStyle, isDisabled: isConfirmButtonDisabled} = confirmButtonOptions ?? {};
     if (footerContent) {
         return (
             <FixedFooter
@@ -23,7 +24,7 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonConfig, add
         );
     }
 
-    if (confirmButtonConfig?.showButton) {
+    if (showConfirmButton) {
         return (
             <FixedFooter
                 style={styles.mtAuto}
@@ -32,12 +33,12 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonConfig, add
                 <Button
                     success
                     large
-                    style={[styles.w100, confirmButtonConfig?.style]}
-                    text={confirmButtonConfig?.text}
-                    onPress={confirmButtonConfig?.onConfirm}
+                    style={[styles.w100, confirmButtonStyle]}
+                    text={confirmButtonText}
+                    onPress={onConfirm}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
-                    isDisabled={confirmButtonConfig?.isDisabled}
+                    isDisabled={isConfirmButtonDisabled}
                 />
             </FixedFooter>
         );
@@ -47,4 +48,5 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonConfig, add
 }
 
 Footer.displayName = 'Footer';
+
 export default React.memo(Footer) as typeof Footer;

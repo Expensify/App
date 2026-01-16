@@ -56,7 +56,7 @@ const config = defineConfig([
         ignores: ['**/libs/**/*.{ts,tsx}'],
         rules: {
             'no-restricted-imports': [
-                'error',
+                'warn',
                 {
                     paths: restrictedIconImportPaths,
                     patterns: restrictedIconImportPatterns,

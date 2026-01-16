@@ -14,6 +14,7 @@ import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
@@ -64,6 +65,18 @@ type OnboardingMessage = {
     /** Type of task described in a string format */
     type?: string;
 };
+
+let onboardingData: OnyxEntry<Onboarding>;
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        onboardingData = value;
+    },
+});
 
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
@@ -122,7 +135,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
-        if (onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route) || onboardingInitialPath.includes(ROUTES.ONBOARDING_PERSONAL_DETAILS.route)) {
+        if (onboardingInitialPath) {
             return onboardingInitialPath;
         }
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
@@ -344,8 +357,9 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [testDriveEmployeeTask, trackExpenseTask],
     };
 
+    const isOnboardingFlow = hasCompletedGuidedSetupFlowSelector(onboardingData);
     const onboardingManageTeamMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage'),
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage', {isOnboardingFlow}),
         tasks: [
             createWorkspaceTask,
             testDriveAdminTask,

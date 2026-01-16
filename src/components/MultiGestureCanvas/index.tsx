@@ -127,7 +127,7 @@ function MultiGestureCanvas({
             if (!isUsedInCarousel) {
                 return;
             }
-            // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+            // eslint-disable-next-line no-param-reassign
             isPagerScrollEnabled.set(!current);
         },
     );
@@ -195,7 +195,6 @@ function MultiGestureCanvas({
         onTap,
         shouldDisableTransformationGestures,
     });
-    // eslint-disable-next-line react-compiler/react-compiler
     const singleTapGesture = baseSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
     const panGestureSimultaneousList = useMemo(
@@ -218,7 +217,6 @@ function MultiGestureCanvas({
         onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
-        // eslint-disable-next-line react-compiler/react-compiler
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
@@ -294,7 +292,6 @@ function MultiGestureCanvas({
         </View>
     );
 }
-MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
 export {DEFAULT_ZOOM_RANGE};

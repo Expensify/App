@@ -167,19 +167,18 @@ function AccountDetailsPage() {
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={AccountDetailsPage.displayName}
+            testID="AccountDetailsPage"
             shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => Navigation.dismissModal()}
-                shouldDisplayHelpButton={false}
             />
             <FullPageOfflineBlockingView>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
                     onSubmit={(values) => {
-                        requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL]);
+                        requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL], false, countryCode);
                     }}
                     style={[styles.flexGrow1, styles.mh5]}
                     shouldTrimValues
@@ -230,7 +229,5 @@ function AccountDetailsPage() {
         </ScreenWrapper>
     );
 }
-
-AccountDetailsPage.displayName = 'AccountDetailsPage';
 
 export default AccountDetailsPage;

@@ -1,19 +1,15 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import {TabActions} from '@react-navigation/native';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useMemo} from 'react';
+import type {TupleToUnion} from 'type-fest';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import useIsResizing from '@hooks/useIsResizing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import getBackgroundColor from './getBackground';
-import getOpacity from './getOpacity';
-import TabSelectorItem from './TabSelectorItem';
+import TabSelectorBase from './TabSelectorBase';
+import type {TabSelectorBaseItem} from './TabSelectorBase';
 
 type TabSelectorProps = MaterialTopTabBarProps & {
     /* Callback fired when tab is pressed */
@@ -41,7 +37,28 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
-function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
+const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = [
+    'CalendarSolid',
+    'UploadAlt',
+    'User',
+    'Car',
+    'Hashtag',
+    'Map',
+    'Pencil',
+    'ReceiptScan',
+    'Receipt',
+    'MoneyCircle',
+    'Percent',
+    'Crosshair',
+    'Meter',
+    'Clock',
+] as const;
+
+function getIconTitleAndTestID(
+    icons: Record<TupleToUnion<typeof MEMOIZED_LAZY_TAB_SELECTOR_ICONS>, IconAsset>,
+    route: string,
+    translate: LocaleContextProps['translate'],
+): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:
             return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
@@ -50,25 +67,37 @@ function getIconTitleAndTestID(route: string, translate: LocaleContextProps['tra
         case CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING:
             return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding'};
         case CONST.TAB_REQUEST.MANUAL:
-            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
+            return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
-            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
+            return {icon: icons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
         case CONST.TAB.NEW_CHAT:
-            return {icon: Expensicons.User, title: translate('tabSelector.chat'), testID: 'chat'};
+            return {icon: icons.User, title: translate('tabSelector.chat'), testID: 'chat'};
         case CONST.TAB.NEW_ROOM:
-            return {icon: Expensicons.Hashtag, title: translate('tabSelector.room'), testID: 'room'};
+            return {icon: icons.Hashtag, title: translate('tabSelector.room'), testID: 'room'};
         case CONST.TAB_REQUEST.DISTANCE:
-            return {icon: Expensicons.Car, title: translate('common.distance'), testID: 'distance'};
+            return {icon: icons.Car, title: translate('common.distance'), testID: 'distance'};
         case CONST.TAB.SHARE.SHARE:
-            return {icon: Expensicons.UploadAlt, title: translate('common.share'), testID: 'share'};
+            return {icon: icons.UploadAlt, title: translate('common.share'), testID: 'share'};
         case CONST.TAB.SHARE.SUBMIT:
-            return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
+            return {icon: icons.Receipt, title: translate('common.submit'), testID: 'submit'};
         case CONST.TAB_REQUEST.PER_DIEM:
-            return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
+            return {icon: icons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         case CONST.TAB_REQUEST.DISTANCE_MAP:
-            return {icon: Expensicons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
+            return {icon: icons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
-            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
+            return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
+        case CONST.TAB_REQUEST.DISTANCE_GPS:
+            return {icon: icons.Crosshair, title: translate('tabSelector.gps'), testID: 'distanceGPS'};
+        case CONST.TAB_REQUEST.DISTANCE_ODOMETER:
+            return {icon: icons.Meter, title: translate('tabSelector.odometer'), testID: 'distanceOdometer'};
+        case CONST.TAB.SPLIT.AMOUNT:
+            return {icon: icons.MoneyCircle, title: translate('iou.amount'), testID: 'split-amount'};
+        case CONST.TAB.SPLIT.PERCENTAGE:
+            return {icon: icons.Percent, title: translate('iou.percent'), testID: 'split-percentage'};
+        case CONST.TAB.SPLIT.DATE:
+            return {icon: icons.CalendarSolid, title: translate('iou.date'), testID: 'split-date'};
+        case CONST.TAB_REQUEST.TIME:
+            return {icon: icons.Clock, title: translate('iou.time'), testID: 'time'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -85,105 +114,64 @@ function TabSelector({
     renderProductTrainingTooltip,
     equalWidth = false,
 }: TabSelectorProps) {
+    const icons = useMemoizedLazyExpensifyIcons(MEMOIZED_LAZY_TAB_SELECTOR_ICONS);
     const {translate} = useLocalize();
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
-    const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
-    const viewRef = useRef<View>(null);
-    const [selectorWidth, setSelectorWidth] = React.useState(0);
-    const [selectorX, setSelectorX] = React.useState(0);
 
-    const isResizing = useIsResizing();
+    const tabs: TabSelectorBaseItem[] = useMemo(
+        () =>
+            state.routes.map((route) => {
+                const {icon, title, testID} = getIconTitleAndTestID(icons, route.name, translate);
+                return {
+                    key: route.name,
+                    icon,
+                    title,
+                    testID,
+                };
+            }),
+        [icons, state.routes, translate],
+    );
 
-    useEffect(() => {
-        // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
-        setTimeout(() => {
-            setAffectedAnimatedTabs(defaultAffectedAnimatedTabs);
-        }, CONST.ANIMATED_TRANSITION);
-    }, [defaultAffectedAnimatedTabs, state.index]);
+    const activeRouteName = state.routes[state.index]?.name ?? '';
 
-    const measure = useCallback(() => {
-        viewRef.current?.measureInWindow((x, _y, width) => {
-            setSelectorX(x);
-            setSelectorWidth(width);
-        });
-    }, [viewRef]);
-
-    useLayoutEffect(() => {
-        // measure location/width after animation completes
-        setTimeout(() => {
-            measure();
-        }, CONST.TOOLTIP_ANIMATION_DURATION);
-    }, [measure]);
-
-    useEffect(() => {
-        if (isResizing) {
+    const handleTabPress = (tabKey: string) => {
+        const route = state.routes.find((candidateRoute) => candidateRoute.name === tabKey);
+        if (!route) {
             return;
         }
-        // Re-measure when resizing ends
-        // This is necessary to ensure the tooltip is positioned correctly after resizing
-        measure();
-    }, [measure, isResizing]);
+
+        const isActive = route.key === state.routes[state.index]?.key;
+        if (isActive) {
+            return;
+        }
+
+        const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+        });
+
+        if (!event.defaultPrevented) {
+            navigation.dispatch(TabActions.jumpTo(route.name));
+        }
+
+        onTabPress(route.name);
+    };
 
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
-            <View
-                style={styles.tabSelector}
-                ref={viewRef}
-            >
-                {state.routes.map((route, index) => {
-                    const isActive = index === state.index;
-                    const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
-                    const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
-                    const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
-                    const {icon, title, testID} = getIconTitleAndTestID(route.name, translate);
-                    const onPress = () => {
-                        if (isActive) {
-                            return;
-                        }
-
-                        setAffectedAnimatedTabs([state.index, index]);
-
-                        const event = navigation.emit({
-                            type: 'tabPress',
-                            target: route.key,
-                            canPreventDefault: true,
-                        });
-
-                        if (!event.defaultPrevented) {
-                            navigation.dispatch(TabActions.jumpTo(route.name));
-                        }
-
-                        onTabPress(route.name);
-                    };
-
-                    return (
-                        <TabSelectorItem
-                            key={route.name}
-                            icon={icon}
-                            title={title}
-                            onPress={onPress}
-                            activeOpacity={activeOpacity}
-                            inactiveOpacity={inactiveOpacity}
-                            backgroundColor={backgroundColor}
-                            isActive={isActive}
-                            testID={testID}
-                            shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                            shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                            renderProductTrainingTooltip={renderProductTrainingTooltip}
-                            parentWidth={selectorWidth}
-                            parentX={selectorX}
-                            equalWidth={equalWidth}
-                        />
-                    );
-                })}
-            </View>
+            <TabSelectorBase
+                tabs={tabs}
+                activeTabKey={activeRouteName}
+                onTabPress={handleTabPress}
+                position={position}
+                shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
+                shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
+                renderProductTrainingTooltip={renderProductTrainingTooltip}
+                equalWidth={equalWidth}
+            />
         </FocusTrapContainerElement>
     );
 }
-
-TabSelector.displayName = 'TabSelector';
 
 export default TabSelector;
 

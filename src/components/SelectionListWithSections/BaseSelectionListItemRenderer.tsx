@@ -59,6 +59,8 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     userBillingFundID,
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
+    shouldDisableHoverStyle,
+    shouldStopMouseLeavePropagation,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -118,12 +120,12 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 shouldShowRightCaret={shouldShowRightCaret}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 sectionIndex={sectionIndex}
+                shouldDisableHoverStyle={shouldDisableHoverStyle}
+                shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
             />
             {item.footerContent && item.footerContent}
         </>
     );
 }
-
-BaseSelectionListItemRenderer.displayName = 'BaseSelectionListItemRenderer';
 
 export default BaseSelectionListItemRenderer;

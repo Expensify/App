@@ -39,11 +39,11 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksDesktopAutoSyncPageBase.displayName}
+            displayName="QuickbooksDesktopAutoSyncPageBase"
             headerTitle="common.settings"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
@@ -84,7 +84,5 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
         </ConnectionLayout>
     );
 }
-
-QuickbooksDesktopAutoSyncPageBase.displayName = 'QuickbooksDesktopAutoSyncPageBase';
 
 export default QuickbooksDesktopAutoSyncPageBase;

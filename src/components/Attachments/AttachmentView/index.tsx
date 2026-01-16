@@ -9,12 +9,12 @@ import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import {ArrowCircleClockwise, Gallery} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -131,13 +131,14 @@ function AttachmentView({
     reportID,
     transaction: transactionProp,
 }: AttachmentViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Gallery']);
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const transaction = transactionProp ?? transactionFromOnyx;
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID, currentlyPlayingURL, playVideo} = usePlaybackContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
+    const {onAttachmentError, onTap} = attachmentCarouselPagerContext ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -291,13 +292,14 @@ function AttachmentView({
                     </View>
                     <Button
                         text={translate('attachmentView.retry')}
-                        icon={ArrowCircleClockwise}
+                        icon={icons.ArrowCircleClockwise}
                         onPress={() => {
                             if (isOffline) {
                                 return;
                             }
                             setImageError(false);
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.RETRY_BUTTON}
                     />
                 </View>
             );
@@ -311,7 +313,7 @@ function AttachmentView({
                     <>
                         <View style={[styles.imageModalImageCenterContainer, styles.ph10]}>
                             <DefaultAttachmentView
-                                icon={Gallery}
+                                icon={icons.Gallery}
                                 fileName={file?.name}
                                 shouldShowDownloadIcon={shouldShowDownloadIcon}
                                 shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
@@ -362,6 +364,7 @@ function AttachmentView({
                 isHovered={isHovered}
                 duration={duration}
                 reportID={reportID}
+                onTap={onTap}
             />
         );
     }
@@ -378,8 +381,6 @@ function AttachmentView({
         />
     );
 }
-
-AttachmentView.displayName = 'AttachmentView';
 
 export default memo(AttachmentView);
 

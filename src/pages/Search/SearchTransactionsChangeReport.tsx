@@ -5,6 +5,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -31,15 +32,16 @@ function SearchTransactionsChangeReport() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
-
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
     const selectedReportID =
@@ -71,20 +73,21 @@ function SearchTransactionsChangeReport() {
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys]);
 
-    const createReportForPolicy = () => {
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+    const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
-            changeTransactionsReport(
-                selectedTransactionsKeys,
+            changeTransactionsReport({
+                transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
-                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                session?.email ?? '',
-                optimisticReport,
-                policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined,
+                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: session?.email ?? '',
+                newReport: optimisticReport,
+                policy: policyForMovingExpenses,
                 reportNextStep,
-                undefined,
-            );
+                policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
+                allTransactions,
+            });
             clearSelectedTransactions();
         });
         Navigation.goBack();
@@ -116,16 +119,17 @@ function SearchTransactionsChangeReport() {
 
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
-        changeTransactionsReport(
-            selectedTransactionsKeys,
+        changeTransactionsReport({
+            transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            session?.email ?? '',
-            destinationReport,
-            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            email: session?.email ?? '',
+            newReport: destinationReport,
+            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
-            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-        );
+            policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+            allTransactions,
+        });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -138,7 +142,13 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionsKeys, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        changeTransactionsReport({
+            transactionIDs: selectedTransactionsKeys,
+            isASAPSubmitBetaEnabled,
+            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            email: session?.email ?? '',
+            allTransactions,
+        });
         clearSelectedTransactions();
         Navigation.goBack();
     };
@@ -156,11 +166,10 @@ function SearchTransactionsChangeReport() {
                 isEditing
                 isUnreported={areAllTransactionsUnreported}
                 targetOwnerAccountID={targetOwnerAccountID}
+                isPerDiemRequest={hasPerDiemTransactions}
             />
         </>
     );
 }
-
-SearchTransactionsChangeReport.displayName = 'SearchTransactionsChangeReport';
 
 export default SearchTransactionsChangeReport;

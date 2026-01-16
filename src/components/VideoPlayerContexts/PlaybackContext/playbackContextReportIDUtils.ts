@@ -47,7 +47,13 @@ const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteRe
     return isFocusedRouteAChatThread ? firstReportThatHasURLInAttachments : focusedRouteReportID;
 };
 
-const screensWithReportID = [SCREENS.SEARCH.REPORT_RHP, SCREENS.REPORT, SCREENS.SEARCH.MONEY_REQUEST_REPORT, SCREENS.REPORT_ATTACHMENTS];
+const screensWithReportID = [
+    SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+    SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+    SCREENS.REPORT,
+    SCREENS.REPORT_ATTACHMENTS,
+];
 
 function hasReportIdInRouteParams(route: SearchRoute): route is RouteWithReportIDInParams<SearchRoute> {
     return !!route && !!route.params && !!screensWithReportID.find((screen) => screen === route.name) && 'reportID' in route.params;

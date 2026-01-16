@@ -123,6 +123,4 @@ function Popover(props: PopoverProps) {
     );
 }
 
-Popover.displayName = 'Popover';
-
 export default Popover;

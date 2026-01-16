@@ -44,6 +44,7 @@ function ThreeDotsMenu({
     isNested = false,
     shouldSelfPosition = false,
     threeDotsMenuRef,
+    sentryLabel,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
@@ -54,7 +55,7 @@ function ThreeDotsMenu({
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
@@ -68,33 +69,11 @@ function ThreeDotsMenu({
         setPopupMenuVisible(false);
     }, []);
 
-    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}> | undefined, () => ({
-        isPopupMenuVisible,
-        hidePopoverMenu,
-    }));
-
-    useEffect(() => {
-        if (!isBehindModal || !isPopupMenuVisible) {
-            return;
-        }
-        hidePopoverMenu();
-    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
-
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => calculatePopoverPosition(buttonRef, anchorAlignment), [anchorAlignment, calculatePopoverPosition]);
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
-
-    useLayoutEffect(() => {
-        if (!getMenuPosition || !isPopupMenuVisible) {
-            return;
-        }
-
-        getMenuPosition?.().then((value) => {
-            setPosition(value);
-        });
-    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
 
     const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {
@@ -115,6 +94,29 @@ function ThreeDotsMenu({
 
         onIconPress?.();
     };
+
+    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}> | undefined, () => ({
+        isPopupMenuVisible,
+        hidePopoverMenu,
+        onThreeDotsPress,
+    }));
+
+    useEffect(() => {
+        if (!isBehindModal || !isPopupMenuVisible) {
+            return;
+        }
+        hidePopoverMenu();
+    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
+
+    useLayoutEffect(() => {
+        if (!getMenuPosition || !isPopupMenuVisible) {
+            return;
+        }
+
+        getMenuPosition?.().then((value) => {
+            setPosition(value);
+        });
+    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
@@ -152,6 +154,7 @@ function ThreeDotsMenu({
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
+                        sentryLabel={sentryLabel}
                     >
                         <Icon
                             src={icon ?? expensifyIcons.ThreeDots}
@@ -180,7 +183,5 @@ function ThreeDotsMenu({
         </>
     );
 }
-
-ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
 export default ThreeDotsMenu;

@@ -107,7 +107,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         if (!('name' in item)) {
                             return;
                         }
-                        onEmojiSelected(emoji, item);
+                        onEmojiSelected(emoji, item, preferredSkinTone);
                     })}
                     emoji={emojiCode ?? ''}
                     isHighlighted={shouldEmojiBeHighlighted}
@@ -125,7 +125,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
-                    blurOnSubmit={filteredEmojis.length > 0}
+                    submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
+                    sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />
             </View>
             <BaseEmojiPickerMenu
@@ -149,5 +150,4 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     );
 }
 
-EmojiPickerMenu.displayName = 'EmojiPickerMenu';
 export default EmojiPickerMenu;

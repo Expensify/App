@@ -11,7 +11,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx';
+import type {ReportActions, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
@@ -43,6 +43,8 @@ const basicProps = {
     shouldShowRBR: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
+    currentUserEmail: '',
+    currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
 };
 
 describe('TransactionPreviewUtils', () => {
@@ -84,7 +86,7 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
                         },
                     },
                 },
@@ -165,7 +167,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
         });
 
-        it('handles currency and amount display correctly for scan split bill manually completed', async () => {
+        it('handles currency and amount display correctly for scan split bill manually completed', () => {
             const modifiedAmount = 300;
             const currency = 'EUR';
             const originalTransactionID = '2';
@@ -174,20 +176,20 @@ describe('TransactionPreviewUtils', () => {
                 transactionDetails: {amount: modifiedAmount / 2, currency},
                 transaction: {...basicProps.transaction, amount: modifiedAmount / 2, currency, comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT}},
                 isBillSplit: true,
+                originalTransaction: {
+                    reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                    transactionID: originalTransactionID,
+                    comment: {
+                        splits: [
+                            {accountID: 1, email: 'aa@gmail.com'},
+                            {accountID: 2, email: 'cc@gmail.com'},
+                        ],
+                    },
+                    modifiedAmount,
+                    amount: 0,
+                    currency,
+                } as Transaction,
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
-                reportID: CONST.REPORT.SPLIT_REPORT_ID,
-                transactionID: originalTransactionID,
-                comment: {
-                    splits: [
-                        {accountID: 1, email: 'aa@gmail.com'},
-                        {accountID: 2, email: 'cc@gmail.com'},
-                    ],
-                },
-                modifiedAmount,
-                amount: 0,
-                currency,
-            });
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
@@ -225,8 +227,9 @@ describe('TransactionPreviewUtils', () => {
     });
 
     describe('createTransactionPreviewConditionals', () => {
+        const currentUserAccountID = 999;
         beforeAll(() => {
-            Onyx.merge(ONYXKEYS.SESSION, {accountID: 999});
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
         });
         afterAll(() => {
             Onyx.clear([ONYXKEYS.SESSION]);
@@ -252,7 +255,7 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
                         },
                     },
                 },
@@ -290,6 +293,7 @@ describe('TransactionPreviewUtils', () => {
                         type: CONST.REPORT.ACTIONS.TYPE.IOU,
                     },
                 },
+                currentUserAccountID,
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowSplitShare).toBeTruthy();
@@ -358,6 +362,7 @@ describe('TransactionPreviewUtils', () => {
                         type: CONST.REPORT.ACTIONS.TYPE.IOU,
                     },
                 },
+                currentUserAccountID,
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowSplitShare).toBeTruthy();

@@ -1,24 +1,24 @@
 import React from 'react';
-import * as Illustrations from '@components/Icon/Illustrations';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import {View} from 'react-native';
+import RenderHTML from '@components/RenderHTML';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
+import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getChatUsedForOnboarding} from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
 import BillingBanner from './BillingBanner';
 
 function PreTrialBillingBanner() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
+    const illustrations = useMemoizedLazyIllustrations(['TreasureChest']);
     const navigateToChat = () => {
-        const reportUsedForOnboarding = ReportUtils.getChatUsedForOnboarding();
+        const reportUsedForOnboarding = getChatUsedForOnboarding();
 
         if (!reportUsedForOnboarding) {
-            Report.navigateToConciergeChat();
+            navigateToConciergeChat();
             return;
         }
 
@@ -29,22 +29,16 @@ function PreTrialBillingBanner() {
         <BillingBanner
             title={translate('subscription.billingBanner.preTrial.title')}
             subtitle={
-                <Text>
-                    {translate('subscription.billingBanner.preTrial.subtitleStart')}
-                    <TextLink
-                        style={styles.link}
-                        onPress={navigateToChat}
-                    >
-                        {translate('subscription.billingBanner.preTrial.subtitleLink')}
-                    </TextLink>
-                    {translate('subscription.billingBanner.preTrial.subtitleEnd')}
-                </Text>
+                <View style={styles.renderHTML}>
+                    <RenderHTML
+                        html={translate('subscription.billingBanner.preTrial.subtitle')}
+                        onLinkPress={navigateToChat}
+                    />
+                </View>
             }
-            icon={Illustrations.TreasureChest}
+            icon={illustrations.TreasureChest}
         />
     );
 }
-
-PreTrialBillingBanner.displayName = 'PreTrialBillingBanner';
 
 export default PreTrialBillingBanner;

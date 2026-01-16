@@ -1,6 +1,7 @@
 import lodashDeepClone from 'lodash/cloneDeep';
 import type {NullishDeep} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -48,7 +49,7 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
     const workspaceChatReportID = findPolicyExpenseChatByPolicyID(policyID)?.reportID;
 
     const shouldClearQuickAction = quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !enabled && workspaceChatReportID === quickAction?.chatReportID;
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -125,7 +126,7 @@ function openPolicyPerDiemPage(policyID?: string) {
 }
 
 function updateImportSpreadsheetData(ratesLength: number) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -173,7 +174,7 @@ function importPerDiemRates(policyID: string, customUnitID: string, rates: Rate[
     API.write(WRITE_COMMANDS.IMPORT_PER_DIEM_RATES, parameters, onyxData);
 }
 
-function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
+function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_PER_DIEM_CSV, {
         policyID,
     });
@@ -185,7 +186,7 @@ function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
         formData.append(key, String(value));
     }
 
-    fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
@@ -240,7 +241,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
         return;
     }
     const {newCustomUnit, customUnitOnyxUpdate} = prepareNewCustomUnit(customUnit, subRatesToBeDeleted);
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -270,7 +271,7 @@ function editPerDiemRateDestination(policyID: string, rateID: string, customUnit
     const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
     newCustomUnit.rates[rateID].name = newDestination;
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -305,7 +306,7 @@ function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: str
         return subRate;
     });
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -340,7 +341,7 @@ function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: stri
         return subRate;
     });
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -370,7 +371,7 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
     newCustomUnit.rates[rateID].currency = newCurrency;
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

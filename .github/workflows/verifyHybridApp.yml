@@ -113,7 +113,7 @@ jobs:
     name: Verify iOS HybridApp builds on main
     runs-on: macos-15-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
     # Only run on pull requests that are *not* on a fork
     if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' }}
     steps:
@@ -141,8 +141,8 @@ jobs:
           bundler-cache: true
 
       - name: Cache Pod dependencies
-        # v4
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         id: pods-cache
         with:
           path: Mobile-Expensify/iOS/Pods
