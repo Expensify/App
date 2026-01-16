@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FloatingCameraButton from '@components/FloatingCameraButton';
-import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
 // import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -173,7 +172,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
+            const parentSpan = startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
                 name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
                 op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
             });
@@ -181,6 +180,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             startSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS, {
                 name: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
                 op: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+                parentSpan,
             });
 
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
@@ -252,7 +252,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     style={styles.leftNavigationTabBarContainer}
                     testID="NavigationTabBar"
                 >
-                    <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
                             accessibilityRole={CONST.ROLE.BUTTON}
