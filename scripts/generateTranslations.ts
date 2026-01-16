@@ -12,8 +12,6 @@ import ts from 'typescript';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
-import baseTranslationPrompt from '@prompts/translation/base';
-import contextPrompt from '@prompts/translation/context';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
@@ -27,6 +25,7 @@ import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
+import {buildTranslationInstructions, buildTranslationRequestInput} from './utils/Translator/TranslationPromptUtils';
 import TSCompilerUtils, {TransformerAction} from './utils/TSCompilerUtils';
 import type {TransformerResult} from './utils/TSCompilerUtils';
 
@@ -401,28 +400,41 @@ class TranslationGenerator {
         const numStrings = stringsToTranslate.size;
         const numLocales = this.targetLanguages.length;
 
-        // Calculate base prompt tokens (use first target language as sample since length is similar across locales)
-        const basePromptTokens = Math.ceil(baseTranslationPrompt(TRANSLATION_TARGET_LOCALES.DE).length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
-
-        // Calculate total input and output tokens for all strings
-        let totalInputTokens = numStrings * basePromptTokens;
-        let totalOutputTokens = 0;
-        for (const {text, context} of stringsToTranslate.values()) {
-            const tokensForString = Math.ceil(text.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
-
-            // The inputs and outputs for the string are assumed to be about the same length.
-            totalInputTokens += tokensForString;
-            totalOutputTokens += tokensForString;
-
-            // Add context prompt tokens if context exists
-            if (context) {
-                totalInputTokens += Math.ceil(contextPrompt(context).length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
-            }
+        if (numStrings === 0 || numLocales === 0) {
+            return;
         }
 
-        // Multiply total input and output tokens by the number of locales
-        totalInputTokens *= numLocales;
-        totalOutputTokens *= numLocales;
+        const perLocaleInstructions = await Promise.all(
+            this.targetLanguages.map(async (locale) => ({
+                locale,
+                instructions: await buildTranslationInstructions(locale),
+            })),
+        );
+
+        // Calculate per-request tokens for all strings (without system instructions)
+        let perLocaleInputTokens = 0;
+        let perLocaleOutputTokens = 0;
+        for (const {text, context} of stringsToTranslate.values()) {
+            const requestInput = buildTranslationRequestInput(text, context);
+            perLocaleInputTokens += Math.ceil(requestInput.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+
+            const outputTokens = Math.ceil(text.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+            perLocaleOutputTokens += outputTokens;
+        }
+
+        let totalInputTokens = perLocaleInputTokens * numLocales;
+        let totalOutputTokens = perLocaleOutputTokens * numLocales;
+
+        // Add system instruction tokens with prompt caching applied after the first request per locale
+        const cachedRequestCount = Math.max(numStrings - 1, 0);
+        for (const {instructions} of perLocaleInstructions) {
+            const instructionTokens = Math.ceil(instructions.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+            totalInputTokens += instructionTokens;
+
+            if (cachedRequestCount > 0) {
+                totalInputTokens += cachedRequestCount * instructionTokens * ChatGPTCostEstimator.PROMPT_CACHE_INPUT_COST_FACTOR;
+            }
+        }
 
         const estimatedCost = ChatGPTCostEstimator.getTotalEstimatedCost(totalInputTokens, totalOutputTokens);
 

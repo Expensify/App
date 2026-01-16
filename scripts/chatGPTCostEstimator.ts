@@ -18,6 +18,9 @@ class ChatGPTCostEstimator {
     /** Average number of tokens per character (rule of thumb for English-ish text) */
     static readonly TOKENS_PER_CHAR = 0.25;
 
+    /** Estimated input token cost factor when prompt caching applies (90% savings) */
+    static readonly PROMPT_CACHE_INPUT_COST_FACTOR = 0.1;
+
     /**
      * Calculates the estimated cost for OpenAI API calls based on input and output tokens.
      *
