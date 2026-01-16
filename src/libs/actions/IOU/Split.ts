@@ -215,6 +215,10 @@ function splitBill({
     notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
+const allPersonalDetails = getAllPersonalDetails();
+const allTransactions = getAllTransactions();
+const allReports = getAllReports();
+
 /**
  * @param amount - always in the smallest currency unit
  */
