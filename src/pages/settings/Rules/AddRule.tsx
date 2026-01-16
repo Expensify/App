@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -98,14 +98,6 @@ function AddRule({hash}: AddRuleProps) {
     const selectedTaxRate = form?.tax ? allTaxRates?.[form.tax] : undefined;
 
     const errorMessage = getErrorMessage(translate, form);
-
-    useEffect(() => {
-        if (errorMessage) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setShouldShowError(false);
-    }, [errorMessage]);
 
     const handleSubmit = () => {
         if (errorMessage) {
