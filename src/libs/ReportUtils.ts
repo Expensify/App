@@ -3509,6 +3509,13 @@ function getParticipantIcon(accountID: number | undefined, personalDetails: Onyx
 }
 
 /**
+ * Gets the policyID of the invoice receiver from a report's invoiceReceiver field.
+ */
+function getInvoiceReceiverPolicyID(report: OnyxEntry<Report>): string | undefined {
+    return (report?.invoiceReceiver as {policyID?: string} | undefined)?.policyID;
+}
+
+/**
  * Helper function to get the icons for the invoice receiver. Only to be used in getIcons().
  */
 function getInvoiceReceiverIcons(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, invoiceReceiverPolicy: OnyxInputOrEntry<Policy>): Icon[] {
@@ -13260,6 +13267,7 @@ export {
     isPayAtEndExpenseReport,
     getApprovalChain,
     isIndividualInvoiceRoom,
+    getInvoiceReceiverPolicyID,
     hasOutstandingChildRequest,
     isAuditor,
     hasMissingInvoiceBankAccount,

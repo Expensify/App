@@ -1009,13 +1009,13 @@ function getReportOption(
 
     const policyCollection: Record<string, OnyxEntry<Policy>> = {};
     if (policy && policy.id) {
-        policyCollection[policy.id] = policy;
+        policyCollection[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
     }
     if (receiverPolicy && receiverPolicy.id) {
-        policyCollection[receiverPolicy.id] = receiverPolicy;
+        policyCollection[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicy.id}`] = receiverPolicy;
     }
     if (chatReceiverPolicy && chatReceiverPolicy.id) {
-        policyCollection[chatReceiverPolicy.id] = chatReceiverPolicy;
+        policyCollection[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicy.id}`] = chatReceiverPolicy;
     }
 
     const option = createOption(
