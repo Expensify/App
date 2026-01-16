@@ -21,6 +21,7 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
@@ -47,6 +48,8 @@ import {
     getPolicyName,
     getReportDescription,
     getReportName,
+    getReportStatusColorStyle,
+    getReportStatusTranslation,
     hasReportNameError,
     isAdminRoom,
     isArchivedReport,
@@ -58,6 +61,7 @@ import {
     isDeprecatedGroupDM,
     isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
+    isInvoiceReport,
     isInvoiceRoom,
     isOneTransactionThread,
     isOpenTaskReport,
@@ -67,9 +71,6 @@ import {
     navigateToDetailsPage,
     shouldDisableDetailPage as shouldDisableDetailPageReportUtils,
     shouldReportShowSubscript,
-    getReportStatusColorStyle,
-    getReportStatusTranslation,
-    isInvoiceReport,
 } from '@libs/ReportUtils';
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
@@ -147,12 +148,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportActions?.[`${parentReport?.parentReportActionID}`]);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // Use sorted display names for the title for group chats on native small screen widths
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     // This is used to get the status badge for invoice report subtitle.
-    const statusTextForInvoiceReport = isParentInvoiceAndIsChatThread ? getReportStatusTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate}) : undefined;
+    const statusTextForInvoiceReport = isParentInvoiceAndIsChatThread
+        ? getReportStatusTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
+        : undefined;
     const statusColorForInvoiceReport = isParentInvoiceAndIsChatThread ? getReportStatusColorStyle(theme, reportHeaderData?.stateNum, reportHeaderData?.statusNum) : {};
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, isParentReportHeaderDataArchived);
@@ -190,7 +194,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         !isChatThread &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO;
 
-    const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
+    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID));
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 

@@ -30,10 +30,10 @@ import {
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
+    getReportForHeader,
     getReportName,
     isExpenseReport,
     isMoneyRequestReport,
-    getReportForHeader,
 } from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
