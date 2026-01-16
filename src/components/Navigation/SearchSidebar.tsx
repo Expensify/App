@@ -11,7 +11,6 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
 import SCREENS from '@src/SCREENS';
-import type {SearchResults} from '@src/types/onyx';
 import NavigationTabBar from './NavigationTabBar';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 import TopBar from './TopBar';
@@ -29,12 +28,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const route = state.routes.at(-1);
     const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
     const {lastSearchType, setLastSearchType, currentSearchResults} = useSearchContext();
-    const searchResults = currentSearchResults as SearchResults | undefined;
 
     const queryJSON = params?.q ? buildSearchQueryJSON(params.q, params.rawQuery) : undefined;
 
-    const searchType = searchResults?.search?.type;
-    const isSearchLoading = searchResults?.search?.isLoading;
+    const searchType = currentSearchResults?.search?.type;
+    const isSearchLoading = currentSearchResults?.search?.isLoading;
 
     useEffect(() => {
         if (!searchType) {
