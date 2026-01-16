@@ -86,7 +86,13 @@ function RuleBooleanBasePage({fieldID, titleKey, hash}: RuleBooleanBasePageProps
     };
 
     const applyChanges = () => {
-        updateDraftRule({[fieldID]: selectedItem === CONST.SEARCH.BOOLEAN.YES ? 'true' : 'false'});
+        let value;
+        if (selectedItem === CONST.SEARCH.BOOLEAN.YES) {
+            value = 'true';
+        } else if (selectedItem === CONST.SEARCH.BOOLEAN.NO) {
+            value = 'false';
+        }
+        updateDraftRule({[fieldID]: value});
         goBack();
     };
 
