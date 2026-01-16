@@ -37,7 +37,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {deleteAppReport, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -436,6 +436,8 @@ function SearchPage({route}: SearchPageProps) {
             return;
         }
 
+        const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
         // Use InteractionManager to ensure this runs after the dropdown modal closes
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(async () => {
@@ -453,11 +455,19 @@ function SearchPage({route}: SearchPageProps) {
             // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                if (isExpenseReportType) {
+                    // For expense reports, call deleteAppReport which properly unreports the expenses
+                    for (const reportID of selectedReportIDs) {
+                        deleteAppReport(reportID, currentUserPersonalDetails?.login ?? '', allTransactions ?? {}, allTransactionViolations, bankAccountList);
+                    }
+                } else {
+                    // For individual expenses, delete the transactions
+                    deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                }
                 clearSelectedTransactions();
             });
         });
-    }, [isOffline, showConfirmModal, translate, selectedTransactionsKeys, hash, clearSelectedTransactions]);
+    }, [isOffline, showConfirmModal, translate, selectedTransactionsKeys, hash, clearSelectedTransactions, queryJSON?.type, selectedReportIDs, currentUserPersonalDetails?.login, allTransactions, allTransactionViolations, bankAccountList]);
 
     const onBulkPaySelected = useCallback(
         (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
