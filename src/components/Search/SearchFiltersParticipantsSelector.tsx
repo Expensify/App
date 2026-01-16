@@ -298,7 +298,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                     return true;
                 }
 
-                if (selectedOption.reportID && selectedOption.reportID === option?.reportID) {
+                // Skip reportID match for default '-1' value (used by name-only attendees)
+                if (selectedOption.reportID && selectedOption.reportID !== '-1' && selectedOption.reportID === option?.reportID) {
                     return true;
                 }
 
