@@ -23788,7 +23788,7 @@ tslib_1.__exportStar(__nccwpck_require__(11364), exports);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VERSION = void 0;
-exports.VERSION = '6.13.0'; // x-release-please-version
+exports.VERSION = '6.16.0'; // x-release-please-version
 //# sourceMappingURL=version.js.map
 
 /***/ }),
