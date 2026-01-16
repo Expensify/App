@@ -7,7 +7,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
-import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -43,6 +42,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from './ReportUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -711,7 +711,8 @@ function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): str
  * @param actionIndex - index of the action
  */
 function findPreviousAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
-    for (let i = actionIndex + 1; i < reportActions.length; i++) {
+    // Updated cause now the list is reversed
+    for (let i = actionIndex - 1; i > 0; i--) {
         const action = reportActions.at(i);
 
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.

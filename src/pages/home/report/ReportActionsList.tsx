@@ -206,6 +206,9 @@ function ReportActionsList({
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(false);
     const isAnonymousUser = useIsAnonymousUser();
 
+    const reversedReportActions = useMemo(() => sortedVisibleReportActions.slice().reverse(), [sortedVisibleReportActions]);
+    const initialScrollIndex = reversedReportActions.findIndex((item) => item.reportActionID === reportActionID);
+
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
             setIsVisible(Visibility.isVisible());
@@ -705,8 +708,8 @@ function ReportActionsList({
                     transactionThreadReport={transactionThreadReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
+                        !isConsecutiveChronosAutomaticTimerAction(reversedReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
+                        isConsecutiveActionMadeByPreviousActor(reversedReportActions, index)
                     }
                     mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
@@ -742,7 +745,7 @@ function ReportActionsList({
             report,
             transactionThreadReport,
             linkedReportActionID,
-            sortedVisibleReportActions,
+            sortedVisibleReportActions.length,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             unreadMarkerReportActionID,
@@ -843,9 +846,6 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
-    const data = [...sortedVisibleReportActions].reverse();
-    const initialScrollIndex = data.findIndex((item) => item.reportActionID === reportActionID);
-
     return (
         <>
             <FloatingMessageCounter
@@ -863,7 +863,7 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={data}
+                    data={reversedReportActions}
                     renderItem={renderItem}
                     // getItemType={(item) => {
                     //     return item.actionName;
