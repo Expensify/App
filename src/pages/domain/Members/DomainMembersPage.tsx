@@ -1,6 +1,6 @@
 import {memberAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@navigation/Navigation';
@@ -16,7 +16,7 @@ type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParam
 function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Profile']);
+    const illustrations = useMemoizedLazyIllustrations(['Profile']);
 
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
@@ -27,10 +27,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         <BaseDomainMembersPage
             domainAccountID={domainAccountID}
             accountIDs={memberIDs ?? []}
-            headerIcon={icons.Profile}
             headerTitle={translate('domain.members.title')}
             searchPlaceholder={translate('domain.members.findMember')}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
+            headerIcon={illustrations.Profile}
         />
     );
 }
