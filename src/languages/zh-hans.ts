@@ -867,6 +867,10 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '表情符号',
         collapse: '折叠',
         expand: '展开',
+        askConciergeToCreate: '让 Concierge AI 创建一笔报销…',
+        askConciergeToUpdate: '让 Concierge AI 更新一笔报销…',
+        askConciergeToCorrect: '让 Concierge AI 更正一笔报销…',
+        addColleagueWithMention: '使用“@”提及来添加同事…',
     },
     reportActionContextMenu: {
         copyMessage: '复制消息',
@@ -896,6 +900,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `您确定要删除此${type}吗？`;
         },
         onlyVisible: '仅对…可见',
+        explain: '解释',
+        explainMessage: '请为我解释一下。',
         replyInThread: '在线程中回复',
         joinThread: '加入话题',
         leaveThread: '离开会话',
@@ -1466,6 +1472,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitByDate: '按日期拆分',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `报告因自定义审批工作流而转发至 ${to}`,
         timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'} @ ${rate} / 小时`, hrs: '小时'},
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>解释</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
