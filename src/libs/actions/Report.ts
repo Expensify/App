@@ -1983,12 +1983,15 @@ function handlePreexistingReport(report: Report) {
             return;
         }
 
-        const activeRouteInfo = navigationRef.getCurrentRoute();
-        const backTo = (activeRouteInfo?.params as {backTo?: Route})?.backTo;
-        const screenName = activeRouteInfo?.name;
-        const activeRoute = activeRouteInfo?.path;
+        // Use Navigation.getActiveRoute() instead of navigationRef.getCurrentRoute()?.path because
+        // getCurrentRoute().path can be undefined during first navigation.
+        // We still need getCurrentRoute() for params and screen name as getActiveRoute() only returns the path string.
+        const activeRoute = Navigation.getActiveRoute();
+        const currentRouteInfo = navigationRef.getCurrentRoute();
+        const backTo = (currentRouteInfo?.params as {backTo?: Route})?.backTo;
+        const screenName = currentRouteInfo?.name;
 
-        const isOptimisticReportFocused = activeRoute?.includes(`/r/${reportID}`);
+        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`);
 
         // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
         // When user is editing a money request report (/e/:reportID route) and has
