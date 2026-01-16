@@ -1716,13 +1716,17 @@ const CONST = {
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
+        SPAN_NAVIGATION_ROOT_READY: 'NavigationRootReady',
         SPAN_BOOTSPLASH: {
             ROOT: 'BootsplashVisible',
-            NAVIGATION: 'BootsplashVisibleNavigation',
             ONYX: 'BootsplashVisibleOnyx',
+            PUBLIC_ROOM_CHECK: 'BootsplashVisiblePublicRoomCheck',
+            NAVIGATION: 'BootsplashVisibleNavigation',
             LOCALE: 'BootsplashVisibleLocale',
+            DEEP_LINK: 'BootsplashVisibleDeepLink',
             SPLASH_HIDER: 'BootsplashVisibleHider',
         },
+        SPAN_INITIAL_ROUTE_DETERMINATION: 'InitialRouteDetermination',
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',

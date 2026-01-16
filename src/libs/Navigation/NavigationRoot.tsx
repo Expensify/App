@@ -20,6 +20,7 @@ import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import {endSpan, getSpan, startSpan} from '@src/libs/telemetry/activeSpans';
 import {navigationIntegration} from '@src/libs/telemetry/integrations';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -113,22 +114,35 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
+        const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+        startSpan(CONST.TELEMETRY.SPAN_INITIAL_ROUTE_DETERMINATION, {
+            name: CONST.TELEMETRY.SPAN_INITIAL_ROUTE_DETERMINATION,
+            op: CONST.TELEMETRY.SPAN_INITIAL_ROUTE_DETERMINATION,
+            parentSpan: bootsplashSpan,
+        });
+
+        const endRouteSpan = (result: ReturnType<typeof getAdaptedStateFromPath> | undefined) => {
+            endSpan(CONST.TELEMETRY.SPAN_INITIAL_ROUTE_DETERMINATION);
+            return result;
+        };
+
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
+
         if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
             });
 
-            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+            return endRouteSpan(getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config));
         }
 
         if (!account || account.isFromPublicDomain) {
-            return;
+            return endRouteSpan(undefined);
         }
 
         const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
         if (shouldShowRequire2FAPage) {
-            return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config);
+            return endRouteSpan(getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config));
         }
 
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -136,22 +150,24 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // If we have a transition URL, don't restore last visited path - let React Navigation handle it
         // This prevents reusing deep links after logout regardless of authentication status
         if (isTransitioning) {
-            return undefined;
+            return endRouteSpan(undefined);
         }
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
-        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
-            return getAdaptedStateFromPath(
-                getOnboardingInitialPath({
-                    isUserFromPublicDomain: !!account.isFromPublicDomain,
-                    hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
-                    currentOnboardingPurposeSelected,
-                    currentOnboardingCompanySize,
-                    onboardingInitialPath,
-                    onboardingValues,
-                }),
-                linkingConfig.config,
+        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated) {
+            return endRouteSpan(
+                getAdaptedStateFromPath(
+                    getOnboardingInitialPath({
+                        isUserFromPublicDomain: !!account.isFromPublicDomain,
+                        hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
+                        currentOnboardingPurposeSelected,
+                        currentOnboardingCompanySize,
+                        onboardingInitialPath,
+                        onboardingValues,
+                    }),
+                    linkingConfig.config,
+                ),
             );
         }
 
@@ -163,12 +179,12 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
             if (!isSpecificDeepLink) {
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
-                return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+                return endRouteSpan(getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config));
             }
         }
 
         // Default behavior - let React Navigation handle the initial state
-        return undefined;
+        return endRouteSpan(undefined);
 
         // The initialState value is relevant only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -193,6 +209,15 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             },
         };
     }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
+
+    useEffect(() => {
+        const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+            parentSpan: bootsplashSpan,
+        });
+    }, []);
 
     useEffect(() => {
         if (firstRenderRef.current) {
@@ -259,6 +284,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     };
 
     const onReadyWithSentry = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY);
         onReady();
         navigationIntegration.registerNavigationContainer(navigationRef);
     }, [onReady]);
