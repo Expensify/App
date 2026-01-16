@@ -60,17 +60,19 @@ function WalletPage() {
         selector: fundListSelector,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus']);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus']);
     const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet']);
     const walletIllustration = useWalletSectionIllustration();
 
@@ -84,6 +86,7 @@ function WalletPage() {
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
     const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
+    const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
 
     const hasWallet = !isEmpty(userWallet);
@@ -131,6 +134,12 @@ function WalletPage() {
                 };
             }
             setShouldShowShareButton(accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN);
+            if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !!accountData?.sharees?.length) {
+                const isOnlyCurrentUserInSharees = accountData.sharees.length === 1 && accountData.sharees.at(0) === currentUserPersonalDetails?.email;
+                setShouldShowUnshareButton(accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isOnlyCurrentUserInSharees);
+            } else {
+                setShouldShowUnshareButton(false);
+            }
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: !!isDefault,
                 selectedPaymentMethod: accountData ?? {},
@@ -206,7 +215,7 @@ function WalletPage() {
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
             const bankAccount = bankAccountList?.[paymentMethod.methodID] ?? {};
-            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods, bankAccount);
+            deletePaymentBankAccount(bankAccountID, personalPolicyID, lastUsedPaymentMethods, bankAccount);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
@@ -220,6 +229,7 @@ function WalletPage() {
         resetSelectedPaymentMethodData,
         bankAccountList,
         lastUsedPaymentMethods,
+        personalPolicyID,
     ]);
 
     /**
@@ -335,6 +345,21 @@ function WalletPage() {
                       },
                   ]
                 : []),
+            ...(shouldShowUnshareButton
+                ? [
+                      {
+                          text: translate('common.unshare'),
+                          icon: icons.UserMinus,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                          },
+                      },
+                  ]
+                : []),
             {
                 text: translate('common.delete'),
                 icon: icons.Trashcan,
@@ -363,13 +388,18 @@ function WalletPage() {
                 : []),
         ],
         [
-            icons,
             shouldUseNarrowLayout,
             bottomMountItem,
-            shouldShowShareButton,
             shouldShowMakeDefaultButton,
-            hasEligibleActiveAdmin,
             translate,
+            icons.Star,
+            icons.UserPlus,
+            icons.UserMinus,
+            icons.Trashcan,
+            icons.Globe,
+            shouldShowShareButton,
+            hasEligibleActiveAdmin,
+            shouldShowUnshareButton,
             shouldShowEnableGlobalReimbursementsButton,
             isAccountLocked,
             makeDefaultPaymentMethod,

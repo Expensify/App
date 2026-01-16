@@ -240,6 +240,17 @@ npm run android
 npm run web
 ```
 
+## Development Environment
+
+### Dev Server
+- **Location**: Runs on HOST machine (not in VM)
+- **URL**: `https://dev.new.expensify.com:8082/`
+- **Start command**: `npm run web`
+- **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
+
+### Browser Testing
+Use the `/playwright-app-testing` skill to test and debug the App in a browser. Use this skill after making frontend changes to verify your work, or when the user requests testing.
+
 ## Architecture Decisions
 
 ### React Native New Architecture
