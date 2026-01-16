@@ -104,18 +104,25 @@ Refer to Okta’s documentation for complete instructions.
 
 # FAQ
 
-## What happens if a member can’t log in after SAML is enabled?
-
-Ensure their email matches the verified domain. If not, they'll need to update their email address in Expensify or be granted an email alias that matches.
-
-## Can I disable SAML later?
-
-Yes. You can disable the **Enable SAML login** toggle in the SAML settings page for your domain.
-
-## Do I need a verified domain to use SAML?
-
-Yes. SAML setup is only available once your domain is verified in Expensify.
-
 ## Can I use SAML for multiple Workspaces?
 
 Yes, as long as all members are part of the same verified domain, SAML access applies across all Workspaces they belong to.
+
+## How can I confirm my SAML setup is correct?
+
+Before enabling **Require SAML login**, make sure your SAML connection is working by testing both SP-initiated and IdP-initiated logins. You should also confirm that:
+
+- The correct certificate and endpoints are in your Expensify metadata
+- Members can log in successfully using the SAML flow
+
+## Can I test a new SAML setup without locking users out?
+
+Yes. Disable **Require SAML login** before making changes. This allows users to log in with email and password if SAML setup fails. Once you’ve confirmed that login works, you can re-enable enforcement.
+
+## What happens if a member can’t log in after SAML is enabled?
+
+First, confirm that the member’s email matches your verified domain and that their account exists in your Identity Provider (IdP) with the correct access permissions.
+
+If they’re still unable to log in, follow the steps in [Troubleshoot SAML SSO login](LINK) to identify and resolve the issue.
+
+
