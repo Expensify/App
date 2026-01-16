@@ -1800,7 +1800,7 @@ function getReportSections({
                 const policy = getPolicyFromKey(data, reportItem);
 
                 const pendingFields = getReportPendingFields(reportItem.reportID);
-                const isReportStatePending = !!pendingFields?.nextStep;
+                const isReportStatePending = pendingFields?.nextStep === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
                 const hasAnyViolationsForReport = hasAnyViolations(
                     reportItem.reportID,
