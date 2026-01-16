@@ -10,80 +10,76 @@ If you're having trouble logging in with SAML Single Sign-On (SSO) in Expensify 
 
 # Where to find SAML SSO settings in Expensify Classic
 
-To check your SAML SSO configuration, go to Settings > Domains > [domain name] > SAML. 
+To check your SAML SSO configuration, go to **Settings > Domains > [Domain Name] > SAML**.
 
 From this page, you can:
-- View your current metadata and certificate information
+
+- View and update your Identity Provider (IdP) metadata
 - Check if **Require SAML login** is enabled
-- Re-upload or update your identity provider (IdP) metadata file
-- Disable SAML enforcement (if you're still signed in)
+- Disable or enable **Require SAML login**
 
-**Note:** When copying a certificate from your IdP, ensure it includes the full `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` block and is correctly formatted to avoid upload errors.
-
+**Note:** SAML SSO settings are not available on mobile. 
 ---
 
 # How to fix domain-wide SAML SSO login issues
 
-## SAML login suddenly fails for all users
+## SAML login suddenly fails for all members
 
-This usually points to a domain-wide issue. Check the following:
+A domain-wide issue usually points to a problem with your Identity Provider (IdP). 
 
 - **Has your IdP certificate expired or rotated?**  
-  If yes, re-upload the new metadata file from your IdP.
+ If yes, copy the updated metadata XML from your IdP and paste it into the **Identity Provider Metadata** field in your Expensify SAML settings.
 
 - **Have any IdP settings changed?**  
-  Changes to entity IDs, SSO endpoints, or user attributes can break login.
+Changes to entity IDs, SSO endpoints, or user attributes can break login.
+ - If your certificate or SSO endpoints have changed, upload updated metadata from your IdP to Expensify.
+ - If user attributes like NameID Format or email mappings have changed, confirm they match the values expected in your domain's SAML settings in Expensify.
 
 - **Is “Require SAML login” turned on?**  
-  If enabled, no one can log in without a working SAML connection — not even Domain Admins.
+ If enabled, no one — including Domain Admins — can log in without a working SAML configuration. If you're still signed in, go to your domain’s SAML settings and temporarily disable **Require SAML login** while troubleshooting. 
 
-## Some users can’t log in, but others can
+## Some members can’t log in, but others can
 
-This is often caused by:
-
-- An email mismatch (e.g., alias not recognized by your IdP)
-- A new user not yet added to the SAML rule group
-- Inconsistent enforcement of SAML settings
-
-**To fix it:**
-- Confirm the user's email matches your verified domain in Expensify.
-- Ask your IdP admin to ensure the user is included in the correct SAML group or rule.
+This is often caused by an email alias not recognized by your identity provider (IdP), or because the member hasn’t been added to the correct SAML rule or group. Confirm that the member’s email matches your verified domain in Expensify, and check your IdP to ensure they’re included in the appropriate SAML group or rule.
 
 ## All Domain Admins are locked out
 
-If no Domain Admins can log in, you won’t be able to access SAML settings. In this case contact Concierge for help. 
+If no Domain Admins can log in, you won’t be able to access SAML settings. Email concierge@expensify.com from an address that matches your verified domain for help.
 
 ---
 
 # How to resolve common SAML SSO error messages 
 
 ## Signature validation failed  
-This typically happens when the certificate has expired expired, is malformed, or doesn't match the one used by your IdP.  
-**How to fix it:** Re-upload a properly formatted metadata file from your IdP.
+
+This typically happens when the certificate has expired, is malformed, or doesn't match the one used by your IdP. To fix it, copy the updated metadata XML from your IdP and paste it into the **Identity Provider Metadata** field in your Expensify SAML settings.
 
 ---
 
 ## SAML Response not found. Only supported HTTP_POST Binding  
-Your Identity Provider is not sending the `SAMLResponse` in the POST body as expected.  
-**How to fix it:** Update your IdP configuration to use **HTTP POST binding** when sending the SAML Response.
+
+Your Identity Provider is not sending the `SAMLResponse` in the POST body as expected. To fix it, update your IdP configuration to use **HTTP POST binding** when sending the SAML Response.
 
 ---
 
 ## No user with that partnerUserID/partnerUserSecret  
-This occurs when your IdP sends an email (NameID) that doesn’t match the one stored in Expensify for that user.  
-**How to fix it:** Contact Concierge to reset the user’s SAML login.
+
+This occurs when your IdP sends an email (NameID) that doesn’t match the one stored in Expensify for that member. To fix it, confirm that the NameID value sent by your IdP exactly matches the member’s email address in Expensify. If needed, update the member's email in your IdP or in Expensify to resolve the mismatch.
 
 ---
 
-## Bad XML metadata  
+## Bad XML metadata
+
 Your metadata file may contain formatting issues — often extra line breaks or copy/paste errors in the x.509 certificate.  
-**How to fix it:** Use a formatting tool to clean the x.509 certificate before re-uploading.
+**How to fix it:** Use a certificate formatting tool (like [samltool.com](https://samltool.com)) to clean and validate your metadata before pasting it into Expensify.
+
+**Note:** When copying a certificate, make sure it includes the full `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` block with no formatting errors.
 
 ---
 
 ## SAML login not available on your domain  
-This appears when **Require SAML login** is enabled, but SAML isn’t fully configured.  
-**How to fix it:** Re-upload your IdP metadata or toggle SAML off and on again in the domain editor to refresh the connection.
+
+This appears when **Require SAML login** is enabled, but SAML isn’t fully configured. To fix it, follow the steps to [Configure Single Sign On (SSO)](https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify) for your domain. 
 
 ---
 
@@ -95,17 +91,17 @@ If you can't sign in due to a SAML issue, email **concierge@expensify.com** from
 
 # FAQ
 
-## What should I do before making changes to my domain's SAML SSO setup
+## What should I do before making changes to my domain's SAML SSO setup?
 
 Before making changes to your Identity Provider setup — like rotating certificates or updating endpoints — we recommend **temporarily disabling Require SAML login** in Expensify.
 
 This ensures Domain Admins can still sign in with email and password if the new configuration doesn’t work. Once you’ve uploaded the new metadata and confirmed login is working, you can safely re-enable Require SAML login.
 
-## Can I make SAML login optional for some users?
+## Can I make SAML login optional for some members?
 
-No. SAML settings apply to the entire domain. If **Require SAML login** is enabled, **all users** must authenticate via SAML — there’s no way to allow some users to log in with email and password while others use SAML.
+No. SAML settings apply to the entire domain. If **Require SAML login** is enabled, **all members** must authenticate via SAML — there’s no way to allow some members to log in with email and password while others use SAML.
 
-## Can I test a new SAML setup without locking users out?
+## Can I test a new SAML setup without locking members out?
 
 Yes. You can disable **Require SAML login** while testing or updating your SAML settings. This allows members to log in with email/password if needed. Once you're confident the new metadata works, re-enable SAML enforcement.
 
@@ -114,13 +110,10 @@ Yes. You can disable **Require SAML login** while testing or updating your SAML 
 Before enabling **Require SAML login**, make sure your SAML connection is working by testing both SP-initiated and IdP-initiated logins. You should also confirm that:
 
 - The correct certificate and endpoints are in your Expensify metadata
-- Your IdP sends the proper NameID (usually the user's email)
+- Your IdP sends the proper NameID (usually the member's email)
 - Members can log in successfully using the SAML flow
 
 For step-by-step setup and testing instructions, check out the [SAML setup guide](https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify).
-
-
-
 
 
 
