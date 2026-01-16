@@ -76,10 +76,12 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     userPersonalDetails: CurrentUserPersonalDetails,
     isAttendeeTrackingEnabled: boolean,
     isControlPolicy: boolean,
+    isInvoice = false,
 ): T[] {
     // Feature flag to quickly disable the attendees required feature
     // When disabled, remove any existing missingAttendees violations and don't add new ones
-    if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
+    // Never add missingAttendees violation for invoices
+    if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED || isInvoice) {
         return violations.filter((v) => v.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
     }
 
