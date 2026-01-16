@@ -8944,8 +8944,10 @@ function getCleanUpTransactionThreadReportOnyxData({
     const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
-    let reportPreviewAction = updatedReportPreviewAction ?? getReportPreviewAction(chatReport?.reportID, iouReport?.reportID) ?? undefined;
+    let originalReportPreviewAction = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID) ?? undefined;
+    let reportPreviewAction = updatedReportPreviewAction ?? originalReportPreviewAction;
     if (
+        originalReportPreviewAction?.reportActionID &&
         reportPreviewAction?.reportActionID &&
         reportPreviewAction?.childVisibleActionCount &&
         reportPreviewAction?.childVisibleActionCount > 0 &&
@@ -8987,10 +8989,10 @@ function getCleanUpTransactionThreadReportOnyxData({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
                 value: {
                     [reportPreviewAction.reportActionID]: {
-                        childVisibleActionCount: reportPreviewAction.childVisibleActionCount,
-                        childCommenterCount: reportPreviewAction.childCommenterCount,
-                        childLastVisibleActionCreated: reportPreviewAction.childLastVisibleActionCreated,
-                        childOldestFourAccountIDs: reportPreviewAction.childOldestFourAccountIDs,
+                        childVisibleActionCount: originalReportPreviewAction.childVisibleActionCount,
+                        childCommenterCount: originalReportPreviewAction.childCommenterCount,
+                        childLastVisibleActionCreated: originalReportPreviewAction.childLastVisibleActionCreated,
+                        childOldestFourAccountIDs: originalReportPreviewAction.childOldestFourAccountIDs,
                     },
                 },
             });
