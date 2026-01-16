@@ -47,11 +47,14 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Callback for displaying payment animation on IOU preview component */
     startAnimation?: () => void;
+
+    /** Whether the report has non held expenses */
+    hasNonHeldExpenses?: boolean;
 };
 
 function ProcessMoneyReportHoldMenu({
     requestType,
-    nonHeldAmount,
+    nonHeldAmount = '0',
     fullAmount,
     onClose,
     isVisible,
@@ -60,6 +63,7 @@ function ProcessMoneyReportHoldMenu({
     moneyRequestReport,
     transactionCount,
     startAnimation,
+    hasNonHeldExpenses,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
@@ -102,11 +106,11 @@ function ProcessMoneyReportHoldMenu({
     };
 
     const promptText = useMemo(() => {
-        if (nonHeldAmount) {
+        if (hasNonHeldExpenses) {
             return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
         }
         return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
-    }, [nonHeldAmount, transactionCount, translate, isApprove]);
+    }, [hasNonHeldExpenses, transactionCount, translate, isApprove]);
 
     return (
         <DecisionModal
@@ -114,7 +118,7 @@ function ProcessMoneyReportHoldMenu({
             onClose={onClose}
             isVisible={isVisible}
             prompt={promptText}
-            firstOptionText={nonHeldAmount ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
+            firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}

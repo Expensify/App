@@ -872,6 +872,10 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '絵文字',
         collapse: '折りたたむ',
         expand: '展開',
+        askConciergeToCreate: 'Concierge AI に経費を作成するよう依頼…',
+        askConciergeToUpdate: 'Concierge AI に経費の更新を依頼する…',
+        askConciergeToCorrect: 'Concierge AI に経費の修正を依頼する…',
+        addColleagueWithMention: '「@」メンションで同僚を追加…',
     },
     reportActionContextMenu: {
         copyMessage: 'メッセージをコピー',
@@ -901,6 +905,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `この${type}を削除してもよろしいですか？`;
         },
         onlyVisible: 'にのみ表示',
+        explain: '説明する',
+        explainMessage: 'これを説明してください。',
         replyInThread: 'スレッドに返信',
         joinThread: 'スレッドに参加',
         leaveThread: 'スレッドから退出',
@@ -1491,6 +1497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitByDate: '日付で分割',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
         timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`, hrs: '時間'},
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>説明する</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
@@ -6435,10 +6442,6 @@ ${reportName}
         deleteReportField: (fieldType: string, fieldName?: string) => `${fieldType} レポートフィールド「${fieldName}」を削除しました`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `「自分自身での承認を防ぐ」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大領収書必須経費金額を${newValue}に変更しました（以前は${oldValue}）`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `違反となる経費の上限金額を${newValue}（以前は${oldValue}）に変更しました`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `「最大経費期間（日数）」を「${newValue}」（以前は「${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}」）に更新しました`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `月次レポートの提出日を「${newValue}」に設定してください`;
@@ -6586,6 +6589,15 @@ ${reportName}
                 }
             }
         },
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense amount to "${newValue}"`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense amount (previously "${oldValue}")`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense age to "${newValue}" days`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense age (previously "${oldValue}" days)`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `カスタムレポート名の数式を「${newValue}」（以前は「${oldValue}」）に変更しました`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>

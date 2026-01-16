@@ -1,7 +1,7 @@
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
@@ -11,6 +11,7 @@ import type {Emoji} from '@assets/emojis/types';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -49,6 +50,7 @@ import {areAllModalsHidden} from '@userActions/Modal';
 import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -232,6 +234,7 @@ function ComposerWithSuggestions({
     // Fullstory
     forwardedFSClass,
 }: ComposerWithSuggestionsProps) {
+    const route = useRoute();
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -255,6 +258,10 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
+    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
+    // Autofocus is disabled on SearchReport when another RHP is displayed below as it causes animation issues
+    const shouldDisableAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
@@ -266,7 +273,8 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus =
+        (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput && !shouldDisableAutoFocus;
 
     const valueRef = useRef(value);
     valueRef.current = value;
