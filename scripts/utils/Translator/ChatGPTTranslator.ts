@@ -1,6 +1,6 @@
 import hashStr from '@libs/StringUtils/hash';
-import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import ChatGPTCostEstimator from '@scripts/chatGPTCostEstimator';
+import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import OpenAIUtils from '../OpenAIUtils';
 import {buildTranslationInstructions, buildTranslationRequestInput} from './TranslationPromptUtils';
 import Translator from './Translator';
@@ -114,10 +114,7 @@ class ChatGPTTranslator extends Translator {
     /**
      * Estimate cost for translation runs based on current prompt structure.
      */
-    public async estimateCost(
-        stringsToTranslate: StringWithContext[],
-        targetLanguages: TranslationTargetLocale[],
-    ): Promise<number> {
+    public async estimateCost(stringsToTranslate: StringWithContext[], targetLanguages: TranslationTargetLocale[]): Promise<number> {
         if (stringsToTranslate.length === 0 || targetLanguages.length === 0) {
             return 0;
         }

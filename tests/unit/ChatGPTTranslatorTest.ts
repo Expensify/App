@@ -56,9 +56,7 @@ describe('ChatGPTTranslator.performTranslation', () => {
 
     it('returns original string after exceeding retry attempts', async () => {
         // Always returns invalid
-        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock)
-            .mockResolvedValueOnce(mockResponse('seeded', 'resp_seed_123'))
-            .mockResolvedValue(mockResponse(invalidTranslation));
+        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockResolvedValueOnce(mockResponse('seeded', 'resp_seed_123')).mockResolvedValue(mockResponse(invalidTranslation));
 
         // @ts-expect-error TS2445
         const result = await translator.performTranslation(targetLang, original);
