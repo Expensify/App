@@ -5,7 +5,7 @@ import type * as OnyxCommon from './OnyxCommon';
  */
 type GeneralDomainErrors = {
     /**
-     * Base error
+     * Base errors
      */
     errors: OnyxCommon.Errors;
 };
@@ -30,9 +30,9 @@ type DomainErrors = {
     useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
 
     /**
-     * Errors related to specific domain member, keyed by their accountID
+     * Errors related to specific domain member, keyed by their accountID. memberErrors are keyed with user email, NOT accountID
      */
-    memberErrors?: Record<number, GeneralDomainErrors>;
+    memberErrors?: Record<string, GeneralDomainErrors>;
 } & GeneralDomainErrors;
 
 export default DomainErrors;

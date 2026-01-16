@@ -819,7 +819,7 @@ function addMemberToDomain(domainAccountID: number, email: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 member: {
-                    [optimisticAccountID]: {
+                    [email]: {
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
@@ -830,7 +830,7 @@ function addMemberToDomain(domainAccountID: number, email: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 memberErrors: {
-                    [optimisticAccountID]: {
+                    [email]: {
                         errors: null,
                     },
                 },
@@ -855,7 +855,7 @@ function addMemberToDomain(domainAccountID: number, email: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 memberErrors: {
-                    [optimisticAccountID]: {
+                    [email]: {
                         errors: null,
                     },
                 },
@@ -887,7 +887,7 @@ function addMemberToDomain(domainAccountID: number, email: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 memberErrors: {
-                    [optimisticAccountID]: {
+                    [email]: {
                         errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.errors.addMember'),
                     },
                 },
@@ -898,29 +898,11 @@ function addMemberToDomain(domainAccountID: number, email: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 member: {
-                    [optimisticAccountID]: {
+                    [email]: {
                         pendingAction: null,
                     },
                 },
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.PERSONAL_DETAILS_LIST}`,
-            value: {
-                [optimisticAccountID]: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                [DOMAIN_SECURITY_GROUP]: {
-                    shared: {
-                        [optimisticAccountID]: null,
-                    },
-                },
-            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         },
     ];
 
@@ -930,6 +912,35 @@ function addMemberToDomain(domainAccountID: number, email: string) {
     };
 
     API.write(WRITE_COMMANDS.ADD_DOMAIN_MEMBER, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Removes an error and pending actions after trying to add admin
+ */
+function clearMemberError(domainAccountID: number, email: string) {
+    // eslint-disable rulesdir/no-default-id-values
+    const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
+    const optimisticAccountID = generateAccountID(email);
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        memberErrors: {
+            [email]: null,
+        },
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        [DOMAIN_SECURITY_GROUP]: {
+            shared: {
+                [optimisticAccountID]: null,
+            },
+        },
+    } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>);
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        memberErrors: {
+            [email]: null,
+        },
+    });
 }
 
 export {
@@ -956,4 +967,5 @@ export {
     resetDomain,
     clearDomainErrors,
     addMemberToDomain,
+    clearMemberError,
 };

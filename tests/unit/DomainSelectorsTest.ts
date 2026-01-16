@@ -157,12 +157,12 @@ describe('domainSelectors', () => {
         });
 
         it('Should return the admin pending actions when they exist', () => {
-            const pendingAction: OnyxEntry<DomainPendingActions> = {
+            const pendingAction = {
                 admin: {
                     [userID1]: {pendingAction: 'update'},
                     [userID2]: {pendingAction: 'delete'},
                 },
-            };
+            } as unknown as OnyxEntry<DomainPendingActions>;
 
             expect(adminPendingActionSelector(pendingAction)).toEqual({
                 [userID1]: {pendingAction: 'update'},
