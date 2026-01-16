@@ -84,7 +84,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
-        if (isEditing && isLoadingApp) {
+        if (isEditing && isLoadingApp && !report) {
             return <FullScreenLoadingIndicator />;
         }
 
