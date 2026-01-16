@@ -63,7 +63,9 @@ function useReportActionAvatars({
     });
     // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
-    const personalDetails = personalDetailsList ?? personalDetailsFromOnyx ?? allPersonalDetails;
+    // Snapshot personalDetailsList can be partial, so merge it over the broader cache instead of replacing it.
+    const personalDetailsBase = personalDetailsFromOnyx ?? allPersonalDetails ?? {};
+    const personalDetails = personalDetailsList ? {...personalDetailsBase, ...personalDetailsList} : personalDetailsBase;
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
