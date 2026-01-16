@@ -60,6 +60,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
@@ -68,7 +69,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const handleGoBack = () => {
         if (isEditing) {
-            Navigation.dismissModal();
+            Navigation.dismissToSuperWideRHP();
         } else {
             Navigation.goBack(backTo);
         }
@@ -124,18 +125,18 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             );
 
             if (isEditing) {
-                changeTransactionsReport(
-                    [transaction.transactionID],
-
+                changeTransactionsReport({
+                    transactionIDs: [transaction.transactionID],
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    newReport: report,
                     allSnapshots,
-                    report,
-                    allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-                    undefined,
-                    allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                );
+                    policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                    reportNextStep: undefined,
+                    policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                    allTransactions,
+                });
                 removeTransaction(transaction.transactionID);
             }
         });
@@ -168,10 +169,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport([transaction.transactionID], isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '', allSnapshots);
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled,
+                allSnapshots,
+                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: session?.email ?? '',
+                allTransactions,
+            });
             removeTransaction(transaction.transactionID);
         });
     };
