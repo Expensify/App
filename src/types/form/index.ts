@@ -104,3 +104,4 @@ export type {SearchEditMultipleDateForm} from './SearchEditMultipleDateForm';
 export type {EnterSignerInfoForm} from './EnterSignerInfoForm';
 export type {CreateDomainForm} from './CreateDomainForm';
 export type {SplitExpenseEditDateForm} from './SplitExpenseEditDateForm';
+export type {ResetDomainForm} from './ResetDomainForm';
