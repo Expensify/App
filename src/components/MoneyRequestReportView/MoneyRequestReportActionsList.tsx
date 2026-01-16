@@ -732,7 +732,6 @@ function MoneyRequestReportActionsList({
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger
-                        shouldEnableNewFocusManagement
                     />
                 </>
             )}

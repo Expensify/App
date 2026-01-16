@@ -23,15 +23,9 @@ type RequireTwoFactorAuthenticationModalProps = {
 
     /** Describe what is showing */
     description: string;
-
-    /**
-     * Whether the modal should enable the new focus manager.
-     * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
-     * */
-    shouldEnableNewFocusManagement?: boolean;
 };
 
-function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, isVisible, onSubmit, shouldEnableNewFocusManagement}: RequireTwoFactorAuthenticationModalProps) {
+function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, isVisible, onSubmit}: RequireTwoFactorAuthenticationModalProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,7 +37,6 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
             isVisible={isVisible}
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={{...styles.pb5, ...styles.pt0, ...styles.boxShadowNone}}
-            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
         >
             <View>
                 <View style={[styles.cardSectionIllustration, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>

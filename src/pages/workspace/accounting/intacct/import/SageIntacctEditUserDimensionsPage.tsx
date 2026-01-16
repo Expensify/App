@@ -145,7 +145,6 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                     danger
-                    shouldEnableNewFocusManagement
                 />
             </FormProvider>
         </ConnectionLayout>

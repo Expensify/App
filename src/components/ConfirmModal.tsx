@@ -98,12 +98,6 @@ type ConfirmModalProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
-    /**
-     * Whether the modal should enable the new focus manager.
-     * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
-     * */
-    shouldEnableNewFocusManagement?: boolean;
-
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
 
@@ -147,7 +141,6 @@ function ConfirmModal({
     shouldShowDismissIcon,
     titleContainerStyles,
     shouldReverseStackedButtons,
-    shouldEnableNewFocusManagement,
     restoreFocusType,
     isConfirmLoading,
     shouldHandleNavigationBack,
@@ -175,7 +168,6 @@ function ConfirmModal({
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
-            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}

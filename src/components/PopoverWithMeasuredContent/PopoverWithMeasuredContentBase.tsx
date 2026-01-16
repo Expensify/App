@@ -45,7 +45,6 @@ function PopoverWithMeasuredContentBase({
     },
     shouldSwitchPositionIfOverflow = false,
     shouldHandleNavigationBack = false,
-    shouldEnableNewFocusManagement,
     shouldMeasureAnchorPositionFromTop = false,
     shouldSkipRemeasurement = false,
     ...props
@@ -62,13 +61,6 @@ function PopoverWithMeasuredContentBase({
 
     const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
-
-    useEffect(() => {
-        if (prevIsVisible || !isVisible || !shouldEnableNewFocusManagement) {
-            return;
-        }
-        ComposerFocusManager.saveFocusState(modalId);
-    }, [isVisible, shouldEnableNewFocusManagement, prevIsVisible, modalId]);
 
     if (!prevIsVisible && isVisible && isContentMeasured && !shouldSkipRemeasurement) {
         // Check if anything significant changed that would require re-measurement
@@ -203,7 +195,6 @@ function PopoverWithMeasuredContentBase({
             avoidKeyboard={avoidKeyboard}
             hideModalContentWhileAnimating={hideModalContentWhileAnimating}
             modalId={modalId}
-            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             anchorPosition={shiftedAnchorPosition}

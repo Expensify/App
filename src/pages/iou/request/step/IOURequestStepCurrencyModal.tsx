@@ -47,7 +47,6 @@ function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerTe
             isVisible={isPickerVisible}
             onClose={hidePickerModal}
             onModalHide={hidePickerModal}
-            shouldEnableNewFocusManagement
             onBackdropPress={Navigation.dismissModal}
             shouldUseModalPaddingStyle={false}
             shouldHandleNavigationBack

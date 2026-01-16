@@ -164,7 +164,6 @@ function IOURequestStepSubrate({
             prompt: translate('iou.deleteSubrateConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            shouldEnableNewFocusManagement: true,
             danger: true,
         });
         if (result.action !== ModalActions.CONFIRM) {

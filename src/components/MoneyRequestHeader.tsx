@@ -576,7 +576,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
-                shouldEnableNewFocusManagement
             />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal

@@ -347,9 +347,11 @@ function isEditComposerFocused(): boolean {
 function preventComposerFocusOnFirstResponderOnce(composerType: ComposerType = 'main') {
     const ref = composerType === 'main' ? composerRefs.get('main') : editComposerRefs.get('main');
 
-    if (ref) {
-        preventTextInputFocusOnFirstResponderOnce(ref);
+    if (!ref) {
+        return;
     }
+
+    preventTextInputFocusOnFirstResponderOnce(ref);
 }
 
 export default {

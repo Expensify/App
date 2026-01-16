@@ -133,7 +133,6 @@ function AddPaymentMethodMenu({
                 //     },
                 // ],
             ]}
-            shouldEnableNewFocusManagement
             restoreFocusType={restoreFocusType}
         />
     );

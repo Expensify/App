@@ -187,7 +187,6 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                         confirmText={translate('workspace.expensifyCard.changeLimitType')}
                         cancelText={translate('common.cancel')}
                         danger
-                        shouldEnableNewFocusManagement
                     />
                     <Button
                         success

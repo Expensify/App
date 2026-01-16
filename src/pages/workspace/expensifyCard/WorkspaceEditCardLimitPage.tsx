@@ -170,7 +170,6 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                                 confirmText={translate('workspace.expensifyCard.changeLimit')}
                                 cancelText={translate('common.cancel')}
                                 danger
-                                shouldEnableNewFocusManagement
                             />
                         </>
                     )}

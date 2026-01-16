@@ -73,12 +73,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Unique id for the modal */
         modalId?: number;
 
-        /**
-         * Whether the modal should enable the new focus manager.
-         * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
-         * */
-        shouldEnableNewFocusManagement?: boolean;
-
         /** How to re-focus after the modal is dismissed */
         restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
 

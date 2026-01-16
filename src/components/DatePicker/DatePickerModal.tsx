@@ -72,7 +72,6 @@ function DatePickerModal({
             anchorAlignment={DEFAULT_ANCHOR_ORIGIN}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
-            shouldEnableNewFocusManagement
             shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
             shouldSkipRemeasurement
             forwardedFSClass={forwardedFSClass}

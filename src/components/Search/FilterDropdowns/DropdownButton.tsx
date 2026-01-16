@@ -160,7 +160,6 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                 anchorPosition={popoverTriggerPosition}
                 anchorAlignment={ANCHOR_ORIGIN}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-                shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}
                 outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
                 // This must be false because we dont want the modal to close if we open the RHP for selections

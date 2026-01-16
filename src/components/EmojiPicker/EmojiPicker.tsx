@@ -255,7 +255,6 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             anchorDimensions={emojiAnchorDimension.current}
             avoidKeyboard
             shouldSwitchPositionIfOverflow
-            shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSkipRemeasurement
         >

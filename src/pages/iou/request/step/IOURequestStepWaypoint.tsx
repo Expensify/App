@@ -164,7 +164,6 @@ function IOURequestStepWaypoint({
             prompt: translate('distance.deleteWaypointConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            shouldEnableNewFocusManagement: true,
             danger: true,
         });
         if (result.action !== ModalActions.CONFIRM) {

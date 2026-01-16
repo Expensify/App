@@ -126,12 +126,6 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether we want to show the popover on the right side of the screen */
     fromSidebarMediumScreen?: boolean;
 
-    /**
-     * Whether the modal should enable the new focus manager.
-     * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
-     * */
-    shouldEnableNewFocusManagement?: boolean;
-
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
 
@@ -270,7 +264,6 @@ function BasePopoverMenu({
     disableAnimation = true,
     withoutOverlay = false,
     shouldSetModalVisibility = true,
-    shouldEnableNewFocusManagement,
     restoreFocusType,
     shouldShowSelectedItemCheck = false,
     containerStyles,
@@ -559,7 +552,6 @@ function BasePopoverMenu({
             fromSidebarMediumScreen={fromSidebarMediumScreen}
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
-            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
@@ -567,7 +559,7 @@ function BasePopoverMenu({
         >
             <FocusTrapForModal
                 active={isVisible}
-                shouldReturnFocus={!shouldEnableNewFocusManagement}
+                shouldReturnFocus={false}
             >
                 <View
                     onLayout={onLayout}

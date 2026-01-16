@@ -1043,7 +1043,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
-                    shouldEnableNewFocusManagement
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

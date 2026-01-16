@@ -53,7 +53,6 @@ function BaseModal({
     shouldUseCustomBackdrop = false,
     onBackdropPress,
     modalId,
-    shouldEnableNewFocusManagement = false,
     restoreFocusType,
     shouldUseModalPaddingStyle = true,
     initialFocus = false,
@@ -97,11 +96,9 @@ function BaseModal({
 
     const uniqueModalId = useMemo(() => modalId ?? ComposerFocusManager.getId(), [modalId]);
     const saveFocusState = useCallback(() => {
-        if (shouldEnableNewFocusManagement) {
-            ComposerFocusManager.saveFocusState(uniqueModalId);
-        }
+        ComposerFocusManager.saveFocusState(uniqueModalId);
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
-    }, [shouldEnableNewFocusManagement, uniqueModalId]);
+    }, [uniqueModalId]);
     /**
      * Hides modal
      * @param callHideCallback - Should we call the onModalHide callback
@@ -367,7 +364,6 @@ function BaseModal({
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
-                        shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                     >
                         <Animated.View
                             onLayout={onViewLayout}
