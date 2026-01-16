@@ -8969,7 +8969,13 @@ function deleteMoneyRequest({
     });
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.SET,
