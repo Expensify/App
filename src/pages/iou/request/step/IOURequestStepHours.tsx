@@ -14,9 +14,17 @@ import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabiliti
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
 import variables from '@styles/variables';
-import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU';
+import {
+    setMoneyRequestAmount,
+    setMoneyRequestMerchant,
+    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTimeCount,
+    setMoneyRequestTimeRate,
+} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,8 +35,12 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS>;
+type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<
+    typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
+> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT> & {
+        explicitPolicyID?: string;
+    };
 
 function IOURequestStepHours({
     report,
@@ -37,9 +49,11 @@ function IOURequestStepHours({
         name: routeName,
     },
     transaction,
+    explicitPolicyID,
 }: IOURequestStepHoursProps) {
-    const isEditingConfirmation = routeName === SCREENS.MONEY_REQUEST.STEP_HOURS;
-    const policyID = report?.policyID;
+    const isEditingConfirmation = routeName === SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT;
+    const isEmbeddedInStartPage = routeName === SCREENS.MONEY_REQUEST.CREATE;
+    const policyID = explicitPolicyID ?? report?.policyID;
     const isTransactionDraft = shouldUseTransactionDraft(action);
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
     const {accountID} = useCurrentUserPersonalDetails();
@@ -77,7 +91,7 @@ function IOURequestStepHours({
 
     const navigateBack = () => Navigation.goBack(isEditingConfirmation ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID) : undefined);
 
-    const saveTime = () => {
+    const saveTime = async () => {
         if (rate === undefined) {
             return;
         }
@@ -96,10 +110,31 @@ function IOURequestStepHours({
             navigateBack();
             return;
         }
+
         setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
-        setMoneyRequestParticipantsFromReport(transactionID, report, accountID).then(() =>
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)),
-        );
+
+        if (isEmbeddedInStartPage) {
+            if (explicitPolicyID) {
+                await setMoneyRequestParticipants(
+                    transactionID,
+                    [
+                        {
+                            selected: true,
+                            accountID: 0,
+                            isPolicyExpenseChat: true,
+                            reportID: getPolicyExpenseChat(accountID, explicitPolicyID)?.reportID,
+                            policyID: explicitPolicyID,
+                        },
+                    ],
+                    false,
+                    true,
+                );
+            } else {
+                await setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
+            }
+        }
+
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     };
 
     return (
@@ -107,7 +142,7 @@ function IOURequestStepHours({
             headerTitle={translate('iou.time')}
             onBackButtonPress={navigateBack}
             testID="IOURequestStepHours"
-            shouldShowWrapper={isEditingConfirmation}
+            shouldShowWrapper={!isEmbeddedInStartPage}
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >

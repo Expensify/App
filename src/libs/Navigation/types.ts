@@ -1958,6 +1958,13 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         reportActionID: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        reportActionID: string;
+    };
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
