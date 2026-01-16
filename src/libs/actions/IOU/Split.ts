@@ -215,7 +215,6 @@ function splitBill({
     notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
-
 /**
  * @param amount - always in the smallest currency unit
  */
