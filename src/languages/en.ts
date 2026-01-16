@@ -2400,7 +2400,7 @@ const translations = {
             comment: (value: string) => `Change description to "${value}"`,
             merchant: (value: string) => `Update merchant to "${value}"`,
             reimbursable: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
-            report: (value: string) => `Add a report named "${value}"`,
+            report: (value: string) => `Add to a report named "${value}"`,
             tag: (value: string) => `Update tag to "${value}"`,
             tax: (value: string) => `Update tax rate to "${value}"`,
         },
