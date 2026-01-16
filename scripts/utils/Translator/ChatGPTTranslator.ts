@@ -29,11 +29,6 @@ class ChatGPTTranslator extends Translator {
      */
     private readonly sessions = new Map<TranslationTargetLocale, LocaleSession>();
 
-    /**
-     * Cached system instructions per locale.
-     */
-    private readonly instructionsCache = new Map<TranslationTargetLocale, string>();
-
     public constructor(apiKey: string) {
         super();
         this.openai = new OpenAIUtils(apiKey);
@@ -48,35 +43,28 @@ class ChatGPTTranslator extends Translator {
             return existing;
         }
 
-        const instructions = await this.getInstructions(targetLang);
+        const seedInstructions = await buildTranslationInstructions(targetLang);
         const conversationID = await this.openai.createConversation();
-        const promptCacheKey = `translation-${targetLang}-${hashStr(instructions)}`;
+        const promptCacheKey = `translation-${targetLang}-${hashStr(seedInstructions)}`;
+
+        const seedResponse = await this.openai.promptResponses({
+            input: buildTranslationRequestInput(''),
+            instructions: seedInstructions,
+            conversationID,
+            promptCacheKey,
+        });
 
         const session: LocaleSession = {
             conversationID,
             promptCacheKey,
+            lastResponseID: seedResponse.responseID,
         };
         this.sessions.set(targetLang, session);
         return session;
     }
 
-    /**
-     * Build and cache the system instructions for a locale, using the base prompt and locale-specific prompt.
-     */
-    private async getInstructions(targetLang: TranslationTargetLocale): Promise<string> {
-        const cached = this.instructionsCache.get(targetLang);
-        if (cached) {
-            return cached;
-        }
-
-        const instructions = await buildTranslationInstructions(targetLang);
-        this.instructionsCache.set(targetLang, instructions);
-        return instructions;
-    }
-
     protected async performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
         const session = await this.getOrCreateSession(targetLang);
-        const instructions = await this.getInstructions(targetLang);
         const userInput = buildTranslationRequestInput(text, context);
 
         let attempt = 0;
@@ -84,10 +72,8 @@ class ChatGPTTranslator extends Translator {
             try {
                 const response = await this.openai.promptResponses({
                     input: userInput,
-                    instructions,
                     conversationID: session.conversationID,
                     previousResponseID: session.lastResponseID,
-                    promptCacheKey: session.promptCacheKey,
                 });
 
                 const fixedResult = this.fixChineseBracketsInMarkdown(response.text);
