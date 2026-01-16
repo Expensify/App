@@ -1529,7 +1529,7 @@ function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string
     const report = existingChildReport ?? buildOptimisticChildReport(reportAction.childReportID, reportAction, originalReportID);
     if (!existingChildReport) {
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(report.participants ?? {}).map(Number));
-        openReport(report.reportID, '', participantLogins, report, reportAction.reportActionID, undefined, undefined, undefined, true);
+        openReport(report.reportID, introSelectedOnyxConnect, '', participantLogins, report, reportAction.reportActionID, undefined, undefined, undefined, true);
     }
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
