@@ -71,7 +71,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
-        const reportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? findSelfDMReportID() : mergeTransaction.reportID;
+        const reportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (findSelfDMReportID() ?? CONST.REPORT.UNREPORTED_REPORT_ID) : mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
         mergeTransactionRequest({
