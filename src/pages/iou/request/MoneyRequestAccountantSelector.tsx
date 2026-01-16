@@ -104,7 +104,20 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             ...optionList,
             ...orderedOptions,
         };
-    }, [areOptionsInitialized, didScreenTransitionEnd, options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, betas, action, countryCode]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        options.reports,
+        options.personalDetails,
+        draftComments,
+        nvpDismissedProductTraining,
+        loginList,
+        betas,
+        action,
+        countryCode,
+        currentUserAccountID,
+        currentUserEmail,
+    ]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
