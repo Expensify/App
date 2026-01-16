@@ -854,6 +854,10 @@ const translations = {
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
         blockedFromConcierge: 'Communication is barred',
+        askConciergeToCreate: 'Ask Concierge AI to create an expense...',
+        askConciergeToUpdate: 'Ask Concierge AI to update an expense...',
+        askConciergeToCorrect: 'Ask Concierge AI to correct an expense...',
+        addColleagueWithMention: 'Add a colleague with an "@" mention...',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}: LocalTimeParams) => `It's ${time} for ${user}`,
         edited: '(edited)',
@@ -889,6 +893,8 @@ const translations = {
             return `Are you sure you want to delete this ${type}?`;
         },
         onlyVisible: 'Only visible to',
+        explain: 'Explain',
+        explainMessage: 'Please explain this to me.',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
@@ -1481,6 +1487,7 @@ const translations = {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hour' : 'hours'} @ ${rate} / hour`,
             hrs: 'hrs',
         },
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Explain</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
