@@ -34,22 +34,19 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
     const selectedCategoryItem = form?.category ? {name: form.category, value: form.category} : undefined;
 
     const categoryItems = useMemo(() => {
-        const items = [];
         const uniqueCategoryNames = new Set<string>();
 
         const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
         for (const category of categories) {
             uniqueCategoryNames.add(category.name);
         }
-        items.push(
-            ...Array.from(uniqueCategoryNames)
-                .filter(Boolean)
-                .map((categoryName) => {
-                    const decodedCategoryName = getDecodedCategoryName(categoryName);
-                    return {name: decodedCategoryName, value: categoryName};
-                }),
-        );
-        return items;
+
+        return Array.from(uniqueCategoryNames)
+            .filter(Boolean)
+            .map((categoryName) => {
+                const decodedCategoryName = getDecodedCategoryName(categoryName);
+                return {name: decodedCategoryName, value: categoryName};
+            });
     }, [allPolicyCategories]);
 
     const backToRoute = route.params?.hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(route.params.hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();

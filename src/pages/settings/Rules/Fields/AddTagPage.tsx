@@ -32,16 +32,14 @@ function AddTagPage({route}: AddTagPageProps) {
     const selectedTagItem = form?.tag ? {name: getCleanedTagName(form.tag), value: form.tag} : undefined;
 
     const tagItems = useMemo(() => {
-        const items = [];
         const uniqueTagNames = new Set<string>();
 
         const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
         for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
             uniqueTagNames.add(tag);
         }
-        items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName})));
 
-        return items;
+        return Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName}));
     }, [allPolicyTagLists]);
 
     const backToRoute = route.params?.hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(route.params.hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
