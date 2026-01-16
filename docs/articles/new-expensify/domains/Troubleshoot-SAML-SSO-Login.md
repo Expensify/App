@@ -22,9 +22,9 @@ From this page, you can:
 
 ---
 
-# How to fix domain-wide SAML SSO login issues
+# How to fix SAML Single Sign-On (SSO) domain-wide issues
 
-## SAML login suddenly fails for all users
+## What to do if SAML login suddenly fails for all users
 
 This usually points to a domain-wide issue. Check the following:
 
@@ -37,7 +37,7 @@ This usually points to a domain-wide issue. Check the following:
 - **Is “Require SAML login” turned on?**  
   If enabled, no one can log in without a working SAML connection — not even Domain Admins.
 
-## Some users can’t log in, but others can
+## What to do if some users can’t log in
 
 This is often caused by:
 
@@ -55,7 +55,7 @@ If no Domain Admins can log in, you won’t be able to access SAML settings. In 
 
 ---
 
-# How to resolve common SAML SSO error messages 
+# How to fix common SAML Single Sign-On (SSO) errors
 
 ## Signature validation failed  
 This typically happens when the certificate has expired expired, is malformed, or doesn't match the one used by your IdP.  
