@@ -590,6 +590,10 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Emoji',
         collapse: 'Colapsar',
         expand: 'Expandir',
+        askConciergeToCreate: 'Pídele a Concierge AI que cree un gasto...',
+        askConciergeToUpdate: 'Pídele a Concierge AI que actualice un gasto...',
+        askConciergeToCorrect: 'Pídele a Concierge AI que corrija un gasto...',
+        addColleagueWithMention: 'Añade a un colega con una mención "@"...',
     },
     reportActionContextMenu: {
         copyMessage: 'Copiar mensaje',
@@ -619,6 +623,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `¿Estás seguro de que quieres eliminar este ${type}?`;
         },
         onlyVisible: 'Visible sólo para',
+        explain: 'Explicar',
+        explainMessage: 'Por favor explícame esto.',
         replyInThread: 'Responder en el hilo',
         joinThread: 'Unirse al hilo',
         leaveThread: 'Dejar hilo',
@@ -1211,6 +1217,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hora' : 'horas'} a ${rate} / hora`,
             hrs: 'h',
         },
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Explicar</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {

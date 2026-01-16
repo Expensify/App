@@ -22,7 +22,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getPersonalPolicy} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import {setDraftSplitTransaction, setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -54,6 +53,8 @@ function IOURequestStepDescription({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -174,8 +175,7 @@ function IOURequestStepDescription({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
+    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
     const getDescriptionHint = () => {
         return transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
     };
