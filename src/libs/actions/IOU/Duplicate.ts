@@ -18,6 +18,7 @@ import {
     buildTransactionThread,
     getTransactionDetails,
 } from '@libs/ReportUtils';
+import {getTransactionType} from '@libs/TransactionUtils';
 import {getPolicyTagsData} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -552,7 +553,24 @@ function duplicateExpenseTransaction({
         policyCategories: targetPolicyCategories ?? {},
     };
 
-    return requestMoney(params);
+    const transactionType = getTransactionType(transaction);
+
+    switch (transactionType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
+            const perDiemParams: PerDiemExpenseInformation = {
+                ...params,
+                transactionParams: {
+                    ...(params.transactionParams ?? {}),
+                    comment: transactionDetails?.comment ?? '',
+                    customUnit: transaction?.comment?.customUnit ?? {},
+                },
+                hasViolations: false,
+            };
+            return submitPerDiemExpense(perDiemParams);
+        }
+        default:
+            return requestMoney(params);
+    }
 }
 
 export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction};
