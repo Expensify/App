@@ -856,9 +856,7 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         }
     }
 
-    // Simplify the rule approvers list by removing two consecutive duplicate approvers.
-    const allRuleApprovers = [...categoryApprovers, ...tagApprovers];
-    return allRuleApprovers.filter((approver, index) => index === 0 || approver !== allRuleApprovers.at(index - 1));
+    return [...new Set([...categoryApprovers, ...tagApprovers])];
 }
 
 function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report> | {ownerAccountID: number}) {
