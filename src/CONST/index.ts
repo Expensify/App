@@ -3580,6 +3580,7 @@ const CONST = {
             CITI_BANK: 'Citibank',
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
+            MOCK_BANK: 'Mock Bank (Local Testing)',
             OTHER: 'Other',
         },
         BANK_CONNECTIONS: {
@@ -3590,6 +3591,7 @@ const CONST = {
             CAPITAL_ONE: 'capitalone',
             CITI_BANK: 'citibank',
             AMEX: 'americanexpressfdx',
+            MOCK_BANK: 'mockbank',
         },
         AMEX_CUSTOM_FEED: {
             CORPORATE: 'American Express Corporate Cards',

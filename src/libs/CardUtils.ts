@@ -462,6 +462,7 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
         [CONST.COMPANY_CARDS.BANKS.WELLS_FARGO]: companyCardIllustrations.WellsFargoCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.BREX]: companyCardIllustrations.BrexCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.STRIPE]: companyCardIllustrations.StripeCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.MOCK_BANK]: illustrations.GenericCompanyCard,
         [CONST.COMPANY_CARDS.BANKS.OTHER]: illustrations.GenericCompanyCard,
     };
     return iconMap[bank];
