@@ -1,3 +1,4 @@
+import groovy.xml.XmlSlurper
 import groovy.json.JsonSlurper
 import java.util.concurrent.TimeUnit
 

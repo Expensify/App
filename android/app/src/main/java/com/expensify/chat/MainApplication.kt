@@ -28,30 +28,21 @@ import expo.modules.ReactNativeHostWrapper
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 
 class MainApplication : MultiDexApplication(), ReactApplication {
-    override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(this, object : DefaultReactNativeHost(this) {
-        override fun getUseDeveloperSupport() = BuildConfig.DEBUG
-
-        override fun getPackages(): List<ReactPackage>  =
-            PackageList(this).packages.apply {
-            // Packages that cannot be autolinked yet can be added manually here, for example:
-            // add(MyReactNativePackage());
-            add(ShortcutManagerPackage())
-            add(BootSplashPackage())
-            add(ExpensifyAppPackage())
-            add(RNTextInputResetPackage())
-            add(NavBarManagerPackage())
-        }
-
-        override fun getJSMainModuleName() = ".expo/.virtual-metro-entry"
-
-        override val isNewArchEnabled: Boolean
-            get() = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
-        override val isHermesEnabled: Boolean
-            get() = BuildConfig.IS_HERMES_ENABLED
-    })
-
-    override val reactHost: ReactHost
-        get() = getDefaultReactHost(applicationContext, reactNativeHost)
+    override val reactHost: ReactHost by lazy {
+        getDefaultReactHost(
+            context = applicationContext,
+            packageList =
+                PackageList(this).packages.apply {
+                    // Packages that cannot be autolinked yet can be added manually here, for example:
+                    // add(MyReactNativePackage())
+                    add(ShortcutManagerPackage())
+                    add(BootSplashPackage())
+                    add(ExpensifyAppPackage())
+                    add(RNTextInputResetPackage())
+                    add(NavBarManagerPackage())
+                },
+        )
+    }
 
     override fun onCreate() {
         super.onCreate()
