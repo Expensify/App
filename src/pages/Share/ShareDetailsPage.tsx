@@ -118,7 +118,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     }
 
     const isDraft = isDraftReport(reportOrAccountID);
-    const currentUserID = personalDetail.accountID;
 
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
@@ -140,7 +139,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     openReport(
                         report.reportID,
                         '',
-                        displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
+                        displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
                         report,
                         undefined,
                         undefined,
