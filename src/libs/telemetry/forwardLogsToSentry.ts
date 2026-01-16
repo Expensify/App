@@ -13,7 +13,7 @@ const PARAMETERS_WHITELIST = new Set(['timestamp', 'spanExists', 'spanId', 'span
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function shouldForwardLog(log: {message?: string; parameters?: Record<string, unknown> | undefined}) {
-    if (log.message?.search('[Sentry]')) {
+    if (log.message?.search('[Sentry]') !== -1) {
         return true;
     }
     return false;
