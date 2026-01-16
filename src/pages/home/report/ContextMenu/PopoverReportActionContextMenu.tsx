@@ -20,9 +20,9 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import type {ComposerType} from '@libs/ComposerFocusManager';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
-import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -191,9 +191,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             isOverflowMenu = false,
             withoutOverlay = true,
         } = showContextMenuParams;
-        if (ReportActionComposeFocusManager.isFocused()) {
+        if (ComposerFocusManager.isComposerFocused()) {
             setComposerToRefocusOnClose('main');
-        } else if (ReportActionComposeFocusManager.isEditFocused()) {
+        } else if (ComposerFocusManager.isEditComposerFocused()) {
             setComposerToRefocusOnClose('edit');
         }
 

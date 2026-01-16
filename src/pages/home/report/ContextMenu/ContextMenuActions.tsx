@@ -13,6 +13,7 @@ import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
@@ -22,7 +23,6 @@ import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCleanedTagName} from '@libs/PolicyUtils';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
@@ -386,7 +386,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportAction, reportID}) => {
             markCommentAsUnread(reportID, reportAction);
             if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+                hideContextMenu(true, ComposerFocusManager.focusComposer);
             }
         },
         getDescription: () => {},
@@ -401,7 +401,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportID}) => {
             readNewestAction(reportID, true);
             if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+                hideContextMenu(true, ComposerFocusManager.focusComposer);
             }
         },
         getDescription: () => {},
@@ -523,13 +523,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
-                    ReportActionComposeFocusManager.focus();
+                    ComposerFocusManager.focusComposer();
                     toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
                 });
                 return;
             }
 
-            ReportActionComposeFocusManager.focus();
+            ComposerFocusManager.focusComposer();
             toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
@@ -563,13 +563,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
-                    ReportActionComposeFocusManager.focus();
+                    ComposerFocusManager.focusComposer();
                     toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
                 });
                 return;
             }
 
-            ReportActionComposeFocusManager.focus();
+            ComposerFocusManager.focusComposer();
             toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
@@ -584,7 +584,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.LINK,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection);
-            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            hideContextMenu(true, ComposerFocusManager.focusComposer);
         },
         getDescription: (selection) => selection,
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_URL,
@@ -598,7 +598,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.TEXT,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection);
-            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            hideContextMenu(true, ComposerFocusManager.focusComposer);
         },
         getDescription: () => undefined,
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_TO_CLIPBOARD,
@@ -612,7 +612,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(EmailUtils.trimMailTo(selection));
-            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            hideContextMenu(true, ComposerFocusManager.focusComposer);
         },
         getDescription: (selection) => EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection ?? '')),
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_EMAIL,
@@ -907,7 +907,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
 
             if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+                hideContextMenu(true, ComposerFocusManager.focusComposer);
             }
         },
         getDescription: () => {},
@@ -933,7 +933,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 const reportActionID = reportAction?.reportActionID;
                 Clipboard.setString(`${environmentURL}/r/${originalReportID}/${reportActionID}`);
             });
-            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            hideContextMenu(true, ComposerFocusManager.focusComposer);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_LINK,
@@ -946,7 +946,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportID}) => {
             togglePinnedState(reportID, false);
             if (closePopover) {
-                hideContextMenu(false, ReportActionComposeFocusManager.focus);
+                hideContextMenu(false, ComposerFocusManager.focusComposer);
             }
         },
         getDescription: () => {},
@@ -960,7 +960,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportID}) => {
             togglePinnedState(reportID, true);
             if (closePopover) {
-                hideContextMenu(false, ReportActionComposeFocusManager.focus);
+                hideContextMenu(false, ComposerFocusManager.focusComposer);
             }
         },
         getDescription: () => {},
@@ -1018,7 +1018,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isAnchorTag = anchorRegex.test(html);
             fileDownload(translate, sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
             if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+                hideContextMenu(true, ComposerFocusManager.focusComposer);
             }
         },
         getDescription: () => {},
@@ -1034,7 +1034,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: ({type, isProduction}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction,
         onPress: (closePopover, {report}) => {
             Clipboard.setString(JSON.stringify(report, null, 4));
-            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            hideContextMenu(true, ComposerFocusManager.focusComposer);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_ONYX_DATA,
@@ -1050,7 +1050,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             } else {
                 Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID));
             }
-            hideContextMenu(false, ReportActionComposeFocusManager.focus);
+            hideContextMenu(false, ComposerFocusManager.focusComposer);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DEBUG,

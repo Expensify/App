@@ -7,8 +7,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import SidePanelActions from '@libs/actions/SidePanel';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SidePanel} from '@src/types/onyx';
@@ -85,7 +85,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
 
             // Focus the main composer after closing the Side Panel
-            focusComposerWithDelay(ReportActionComposeFocusManager.getComposerRef('main').current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
+            focusComposerWithDelay(ComposerFocusManager.getComposerRef('main').current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
         },
         [isExtraLargeScreenWidth, sidePanelNVP],
     );

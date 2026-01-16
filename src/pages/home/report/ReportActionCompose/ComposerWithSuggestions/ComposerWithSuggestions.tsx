@@ -23,6 +23,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import type {FocusContext} from '@libs/ComposerFocusManager';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
@@ -32,8 +34,6 @@ import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import type {FocusContext} from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -44,7 +44,6 @@ import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentC
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
-import {inputFocusChange} from '@userActions/InputFocus';
 import {areAllModalsHidden} from '@userActions/Modal';
 import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -263,7 +262,6 @@ function ComposerWithSuggestions({
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
-    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
     const lastTextRef = useRef(value);
     useEffect(() => {
@@ -273,8 +271,7 @@ function ComposerWithSuggestions({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
     // Side panel composer should never auto-focus - main composer takes priority on page load
-    const shouldAutoFocus =
-        !isInSidePanel && (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = !isInSidePanel && (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -296,7 +293,7 @@ function ComposerWithSuggestions({
      */
     const setTextInputRef = useCallback(
         (el: TextInput) => {
-            ReportActionComposeFocusManager.getComposerRef(focusContext).current = el;
+            ComposerFocusManager.getComposerRef(focusContext).current = el;
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
                 animatedRef(el);
@@ -590,7 +587,6 @@ function ComposerWithSuggestions({
         if (!suggestionsRef.current) {
             return false;
         }
-        inputFocusChange(false);
         return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
@@ -608,13 +604,17 @@ function ComposerWithSuggestions({
      */
     const setUpComposeFocusManager = useCallback(
         (shouldTakeOverFocus = false) => {
-            ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
-                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePanelHiddenOrLargeScreen) {
-                    return;
-                }
+            ComposerFocusManager.onComposerFocus(
+                (shouldFocusForNonBlurInputOnTapOutside = false) => {
+                    if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePanelHiddenOrLargeScreen) {
+                        return;
+                    }
 
-                focus(true);
-            }, shouldTakeOverFocus, focusContext);
+                    focus(true);
+                },
+                shouldTakeOverFocus,
+                focusContext,
+            );
         },
         [focus, isFocused, isSidePanelHiddenOrLargeScreen, focusContext],
     );
@@ -677,7 +677,7 @@ function ComposerWithSuggestions({
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             addKeyDownPressListener(focusComposerOnKeyPress);
             // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
-            ReportActionComposeFocusManager.getComposerRef(focusContext).current = textInputRef.current;
+            ComposerFocusManager.getComposerRef(focusContext).current = textInputRef.current;
             setUpComposeFocusManager();
         });
         addKeyDownPressListener(focusComposerOnKeyPress);
@@ -685,7 +685,7 @@ function ComposerWithSuggestions({
         setUpComposeFocusManager();
 
         return () => {
-            ReportActionComposeFocusManager.clear(false, focusContext);
+            ComposerFocusManager.clearComposerFocus(false, focusContext);
 
             removeKeyDownPressListener(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
@@ -721,12 +721,11 @@ function ComposerWithSuggestions({
             return;
         }
 
-        if (editFocused) {
-            inputFocusChange(false);
+        if (ComposerFocusManager.isEditComposerFocused()) {
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
+    }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit

@@ -3,9 +3,9 @@ import type {PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import DomUtils from '@libs/DomUtils';
 import getButtonState from '@libs/getButtonState';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
@@ -68,7 +68,7 @@ function BaseMiniContextMenuItem({
                 ref={ref}
                 onPress={onPress}
                 onMouseDown={(event) => {
-                    if (!ReportActionComposeFocusManager.isFocused() && !ReportActionComposeFocusManager.isEditFocused()) {
+                    if (!ComposerFocusManager.isComposerFocused() && !ComposerFocusManager.isEditComposerFocused()) {
                         const activeElement = DomUtils.getActiveElement();
                         if (activeElement instanceof HTMLElement) {
                             activeElement?.blur();

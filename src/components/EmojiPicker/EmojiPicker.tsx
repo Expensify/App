@@ -15,10 +15,10 @@ import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import type {AnchorOrigin, EmojiPickerOnModalHide, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, ShowEmojiPickerOptions} from '@libs/actions/EmojiPickerAction';
 import {isMobileChrome} from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import type {ComposerType} from '@libs/ComposerFocusManager';
 import DomUtils from '@libs/DomUtils';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
-import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -97,11 +97,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
         });
 
         composerToRefocusOnClose.current = composerToRefocusOnCloseValue;
-        if (composerToRefocusOnCloseValue === 'main') {
-            ReportActionComposeFocusManager.preventComposerFocusOnFirstResponderOnce();
-        } else if (composerToRefocusOnCloseValue === 'edit') {
-            ReportActionComposeFocusManager.preventEditComposerFocusOnFirstResponderOnce();
-        }
+        ComposerFocusManager.preventComposerFocusOnFirstResponderOnce(composerToRefocusOnCloseValue);
 
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;

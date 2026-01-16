@@ -67,9 +67,6 @@ const ONYXKEYS = {
     // draft status in custom mode (date and time)
     STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE: 'statusDraftCustomClearAfterDate',
 
-    // keep edit message focus state
-    INPUT_FOCUSED: 'inputFocused',
-
     /** Contains all the personalDetails the user has access to, keyed by accountID */
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
@@ -1190,7 +1187,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
     [ONYXKEYS.CUSTOM_STATUS_DRAFT]: OnyxTypes.CustomStatusDraft;
     [ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE]: string;
-    [ONYXKEYS.INPUT_FOCUSED]: boolean;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;

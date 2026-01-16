@@ -4,7 +4,7 @@ import type {TextInput, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {CloseContextMenuCallback} from '@components/Reactions/QuickEmojiReactions/types';
-import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+import type {ComposerType} from '@libs/ComposerFocusManager';
 import type CONST from '@src/CONST';
 
 type AnchorOrigin = {

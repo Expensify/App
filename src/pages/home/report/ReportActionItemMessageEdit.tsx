@@ -32,9 +32,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
-import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
 import {isMobileChrome} from '@libs/Browser';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import type {FocusContext} from '@libs/ComposerFocusManager';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
 import {extractEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
@@ -42,8 +43,6 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import Parser from '@libs/Parser';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import type {FocusContext} from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
@@ -98,11 +97,6 @@ const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 // video source -> video attributes
 const draftMessageVideoAttributeCache = new Map<string, string>();
 
-const DEFAULT_MODAL_VALUE = {
-    willAlertModalBecomeVisible: false,
-    isVisible: false,
-};
-
 function ReportActionItemMessageEdit({
     action,
     draftMessage,
@@ -144,10 +138,6 @@ function ReportActionItemMessageEdit({
     const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
-
-    const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-    const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
-
     const {isScrolling, startScrollBlock, endScrollBlock} = useScrollBlocker();
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
@@ -174,21 +164,17 @@ function ReportActionItemMessageEdit({
         setDraft(draftMessage);
     }, [draftMessage, action, prevDraftMessage]);
 
-    useEffect(() => {
-        composerFocusKeepFocusOn(textInputRef.current as HTMLElement, isFocused, modal, onyxInputFocused);
-    }, [isFocused, modal, onyxInputFocused]);
-
     useEffect(
         // Remove focus callback on unmount to avoid stale callbacks
         () => {
             if (textInputRef.current) {
-                ReportActionComposeFocusManager.getEditComposerRef(focusContext).current = textInputRef.current;
+                ComposerFocusManager.getEditComposerRef(focusContext).current = textInputRef.current;
             }
             return () => {
-                if (ReportActionComposeFocusManager.getEditComposerRef(focusContext).current !== textInputRef.current) {
+                if (ComposerFocusManager.getEditComposerRef(focusContext).current !== textInputRef.current) {
                     return;
                 }
-                ReportActionComposeFocusManager.clear(true, focusContext);
+                ComposerFocusManager.clearComposerFocus(true, focusContext);
             };
         },
         [focusContext],
@@ -210,10 +196,14 @@ function ReportActionItemMessageEdit({
 
     // Take over focus priority
     const setUpComposeFocusManager = useCallback(() => {
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
-            emojiPickerSelectionRef.current = undefined;
-        }, true, focusContext);
+        ComposerFocusManager.onComposerFocus(
+            () => {
+                focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+                emojiPickerSelectionRef.current = undefined;
+            },
+            true,
+            focusContext,
+        );
     }, [focus, focusContext]);
 
     // show the composer after editing is complete for devices that hide the composer during editing.
@@ -289,10 +279,10 @@ function ReportActionItemMessageEdit({
         deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
-            ReportActionComposeFocusManager.clear(true, focusContext);
+            ComposerFocusManager.clearComposerFocus(true, focusContext);
             // Wait for report action compose re-mounting on mWeb
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus(undefined, focusContext));
+            InteractionManager.runAfterInteractions(() => ComposerFocusManager.focusComposer(focusContext));
         }
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -542,7 +532,7 @@ function ReportActionItemMessageEdit({
                             onFocus={() => {
                                 setIsFocused(true);
                                 if (textInputRef.current) {
-                                    ReportActionComposeFocusManager.getEditComposerRef(focusContext).current = textInputRef.current;
+                                    ComposerFocusManager.getEditComposerRef(focusContext).current = textInputRef.current;
                                 }
                                 startScrollBlock();
                                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -610,7 +600,7 @@ function ReportActionItemMessageEdit({
                                 if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
                                     return;
                                 }
-                                ReportActionComposeFocusManager.focus(undefined, focusContext);
+                                ComposerFocusManager.focusComposer(focusContext);
                             }}
                             onEmojiSelected={addEmojiToTextBox}
                             emojiPickerID={action.reportActionID}

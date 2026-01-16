@@ -20,13 +20,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import FS from '@libs/Fullstory';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
@@ -184,7 +184,7 @@ function OptionRowLHN({
 
         event?.preventDefault();
         // Enable Composer to focus on clicking the same chat after opening the context menu.
-        ReportActionComposeFocusManager.focus();
+        ComposerFocusManager.focusComposer();
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };

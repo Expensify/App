@@ -1,13 +1,30 @@
+import {findFocusedRoute} from '@react-navigation/native';
+import type {RefObject} from 'react';
+import React from 'react';
 import {TextInput} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import SCREENS from '@src/SCREENS';
 import isWindowReadyToFocus from './isWindowReadyToFocus';
+import isReportOpenInRHP from './Navigation/helpers/isReportOpenInRHP';
+import navigationRef from './Navigation/navigationRef';
+import preventTextInputFocusOnFirstResponderOnce from './preventTextInputFocusOnFirstResponderOnce';
+
+// ============================================
+// SECTION 1: TYPES
+// ============================================
 
 type ModalId = number | undefined;
 
 type InputElement = (TextInput & HTMLElement) | null;
 
 type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefined;
+
+type FocusContext = 'main' | 'sidePanel';
+
+type ComposerType = 'main' | 'edit';
+
+type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
 /**
  * So far, modern browsers only support the file cancel event in some newer versions
@@ -24,6 +41,10 @@ type PromiseMapValue = {
     resolve: () => void;
 };
 
+// ============================================
+// SECTION 2: MODAL FOCUS MANAGEMENT
+// ============================================
+
 let focusedInput: InputElement = null;
 let uniqueModalId = 1;
 const focusMap = new Map<ModalId, FocusMapValue>();
@@ -37,47 +58,6 @@ const promiseMap = new Map<ModalId, PromiseMapValue>();
 function getActiveInput() {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return (TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField()) as InputElement;
-}
-
-/**
- * On web platform, if the modal is displayed by a click, the blur event is fired before the modal appears,
- * so we need to cache the focused input in the pointerdown handler, which is fired before the blur event.
- */
-function saveFocusedInput() {
-    focusedInput = getActiveInput();
-}
-
-/**
- * If a click does not display the modal, we also should clear the cached value to avoid potential issues.
- */
-function clearFocusedInput() {
-    if (!focusedInput) {
-        return;
-    }
-
-    // For the PopoverWithMeasuredContent component, Modal is only mounted after onLayout event is triggered,
-    // this event is placed within a setTimeout in react-native-web,
-    // so we can safely clear the cached value only after this event.
-    setTimeout(() => (focusedInput = null), CONST.ANIMATION_IN_TIMING);
-}
-
-/**
- * When a TextInput is unmounted, we also should release the reference here to avoid potential issues.
- *
- */
-function releaseInput(input: InputElement) {
-    if (!input) {
-        return;
-    }
-    if (input === focusedInput) {
-        focusedInput = null;
-    }
-    for (const [key, value] of focusMap.entries()) {
-        if (value.input !== input) {
-            continue;
-        }
-        focusMap.delete(key);
-    }
 }
 
 function getId() {
@@ -115,7 +95,7 @@ function saveFocusState(id: ModalId, isInUploadingContext = false, shouldClearFo
  * On web platform, if we intentionally click on another input box, there is no need to restore focus.
  * Additionally, if we are closing the RHP, we can ignore the focused input.
  */
-function focus(input: InputElement, shouldIgnoreFocused = false) {
+function focusInput(input: InputElement, shouldIgnoreFocused = false) {
     const activeInput = getActiveInput();
     if (!input || (activeInput && !shouldIgnoreFocused)) {
         return;
@@ -134,7 +114,7 @@ function tryRestoreTopmostFocus(shouldIgnoreFocused: boolean, isInUploadingConte
     if (activeModals.indexOf(modalId) >= 0) {
         return;
     }
-    focus(input, shouldIgnoreFocused);
+    focusInput(input, shouldIgnoreFocused);
     focusMap.delete(modalId);
 }
 
@@ -171,7 +151,7 @@ function restoreFocusState(id: ModalId, shouldIgnoreFocused = false, restoreFocu
         return;
     }
     if (input) {
-        focus(input, shouldIgnoreFocused);
+        focusInput(input, shouldIgnoreFocused);
         return;
     }
 
@@ -223,16 +203,176 @@ function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType
     isReadyToFocus(id)?.then(() => restoreFocusState(id, false, restoreType, isInUploadingContext));
 }
 
+// ============================================
+// SECTION 3: REPORT COMPOSER FOCUS
+// ============================================
+
+// Default refs for backward compatibility (main context)
+const defaultComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
+const defaultEditComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
+
+// Context-aware refs and callbacks - each context (main screen vs side panel) has its own set
+const composerRefs = new Map<FocusContext, RefObject<TextInput | null>>([
+    ['main', defaultComposerRef],
+    ['sidePanel', React.createRef<TextInput>()],
+]);
+
+const editComposerRefs = new Map<FocusContext, RefObject<TextInput | null>>([
+    ['main', defaultEditComposerRef],
+    ['sidePanel', React.createRef<TextInput>()],
+]);
+
+const focusCallbacks = new Map<FocusContext, FocusCallback | null>([
+    ['main', null],
+    ['sidePanel', null],
+]);
+
+const priorityFocusCallbacks = new Map<FocusContext, FocusCallback | null>([
+    ['main', null],
+    ['sidePanel', null],
+]);
+
+// Backward compatibility - expose the main context refs directly
+const composerRef = defaultComposerRef;
+const editComposerRef = defaultEditComposerRef;
+
+/**
+ * Get the composer ref for a specific context
+ */
+function getComposerRef(context: FocusContext): RefObject<TextInput | null> {
+    return composerRefs.get(context) ?? defaultComposerRef;
+}
+
+/**
+ * Get the edit composer ref for a specific context
+ */
+function getEditComposerRef(context: FocusContext): RefObject<TextInput | null> {
+    return editComposerRefs.get(context) ?? defaultEditComposerRef;
+}
+
+/**
+ * Register a callback to be called when focus is requested.
+ * Typical uses of this would be call the focus on the ReportActionComposer.
+ *
+ * @param callback callback to register
+ * @param isPriorityCallback whether this is a priority callback (edit composer)
+ * @param context the focus context ('main' or 'sidePanel')
+ */
+function onComposerFocus(callback: FocusCallback | null, isPriorityCallback = false, context: FocusContext = 'main') {
+    if (isPriorityCallback) {
+        priorityFocusCallbacks.set(context, callback);
+    } else {
+        focusCallbacks.set(context, callback);
+    }
+}
+
+/**
+ * Request focus on the ReportActionComposer
+ * @param context the focus context ('main' or 'sidePanel')
+ */
+function focusComposer(context: FocusContext = 'main') {
+    /** Do not trigger the refocusing when the active route is not the report screen */
+    const navigationState = navigationRef.getState();
+    const focusedRoute = findFocusedRoute(navigationState);
+    if (!navigationState || (!isReportOpenInRHP(navigationState) && focusedRoute?.name !== SCREENS.REPORT && focusedRoute?.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT)) {
+        return;
+    }
+
+    const priorityCallback = priorityFocusCallbacks.get(context);
+    const regularCallback = focusCallbacks.get(context);
+
+    if (typeof priorityCallback !== 'function' && typeof regularCallback !== 'function') {
+        return;
+    }
+
+    if (typeof priorityCallback === 'function') {
+        priorityCallback();
+        return;
+    }
+
+    if (typeof regularCallback === 'function') {
+        regularCallback();
+    }
+}
+
+/**
+ * Clear the registered focus callback
+ * @param isPriorityCallback whether to clear the priority callback
+ * @param context the focus context ('main' or 'sidePanel')
+ */
+function clearComposerFocus(isPriorityCallback = false, context: FocusContext = 'main') {
+    if (isPriorityCallback) {
+        const editRef = editComposerRefs.get(context);
+        if (editRef) {
+            editRef.current = null;
+        }
+        priorityFocusCallbacks.set(context, null);
+    } else {
+        focusCallbacks.set(context, null);
+    }
+}
+
+/**
+ * Exposes the current focus state of the report action composer.
+ */
+function isComposerFocused(): boolean {
+    // Check if any composer in any context is focused
+    for (const ref of composerRefs.values()) {
+        if (ref?.current?.isFocused()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Exposes the current focus state of the edit message composer.
+ */
+function isEditComposerFocused(): boolean {
+    // Check if any edit composer in any context is focused
+    for (const ref of editComposerRefs.values()) {
+        if (ref?.current?.isFocused()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * This will prevent the composer's text input from focusing the next time it becomes the
+ * first responder in the UIResponder chain. (iOS only, no-op on Android)
+ */
+function preventComposerFocusOnFirstResponderOnce(composerType: ComposerType = 'main') {
+    const ref = composerType === 'main' ? composerRefs.get('main') : editComposerRefs.get('main');
+
+    if (ref) {
+        preventTextInputFocusOnFirstResponderOnce(ref);
+    }
+}
+
 export default {
+    // Modal focus management
     getId,
-    saveFocusedInput,
-    clearFocusedInput,
-    releaseInput,
     saveFocusState,
     restoreFocusState,
     resetReadyToFocus,
     setReadyToFocus,
     isReadyToFocus,
     refocusAfterModalFullyClosed,
-    tryRestoreTopmostFocus,
+
+    // Report composer focus
+    composerRef,
+    editComposerRef,
+    getComposerRef,
+    getEditComposerRef,
+    onComposerFocus,
+    focusComposer,
+    clearComposerFocus,
+    isComposerFocused,
+    isEditComposerFocused,
+    preventComposerFocusOnFirstResponderOnce,
 };
+
+export type {FocusContext, ComposerType};
