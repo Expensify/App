@@ -171,8 +171,8 @@ function isSubmitAction({
     isChatReportArchived?: boolean;
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     violations?: OnyxCollection<TransactionViolation[]>;
-    currentUserLogin: string | undefined;
-    currentUserAccountID: number | undefined;
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
 }): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -633,7 +633,7 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
 }
 
-function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[], currentUserAccountID: number | undefined) {
+function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[], currentUserAccountID?: number) {
     if ([transactions, reports, policies].some((collection) => collection?.length > 2)) {
         return false;
     }
