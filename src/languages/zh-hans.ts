@@ -2276,7 +2276,7 @@ ${amount}，商户：${merchant} - ${date}`,
             errorTitle: '无法更改付款人',
             errorDescription: ({admin}: {admin: string}) => `${admin} 没有此银行账户的访问权限，因此您无法将其设置为付款人。`,
             errorDescriptionLink: ({owner}: {owner: string}) => `请联系 ${owner}`,
-            errorDescriptionLastPart: `如果需要分享银行账户，请联系 ${admin}。`,
+            errorDescriptionLastPart: ` 如果银行账户应该共享。`,
         },
     },
     reportFraudPage: {
