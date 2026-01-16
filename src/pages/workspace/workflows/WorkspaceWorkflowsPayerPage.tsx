@@ -78,6 +78,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
     const selectedPayerDetails = selectedPayer ? getPersonalDetailByEmail(selectedPayer) : undefined;
+    const ownerDetails = policy?.owner ? getPersonalDetailByEmail(policy?.owner) : undefined;
 
     useEffect(() => {
         setSelectedPayer(policy?.achAccount?.reimburser);
@@ -206,6 +207,18 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         shareBankAccount(Number(bankAccountID), [authorizedPayerEmail]);
     };
 
+    const onButtonPress = () => {
+        if (!selectedPayer || !policy) {
+            Navigation.closeRHPFlow();
+            return;
+        }
+        const accountID = policyMemberEmailsToAccountIDs?.[selectedPayer] ?? '';
+        const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
+
+        setWorkspacePayer(policy?.id, authorizedPayerEmail);
+        Navigation.closeRHPFlow();
+    };
+
     const handleShareBankAccount = () => {
         if (!selectedPayer) {
             return;
@@ -213,7 +226,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const isAccountAlreadyShared = policy?.achAccount?.sharees ? policy.achAccount.sharees.includes(selectedPayer) : false;
 
         if (isAccountAlreadyShared) {
-            handleConfirm();
+            onButtonPress();
             return;
         }
 
@@ -232,18 +245,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const setPolicyAuthorizedPayer = (member: MemberOption) => {
         const login = personalDetails?.[member.accountID]?.login;
         setSelectedPayer(login);
-    };
-
-    const onButtonPress = () => {
-        if (!selectedPayer || !policy) {
-            Navigation.closeRHPFlow();
-            return;
-        }
-        const accountID = policyMemberEmailsToAccountIDs?.[selectedPayer] ?? '';
-        const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
-
-        setWorkspacePayer(policy?.id, authorizedPayerEmail);
-        Navigation.closeRHPFlow();
     };
 
     const shouldShowBlockingPage =
@@ -388,7 +389,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                             }}
                         >
                             {translate('workflowsPayerPage.shareBankAccount.errorDescriptionLink', {
-                                admin: selectedPayerDetails?.displayName ?? '',
+                                owner: ownerDetails?.displayName ?? '',
                             })}
                         </TextLink>
                         <Text>{translate('workflowsPayerPage.shareBankAccount.errorDescriptionLastPart')}</Text>

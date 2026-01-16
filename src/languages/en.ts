@@ -2296,7 +2296,7 @@ const translations = {
                 `You need to <a href="${validationLink}">validate this bank account</a>. Once that’s done, you can share bank account access with ${admin} to make them the payer.`,
             errorTitle: 'Can’t change payer',
             errorDescription: ({admin}: {admin: string}) => `${admin} doesn’t have access to this bank account, so you can’t make them the payer. `,
-            errorDescriptionLink: ({admin}: {admin: string}) => `Chat with ${admin}`,
+            errorDescriptionLink: ({owner}: {owner: string}) => `Chat with ${owner}`,
             errorDescriptionLastPart: ` if the bank account should be shared.`,
         },
     },
