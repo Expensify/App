@@ -431,11 +431,7 @@ function BaseTextInput({
                             {!!inputProps.isLoading && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
-                                    style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
-                                        styles.ml1,
-                                        loadingSpinnerStyle,
-                                    ]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
