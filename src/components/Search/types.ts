@@ -5,6 +5,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {Comment} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
@@ -62,6 +63,15 @@ type SelectedTransactionInfo = {
 
     /** Account ID of the report owner */
     ownerAccountID?: number;
+
+    /** The transaction ID */
+    transactionID?: string;
+
+    /** Whether the transaction is linked to a managed card */
+    managedCard?: boolean;
+
+    /** The comment object on the transaction */
+    comment?: Comment;
 
     reportAction?: ReportAction;
 
