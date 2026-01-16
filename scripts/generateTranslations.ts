@@ -20,7 +20,6 @@ import CLI from './utils/CLI';
 import COLORS from './utils/COLORS';
 import Git from './utils/Git';
 import Prettier from './utils/Prettier';
-import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
@@ -241,8 +240,6 @@ class TranslationGenerator {
     }
 
     public async generateTranslations(): Promise<void> {
-        const promisePool = new PromisePool();
-
         // map of translations for each locale
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
@@ -269,8 +266,7 @@ class TranslationGenerator {
             // Map of translations
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
 
-            // Translate all the strings in parallel (up to 8 at a time)
-            const translationPromises = [];
+            // Translate strings sequentially to maintain conversation context chain
             for (const [key, {text, context}] of stringsToTranslate) {
                 if (translationsForLocale.has(key)) {
                     // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
@@ -285,19 +281,15 @@ class TranslationGenerator {
                     textToTranslate = dedent(text);
                 }
 
-                const translationPromise = promisePool.add(async () => {
-                    let result = await this.translator.translate(targetLanguage, textToTranslate, context);
+                let result = await this.translator.translate(targetLanguage, textToTranslate, context);
 
-                    // Special handling for dedent strings - add back leading newline if it was removed
-                    if (hadLeadingNewline) {
-                        result = `\n${result}`;
-                    }
+                // Special handling for dedent strings - add back leading newline if it was removed
+                if (hadLeadingNewline) {
+                    result = `\n${result}`;
+                }
 
-                    translationsForLocale.set(key, result);
-                });
-                translationPromises.push(translationPromise);
+                translationsForLocale.set(key, result);
             }
-            await Promise.allSettled(translationPromises);
 
             // Replace translated strings in the AST
             let transformedSourceFile: ts.SourceFile;
