@@ -1,7 +1,7 @@
-import type {DragEndEvent} from '@dnd-kit/core';
-import {closestCenter, DndContext, PointerSensor, useSensor} from '@dnd-kit/core';
+import type {DragEndEvent, KeyboardCoordinateGetter} from '@dnd-kit/core';
+import {closestCenter, DndContext, KeyboardCode, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
-import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
+import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import React, {Fragment} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
@@ -69,13 +69,23 @@ function DraggableList<T>({
         );
     });
 
-    const sensors = [
+    const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
                 distance: minimumActivationDistance,
             },
         }),
-    ];
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+            // Only use Space for drag activation, not Enter
+            // Enter is reserved for activating the item (opening editor)
+            keyboardCodes: {
+                start: [KeyboardCode.Space],
+                cancel: [KeyboardCode.Escape],
+                end: [KeyboardCode.Space, KeyboardCode.Enter],
+            },
+        }),
+    );
 
     const Container = disableScroll ? Fragment : ScrollView;
 
