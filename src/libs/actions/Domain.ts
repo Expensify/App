@@ -3,9 +3,9 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     AddAdminToDomainParams,
+    DeleteDomainMemberParams,
     DeleteDomainParams,
     RemoveDomainAdminParams,
-    DeleteDomainMemberParams,
     SetTechnicalContactEmailParams,
     ToggleConsolidatedDomainBillingParams,
 } from '@libs/API/parameters';
