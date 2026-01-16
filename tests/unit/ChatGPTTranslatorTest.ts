@@ -34,7 +34,7 @@ describe('ChatGPTTranslator.performTranslation', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        MockedOpenAIUtils.prototype.createConversation = jest.fn().mockResolvedValue('conv_test_123');
+        MockedOpenAIUtils.prototype.createConversation = jest.fn().mockResolvedValue('conversation_test_123');
         MockedOpenAIUtils.prototype.promptResponses = jest.fn();
         translator = new ChatGPTTranslator(apiKey);
     });
@@ -124,11 +124,11 @@ describe('ChatGPTTranslator.performTranslation', () => {
         const secondCall = calls.at(1)?.at(0);
 
         // First call should have no previousResponseID
-        expect(firstCall?.conversationID).toBe('conv_test_123');
+        expect(firstCall?.conversationID).toBe('conversation_test_123');
         expect(firstCall?.previousResponseID).toBeUndefined();
 
         // Second call should have the previous response ID from first successful call
-        expect(secondCall?.conversationID).toBe('conv_test_123');
+        expect(secondCall?.conversationID).toBe('conversation_test_123');
         expect(secondCall?.previousResponseID).toBe(firstResponseID);
     });
 });
