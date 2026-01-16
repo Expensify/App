@@ -6,7 +6,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -24,7 +23,6 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>>();
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isMoneyRequest = isMoneyRequestReport(report);
     const currentNotificationPreference = getReportNotificationPreference(report);
     const shouldDisableNotificationPreferences =
@@ -44,10 +42,10 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
 
     const updateNotificationPreferenceForReportAction = useCallback(
         (value: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>) => {
-            updateNotificationPreference(report.reportID, currentNotificationPreference, value, currentUserAccountID, undefined, undefined);
+            updateNotificationPreference(report.reportID, currentNotificationPreference, value, undefined, undefined);
             goBack();
         },
-        [report.reportID, currentNotificationPreference, currentUserAccountID, goBack],
+        [report.reportID, currentNotificationPreference, goBack],
     );
 
     return (

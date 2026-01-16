@@ -1,7 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -17,7 +16,6 @@ type UserTypingEventListenerProps = {
 };
 function UserTypingEventListener({report}: UserTypingEventListenerProps) {
     const [lastVisitedPath = ''] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();
@@ -57,7 +55,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 interactionTask = InteractionManager.runAfterInteractions(() => {
-                    subscribeToReportTypingEvents(reportID, currentUserAccountID);
+                    subscribeToReportTypingEvents(reportID);
                     didSubscribeToReportTypingEvents.current = true;
                 });
             }
@@ -78,7 +76,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             }
             interactionTask.cancel();
         };
-    }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, currentUserAccountID, route?.params?.reportID]);
+    }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route?.params?.reportID]);
 
     return null;
 }

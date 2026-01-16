@@ -4,6 +4,7 @@ import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {getPolicyName} from '@libs/ReportUtils';
@@ -16,11 +17,9 @@ import Banner from './Banner';
 type ArchivedReportFooterProps = {
     /** The archived report */
     report: Report;
-    /** Current user's account id */
-    currentUserAccountID: number;
 };
 
-function ArchivedReportFooter({report, currentUserAccountID}: ArchivedReportFooterProps) {
+function ArchivedReportFooter({report}: ArchivedReportFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -58,7 +57,7 @@ function ArchivedReportFooter({report, currentUserAccountID}: ArchivedReportFoot
               displayName: `<strong>${displayName}</strong>`,
               oldDisplayName: `<strong>${oldDisplayName}</strong>`,
               policyName: `<strong>${policyName}</strong>`,
-              shouldUseYou: actorPersonalDetails?.accountID === currentUserAccountID,
+              shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
           })
         : translate(`reportArchiveReasons.${archiveReason}`);
 

@@ -217,7 +217,6 @@ type ContextMenuActionPayload = {
     reportAction: ReportAction;
     transaction?: OnyxEntry<Transaction>;
     reportID: string | undefined;
-    currentUserAccountID: number;
     report: OnyxEntry<ReportType>;
     draftMessage: string;
     selection: string;
@@ -320,7 +319,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
         },
-        renderContent: (closePopover, {reportID, reportAction, currentUserAccountID, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
+        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
             const isMini = !closePopover;
 
             const closeContextMenu = (onHideCallback?: () => void) => {
@@ -335,7 +334,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             };
 
             const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => {
-                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone, currentUserAccountID);
+                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone);
                 closeContextMenu();
                 setIsEmojiPickerActive?.(false);
             };
@@ -405,8 +404,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return (type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isDynamicWorkflowRoutedAction) || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat);
         },
-        onPress: (closePopover, {reportAction, reportID, currentUserAccountID}) => {
-            markCommentAsUnread(reportID, reportAction, currentUserAccountID);
+        onPress: (closePopover, {reportAction, reportID}) => {
+            markCommentAsUnread(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -574,19 +573,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, reportID, currentUserAccountID}) => {
+        onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReportID, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReportID, childReportNotificationPreference);
+            toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
@@ -614,19 +613,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, reportID, currentUserAccountID}) => {
+        onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReportID, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReportID, childReportNotificationPreference);
+            toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,

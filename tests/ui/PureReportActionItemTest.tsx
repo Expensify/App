@@ -99,7 +99,6 @@ describe('PureReportActionItem', () => {
                                 taskReport={undefined}
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
-                                currentUserAccountID={ACTOR_ACCOUNT_ID}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -278,7 +277,6 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -335,7 +333,6 @@ describe('PureReportActionItem', () => {
                                     taskReport={undefined}
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>

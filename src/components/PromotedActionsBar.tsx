@@ -19,14 +19,12 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
+type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.JOIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string; currentUserAccountID: number}) => PromotedAction;
-} & {
-    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 };
 
 type PromotedActionsBarProps = {
@@ -46,16 +44,16 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.SHARE,
         ...getShareMenuItem(report, backTo),
     }),
-    join: (report, currentUserAccountID) => ({
+    join: (report) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: 'ChatBubbles',
         translationKey: 'common.join',
         onSelected: callFunctionIfActionIsAllowed(() => {
             Navigation.dismissModal();
-            joinRoom(report, currentUserAccountID);
+            joinRoom(report);
         }),
     }),
-    message: ({reportID, accountID, login, currentUserAccountID}) => ({
+    message: ({reportID, accountID, login}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -71,7 +69,7 @@ const PromotedActions = {
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID);
+                navigateToAndOpenReportWithAccountIDs([accountID]);
             }
         },
     }),

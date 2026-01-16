@@ -12,7 +12,6 @@ import type {MeasureParentContainerAndCursorCallback} from '@components/AutoComp
 import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -171,8 +170,8 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
  */
 const debouncedBroadcastUserIsTyping = lodashDebounce(
-    (reportID: string, currentUserAccountID: number) => {
-        broadcastUserIsTyping(reportID, currentUserAccountID);
+    (reportID: string) => {
+        broadcastUserIsTyping(reportID);
     },
     1000,
     {
@@ -254,7 +253,6 @@ function ComposerWithSuggestions({
         }
         return draftComment;
     });
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const commentRef = useRef(value);
 
@@ -454,7 +452,7 @@ function ComposerWithSuggestions({
                 saveReportDraftComment(reportID, newCommentConverted);
             }
             if (newCommentConverted) {
-                debouncedBroadcastUserIsTyping(reportID, currentUserAccountID);
+                debouncedBroadcastUserIsTyping(reportID);
             }
         },
         [
@@ -468,7 +466,6 @@ function ComposerWithSuggestions({
             debouncedSaveReportComment,
             selection?.end,
             selection?.start,
-            currentUserAccountID,
         ],
     );
 

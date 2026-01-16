@@ -411,7 +411,7 @@ function getNormalizedStatus(typingStatus: UserIsTypingEvent | UserIsLeavingRoom
 }
 
 /** Initialize our pusher subscriptions to listen for someone typing in a report. */
-function subscribeToReportTypingEvents(reportID: string, currentUserAccountID: number) {
+function subscribeToReportTypingEvents(reportID: string) {
     if (!reportID) {
         return;
     }
@@ -432,7 +432,7 @@ function subscribeToReportTypingEvents(reportID: string, currentUserAccountID: n
         }
 
         // Don't show the typing indicator if the user is typing on another platform
-        if (Number(accountIDOrLogin) === currentUserAccountID) {
+        if (Number(accountIDOrLogin) === deprecatedCurrentUserAccountID) {
             return;
         }
 
@@ -461,7 +461,7 @@ function subscribeToReportTypingEvents(reportID: string, currentUserAccountID: n
 }
 
 /** Initialize our pusher subscriptions to listen for someone leaving a room. */
-function subscribeToReportLeavingEvents(reportID: string | undefined, currentUserAccountID: number) {
+function subscribeToReportLeavingEvents(reportID: string | undefined) {
     if (!reportID) {
         return;
     }
@@ -481,7 +481,7 @@ function subscribeToReportLeavingEvents(reportID: string | undefined, currentUse
             return;
         }
 
-        if (Number(accountIDOrLogin) !== currentUserAccountID) {
+        if (Number(accountIDOrLogin) !== deprecatedCurrentUserAccountID) {
             return;
         }
 
@@ -892,7 +892,7 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
 /**
  * Updates the avatar for a policy room.
  */
-function updatePolicyRoomAvatar(reportID: string, currentUserAccountID: number, file?: File | CustomRNImageManipulatorResult) {
+function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     const avatarURL = file?.uri ?? '';
     const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
 
@@ -908,7 +908,7 @@ function updatePolicyRoomAvatar(reportID: string, currentUserAccountID: number, 
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
-            lastActorAccountID: currentUserAccountID,
+            lastActorAccountID: deprecatedCurrentUserAccountID,
             lastVisibleActionCreated: optimisticAction.created,
             lastMessageText: (optimisticAction.message as Message[]).at(0)?.text,
         },
@@ -1323,9 +1323,9 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
  * This will return an optimistic report object for a given user we want to create a chat with without saving it, when the only thing we know about recipient is his accountID. *
  * @param accountID accountID of the user that the optimistic chat report is created with.
  */
-function getOptimisticChatReport(accountID: number, currentUserAccountID: number): OptimisticChatReport {
+function getOptimisticChatReport(accountID: number): OptimisticChatReport {
     return buildOptimisticChatReport({
-        participantList: [accountID, currentUserAccountID],
+        participantList: [accountID, deprecatedCurrentUserAccountID],
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     });
 }
@@ -1452,12 +1452,12 @@ function navigateToAndOpenReport(
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number) {
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) {
     let newChat: OptimisticChatReport | undefined;
-    const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
+    const chat = getChatByParticipants([...participantAccountIDs, deprecatedCurrentUserAccountID]);
     if (!chat) {
         newChat = buildOptimisticChatReport({
-            participantList: [...participantAccountIDs, currentUserAccountID],
+            participantList: [...participantAccountIDs, deprecatedCurrentUserAccountID],
         });
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
         openReport(newChat?.reportID, '', [], newChat, '0', false, participantAccountIDs);
@@ -1770,7 +1770,7 @@ function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
 /**
  * Sets the last read time on a report
  */
-function markCommentAsUnread(reportID: string | undefined, reportAction: ReportAction, currentUserAccountID: number) {
+function markCommentAsUnread(reportID: string | undefined, reportAction: ReportAction) {
     if (!reportID) {
         Log.warn('7339cd6c-3263-4f89-98e5-730f0be15784 Invalid report passed to MarkCommentAsUnread. Not calling the API because it wil fail.');
         return;
@@ -1782,7 +1782,7 @@ function markCommentAsUnread(reportID: string | undefined, reportAction: ReportA
     const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
         if (
             !ReportActionsUtils.isDeletedAction(current) &&
-            current.actorAccountID !== currentUserAccountID &&
+            current.actorAccountID !== deprecatedCurrentUserAccountID &&
             (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
             (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
@@ -1867,19 +1867,19 @@ function saveReportDraftComment(reportID: string, comment: string | null, callba
 }
 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
-function broadcastUserIsTyping(reportID: string, currentUserAccountID: number) {
+function broadcastUserIsTyping(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
     const typingStatus: UserIsTypingEvent = {
-        [currentUserAccountID]: true,
+        [deprecatedCurrentUserAccountID]: true,
     };
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
 
 /** Broadcasts to the report's private pusher channel whether a user is leaving a report */
-function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: number) {
+function broadcastUserIsLeavingRoom(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
     const leavingStatus: UserIsLeavingRoomEvent = {
-        [currentUserAccountID]: true,
+        [deprecatedCurrentUserAccountID]: true,
     };
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
@@ -2325,7 +2325,6 @@ function updateNotificationPreference(
     reportID: string,
     previousValue: NotificationPreference | undefined,
     newValue: NotificationPreference,
-    currentUserAccountID: number,
     parentReportID?: string,
     parentReportActionID?: string,
 ) {
@@ -2340,7 +2339,7 @@ function updateNotificationPreference(
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participants: {
-                    [currentUserAccountID]: {
+                    [deprecatedCurrentUserAccountID]: {
                         notificationPreference: newValue,
                     },
                 },
@@ -2354,7 +2353,7 @@ function updateNotificationPreference(
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participants: {
-                    [currentUserAccountID]: {
+                    [deprecatedCurrentUserAccountID]: {
                         notificationPreference: previousValue,
                     },
                 },
@@ -2416,7 +2415,6 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
  */
 function toggleSubscribeToChildReport(
     childReportID: string | undefined,
-    currentUserAccountID: number,
     parentReportAction: Partial<ReportAction> = {},
     parentReportID?: string,
     prevNotificationPreference?: NotificationPreference,
@@ -2425,12 +2423,12 @@ function toggleSubscribeToChildReport(
         openReport(childReportID);
         const parentReportActionID = parentReportAction?.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
-            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, currentUserAccountID, parentReportID, parentReportActionID);
+            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, parentReportID, parentReportActionID);
         } else {
-            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, currentUserAccountID, parentReportID, parentReportActionID);
+            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, parentReportID, parentReportActionID);
         }
     } else {
-        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction?.actorAccountID)])];
+        const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(parentReportAction?.actorAccountID)])];
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
         const newChat = buildOptimisticChatReport({
             participantList: participantAccountIDs,
@@ -2446,7 +2444,7 @@ function toggleSubscribeToChildReport(
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
         openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-        updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReportID, parentReportAction?.reportActionID);
+        updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, parentReportID, parentReportAction?.reportActionID);
     }
 }
 
@@ -2748,7 +2746,7 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
     API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
-function updateDescription(reportID: string, currentDescription: string, newMarkdownValue: string, currentUserAccountID: number) {
+function updateDescription(reportID: string, currentDescription: string, newMarkdownValue: string) {
     // No change needed
     if (Parser.htmlToMarkdown(currentDescription) === newMarkdownValue) {
         return;
@@ -2765,7 +2763,7 @@ function updateDescription(reportID: string, currentDescription: string, newMark
             value: {
                 description: parsedDescription,
                 pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                lastActorAccountID: currentUserAccountID,
+                lastActorAccountID: deprecatedCurrentUserAccountID,
                 lastVisibleActionCreated: optimisticDescriptionUpdatedReportAction.created,
                 lastMessageText: (optimisticDescriptionUpdatedReportAction?.message as Message[])?.at(0)?.text,
             },
@@ -3521,7 +3519,7 @@ function clearIOUError(reportID: string | undefined) {
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number, currentUserAccountID: number) {
+function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number) {
     const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS>> = [
         {
@@ -3532,7 +3530,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
                     createdAt,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     users: {
-                        [currentUserAccountID]: {
+                        [deprecatedCurrentUserAccountID]: {
                             skinTones: {
                                 [skinTone]: createdAt,
                             },
@@ -3582,7 +3580,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
  * Removes a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, currentUserAccountID: number) {
+function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3590,7 +3588,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
             value: {
                 [emoji.name]: {
                     users: {
-                        [currentUserAccountID]: null,
+                        [deprecatedCurrentUserAccountID]: null,
                     },
                 },
             },
@@ -3616,7 +3614,6 @@ function toggleEmojiReaction(
     reactionObject: Emoji,
     existingReactions: OnyxEntry<ReportActionReactions>,
     paramSkinTone: number,
-    currentUserAccountID: number,
     ignoreSkinToneOnCompare = false,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -3639,12 +3636,12 @@ function toggleEmojiReaction(
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
 
-    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
-        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID);
+    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(deprecatedCurrentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
+        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
         return;
     }
 
-    addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone, currentUserAccountID);
+    addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone);
 }
 
 function doneCheckingPublicRoom() {
@@ -3685,7 +3682,7 @@ function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
     return lastAccessedReportID ?? conciergeReportID;
 }
 
-function joinRoom(report: OnyxEntry<Report>, currentUserAccountID: number) {
+function joinRoom(report: OnyxEntry<Report>) {
     if (!report) {
         return;
     }
@@ -3693,13 +3690,12 @@ function joinRoom(report: OnyxEntry<Report>, currentUserAccountID: number) {
         report.reportID,
         getReportNotificationPreference(report),
         getDefaultNotificationPreferenceForReport(report),
-        currentUserAccountID,
         report.parentReportID,
         report.parentReportActionID,
     );
 }
 
-function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean, currentUserAccountID: number) {
+function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
@@ -3717,7 +3713,7 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean, curre
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 participants: {
-                    [currentUserAccountID]: {
+                    [deprecatedCurrentUserAccountID]: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                     },
                 },
@@ -3756,7 +3752,7 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean, curre
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, currentUserAccountID: number, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3767,7 +3763,7 @@ function leaveRoom(reportID: string, currentUserAccountID: number, isWorkspaceMe
     // Pusher's leavingStatus should be sent earlier.
     // Place the broadcast before calling the LeaveRoom API to prevent a race condition
     // between Onyx report being null and Pusher's leavingStatus becoming true.
-    broadcastUserIsLeavingRoom(reportID, currentUserAccountID);
+    broadcastUserIsLeavingRoom(reportID);
 
     // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
     // Instead, their notification preference just gets set to "hidden".
@@ -3780,7 +3776,7 @@ function leaveRoom(reportID: string, currentUserAccountID: number, isWorkspaceMe
                 isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
                     ? {
                           participants: {
-                              [currentUserAccountID]: {
+                              [deprecatedCurrentUserAccountID]: {
                                   notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                               },
                           },
@@ -3790,7 +3786,7 @@ function leaveRoom(reportID: string, currentUserAccountID: number, isWorkspaceMe
                           stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                           statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                           participants: {
-                              [currentUserAccountID]: {
+                              [deprecatedCurrentUserAccountID]: {
                                   notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                               },
                           },
@@ -3805,7 +3801,7 @@ function leaveRoom(reportID: string, currentUserAccountID: number, isWorkspaceMe
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participants: {
-                    [currentUserAccountID]: {
+                    [deprecatedCurrentUserAccountID]: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                     },
                 },
@@ -3845,7 +3841,7 @@ function leaveRoom(reportID: string, currentUserAccountID: number, isWorkspaceMe
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
             value: {
                 [report.parentReportActionID]: {
-                    childReportNotificationPreference: report?.participants?.[currentUserAccountID]?.notificationPreference ?? getDefaultNotificationPreferenceForReport(report),
+                    childReportNotificationPreference: report?.participants?.[deprecatedCurrentUserAccountID]?.notificationPreference ?? getDefaultNotificationPreferenceForReport(report),
                 },
             },
         });
@@ -5747,7 +5743,7 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean, 
 function buildOptimisticChangePolicyData(
     report: Report,
     policy: Policy,
-    currentUserAccountID: number,
+    accountID: number,
     email: string,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
@@ -5832,7 +5828,7 @@ function buildOptimisticChangePolicyData(
             report: {...report, policyID: policy.id},
             predictedNextStatus: newStatusNum,
             policy,
-            currentUserAccountIDParam: currentUserAccountID,
+            currentUserAccountIDParam: accountID,
             currentUserEmailParam: email,
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
@@ -5841,7 +5837,7 @@ function buildOptimisticChangePolicyData(
             report: {...report, policyID: policy.id},
             predictedNextStatus: newStatusNum,
             policy,
-            currentUserAccountIDParam: currentUserAccountID,
+            currentUserAccountIDParam: accountID,
             currentUserEmailParam: email,
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
@@ -5896,7 +5892,7 @@ function buildOptimisticChangePolicyData(
         if (newStatusNum === CONST.REPORT.STATUS_NUM.OPEN) {
             shouldSetOutstandingChildRequest = isCurrentUserSubmitter(report);
         } else if (isProcessingReport(report)) {
-            shouldSetOutstandingChildRequest = report.managerID === currentUserAccountID;
+            shouldSetOutstandingChildRequest = report.managerID === deprecatedCurrentUserAccountID;
         }
     }
 
@@ -6241,7 +6237,7 @@ function changeReportPolicy(
 function changeReportPolicyAndInviteSubmitter(
     report: Report,
     policy: Policy,
-    currentUserAccountID: number,
+    accountID: number,
     email: string,
     hasViolationsParam: boolean,
     isChangePolicyTrainingModalDismissed: boolean,
@@ -6284,7 +6280,7 @@ function changeReportPolicyAndInviteSubmitter(
     } = buildOptimisticChangePolicyData(
         report,
         policy,
-        currentUserAccountID,
+        accountID,
         email,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,

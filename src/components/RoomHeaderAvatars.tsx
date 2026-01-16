@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
+import {clearAvatarErrors, getCurrentUserAccountID, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserAvatarUtils';
@@ -22,10 +22,9 @@ type RoomHeaderAvatarsProps = {
     report: Report;
     policy: OnyxEntry<Policy>;
     participants: number[];
-    currentUserAccountID: number;
 };
 
-function RoomHeaderAvatars({icons, report, policy, participants, currentUserAccountID}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report?.reportID, icon.id.toString()));
@@ -40,6 +39,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'FallbackAvatar', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const currentUserAccountID = getCurrentUserAccountID();
     const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR;
 
     if (!icons.length) {
@@ -62,8 +62,8 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
-                    onImageRemoved={() => updatePolicyRoomAvatar(report.reportID, currentUserAccountID)}
-                    onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, file)}
+                    onImageRemoved={() => updatePolicyRoomAvatar(report.reportID)}
+                    onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, file)}
                     editIcon={expensifyIcons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     pendingAction={report.pendingFields?.avatar}
