@@ -38,14 +38,14 @@ const optimisticAction = {
     childManagerAccountID: iouReportR14932.managerID,
     isOptimisticAction: true,
 };
-const currentUserEmail = 'test@example.com';
-const currentUserAccountID = 1;
+const CURRENT_USER_EMAIL = 'test@example.com';
+const CURRENT_USER_ACCOUNT_ID = 1;
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
-        email: currentUserEmail,
-        accountID: currentUserAccountID,
+        email: CURRENT_USER_EMAIL,
+        accountID: CURRENT_USER_ACCOUNT_ID,
     })),
 }));
 
@@ -61,7 +61,7 @@ describe('useReportPreviewSenderID', () => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: currentUserAccountID, email: currentUserEmail},
+                [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL},
             },
         });
 
@@ -195,6 +195,6 @@ describe('useReportPreviewSenderID', () => {
             {wrapper: OnyxListItemProvider},
         );
         await waitForBatchedUpdatesWithAct();
-        expect(result.current).toBe(currentUserAccountID);
+        expect(result.current).toBe(CURRENT_USER_ACCOUNT_ID);
     });
 });
