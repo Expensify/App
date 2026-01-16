@@ -113,6 +113,9 @@ type SearchAutocompleteListProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListHandle>;
+
+    /** Optional search type context for views that hide the type filter in the input */
+    searchType?: SearchDataTypes;
 };
 
 const defaultListOptions = {
@@ -184,6 +187,7 @@ function SearchAutocompleteList({
     allFeeds,
     allCards,
     ref,
+    searchType,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -224,14 +228,11 @@ function SearchAutocompleteList({
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
     const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
-    const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
+    const currentType = (typeFilter?.value ?? searchType ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
 
     const groupByAutocompleteList = useMemo(() => {
-        // Only show group-by suggestions if the user has explicitly set a type filter
-        if (!typeFilter) {
-            return [];
-        }
-
+        // Group-by suggestions are only valid for expense, invoice, and trip types
+        // For chat searches, currentType will be CHAT (via searchType prop) and return empty array
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -240,7 +241,7 @@ function SearchAutocompleteList({
             default:
                 return [];
         }
-    }, [currentType, typeFilter]);
+    }, [currentType]);
 
     const statusAutocompleteList = useMemo(() => {
         let suggestedStatuses;
@@ -327,6 +328,8 @@ function SearchAutocompleteList({
         const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
         return [parsedQuery, queryWithoutFilters];
     }, [autocompleteQueryValue, parsedQuery]);
+    const autocompleteKey = autocompleteParsedQuery?.autocomplete?.key;
+    const shouldShowRecentChats = !(currentType === CONST.SEARCH.DATA_TYPES.CHAT && autocompleteKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY);
 
     const autocompleteSuggestions = useMemo<AutocompleteItemData[]>(() => {
         const {autocomplete, ranges = []} = autocompleteParsedQuery ?? {};
@@ -814,7 +817,9 @@ function SearchAutocompleteList({
         [recentReportsOptions, styles.br2, styles.pr3, styles.pl3],
     );
 
-    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
+    if (shouldShowRecentChats) {
+        sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
+    }
 
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
