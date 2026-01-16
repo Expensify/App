@@ -7,8 +7,6 @@ import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -17,10 +15,11 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addAttachmentWithComment, addComment, getCurrentUserAccountID, openReport} from '@libs/actions/Report';
+import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,6 +45,7 @@ type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SC
 function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const {reportOrAccountID} = route.params;
 
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
@@ -83,10 +83,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             source: fileSource,
             headerTitle: validateFileName,
             originalFileName: validateFileName,
-            fallbackSource: FallbackAvatar,
+            fallbackSource: icons.FallbackAvatar,
         });
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
-    }, [reportAttachmentsContext, fileSource, validateFileName]);
+    }, [reportAttachmentsContext, fileSource, validateFileName, icons.FallbackAvatar]);
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle || !shouldShowAttachment) {
@@ -118,7 +118,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     }
 
     const isDraft = isDraftReport(reportOrAccountID);
-    const currentUserID = getCurrentUserAccountID();
 
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
@@ -126,7 +125,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         }
 
         if (isTextShared) {
-            addComment(report.reportID, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            addComment(report, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
@@ -140,7 +139,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     openReport(
                         report.reportID,
                         '',
-                        displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
+                        displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
                         report,
                         undefined,
                         undefined,
@@ -148,7 +147,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     );
                 }
                 if (report.reportID) {
-                    addAttachmentWithComment(report.reportID, report.reportID, ancestors, file, message, personalDetail.timezone);
+                    addAttachmentWithComment(report, report.reportID, ancestors, file, message, personalDetail.timezone);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);

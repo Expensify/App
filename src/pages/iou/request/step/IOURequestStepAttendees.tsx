@@ -8,6 +8,7 @@ import usePrevious from '@hooks/usePrevious';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setMoneyRequestAttendees, updateMoneyRequestAttendees} from '@libs/actions/IOU';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalAttendees} from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
@@ -36,6 +37,7 @@ function IOURequestStepAttendees({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, currentUserPersonalDetails));
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
@@ -52,32 +54,34 @@ function IOURequestStepAttendees({
         if (!deepEqual(previousAttendees, attendees)) {
             setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
-                updateMoneyRequestAttendees(
+                updateMoneyRequestAttendees({
                     transactionID,
-                    reportID,
+                    transactionThreadReport: report,
+                    parentReport,
                     attendees,
                     policy,
-                    policyTags,
+                    policyTagList: policyTags,
                     policyCategories,
-                    transactionViolations ?? undefined,
+                    violations: transactionViolations ?? undefined,
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
-                );
+                });
             }
         }
 
         Navigation.goBack(backTo);
     }, [
         attendees,
-        backTo,
-        isEditing,
-        policy,
-        policyCategories,
-        policyTags,
         previousAttendees,
-        reportID,
+        backTo,
         transactionID,
+        isEditing,
+        report,
+        parentReport,
+        policy,
+        policyTags,
+        policyCategories,
         transactionViolations,
         currentUserAccountIDParam,
         currentUserEmailParam,

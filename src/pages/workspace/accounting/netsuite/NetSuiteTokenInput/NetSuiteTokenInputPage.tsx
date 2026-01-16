@@ -24,6 +24,8 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
+    const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+
     const submit = () => {
         Navigation.dismissModal();
     };
@@ -35,7 +37,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         prevScreen,
         screenIndex,
         moveTo,
-    } = useSubStep<SubStepWithPolicy>({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
+    } = useSubStep<SubStepWithPolicy>({bodyContent: tokenInputSteps, startFrom: hasAuthError ? 4 : 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
@@ -51,7 +53,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         nextScreen();
     };
 
-    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !hasAuthError;
 
     return (
         <ConnectionLayout
@@ -66,23 +68,22 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={handleBackButtonPress}
             shouldLoadForEmptyConnection={isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE])}
             shouldBeBlocked={shouldPageBeBlocked}
+            shouldUseScrollView={SubStep !== NetSuiteTokenInputForm}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     ref={ref}
-                    startStepIndex={0}
+                    startStepIndex={screenIndex}
                     stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
                 />
             </View>
-            <View style={[styles.flexGrow1, styles.mt3]}>
-                <SubStep
-                    isEditing={isEditing}
-                    onNext={handleNextScreen}
-                    onMove={moveTo}
-                    screenIndex={screenIndex}
-                    policyID={policyID}
-                />
-            </View>
+            <SubStep
+                isEditing={isEditing}
+                onNext={handleNextScreen}
+                onMove={moveTo}
+                screenIndex={screenIndex}
+                policyID={policyID}
+            />
         </ConnectionLayout>
     );
 }

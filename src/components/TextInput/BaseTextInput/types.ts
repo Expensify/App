@@ -33,6 +33,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps & {
     /** Icon to display in left side of text input */
     iconLeft?: IconAsset | null;
 
+    /** Whether to include padding to the icon container */
+    includeIconPadding?: boolean;
+
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
 

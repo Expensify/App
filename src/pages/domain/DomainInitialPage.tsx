@@ -1,6 +1,6 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -56,7 +57,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     const domainAccountID = route.params?.domainAccountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
-    const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
+    const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
     const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
 
     const domainMenuItems: DomainMenuItem[] = useMemo(() => {
@@ -72,12 +73,18 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         return menuItems;
     }, [domainAccountID, singleExecution, waitForNavigate, icons.UserLock]);
 
-    useEffect(() => {
+    const fetchDomainData = useCallback(() => {
         if (!domainName) {
             return;
         }
         openDomainInitialPage(domainName);
     }, [domainName]);
+
+    useEffect(() => {
+        fetchDomainData();
+    }, [fetchDomainData]);
+
+    useNetwork({onReconnect: fetchDomainData});
 
     useEffect(() => {
         confirmReadyToOpenApp();

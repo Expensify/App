@@ -136,7 +136,7 @@ function CategorySettingsPage({
             return policyCategory?.pendingFields?.areAttendeesRequired || policyCategory?.pendingFields?.areCommentsRequired;
         }
         return policyCategory?.pendingFields?.areCommentsRequired;
-    }, [policyCategory.pendingFields, policy?.isAttendeeTrackingEnabled]);
+    }, [policyCategory?.pendingFields, policy?.isAttendeeTrackingEnabled]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -311,6 +311,7 @@ function CategorySettingsPage({
                             />
                         </OfflineWithFeedback>
                     )}
+
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={Trashcan}
