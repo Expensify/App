@@ -874,6 +874,10 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Emoji',
         collapse: 'Samenvouwen',
         expand: 'Uitvouwen',
+        askConciergeToCreate: 'Vraag Concierge AI om een uitgave aan te maken...',
+        askConciergeToUpdate: 'Vraag Concierge AI om een uitgave bij te werken...',
+        askConciergeToCorrect: 'Vraag Concierge AI om een uitgave te corrigeren...',
+        addColleagueWithMention: 'Voeg een collega toe met een “@”-vermelding...',
     },
     reportActionContextMenu: {
         copyMessage: 'Bericht kopiëren',
@@ -903,6 +907,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Weet je zeker dat je dit ${type} wilt verwijderen?`;
         },
         onlyVisible: 'Alleen zichtbaar voor',
+        explain: 'Uitleggen',
+        explainMessage: 'Leg dit alstublieft aan mij uit.',
         replyInThread: 'Antwoord in thread',
         joinThread: 'Deelnemen aan thread',
         leaveThread: 'Thread verlaten',
@@ -1491,6 +1497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitByDate: 'Splitsen op datum',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapport doorgestuurd naar ${to} vanwege aangepaste goedkeuringsworkflow`,
         timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'uur' : 'uren'} @ ${rate} / uur`, hrs: 'uur'},
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Uitleggen</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
