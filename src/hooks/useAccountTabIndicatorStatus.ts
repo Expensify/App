@@ -2,10 +2,12 @@ import type {ValueOf} from 'type-fest';
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {checkIfFeedConnectionIsBroken, hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {isUserPolicyAdmin} from '@libs/PolicyUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 import useTheme from './useTheme';
@@ -34,9 +36,30 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
-    const {cardFeedErrors} = useCardFeedErrors();
-    const hasCompanyCardErrors = Object.entries(cardFeedErrors ?? {}).find(([, feeds]) => Object.values(feeds).some((feed) => feed.shouldShowRBR)) !== undefined;
+    // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
+    // those should be cleaned out before doing any error checking
+    const cleanPolicies = Object.values(policies ?? {}).filter((policy) => policy?.id);
+
+    const {rbrWorkspaceAccountIDMapping} = useCardFeedErrors();
+    let hasCompanyCardErrors = false;
+    const policiesWithCardFeedErrors: Policy[] = [];
+    for (const [workspaceAccountID, value] of Object.entries(rbrWorkspaceAccountIDMapping)) {
+        if (!value) {
+            continue;
+        }
+        hasCompanyCardErrors = true;
+
+        const policyWithCardFeedErrors = cleanPolicies.find((policy) => policy?.workspaceAccountID === Number(workspaceAccountID));
+        if (!policyWithCardFeedErrors) {
+            continue;
+        }
+
+        policiesWithCardFeedErrors.push(policyWithCardFeedErrors);
+    }
+
+    const isWorkspaceAdmin = policiesWithCardFeedErrors.some((policy) => isUserPolicyAdmin(policy, session?.email));
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
@@ -58,7 +81,7 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
             fundList,
             billingStatus,
         ),
-        [CONST.INDICATOR_STATUS.HAS_COMPANY_CARD_ERRORS]: hasCompanyCardErrors,
+        [CONST.INDICATOR_STATUS.HAS_COMPANY_CARD_ERRORS]: !isWorkspaceAdmin && hasCompanyCardErrors,
     };
 
     const infoChecking: Partial<Record<AccountTabIndicatorStatus, boolean>> = {
