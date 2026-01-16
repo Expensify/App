@@ -190,10 +190,12 @@ function AccessOrNotFoundWrapper({
         }
 
         // When a workspace feature linked to the current page is disabled we will navigate to the More Features page.
-        Navigation.isNavigationReady().then(() => Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+        });
         // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pendingField, isOffline, isFeatureEnabled, shouldShowNotFoundPage]);
+    }, [pendingField, isOffline, isFeatureEnabled, shouldShowNotFoundPage, isFocused]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
