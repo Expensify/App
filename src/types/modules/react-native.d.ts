@@ -64,7 +64,7 @@ declare module 'react-native' {
         ShortcutManager: ShortcutManagerModule;
         ShareActionHandler: ShareActionHandlerModule;
         TestToolsBridge: TestToolsBridge;
-        PushNotificationBridge: PushNotificationBridge;
+        PushNotificationBridge?: PushNotificationBridge;
     }
 
     namespace Animated {
