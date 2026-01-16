@@ -147,17 +147,17 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             }
 
             // Put the current user at the top of the list
-            if (a.accountID === accountID) {
+            if (a.accountID === currentUserAccountID) {
                 return -1;
             }
-            if (b.accountID === accountID) {
+            if (b.accountID === currentUserAccountID) {
                 return 1;
             }
             return 0;
         });
 
         return combined;
-    }, [filteredOptions, accountID, selectedAccountIDs]);
+    }, [filteredOptions, currentUserAccountID, selectedAccountIDs]);
 
     const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
