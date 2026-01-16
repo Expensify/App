@@ -2616,7 +2616,7 @@ describe('OptionsListUtils', () => {
             expect(result.alternateText).toBe('Iron Man owes ₫34');
         });
 
-        it('should work correctly when chatReport is passed', async () => {
+        it('should work correctly when reports collection with chatReport is passed', async () => {
             const reportID = '123';
             const chatReportID = '456';
 
@@ -2635,17 +2635,22 @@ describe('OptionsListUtils', () => {
                 reportID: chatReportID,
             };
 
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: report,
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: chatReport,
+            };
+
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
             await waitForBatchedUpdates();
 
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, undefined, undefined, chatReport);
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, undefined, undefined, reports);
 
             expect(result.reportID).toBe(reportID);
             expect(typeof result.text).toBe('string');
         });
 
-        it('should work correctly when chatReport is undefined', async () => {
+        it('should work correctly when reports is undefined', async () => {
             const report: Report = {
                 ...createRandomReport(0, undefined),
                 participants: {
@@ -2657,7 +2662,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await waitForBatchedUpdates();
 
-            // Should not throw when chatReport is undefined
+            // Should not throw when reports is undefined
             const result = createOption([1, 2], PERSONAL_DETAILS, report, undefined, undefined, undefined);
 
             expect(result.reportID).toBe(report.reportID);
