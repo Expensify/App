@@ -53,7 +53,22 @@ function extractRuleFromForm(form: ExpenseRuleForm, taxRate?: TaxRate) {
 }
 
 function getKeyForRule(rule: ExpenseRule) {
-    return `${StringUtils.hash(JSON.stringify(rule))}`;
+    // Use a stable key based on ordered properties
+    const stableKey = [
+        rule.merchantToMatch,
+        rule.merchant,
+        rule.category,
+        rule.tag,
+        rule.comment,
+        rule.reimbursable,
+        rule.billable,
+        rule.report,
+        rule.createReport,
+        rule.tax?.field_id_TAX?.externalID,
+    ]
+        .filter(Boolean)
+        .join('|');
+    return `${StringUtils.hash(stableKey)}`;
 }
 
 export {formatExpenseRuleChanges, extractRuleFromForm, getKeyForRule};
