@@ -20,6 +20,7 @@ import CLI from './utils/CLI';
 import COLORS from './utils/COLORS';
 import Git from './utils/Git';
 import Prettier from './utils/Prettier';
+import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
@@ -262,111 +263,123 @@ class TranslationGenerator {
         // Estimate cost and prompt user if needed (respects --yes/--no flags)
         await this.promptForCostApproval(stringsToTranslate);
 
-        for (const targetLanguage of this.targetLanguages) {
-            // Map of translations
-            const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
+        // Translate up to 8 locales in parallel
+        const localePool = new PromisePool(8);
+        const localePromises = this.targetLanguages.map((targetLanguage) =>
+            localePool.add(() => this.generateTranslationsForLocale(targetLanguage, stringsToTranslate, translations.get(targetLanguage) ?? new Map<number, string>())),
+        );
+        await Promise.all(localePromises);
+    }
 
-            // Translate strings sequentially to maintain conversation context chain
-            for (const [key, {text, context}] of stringsToTranslate) {
-                if (translationsForLocale.has(key)) {
-                    // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
-                    continue;
-                }
-
-                // Special handling for dedent strings - preserve leading newline
-                let textToTranslate = text;
-                let hadLeadingNewline = false;
-                if (this.dedentStringKeys.has(key)) {
-                    hadLeadingNewline = text.startsWith('\n');
-                    textToTranslate = dedent(text);
-                }
-
-                let result = await this.translator.translate(targetLanguage, textToTranslate, context);
-
-                // Special handling for dedent strings - add back leading newline if it was removed
-                if (hadLeadingNewline) {
-                    result = `\n${result}`;
-                }
-
-                translationsForLocale.set(key, result);
+    /**
+     * Generates translations for a single locale.
+     * Translations within a locale are processed sequentially to maintain conversation context chain.
+     */
+    private async generateTranslationsForLocale(
+        targetLanguage: TranslationTargetLocale,
+        stringsToTranslate: Map<number, StringWithContext>,
+        translationsForLocale: Map<number, string>,
+    ): Promise<void> {
+        // Translate strings sequentially to maintain conversation context chain
+        for (const [key, {text, context}] of stringsToTranslate) {
+            if (translationsForLocale.has(key)) {
+                // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
+                continue;
             }
 
-            // Replace translated strings in the AST
-            let transformedSourceFile: ts.SourceFile;
-
-            if (this.isIncremental) {
-                // Make sure the target file exists
-                const targetPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
-                if (!fs.existsSync(targetPath)) {
-                    throw new Error(`Target file ${targetPath} does not exist for incremental translation`);
-                }
-
-                // Transform en.ts with path filtering for pathsToModify and pathsToAdd.
-                // The result is a "patch" of the main translations node, including only the paths that are added or modified,
-                // where the values are translated to the target language.
-                const enResult = ts.transform(this.sourceFile, [this.createTranslationTransformer(translationsForLocale)]);
-                const transformedEnSourceFile = enResult.transformed.at(0);
-                if (!transformedEnSourceFile) {
-                    throw new Error('Failed to create translated patch from en.ts');
-                }
-
-                // Extract translated code strings from the transformed en.ts
-                const translatedCodeMap = new Map<string, string>();
-                this.extractTranslatedNodes(transformedEnSourceFile, translatedCodeMap);
-                enResult.dispose();
-
-                // Transform the target file using the translated node map
-                const existingContent = fs.readFileSync(targetPath, 'utf8');
-                const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
-                const targetTransformer = this.createIncrementalTargetTransformer(translatedCodeMap);
-                const targetResult = ts.transform(existingSourceFile, [targetTransformer]);
-                const transformedTargetResult = targetResult.transformed.at(0);
-                if (!transformedTargetResult) {
-                    throw new Error('Failed to transform target file');
-                }
-                transformedSourceFile = transformedTargetResult;
-                targetResult.dispose();
-            } else {
-                // Full transformation for non-incremental mode - transform en.ts
-                const transformer = this.createTranslationTransformer(translationsForLocale);
-                const result = ts.transform(this.sourceFile, [transformer]);
-                transformedSourceFile = result.transformed.at(0) ?? this.sourceFile;
-                result.dispose();
+            // Special handling for dedent strings - preserve leading newline
+            let textToTranslate = text;
+            let hadLeadingNewline = false;
+            if (this.dedentStringKeys.has(key)) {
+                hadLeadingNewline = text.startsWith('\n');
+                textToTranslate = dedent(text);
             }
 
-            // Import en.ts (addImport will check if it already exists)
-            transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
+            let result = await this.translator.translate(targetLanguage, textToTranslate, context);
 
-            // Generate translated TypeScript code
-            const translatedCode = decodeUnicode(tsPrinter.printFile(transformedSourceFile));
-
-            // Write to file
-            const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
-            fs.writeFileSync(outputPath, translatedCode, 'utf8');
-
-            // Enforce that the type of translated files matches en.ts
-            let finalFileContent = fs.readFileSync(outputPath, 'utf8');
-            finalFileContent = finalFileContent.replace('const translations = {', 'const translations: TranslationDeepObject<typeof en> = {');
-            finalFileContent = finalFileContent.replace('export default translations satisfies TranslationDeepObject<typeof translations>;', 'export default translations;');
-
-            // Add a fun ascii art touch with a helpful message
-            if (!finalFileContent.startsWith(GENERATED_FILE_PREFIX)) {
-                finalFileContent = `${GENERATED_FILE_PREFIX}${finalFileContent}`;
+            // Special handling for dedent strings - add back leading newline if it was removed
+            if (hadLeadingNewline) {
+                result = `\n${result}`;
             }
 
-            fs.writeFileSync(outputPath, finalFileContent, 'utf8');
-
-            // Format the file with prettier
-            await Prettier.format(outputPath);
-
-            // Apply dedent formatting after Prettier so we have accurate source positions
-            this.formatDedentCallsInFile(outputPath);
-
-            // Format again with Prettier to ensure consistent formatting after dedent transformation
-            await Prettier.format(outputPath);
-
-            console.log(`✅ Translated file created: ${outputPath}`);
+            translationsForLocale.set(key, result);
         }
+
+        // Replace translated strings in the AST
+        let transformedSourceFile: ts.SourceFile;
+
+        if (this.isIncremental) {
+            // Make sure the target file exists
+            const targetPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
+            if (!fs.existsSync(targetPath)) {
+                throw new Error(`Target file ${targetPath} does not exist for incremental translation`);
+            }
+
+            // Transform en.ts with path filtering for pathsToModify and pathsToAdd.
+            // The result is a "patch" of the main translations node, including only the paths that are added or modified,
+            // where the values are translated to the target language.
+            const enResult = ts.transform(this.sourceFile, [this.createTranslationTransformer(translationsForLocale)]);
+            const transformedEnSourceFile = enResult.transformed.at(0);
+            if (!transformedEnSourceFile) {
+                throw new Error('Failed to create translated patch from en.ts');
+            }
+
+            // Extract translated code strings from the transformed en.ts
+            const translatedCodeMap = new Map<string, string>();
+            this.extractTranslatedNodes(transformedEnSourceFile, translatedCodeMap);
+            enResult.dispose();
+
+            // Transform the target file using the translated node map
+            const existingContent = fs.readFileSync(targetPath, 'utf8');
+            const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
+            const targetTransformer = this.createIncrementalTargetTransformer(translatedCodeMap);
+            const targetResult = ts.transform(existingSourceFile, [targetTransformer]);
+            const transformedTargetResult = targetResult.transformed.at(0);
+            if (!transformedTargetResult) {
+                throw new Error('Failed to transform target file');
+            }
+            transformedSourceFile = transformedTargetResult;
+            targetResult.dispose();
+        } else {
+            // Full transformation for non-incremental mode - transform en.ts
+            const transformer = this.createTranslationTransformer(translationsForLocale);
+            const result = ts.transform(this.sourceFile, [transformer]);
+            transformedSourceFile = result.transformed.at(0) ?? this.sourceFile;
+            result.dispose();
+        }
+
+        // Import en.ts (addImport will check if it already exists)
+        transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
+
+        // Generate translated TypeScript code
+        const translatedCode = decodeUnicode(tsPrinter.printFile(transformedSourceFile));
+
+        // Write to file
+        const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
+        fs.writeFileSync(outputPath, translatedCode, 'utf8');
+
+        // Enforce that the type of translated files matches en.ts
+        let finalFileContent = fs.readFileSync(outputPath, 'utf8');
+        finalFileContent = finalFileContent.replace('const translations = {', 'const translations: TranslationDeepObject<typeof en> = {');
+        finalFileContent = finalFileContent.replace('export default translations satisfies TranslationDeepObject<typeof translations>;', 'export default translations;');
+
+        // Add a fun ascii art touch with a helpful message
+        if (!finalFileContent.startsWith(GENERATED_FILE_PREFIX)) {
+            finalFileContent = `${GENERATED_FILE_PREFIX}${finalFileContent}`;
+        }
+
+        fs.writeFileSync(outputPath, finalFileContent, 'utf8');
+
+        // Format the file with prettier
+        await Prettier.format(outputPath);
+
+        // Apply dedent formatting after Prettier so we have accurate source positions
+        this.formatDedentCallsInFile(outputPath);
+
+        // Format again with Prettier to ensure consistent formatting after dedent transformation
+        await Prettier.format(outputPath);
+
+        console.log(`✅ Translated file created: ${outputPath}`);
     }
 
     /**
