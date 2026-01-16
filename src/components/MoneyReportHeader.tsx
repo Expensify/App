@@ -1390,6 +1390,10 @@ function MoneyReportHeader({
                         );
                         if (goBackRoute) {
                             navigateOnDeleteExpense(goBackRoute);
+                        } else {
+                            // When goBackRoute is undefined (e.g., deleting the last expense from an IOU report in Super Wide RHP),
+                            // we need to dismiss the modal to prevent showing "It's not here" page on a deleted report.
+                            Navigation.dismissModal();
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
