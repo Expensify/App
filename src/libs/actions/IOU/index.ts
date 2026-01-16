@@ -5079,6 +5079,7 @@ function updateMoneyRequestTaxAmount(
         isASAPSubmitBetaEnabled,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
 }
 
 type UpdateMoneyRequestTaxRateParams = {
@@ -5127,6 +5128,7 @@ function updateMoneyRequestTaxRate({
     });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
 }
 
 type UpdateMoneyRequestDistanceParams = {
@@ -5402,6 +5404,7 @@ function updateMoneyRequestDistanceRate({
     // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
     const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
 }
 
 const getConvertTrackedExpenseInformation = (
