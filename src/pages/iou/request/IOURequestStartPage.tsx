@@ -338,29 +338,29 @@ function IOURequestStartPage({
                                         )}
                                     </TopTab.Screen>
                                 )}
-                                {/* {!!shouldShowPerDiemOption && ( */}
-                                <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
-                                    {() => (
-                                        <TabScreenWithFocusTrapWrapper>
-                                            {shouldShowWorkspaceSelectForPerDiem ? (
-                                                <IOURequestStepPerDiemWorkspace
-                                                    route={route}
-                                                    navigation={navigation}
-                                                />
-                                            ) : (
-                                                <IOURequestStepDestination
-                                                    shouldAutoFocusInput={false}
-                                                    openedFromStartPage
-                                                    ref={perDiemInputRef}
-                                                    explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}
-                                                    route={route}
-                                                    navigation={navigation}
-                                                />
-                                            )}
-                                        </TabScreenWithFocusTrapWrapper>
-                                    )}
-                                </TopTab.Screen>
-                                {/* )} */}
+                                {!!shouldShowPerDiemOption && (
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
+                                        {() => (
+                                            <TabScreenWithFocusTrapWrapper>
+                                                {shouldShowWorkspaceSelectForPerDiem ? (
+                                                    <IOURequestStepPerDiemWorkspace
+                                                        route={route}
+                                                        navigation={navigation}
+                                                    />
+                                                ) : (
+                                                    <IOURequestStepDestination
+                                                        shouldAutoFocusInput={false}
+                                                        openedFromStartPage
+                                                        ref={perDiemInputRef}
+                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}
+                                                        route={route}
+                                                        navigation={navigation}
+                                                    />
+                                                )}
+                                            </TabScreenWithFocusTrapWrapper>
+                                        )}
+                                    </TopTab.Screen>
+                                )}
                             </OnyxTabNavigator>
                         ) : (
                             <FocusTrapContainerElement
