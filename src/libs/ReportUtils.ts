@@ -5993,7 +5993,13 @@ function getReportName(
     }
 
     if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies});
+        formattedName = getInvoicesChatName({
+            report,
+            receiverPolicy: invoiceReceiverPolicy,
+            personalDetails,
+            policies,
+            currentUserAccountID,
+        });
     }
 
     if (isSelfDM(report)) {
@@ -6014,7 +6020,7 @@ function getReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails, currentUserAccountID});
 
     const finalName = formattedName || (report?.reportName ?? '');
 
