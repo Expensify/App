@@ -611,8 +611,8 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
 type CreateDistanceRequestInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
     participants: Participant[];
-    currentUserLogin: string | undefined;
-    currentUserAccountID: number | undefined;
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
