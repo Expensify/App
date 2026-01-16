@@ -316,6 +316,7 @@ import {
     getTaxCode,
     getAmount as getTransactionAmount,
     getTransactionID,
+    getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
     hasReceipt as hasReceiptTransactionUtils,
