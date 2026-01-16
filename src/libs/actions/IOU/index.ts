@@ -7,7 +7,7 @@ import lodashUnionBy from 'lodash/unionBy';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {SetRequired, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchContextProps, SearchQueryJSON} from '@components/Search/types';
@@ -229,6 +229,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
+import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
@@ -366,7 +367,7 @@ type TrackExpenseInformation = {
     actionableWhisperReportActionIDParam?: string;
     optimisticReportID: string | undefined;
     optimisticReportActionID: string | undefined;
-    onyxData: OnyxData<OnyxKey>;
+    onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys>;
 };
 
 type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
@@ -1579,7 +1580,7 @@ function getReceiptError(
 }
 
 /** Helper function to get optimistic fields violations onyx data */
-function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_VIOLATIONS>, 'optimisticData' | 'failureData'> {
+function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_VIOLATIONS> {
     const missingFields: OnyxTypes.ReportFieldsViolations = {};
     const excludedFields = Object.values(CONST.REPORT_VIOLATIONS_EXCLUDED_FIELDS) as string[];
 
@@ -2413,6 +2414,16 @@ type BuildOnyxDataForTrackExpenseParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
+type BuildOnyxDataForTrackExpenseKeys =
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+    | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+    | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+    | typeof ONYXKEYS.COLLECTION.REPORT_VIOLATIONS;
+
 /** Builds the Onyx data for track expense */
 function buildOnyxDataForTrackExpense({
     chat,
@@ -2426,7 +2437,7 @@ function buildOnyxDataForTrackExpense({
     participant,
     isASAPSubmitBetaEnabled,
     quickAction,
-}: BuildOnyxDataForTrackExpenseParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+}: BuildOnyxDataForTrackExpenseParams): OnyxData<BuildOnyxDataForTrackExpenseKeys> {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
     const {transaction, threadReport: transactionThreadReport, threadCreatedReportAction: transactionThreadCreatedReportAction} = transactionParams;
@@ -2436,9 +2447,37 @@ function buildOnyxDataForTrackExpense({
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
 
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_VIOLATIONS
+        >
+    > = [];
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        >
+    > = [];
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.REPORT_VIOLATIONS
+        >
+    > = [];
 
     const isSelfDMReport = isSelfDM(chatReport);
     let newQuickAction: QuickActionName = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_MANUAL : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
@@ -2808,7 +2847,7 @@ function buildOnyxDataForTrackExpense({
 
     // We don't need to compute violations unless we're on a paid policy
     if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        return [optimisticData, successData, failureData];
+        return {optimisticData, successData, failureData};
     }
 
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -2833,11 +2872,11 @@ function buildOnyxDataForTrackExpense({
     // Show field violations only for control policies
     if (isControlPolicy(policy) && iouReport) {
         const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
-        optimisticData.push(...fieldViolationsOptimisticData);
-        failureData.push(...fieldViolationsFailureData);
+        optimisticData.push(...(fieldViolationsOptimisticData ?? []));
+        failureData.push(...(fieldViolationsFailureData ?? []));
     }
 
-    return [optimisticData, successData, failureData];
+    return {optimisticData, successData, failureData};
 }
 
 function getDeleteTrackExpenseInformation(
@@ -3792,9 +3831,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         odometerEnd,
     } = transactionParams;
 
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<OnyxUpdate<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys>> = [];
+    const successData: Array<OnyxUpdate<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys>> = [];
+    const failureData: Array<OnyxUpdate<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys>> = [];
 
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
@@ -3904,9 +3943,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             activePolicyID,
         });
         createdWorkspaceParams = workspaceData.params;
-        optimisticData.push(...workspaceData.optimisticData);
-        successData.push(...workspaceData.successData);
-        failureData.push(...workspaceData.failureData);
+        optimisticData.push(...(workspaceData.optimisticData ?? []));
+        successData.push(...(workspaceData.successData ?? []));
+        failureData.push(...(workspaceData.failureData ?? []));
     }
 
     // STEP 2: If not in the self-DM flow, we need to use the expense report.
@@ -4062,6 +4101,10 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         quickAction,
     });
 
+    optimisticData.push(...(trackExpenseOnyxData.optimisticData ?? []));
+    successData.push(...(trackExpenseOnyxData.successData ?? []));
+    failureData.push(...(trackExpenseOnyxData.failureData ?? []));
+
     return {
         createdWorkspaceParams,
         chatReport,
@@ -4076,9 +4119,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         optimisticReportID,
         optimisticReportActionID,
         onyxData: {
-            optimisticData: optimisticData.concat(trackExpenseOnyxData[0]),
-            successData: successData.concat(trackExpenseOnyxData[1]),
-            failureData: failureData.concat(trackExpenseOnyxData[2]),
+            optimisticData,
+            successData,
+            failureData,
         },
     };
 }
@@ -6563,53 +6606,53 @@ function trackExpense(params: CreateTrackExpenseParams) {
         actionableWhisperReportActionIDParam,
         optimisticReportID,
         optimisticReportActionID,
-        onyxData,
-    } =
-        getTrackExpenseInformation({
-            parentChatReport: currentChatReport,
-            moneyRequestReportID,
-            existingTransactionID:
-                isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
-                    ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
-                    : undefined,
-            participantParams: {
-                participant,
-                payeeAccountID,
-                payeeEmail,
-            },
-            transactionParams: {
-                comment,
-                amount,
-                distance,
-                currency,
-                created,
-                merchant,
-                receipt: trackedReceipt,
-                category,
-                tag,
-                taxCode,
-                taxAmount,
-                billable,
-                reimbursable,
-                linkedTrackedExpenseReportAction,
-                attendees,
-                odometerStart,
-                odometerEnd,
-            },
-            policyParams: {
-                policy,
-                policyCategories,
-                policyTagList,
-            },
-            retryParams,
-            isASAPSubmitBetaEnabled,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            introSelected,
-            activePolicyID,
-            quickAction,
-        }) ?? {};
+        onyxData: trackExpenseInformationOnyxData,
+    } = getTrackExpenseInformation({
+        parentChatReport: currentChatReport,
+        moneyRequestReportID,
+        existingTransactionID:
+            isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
+                ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
+                : undefined,
+        participantParams: {
+            participant,
+            payeeAccountID,
+            payeeEmail,
+        },
+        transactionParams: {
+            comment,
+            amount,
+            distance,
+            currency,
+            created,
+            merchant,
+            receipt: trackedReceipt,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            reimbursable,
+            linkedTrackedExpenseReportAction,
+            attendees,
+            odometerStart,
+            odometerEnd,
+        },
+        policyParams: {
+            policy,
+            policyCategories,
+            policyTagList,
+        },
+        retryParams,
+        isASAPSubmitBetaEnabled,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        introSelected,
+        activePolicyID,
+        quickAction,
+    }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
+    const onyxData = trackExpenseInformationOnyxData as OnyxData<BuildOnyxDataForTrackExpenseKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE>;
 
     const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
@@ -6619,10 +6662,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
     });
 
     if (isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction)) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: transaction?.iouRequestType,
         });
     }
@@ -9821,9 +9864,9 @@ function getPayMoneyRequestParams({
             policyName,
         };
 
-        optimisticData.push(...policyOptimisticData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: payerPolicyID});
-        successData.push(...policySuccessData);
-        failureData.push(...policyFailureData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicy?.id ?? null});
+        optimisticData.push(...(policyOptimisticData ?? []), {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: payerPolicyID});
+        successData.push(...(policySuccessData ?? []));
+        failureData.push(...(policyFailureData ?? []), {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicy?.id ?? null});
     }
 
     if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && existingB2BInvoiceReport) {
