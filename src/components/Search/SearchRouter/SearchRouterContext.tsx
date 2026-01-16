@@ -10,8 +10,11 @@ import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {closeSearch, openSearch} from './toggleSearch';
 
-type SearchRouterContext = {
+type SearchRouterStateContextType = {
     isSearchRouterDisplayed: boolean;
+};
+
+type SearchRouterActionsContextType = {
     openSearchRouter: () => void;
     closeSearchRouter: () => void;
     toggleSearch: () => void;
@@ -23,8 +26,7 @@ type HistoryState = {
     isSearchModalOpen?: boolean;
 };
 
-const defaultSearchContext: SearchRouterContext = {
-    isSearchRouterDisplayed: false,
+const defaultSearchRouterActionsContext: SearchRouterActionsContextType = {
     openSearchRouter: () => {},
     closeSearchRouter: () => {},
     toggleSearch: () => {},
@@ -32,7 +34,11 @@ const defaultSearchContext: SearchRouterContext = {
     unregisterSearchPageInput: () => {},
 };
 
-const Context = React.createContext<SearchRouterContext>(defaultSearchContext);
+const SearchRouterStateContext =
+    React.createContext<SearchRouterStateContextType>({isSearchRouterDisplayed: false});
+
+const SearchRouterActionsContext =
+    React.createContext<SearchRouterActionsContextType>(defaultSearchRouterActionsContext);
 
 const isBrowserWithHistory = typeof window !== 'undefined' && typeof window.history !== 'undefined';
 const canListenPopState = typeof window !== 'undefined' && typeof window.addEventListener === 'function';
@@ -69,7 +75,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
-    const routerContext = useMemo(() => {
+    const routerActionsContext = useMemo(() => {
         const openSearchRouter = () => {
             if (isBrowserWithHistory) {
                 window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
@@ -136,20 +142,49 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         };
 
         return {
-            isSearchRouterDisplayed,
             openSearchRouter,
             closeSearchRouter,
             toggleSearch,
             registerSearchPageInput,
             unregisterSearchPageInput,
         };
-    }, [isSearchRouterDisplayed]);
+    }, []);
 
-    return <Context.Provider value={routerContext}>{children}</Context.Provider>;
+    const stateContextValue = useMemo(
+        () => ({isSearchRouterDisplayed}),
+        [isSearchRouterDisplayed],
+    );
+
+    const actionsContextValue = useMemo(
+        () => (routerActionsContext),
+        [
+            routerActionsContext
+        ],
+    );
+
+    return (
+        <SearchRouterActionsContext.Provider
+            value={actionsContextValue}
+        >
+            <SearchRouterStateContext.Provider
+                value={stateContextValue}
+            >
+                {children}
+            </SearchRouterStateContext.Provider>
+        </SearchRouterActionsContext.Provider>
+    );
 }
 
-function useSearchRouterContext() {
-    return useContext(Context);
+function useSearchRouterState() {
+    return useContext(SearchRouterStateContext);
 }
 
-export {SearchRouterContextProvider, useSearchRouterContext};
+function useSearchRouterActions() {
+    return useContext(SearchRouterActionsContext);
+}
+
+export {
+    SearchRouterContextProvider,
+    useSearchRouterState,
+    useSearchRouterActions,
+};
