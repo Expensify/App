@@ -711,7 +711,6 @@ function setDomainVacationDelegate(
     previousDelegate: string,
     shouldOverridePolicyDiffWarning = false,
 ) {
-    debugger;
 
     const vacationDelegateKey = `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const;
 
@@ -799,7 +798,6 @@ function setDomainVacationDelegate(
         },
     ];
 
-    debugger;
     // Will be replaced with new api call
     Onyx.update(optimisticData);
     return new Promise((resolve) => {
@@ -808,7 +806,6 @@ function setDomainVacationDelegate(
 }
 
 function deleteDomainVacationDelegate(vacationDelegate?: VacationDelegate, domainAccountID: number, domainMemberAccountID:number) {
-    debugger;
     const vacationDelegateKey = `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const;
 
     if (isEmptyObject(vacationDelegate)) {
@@ -898,7 +895,6 @@ function deleteDomainVacationDelegate(vacationDelegate?: VacationDelegate, domai
             },
         },
     ];
-    debugger;
     Onyx.update(optimisticData);
 }
 
