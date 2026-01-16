@@ -1,3 +1,4 @@
+import {differenceInDays} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -32,14 +33,11 @@ type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpense
 function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const searchContext = useSearchContext();
+    const {currentSearchResults} = useSearchContext();
 
     const {reportID, transactionID, backTo} = route.params;
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
-
-    const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
@@ -78,6 +76,8 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
                 errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateBeforeStartDate');
             } else if (endDate.getTime() === startDate.getTime()) {
                 errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateSameAsStartDate');
+            } else if (differenceInDays(endDate, startDate) + 1 > CONST.IOU.SPLITS_LIMIT) {
+                errors[INPUT_IDS.END_DATE] = translate('iou.error.dateRangeExceedsMaxDays');
             }
         }
 
