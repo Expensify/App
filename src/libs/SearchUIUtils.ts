@@ -1732,7 +1732,6 @@ function getReportSections({
     const allViolations = getViolations(data);
 
     const queryJSON = getCurrentSearchQueryJSON();
-    const actionFromQuery = queryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)?.filters?.at(0)?.value;
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     const {reportKeys, transactionKeys} = Object.keys(data).reduce(
