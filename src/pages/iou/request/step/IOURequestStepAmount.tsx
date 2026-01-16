@@ -277,8 +277,7 @@ function IOURequestStepAmount({
                 setSplitShares(transaction, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs);
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
-                // Check if merchant is required and missing before proceeding
-                // If so, navigate to merchant step first
+                // If merchant is required and missing, navigate to merchant step first
                 if (shouldRequireMerchant(transaction, report, isEditingSplitBill)) {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, reportActionID));
                     return;
