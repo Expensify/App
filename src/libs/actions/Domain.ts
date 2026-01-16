@@ -810,7 +810,7 @@ function addMemberToDomain(domainAccountID: number, email: string) {
             value: {
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
-                    login: targetEmail,
+                    login: email,
                 },
             },
         },
