@@ -267,7 +267,20 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                     return getOptionDataFromAttendee(attendee);
                 }
 
-                return undefined;
+                // Fallback: construct a minimal option from the identifier string to preserve
+                // name-only filters across sessions (e.g., after cache clear or on another device)
+                return {
+                    text: identifier,
+                    alternateText: identifier,
+                    login: identifier,
+                    displayName: identifier,
+                    accountID: CONST.DEFAULT_NUMBER_ID,
+                    // eslint-disable-next-line rulesdir/no-default-id-values
+                    reportID: '-1',
+                    selected: true,
+                    icons: [],
+                    searchText: identifier,
+                };
             })
             .filter((option): option is NonNullable<OptionData> => {
                 return !!option;
