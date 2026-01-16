@@ -36,6 +36,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
+import VacationDelegateSection from '@components/VacationDelegateSection';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 const initialEmoji = '💬';
 
@@ -262,39 +265,14 @@ function StatusPage() {
                         />
                     )}
                 </View>
-                <View style={[styles.mb2, styles.mt6]}>
-                    <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
-                    {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>}
-                    {hasVacationDelegate ? (
-                        <OfflineWithFeedback
-                            pendingAction={vacationDelegate?.pendingAction}
-                            errors={vacationDelegate?.errors}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
-                        >
-                            <MenuItem
-                                title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
-                                description={fallbackVacationDelegateLogin}
-                                avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
-                                iconType={CONST.ICON_TYPE_AVATAR}
-                                numberOfLinesDescription={1}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
-                                containerStyle={styles.pr2}
-                            />
-                        </OfflineWithFeedback>
-                    ) : (
-                        <View style={[styles.mt1]}>
-                            <MenuItem
-                                description={translate('statusPage.vacationDelegate')}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
-                                containerStyle={styles.pr2}
-                            />
-                        </View>
-                    )}
-                </View>
+                <VacationDelegateSection
+                    vacationDelegate={vacationDelegate}
+                    errors={vacationDelegate?.errors}
+                    pendingAction={vacationDelegate?.pendingAction}
+                    onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                    additionalDescription={translate('statusPage.vacationDelegate')}
+                />
             </FormProvider>
         </ScreenWrapper>
     );

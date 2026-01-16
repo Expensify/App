@@ -10,7 +10,7 @@ import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigati
 import type { SettingsNavigatorParamList } from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {deleteDomainVacationDelegate, setDomainVacationDelegate} from '@userActions/Domain';
-import { clearVacationDelegateError, deleteVacationDelegate } from '@userActions/VacationDelegate';
+import { clearVacationDelegateError } from '@userActions/VacationDelegate';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -26,9 +26,8 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [newVacationDelegateLogin, setNewVacationDelegateLogin] = useState('');
 
-    const [vacationDelegate] = useVacationDelegate(String(domainAccountID), String(accountID));
+    const vacationDelegate = useVacationDelegate(domainAccountID, accountID);
     const onSelectRow = (option: Participant) => {
-        debugger;
 
         const memberLogin = getLoginByAccountID(accountID);
         const delegateLogin = option?.login;

@@ -33,7 +33,7 @@ type DomainErrors = {
     /**
      * Errors related to a specific domain vacation delegate, keyed by member adminID
      */
-    vacationDelegateErrors?: Record<number, GeneralDomainAdminErrors>;
+    vacationDelegateErrors?: Record<number, OnyxCommon.Errors>;
 };
 
 export default DomainErrors;

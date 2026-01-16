@@ -1,24 +1,19 @@
-import {vacationDelegateSelector} from '@selectors/Domain';
-import {useMemo} from 'react';
-import type {ResultMetadata} from 'react-native-onyx';
+import { vacationDelegateSelector } from '@selectors/Domain';
+import { useMemo } from 'react';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {VacationDelegate} from '@src/types/onyx';
+import type { BaseVacationDelegate } from '@src/types/onyx/VacationDelegate';
 import useOnyx from './useOnyx';
 
-type UseVacationDelegateResult = [
-    VacationDelegate | undefined,
-    ResultMetadata<VacationDelegate>
-];
 
-const useVacationDelegate = (domainAccountID: string, accountID: string): UseVacationDelegateResult => {
+const useVacationDelegate = (domainAccountID: number, accountID: number): BaseVacationDelegate | undefined => {
     const selector = useMemo(() => vacationDelegateSelector(accountID), [accountID]);
 
-    const [vacationDelegate, vacationDelegateMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: selector,
+        selector,
     });
 
-    return [vacationDelegate, vacationDelegateMetadata];
+    return vacationDelegate;
 };
 
 export default useVacationDelegate;

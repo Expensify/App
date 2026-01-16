@@ -902,6 +902,55 @@ function deleteDomainVacationDelegate(vacationDelegate?: VacationDelegate, domai
     Onyx.update(optimisticData);
 }
 
+function clearVacationDelegateError(previousDelegate?: string, domainMemberAccountID:number,domainAccountID:number ){
+
+    const vacationDelegateKey = `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const;
+
+
+    Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+        errors: null,
+        pendingAction: null,
+        delegate: previousDelegate ?? null,
+        previousDelegate: null,
+    });
+
+    const data: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                vacationDelegate: {
+                    [domainMemberAccountID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                vacationDelegateErrors: {
+                    [domainMemberAccountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const,
+            value: {
+                [vacationDelegateKey]: {
+                    creator: null,
+                    delegate: vacationDelegate.delegate ?? null,
+                    previousDelegate: null,
+                },
+            },
+        },
+    ];
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -924,5 +973,6 @@ export {
     clearAdminError,
     revokeDomainAdminAccess,
     setDomainVacationDelegate,
-    deleteDomainVacationDelegate
+    deleteDomainVacationDelegate,
+    clearVacationDelegateError
 };

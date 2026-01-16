@@ -48,11 +48,6 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
     });
 
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
-    const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
-        selector: (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${String(accountID)}` as const],
-    });
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
     const phoneNumber = getPhoneNumber(personalDetails);
@@ -101,19 +96,6 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}
                                 copyable
                             />
                             {children}
-                            <OfflineWithFeedback
-                                errorRowStyles={[styles.ph5]}
-                                // pendingAction={domainPendingActions?.technicalContactEmail}
-                                // errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
-                                // onClose={() => clearSetPrimaryContactError(domainAccountID)}
-                            >
-                                <MenuItemWithTopDescription
-                                    description={translate('domain.common.vacationDelegate')}
-                                    title={vacationDelegate?.delegate}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
-                                />
-                            </OfflineWithFeedback>
                             <MenuItem
                                 style={styles.mb5}
                                 title={translate('common.profile')}

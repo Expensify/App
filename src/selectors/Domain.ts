@@ -3,6 +3,7 @@ import type { OnyxEntry } from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata, VacationDelegate} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
@@ -95,7 +96,7 @@ function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
  *
  * @param accountID - The account ID of the domain member.
  */
-function vacationDelegateSelector(accountID:string): (domain: OnyxEntry<Domain>) => VacationDelegate {
+function vacationDelegateSelector(accountID:number): (domain: OnyxEntry<Domain>) => BaseVacationDelegate | undefined {
             return (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${accountID}`];
 }
 
