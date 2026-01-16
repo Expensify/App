@@ -8064,6 +8064,7 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Solicita que los miembros de tu dominio inicien sesión mediante inicio de sesión único, restringe la creación de espacios de trabajo y más.',
             enable: 'Habilitar',
         },
+        domainAdmins: 'Administradores de dominio',
         admins: {
             title: 'Administradores',
             findAdmin: 'Encontrar administrador',

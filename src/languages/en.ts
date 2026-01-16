@@ -7904,6 +7904,7 @@ const translations = {
             subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
             enable: 'Enable',
         },
+        domainAdmins: 'Domain admins',
         admins: {
             title: 'Admins',
             findAdmin: 'Find admin',

@@ -1,8 +1,8 @@
-import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import { findFocusedRoute, useNavigationState } from '@react-navigation/native';
+import { Str } from 'expensify-common';
+import React, { useCallback, useEffect } from 'react';
+import { View } from 'react-native';
+import type { ValueOf } from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
@@ -10,7 +10,7 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -18,18 +18,19 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {openDomainInitialPage} from '@libs/actions/Domain';
+import { confirmReadyToOpenApp } from '@libs/actions/App';
+import { openDomainInitialPage } from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
-import type {DomainSplitNavigatorParamList} from '@navigation/types';
+import type { DomainSplitNavigatorParamList } from '@navigation/types';
 import type CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type { TranslationPaths } from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
+
 
 type DomainTopLevelScreens = keyof typeof DOMAIN_TO_RHP;
 
@@ -62,16 +63,16 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     const domainMenuItems: DomainMenuItem[] = [
         {
+            translationKey: 'domain.domainAdmins',
+            icon: icons.UserShield,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID)))),
+            screenName: SCREENS.DOMAIN.ADMINS,
+        },
+        {
             translationKey: 'domain.saml',
             icon: icons.UserLock,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(domainAccountID)))),
             screenName: SCREENS.DOMAIN.SAML,
-        },
-        {
-            translationKey: 'domain.admins.title',
-            icon: icons.UserShield,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID)))),
-            screenName: SCREENS.DOMAIN.ADMINS,
         },
     ];
 
