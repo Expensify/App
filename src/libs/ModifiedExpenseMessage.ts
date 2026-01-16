@@ -15,6 +15,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {translateLocal} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
+import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
@@ -43,7 +44,6 @@ let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 let currentUserLogin = '';
-let currentUserAccountID: number | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -52,7 +52,6 @@ Onyx.connectWithoutView({
             return;
         }
         currentUserLogin = value?.email ?? '';
-        currentUserAccountID = value?.accountID;
     },
 });
 
@@ -165,7 +164,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
