@@ -1,8 +1,10 @@
 import hashStr from '@libs/StringUtils/hash';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+import ChatGPTCostEstimator from '@scripts/chatGPTCostEstimator';
 import OpenAIUtils from '../OpenAIUtils';
 import {buildTranslationInstructions, buildTranslationRequestInput} from './TranslationPromptUtils';
 import Translator from './Translator';
+import type {StringWithContext} from './types';
 
 /**
  * Session state for a single locale, maintaining conversation context across translations.
@@ -107,6 +109,44 @@ class ChatGPTTranslator extends Translator {
 
         // Should never hit this, but fallback just in case
         return text;
+    }
+
+    /**
+     * Estimate cost for translation runs based on current prompt structure.
+     */
+    public static async estimateCost(
+        stringsToTranslate: StringWithContext[],
+        targetLanguages: TranslationTargetLocale[],
+    ): Promise<number> {
+        if (stringsToTranslate.length === 0 || targetLanguages.length === 0) {
+            return 0;
+        }
+
+        let perLocaleInputTokens = 0;
+        let perLocaleOutputTokens = 0;
+        for (const {text, context} of stringsToTranslate) {
+            const requestInput = buildTranslationRequestInput(text, context);
+            perLocaleInputTokens += Math.ceil(requestInput.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+
+            const outputTokens = Math.ceil(text.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+            perLocaleOutputTokens += outputTokens;
+        }
+
+        let totalInputTokens = perLocaleInputTokens * targetLanguages.length;
+        const totalOutputTokens = perLocaleOutputTokens * targetLanguages.length;
+
+        const perLocaleInstructionTokens = await Promise.all(
+            targetLanguages.map(async (locale) => {
+                const instructions = await buildTranslationInstructions(locale);
+                return Math.ceil(instructions.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+            }),
+        );
+
+        for (const instructionTokens of perLocaleInstructionTokens) {
+            totalInputTokens += instructionTokens;
+        }
+
+        return ChatGPTCostEstimator.getTotalEstimatedCost(totalInputTokens, totalOutputTokens);
     }
 }
 

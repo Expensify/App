@@ -16,7 +16,6 @@ import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@s
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
-import ChatGPTCostEstimator from './chatGPTCostEstimator';
 import CLI from './utils/CLI';
 import COLORS from './utils/COLORS';
 import Git from './utils/Git';
@@ -24,18 +23,10 @@ import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
-import {buildTranslationInstructions, buildTranslationRequestInput} from './utils/Translator/TranslationPromptUtils';
+import type {StringWithContext} from './utils/Translator/types';
 import type Translator from './utils/Translator/Translator';
 import TSCompilerUtils, {TransformerAction} from './utils/TSCompilerUtils';
 import type {TransformerResult} from './utils/TSCompilerUtils';
-
-/**
- * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
- */
-type StringWithContext = {
-    text: string;
-    context?: string;
-};
 
 const GENERATED_FILE_PREFIX = dedent(`
     /**
@@ -404,39 +395,7 @@ class TranslationGenerator {
             return;
         }
 
-        const perLocaleInstructions = await Promise.all(
-            this.targetLanguages.map(async (locale) => ({
-                locale,
-                instructions: await buildTranslationInstructions(locale),
-            })),
-        );
-
-        // Calculate per-request tokens for all strings (without system instructions)
-        let perLocaleInputTokens = 0;
-        let perLocaleOutputTokens = 0;
-        for (const {text, context} of stringsToTranslate.values()) {
-            const requestInput = buildTranslationRequestInput(text, context);
-            perLocaleInputTokens += Math.ceil(requestInput.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
-
-            const outputTokens = Math.ceil(text.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
-            perLocaleOutputTokens += outputTokens;
-        }
-
-        let totalInputTokens = perLocaleInputTokens * numLocales;
-        const totalOutputTokens = perLocaleOutputTokens * numLocales;
-
-        // Add system instruction tokens with prompt caching applied after the first request per locale
-        const cachedRequestCount = Math.max(numStrings - 1, 0);
-        for (const {instructions} of perLocaleInstructions) {
-            const instructionTokens = Math.ceil(instructions.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
-            totalInputTokens += instructionTokens;
-
-            if (cachedRequestCount > 0) {
-                totalInputTokens += cachedRequestCount * instructionTokens * ChatGPTCostEstimator.PROMPT_CACHE_INPUT_COST_FACTOR;
-            }
-        }
-
-        const estimatedCost = ChatGPTCostEstimator.getTotalEstimatedCost(totalInputTokens, totalOutputTokens);
+        const estimatedCost = await ChatGPTTranslator.estimateCost(Array.from(stringsToTranslate.values()), this.targetLanguages);
 
         if (estimatedCost > COST_CONFIRMATION_THRESHOLD) {
             console.warn(
