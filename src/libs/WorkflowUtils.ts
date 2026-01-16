@@ -373,6 +373,18 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                     ],
                 };
             }
+
+            const hasOverLimitToRemovedApprover = workflow.approvers.some((item) => item.overLimitForwardsTo === removedApproverEmail);
+            if (hasOverLimitToRemovedApprover) {
+                const approversWithClearedOverLimit = workflow.approvers.map((item) =>
+                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                );
+                return {
+                    ...workflow,
+                    approvers: approversWithClearedOverLimit,
+                };
+            }
+
             return workflow;
         }
 
@@ -521,12 +533,38 @@ function getApprovalLimitDescription({approver, currency, translate, personalDet
     });
 }
 
+/**
+ * Returns business bank accounts that are:
+ * - It has the same currency as the policy (`bankCurrency === policy.outputCurrency`),
+ * - Its state is `OPEN`
+ * - Its type is `BUSINESS`,
+ * - It's linked to the policy's ACH account.
+ *
+ * @param bankAccountList - list of bank accounts
+ * @param policy - given policy
+ */
+function getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policy: OnyxEntry<Policy> | undefined) {
+    if (!bankAccountList || policy === undefined) {
+        return [];
+    }
+
+    return Object.values(bankAccountList).filter((account) => {
+        return (
+            account.bankCurrency === policy?.outputCurrency &&
+            account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            account?.accountData?.bankAccountID === policy?.achAccount?.bankAccountID
+        );
+    });
+}
+
 export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
     getApprovalLimitDescription,
     getEligibleExistingBusinessBankAccounts,
+    getOpenConnectedToPolicyBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
     updateWorkflowDataOnApproverRemoval,
 };

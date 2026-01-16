@@ -41,6 +41,7 @@ function BaseSelectionList<TItem extends ListItem>({
     initiallyFocusedItemKey,
     onSelectRow,
     onSelectAll,
+    onLongPressRow,
     onCheckboxPress,
     onScrollBeginDrag,
     onDismissError,
@@ -56,7 +57,7 @@ function BaseSelectionList<TItem extends ListItem>({
     listFooterContent,
     rightHandSideComponent,
     alternateNumberOfSupportedLines,
-    selectedItems = CONST.EMPTY_ARRAY,
+    selectedItems = CONST.EMPTY_ARRAY as unknown as string[],
     style,
     isSelected,
     isDisabled = false,
@@ -73,7 +74,9 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUseUserSkeletonView,
     shouldShowTooltips = true,
     shouldIgnoreFocus = false,
+    shouldShowRightCaret = false,
     shouldStopPropagation = false,
+    shouldHeaderBeInsideList = false,
     shouldScrollToFocusedIndex = true,
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
@@ -121,10 +124,10 @@ function BaseSelectionList<TItem extends ListItem>({
                 if (isItemSelected(item) && (canSelectMultiple || acc.selectedOptions.length === 0)) {
                     acc.selectedOptions.push(item);
                 }
-                if (isItemDisabled) {
+                if (isItemDisabled || item?.isDisabledCheckbox) {
                     acc.disabledIndexes.push(idx);
 
-                    if (!item?.isDisabledCheckbox) {
+                    if (isItemDisabled) {
                         acc.disabledArrowKeyIndexes.push(idx);
                     }
                 }
@@ -150,11 +153,21 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const scrollToIndex = useCallback(
         (index: number) => {
-            const item = data.at(index);
-            if (!listRef.current || !item || index === -1) {
+            // Bounds check: ensure index is valid for current data
+            if (index < 0 || index >= data.length) {
                 return;
             }
-            listRef.current.scrollToIndex({index});
+            const item = data.at(index);
+            if (!listRef.current || !item) {
+                return;
+            }
+            try {
+                listRef.current.scrollToIndex({index});
+            } catch (error) {
+                // FlashList may throw if layout for this index doesn't exist yet
+                // This can happen when data changes rapidly (e.g., during search filtering)
+                // The layout will be computed on next render, so we can safely ignore this
+            }
         },
         [data],
     );
@@ -181,6 +194,11 @@ function BaseSelectionList<TItem extends ListItem>({
         isFocused,
         onArrowUpDownCallback,
     });
+
+    // extraData helps FlashList detect when data changes significantly (e.g., during filtering)
+    // Including data.length ensures FlashList resets its layout cache when the list size changes
+    // This prevents "index out of bounds" errors when filtering reduces the list size
+    const extraData = useMemo(() => [data.length], [data.length]);
 
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
@@ -312,6 +330,7 @@ function BaseSelectionList<TItem extends ListItem>({
         const isItemDisabled = isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
+        const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList);
 
         return (
             <View
@@ -325,16 +344,20 @@ function BaseSelectionList<TItem extends ListItem>({
                 <ListItemRenderer
                     ListItem={ListItem}
                     selectRow={selectRow}
-                    keyForList={item.keyForList}
                     showTooltip={shouldShowTooltips}
-                    item={item}
+                    item={{
+                        shouldAnimateInHighlight: isItemHighlighted,
+                        isSelected: selected,
+                        ...item,
+                    }}
                     setFocusedIndex={setFocusedIndex}
                     index={index}
-                    normalizedIndex={index}
                     isFocused={isItemFocused}
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}
                     onDismissError={onDismissError}
+                    onLongPressRow={onLongPressRow}
+                    onCheckboxPress={onCheckboxPress}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
@@ -343,13 +366,15 @@ function BaseSelectionList<TItem extends ListItem>({
                     isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
                     alternateTextNumberOfLines={alternateNumberOfSupportedLines}
                     shouldIgnoreFocus={shouldIgnoreFocus}
-                    wrapperStyle={style?.listItemWrapperStyle}
                     titleStyles={style?.listItemTitleStyles}
+                    wrapperStyle={style?.listItemWrapperStyle}
+                    titleContainerStyles={style?.listItemTitleContainerStyles}
                     singleExecution={singleExecution}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
                     shouldStopMouseLeavePropagation={false}
+                    shouldShowRightCaret={shouldShowRightCaret}
                 />
             </View>
         );
@@ -363,6 +388,28 @@ function BaseSelectionList<TItem extends ListItem>({
             return listEmptyContent;
         }
     };
+
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // The function scrolls to the focused input to prevent keyboard occlusion.
+    // It ensures the entire list item is visible, not just the input field.
+    // Added specifically for SplitExpensePage
+    const scrollToFocusedInput = useCallback((item: TItem) => {
+        if (!listRef.current) {
+            return;
+        }
+
+        // Clear any existing timer before starting a new one
+        if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+        }
+
+        // Delay scrolling by 300ms to allow the keyboard to open.
+        // This ensures FlashList calculates the correct window size.
+        setTimeout(() => {
+            listRef.current?.scrollToItem({item, viewPosition: 1, animated: true, viewOffset: 4});
+        }, CONST.ANIMATED_TRANSITION);
+    }, []);
 
     const scrollAndHighlightItem = useCallback(
         (items: string[]) => {
@@ -406,7 +453,7 @@ function BaseSelectionList<TItem extends ListItem>({
             return;
         }
         setFocusedIndex(selectedItemIndex);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedItemIndex]);
 
     const prevSearchValue = usePrevious(textInputOptions?.value);
@@ -474,12 +521,25 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, focusTextInput}), [
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, scrollToFocusedInput, focusTextInput}), [
         focusTextInput,
         scrollAndHighlightItem,
         scrollToIndex,
+        scrollToFocusedInput,
         updateFocusedIndex,
     ]);
+
+    const header = (
+        <ListHeader
+            dataDetails={dataDetails}
+            customListHeader={customListHeader}
+            canSelectMultiple={canSelectMultiple}
+            onSelectAll={handleSelectAll}
+            headerStyle={style?.listHeaderWrapperStyle}
+            shouldShowSelectAllButton={!!onSelectAll}
+            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+        />
+    );
 
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
@@ -488,19 +548,13 @@ function BaseSelectionList<TItem extends ListItem>({
                 renderListEmptyContent()
             ) : (
                 <>
-                    <ListHeader
-                        dataDetails={dataDetails}
-                        customListHeader={customListHeader}
-                        canSelectMultiple={canSelectMultiple}
-                        onSelectAll={handleSelectAll}
-                        shouldShowSelectAllButton={!!onSelectAll}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    />
+                    {!shouldHeaderBeInsideList && header}
                     <FlashList
                         data={data}
                         renderItem={renderItem}
                         ref={listRef}
                         keyExtractor={(item) => item.keyForList}
+                        extraData={extraData}
                         ListFooterComponent={listFooterContent}
                         scrollEnabled={scrollEnabled}
                         indicatorStyle="white"
@@ -516,6 +570,7 @@ function BaseSelectionList<TItem extends ListItem>({
                             <>
                                 {customListHeaderContent}
                                 {textInputComponent({shouldBeInsideList: true})}
+                                {shouldHeaderBeInsideList && header}
                             </>
                         }
                     />
