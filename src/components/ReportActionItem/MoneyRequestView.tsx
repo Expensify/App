@@ -53,12 +53,13 @@ import {
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isExpenseReport,
@@ -169,7 +170,6 @@ function MoneyRequestView({
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
     const {currentSearchResults} = useSearchContext();
@@ -177,6 +177,7 @@ function MoneyRequestView({
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
     let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: true});
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`, {canBeMissing: true});
 
     const parentReportActionSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
         transactionThreadReport?.parentReportActionID ? reportActions?.[transactionThreadReport.parentReportActionID] : undefined;
@@ -444,18 +445,19 @@ function MoneyRequestView({
         if (newBillable === getBillable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
             return;
         }
-        updateMoneyRequestBillable(
-            transaction.transactionID,
+        updateMoneyRequestBillable({
+            transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
-            newBillable,
+            value: newBillable,
             policy,
             policyTagList,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
-        );
+            parentReportNextStep,
+        });
     };
 
     const saveReimbursable = (newReimbursable: boolean) => {
@@ -463,18 +465,19 @@ function MoneyRequestView({
         if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
             return;
         }
-        updateMoneyRequestReimbursable(
-            transaction.transactionID,
+        updateMoneyRequestReimbursable({
+            transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
-            newReimbursable,
+            value: newReimbursable,
             policy,
             policyTagList,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
-        );
+            parentReportNextStep,
+        });
     };
 
     if (isManagedCardTransaction) {
@@ -775,9 +778,8 @@ function MoneyRequestView({
         );
     });
 
-    const reportNameToDisplay = isFromMergeTransaction
-        ? (updatedTransaction?.reportName ?? translate('common.none'))
-        : (parentReport?.reportName ?? computeReportName(parentReport, allReports, allPolicies, allTransactions));
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
