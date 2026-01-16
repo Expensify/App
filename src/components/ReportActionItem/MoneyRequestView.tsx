@@ -443,6 +443,16 @@ function MoneyRequestView({
         );
     };
 
+    console.log('Debug Logs:', {
+        'policy': policy,
+        'policy?.id': policy?.id,
+        'policy?.type': policy?.type,
+        'policy?.isAttendeeTrackingEnabled': policy?.isAttendeeTrackingEnabled,
+        'iouType': iouType,
+        'shouldShowAttendees result': shouldShowAttendees,
+        'actualAttendees': actualAttendees,
+    });
+
     const saveReimbursable = (newReimbursable: boolean) => {
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
