@@ -1725,7 +1725,6 @@ export {
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
-    isUserPolicyAdmin,
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
