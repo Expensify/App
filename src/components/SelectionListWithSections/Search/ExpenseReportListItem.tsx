@@ -47,7 +47,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
-    const searchData = snapshot?.data;
+    const searchData = currentSearchResults?.data;
     const personalDetailsList = searchData?.personalDetailsList;
 
     const snapshotReport = useMemo(() => {
