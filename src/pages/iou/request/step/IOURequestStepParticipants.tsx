@@ -21,7 +21,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -416,8 +416,16 @@ function IOURequestStepParticipants({
     }, [isFocused, action]);
 
     const isWorkspacesOnly = useMemo(() => {
-        return !!(initialTransaction?.amount && initialTransaction?.amount < 0);
-    }, [initialTransaction?.amount]);
+        if (isDistanceRequest(initialTransaction)) {
+            // For distance requests, only restrict to workspaces if a route exists and the distance is 0
+            // If no route exists yet, the distance hasn't been calculated and we should allow P2P
+            if (!hasRoute(initialTransaction, true)) {
+                return false;
+            }
+            return initialTransaction?.comment?.customUnit?.quantity === 0;
+        }
+        return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
+    }, [initialTransaction]);
 
     return (
         <StepScreenWrapper
