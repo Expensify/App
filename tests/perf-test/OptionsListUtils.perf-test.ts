@@ -249,8 +249,6 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() =>
-            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], undefined, MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true),
-        );
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], undefined, MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
     });
 });
