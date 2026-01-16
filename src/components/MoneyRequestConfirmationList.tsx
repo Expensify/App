@@ -973,7 +973,7 @@ function MoneyRequestConfirmationList({
                 }
 
                 if (isTimeRequest && !isValidTimeExpenseAmount(iouAmount, iouCurrencyCode)) {
-                    setFormError('common.error.invalidAmount');
+                    setFormError('iou.timeTracking.amountTooLargeError');
                     return;
                 }
 

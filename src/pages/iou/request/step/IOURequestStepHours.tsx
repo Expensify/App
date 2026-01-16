@@ -14,7 +14,7 @@ import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabiliti
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
-import {computeTimeAmount, formatTimeMerchant, isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
+import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
 import variables from '@styles/variables';
 import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -88,13 +88,7 @@ function IOURequestStepHours({
             return;
         }
 
-        const amount = computeTimeAmount(rate, count);
-        if (isEditingConfirmation && !isValidTimeExpenseAmount(amount, currency)) {
-            setFormError(translate('iou.error.invalidQuantity'));
-            return;
-        }
-
-        setMoneyRequestAmount(transactionID, amount, currency);
+        setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
         setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate), isTransactionDraft);
         setMoneyRequestTimeCount(transactionID, count, isTransactionDraft);
 

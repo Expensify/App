@@ -1488,6 +1488,7 @@ const translations = {
             hrs: 'hrs',
             hours: 'Hours',
             ratePreview: (rate: string) => `${rate} / hour`,
+            amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Explain</strong></a> &#x2728;',
     },
