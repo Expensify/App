@@ -65,7 +65,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 showTooltip();
             }
         });
-    }, [insets, shouldSuppressTooltip]);
+    }, [insets.top, insets.bottom, insets.left, insets.right, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
@@ -159,7 +159,6 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         >
             {(genericTooltipState) => {
                 const {updateTargetBounds, showTooltip} = genericTooltipState;
-                // eslint-disable-next-line react-compiler/react-compiler
                 genericTooltipStateRef.current = genericTooltipState;
                 return React.cloneElement(children as React.ReactElement<{onLayout?: (e: LayoutChangeEventWithTarget) => void}>, {
                     onLayout: (e: LayoutChangeEventWithTarget) => {
@@ -176,7 +175,5 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         </GenericTooltip>
     );
 }
-
-BaseEducationalTooltip.displayName = 'BaseEducationalTooltip';
 
 export default memo(BaseEducationalTooltip);

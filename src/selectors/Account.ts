@@ -5,4 +5,8 @@ const isActingAsDelegateSelector = (account: OnyxEntry<Account>) => !!account?.d
 
 const isUserValidatedSelector = (account: OnyxEntry<Account>) => account?.validated;
 
-export {isActingAsDelegateSelector, isUserValidatedSelector};
+const primaryLoginSelector = (account: OnyxEntry<Account>) => account?.primaryLogin;
+
+const delegatesSelector = (account: OnyxEntry<Account>) => account?.delegatedAccess?.delegates;
+
+export {isActingAsDelegateSelector, isUserValidatedSelector, primaryLoginSelector, delegatesSelector};

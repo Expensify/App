@@ -1,22 +1,20 @@
 import React, {useState} from 'react';
-import type {ForwardedRef} from 'react';
-import type {NativeSyntheticEvent, TextInputChangeEventData} from 'react-native';
+import type {TextInputChangeEvent} from 'react-native';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import type {Selection} from '@libs/ComposerUtils';
 import {modifyRoomName} from '@libs/RoomNameInputUtils';
-import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
 
-function RoomNameInput({disabled = false, autoFocus = false, isFocused, value = '', onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+function RoomNameInput({disabled = false, autoFocus = false, isFocused, value = '', onBlur, onChangeText, onInputChange, ref, ...props}: RoomNameInputProps) {
     const {translate} = useLocalize();
     const [selection, setSelection] = useState<Selection>({start: value.length - 1, end: value.length - 1});
 
     /**
      * Calls the onChangeText callback with a modified room name
      */
-    const setModifiedRoomName = (event: NativeSyntheticEvent<TextInputChangeEventData>) => {
+    const setModifiedRoomName = (event: TextInputChangeEvent) => {
         const roomName = event.nativeEvent.text;
         const modifiedRoomName = modifyRoomName(roomName);
         onChangeText?.(modifiedRoomName);
@@ -64,6 +62,4 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value = 
     );
 }
 
-RoomNameInput.displayName = 'RoomNameInput';
-
-export default React.forwardRef(RoomNameInput);
+export default RoomNameInput;

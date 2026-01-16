@@ -1,3 +1,4 @@
+import {Platform} from 'react-native';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
@@ -8,6 +9,8 @@ const createMockFile = (name: string, size: number) => ({
     name,
     size,
 });
+
+const createFileNameFromLength = ({length, extension}: {length: number; extension?: string | undefined}): string => `${'a'.repeat(length)}${extension ? `.${extension}` : ''}`;
 
 describe('FileUtils', () => {
     describe('splitExtensionFromFileName', () => {
@@ -34,26 +37,72 @@ describe('FileUtils', () => {
         it('should append current time to the end of the file name', () => {
             const actualFileName = FileUtils.appendTimeToFileName('image.jpg');
             const expectedFileName = `image-${DateUtils.getDBTime()}.jpg`;
-            expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
+            expect(actualFileName).toEqual(expectedFileName.replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
         });
 
         it('should append current time to the end of the file name without extension', () => {
             const actualFileName = FileUtils.appendTimeToFileName('image');
             const expectedFileName = `image-${DateUtils.getDBTime()}`;
-            expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
+            expect(actualFileName).toEqual(expectedFileName.replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
+        });
+
+        describe('on Android', () => {
+            let platformReplaceProperty: jest.ReplaceProperty<string>;
+
+            beforeEach(() => {
+                platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'android');
+            });
+
+            afterEach(() => {
+                platformReplaceProperty.restore();
+            });
+
+            it('should truncate the file name to safe length when length exceeds the safe length', () => {
+                const fileNameExceedingSafeLength = createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH + 1, extension: 'doc'});
+
+                const actualFileName = FileUtils.appendTimeToFileName(fileNameExceedingSafeLength);
+                const expectedTruncatedFileName = `${createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH - 24})}-${DateUtils.getDBTime()}.doc`;
+
+                expect(actualFileName).toEqual(expectedTruncatedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
+            });
+        });
+
+        describe('on Non-Android', () => {
+            const nonAndroidPlatforms = ['ios', 'macos', 'windows', 'web'] as const;
+
+            describe.each(nonAndroidPlatforms)('%s', (platform) => {
+                let platformReplaceProperty: jest.ReplaceProperty<string>;
+
+                beforeEach(() => {
+                    platformReplaceProperty = jest.replaceProperty(Platform, 'OS', platform);
+                });
+
+                afterEach(() => {
+                    platformReplaceProperty.restore();
+                });
+
+                it('should not truncate the file name even when length exceeds the Android safe length', () => {
+                    const fileNameExceedingAndroidSafeLength = createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH + 1, extension: 'doc'});
+
+                    const actualFileName = FileUtils.appendTimeToFileName(fileNameExceedingAndroidSafeLength);
+                    const expectedFileName = `${createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH + 1})}-${DateUtils.getDBTime()}.doc`;
+
+                    expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
+                });
+            });
         });
     });
 
     describe('validateAttachment', () => {
         it('should not return FILE_TOO_SMALL when validating small attachment', () => {
             const file = createMockFile('file.csv', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, false, false);
+            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: false});
             expect(error).not.toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL);
         });
 
         it('should return FILE_TOO_SMALL when validating small receipt', () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, false, true);
+            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL);
         });
 
@@ -65,31 +114,31 @@ describe('FileUtils', () => {
 
         it('should return FILE_TOO_LARGE_MULTIPLE when checking multiple files', () => {
             const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
-            const error = FileUtils.validateAttachment(file, true);
+            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: true, isValidatingReceipts: false});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE);
         });
 
         it('should return WRONG_FILE_TYPE for invalid receipt extension', () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, false, true);
+            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
         it('should prioritize WRONG_FILE_TYPE over FILE_TOO_LARGE for receipts', () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
-            const error = FileUtils.validateAttachment(file, false, true);
+            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
         it('should return WRONG_FILE_TYPE_MULTIPLE when checking multiple invalid receipt files', () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
-            const error = FileUtils.validateAttachment(file, true, true);
+            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: true, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE);
         });
 
         it('should return empty string for valid image receipt', () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, false, true);
+            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe('');
         });
     });

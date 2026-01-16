@@ -1,7 +1,8 @@
 import type {ImageSourcePropType} from 'react-native';
 import Config from '@src/CONFIG';
 import type {Request} from '@src/types/onyx';
-import * as ApiUtils from './ApiUtils';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
+import {getApiRoot} from './ApiUtils';
 
 // Absolute URLs (`/` or `//`) should be resolved from API ROOT
 // Legacy attachments can come from either staging or prod, depending on the env they were uploaded by
@@ -20,14 +21,15 @@ const ORIGIN_PATTERN = new RegExp(`^(${ORIGINS_TO_REPLACE.join('|')})`);
  */
 function tryResolveUrlFromApiRoot(url: string): string;
 function tryResolveUrlFromApiRoot(url: ImageSourcePropType): number;
-function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType): string | ImageSourcePropType;
-function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType): string | ImageSourcePropType {
+function tryResolveUrlFromApiRoot(url: ReceiptSource): ReceiptSource;
+function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType | ReceiptSource): string | ImageSourcePropType | ReceiptSource;
+function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType | ReceiptSource): string | ImageSourcePropType | ReceiptSource {
     // in native, when we import an image asset, it will have a number representation which can be used in `source` of Image
     // in this case we can skip the url resolving
     if (typeof url !== 'string') {
         return url;
     }
-    const apiRoot = ApiUtils.getApiRoot({shouldUseSecure: false} as Request);
+    const apiRoot = getApiRoot({shouldUseSecure: false} as Request);
     return url.replace(ORIGIN_PATTERN, apiRoot);
 }
 

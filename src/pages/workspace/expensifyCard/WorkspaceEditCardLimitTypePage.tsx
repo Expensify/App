@@ -5,8 +5,8 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
@@ -152,7 +152,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         }
 
         return options;
-    }, [areApprovalsConfigured, card, initialLimitType, translate, typeSelected]);
+    }, [areApprovalsConfigured, card?.totalSpend, card?.nameValuePairs?.unapprovedExpenseLimit, initialLimitType, translate, typeSelected]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -161,7 +161,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceEditCardLimitTypePage.displayName}
+                testID="WorkspaceEditCardLimitTypePage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -173,17 +173,17 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                     <SelectionList
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => setTypeSelected(value)}
-                        sections={[{data}]}
+                        data={data}
                         shouldUpdateFocusedIndex
-                        isAlternateTextMultilineSupported
-                        initiallyFocusedOptionKey={typeSelected}
+                        alternateNumberOfSupportedLines={2}
+                        initiallyFocusedItemKey={typeSelected}
                     />
                     <ConfirmModal
                         title={translate('workspace.expensifyCard.changeCardLimitType')}
                         isVisible={isConfirmModalVisible}
                         onConfirm={updateCardLimitType}
                         onCancel={() => setIsConfirmModalVisible(false)}
-                        prompt={translate(promptTranslationKey, {limit: convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)})}
+                        prompt={translate(promptTranslationKey, convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency))}
                         confirmText={translate('workspace.expensifyCard.changeLimitType')}
                         cancelText={translate('common.cancel')}
                         danger
@@ -202,7 +202,5 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceEditCardLimitTypePage.displayName = 'WorkspaceEditCardLimitTypePage';
 
 export default WorkspaceEditCardLimitTypePage;

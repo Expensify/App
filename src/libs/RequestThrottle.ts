@@ -1,4 +1,6 @@
 import CONST from '@src/CONST';
+import SafeString from '@src/utils/SafeString';
+import {WRITE_COMMANDS} from './API/types';
 import Log from './Log';
 import type {RequestError} from './Network/SequentialQueue';
 import {generateRandomInt} from './NumberUtils';
@@ -20,7 +22,7 @@ class RequestThrottle {
         this.requestWaitTime = 0;
         this.requestRetryCount = 0;
         if (this.timeoutID) {
-            Log.info(`[RequestThrottle - ${this.name}] clearing timeoutID: ${String(this.timeoutID)}`);
+            Log.info(`[RequestThrottle - ${this.name}] clearing timeoutID: ${SafeString(this.timeoutID)}`);
             clearTimeout(this.timeoutID);
             this.timeoutID = undefined;
         }
@@ -43,7 +45,8 @@ class RequestThrottle {
     sleep(error: RequestError, command: string): Promise<void> {
         this.requestRetryCount++;
         return new Promise((resolve, reject) => {
-            if (this.requestRetryCount <= CONST.NETWORK.MAX_REQUEST_RETRIES) {
+            const maxRequestRetries = command === WRITE_COMMANDS.OPEN_APP ? CONST.NETWORK.MAX_OPEN_APP_REQUEST_RETRIES : CONST.NETWORK.MAX_REQUEST_RETRIES;
+            if (this.requestRetryCount <= maxRequestRetries) {
                 const currentRequestWaitTime = this.getRequestWaitTime();
                 Log.info(
                     `[RequestThrottle - ${this.name}] Retrying request after error: '${error.name}', '${error.message}', '${error.status}'. Command: ${command}. Retry count:  ${this.requestRetryCount}. Wait time: ${currentRequestWaitTime}`,

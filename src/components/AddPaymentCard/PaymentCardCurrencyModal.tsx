@@ -3,8 +3,8 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,28 +21,26 @@ type PaymentCardCurrencyModalProps = {
     currentCurrency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 
     /** Function to call when the user selects a currency */
-    onCurrencyChange?: (currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => void;
+    onCurrencyChange: (currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => void;
 
     /** Function to call when the user closes the currency picker */
-    onClose?: () => void;
+    onClose: () => void;
 };
 
 function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONST.PAYMENT_CARD_CURRENCY.USD, onCurrencyChange, onClose}: PaymentCardCurrencyModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {sections} = useMemo(
-        () => ({
-            sections: [
-                {
-                    data: currencies.map((currency) => ({
-                        text: currency,
-                        value: currency,
-                        keyForList: currency,
-                        isSelected: currency === currentCurrency,
-                    })),
-                },
-            ],
-        }),
+    const currencyOptions = useMemo(
+        () =>
+            currencies.map(
+                (currency) => ({
+                    text: currency,
+                    value: currency,
+                    keyForList: currency,
+                    isSelected: currency === currentCurrency,
+                }),
+                [],
+            ),
         [currencies, currentCurrency],
     );
 
@@ -50,10 +48,10 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
-            onClose={() => onClose?.()}
+            onClose={onClose}
             onModalHide={onClose}
             onBackdropPress={() => {
-                onClose?.();
+                onClose();
                 Navigation.dismissModal();
             }}
         >
@@ -61,28 +59,24 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
                 style={styles.pb0}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={PaymentCardCurrencyModal.displayName}
+                testID="PaymentCardCurrencyModal"
             >
                 <HeaderWithBackButton
                     title={translate('common.currency')}
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    sections={sections}
-                    onSelectRow={(option) => {
-                        onCurrencyChange?.(option.value);
-                    }}
-                    initiallyFocusedOptionKey={currentCurrency}
-                    showScrollIndicator
-                    shouldStopPropagation
-                    shouldUseDynamicMaxToRenderPerBatch
+                    data={currencyOptions}
                     ListItem={RadioListItem}
+                    onSelectRow={(option) => {
+                        onCurrencyChange(option.value);
+                    }}
+                    initiallyFocusedItemKey={currentCurrency}
+                    showScrollIndicator
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-PaymentCardCurrencyModal.displayName = 'PaymentCardCurrencyModal';
 
 export default PaymentCardCurrencyModal;

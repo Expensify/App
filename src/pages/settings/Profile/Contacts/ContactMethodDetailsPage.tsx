@@ -7,7 +7,6 @@ import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Star, Trashcan} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,6 +15,8 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -41,6 +42,7 @@ import {close} from '@userActions/Modal';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Login} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -58,9 +60,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {formatPhoneNumber, translate} = useLocalize();
     const themeStyles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -71,7 +75,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      */
     const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params.contactMethod), [route.params.contactMethod]);
 
-    const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
+    const loginDataRef = useRef<Login | undefined>(undefined);
+    const loginData = useMemo(() => {
+        loginDataRef.current = loginList?.[contactMethod];
+        return loginList?.[contactMethod];
+    }, [loginList, contactMethod]);
 
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
@@ -81,8 +89,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        setContactMethodAsDefault(contactMethod, formatPhoneNumber, backTo);
-    }, [contactMethod, backTo, formatPhoneNumber]);
+        setContactMethodAsDefault(currentUserPersonalDetails, contactMethod, formatPhoneNumber, backTo);
+    }, [currentUserPersonalDetails, contactMethod, formatPhoneNumber, backTo]);
 
     /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
@@ -157,20 +165,20 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
     }, [contactMethod, loginData?.partnerUserID, loginData?.validatedDate]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
         if (isValidateCodeFormVisible && !isDefaultContactMethod) {
             menuItems.push({
-                icon: Trashcan,
+                icon: icons.Trashcan,
                 text: translate('common.remove'),
                 onSelected: () => close(() => toggleDeleteModal(true)),
             });
         }
         return menuItems;
-    }, [isValidateCodeFormVisible, translate, toggleDeleteModal, isDefaultContactMethod]);
+    }, [isValidateCodeFormVisible, translate, toggleDeleteModal, isDefaultContactMethod, icons.Trashcan]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
@@ -178,7 +186,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     if (!contactMethod || !loginData) {
         return (
-            <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
+            <ScreenWrapper testID="ContactMethodDetailsPage">
                 <FullPageNotFoundView
                     shouldShow
                     linkTranslationKey="contacts.goBackContactMethods"
@@ -225,7 +233,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 >
                     <MenuItem
                         title={translate('contacts.setAsDefault')}
-                        icon={Star}
+                        icon={icons.Star}
                         onPress={isAccountLocked ? showLockedAccountModal : setAsDefault}
                     />
                 </OfflineWithFeedback>
@@ -248,7 +256,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 >
                     <MenuItem
                         title={translate('common.remove')}
-                        icon={Trashcan}
+                        icon={icons.Trashcan}
                         onPress={() => {
                             if (isActingAsDelegate) {
                                 showDelegateNoAccessModal();
@@ -271,7 +279,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     validateCodeFormRef.current?.focus?.();
                 });
             }}
-            testID={ContactMethodDetailsPage.displayName}
+            testID="ContactMethodDetailsPage"
             focusTrapSettings={{
                 focusTrapOptions: isMobileSafari()
                     ? undefined
@@ -314,23 +322,22 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <ErrorMessageRow
                         errors={getLatestErrorField(loginData, 'addedLogin')}
                         errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
-                        onClose={() => {
-                            clearContactMethod(contactMethod);
+                        onDismiss={() => {
+                            clearContactMethod([contactMethod]);
                             clearUnvalidatedNewContactMethodAction();
                             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
                         }}
-                        canDismissError
                     />
                 )}
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
+                        handleSubmitForm={(validateCode) => validateSecondaryLogin(currentUserPersonalDetails, loginList, contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => {
                             // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
                             // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
-                            if (!loginData.partnerUserID) {
+                            if (!loginDataRef.current?.partnerUserID) {
                                 return;
                             }
                             clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
@@ -341,8 +348,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             }
                             requestContactMethodValidateCode(contactMethod);
                         }}
-                        descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
-                        forwardedRef={validateCodeFormRef}
+                        descriptionPrimary={translate('contacts.enterMagicCode', formattedContactMethod)}
+                        ref={validateCodeFormRef}
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
@@ -353,7 +360,5 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
 
 export default ContactMethodDetailsPage;

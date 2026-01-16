@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -113,7 +113,7 @@ function BaseTextInput({
     const isLabelActive = useRef(initialActiveLabel);
     const hasLabel = !!label?.length;
 
-    useHtmlPaste(input, undefined, isMarkdownEnabled);
+    useHtmlPaste(input, undefined, isMarkdownEnabled, maxLength);
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
@@ -155,12 +155,12 @@ function BaseTextInput({
         isLabelActive.current = false;
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
-    const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onFocus = (event: FocusEvent) => {
         inputProps.onFocus?.(event);
         setIsFocused(true);
     };
 
-    const onBlur = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onBlur = (event: BlurEvent) => {
         inputProps.onBlur?.(event);
         setIsFocused(false);
     };
@@ -230,7 +230,7 @@ function BaseTextInput({
      * Set Value & activateLabel
      */
     const setValue = (newValue: string) => {
-        const formattedValue = isMultiline ? newValue : newValue.replace(/\n/g, ' ');
+        const formattedValue = isMultiline ? newValue : newValue.replaceAll('\n', ' ');
 
         onInputChange?.(formattedValue);
 
@@ -314,18 +314,13 @@ function BaseTextInput({
                         ]}
                     >
                         {hasLabel ? (
-                            <>
-                                {/* Adding this background to the label only for multiline text input,
-                to prevent text overlapping with label when scrolling */}
-                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone, inputProps.disabled && styles.textInputDisabledContainer]} />}
-                                <TextInputLabel
-                                    label={label}
-                                    labelTranslateY={labelTranslateY}
-                                    labelScale={labelScale}
-                                    for={inputProps.nativeID}
-                                    isMultiline={isMultiline}
-                                />
-                            </>
+                            <TextInputLabel
+                                label={label}
+                                labelTranslateY={labelTranslateY}
+                                labelScale={labelScale}
+                                for={inputProps.nativeID}
+                                isMultiline={isMultiline}
+                            />
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
@@ -501,7 +496,5 @@ function BaseTextInput({
         </>
     );
 }
-
-BaseTextInput.displayName = 'BaseTextInput';
 
 export default BaseTextInput;

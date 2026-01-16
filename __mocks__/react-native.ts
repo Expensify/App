@@ -63,7 +63,9 @@ jest.doMock('react-native', () => {
                 },
                 emitCurrentTestState(state: ReactNative.AppStateStatus) {
                     appState = state;
-                    Object.entries(changeListeners).forEach(([, listener]) => listener(appState));
+                    for (const [, listener] of Object.entries(changeListeners)) {
+                        listener(appState);
+                    }
                 },
                 addEventListener(type: ReactNative.AppStateEvent, listener: (state: ReactNative.AppStateStatus) => void) {
                     if (type === 'change') {

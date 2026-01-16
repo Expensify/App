@@ -13,7 +13,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
@@ -27,6 +27,7 @@ function CloseAccountPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {
         canBeMissing: false,
     });
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -56,13 +57,6 @@ function CloseAccountPage() {
 
     const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
 
-    /**
-     * Removes spaces and transform the input string to lowercase.
-     * @param phoneOrEmail - The input string to be sanitized.
-     * @returns The sanitized string
-     */
-    const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
-
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
 
@@ -74,8 +68,8 @@ function CloseAccountPage() {
                 isValid = sanitizePhoneOrEmail(userEmailOrPhone) === sanitizePhoneOrEmail(values.phoneOrEmail);
             } else {
                 // Phone number comparison - normalize to E.164
-                const storedE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone));
-                const inputE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail));
+                const storedE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone), countryCode);
+                const inputE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail), countryCode);
 
                 // Only compare if both numbers could be formatted to E.164
                 if (storedE164Phone && inputE164Phone) {
@@ -94,7 +88,7 @@ function CloseAccountPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={CloseAccountPage.displayName}
+            testID="CloseAccountPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
                 <HeaderWithBackButton
@@ -158,7 +152,5 @@ function CloseAccountPage() {
         </ScreenWrapper>
     );
 }
-
-CloseAccountPage.displayName = 'CloseAccountPage';
 
 export default CloseAccountPage;

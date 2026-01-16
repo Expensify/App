@@ -1,7 +1,9 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext, useRef} from 'react';
 import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
@@ -37,13 +39,14 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
     const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     // Stores an option to execute after modal closes when using deferred execution
     const selectedOptionRef = useRef<DropdownOption<SearchHeaderOptionValue> | null>(null);
     const {accountID} = useCurrentUserPersonalDetails();
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>) => {
         if (option?.shouldCloseModalOnSelect) {
@@ -71,19 +74,22 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                         shouldAlwaysShowDropdownMenu
                         isDisabled={options.length === 0}
                         onPress={() => null}
+                        shouldPopoverUseScrollView={options.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                         onOptionSelected={(item) => handleOnMenuItemPress(item)}
                         onSubItemSelected={(subItem) =>
-                            handleBulkPayItemSelected(
-                                subItem,
+                            handleBulkPayItemSelected({
+                                item: subItem,
                                 triggerKYCFlow,
                                 isAccountLocked,
                                 showLockedAccountModal,
-                                currentPolicy,
+                                policy: currentPolicy,
                                 latestBankItems,
                                 activeAdminPolicies,
                                 isUserValidated,
+                                isDelegateAccessRestricted,
+                                showDelegateNoAccessModal,
                                 confirmPayment,
-                            )
+                            })
                         }
                         success
                         isSplitButton={false}
@@ -99,7 +105,5 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
         </KYCWall>
     );
 }
-
-SearchSelectedNarrow.displayName = 'SearchSelectedNarrow';
 
 export default SearchSelectedNarrow;

@@ -8,6 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,6 +26,8 @@ function EnablePaymentsPage() {
     const {isOffline} = useNetwork();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const paymentCardList = fundList ?? {};
 
     useEffect(() => {
         if (isOffline) {
@@ -43,7 +46,7 @@ function EnablePaymentsPage() {
     if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
         return (
             <ScreenWrapper
-                testID={EnablePaymentsPage.displayName}
+                testID="EnablePaymentsPage"
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
@@ -55,8 +58,10 @@ function EnablePaymentsPage() {
             </ScreenWrapper>
         );
     }
-
-    const enablePaymentsStep = isEmptyObject(bankAccountList) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+    const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
+    const enablePaymentsStep = !hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}, hasActivatedWallet)
+        ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT
+        : userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
 
     let CurrentStep: React.JSX.Element | null;
     switch (enablePaymentsStep) {
@@ -79,19 +84,10 @@ function EnablePaymentsPage() {
     }
 
     if (CurrentStep) {
-        return (
-            <View
-                style={styles.flex1}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                {CurrentStep}
-            </View>
-        );
+        return <View style={styles.flex1}>{CurrentStep}</View>;
     }
 
     return null;
 }
-
-EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 
 export default EnablePaymentsPage;

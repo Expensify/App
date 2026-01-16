@@ -16,7 +16,8 @@ The navigation in the app is built on top of the `react-navigation` library. To 
   - [Debugging](#debugging)
     - [Reading state when it changes](#reading-state-when-it-changes)
     - [Finding the code that calls the navigation function](#finding-the-code-that-calls-the-navigation-function)
-  - [Using `backTo` route param](#using-backto-route-param)
+  - [How to remove backTo from URL](#how-to-remove-backto-from-url)
+    - [Separating routes for each screen instance](#separating-routes-for-each-screen-instance)
   - [Generating state from a path](#generating-state-from-a-path)
   - [Setting the correct screen underneath RHP](#setting-the-correct-screen-underneath-rhp)
   - [Performance solutions](#performance-solutions)
@@ -71,7 +72,7 @@ Navigation.navigate(
 );
 
 // Navigation with forceReplace - replaces current screen instead of pushing a new one
-Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
+Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
 
 // Navigation with a callback to handle anonymous users
 interceptAnonymousUser(() => {
@@ -434,10 +435,13 @@ const handleStateChange = (state: NavigationState | undefined) => {
 
 The easiest way to find the piece of code from which the navigation method was called is to use a debugger and breakpoints. You should attach a breakpoint in the navigation method and check the call stack, this way you can easily find the navigation method that caused the problem.
 
-## Using `backTo` route param
+## How to remove backTo from URL
 
 > [!WARNING]
-> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below.
+
+<details>
+<summary>Using `backTo` route param</summary>
 
 When a particular screen can be opened from two or more different pages, we can use `backTo` route parameter to handle such case.
 
@@ -495,6 +499,96 @@ function NewSettingsScreen({route}: NewSettingsScreenNavigationProps) {
     );
 }
 ```
+</details>
+
+### Separating routes for each screen instance
+
+Often, you will need to reuse a single screen across multiple navigation flows. For example, the `VerifyAccountPage` can be viewed in many different RHP flows. The proper approach to implementing such a mechanism is to create a new route for each screen instance within a single flow.
+
+Considerations when removing `backTo` from a URL:
+
+- For RHP screens, check if the correct central screen is under the overlay after refreshing the page. More information on how to set the default screen underneath RHP can be found (here)[#setting-the-correct-screen-underneath-rhp].
+- Ensure that after refreshing the page and pressing the back button in the application, you return to the page from which you initially accessed the currently displayed screen.
+- If you use the same component for different routes, be sure to define the correct props type. Here's the example of `ReportScreen` that can be viewed in full screen width in the Inbox tab and in the Reports tab in the RHP.
+
+```ts
+type ReportScreenNavigationProps =
+    | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+```
+
+An example of a screen that is reused in several flows is `VerifyAccountPage`.
+
+1. Binding one component to multiple screens.
+
+`src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx`
+
+```ts
+const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
+    // ...
+    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
+});
+
+const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
+    // ...
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyAccountPage').default,
+});
+```
+
+2. Custom component behavior depending on the current route.
+
+If we want the component's behavior to change based on the current route, we can extract the component shared by each route and pass properties to it that define the custom behavior, as is done for `VerifyAccountPage`.
+
+`VerifyAccountPageBase` is a shared component that receives `navigateBackTo` and `navigateForwardTo` props defining behavior that is custom across different flows. 
+
+Here's an example of reusing this component for Wallet and Travel flows:
+
+1. `src/pages/settings/Wallet/VerifyAccountPage.tsx`.
+
+```ts
+import React from 'react';
+import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+import ROUTES from '@src/ROUTES';
+
+function VerifyAccountPage() {
+    return (
+        <VerifyAccountPageBase
+            navigateBackTo={ROUTES.SETTINGS_WALLET}
+            navigateForwardTo={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+        />
+    );
+}
+
+VerifyAccountPage.displayName = 'VerifyAccountPage';
+
+export default VerifyAccountPage;
+```
+
+2. `src/pages/Travel/VerifyAccountPage.tsx`.
+
+```ts
+import type {StackScreenProps} from '@react-navigation/stack';
+import React from 'react';
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
+
+function VerifyAccountPage({route}: VerifyAccountPageProps) {
+    return (
+        <VerifyAccountPageBase
+            navigateBackTo={ROUTES.TRAVEL_MY_TRIPS}
+            navigateForwardTo={ROUTES.TRAVEL_TCS.getRoute(route.params.domain)}
+        />
+    );
+}
+
+VerifyAccountPage.displayName = 'VerifyAccountPage';
+export default VerifyAccountPage;
+
+```
 
 ## Generating state from a path
 
@@ -507,7 +601,7 @@ In Expensify, we use an extended implementation of this function because:
 -   When opening a link leading to an onboarding screen, all previous screens in this flow have to be present in the navigation state.
 -   In case of opening the RHP, appropriate screens should be pushed to the navigation to be displayed below the overlay. A guide on how to set up a good screen for RHP can be found [here](#how-to-set-a-correct-screen-below-the-rhp).
 -   When opening the settings of a specific workspace, the workspace list needs to be pushed to the state.
--   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to.
+-   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-properly-remove-backto-from-url))
 
 Here are examples how the state is generated based on route:
 
@@ -623,7 +717,7 @@ In the above example, we can see that when building a state from a link leading 
 
 ## Setting the correct screen underneath RHP
 
-RHP screens can usually be opened from a specific central screen. Of course there are cases where one RHP screen can be used in different tabs (then using `backTo` parameter comes in handy). However, most often one RHP screen has a specific central screen assigned underneath.
+RHP screens can usually be opened from a specific central screen. Of course there are cases where one RHP screen can be used in different tabs. However, most often one RHP screen has a specific central screen assigned underneath.
 
 > [!WARNING]
 > **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.

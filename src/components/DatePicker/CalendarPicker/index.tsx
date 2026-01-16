@@ -150,7 +150,7 @@ function CalendarPicker({
         });
     };
 
-    const monthNames = DateUtils.getMonthNames().map((month) => Str.recapitalize(month));
+    const monthNames = DateUtils.getMonthNames().map((month) => Str.UCFirst(month));
     const daysOfWeek = DateUtils.getDaysOfWeek().map((day) => day.toUpperCase());
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
@@ -165,7 +165,7 @@ function CalendarPicker({
         const newHeight = rowCount * CONST.CALENDAR_PICKER_DAY_HEIGHT;
 
         heightValue.set(withTiming(newHeight, {duration: 50}));
-    }, [calendarDaysMatrix, heightValue, isSmallScreenWidth]);
+    }, [calendarDaysMatrix?.length, heightValue, isSmallScreenWidth]);
 
     const animatedStyle = useAnimatedStyle(() => {
         return {

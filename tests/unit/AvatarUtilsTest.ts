@@ -1,7 +1,9 @@
+import {getApiRoot} from '@libs/ApiUtils';
 import CONST from '@src/CONST';
-import {isValidExtension, isValidResolution, isValidSize, validateAvatarImage} from '@src/libs/AvatarUtils';
+import {getValidatedImageSource, isValidExtension, isValidResolution, isValidSize, validateAvatarImage} from '@src/libs/AvatarUtils';
 import * as FileUtils from '@src/libs/fileDownload/FileUtils';
 import * as getImageResolution from '@src/libs/fileDownload/getImageResolution';
+import type {Request} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 jest.mock('@src/libs/fileDownload/FileUtils');
@@ -333,6 +335,37 @@ describe('AvatarUtils', () => {
 
             const result = await validateAvatarImage(image);
             expect(result.isValid).toBe(true);
+        });
+    });
+
+    describe('getValidatedImageSource', () => {
+        it('should validate number sources', () => {
+            expect(getValidatedImageSource(0)).toBe(undefined);
+            expect(getValidatedImageSource(1)).toBe(1);
+        });
+
+        it('should decode string source', () => {
+            const encodedImageFileName = 'avatar.jpg%3Fv%3D123';
+            const decodedImageFileName = decodeURIComponent(encodedImageFileName);
+            expect(getValidatedImageSource(encodedImageFileName)).toBe(decodedImageFileName);
+        });
+
+        it('should validate string source', () => {
+            const imageFileName = 'avatar.jpg';
+            const absoluteImageFilePath = `/${imageFileName}`;
+
+            const encodedImageFileName = encodeURIComponent(imageFileName);
+            const absoluteEncodedImageFilePath = `/${encodedImageFileName}`;
+
+            const apiRoot = getApiRoot({shouldUseSecure: false} as Request);
+            const prodImageFileUrl = `${apiRoot}${imageFileName}`;
+            const encodedProdImageFileUrl = `${apiRoot}${encodedImageFileName}`;
+
+            expect(getValidatedImageSource(absoluteImageFilePath)).toBe(prodImageFileUrl);
+            expect(getValidatedImageSource(absoluteEncodedImageFilePath)).toBe(encodedProdImageFileUrl);
+
+            expect(getValidatedImageSource(prodImageFileUrl)).toBe(prodImageFileUrl);
+            expect(getValidatedImageSource(encodedProdImageFileUrl)).toBe(prodImageFileUrl);
         });
     });
 });

@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import type {TextSelection} from '@components/Composer/types';
@@ -106,7 +106,7 @@ function Suggestions({
         return emojiHandler ?? mentionHandler;
     }, []);
 
-    const onSelectionChange = useCallback((e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+    const onSelectionChange = useCallback((e: TextInputSelectionChangeEvent) => {
         const emojiHandler = suggestionEmojiRef.current?.onSelectionChange?.(e);
         suggestionMentionRef.current?.onSelectionChange?.(e);
         return emojiHandler;
@@ -176,8 +176,6 @@ function Suggestions({
         </View>
     );
 }
-
-Suggestions.displayName = 'Suggestions';
 
 export default Suggestions;
 

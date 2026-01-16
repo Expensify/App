@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import type HoverableProps from './types';
 
 /**
@@ -9,9 +7,7 @@ import type HoverableProps from './types';
 function Hoverable({children}: HoverableProps) {
     const childrenWithHoverState = typeof children === 'function' ? children(false) : children;
 
-    return <View>{childrenWithHoverState}</View>;
+    return childrenWithHoverState;
 }
-
-Hoverable.displayName = 'Hoverable';
 
 export default Hoverable;

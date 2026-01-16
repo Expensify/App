@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {LinkMetadata} from '@src/types/onyx/ReportAction';
 
-const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
+const IMAGE_TYPES = new Set(['jpg', 'jpeg', 'png']);
 const MAX_IMAGE_HEIGHT = 180;
 const MAX_IMAGE_WIDTH = 340;
 
@@ -24,14 +24,14 @@ function filterNonUniqueLinks(linkMetadata: LinkMetadata[]): LinkMetadata[] {
     const linksMap = new Map<string, string>();
     const result: LinkMetadata[] = [];
 
-    linkMetadata.forEach((item) => {
+    for (const item of linkMetadata) {
         if (!item.url || linksMap.has(item.url)) {
-            return;
+            continue;
         }
 
         linksMap.set(item.url, item.url);
         result.push(item);
-    });
+    }
 
     return result;
 }
@@ -79,7 +79,7 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                     </TextLink>
                 )}
                 {!!description && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
-                {!!image?.type && IMAGE_TYPES.includes(image.type) && !!image.width && !!image.height && (
+                {!!image?.type && IMAGE_TYPES.has(image.type) && !!image.width && !!image.height && (
                     <Image
                         style={[
                             styles.linkPreviewImage,
@@ -99,7 +99,5 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
         );
     });
 }
-
-LinkPreviewer.displayName = 'ReportLinkPreview';
 
 export default LinkPreviewer;

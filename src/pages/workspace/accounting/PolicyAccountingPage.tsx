@@ -8,6 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -22,7 +23,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -91,7 +92,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'Gear', 'NewWindow', 'ExpensifyCard', 'Key', 'Sync', 'Trashcan', 'QuestionMark', 'Pencil']);
+    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
+    const illustrations = useMemoizedLazyIllustrations(['Accounting']);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
     const accountingIntegrations = Object.values(connectionNames);
@@ -120,42 +123,55 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(shouldShowReinstallConnectorMenuItem
                 ? [
                       {
-                          icon: Expensicons.CircularArrowBackwards,
+                          icon: icons.CircularArrowBackwards,
                           text: translate('workspace.accounting.reinstall'),
                           onSelected: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBD}),
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
-                          iconRight: Expensicons.NewWindow,
+                          iconRight: icons.NewWindow,
                       },
                   ]
                 : []),
             ...(shouldShowEnterCredentials
                 ? [
                       {
-                          icon: Expensicons.Key,
+                          icon: icons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
                           onSelected: () => startIntegrationFlow({name: connectedIntegration}),
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
-                          iconRight: Expensicons.NewWindow,
+                          iconRight: icons.NewWindow,
                       },
                   ]
                 : [
                       {
-                          icon: Expensicons.Sync,
+                          icon: icons.Sync,
                           text: translate('workspace.accounting.syncNow'),
                           onSelected: () => syncConnection(policy, connectedIntegration),
                           disabled: isOffline,
                       },
                   ]),
             {
-                icon: Expensicons.Trashcan,
+                icon: icons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
                 onSelected: () => setIsDisconnectModalOpen(true),
                 shouldCallAfterModalHide: true,
             },
         ],
-        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
+        [
+            icons.NewWindow,
+            icons.CircularArrowBackwards,
+            icons.Key,
+            icons.Sync,
+            icons.Trashcan,
+            shouldShowEnterCredentials,
+            shouldShowReinstallConnectorMenuItem,
+            translate,
+            isOffline,
+            policy,
+            connectedIntegration,
+            startIntegrationFlow,
+        ],
     );
 
     useFocusEffect(
@@ -189,7 +205,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ? {}
                     : {
                           description: translate('workspace.xero.organization'),
-                          iconRight: Expensicons.ArrowRight,
+                          iconRight: icons.ArrowRight,
                           title: getCurrentXeroOrganizationName(policy),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
@@ -211,7 +227,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ? {}
                     : {
                           description: translate('workspace.netsuite.subsidiary'),
-                          iconRight: Expensicons.ArrowRight,
+                          iconRight: icons.ArrowRight,
                           title: policy?.connections?.netsuite?.options?.config?.subsidiary ?? '',
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
@@ -231,7 +247,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ? {}
                     : {
                           description: translate('workspace.intacct.entity'),
-                          iconRight: Expensicons.ArrowRight,
+                          iconRight: icons.ArrowRight,
                           title: getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel')),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
@@ -261,17 +277,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             default:
                 return undefined;
         }
-    }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate]);
+    }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate, icons.ArrowRight]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress && policyID) {
             return accountingIntegrations
                 .map((integration) => {
-                    const integrationData = getAccountingIntegrationData(integration, policyID, translate);
+                    const integrationData = getAccountingIntegrationData(integration, policyID, translate, undefined, undefined, undefined, undefined, undefined, accountingIcons);
                     if (!integrationData) {
                         return undefined;
                     }
 
+                    const isXero = integration === CONST.POLICY.CONNECTIONS.NAME.XERO;
                     const iconProps = integrationData?.icon
                         ? {
                               icon: integrationData.icon,
@@ -285,6 +302,15 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
+                        badgeText: isXero ? translate('workspace.accounting.claimOffer.badgeText') : undefined,
+                        onBadgePress: isXero
+                            ? () => {
+                                  Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO));
+                              }
+                            : undefined,
+                        badgeStyle: styles.mr3,
+                        badgeSuccess: isXero,
+                        shouldShowBadgeBelow: shouldUseNarrowLayout,
                         rightComponent: (
                             <Button
                                 onPress={() => startIntegrationFlow({name: integration})}
@@ -296,7 +322,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     if (!popoverAnchorRefs?.current) {
                                         return;
                                     }
-                                    // eslint-disable-next-line react-compiler/react-compiler
                                     popoverAnchorRefs.current[integration].current = ref;
                                 }}
                             />
@@ -310,7 +335,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const isConnectionVerified = !isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX));
+        const integrationData = getAccountingIntegrationData(
+            connectedIntegration,
+            policyID,
+            translate,
+            policy,
+            undefined,
+            undefined,
+            undefined,
+            isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX),
+            accountingIcons,
+        );
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
         let connectionMessage;
@@ -324,8 +359,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         const configurationOptions = [
             {
-                icon: Expensicons.Pencil,
-                iconRight: Expensicons.ArrowRight,
+                icon: icons.Pencil,
+                iconRight: icons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.import'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -335,7 +370,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
             {
                 icon: Expensicons.Send,
-                iconRight: Expensicons.ArrowRight,
+                iconRight: icons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.export'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -349,8 +384,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(shouldShowCardReconciliationOption
                 ? [
                       {
-                          icon: Expensicons.ExpensifyCard,
-                          iconRight: Expensicons.ArrowRight,
+                          icon: icons.ExpensifyCard,
+                          iconRight: icons.ArrowRight,
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.cardReconciliation'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -359,8 +394,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                   ]
                 : []),
             {
-                icon: Expensicons.Gear,
-                iconRight: Expensicons.ArrowRight,
+                icon: icons.Gear,
+                iconRight: icons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.advanced'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -404,11 +439,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         connectedIntegration,
         translate,
         isBetaEnabled,
+        accountingIcons,
         connectionSyncProgress?.stageInProgress,
+        icons.Pencil,
+        icons.ArrowRight,
+        icons.ExpensifyCard,
+        icons.Gear,
         styles.sectionMenuItemTopDescription,
         styles.pb0,
         styles.mt5,
         styles.popoverMenuIcon,
+        styles.mr3,
         styles.justifyContentCenter,
         shouldShowCardReconciliationOption,
         shouldShowSynchronizationError,
@@ -416,6 +457,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         overflowMenu,
         integrationSpecificMenuItems,
         accountingIntegrations,
+        shouldUseNarrowLayout,
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
@@ -431,7 +473,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         );
         return otherIntegrations
             .map((integration) => {
-                const integrationData = getAccountingIntegrationData(integration, policyID, translate);
+                const integrationData = getAccountingIntegrationData(integration, policyID, translate, undefined, undefined, undefined, undefined, undefined, accountingIcons);
                 if (!integrationData) {
                     return undefined;
                 }
@@ -481,12 +523,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
+        accountingIcons,
     ]);
 
     const [chatTextLink, chatReportID] = useMemo(() => {
         // If they have an onboarding specialist assigned display the following and link to the #admins room with the setup specialist.
         if (policy?.chatReportIDAdmins) {
-            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins];
+            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins?.toString()];
         }
 
         // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
@@ -506,7 +549,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper
-                testID={PolicyAccountingPage.displayName}
+                testID="PolicyAccountingPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -548,7 +591,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 <FormHelpMessage
                                     isError
                                     style={styles.menuItemError}
-                                    message={translate('workspace.accounting.errorODIntegration', {oldDotPolicyConnectionsURL})}
+                                    message={translate('workspace.accounting.errorODIntegration', oldDotPolicyConnectionsURL)}
                                     shouldRenderMessageAsHTML
                                 />
                             )}
@@ -582,7 +625,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon
-                                        src={Expensicons.QuestionMark}
+                                        src={icons.QuestionMark}
                                         width={20}
                                         height={20}
                                         fill={theme.icon}
@@ -627,7 +670,5 @@ function PolicyAccountingPageWrapper(props: PolicyAccountingPageProps) {
         </AccountingContextProvider>
     );
 }
-
-PolicyAccountingPage.displayName = 'PolicyAccountingPage';
 
 export default withPolicyConnections(PolicyAccountingPageWrapper);

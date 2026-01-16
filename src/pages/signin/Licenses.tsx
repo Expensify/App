@@ -24,6 +24,4 @@ function Licenses() {
     );
 }
 
-Licenses.displayName = 'Licenses';
-
 export default Licenses;

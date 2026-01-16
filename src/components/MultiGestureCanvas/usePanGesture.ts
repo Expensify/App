@@ -3,7 +3,8 @@ import {useCallback} from 'react';
 import {Dimensions} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
+import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import {isMobile} from '@libs/Browser';
 import {SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
@@ -121,7 +122,6 @@ const usePanGesture = ({
             // If the (absolute) velocity is 0, we don't need to run an animation
             if (Math.abs(panVelocityX.get()) !== 0) {
                 // Phase out the pan animation
-                // eslint-disable-next-line react-compiler/react-compiler
                 offsetX.set(
                     withDecay({
                         velocity: panVelocityX.get(),
@@ -157,7 +157,7 @@ const usePanGesture = ({
                         isSwipingDownToClose.set(false);
 
                         if (onSwipeDown) {
-                            runOnJS(onSwipeDown)();
+                            scheduleOnRN(onSwipeDown);
                         }
                     }),
                 );

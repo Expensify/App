@@ -1,7 +1,7 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance]
 ---
 
 Workspace Rules let Admins enforce expense policies by setting custom requirements for receipts, spending limits, category behavior, auto-approvals, and more. These rules help ensure compliance and streamline the approval process.
@@ -27,11 +27,17 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 
 ## Expense Rule Options
 
-- **Receipt Required Amount** – Set the minimum amount that requires a receipt (supports decimals).
-- **Max Expense Amount** – Set a per-expense spending cap (supports decimals).
-- **Max Expense Age (Days)** – Define how old an expense can be (whole numbers only).
-- **Billable Default** – Choose whether expenses are billable by default.
-- **eReceipts** – Enable automatic receipt generation for most USD card transactions (requires USD as default currency).
+- **Receipt required amount** – Set the minimum amount that requires a receipt (supports decimals).
+- **Max expense amount** – Set a per-expense spending cap (supports decimals).
+- **Max expense age (Days)** – Define how old an expense can be (whole numbers only).
+- **Cash expense default** - Choose whether cash expenses are reimbursable by default. 
+- **Billable default** – Choose whether expenses are billable by default.
+- **Require company cards for all purchases** - Flag out-of-pocket expenses that should have been made with a company card. Only available after company cards are connected to the workspace.
+- **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
+  
+---
+
+![Rules page showing all available workspace-level expense rules]({{site.url}}/assets/images/new-expensify-rules.png){:width="100%"}
 
 ---
 
@@ -64,10 +70,10 @@ Use these settings to control how entire reports are named, routed, and approved
 
 Available options:
 
-- **Custom Report Names** – Define naming templates for new reports.
-- **Prevent Self-Approvals** – Block users from approving their own reports.
-- **Auto-Approve Compliant Reports** – Automatically approve reports under a set amount and randomly audit others.
-- **Auto-Pay Approved Reports** – Automatically reimburse reports under a threshold when they’re approved.
+- **Custom report names** – Define naming templates for new reports.
+- **Prevent self-approvals** – Block users from approving their own reports.
+- **Auto-approve compliant reports** – Automatically approve reports under a set amount and randomly audit others.
+- **Auto-Pay approved reports** – Automatically reimburse reports under a threshold when they’re approved.
 
 ---
 
@@ -82,12 +88,12 @@ To manage them:
 
 Available options:
 
-- **Enable Category** – Make it visible to members.
-- **Require Description** – Force members to enter a reason when using the category.
+- **Enable category** – Make it visible to members.
+- **Require description** – Force members to enter a reason when using the category.
 - **Approver** – Assign a specific approver for expenses in this category.
-- **Default Tax Rate** – Set a default tax percentage.
-- **Max Amount** – Set a spending cap for this category.
-- **Require Receipts Over** – Set a threshold for when receipts are required.
+- **Default tax rate** – Set a default tax percentage.
+- **Max amount** – Set a spending cap for this category.
+- **Require receipts over** – Set a threshold for when receipts are required.
 
 ---
 
@@ -110,22 +116,43 @@ Available option:
 
 You can set workspace-wide defaults to automate categorization and tagging.
 
-- **Default Categories** – Auto-assign a category based on the merchant’s MCC. Set this under **Categories > Settings**.
-- **Billable Expenses** – Decide when tagging is required based on whether an expense is marked billable. Set this under **Tags > Settings**.
+- **Default categories** – Auto-assign a category based on the merchant’s MCC. Set this under **Categories > Settings**.
+- **Billable expenses** – Decide when tagging is required based on whether an expense is marked billable. Set this under **Tags > Settings**.
 
 ---
 
 # FAQ
 
-## Who can update a workspace's rules?
+## Who can manage workspace rules?
 
-Only Workspace Admins on the **Control** plan can enable and configure workspace rules.
+Only Workspace Admins on the **Control** plan can enable, update, or disable workspace rules.
 
-## What happens if I turn the rules off?
+## What happens if I turn workspace rules off?
 
-Turning off workspace rules removes any active warnings or violations from draft or outstanding expenses that relied on those rules.
+Disabling workspace rules removes any active warnings or violations from draft or outstanding expenses that relied on those rules.
 
 ## Can I disable SmartScan for my workspace?
 
-No, SmartScan can’t be disabled for group (paid) workspaces. It’s always enabled by default.
+No, SmartScan can’t be disabled for group (paid) workspaces and cannot be turned off.
+
+## When does the “Company card purchases required” violation appear?
+
+This violation is triggered when an expense meets **any** of the following conditions:
+
+- It’s created as cash and is older than seven days  
+- It’s imported from a personal card feed  
+- It’s manually changed from a card expense to a cash expense
+
+## Why don’t I see the toggle for the company card rule?
+
+The **Require Company Card for All Purchases** rule only appears after at least one company card feed is connected to the workspace. If all company card feeds are removed, the rule will automatically disable. 
+
+## What happens if I disable eReceipts?
+
+Disabling eReceipts hides any previously generated eReceipts. Re-enabling the feature will restore those receipts.
+
+## Will disabling rules affect submitted or approved expenses?
+
+No. Disabling a rule only affects expenses that are in draft or awaiting submission. Submitted or approved expenses remain unchanged.
+
 

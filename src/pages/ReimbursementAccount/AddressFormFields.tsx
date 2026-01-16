@@ -8,13 +8,31 @@ import PushRowWithModal from '@components/PushRowWithModal';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
+type AddressInputKeys = {
+    street: string;
+    street2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+    zipPostCode?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    lat?: string;
+    lng?: string;
+    zipCode?: string;
+    address?: string;
+    current?: string;
+};
+
 type AddressErrors = Record<keyof Address, boolean>;
 
-type AddressFormProps = {
+type AddressFormProps = ForwardedFSClassProps & {
     /** Translate key for Street name */
     streetTranslationKey: TranslationPaths;
 
@@ -28,7 +46,7 @@ type AddressFormProps = {
     errors?: AddressErrors;
 
     /** The map for inputID of the inputs */
-    inputKeys: Address;
+    inputKeys: AddressInputKeys;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
@@ -93,6 +111,7 @@ function AddressFormFields({
     onCountryChange,
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
+    forwardedFSClass,
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -124,6 +143,7 @@ function AddressFormFields({
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     limitSearchesToCountry={shouldAllowCountryChange ? undefined : defaultValues?.country}
                     onCountryChange={handleCountryChange}
+                    forwardedFSClass={forwardedFSClass}
                 />
             </View>
             <InputWrapper
@@ -137,6 +157,7 @@ function AddressFormFields({
                 defaultValue={defaultValues?.city}
                 errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
                 containerStyles={styles.mt6}
+                forwardedFSClass={forwardedFSClass}
             />
 
             {shouldDisplayStateSelector && (
@@ -152,6 +173,7 @@ function AddressFormFields({
                         defaultValue={defaultValues?.state}
                         inputID={inputKeys.state ?? 'stateInput'}
                         errorText={errors?.state ? translate('bankAccount.error.addressState') : ''}
+                        forwardedFSClass={forwardedFSClass}
                     />
                 </View>
             )}
@@ -168,6 +190,7 @@ function AddressFormFields({
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
                 hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                 containerStyles={styles.mt3}
+                forwardedFSClass={forwardedFSClass}
             />
             {shouldDisplayCountrySelector && (
                 <View style={[styles.mt3, styles.mhn5]}>
@@ -184,13 +207,12 @@ function AddressFormFields({
                         onValueChange={handleCountryChange}
                         stateInputIDToReset={inputKeys.state ?? 'stateInput'}
                         shouldAllowChange={shouldAllowCountryChange}
+                        forwardedFSClass={forwardedFSClass}
                     />
                 </View>
             )}
         </View>
     );
 }
-
-AddressFormFields.displayName = 'AddressFormFields';
 
 export default AddressFormFields;

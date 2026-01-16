@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {DotIndicator} from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -13,6 +14,7 @@ import {isSettled} from '@libs/ReportUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Report, TransactionViolation} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -37,9 +39,11 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const {environmentURL} = useEnvironment();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, {
         canBeMissing: true,
     });
+    const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const transactionThreadId = reportActions ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID)?.childReportID : undefined;
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`, {
@@ -53,6 +57,7 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
         missingFieldError,
         Object.values(transactionThreadActions ?? {}),
         policyTags,
+        companyCardPageURL,
     );
 
     return (
@@ -75,5 +80,4 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
     );
 }
 
-TransactionItemRowRBR.displayName = 'TransactionItemRowRBR';
 export default TransactionItemRowRBR;

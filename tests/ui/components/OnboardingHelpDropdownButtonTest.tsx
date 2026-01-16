@@ -7,11 +7,11 @@ import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButt
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {openExternalLink} from '@libs/actions/Link';
 import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 // Mock the dependencies
@@ -234,7 +234,6 @@ describe('OnboardingHelpDropdownButton', () => {
             renderOnboardingHelpDropdownButton(props);
 
             await waitForBatchedUpdatesWithAct();
-
             const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
             fireEvent.press(dropdownButton);
 
@@ -256,7 +255,6 @@ describe('OnboardingHelpDropdownButton', () => {
             renderOnboardingHelpDropdownButton(props);
 
             await waitForBatchedUpdatesWithAct();
-
             const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
             fireEvent.press(dropdownButton);
 
@@ -278,7 +276,6 @@ describe('OnboardingHelpDropdownButton', () => {
             renderOnboardingHelpDropdownButton(props);
 
             await waitForBatchedUpdatesWithAct();
-
             const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
             fireEvent.press(dropdownButton);
 

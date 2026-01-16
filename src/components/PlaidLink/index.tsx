@@ -73,5 +73,4 @@ function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = ()
     );
 }
 
-PlaidLink.displayName = 'PlaidLink';
 export default PlaidLink;

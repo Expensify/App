@@ -18,6 +18,4 @@ function OnboardingWrapper({children}: OnboardingWrapperProps) {
     );
 }
 
-OnboardingWrapper.displayName = 'OnboardingWrapper';
-
 export default OnboardingWrapper;

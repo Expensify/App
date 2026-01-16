@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -26,7 +26,7 @@ type SelectorType = ListItem & {
 function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -81,8 +81,8 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksAccountSelectPage.displayName}
-            sections={qboOnlineSelectorOptions.length ? [{data: qboOnlineSelectorOptions}] : []}
+            displayName="QuickbooksAccountSelectPage"
+            data={qboOnlineSelectorOptions}
             listItem={RadioListItem}
             headerContent={listHeaderComponent}
             onSelectRow={saveSelection}
@@ -99,7 +99,5 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-QuickbooksAccountSelectPage.displayName = 'QuickbooksAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksAccountSelectPage);

@@ -18,7 +18,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 
 const MOCK_REPORT: Report = {
-    ...createRandomReport(0),
+    ...createRandomReport(0, undefined),
 };
 
 const MOCK_REPORT_ACTION: ReportAction = {
@@ -1233,8 +1233,9 @@ describe('DebugUtils', () => {
                         accountID: 12345,
                     },
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                        amount: 0,
-                        modifiedAmount: 0,
+                        amount: 100,
+                        created: '',
+                        modifiedCreated: '',
                     },
                 });
                 const {reportAction} =
@@ -1249,128 +1250,6 @@ describe('DebugUtils', () => {
                         {},
                     ) ?? {};
                 expect(reportAction).toBe(undefined);
-            });
-            describe("Report has missing fields, isn't settled and it's owner is the current user", () => {
-                describe('Report is IOU', () => {
-                    it('returns correct report action which has missing fields', async () => {
-                        const MOCK_IOU_REPORT: Report = {
-                            reportID: '1',
-                            type: CONST.REPORT.TYPE.IOU,
-                            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                            ownerAccountID: 12345,
-                        };
-                        const MOCK_REPORT_ACTIONS: ReportActions = {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '0': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                                reportActionID: '0',
-                                created: '2024-08-08 18:20:44.171',
-                            } as ReportAction<'CREATED'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '1': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '1',
-                                message: {
-                                    IOUTransactionID: '2',
-                                },
-                                actorAccountID: 1,
-                            } as ReportAction<'IOU'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '2': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '2',
-                                message: {
-                                    IOUTransactionID: '1',
-                                },
-                                actorAccountID: 1,
-                            } as ReportAction<'IOU'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '3': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '3',
-                                message: {
-                                    IOUTransactionID: '1',
-                                },
-                                actorAccountID: 12345,
-                            } as ReportAction<'IOU'>,
-                        };
-                        await Onyx.multiSet({
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                                amount: 0,
-                                modifiedAmount: 0,
-                            },
-                            [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
-                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
-                            [ONYXKEYS.SESSION]: {
-                                accountID: 12345,
-                            },
-                        });
-                        const reportErrors = getAllReportErrors(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS);
-                        const {reportAction} =
-                            DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, undefined, false, reportErrors) ?? {};
-                        expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
-                    });
-                });
-                describe('Report is expense', () => {
-                    it('returns correct report action which has missing fields', async () => {
-                        const MOCK_IOU_REPORT: Report = {
-                            reportID: '1',
-                            type: CONST.REPORT.TYPE.EXPENSE,
-                            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                            ownerAccountID: 12345,
-                        };
-                        const MOCK_REPORT_ACTIONS: ReportActions = {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '0': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                                reportActionID: '0',
-                                created: '2024-08-08 18:20:44.171',
-                            } as ReportAction<'CREATED'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '1': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '1',
-                                message: {
-                                    IOUTransactionID: '2',
-                                },
-                                actorAccountID: 1,
-                            } as ReportAction<'IOU'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '2': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '2',
-                                message: {
-                                    IOUTransactionID: '1',
-                                },
-                                actorAccountID: 1,
-                            } as ReportAction<'IOU'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '3': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '3',
-                                message: {
-                                    IOUTransactionID: '1',
-                                },
-                                actorAccountID: 12345,
-                            } as ReportAction<'IOU'>,
-                        };
-                        await Onyx.multiSet({
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                                amount: 0,
-                                modifiedAmount: 0,
-                            },
-                            [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
-                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
-                            [ONYXKEYS.SESSION]: {
-                                accountID: 12345,
-                            },
-                        });
-                        const reportErrors = getAllReportErrors(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS);
-                        const {reportAction} =
-                            DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, undefined, false, reportErrors) ?? {};
-                        expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
-                    });
-                });
             });
             describe('There is a report action with smart scan errors', () => {
                 it('returns correct report action which is a report preview and has an error', async () => {
@@ -1415,8 +1294,9 @@ describe('DebugUtils', () => {
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_CHAT_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: MOCK_IOU_REPORT,
@@ -1480,8 +1360,9 @@ describe('DebugUtils', () => {
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_CHAT_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: MOCK_IOU_REPORT,
@@ -1493,64 +1374,6 @@ describe('DebugUtils', () => {
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, undefined, false, reportErrors) ?? {};
-                    expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
-                });
-                it("returns undefined if there's no report action is a report preview or a split bill", async () => {
-                    const MOCK_IOU_REPORT: Report = {
-                        reportID: '1',
-                        type: CONST.REPORT.TYPE.EXPENSE,
-                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                        ownerAccountID: 12345,
-                    };
-                    const MOCK_REPORT_ACTIONS: ReportActions = {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '0': {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                            reportActionID: '0',
-                            created: '2024-08-08 18:20:44.171',
-                        } as ReportAction<'CREATED'>,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                            reportActionID: '1',
-                            message: {
-                                IOUTransactionID: '2',
-                            },
-                            actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '2': {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                            reportActionID: '2',
-                            message: {
-                                IOUTransactionID: '1',
-                            },
-                            actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '3': {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                            reportActionID: '3',
-                            message: {
-                                IOUTransactionID: '1',
-                            },
-                            actorAccountID: 12345,
-                        } as ReportAction<'IOU'>,
-                    };
-                    await Onyx.multiSet({
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
-                        },
-                        [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
-                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
-                        [ONYXKEYS.SESSION]: {
-                            accountID: 12345,
-                        },
-                    });
-                    const reportErrors = getAllReportErrors(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS);
-                    const {reportAction} =
-                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, undefined, false, reportErrors) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1695,6 +1518,7 @@ describe('DebugUtils', () => {
                         reportID: '1',
                         parentReportActionID: '0',
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                         ownerAccountID: 1234,
                         policyID: '1',
                     },
@@ -1702,7 +1526,7 @@ describe('DebugUtils', () => {
                         transactionID: '1',
                         amount: 10,
                         modifiedAmount: 10,
-                        reportID: '0',
+                        reportID: '1',
                     },
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
                         {

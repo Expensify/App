@@ -1,5 +1,5 @@
 import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
@@ -112,16 +112,16 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     minDate?: Date;
     maxDate?: Date;
     onTouched?: (event: GestureResponderEvent) => void;
-    onBlur?: (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onBlur?: (event: FocusEvent) => void;
     onPressOut?: (event: GestureResponderEvent) => void;
     onPress?: (event: GestureResponderEvent) => void;
     onInputChange?: (value: FormValue, key: string) => void;
-    onSubmitEditing?: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => void;
+    onSubmitEditing?: (event: TextInputSubmitEditingEvent) => void;
     key?: Key;
     ref?: Ref<unknown>;
     multiline?: boolean;
     autoGrowHeight?: boolean;
-    blurOnSubmit?: boolean;
+    submitBehavior?: SubmitBehavior;
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
 };

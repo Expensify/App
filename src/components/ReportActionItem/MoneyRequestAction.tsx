@@ -87,7 +87,7 @@ function MoneyRequestAction({
     isWhisper = false,
     shouldDisplayContextMenu = true,
 }: MoneyRequestActionProps) {
-    const {shouldOpenReportInRHP} = useContext(ReportActionItemContext);
+    const {shouldOpenReportInRHP, onPreviewPressed} = useContext(ReportActionItemContext);
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`];
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
@@ -108,6 +108,10 @@ function MoneyRequestAction({
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
 
     const onMoneyRequestPreviewPressed = () => {
+        if (onPreviewPressed && action?.childReportID) {
+            onPreviewPressed(action?.childReportID);
+            return;
+        }
         if (contextMenuRef.current?.isContextMenuOpening) {
             return;
         }
@@ -187,7 +191,5 @@ function MoneyRequestAction({
         />
     );
 }
-
-MoneyRequestAction.displayName = 'MoneyRequestAction';
 
 export default MoneyRequestAction;

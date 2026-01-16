@@ -65,13 +65,26 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     // Trigger focus when Side Panel transition ends
     const {isSidePanelTransitionEnded, shouldHideSidePanel} = useSidePanel();
     const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
+    const [wasSidePanelClosed, setWasSidePanelClosed] = useState(false);
+
     useEffect(() => {
-        if (!shouldHideSidePanel || prevShouldHideSidePanel) {
+        // Track when side panel transitions from visible to hidden
+        if (!(shouldHideSidePanel && !prevShouldHideSidePanel)) {
             return;
         }
+        setWasSidePanelClosed(true);
+    }, [shouldHideSidePanel, prevShouldHideSidePanel]);
 
+    useEffect(() => {
+        // Trigger focus when:
+        // 1. Side panel was just closed
+        // 2. Transition has fully completed
+        if (!wasSidePanelClosed || !isSidePanelTransitionEnded) {
+            return;
+        }
+        setWasSidePanelClosed(true);
         Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]).then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded));
-    }, [isSidePanelTransitionEnded, shouldHideSidePanel, prevShouldHideSidePanel]);
+    }, [isSidePanelTransitionEnded, wasSidePanelClosed]);
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;

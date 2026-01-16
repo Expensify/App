@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import InvertedFlatList from '@components/InvertedFlatList';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -15,6 +16,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -40,6 +42,7 @@ const filterBy = {
 type FilterBy = (typeof filterBy)[keyof typeof filterBy];
 
 function ConsolePage() {
+    const icons = useMemoizedLazyExpensifyIcons(['All', 'Download', 'Globe', 'UploadAlt']);
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: false});
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [input, setInput] = useState('');
@@ -59,7 +62,7 @@ function ConsolePage() {
                 disabled: true,
             },
             {
-                icon: Expensicons.All,
+                icon: icons.All,
                 text: translate('common.all'),
                 iconFill: activeFilterIndex === filterBy.all ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.Checkmark,
@@ -70,7 +73,7 @@ function ConsolePage() {
                 },
             },
             {
-                icon: Expensicons.Globe,
+                icon: icons.Globe,
                 text: translate('common.network'),
                 iconFill: activeFilterIndex === filterBy.network ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.CheckCircle,
@@ -81,7 +84,7 @@ function ConsolePage() {
                 },
             },
         ],
-        [activeFilterIndex, theme.icon, theme.iconSuccessFill, translate],
+        [activeFilterIndex, icons.All, icons.Globe, theme.icon, theme.iconSuccessFill, translate],
     );
 
     const prevLogs = useRef<OnyxEntry<CapturedLogs>>({});
@@ -96,7 +99,6 @@ function ConsolePage() {
             .reverse();
     }, [capturedLogs, shouldStoreLogs]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const logsList = useMemo(() => getLogs(), [getLogs]);
 
     const filteredLogsList = useMemo(() => logsList.filter((log) => log.message.includes(activeFilterIndex)), [activeFilterIndex, logsList]);
@@ -105,7 +107,9 @@ function ConsolePage() {
         const sanitizedInput = sanitizeConsoleInput(input);
 
         const output = createLog(sanitizedInput);
-        output.forEach((log) => addLog(log));
+        for (const log of output) {
+            addLog(log);
+        }
         setInput('');
     };
 
@@ -114,7 +118,7 @@ function ConsolePage() {
     const saveLogs = () => {
         const logsWithParsedMessages = parseStringifiedMessages(filteredLogsList);
 
-        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
+        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2), translate);
     };
 
     const shareLogs = () => {
@@ -153,7 +157,7 @@ function ConsolePage() {
 
     return (
         <ScreenWrapper
-            testID={ConsolePage.displayName}
+            testID="ConsolePage"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -177,7 +181,7 @@ function ConsolePage() {
                     text={translate('initialSettingsPage.debugConsole.saveLog')}
                     onPress={saveLogs}
                     large
-                    icon={Expensicons.Download}
+                    icon={icons.Download}
                     style={[styles.flex1, styles.mr1]}
                 />
                 {isAuthenticated && (
@@ -185,7 +189,7 @@ function ConsolePage() {
                         text={translate('initialSettingsPage.debugConsole.shareLog')}
                         onPress={shareLogs}
                         large
-                        icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
+                        icon={!isGeneratingLogsFile ? icons.UploadAlt : undefined}
                         style={[styles.flex1, styles.ml1]}
                         isLoading={isGeneratingLogsFile}
                     />
@@ -222,7 +226,5 @@ function ConsolePage() {
         </ScreenWrapper>
     );
 }
-
-ConsolePage.displayName = 'ConsolePage';
 
 export default ConsolePage;

@@ -1,35 +1,30 @@
 import React from 'react';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import {getTransactionType, isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-// If the transaction is cash, it has the type CONST.EXPENSE.TYPE.CASH_CARD_NAME.
-// If there is no credit card name, it means it couldn't be a card transaction,
-// so we assume it's cash. Any other type is treated as a card transaction.
-// same in getTypeText
-const getType = (cardName?: string) => {
-    if (!cardName || cardName.includes(CONST.EXPENSE.TYPE.CASH_CARD_NAME)) {
-        return CONST.SEARCH.TRANSACTION_TYPE.CASH;
-    }
-    return CONST.SEARCH.TRANSACTION_TYPE.CARD;
-};
-
-const getTypeIcon = (type?: string) => {
+const getTypeIcon = (icons: Record<'Car' | 'CreditCard' | 'Cash' | 'Clock', IconAsset>, type?: string) => {
     switch (type) {
         case CONST.SEARCH.TRANSACTION_TYPE.CARD:
-            return Expensicons.CreditCard;
+            return icons.CreditCard;
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
-            return Expensicons.Car;
+            return icons.Car;
+        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
+            return icons.Clock;
         case CONST.SEARCH.TRANSACTION_TYPE.CASH:
         default:
-            return Expensicons.Cash;
+            return icons.Cash;
     }
 };
 
@@ -39,6 +34,8 @@ const getTypeText = (type?: string): TranslationPaths => {
             return 'common.distance';
         case CONST.SEARCH.TRANSACTION_TYPE.CARD:
             return 'iou.card';
+        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
+            return 'iou.time';
         case CONST.SEARCH.TRANSACTION_TYPE.CASH:
         default:
             return 'iou.cash';
@@ -47,10 +44,12 @@ const getTypeText = (type?: string): TranslationPaths => {
 
 function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const {translate} = useLocalize();
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const theme = useTheme();
-    const type = transactionItem.transactionType ?? getType(transactionItem.cardName);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Car', 'CreditCard', 'CreditCardHourglass', 'Cash', 'Clock']);
+    const type = getTransactionType(transactionItem, cardList);
     const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
-    const typeIcon = isPendingExpensifyCardTransaction ? Expensicons.CreditCardHourglass : getTypeIcon(type);
+    const typeIcon = isPendingExpensifyCardTransaction ? expensifyIcons.CreditCardHourglass : getTypeIcon(expensifyIcons, type);
     const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getTypeText(type);
     const styles = useThemeStyles();
 
@@ -64,11 +63,10 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
         <Icon
             src={typeIcon}
             fill={theme.icon}
-            height={20}
-            width={20}
+            height={variables.iconSizeNormal}
+            width={variables.iconSizeNormal}
         />
     );
 }
 
-TypeCell.displayName = 'TypeCell';
 export default TypeCell;

@@ -23,31 +23,31 @@ function deepReplaceKeysAndValues<T extends ReplaceableValue>(target: T, oldVal:
     }
 
     const newObj: Record<string, unknown> = {};
-    Object.entries(target).forEach(([key, val]) => {
+    for (const [key, val] of Object.entries(target)) {
         const newKey = key.replace(oldVal, newVal);
 
         if (val instanceof File || val instanceof Blob) {
             newObj[newKey] = val;
-            return;
+            continue;
         }
 
         if (typeof val === 'object') {
             newObj[newKey] = deepReplaceKeysAndValues(val as T, oldVal, newVal);
-            return;
+            continue;
         }
 
         if (val === oldVal) {
             newObj[newKey] = newVal;
-            return;
+            continue;
         }
 
         if (typeof val === 'string') {
             newObj[newKey] = val.replace(oldVal, newVal);
-            return;
+            continue;
         }
 
         newObj[newKey] = val;
-    });
+    }
 
     return newObj as T;
 }

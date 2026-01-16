@@ -5,8 +5,8 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -56,19 +56,14 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         });
     }, [isBetaEnabled]);
 
-    const {sections} = useMemo(
-        () => ({
-            sections: [
-                {
-                    data: availableCurrencies.map((currencyItem) => ({
-                        text: currencyItem,
-                        value: currencyItem,
-                        keyForList: currencyItem,
-                        isSelected: currencyItem === currency,
-                    })),
-                },
-            ],
-        }),
+    const currencyOptions = useMemo(
+        () =>
+            availableCurrencies.map((currencyItem) => ({
+                text: currencyItem,
+                value: currencyItem,
+                keyForList: currencyItem,
+                isSelected: currencyItem === currency,
+            })),
         [availableCurrencies, currency],
     );
 
@@ -135,22 +130,18 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     return (
         <View style={[styles.mh5, styles.flexGrow1]}>
             <SelectionList
-                headerContent={<PaymentCardCurrencyHeader isSectionList />}
-                initiallyFocusedOptionKey={currency}
-                containerStyle={[styles.mhn5]}
-                sections={sections}
+                data={currencyOptions}
+                ListItem={RadioListItem}
                 onSelectRow={(option) => {
                     selectCurrency(option.value);
                 }}
-                showScrollIndicator
+                style={{containerStyle: styles.mhn5}}
+                initiallyFocusedItemKey={currency}
+                customListHeader={<PaymentCardCurrencyHeader isSectionList />}
                 shouldStopPropagation
-                shouldUseDynamicMaxToRenderPerBatch
-                ListItem={RadioListItem}
             />
         </View>
     );
 }
-
-PaymentCardChangeCurrencyForm.displayName = 'PaymentCardChangeCurrencyForm';
 
 export default PaymentCardChangeCurrencyForm;

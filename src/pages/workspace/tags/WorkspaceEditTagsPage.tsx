@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getCleanedTagName, getTagListName} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagListName, isMultiLevelTags} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyTagList} from '@userActions/Policy/Tag';
@@ -34,6 +34,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const backTo = route.params.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT;
+    const isMultiLevelTagsEnabled = isMultiLevelTags(policyTags);
 
     const validateTagName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
@@ -58,11 +59,11 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             return;
         }
         Navigation.goBack(
-            route.params.orderWeight
+            isMultiLevelTagsEnabled
                 ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, route.params.orderWeight)
                 : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
         );
-    }, [isQuickSettingsFlow, route.params.orderWeight, route.params?.policyID, backTo]);
+    }, [isQuickSettingsFlow, isMultiLevelTagsEnabled, route.params?.policyID, route.params.orderWeight, backTo]);
 
     const updateTagListName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
@@ -83,7 +84,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceEditTagsPage.displayName}
+                testID="WorkspaceEditTagsPage"
             >
                 <HeaderWithBackButton
                     title={translate(`workspace.tags.customTagName`)}
@@ -115,7 +116,5 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceEditTagsPage.displayName = 'WorkspaceEditTagsPage';
 
 export default WorkspaceEditTagsPage;

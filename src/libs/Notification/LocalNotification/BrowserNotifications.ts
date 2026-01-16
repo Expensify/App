@@ -1,4 +1,4 @@
-// Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
+// Web implementation only. Do not import for direct use. Use LocalNotification.
 import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
@@ -8,7 +8,7 @@ import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
-import focusApp from './focusApp';
+import SafeString from '@src/utils/SafeString';
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
@@ -64,7 +64,7 @@ function push(
         const notificationID = Str.guid();
         notificationCache[notificationID] = new Notification(title, {
             body,
-            icon: String(icon),
+            icon: SafeString(icon),
             data,
             silent: true,
             tag,
@@ -76,7 +76,6 @@ function push(
             onClick();
             window.parent.focus();
             window.focus();
-            focusApp();
             notificationCache[notificationID].close();
         };
         notificationCache[notificationID].onclose = () => {
@@ -114,6 +113,8 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
+            // Will be fixed in https://github.com/Expensify/App/issues/76852
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const roomName = ReportUtils.getReportName(report);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
@@ -167,8 +168,11 @@ export default {
      * @param shouldClearNotification a function that receives notification.data and returns true/false if the notification should be cleared
      */
     clearNotifications(shouldClearNotification: (notificationData: LocalNotificationData) => boolean) {
-        Object.values(notificationCache)
-            .filter((notification) => shouldClearNotification(notification.data as LocalNotificationData))
-            .forEach((notification) => notification.close());
+        for (const notification of Object.values(notificationCache)) {
+            if (!shouldClearNotification(notification.data as LocalNotificationData)) {
+                continue;
+            }
+            notification.close();
+        }
     },
 };

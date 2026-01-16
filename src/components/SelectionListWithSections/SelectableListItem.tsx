@@ -80,6 +80,4 @@ function SelectableListItem<TItem extends ListItem>({
     );
 }
 
-SelectableListItem.displayName = 'SelectableListItem';
-
 export default SelectableListItem;

@@ -19,7 +19,7 @@ If the answer is yes to all of those questions, you can feel confident that we s
 If the answer is no to all of those questions, you can feel confident we shouldn't create a test for the bug. 
 
 Once you've come to an answer on determining if we should create a test or not, you'll then post a comment in the GH outlining your recommendation and your reasoning for why (short and sweet is fine!). 
-- Note: If you feel the answer is no to some, but not all, of the questions, trust your gut and proceed to post your recommendation and reasoning for it in the GH.
+- Note: If you feel the answer is no to some, but not all, of the questions, err on the side of proposing test steps because QA will review to determine if they're needed.  
 
 Once your decision is posted you can either move on to the below steps, or ensure the other items in the checklist are complete and wait to be paid!
 

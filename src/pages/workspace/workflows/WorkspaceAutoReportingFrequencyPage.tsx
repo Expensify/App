@@ -6,8 +6,8 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -113,7 +113,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceAutoReportingFrequencyPage.displayName}
+                testID="WorkspaceAutoReportingFrequencyPage"
             >
                 <FullPageNotFoundView
                     onBackButtonPress={goBackFromInvalidPolicy}
@@ -135,11 +135,11 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                     >
                         <SelectionList
                             ListItem={RadioListItem}
-                            sections={[{data: autoReportingFrequencyItems}]}
+                            data={autoReportingFrequencyItems}
                             onSelectRow={onSelectAutoReportingFrequency}
-                            initiallyFocusedOptionKey={autoReportingFrequency}
-                            shouldUpdateFocusedIndex
+                            initiallyFocusedItemKey={autoReportingFrequency}
                             addBottomSafeAreaPadding
+                            shouldUpdateFocusedIndex
                         />
                     </OfflineWithFeedback>
                 </FullPageNotFoundView>
@@ -148,7 +148,6 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     );
 }
 
-WorkspaceAutoReportingFrequencyPage.displayName = 'WorkspaceAutoReportingFrequencyPage';
 export type {AutoReportingFrequencyDisplayNames, AutoReportingFrequencyKey};
 export {getAutoReportingFrequencyDisplayNames};
 export default withPolicy(WorkspaceAutoReportingFrequencyPage);

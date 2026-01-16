@@ -1,6 +1,6 @@
 import React, {lazy, Suspense, useEffect, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -36,7 +36,14 @@ function MapView({ref, ...props}: MapViewProps) {
                 />
             }
         >
-            <Suspense fallback={<FullScreenLoadingIndicator />}>
+            <Suspense
+                fallback={
+                    <ActivityIndicator
+                        size="large"
+                        style={[styles.h100]}
+                    />
+                }
+            >
                 {!isOffline ? (
                     <MapViewImpl
                         ref={ref}

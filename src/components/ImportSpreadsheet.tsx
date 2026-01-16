@@ -2,6 +2,7 @@ import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import type {TupleToUnion} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +21,6 @@ import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
 import FilePicker from './FilePicker';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import RenderHTML from './RenderHTML';
 import ScreenWrapper from './ScreenWrapper';
@@ -38,6 +38,7 @@ type ImportSpreadsheetProps = {
 };
 
 function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isReadingFile, setIsReadingFile] = useState(false);
@@ -64,7 +65,9 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
 
     const validateFile = (file: FileObject) => {
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-        if (!CONST.ALLOWED_SPREADSHEET_EXTENSIONS.includes(fileExtension.toLowerCase() as TupleToUnion<typeof CONST.ALLOWED_SPREADSHEET_EXTENSIONS>)) {
+        const allowedExtensions: readonly string[] = isImportingMultiLevelTags ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS : CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
+
+        if (!allowedExtensions.includes(fileExtension.toLowerCase())) {
             setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
         }
@@ -86,7 +89,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             return;
         }
         if (Platform.OS === 'ios') {
-            fileURI = fileURI.replace(/^.*\/Documents\//, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
+            fileURI = fileURI.replaceAll(/^.*\/Documents\//g, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
         }
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
         const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.includes(fileExtension as TupleToUnion<typeof CONST.TEXT_SPREADSHEET_EXTENSIONS>);
@@ -151,7 +154,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         <>
             <View onLayout={({nativeEvent}) => setFileTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ImageSVG
-                    src={Expensicons.SpreadsheetComputer}
+                    src={icons.SpreadsheetComputer}
                     contentFit="contain"
                     style={styles.mb4}
                     width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
@@ -160,7 +163,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             </View>
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react-compiler/react-compiler, react/jsx-props-no-spreading
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
@@ -197,9 +200,8 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            testID={ImportSpreadsheet.displayName}
+            testID="ImportSpreadsheet"
             shouldEnableMaxHeight={canUseTouchScreen()}
-            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
@@ -228,7 +230,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                                 <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                                     <View style={[styles.pAbsolute, styles.fileUploadImageWrapper(fileTopPosition)]}>
                                         <ImageSVG
-                                            src={Expensicons.SpreadsheetComputer}
+                                            src={icons.SpreadsheetComputer}
                                             contentFit="contain"
                                             style={styles.mb4}
                                             width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
@@ -256,7 +258,5 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         </ScreenWrapper>
     );
 }
-
-ImportSpreadsheet.displayName = 'ImportSpreadsheet';
 
 export default ImportSpreadsheet;

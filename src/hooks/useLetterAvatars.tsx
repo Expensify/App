@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {SvgProps} from 'react-native-svg';
 import ColoredLetterAvatar from '@components/ColoredLetterAvatar';
-import {getLetterAvatar, LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/CustomAvatarCatalog';
+import {getLetterAvatar, LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/PresetAvatarCatalog';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import type {AvatarSizeName} from '@styles/utils';
 
@@ -43,7 +43,7 @@ function useLetterAvatars(name: string | undefined, size?: AvatarSizeName): Lett
         const avatarList: LetterAvatarItem[] = [];
         const avatarMap: Record<string, React.FC<SvgProps>> = {};
 
-        LETTER_AVATAR_COLOR_OPTIONS.forEach(({fillColor, backgroundColor}) => {
+        for (const {fillColor, backgroundColor} of LETTER_AVATAR_COLOR_OPTIONS) {
             function StyledLetterAvatar() {
                 return (
                     <ColoredLetterAvatar
@@ -63,7 +63,7 @@ function useLetterAvatars(name: string | undefined, size?: AvatarSizeName): Lett
             });
 
             avatarMap[id] = StyledLetterAvatar;
-        });
+        }
 
         return {
             avatarList,

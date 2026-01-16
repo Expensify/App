@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
@@ -27,9 +27,12 @@ type CountrySelectorProps = {
 
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur}: CountrySelectorProps, ref: ForwardedRef<View>) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur, ref}: CountrySelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {country: countryFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -62,7 +65,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
         // This helps prevent issues where the component might not update correctly if the country is controlled by both the parent and the URL.
         Navigation.setParams({country: undefined});
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [countryFromUrl, isFocused, onBlur]);
 
     return (
@@ -83,6 +86,4 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
     );
 }
 
-CountrySelector.displayName = 'CountrySelector';
-
-export default forwardRef(CountrySelector);
+export default CountrySelector;

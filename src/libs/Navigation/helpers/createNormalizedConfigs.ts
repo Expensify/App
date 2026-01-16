@@ -1,19 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 /* eslint-disable @typescript-eslint/default-param-last */
-
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-
 /* eslint-disable no-param-reassign */
-
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 /* eslint-disable @typescript-eslint/no-restricted-types */
 // THOSE FUNCTIONS ARE COPIED FROM react-navigation/core IN ORDER TO AVOID PATCHING
 // THAT'S THE REASON WHY ESLINT IS DISABLED
@@ -118,11 +110,11 @@ const createNormalizedConfigs = (
                 });
             }
 
-            Object.keys(config.screens).forEach((nestedConfig) => {
+            for (const nestedConfig of Object.keys(config.screens)) {
                 const result = createNormalizedConfigs(nestedConfig, config.screens as PathConfigMap<object>, routeNames, initials, [...parentScreens], pattern ?? parentPattern);
 
                 configs.push(...result);
-            });
+            }
         }
     }
 

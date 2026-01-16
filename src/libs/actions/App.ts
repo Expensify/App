@@ -1,17 +1,18 @@
 // Issue - https://github.com/Expensify/App/issues/26719
+import {getPathFromState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
+import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation from '@libs/Navigation/Navigation';
+import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
@@ -27,7 +28,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
-import {isAnonymousUser} from './Session';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -179,7 +179,7 @@ function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
     }
 
     // Optimistically change preferred locale
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PREFERRED_LOCALE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -207,10 +207,36 @@ function setAppLoading(isLoading: boolean) {
     Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
 }
 
+/**
+ * Saves the current navigation path to lastVisitedPath before app goes to background
+ */
+function saveCurrentPathBeforeBackground() {
+    try {
+        if (!navigationRef.isReady()) {
+            return;
+        }
+
+        const currentState = navigationRef.getRootState();
+        if (!currentState) {
+            return;
+        }
+
+        const currentPath = getPathFromState(currentState, linkingConfig.config);
+
+        if (currentPath) {
+            Log.info('Saving current path before background', false, {currentPath});
+            updateLastVisitedPath(currentPath);
+        }
+    } catch (error) {
+        Log.warn('Failed to save current path before background', {error});
+    }
+}
+
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('Flushing logs as app is going inactive', true, {}, true);
+        saveCurrentPathBeforeBackground();
     }
     appState = nextAppState;
 });
@@ -244,8 +270,16 @@ function getOnyxDataForOpenOrReconnect(
     isFullReconnect = false,
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
-): OnyxData {
-    const result: OnyxData = {
+): OnyxData<
+    typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.IS_LOADING_REPORT_DATA | typeof ONYXKEYS.HAS_LOADED_APP | typeof ONYXKEYS.IS_LOADING_APP | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
+> {
+    const result: OnyxData<
+        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
+        | typeof ONYXKEYS.HAS_LOADED_APP
+        | typeof ONYXKEYS.IS_LOADING_APP
+        | typeof ONYXKEYS.COLLECTION.REPORT
+        | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -294,15 +328,17 @@ function getOnyxDataForOpenOrReconnect(
 
     if (shouldKeepPublicRooms) {
         const publicReports = Object.values(allReports ?? {}).filter((report) => isPublicRoom(report) && isValidReport(report));
-        publicReports?.forEach((report) => {
-            result.successData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
-                value: {
-                    ...report,
-                },
-            });
-        });
+        if (publicReports) {
+            for (const report of publicReports) {
+                result.successData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                    value: {
+                        ...report,
+                    },
+                });
+            }
+        }
     }
 
     // Find all reports that have a non-null draft comment and map them to their corresponding report objects from allReports
@@ -312,15 +348,17 @@ function getOnyxDataForOpenOrReconnect(
         .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
         .map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
 
-    reportsWithDraftComments?.forEach((report) => {
-        result.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
-            value: {
-                ...report,
-            },
-        });
-    });
+    if (reportsWithDraftComments) {
+        for (const report of reportsWithDraftComments) {
+            result.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                value: {
+                    ...report,
+                },
+            });
+        }
+    }
 
     return result;
 }
@@ -400,82 +438,102 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, parameters, getOnyxDataForOpenOrReconnect());
 }
 
-/**
- * This promise is used so that deeplink component know when a transition is end.
- * This is necessary because we want to begin deeplink redirection after the transition is end.
- */
-let resolveSignOnTransitionToFinishPromise: () => void;
-const signOnTransitionToFinishPromise = new Promise<void>((resolve) => {
-    resolveSignOnTransitionToFinishPromise = resolve;
-});
-
-function waitForSignOnTransitionToFinish(): Promise<void> {
-    return signOnTransitionToFinishPromise;
-}
-
-function endSignOnTransition() {
-    return resolveSignOnTransitionToFinishPromise();
-}
+type CreateWorkspaceWithPolicyDraftParams = {
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    policyOwnerEmail?: string;
+    policyName?: string;
+    transitionFromOldDot?: boolean;
+    makeMeAdmin?: boolean;
+    backTo?: string;
+    policyID?: string;
+    currency?: string;
+    file?: File;
+    routeToNavigateAfterCreate?: Route;
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
+    activePolicyID: string | undefined;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+};
 
 /**
  * Create a new draft workspace and navigate to it
- *
- * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param [policyName] Optional, custom policy name we will use for created workspace
- * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
- * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
- * @param [policyID] Optional, Policy id.
- * @param [currency] Optional, selected currency for the workspace
- * @param [file], avatar file for workspace
- * @param [routeToNavigateAfterCreate], Optional, route to navigate after creating a workspace
  */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(
-    policyOwnerEmail = '',
-    policyName = '',
-    transitionFromOldDot = false,
-    makeMeAdmin = false,
-    backTo = '',
-    policyID = '',
-    currency?: string,
-    file?: File,
-    routeToNavigateAfterCreate?: Route,
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
-) {
+function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWithPolicyDraftParams) {
+    const {
+        introSelected,
+        policyOwnerEmail = '',
+        policyName = '',
+        transitionFromOldDot = false,
+        makeMeAdmin = false,
+        backTo = '',
+        policyID = '',
+        currency,
+        file,
+        routeToNavigateAfterCreate,
+        lastUsedPaymentMethod,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+    } = params;
+
     const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
-    Navigation.isNavigationReady()
-        .then(() => {
-            if (transitionFromOldDot) {
-                // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
-            }
-            const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, lastUsedPaymentMethod);
-            Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
-        })
-        .then(endSignOnTransition);
+    createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
+    Navigation.isNavigationReady().then(() => {
+        if (transitionFromOldDot) {
+            // We must call goBack() to remove the /transition route from history
+            Navigation.goBack();
+        }
+        const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
+        savePolicyDraftByNewWorkspace({
+            policyID: policyIDWithDefault,
+            policyName,
+            policyOwnerEmail,
+            makeMeAdmin,
+            currency,
+            file,
+            lastUsedPaymentMethod,
+            introSelected,
+            activePolicyID,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            allReportsParam: allReports,
+        });
+        Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
+    });
 }
+
+type SavePolicyDraftByNewWorkspaceParams = {
+    policyID?: string;
+    policyName?: string;
+    policyOwnerEmail?: string;
+    makeMeAdmin?: boolean;
+    currency?: string;
+    file?: File;
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID?: string;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    allReportsParam: OnyxCollection<OnyxTypes.Report>;
+};
 
 /**
  * Create a new workspace and delete the draft
- *
- * @param [policyID] the ID of the policy to use
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- * @param [currency] Optional, selected currency for the workspace
- * @param [file] Optional, avatar file for workspace
  */
-function savePolicyDraftByNewWorkspace(
-    policyID?: string,
-    policyName?: string,
+function savePolicyDraftByNewWorkspace({
+    policyID,
+    policyName,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     currency = '',
-    file?: File,
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
-) {
+    file,
+    lastUsedPaymentMethod,
+    introSelected,
+    activePolicyID,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    allReportsParam,
+}: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
         makeMeAdmin,
@@ -485,6 +543,11 @@ function savePolicyDraftByNewWorkspace(
         currency,
         file,
         lastUsedPaymentMethod,
+        introSelected,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        allReportsParam,
     });
 }
 
@@ -503,10 +566,9 @@ function savePolicyDraftByNewWorkspace(
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
  */
-function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
+function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>, activePolicyID: string | undefined) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
-        endSignOnTransition();
         return;
     }
 
@@ -525,73 +587,23 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail, policyName, true, makeMeAdmin);
+        createWorkspaceWithPolicyDraftAndNavigateToIt({
+            introSelected,
+            policyOwnerEmail,
+            policyName,
+            transitionFromOldDot: true,
+            makeMeAdmin,
+            activePolicyID,
+            currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserEmailParam: currentSessionData.email ?? '',
+        });
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.waitForProtectedRoutes()
-            .then(() => {
-                Navigation.navigate(exitTo);
-            })
-            .then(endSignOnTransition);
-    } else {
-        endSignOnTransition();
-    }
-}
-
-function redirectThirdPartyDesktopSignIn() {
-    const currentUrl = getCurrentUrl();
-    if (!currentUrl) {
-        return;
-    }
-    const url = new URL(currentUrl);
-
-    if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
-        Navigation.isNavigationReady().then(() => {
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
+        Navigation.waitForProtectedRoutes().then(() => {
+            Navigation.navigate(exitTo);
         });
     }
-}
-
-/**
- * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
- */
-function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMagicLink?: boolean, initialRoute?: string) {
-    // There's no support for anonymous users on desktop
-    if (isAnonymousUser()) {
-        return;
-    }
-
-    // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url
-    // to prevent signing into the wrong account
-    if (!currentSessionData.accountID || !shouldAuthenticateWithCurrentAccount) {
-        Browser.openRouteInDesktopApp();
-        return;
-    }
-
-    const parameters: OpenOldDotLinkParams = {shouldRetry: false};
-
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, parameters, {}).then((response) => {
-        if (!response) {
-            Log.alert(
-                'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
-                {response, shouldAuthenticateWithCurrentAccount, currentUserAccountID: currentSessionData.accountID},
-                true,
-            );
-            return;
-        }
-
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentSessionData.email, isMagicLink ? '/r' : initialRoute);
-    });
-}
-
-/**
- * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
- */
-function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccount = true) {
-    waitForSignOnTransitionToFinish().then(() => beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
 }
 
 function handleRestrictedEvent(eventName: string) {
@@ -648,9 +660,9 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
                     return;
                 }
 
-                sequentialQueue.forEach((request) => {
+                for (const request of sequentialQueue) {
                     save(request);
-                });
+                }
             });
         });
     clearSoundAssetsCache();
@@ -676,14 +688,11 @@ export {
     setLocale,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
-    redirectThirdPartyDesktopSignIn,
     openApp,
     setAppLoading,
     reconnectApp,
     confirmReadyToOpenApp,
     handleRestrictedEvent,
-    beginDeepLinkRedirect,
-    beginDeepLinkRedirectAfterTransition,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
     savePolicyDraftByNewWorkspace,
