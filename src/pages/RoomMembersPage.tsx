@@ -133,7 +133,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
      * Remove selected users from the room
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
-    const removeUsers = () => {
+    const removeUsers = useCallback(() => {
         if (report) {
             removeFromRoom(report.reportID, selectedMembers);
         }
@@ -143,7 +143,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             setSelectedMembers([]);
             clearUserSearchPhrase();
         });
-    };
+    }, [report, selectedMembers, setSearchValue, setSelectedMembers]);
 
     const showRemoveMembersModal = useCallback(async () => {
         const {action} = await showConfirmModal({
