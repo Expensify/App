@@ -40,8 +40,7 @@ If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify T
 
 - Your company’s travel policy may require approval before the reservation is finalized.
 - You’ll receive a confirmation email after booking.
-- The hotel receipt will automatically be added to your Expensify account.
-   - If your hotel is post-paid, upload the final bill manually to your Expensify account after checkout.
+- The hotel receipt will automatically be added to your Expensify account. If your hotel is post-paid, upload the final bill manually after checkout.
 - If your payment card is connected to Expensify, the receipt will merge with the imported expense.
 
 # FAQ
