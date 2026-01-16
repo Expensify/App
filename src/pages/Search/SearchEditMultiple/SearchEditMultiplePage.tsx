@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -110,7 +110,7 @@ function SearchEditMultiplePage() {
 
         const changes: TransactionChanges = {};
         if (draftTransaction.amount !== undefined && draftTransaction.amount !== 0) {
-            changes.amount = Math.abs(draftTransaction.amount);
+            changes.amount = draftTransaction.amount;
         }
         if (draftTransaction.merchant) {
             changes.merchant = draftTransaction.merchant;
@@ -148,6 +148,8 @@ function SearchEditMultiplePage() {
         Navigation.dismissModal();
     };
 
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
     const updateBillable = (billable: boolean) => {
         updateBulkEditDraftTransaction({billable});
     };
@@ -156,11 +158,11 @@ function SearchEditMultiplePage() {
         updateBulkEditDraftTransaction({reimbursable});
     };
 
-    // TODO: Currency editing should be handled in a separate PR
+    // TODO: Currency editing and currency symbol should be handled in a separate PR
     const fields = [
         {
             description: translate('iou.amount'),
-            title: draftTransaction?.amount ? convertToDisplayString(Math.abs(draftTransaction.amount)) : '',
+            title: draftTransaction?.amount ? convertToDisplayStringWithoutCurrency(Math.abs(draftTransaction.amount), currency) : '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
             disabled: hasCustomUnitTransaction || hasPartiallyEditableTransaction,
         },

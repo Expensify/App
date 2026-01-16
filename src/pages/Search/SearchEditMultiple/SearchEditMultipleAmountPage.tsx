@@ -92,6 +92,8 @@ function SearchEditMultipleAmountPage() {
                 isEditing
                 // TODO: Enable currency picker in a separate PR
                 isCurrencyPressable={false}
+                // TODO: Enable currency symbol in a separate PR
+                hideCurrencySymbol
                 ref={(e: BaseTextInputRef | null) => {
                     textInput.current = e;
                 }}
