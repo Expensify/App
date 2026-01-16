@@ -1382,10 +1382,10 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true, shouldStringifyValue = false) {
+function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
-        value: shouldStringifyValue ? JSON.stringify(value) : value,
+        value: typeof value === 'object' && value != null ? JSON.stringify(value) : value,
     };
 
     const optimisticData: OnyxUpdate[] = [

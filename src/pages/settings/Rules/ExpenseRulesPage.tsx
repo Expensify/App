@@ -105,7 +105,7 @@ function ExpenseRulesPage() {
     const handleDeleteRules = () => {
         if (selectedRules.length > 0) {
             const rulesToDelete = expenseRules.filter((rule) => !selectedRules.includes(getKeyForRule(rule)));
-            setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, rulesToDelete, expenseRules, true, true);
+            setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, rulesToDelete, expenseRules);
         }
         setDeleteConfirmModalVisible(false);
         setSelectedRules([]);

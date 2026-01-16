@@ -123,7 +123,7 @@ function AddRule({hash}: AddRuleProps) {
         } else {
             newRules = [...expenseRules, newRule];
         }
-        setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, newRules, expenseRules, true, true);
+        setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, newRules, expenseRules);
 
         Navigation.goBack();
     };
@@ -201,7 +201,7 @@ function AddRule({hash}: AddRuleProps) {
                         <Text style={[styles.headerText, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
                         {section.items.map((item) => {
                             if (!item) {
-                                return;
+                                return null;
                             }
                             return (
                                 <MenuItemWithTopDescription
