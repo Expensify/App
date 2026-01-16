@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -11,10 +11,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setNameValuePair, updateDraftRule} from '@libs/actions/User';
+import {getAvailableNonPersonalPolicyCategories} from '@libs/CategoryUtils';
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRatesNamesAndValues, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
-import {availableNonPersonalPolicyCategoriesSelector} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCategoryPage';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -64,11 +64,6 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) 
     return message;
 };
 
-const categoriesSelector = (allPolicyCategories: OnyxCollection<PolicyCategories>) => {
-    const categories = availableNonPersonalPolicyCategoriesSelector(allPolicyCategories);
-    return Object.values(categories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {})).length > 0;
-};
-
 const tagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => {
     const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
     return tagListsUnpacked.map(getTagNamesFromTagsLists).flat().length > 0;
@@ -81,6 +76,14 @@ function AddRule({hash}: AddRuleProps) {
     const [shouldShowError, setShouldShowError] = useState(false);
     const styles = useThemeStyles();
 
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const categoriesSelector = useCallback(
+        (allPolicyCategories: OnyxCollection<PolicyCategories>) => {
+            const categories = getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
+            return Object.values(categories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {})).length > 0;
+        },
+        [personalPolicyID],
+    );
     const [hasPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         canBeMissing: true,
         selector: categoriesSelector,
