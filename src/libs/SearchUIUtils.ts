@@ -96,6 +96,7 @@ import {
     getPolicyName,
     getReportName,
     getReportOrDraftReport,
+    getReportPendingFields,
     getReportStatusTranslation,
     getSearchReportName,
     hasAnyViolations,
@@ -242,19 +243,8 @@ const expenseStatusActionMapping = {
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
-const actionFilterMapping = {
-    [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: expenseStatusActionMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
-    [CONST.SEARCH.ACTION_FILTERS.APPROVE]: expenseStatusActionMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-    [CONST.SEARCH.ACTION_FILTERS.PAY]: expenseStatusActionMapping[CONST.SEARCH.STATUS.EXPENSE.APPROVED],
-    [CONST.SEARCH.ACTION_FILTERS.EXPORT]: () => true,
-};
-
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
     return typeof status === 'string' && status in expenseStatusActionMapping;
-}
-
-function isValidActionFilter(action: unknown): action is ValueOf<typeof CONST.SEARCH.ACTION_FILTERS> {
-    return typeof action === 'string' && action in actionFilterMapping;
 }
 
 function getExpenseStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
@@ -1810,10 +1800,8 @@ function getReportSections({
                 const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
                 const policy = getPolicyFromKey(data, reportItem);
 
-                let isReportStatePending;
-                if (actionFromQuery && isValidActionFilter(actionFromQuery)) {
-                    isReportStatePending = !actionFilterMapping[actionFromQuery](reportItem);
-                }
+                const pendingFields = getReportPendingFields(reportItem.reportID);
+                const isReportStatePending = !!pendingFields?.nextStep;
 
                 const hasAnyViolationsForReport = hasAnyViolations(
                     reportItem.reportID,
