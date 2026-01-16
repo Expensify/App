@@ -1,6 +1,5 @@
 /* eslint-disable max-lines */
 import {findFocusedRoute} from '@react-navigation/native';
-import type {ReactNode} from '@types/react';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
@@ -10,6 +9,7 @@ import isEmpty from 'lodash/isEmpty';
 import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
+import type {ReactNode} from 'react';
 import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
