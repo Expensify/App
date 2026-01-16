@@ -47,6 +47,8 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getPolicyChangeLogMaxExpenseAgeMessage,
+    getPolicyChangeLogMaxExpenseAmountMessage,
     getRenamedAction,
     getReportActionActorAccountID,
     getReportActionHtml,
@@ -812,6 +814,14 @@ function getLastMessageTextForReport({
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translateLocal);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, lastReportAction);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
