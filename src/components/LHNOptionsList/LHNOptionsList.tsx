@@ -10,7 +10,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {BlockingViewProps} from '@components/BlockingViews/BlockingView';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -56,7 +55,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus']);
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
@@ -137,7 +136,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     text={translate('common.emptyLHN.subtitleText2')}
                 />
                 <Icon
-                    src={Expensicons.Plus}
+                    src={expensifyIcons.Plus}
                     width={variables.emptyLHNIconWidth}
                     height={variables.emptyLHNIconHeight}
                     fill={theme.icon}
@@ -163,6 +162,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             styles.textNormal,
             translate,
             expensifyIcons.MagnifyingGlass,
+            expensifyIcons.Plus,
         ],
     );
 
