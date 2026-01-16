@@ -1476,6 +1476,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hrs: '小时',
             hours: '小时',
             ratePreview: (rate: string) => `${rate} / 小时`,
+            amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
         AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>解释</strong></a> &#x2728;',
     },

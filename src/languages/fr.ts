@@ -1508,6 +1508,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hrs: 'h',
             hours: 'Heures',
             ratePreview: (rate: string) => `${rate} / heure`,
+            amountTooLargeError: 'Le montant total est trop élevé. Réduisez le nombre d’heures ou diminuez le tarif.',
         },
         AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Expliquer</strong></a> &#x2728;',
     },
