@@ -21,7 +21,7 @@ type SearchSingleSelectionPickerProps = {
     pickerTitle?: string;
     onSaveSelection: (value: string | undefined) => void;
     backToRoute?: Route;
-    shouldShowResetButton?: boolean;
+    shouldAutoSave?: boolean;
     shouldShowTextInput?: boolean;
 };
 
@@ -31,7 +31,7 @@ function SearchSingleSelectionPicker({
     pickerTitle,
     onSaveSelection,
     backToRoute,
-    shouldShowResetButton = true,
+    shouldAutoSave,
     shouldShowTextInput = true,
 }: SearchSingleSelectionPickerProps) {
     const {translate} = useLocalize();
@@ -84,14 +84,22 @@ function SearchSingleSelectionPicker({
         };
     }, [initiallySelectedItem, selectedItem?.value, items, pickerTitle, debouncedSearchTerm]);
 
-    const onSelectItem = useCallback((item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
-        if (!item.text || !item.keyForList || !item.value) {
-            return;
-        }
-        if (!item.isSelected) {
-            setSelectedItem({name: item.text, value: item.value});
-        }
-    }, []);
+    const onSelectItem = useCallback(
+        (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
+            if (!item.text || !item.keyForList || !item.value) {
+                return;
+            }
+            if (shouldAutoSave) {
+                onSaveSelection(item.isSelected ? '' : item.value);
+                Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                return;
+            }
+            if (!item.isSelected) {
+                setSelectedItem({name: item.text, value: item.value});
+            }
+        },
+        [shouldAutoSave, backToRoute, onSaveSelection],
+    );
 
     const resetChanges = useCallback(() => {
         setSelectedItem(undefined);
@@ -106,10 +114,10 @@ function SearchSingleSelectionPicker({
         () => (
             <SearchFilterPageFooterButtons
                 applyChanges={applyChanges}
-                resetChanges={shouldShowResetButton ? resetChanges : undefined}
+                resetChanges={resetChanges}
             />
         ),
-        [resetChanges, applyChanges, shouldShowResetButton],
+        [resetChanges, applyChanges],
     );
     return (
         <SelectionList
@@ -120,7 +128,7 @@ function SearchSingleSelectionPicker({
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onSelectRow={onSelectItem}
             headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
-            footerContent={footerContent}
+            footerContent={shouldAutoSave ? undefined : footerContent}
             shouldStopPropagation
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips

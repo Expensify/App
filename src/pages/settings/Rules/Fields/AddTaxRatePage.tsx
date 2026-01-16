@@ -53,7 +53,7 @@ function AddTaxRatePage({route}: AddTaxRatePageProps) {
                     initiallySelectedItem={selectedTaxItem}
                     items={taxItems}
                     onSaveSelection={onSave}
-                    shouldShowResetButton={false}
+                    shouldAutoSave
                 />
             </View>
         </ScreenWrapper>

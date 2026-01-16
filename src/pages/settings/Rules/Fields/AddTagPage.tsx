@@ -65,7 +65,7 @@ function AddTagPage({route}: AddTagPageProps) {
                     initiallySelectedItem={selectedTagItem}
                     items={tagItems}
                     onSaveSelection={onSave}
-                    shouldShowResetButton={false}
+                    shouldAutoSave
                 />
             </View>
         </ScreenWrapper>

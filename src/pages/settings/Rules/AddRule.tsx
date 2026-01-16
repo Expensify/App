@@ -224,7 +224,7 @@ function AddRule({hash}: AddRuleProps) {
             <FormAlertWithSubmitButton
                 buttonText={translate('expenseRulesPage.addRule.saveRule')}
                 containerStyles={[styles.m4, styles.mb5]}
-                isAlertVisible={shouldShowError}
+                isAlertVisible={shouldShowError && !!errorMessage}
                 message={errorMessage}
                 onSubmit={handleSubmit}
                 enabledWhenOffline

@@ -72,7 +72,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
                     initiallySelectedItem={selectedCategoryItem}
                     items={categoryItems}
                     onSaveSelection={onSave}
-                    shouldShowResetButton={false}
+                    shouldAutoSave
                 />
             </View>
         </ScreenWrapper>

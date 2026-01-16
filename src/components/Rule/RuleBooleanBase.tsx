@@ -1,16 +1,13 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +16,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {InputID} from '@src/types/form/ExpenseRuleForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type BooleanFilterItem = ListItem & {
     value: ValueOf<typeof CONST.SEARCH.BOOLEAN>;
@@ -38,33 +34,19 @@ type RuleBooleanBasePageProps = {
 
 const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
 
-const getInitialSelectedItem = (formValue?: string | boolean) =>
-    booleanValues.find((value) => {
-        if (!formValue) {
-            return false;
-        }
-        const booleanValue = formValue === 'true' ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
-        return booleanValue === value;
-    }) ?? null;
-
 function RuleBooleanBasePage({fieldID, titleKey, hash}: RuleBooleanBasePageProps) {
     const {translate} = useLocalize();
-    const [form, formMetadata] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
+    const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
     const styles = useThemeStyles();
 
-    const isLoading = isLoadingOnyxValue(formMetadata);
-    const prevIsLoading = usePrevious(isLoading);
-
-    const [selectedItem, setSelectedItem] = useState<string | null>(() => getInitialSelectedItem(form?.[fieldID]));
-
-    useEffect(() => {
-        if (isLoading || !prevIsLoading) {
-            return;
-        }
-        // Called only first time when Onyx loading finished
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedItem(getInitialSelectedItem(form?.[fieldID]));
-    }, [isLoading, prevIsLoading, form, fieldID]);
+    const selectedItem =
+        booleanValues.find((value) => {
+            if (!form?.[fieldID]) {
+                return false;
+            }
+            const booleanValue = form[fieldID] === 'true' ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+            return booleanValue === value;
+        }) ?? null;
 
     const items = booleanValues.map((value) => ({
         value,
@@ -73,20 +55,16 @@ function RuleBooleanBasePage({fieldID, titleKey, hash}: RuleBooleanBasePageProps
         isSelected: selectedItem === value,
     }));
 
-    const onSelectItem = useCallback((selectedValue: BooleanFilterItem) => {
-        const newValue = selectedValue.isSelected ? null : selectedValue.value;
-        setSelectedItem(newValue);
-    }, []);
-
     const goBack = () => {
         Navigation.goBack(hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute());
     };
 
-    const applyChanges = () => {
-        let value;
-        if (selectedItem === CONST.SEARCH.BOOLEAN.YES) {
+    const onSelectItem = (selectedValue: BooleanFilterItem) => {
+        const newValue = selectedValue.isSelected ? null : selectedValue.value;
+        let value = '';
+        if (newValue === CONST.SEARCH.BOOLEAN.YES) {
             value = 'true';
-        } else if (selectedItem === CONST.SEARCH.BOOLEAN.NO) {
+        } else if (newValue === CONST.SEARCH.BOOLEAN.NO) {
             value = 'false';
         }
         updateDraftRule({[fieldID]: value});
@@ -113,9 +91,6 @@ function RuleBooleanBasePage({fieldID, titleKey, hash}: RuleBooleanBasePageProps
                     onSelectRow={onSelectItem}
                 />
             </View>
-            <FixedFooter style={styles.mtAuto}>
-                <SearchFilterPageFooterButtons applyChanges={applyChanges} />
-            </FixedFooter>
         </ScreenWrapper>
     );
 }
