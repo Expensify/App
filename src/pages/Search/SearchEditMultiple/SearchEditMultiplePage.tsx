@@ -14,9 +14,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTaxName, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +28,7 @@ import type {TransactionChanges} from '@src/types/onyx/Transaction';
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {selectedTransactionIDs} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
@@ -81,8 +83,12 @@ function SearchEditMultiplePage() {
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, allTransactions, allReports);
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
     const isTaxTrackingEnabled = !!policy?.tax?.trackingEnabled;
+    const areCategoriesEnabled = !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
+    const areTagsEnabled = !!policy?.areTagsEnabled && hasEnabledTags(Object.values(policyTags ?? {}));
 
     useEffect(() => {
         if (draftTransaction?.transactionID) {
@@ -104,7 +110,7 @@ function SearchEditMultiplePage() {
 
         const changes: TransactionChanges = {};
         if (draftTransaction.amount !== undefined && draftTransaction.amount !== 0) {
-            changes.amount = draftTransaction.amount;
+            changes.amount = Math.abs(draftTransaction.amount);
         }
         if (draftTransaction.currency) {
             changes.currency = draftTransaction.currency;
@@ -140,6 +146,7 @@ function SearchEditMultiplePage() {
         }
 
         updateMultipleMoneyRequests(selectedTransactionIDs, changes, policy, allReports, allTransactions, allReportActions);
+        clearSelectedTransactions(true);
 
         Navigation.dismissModal();
     };
@@ -179,16 +186,24 @@ function SearchEditMultiplePage() {
             route: ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP,
             disabled: hasPartiallyEditableTransaction,
         },
-        {
-            description: translate('common.category'),
-            title: draftTransaction?.category ?? '',
-            route: ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP,
-        },
-        {
-            description: translate('common.tag'),
-            title: draftTransaction?.tag ?? '',
-            route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP,
-        },
+        ...(areCategoriesEnabled
+            ? [
+                  {
+                      description: translate('common.category'),
+                      title: draftTransaction?.category ?? '',
+                      route: ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP,
+                  },
+              ]
+            : []),
+        ...(areTagsEnabled
+            ? [
+                  {
+                      description: translate('common.tag'),
+                      title: draftTransaction?.tag ?? '',
+                      route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP,
+                  },
+              ]
+            : []),
         ...(isTaxTrackingEnabled
             ? [
                   {
