@@ -19,10 +19,13 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import {
+    enableAutoApprovalOptions,
     enableCompanyCards,
+    enablePolicyAutoReimbursementLimit,
     enablePolicyReportFields,
     enablePolicyRules,
     setPolicyPreventMemberCreatedTitle,
+    setPolicyPreventSelfApproval,
     setWorkspaceApprovalMode,
     upgradeToCorporate,
 } from '@src/libs/actions/Policy/Policy';
@@ -133,6 +136,15 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
         switch (feature.id) {
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
+                setPolicyPreventSelfApproval(policyID, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
+                enableAutoApprovalOptions(policyID, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
+                enablePolicyAutoReimbursementLimit(policyID, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
                     case CONST.REPORT_FIELDS_FEATURE.qbo.classes:
@@ -176,16 +188,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
         }
     }, [
-        policyID,
+        categoryId,
         feature,
-        featureNameAlias,
-        route.params.featureName,
         perDiemCustomUnit?.customUnitID,
-        defaultApprover,
+        policy?.connections?.xero?.config,
+        policy?.connections?.xero?.data,
+        policyID,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
-        categoryId,
+        route.params?.featureName,
+        featureNameAlias,
+        defaultApprover,
     ]);
 
     useFocusEffect(

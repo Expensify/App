@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -17,11 +17,12 @@ const anchorAlignment = {
 function TaxExemptActions() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Coins']);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             {
-                icon: Expensicons.Coins,
+                icon: icons.Coins,
                 numberOfLinesTitle: 2,
                 text: translate('subscription.details.taxExempt'),
                 onSelected: () => {
@@ -30,7 +31,7 @@ function TaxExemptActions() {
                 },
             },
         ],
-        [translate],
+        [translate, icons.Coins],
     );
 
     return (
@@ -44,7 +45,5 @@ function TaxExemptActions() {
         </View>
     );
 }
-
-TaxExemptActions.displayName = 'TaxExemptActions';
 
 export default TaxExemptActions;

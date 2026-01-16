@@ -53,7 +53,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
             const tagGLCode = values.glCode.trim();
 
             if (tagGLCode.length > CONST.MAX_LENGTH_256) {
-                errors.glCode = translate('common.error.characterLimitExceedCounter', {length: tagGLCode.length, limit: CONST.MAX_LENGTH_256});
+                errors.glCode = translate('common.error.characterLimitExceedCounter', tagGLCode.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;
@@ -76,13 +76,13 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
             shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={TagGLCodePage.displayName}
+                testID="TagGLCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -113,7 +113,5 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-TagGLCodePage.displayName = 'TagGLCodePage';
 
 export default TagGLCodePage;

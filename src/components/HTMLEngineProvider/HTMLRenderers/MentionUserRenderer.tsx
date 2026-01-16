@@ -6,20 +6,19 @@ import {StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import asMutable from '@src/types/utils/asMutable';
@@ -32,7 +31,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const StyleUtils = useStyleUtils();
     const {formatPhoneNumber} = useLocalize();
     const htmlAttribAccountID = tnode.attributes.accountid;
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
     const htmlAttributeAccountID = tnode.attributes.accountid;
 
     let accountID: number;
@@ -59,6 +58,11 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         accountID = getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
+    } else if (!isEmpty(htmlAttribAccountID)) {
+        // accountID not found in personal details and mention data not provided
+        accountID = parseInt(htmlAttribAccountID, 10);
+        mentionDisplayText = getDisplayNameOrDefault();
+        navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
     } else {
         // If neither an account ID or email is provided, don't render anything
         return null;
@@ -122,7 +126,5 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         </ShowContextMenuContext.Consumer>
     );
 }
-
-MentionUserRenderer.displayName = 'MentionUserRenderer';
 
 export default withCurrentUserPersonalDetails(MentionUserRenderer);

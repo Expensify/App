@@ -3,7 +3,7 @@ import type {Role} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import GenericPressable from './BaseGenericPressable';
 
-function WebGenericPressable({focusable = true, ref, ...props}: PressableProps) {
+function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: PressableProps) {
     const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
 
     return (
@@ -22,11 +22,9 @@ function WebGenericPressable({focusable = true, ref, ...props}: PressableProps) 
             aria-valuemin={props.accessibilityValue?.min}
             aria-valuemax={props.accessibilityValue?.max}
             aria-valuetext={props.accessibilityValue?.text}
-            dataSet={{tag: 'pressable', ...(props.noDragArea && {dragArea: false}), ...props.dataSet}}
+            dataSet={{tag: 'pressable', ...(props.noDragArea && {dragArea: false}), ...(sentryLabel && {sentryLabel}), ...props.dataSet}}
         />
     );
 }
-
-WebGenericPressable.displayName = 'WebGenericPressable';
 
 export default WebGenericPressable;

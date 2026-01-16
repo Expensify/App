@@ -37,7 +37,7 @@ function SuccessPage({route}: SuccessPageProps) {
             }
             Navigation.popRootToTop();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -67,7 +67,5 @@ function SuccessPage({route}: SuccessPageProps) {
         </TwoFactorAuthWrapper>
     );
 }
-
-SuccessPage.displayName = 'SuccessPage';
 
 export default SuccessPage;

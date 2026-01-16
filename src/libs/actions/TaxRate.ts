@@ -47,10 +47,7 @@ const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
     const name = values[INPUT_IDS.NAME];
     if (name.length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        errors[INPUT_IDS.NAME] = translateLocal('common.error.characterLimitExceedCounter', {
-            length: name.length,
-            limit: CONST.TAX_RATES.NAME_MAX_LENGTH,
-        });
+        errors[INPUT_IDS.NAME] = translateLocal('common.error.characterLimitExceedCounter', name.length, CONST.TAX_RATES.NAME_MAX_LENGTH);
     } else if (policy?.taxRates?.taxes && isExistingTaxName(name, policy.taxRates.taxes)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[INPUT_IDS.NAME] = translateLocal('workspace.taxes.error.taxRateAlreadyExists');
@@ -65,10 +62,7 @@ const validateTaxCode = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
     const taxCode = values[INPUT_IDS_TAX_CODE.TAX_CODE];
     if (taxCode.length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        errors[INPUT_IDS_TAX_CODE.TAX_CODE] = translateLocal('common.error.characterLimitExceedCounter', {
-            length: taxCode.length,
-            limit: CONST.TAX_RATES.NAME_MAX_LENGTH,
-        });
+        errors[INPUT_IDS_TAX_CODE.TAX_CODE] = translateLocal('common.error.characterLimitExceedCounter', taxCode.length, CONST.TAX_RATES.NAME_MAX_LENGTH);
     } else if (policy?.taxRates?.taxes && isExistingTaxCode(taxCode, policy.taxRates.taxes)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[INPUT_IDS_TAX_CODE.TAX_CODE] = translateLocal('workspace.taxes.error.taxCodeAlreadyExists');
@@ -115,7 +109,7 @@ function createPolicyTax(policyID: string, taxRate: TaxRate) {
         return;
     }
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -224,7 +218,7 @@ function setPolicyTaxesEnabled(policy: OnyxEntry<Policy>, taxesIDsToUpdate: stri
 
     const originalTaxes = {...policy.taxRates?.taxes};
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -341,9 +335,8 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
         };
     }
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -356,6 +349,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                             return acc;
                         }, {}),
                     },
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     customUnits: distanceRateCustomUnit &&
                         customUnitID && {
                             [customUnitID]: {
@@ -366,7 +360,6 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
             },
         ],
         successData: [
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -378,6 +371,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                             return acc;
                         }, {}),
                     },
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     customUnits: distanceRateCustomUnit &&
                         customUnitID && {
                             [customUnitID]: {
@@ -388,7 +382,6 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
             },
         ],
         failureData: [
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -404,6 +397,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                             return acc;
                         }, {}),
                     },
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     customUnits: distanceRateCustomUnit &&
                         customUnitID && {
                             [customUnitID]: {
@@ -426,7 +420,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
 function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number, originalTaxRate: TaxRate) {
     const stringTaxValue = `${taxValue}%`;
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -488,7 +482,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number,
 }
 
 function renamePolicyTax(policyID: string, taxID: string, newName: string, originalTaxRate: TaxRate) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -578,7 +572,7 @@ function setPolicyTaxCode(
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

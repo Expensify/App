@@ -18,7 +18,7 @@ describe('OnboardingFlow', () => {
                 },
                 currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                 currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
-                onboardingInitialPath: '/',
+                onboardingInitialPath: '',
                 onboardingValues: undefined,
             };
             const path = getOnboardingInitialPath(params);

@@ -18,7 +18,7 @@ type RNMaskedTextInputWithRefProps = MaskedTextInputProps &
         ref?: ForwardedRef<AnimatedTextInputRef>;
     };
 
-function RNMaskedTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.MASK, ...props}: RNMaskedTextInputWithRefProps) {
+function RNMaskedTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK, ...props}: RNMaskedTextInputWithRefProps) {
     const theme = useTheme();
 
     return (
@@ -42,7 +42,5 @@ function RNMaskedTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS
         />
     );
 }
-
-RNMaskedTextInputWithRef.displayName = 'RNMaskedTextInputWithRef';
 
 export default RNMaskedTextInputWithRef;

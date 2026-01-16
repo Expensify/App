@@ -7,6 +7,4 @@ function QuickbooksDesktopAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     return <QuickbooksDesktopAutoSyncPageBase policy={policy} />;
 }
 
-QuickbooksDesktopAutoSyncPage.displayName = 'QuickbooksDesktopAutoSyncPage';
-
 export default withPolicyConnections(QuickbooksDesktopAutoSyncPage);

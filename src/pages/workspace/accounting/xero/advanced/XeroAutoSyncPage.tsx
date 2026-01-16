@@ -47,7 +47,7 @@ function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={XeroAutoSyncPage.displayName}
+                testID="XeroAutoSyncPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
@@ -93,7 +93,5 @@ function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-XeroAutoSyncPage.displayName = 'XeroAutoSyncPage';
 
 export default withPolicyConnections(XeroAutoSyncPage);

@@ -3,8 +3,6 @@ import {fireEvent, render, renderHook, screen} from '@testing-library/react-nati
 import React, {createRef} from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
@@ -135,7 +133,7 @@ describe('AvatarButtonWithIcon', () => {
         it('should render with all props provided', () => {
             const onPressMock = jest.fn();
             const anchorRef = createRef<View>();
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'Camera']));
 
             renderWithProvider(
                 <AvatarButtonWithIcon
@@ -153,7 +151,7 @@ describe('AvatarButtonWithIcon', () => {
                     type={CONST.ICON_TYPE_WORKSPACE}
                     pendingAction="update"
                     disabled={false}
-                    editIcon={Expensicons.Camera}
+                    editIcon={icons.current.Camera}
                 />,
             );
 

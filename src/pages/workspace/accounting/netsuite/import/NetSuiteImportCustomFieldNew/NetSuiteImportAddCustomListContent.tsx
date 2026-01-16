@@ -108,7 +108,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportAddCustomListContent.displayName}
+            displayName="NetSuiteImportAddCustomListContent"
             headerTitle="workspace.netsuite.import.importCustomFields.customLists.addText"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -142,7 +142,5 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
         </ConnectionLayout>
     );
 }
-
-NetSuiteImportAddCustomListContent.displayName = 'NetSuiteImportAddCustomListContent';
 
 export default NetSuiteImportAddCustomListContent;

@@ -9,8 +9,6 @@ import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import {ArrowCircleClockwise} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -133,14 +131,14 @@ function AttachmentView({
     reportID,
     transaction: transactionProp,
 }: AttachmentViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gallery'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Gallery']);
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const transaction = transactionProp ?? transactionFromOnyx;
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID, currentlyPlayingURL, playVideo} = usePlaybackContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
+    const {onAttachmentError, onTap} = attachmentCarouselPagerContext ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -294,13 +292,14 @@ function AttachmentView({
                     </View>
                     <Button
                         text={translate('attachmentView.retry')}
-                        icon={ArrowCircleClockwise}
+                        icon={icons.ArrowCircleClockwise}
                         onPress={() => {
                             if (isOffline) {
                                 return;
                             }
                             setImageError(false);
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.RETRY_BUTTON}
                     />
                 </View>
             );
@@ -365,6 +364,7 @@ function AttachmentView({
                 isHovered={isHovered}
                 duration={duration}
                 reportID={reportID}
+                onTap={onTap}
             />
         );
     }
@@ -381,8 +381,6 @@ function AttachmentView({
         />
     );
 }
-
-AttachmentView.displayName = 'AttachmentView';
 
 export default memo(AttachmentView);
 

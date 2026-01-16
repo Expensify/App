@@ -64,6 +64,4 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     return addSpacing ? <View style={inARow ? [styles.pb3, styles.w50, styles.pl1] : [styles.pb3, styles.ph5]}>{freeTrial}</View> : freeTrial;
 }
 
-FreeTrial.displayName = 'FreeTrial';
-
 export default FreeTrial;

@@ -66,6 +66,4 @@ function PhoneNumberBusiness({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-PhoneNumberBusiness.displayName = 'PhoneNumberBusiness';
-
 export default PhoneNumberBusiness;

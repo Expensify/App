@@ -7,6 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isTripPreview} from '@libs/ReportActionsUtils';
 import {
     canCurrentUserOpenReport,
@@ -147,11 +148,12 @@ function ReportActionItemParentAction({
             <AnimatedEmptyStateBackground />
             <OfflineWithFeedback
                 shouldDisableOpacity
-                errors={report?.errorFields?.createChatThread}
+                errors={
+                    report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
+                }
                 errorRowStyles={[styles.ml10, styles.mr2]}
                 onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true)}
             >
-                {/* eslint-disable-next-line react-compiler/react-compiler */}
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
                     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
@@ -216,7 +218,5 @@ function ReportActionItemParentAction({
         </View>
     );
 }
-
-ReportActionItemParentAction.displayName = 'ReportActionItemParentAction';
 
 export default ReportActionItemParentAction;

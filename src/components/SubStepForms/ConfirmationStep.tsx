@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import CONST from '@src/CONST';
 
 type SummaryItem = {
@@ -20,30 +21,41 @@ type SummaryItem = {
     onPress: () => void;
 };
 
-type ConfirmationStepProps = SubStepProps & {
-    /** The title of the step */
-    pageTitle: string;
+type ConfirmationStepProps = SubStepProps &
+    ForwardedFSClassProps & {
+        /** The title of the step */
+        pageTitle: string;
 
-    /** The summary items to display */
-    summaryItems: SummaryItem[];
+        /** The summary items to display */
+        summaryItems: SummaryItem[];
 
-    /** Whether show additional section with Onfido terms etc. */
-    showOnfidoLinks: boolean;
+        /** Whether show additional section with Onfido terms etc. */
+        showOnfidoLinks: boolean;
 
-    /** The title of the Onfido section */
-    onfidoLinksTitle?: string;
+        /** The title of the Onfido section */
+        onfidoLinksTitle?: string;
 
-    /** Whether the data is loading */
-    isLoading?: boolean;
+        /** Whether the data is loading */
+        isLoading?: boolean;
 
-    /** The error message to display */
-    error?: string;
+        /** The error message to display */
+        error?: string;
 
-    /** Whether to apply safe area padding bottom */
-    shouldApplySafeAreaPaddingBottom?: boolean;
-};
+        /** Whether to apply safe area padding bottom */
+        shouldApplySafeAreaPaddingBottom?: boolean;
+    };
 
-function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinksTitle, isLoading, error, onNext, shouldApplySafeAreaPaddingBottom = true}: ConfirmationStepProps) {
+function ConfirmationStep({
+    pageTitle,
+    summaryItems,
+    showOnfidoLinks,
+    onfidoLinksTitle,
+    isLoading,
+    error,
+    onNext,
+    shouldApplySafeAreaPaddingBottom = true,
+    forwardedFSClass,
+}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -63,6 +75,7 @@ function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinks
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}
                     onPress={onPress}
+                    forwardedFSClass={forwardedFSClass}
                 />
             ))}
 
@@ -113,7 +126,5 @@ function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinks
         </ScrollView>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

@@ -6,8 +6,6 @@ import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformS
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
-import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
-import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
 import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
@@ -60,14 +58,6 @@ function PublicScreens() {
                 component={UnlinkLoginPage}
             />
             <RootStack.Screen
-                name={SCREENS.SIGN_IN_WITH_APPLE_DESKTOP}
-                component={AppleSignInDesktopPage}
-            />
-            <RootStack.Screen
-                name={SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP}
-                component={GoogleSignInDesktopPage}
-            />
-            <RootStack.Screen
                 name={SCREENS.SAML_SIGN_IN}
                 options={{gestureEnabled: false}}
                 component={SAMLSignInPage}
@@ -99,7 +89,5 @@ function PublicScreens() {
         </RootStack.Navigator>
     );
 }
-
-PublicScreens.displayName = 'PublicScreens';
 
 export default PublicScreens;

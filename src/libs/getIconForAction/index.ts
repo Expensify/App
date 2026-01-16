@@ -1,21 +1,21 @@
 import type {ValueOf} from 'type-fest';
-import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 
-const getIconForAction = (actionType: ValueOf<typeof CONST.IOU.TYPE>) => {
+const getIconForAction = (actionType: ValueOf<typeof CONST.IOU.TYPE>, icons: Record<'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'Receipt' | 'MoneyCircle', IconAsset>) => {
     switch (actionType) {
         case CONST.IOU.TYPE.TRACK:
-            return Expensicons.Coins;
+            return icons.Coins;
         case CONST.IOU.TYPE.REQUEST:
-            return Expensicons.Receipt;
+            return icons.Receipt;
         case CONST.IOU.TYPE.SEND:
-            return Expensicons.Cash;
+            return icons.Cash;
         case CONST.IOU.TYPE.SPLIT:
-            return Expensicons.Transfer;
+            return icons.Transfer;
         case CONST.IOU.TYPE.CREATE:
-            return Expensicons.Receipt;
+            return icons.Receipt;
         default:
-            return Expensicons.MoneyCircle;
+            return icons.MoneyCircle;
     }
 };
 

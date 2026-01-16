@@ -23,3 +23,14 @@
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/12627#issuecomment-2945055209
 - E/App issue: https://github.com/Expensify/App/issues/62346
 - PR Introducing Patch: [#63570](https://github.com/Expensify/App/pull/63570)
+
+### [react-native-tab-view+4.1.0+003+fix-web-onTabSelect-on-mount.patch](react-native-tab-view+4.1.0+003+fix-web-onTabSelect-on-mount.patch)
+
+- Reason: 
+    ```
+    This patch fixes an issue on web where the `onTabSelect` callback was not being called on initial mount.
+    This caused problems in scenarios where the initial tab selection needed to trigger input focus logic.
+    ```
+- Upstream PR/issue: 🛑 (must merge https://github.com/react-navigation/react-navigation/pull/12627 first)
+- E/App issue: https://github.com/Expensify/App/issues/71913#issuecomment-3584103273
+- PR Introducing Patch: [#76586](https://github.com/Expensify/App/pull/76586)

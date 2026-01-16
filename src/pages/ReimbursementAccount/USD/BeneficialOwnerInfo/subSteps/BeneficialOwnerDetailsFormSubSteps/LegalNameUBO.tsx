@@ -49,6 +49,4 @@ function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID
     );
 }
 
-LegalNameUBO.displayName = 'LegalNameUBO';
-
 export default LegalNameUBO;
