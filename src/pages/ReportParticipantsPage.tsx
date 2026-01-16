@@ -265,6 +265,12 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             cancelText: translate('common.cancel'),
             danger: true,
         });
+
+        // Focus the text input after the modal hides
+        if (textInputRef.current) {
+            textInputRef.current.focus();
+        }
+
         if (action !== ModalActions.CONFIRM) {
             return;
         }
