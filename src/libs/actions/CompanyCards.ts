@@ -341,7 +341,7 @@ function assignWorkspaceCompanyCard(
         policyID: policy.id,
         bankName,
         encryptedCardNumber,
-        cardName,
+        cardName: customCardName ?? '',
         email,
         startDate,
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
@@ -472,13 +472,13 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
     API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
-function resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID: number, feed: CompanyCardFeedWithDomainID | undefined, cardNumber: string) {
+function resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID: number, feed: CompanyCardFeedWithDomainID | undefined, encryptedCardNumber: string) {
     if (!feed) {
         return;
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feed}`, {
-        [cardNumber]: null,
+        [encryptedCardNumber]: null,
     });
 }
 

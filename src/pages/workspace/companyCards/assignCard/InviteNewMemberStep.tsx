@@ -50,9 +50,10 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
     };
 
     const goToNextStep = useCallback(() => {
+        const defaultCardName = getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail);
         const cardToAssign: Partial<AssignCardData> = {
             email: assignCard?.cardToAssign?.invitingMemberEmail,
-            customCardName: getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail),
+            customCardName: defaultCardName,
             invitingMemberEmail: '',
         };
 
@@ -61,6 +62,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
         if (assignCard?.cardToAssign?.encryptedCardNumber) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
+            cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
             cardToAssign.startDate = assignCard?.cardToAssign?.startDate ?? new Date().toISOString().split('T').at(0);
             cardToAssign.dateOption = assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
             setAssignCardStepAndData({
