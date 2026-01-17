@@ -85,6 +85,14 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             return;
         }
 
+        if (allReports.length > allReportsCount) {
+            saveLastSearchParams({
+                ...lastSearchQuery,
+                previousLengthOfResults: allReports.length,
+            });
+            return;
+        }
+
         if (currentIndex < allReportsCount - 1) {
             return;
         }
