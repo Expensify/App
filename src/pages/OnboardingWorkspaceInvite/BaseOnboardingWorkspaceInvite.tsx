@@ -10,6 +10,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {Section} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -56,6 +57,11 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchived = useCallback(
+        (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`),
+        [archivedReportsIdSet],
+    );
 
     const excludedUsers = useMemo(() => {
         const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
@@ -154,6 +160,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
                 // See https://github.com/Expensify/App/issues/57167 for more details
                 (session?.email ?? '').includes('+'),
+                isReportArchived,
             );
         },
         [
@@ -163,6 +170,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             onboardingAdminsChatReportID,
             onboardingPolicyID,
             onboardingPurposeSelected,
+            isReportArchived,
             isSmallScreenWidth,
             isBetaEnabled,
             session?.email,

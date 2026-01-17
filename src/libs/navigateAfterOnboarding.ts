@@ -5,6 +5,8 @@ import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 
+type IsReportArchived = (reportID?: string) => boolean;
+
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
  * On large screens, navigates to the admins chat if available. On small screens, finds the last
@@ -16,6 +18,7 @@ function getReportIDAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    isReportArchived?: IsReportArchived,
 ): string | undefined {
     // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
     // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
@@ -27,7 +30,7 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
+    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, undefined, isReportArchived);
     const lastAccessedReportID = lastAccessedReport?.reportID;
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
@@ -45,6 +48,7 @@ function navigateAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    isReportArchived?: IsReportArchived,
 ) {
     setDisableDismissOnEscape(false);
 
@@ -53,7 +57,14 @@ function navigateAfterOnboarding(
         return;
     }
 
-    const reportID = getReportIDAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
+    const reportID = getReportIDAfterOnboarding(
+        isSmallScreenWidth,
+        canUseDefaultRooms,
+        onboardingPolicyID,
+        onboardingAdminsChatReportID,
+        shouldPreventOpenAdminRoom,
+        isReportArchived,
+    );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
@@ -78,10 +89,11 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    isReportArchived?: IsReportArchived,
 ) {
     Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
+        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom, isReportArchived);
     });
 }
 
