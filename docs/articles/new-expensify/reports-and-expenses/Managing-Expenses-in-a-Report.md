@@ -9,7 +9,7 @@ Easily add, delete, or move expenses within reports in New Expensify. This guide
 # Managing Expenses in a Report in New Expensify
 
 ## Who can edit or modify expenses in a report
-- **Edit expenses on a report**: The member who created the report, the current approver, and Workspace Admins
+- **Edit expenses on a report**: The member who created the report, the current approver, and Workspace Admins.
 - **Add expenses to a report**: Only the member who created the report.
 - **Remove expenses from a report**: Only the member who created the report.
 - **Delete an expense**: Only the member who created that specific expense.
