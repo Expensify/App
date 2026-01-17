@@ -84,10 +84,10 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // Get errors for specific fields
     const settlementAccountErrorKey = 'paymentBankAccountID';
     const settlementFrequencyErrorKey = 'monthlySettlementDate';
-    const hasSettlementAccountError = !!cardSettings?.errors?.[settlementAccountErrorKey];
-    const hasSettlementFrequencyError = !!cardSettings?.errors?.[settlementFrequencyErrorKey];
-    const settlementAccountErrors = hasSettlementAccountError ? {[settlementAccountErrorKey]: cardSettings?.errors?.[settlementAccountErrorKey] ?? ''} : null;
-    const settlementFrequencyErrors = hasSettlementFrequencyError ? {[settlementFrequencyErrorKey]: cardSettings?.errors?.[settlementFrequencyErrorKey] ?? ''} : null;
+    const hasSettlementAccountError = !!cardSettings?.errorFields?.[settlementAccountErrorKey];
+    const hasSettlementFrequencyError = !!cardSettings?.errorFields?.[settlementFrequencyErrorKey];
+    const settlementAccountErrors = hasSettlementAccountError ? cardSettings?.errorFields?.[settlementAccountErrorKey] : null;
+    const settlementFrequencyErrors = hasSettlementFrequencyError ? cardSettings?.errorFields?.[settlementFrequencyErrorKey] : null;
 
     const getCentralInvoicingSubtitle = () => {
         if (!isCentralInvoicingEnabled) {
@@ -162,7 +162,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     <OfflineWithFeedback
                         errors={settlementFrequencyErrors}
                         pendingAction={cardSettings?.pendingFields?.monthlySettlementDate}
-                        onClose={() => clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID)}
+                        onClose={() => clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, cardSettings?.previousMonthlySettlementDate)}
                         errorRowStyles={styles.mh2half}
                         errorRowTextStyles={styles.mr3}
                     >

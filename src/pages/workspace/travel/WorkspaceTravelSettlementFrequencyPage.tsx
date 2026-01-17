@@ -52,12 +52,7 @@ function WorkspaceTravelSettlementFrequencyPage({route}: WorkspaceTravelSettleme
     }));
 
     const selectFrequency = (item: FrequencyItem) => {
-        updateTravelInvoiceSettlementFrequency(
-            policyID,
-            workspaceAccountID,
-            item.value,
-            cardSettings?.monthlySettlementDate instanceof Date ? cardSettings.monthlySettlementDate : undefined,
-        );
+        updateTravelInvoiceSettlementFrequency(policyID, workspaceAccountID, item.value, cardSettings?.monthlySettlementDate ? new Date(cardSettings.monthlySettlementDate) : undefined);
         Navigation.goBack();
     };
 
