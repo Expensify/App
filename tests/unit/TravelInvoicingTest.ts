@@ -1,9 +1,11 @@
 import Onyx from 'react-native-onyx';
-import * as TravelInvoicing from '@libs/actions/TravelInvoicing';
+// We need to import API because it is used in the tests
+// eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
 import {PROGRAM_TRAVEL_US} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {clearTravelInvoicingSettlementAccountErrors, setTravelInvoicingSettlementAccount, clearTravelInvoicingSettlementFrequencyErrors, updateTravelInvoiceSettlementFrequency} from '@libs/actions/TravelInvoicing';
 
 describe('TravelInvoicing', () => {
     let spyAPIWrite: jest.SpyInstance;
@@ -25,7 +27,7 @@ describe('TravelInvoicing', () => {
         const previousPaymentBankAccountID = 111;
         const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
 
-        TravelInvoicing.setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, settlementBankAccountID, previousPaymentBankAccountID);
+        setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, settlementBankAccountID, previousPaymentBankAccountID);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
             'SetTravelInvoicingSettlementAccount',
@@ -64,7 +66,7 @@ describe('TravelInvoicing', () => {
                             previousPaymentBankAccountID,
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             errors: expect.objectContaining({
-                                paymentBankAccountID: expect.any(String),
+                                paymentBankAccountID: expect.stringMatching(/^.+$/),
                             }),
                             isLoading: false,
                         }),
@@ -79,7 +81,7 @@ describe('TravelInvoicing', () => {
         const restoredAccountID = 111;
         const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
 
-        TravelInvoicing.clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, restoredAccountID);
+        clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, restoredAccountID);
 
         expect(spyOnyxUpdate).toHaveBeenCalledWith(
             expect.arrayContaining([
@@ -102,7 +104,7 @@ describe('TravelInvoicing', () => {
         const workspaceAccountID = 456;
         const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
 
-        TravelInvoicing.clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID);
+        clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID);
 
         expect(spyOnyxUpdate).toHaveBeenCalledWith(
             expect.arrayContaining([
@@ -130,7 +132,7 @@ describe('TravelInvoicing', () => {
         jest.useFakeTimers();
         jest.setSystemTime(mockDate);
 
-        TravelInvoicing.updateTravelInvoiceSettlementFrequency(policyID, workspaceAccountID, frequency, currentMonthlySettlementDate);
+        updateTravelInvoiceSettlementFrequency(policyID, workspaceAccountID, frequency, currentMonthlySettlementDate);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
             'UpdateTravelInvoicingSettlementFrequency',
