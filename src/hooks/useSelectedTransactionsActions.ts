@@ -202,6 +202,11 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.Stopwatch,
                 value: HOLD,
                 onSelected: () => {
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+
                     if (!report?.reportID) {
                         return;
                     }
@@ -242,6 +247,11 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ThumbsDown,
                 value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
                 onSelected: () => {
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
                 },
             });
