@@ -119,6 +119,8 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         iouIsReimbursable: false,
         isReceiptEditable: false,
         isDescriptionRequired: false,
+        showMoreFields: false,
+        setShowMoreFields: jest.fn(),
     };
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>

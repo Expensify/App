@@ -950,9 +950,9 @@ function MoneyRequestConfirmationListFooter({
     const shouldRestrictHeight = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
 
     const receiptThumbnailContent = useMemo(() => {
-        const receiptPreviewSource = resolvedReceiptImage || resolvedThumbnail;
+        const receiptPreviewSource = resolvedReceiptImage ?? resolvedThumbnail;
         const shouldUsePatternBackground = shouldRestrictHeight && !isThumbnail && Str.isImage(receiptFilename);
-        const previewImageSource = receiptPreviewSource ? (typeof receiptPreviewSource === 'string' ? {uri: receiptPreviewSource} : receiptPreviewSource) : undefined;
+        const previewImageSource = typeof receiptPreviewSource === 'string' ? {uri: receiptPreviewSource} : receiptPreviewSource;
 
         return (
             <View style={[styles.moneyRequestImage, shouldRestrictHeight ? styles.flex1 : styles.expenseViewImageSmall]}>
