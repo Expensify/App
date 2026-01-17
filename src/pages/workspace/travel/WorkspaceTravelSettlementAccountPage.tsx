@@ -101,7 +101,7 @@ function WorkspaceTravelSettlementAccountPage({route}: WorkspaceTravelSettlement
                 />
                 <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                     <View style={styles.flex1}>
-                        <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                        <Text style={[styles.mh5, styles.mv3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
                         {listOptions.length > 0 ? (
                             <SelectionList
                                 data={listOptions}

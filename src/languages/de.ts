@@ -5091,6 +5091,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             currentTravelLimitLabel: 'Aktuelles Reiselimit',
                             settlementAccountLabel: 'Ausgleichskonto',
                             settlementFrequencyLabel: 'Abrechnungshäufigkeit',
+                            settlementFrequencyDescription: 'Wie oft Expensify Ihr Geschäftskonto belastet, um aktuelle Expensify Travel-Transaktionen zu begleichen.',
                         },
                     },
                 },

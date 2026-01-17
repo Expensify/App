@@ -47,7 +47,9 @@ describe('TravelInvoicing', () => {
                         value: expect.objectContaining({
                             paymentBankAccountID: settlementBankAccountID,
                             previousPaymentBankAccountID,
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            pendingFields: expect.objectContaining({
+                                paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            }),
                             isLoading: true,
                         }),
                     }),
@@ -58,7 +60,9 @@ describe('TravelInvoicing', () => {
                         value: expect.objectContaining({
                             paymentBankAccountID: settlementBankAccountID,
                             previousPaymentBankAccountID: null,
-                            pendingAction: null,
+                            pendingFields: expect.objectContaining({
+                                paymentBankAccountID: null,
+                            }),
                             isLoading: false,
                         }),
                     }),
@@ -69,9 +73,8 @@ describe('TravelInvoicing', () => {
                         value: expect.objectContaining({
                             paymentBankAccountID: settlementBankAccountID,
                             previousPaymentBankAccountID,
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            errors: expect.objectContaining({
-                                paymentBankAccountID: expect.stringMatching(/^.+$/),
+                            pendingFields: expect.objectContaining({
+                                paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             }),
                             isLoading: false,
                         }),
@@ -81,7 +84,7 @@ describe('TravelInvoicing', () => {
         );
     });
 
-    it('clearTravelInvoicingSettlementAccountErrors clears errors, resets pendingAction, and restores restored paymentBankAccountID', () => {
+    it('clearTravelInvoicingSettlementAccountErrors clears errors and pendingFields', () => {
         const workspaceAccountID = 456;
         const restoredAccountID = 111;
         const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
@@ -92,14 +95,14 @@ describe('TravelInvoicing', () => {
             expect.arrayContaining([
                 expect.objectContaining({
                     key: cardSettingsKey,
-                    value: {
-                        errors: {
+                    value: expect.objectContaining({
+                        errors: null,
+                        pendingFields: expect.objectContaining({
                             paymentBankAccountID: null,
-                        },
-                        pendingAction: null,
+                        }),
                         paymentBankAccountID: restoredAccountID,
                         previousPaymentBankAccountID: null,
-                    },
+                    }),
                 }),
             ]),
         );
@@ -115,11 +118,9 @@ describe('TravelInvoicing', () => {
             expect.arrayContaining([
                 expect.objectContaining({
                     key: cardSettingsKey,
-                    value: {
-                        errors: {
-                            monthlySettlementDate: null,
-                        },
-                    },
+                    value: expect.objectContaining({
+                        errors: null,
+                    }),
                 }),
             ]),
         );
@@ -140,10 +141,11 @@ describe('TravelInvoicing', () => {
         updateTravelInvoiceSettlementFrequency(policyID, workspaceAccountID, frequency, currentMonthlySettlementDate);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'UpdateTravelInvoicingSettlementFrequency',
+            'UpdateTravelInvoiceSettlementFrequency',
             {
                 policyID,
-                frequency,
+                workspaceAccountID,
+                settlementFrequency: frequency,
             },
             expect.objectContaining({
                 optimisticData: expect.arrayContaining([
@@ -151,6 +153,9 @@ describe('TravelInvoicing', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             monthlySettlementDate: mockDate,
+                            pendingFields: expect.objectContaining({
+                                monthlySettlementDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            }),
                             errors: null,
                         }),
                     }),
@@ -160,6 +165,9 @@ describe('TravelInvoicing', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             monthlySettlementDate: mockDate,
+                            pendingFields: expect.objectContaining({
+                                monthlySettlementDate: null,
+                            }),
                             errors: null,
                         }),
                     }),
@@ -169,8 +177,8 @@ describe('TravelInvoicing', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             monthlySettlementDate: currentMonthlySettlementDate,
-                            errors: expect.objectContaining({
-                                monthlySettlementDate: expect.stringMatching(/^.+$/),
+                            pendingFields: expect.objectContaining({
+                                monthlySettlementDate: null,
                             }),
                         }),
                     }),

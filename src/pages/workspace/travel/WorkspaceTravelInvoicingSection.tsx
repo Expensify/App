@@ -143,7 +143,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     />
                     <OfflineWithFeedback
                         errors={settlementAccountErrors}
-                        pendingAction={cardSettings?.pendingAction}
+                        pendingAction={cardSettings?.pendingFields?.paymentBankAccountID}
                         onClose={() => clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, cardSettings?.previousPaymentBankAccountID ?? null)}
                         errorRowStyles={styles.mh2half}
                         errorRowTextStyles={styles.mr3}
@@ -161,7 +161,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
                         errors={settlementFrequencyErrors}
-                        pendingAction={cardSettings?.pendingAction}
+                        pendingAction={cardSettings?.pendingFields?.monthlySettlementDate}
                         onClose={() => clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID)}
                         errorRowStyles={styles.mh2half}
                         errorRowTextStyles={styles.mr3}
@@ -206,9 +206,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     // If Travel Invoicing is not enabled or no settlement account is configured
     // show the BookOrManageYourTrip component as fallback
-    // if (!isTravelInvoicingEnabled || !hasSettlementAccount) {
-    //     return <BookOrManageYourTrip policyID={policyID} />;
-    // }
+    if (!isTravelInvoicingEnabled || !hasSettlementAccount) {
+        return <BookOrManageYourTrip policyID={policyID} />;
+    }
 
     return (
         <>

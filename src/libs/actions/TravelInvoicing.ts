@@ -67,7 +67,9 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
                 paymentBankAccountID: settlementBankAccountID,
                 previousPaymentBankAccountID,
                 isLoading: true,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                pendingFields: {
+                    paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
             },
         },
     ];
@@ -80,7 +82,9 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
                 paymentBankAccountID: settlementBankAccountID,
                 previousPaymentBankAccountID: null,
                 isLoading: false,
-                pendingAction: null,
+                pendingFields: {
+                    paymentBankAccountID: null,
+                },
             },
         },
     ];
@@ -94,7 +98,9 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
                 paymentBankAccountID: settlementBankAccountID,
                 previousPaymentBankAccountID,
                 isLoading: false,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                pendingFields: {
+                    paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
@@ -119,7 +125,9 @@ function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`,
             value: {
                 errors: null,
-                pendingAction: null,
+                pendingFields: {
+                    paymentBankAccountID: null,
+                },
                 paymentBankAccountID,
                 previousPaymentBankAccountID: null,
             },
@@ -131,6 +139,7 @@ function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number,
 /**
  * Updates the settlement frequency for Travel Invoicing.
  * Optimistically updates the monthlySettlementDate based on the selected frequency.
+ * Supports offline behavior - changes are queued and synced when back online.
  */
 function updateTravelInvoiceSettlementFrequency(
     policyID: string,
@@ -141,7 +150,7 @@ function updateTravelInvoiceSettlementFrequency(
     const cardSettingsKey =
         `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}` as `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${string}`;
 
-    // If Monthly, Set date (optimistically today). If Daily, set null.
+    // If Monthly, set date (optimistically today). If Daily, set null.
     const monthlySettlementDate = frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY ? new Date() : null;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
@@ -150,6 +159,9 @@ function updateTravelInvoiceSettlementFrequency(
             key: cardSettingsKey,
             value: {
                 monthlySettlementDate,
+                pendingFields: {
+                    monthlySettlementDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
                 errors: null,
             },
         },
@@ -161,6 +173,9 @@ function updateTravelInvoiceSettlementFrequency(
             key: cardSettingsKey,
             value: {
                 monthlySettlementDate,
+                pendingFields: {
+                    monthlySettlementDate: null,
+                },
                 errors: null,
             },
         },
@@ -171,7 +186,10 @@ function updateTravelInvoiceSettlementFrequency(
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                monthlySettlementDate: currentMonthlySettlementDate ?? null, // Revert
+                monthlySettlementDate: currentMonthlySettlementDate ?? null,
+                pendingFields: {
+                    monthlySettlementDate: null,
+                },
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
@@ -179,7 +197,8 @@ function updateTravelInvoiceSettlementFrequency(
 
     const params: UpdateTravelInvoicingSettlementFrequencyParams = {
         policyID,
-        frequency,
+        workspaceAccountID,
+        settlementFrequency: frequency,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY, params, {optimisticData, successData, failureData});

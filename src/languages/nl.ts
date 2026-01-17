@@ -5068,6 +5068,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                             currentTravelLimitLabel: 'Huidige reislimoet',
                             settlementAccountLabel: 'Afwikkelingsrekening',
                             settlementFrequencyLabel: 'Frequentie van afwikkeling',
+                            settlementFrequencyDescription: 'Hoe vaak Expensify geld van uw zakelijke bankrekening zal incasseren om recente Expensify Travel-transacties te vereffenen.',
                         },
                     },
                 },

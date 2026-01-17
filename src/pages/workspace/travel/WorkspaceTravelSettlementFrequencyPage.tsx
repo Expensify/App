@@ -6,7 +6,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateTravelInvoiceSettlementFrequency} from '@libs/actions/TravelInvoicing';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,6 +26,7 @@ type FrequencyItem = ListItem & {
 };
 
 function WorkspaceTravelSettlementFrequencyPage({route}: WorkspaceTravelSettlementFrequencyPageProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -73,6 +76,11 @@ function WorkspaceTravelSettlementFrequencyPage({route}: WorkspaceTravelSettleme
                 onSelectRow={selectFrequency}
                 ListItem={RadioListItem}
                 initiallyFocusedItemKey={currentFrequency}
+                customListHeaderContent={
+                    <Text style={[styles.mh5, styles.mv3]}>
+                        {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyDescription')}
+                    </Text>
+                }
             />
         </ScreenWrapper>
     );

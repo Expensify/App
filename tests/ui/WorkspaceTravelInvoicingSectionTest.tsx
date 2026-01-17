@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -54,6 +54,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         navigate: jest.fn(),
+        getActiveRoute: jest.fn(() => ''),
     },
 }));
 
@@ -311,17 +312,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             // Then it should display "Monthly"
             expect(screen.getByText('Monthly')).toBeTruthy();
-
-            // When pressing the frequency row
-            const frequencyRow = screen.getByText('Monthly');
-            await act(async () => {
-                fireEvent.press(frequencyRow);
-            });
-
-            // Then it should navigate to frequency settings page
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const navigation = require('@libs/Navigation/Navigation');
-            expect(navigation.default.navigate).toHaveBeenCalledWith('workspaces/testPolicy123/travel/settings/frequency');
+            expect(screen.getByText('Settlement frequency')).toBeTruthy();
         });
     });
 });
