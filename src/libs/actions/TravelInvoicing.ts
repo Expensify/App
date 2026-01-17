@@ -201,4 +201,10 @@ function clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID: numbe
     Onyx.update(onyxData);
 }
 
-export {openPolicyTravelPage, setTravelInvoicingSettlementAccount, clearTravelInvoicingSettlementAccountErrors, clearTravelInvoicingSettlementFrequencyErrors, updateTravelInvoiceSettlementFrequency};
+export {
+    openPolicyTravelPage,
+    setTravelInvoicingSettlementAccount,
+    clearTravelInvoicingSettlementAccountErrors,
+    clearTravelInvoicingSettlementFrequencyErrors,
+    updateTravelInvoiceSettlementFrequency,
+};

@@ -13,10 +13,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {openExternalLink} from '@libs/actions/Link';
-import {
-    clearTravelInvoicingSettlementAccountErrors,
-    clearTravelInvoicingSettlementFrequencyErrors,
-} from '@libs/actions/TravelInvoicing';
+import {clearTravelInvoicingSettlementAccountErrors, clearTravelInvoicingSettlementFrequencyErrors} from '@libs/actions/TravelInvoicing';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
