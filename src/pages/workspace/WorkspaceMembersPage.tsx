@@ -435,6 +435,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                                 role={policyEmployee.role}
                                 owner={policy?.owner}
                                 login={details.login}
+                                badgeStyles={[styles.alignSelfEnd]}
                             />
                         </View>
                     </>
@@ -473,6 +474,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         styles.flex1,
         styles.pr3,
         styles.alignSelfStart,
+        styles.alignSelfEnd,
         isControlPolicyWithWideLayout,
         StyleUtils,
         formatPhoneNumber,
