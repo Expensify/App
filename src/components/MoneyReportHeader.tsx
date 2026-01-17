@@ -555,8 +555,8 @@ function MoneyReportHeader({
                     });
                 }
             }
- 
-            if (!!isSelectedTransactionAction) {
+
+            if (isSelectedTransactionAction) {
                 clearSelectedTransactions(true);
             }
         },
@@ -580,6 +580,7 @@ function MoneyReportHeader({
             currentSearchKey,
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
+            clearSelectedTransactions,
         ],
     );
 
