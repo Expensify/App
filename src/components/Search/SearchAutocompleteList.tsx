@@ -808,6 +808,7 @@ function SearchAutocompleteList({
             }),
         [recentReportsOptions, styles.br2, styles.pr3, styles.pl3],
     );
+
     sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
