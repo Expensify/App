@@ -41,43 +41,37 @@ describe('ChatGPTTranslator.performTranslation', () => {
 
     it('retries if translated template has incorrect placeholders, then succeeds', async () => {
         // First attempt returns invalid placeholder format, second returns valid
-        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock)
-            .mockResolvedValueOnce(mockResponse('seeded', 'resp_seed_123'))
-            .mockResolvedValueOnce(mockResponse(invalidTranslation))
-            .mockResolvedValueOnce(mockResponse(validTranslation));
+        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockResolvedValueOnce(mockResponse(invalidTranslation)).mockResolvedValueOnce(mockResponse(validTranslation));
 
         // @ts-expect-error TS2445
         const result = await translator.performTranslation(targetLang, original);
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(3);
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(2);
         expect(result).toBe(validTranslation);
     });
 
     it('returns original string after exceeding retry attempts', async () => {
         // Always returns invalid
-        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockResolvedValueOnce(mockResponse('seeded', 'resp_seed_123')).mockResolvedValue(mockResponse(invalidTranslation));
+        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockResolvedValue(mockResponse(invalidTranslation));
 
         // @ts-expect-error TS2445
         const result = await translator.performTranslation(targetLang, original);
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(maxRetries + 2);
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(maxRetries + 1);
         expect(result).toBe(original);
     });
 
     it('retries if translated HTML has incorrect attributes, then succeeds', async () => {
         // First attempt returns invalid HTML format, second returns valid
-        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock)
-            .mockResolvedValueOnce(mockResponse('seeded', 'resp_seed_123'))
-            .mockResolvedValueOnce(mockResponse(invalidHTMLTranslation))
-            .mockResolvedValueOnce(mockResponse(validHTMLTranslation));
+        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockResolvedValueOnce(mockResponse(invalidHTMLTranslation)).mockResolvedValueOnce(mockResponse(validHTMLTranslation));
 
         // @ts-expect-error TS2445
         const result = await translator.performTranslation(targetLang, originalHTML);
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(3);
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(2);
         expect(result).toBe(validHTMLTranslation);
     });
 
@@ -86,9 +80,7 @@ describe('ChatGPTTranslator.performTranslation', () => {
         const translatedWithChineseBrackets = '【点击这里】(https://example.com)';
         const expectedFixed = '[点击这里](https://example.com)';
 
-        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock)
-            .mockResolvedValueOnce(mockResponse('seeded', 'resp_seed_123'))
-            .mockResolvedValueOnce(mockResponse(translatedWithChineseBrackets));
+        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockResolvedValueOnce(mockResponse(translatedWithChineseBrackets));
 
         // @ts-expect-error TS2445
         const result = await translator.performTranslation(targetLang, originalText);
@@ -108,45 +100,38 @@ describe('ChatGPTTranslator.performTranslation', () => {
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.createConversation).toHaveBeenCalledTimes(1);
 
-        // promptResponses should be called three times (seed + 2 translations)
+        // promptResponses should be called twice (once per translation)
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(3);
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(2);
     });
 
-    it('passes conversation ID and previous response ID to promptResponses', async () => {
-        const seedResponseID = 'resp_seed_123';
-        const firstResponseID = 'resp_first_123';
-        const secondResponseID = 'resp_second_456';
-
-        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock)
-            .mockResolvedValueOnce(mockResponse('seeded', seedResponseID))
-            .mockResolvedValueOnce(mockResponse(validTranslation, firstResponseID))
-            .mockResolvedValueOnce(mockResponse(validTranslation, secondResponseID));
+    it('passes conversation ID to promptResponses and seeds instructions when creating conversation', async () => {
+        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockResolvedValueOnce(mockResponse(validTranslation)).mockResolvedValueOnce(mockResponse(validTranslation));
 
         // @ts-expect-error TS2445
         await translator.performTranslation(targetLang, original);
         // @ts-expect-error TS2445
         await translator.performTranslation(targetLang, original);
 
+        // Verify createConversation was called with system instructions (base prompt string)
         const mockedUtils = MockedOpenAIUtils.prototype as jest.Mocked<OpenAIUtils>;
-        const calls = mockedUtils.promptResponses.mock.calls;
-        const seedCall = calls.at(0)?.at(0);
-        const firstCall = calls.at(1)?.at(0);
-        const secondCall = calls.at(2)?.at(0);
+        const createConversationCalls = mockedUtils.createConversation.mock.calls;
+        const basePrompt = createConversationCalls.at(0)?.at(0);
 
-        // Seed call should have instructions and no previousResponseID
-        expect(seedCall?.conversationID).toBe('conversation_test_123');
-        expect(seedCall?.previousResponseID).toBeUndefined();
-        expect(seedCall?.instructions).toEqual(expect.any(String));
+        expect(typeof basePrompt).toBe('string');
+        expect(basePrompt?.length).toBeGreaterThan(0);
 
-        // First translation should reference the seed response
+        const promptResponsesCalls = mockedUtils.promptResponses.mock.calls;
+        const firstCall = promptResponsesCalls.at(0)?.at(0);
+        const secondCall = promptResponsesCalls.at(1)?.at(0);
+
+        // All translation calls should use conversationID (context managed by Conversations API)
         expect(firstCall?.conversationID).toBe('conversation_test_123');
-        expect(firstCall?.previousResponseID).toBe(seedResponseID);
+        expect(firstCall?.previousResponseID).toBeUndefined();
         expect(firstCall?.instructions).toBeUndefined();
 
-        // Second translation should have the previous response ID from first successful call
         expect(secondCall?.conversationID).toBe('conversation_test_123');
-        expect(secondCall?.previousResponseID).toBe(firstResponseID);
+        expect(secondCall?.previousResponseID).toBeUndefined();
         expect(secondCall?.instructions).toBeUndefined();
     });
 });

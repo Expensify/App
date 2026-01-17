@@ -1,4 +1,3 @@
-import hashStr from '@libs/StringUtils/hash';
 import ChatGPTCostEstimator from '@scripts/chatGPTCostEstimator';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import OpenAIUtils from '../OpenAIUtils';
@@ -11,8 +10,6 @@ import type {StringWithContext} from './types';
  */
 type LocaleSession = {
     conversationID: string;
-    promptCacheKey: string;
-    lastResponseID?: string;
 };
 
 class ChatGPTTranslator extends Translator {
@@ -37,7 +34,7 @@ class ChatGPTTranslator extends Translator {
     }
 
     /**
-     * Gets or creates a session for the given locale, initializing the conversation and prompt cache key.
+     * Gets or creates a session for the given locale, initializing the conversation with system instructions.
      */
     private async getOrCreateSession(targetLang: TranslationTargetLocale): Promise<LocaleSession> {
         const existing = this.sessions.get(targetLang);
@@ -45,22 +42,11 @@ class ChatGPTTranslator extends Translator {
             return existing;
         }
 
-        const seedInstructions = await buildTranslationInstructions(targetLang);
-        const conversationID = await this.openai.createConversation();
-        const promptCacheKey = `translation-${targetLang}-${hashStr(seedInstructions)}`;
+        // Build system instructions and create a conversation with them pre-seeded
+        const instructions = await buildTranslationInstructions(targetLang);
+        const conversationID = await this.openai.createConversation(instructions);
 
-        const seedResponse = await this.openai.promptResponses({
-            input: buildTranslationRequestInput(''),
-            instructions: seedInstructions,
-            conversationID,
-            promptCacheKey,
-        });
-
-        const session: LocaleSession = {
-            conversationID,
-            promptCacheKey,
-            lastResponseID: seedResponse.responseID,
-        };
+        const session: LocaleSession = {conversationID};
         this.sessions.set(targetLang, session);
         return session;
     }
@@ -72,10 +58,11 @@ class ChatGPTTranslator extends Translator {
         let attempt = 0;
         while (attempt <= ChatGPTTranslator.MAX_RETRIES) {
             try {
+                // Use conversationID to maintain context across all translations for this locale.
+                // The conversation was seeded with system instructions via the Conversations API.
                 const response = await this.openai.promptResponses({
                     input: userInput,
                     conversationID: session.conversationID,
-                    previousResponseID: session.lastResponseID,
                 });
 
                 const fixedResult = this.fixChineseBracketsInMarkdown(response.text);
@@ -84,9 +71,6 @@ class ChatGPTTranslator extends Translator {
                     if (attempt > 0) {
                         console.log(`🙃 Translation succeeded after ${attempt + 1} attempts`);
                     }
-
-                    // Only update lastResponseID on successful translation to maintain valid context
-                    session.lastResponseID = response.responseID;
                     return fixedResult;
                 }
 
