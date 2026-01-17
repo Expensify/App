@@ -351,7 +351,7 @@ function MoneyRequestConfirmationListFooter({
         return name;
     }, [isUnreported, selectedReport, allReports, allPolicies, translate, currentUserAccountID]);
 
-    const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate ? undefined : policyID, ownerAccountID, false);
+    const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false);
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
     const shouldReportBeEditable = (isUnreported ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
