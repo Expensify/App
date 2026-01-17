@@ -74,6 +74,7 @@ import {
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getBillable,
+    getChildTransactions,
     getCurrency,
     getDescription,
     getDistanceInMeters,
@@ -327,6 +328,11 @@ function MoneyRequestView({
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', policy);
+    const childTransactions = useMemo(
+        () => getChildTransactions(allTransactions, allReports, transaction?.comment?.originalTransactionID),
+        [allTransactions, allReports, transaction?.comment?.originalTransactionID],
+    );
+    const hasMultipleSplits = childTransactions.length > 1;
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -497,7 +503,7 @@ function MoneyRequestView({
     } else if (shouldShowPaid) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
     }
-    if (isExpenseSplit) {
+    if (isExpenseSplit && hasMultipleSplits) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
     if (shouldShowConvertedAmount) {
