@@ -12,7 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getDefaultCardName, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -115,16 +115,17 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                   return failedCompanyCardAssignment;
               }
               const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === cardID || card.cardName === cardName);
+              const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
               return {
                   cardName,
                   encryptedCardNumber: cardID,
-                  customCardName: assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined,
+                  customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                   isAssigned: !!assignedCard,
                   hasFailedCardAssignment: false,
                   assignedCard,
-                  cardholder: assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined,
+                  cardholder,
                   errors: assignedCard?.errors,
                   pendingAction: assignedCard?.pendingAction,
               };

@@ -316,7 +316,7 @@ function assignWorkspaceCompanyCard(
     if (!data || !policy?.id) {
         return;
     }
-    const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = '', cardholder, customCardName} = data;
+    const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = '', cardholder, customCardName = ''} = data;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
     const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID);
 
@@ -341,7 +341,7 @@ function assignWorkspaceCompanyCard(
         policyID: policy.id,
         bankName,
         encryptedCardNumber,
-        cardName: customCardName ?? '',
+        cardName: customCardName,
         email,
         startDate,
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
