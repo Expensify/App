@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import type {BankAccountList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
+import {LocaleContextProps} from '@components/LocaleContextProvider';
 
 /**
  * The Travel Invoicing feed type constant for PROGRAM_TRAVEL_US.

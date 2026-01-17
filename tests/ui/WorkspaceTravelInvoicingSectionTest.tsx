@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -48,6 +48,13 @@ jest.mock('@hooks/useWorkspaceAccountID', () => ({
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    __esModule: true,
+    default: {
+        navigate: jest.fn(),
+    },
 }));
 
 const mockPolicy: Policy = {
@@ -273,6 +280,48 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             // Then the settlement frequency label should be visible
             expect(screen.getByText('Settlement frequency')).toBeTruthy();
+        });
+
+        it('should show correct frequency value and navigate on press', async () => {
+             // Given Travel Invoicing is configured with Monthly frequency (default if monthlySettlementDate exists)
+             await act(async () => {
+                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                 await Onyx.merge(travelInvoicingKey, {
+                     paymentBankAccountID: 12345,
+                     remainingLimit: 50000,
+                     currentBalance: 10000,
+                     monthlySettlementDate: '2023-10-01',
+                 });
+                 await Onyx.merge(bankAccountKey, {
+                     12345: {
+                         accountData: {
+                             addressName: 'Test Company',
+                             accountNumber: '****1234',
+                             bankAccountID: 12345,
+                         },
+                     },
+                 });
+                 await waitForBatchedUpdatesWithAct();
+             });
+
+             // When rendering the component
+             renderWorkspaceTravelInvoicingSection();
+
+             await waitForBatchedUpdatesWithAct();
+
+             // Then it should display "Monthly"
+             expect(screen.getByText('Monthly')).toBeTruthy();
+
+             // When pressing the frequency row
+             const frequencyRow = screen.getByText('Monthly');
+             await act(async () => {
+                 fireEvent.press(frequencyRow);
+             });
+
+             // Then it should navigate to frequency settings page
+             // eslint-disable-next-line @typescript-eslint/no-var-requires
+             const navigation = require('@libs/Navigation/Navigation');
+             expect(navigation.default.navigate).toHaveBeenCalledWith('workspaces/testPolicy123/travel/settings/frequency');
         });
     });
 });

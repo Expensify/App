@@ -60,6 +60,7 @@ function WorkspaceTravelPage({
     const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
 
     const mainContent = (() => {
+        return <WorkspaceTravelInvoicingSection policyID={policyID} />;
         switch (step) {
             case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
                 if (isTravelInvoicingEnabled) {

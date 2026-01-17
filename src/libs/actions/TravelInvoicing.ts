@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams} from '@libs/API/parameters';
+import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams, UpdateTravelInvoicingSettlementFrequencyParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {PROGRAM_TRAVEL_US} from '@libs/TravelInvoicingUtils';
@@ -127,4 +128,77 @@ function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number,
     Onyx.update(onyxData);
 }
 
-export {openPolicyTravelPage, setTravelInvoicingSettlementAccount, clearTravelInvoicingSettlementAccountErrors};
+/**
+ * Updates the settlement frequency for Travel Invoicing.
+ * Optimistically updates the monthlySettlementDate based on the selected frequency.
+ */
+function updateTravelInvoiceSettlementFrequency(
+    policyID: string,
+    workspaceAccountID: number,
+    frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
+    currentMonthlySettlementDate?: Date,
+) {
+    const cardSettingsKey =
+        `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}` as `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${string}`;
+
+    // If Monthly, Set date (optimistically today). If Daily, set null.
+    const monthlySettlementDate = frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY ? new Date() : null;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                monthlySettlementDate,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                monthlySettlementDate,
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                monthlySettlementDate: currentMonthlySettlementDate ?? null, // Revert
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+    ];
+
+    const params: UpdateTravelInvoicingSettlementFrequencyParams = {
+        policyID,
+        frequency,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears any errors from the Travel Invoicing settlement frequency settings.
+ */
+function clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID: number) {
+    const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+    Onyx.update(onyxData);
+}
+
+export {openPolicyTravelPage, setTravelInvoicingSettlementAccount, clearTravelInvoicingSettlementAccountErrors, clearTravelInvoicingSettlementFrequencyErrors, updateTravelInvoiceSettlementFrequency};

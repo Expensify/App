@@ -63,7 +63,9 @@ describe('TravelInvoicing', () => {
                             paymentBankAccountID: settlementBankAccountID,
                             previousPaymentBankAccountID,
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            errors: expect.any(Object),
+                            errors: expect.objectContaining({
+                                paymentBankAccountID: expect.any(String),
+                            }),
                             isLoading: false,
                         }),
                     }),
@@ -84,7 +86,9 @@ describe('TravelInvoicing', () => {
                 expect.objectContaining({
                     key: cardSettingsKey,
                     value: {
-                        errors: null,
+                        errors: {
+                            paymentBankAccountID: null,
+                        },
                         pendingAction: null,
                         paymentBankAccountID: restoredAccountID,
                         previousPaymentBankAccountID: null,
@@ -92,5 +96,81 @@ describe('TravelInvoicing', () => {
                 }),
             ]),
         );
+    });
+
+    it('clearTravelInvoicingSettlementFrequencyErrors clears errors', () => {
+        const workspaceAccountID = 456;
+        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
+
+        TravelInvoicing.clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID);
+
+        expect(spyOnyxUpdate).toHaveBeenCalledWith(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    key: cardSettingsKey,
+                    value: {
+                        errors: {
+                            monthlySettlementDate: null,
+                        },
+                    },
+                }),
+            ]),
+        );
+    });
+
+    it('updateTravelInvoiceSettlementFrequency sends correct optimistic, success, and failure data', () => {
+        const policyID = '123';
+        const workspaceAccountID = 456;
+        const frequency = CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
+        const currentMonthlySettlementDate = new Date('2024-01-01');
+        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
+
+        // Set fake time to ensure deterministic optimistic data
+        const mockDate = new Date('2024-05-20');
+        jest.useFakeTimers();
+        jest.setSystemTime(mockDate);
+
+        TravelInvoicing.updateTravelInvoiceSettlementFrequency(policyID, workspaceAccountID, frequency, currentMonthlySettlementDate);
+
+        expect(spyAPIWrite).toHaveBeenCalledWith(
+            'UpdateTravelInvoicingSettlementFrequency',
+            {
+                policyID,
+                frequency,
+            },
+            expect.objectContaining({
+                optimisticData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            monthlySettlementDate: mockDate,
+                            errors: null,
+                        }),
+                    }),
+                ]),
+                successData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            monthlySettlementDate: mockDate,
+                            errors: null,
+                        }),
+                    }),
+                ]),
+                failureData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: cardSettingsKey,
+                        value: expect.objectContaining({
+                            monthlySettlementDate: currentMonthlySettlementDate,
+                            errors: expect.objectContaining({
+                                monthlySettlementDate: expect.any(String),
+                            }),
+                        }),
+                    }),
+                ]),
+            }),
+        );
+
+        jest.useRealTimers();
     });
 });
