@@ -62,7 +62,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const ancestors = useAncestors(report);
-    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
+    const displayReport = useMemo(
+        () => getReportDisplayOption(report, unknownUserDetails, personalDetail.accountID, reportAttributesDerived),
+        [report, unknownUserDetails, personalDetail.accountID, reportAttributesDerived],
+    );
 
     const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');

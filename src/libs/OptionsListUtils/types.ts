@@ -157,6 +157,7 @@ type GetValidReportsConfig = {
     preferredPolicyID?: string;
     shouldUnreadBeBold?: boolean;
     shouldAlwaysIncludeDM?: boolean;
+    currentUserAccountID: number | undefined;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -214,6 +215,7 @@ type GetUserToInviteConfig = {
     countryCode?: number;
     loginList: OnyxEntry<Login>;
     currentUserEmail: string | undefined;
+    currentUserAccountID: number | undefined;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {

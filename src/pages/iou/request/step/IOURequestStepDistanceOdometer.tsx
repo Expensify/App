@@ -362,7 +362,9 @@ function IOURequestStepDistanceOdometer({
             const derivedReports = (reportAttributesDerived as ReportAttributesDerivedValue | undefined)?.reports;
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, derivedReports);
+                return participantAccountID
+                    ? getParticipantsOption(participant, personalDetails)
+                    : getReportOption(participant, policy, currentUserPersonalDetails.accountID, derivedReports);
             });
 
             if (shouldSkipConfirmation) {

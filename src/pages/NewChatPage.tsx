@@ -161,6 +161,7 @@ function useOptions() {
                           searchValue: participant?.login,
                           loginList,
                           currentUserEmail: personalData.login,
+                          currentUserAccountID: personalData.accountID,
                       });
                   if (participantOption) {
                       result.push({

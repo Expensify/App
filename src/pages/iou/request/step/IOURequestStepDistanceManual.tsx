@@ -200,7 +200,9 @@ function IOURequestStepDistanceManual({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountIDParam);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
+                    return participantAccountID
+                        ? getParticipantsOption(participant, personalDetails)
+                        : getReportOption(participant, policy, currentUserPersonalDetails.accountID, reportAttributesDerived);
                 });
                 if (shouldSkipConfirmation) {
                     setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});

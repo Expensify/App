@@ -35,6 +35,7 @@ const getContacts = (
     countryCode: number,
     loginList: OnyxEntry<Login>,
     currentUserEmail: string | undefined,
+    currentUserAccountID: number | undefined,
 ): Array<SearchOption<PersonalDetails>> => {
     return deviceContacts
         .map((contact) => {
@@ -57,6 +58,7 @@ const getContacts = (
                 countryCode,
                 loginList,
                 currentUserEmail,
+                currentUserAccountID,
             });
         })
         .filter((contact): contact is SearchOption<PersonalDetails> => contact !== null);

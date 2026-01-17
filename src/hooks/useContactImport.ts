@@ -36,14 +36,15 @@ function useContactImport(): UseContactImportResult {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.login;
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList, currentUserEmail);
+            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList, currentUserEmail, currentUserAccountID);
             setContacts(usersFromContact);
         });
-    }, [localeCompare, countryCode, loginList, currentUserEmail]);
+    }, [localeCompare, countryCode, loginList, currentUserEmail, currentUserAccountID]);
 
     useContactPermissions({
         importAndSaveContacts,
