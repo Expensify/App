@@ -16,7 +16,6 @@ import type {
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -27,7 +26,7 @@ import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchCardGroup, SearchDataTypes, SearchMemberGroup, SearchTask, SearchTransactionAction, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -570,43 +569,6 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         /** The React element that will be shown as a footer */
         FooterComponent?: ReactElement;
     };
-
-type SplitListItemType = ListItem &
-    SplitExpense & {
-        /** Item header text */
-        headerText: string;
-
-        /** Merchant or vendor name */
-        merchant: string;
-
-        /** Currency code */
-        currency: string;
-
-        /** ID of split expense */
-        transactionID: string;
-
-        /** Currency symbol */
-        currencySymbol: string;
-
-        /** Original amount before split */
-        originalAmount: number;
-
-        /** Indicates whether a split wasn't approved, paid etc. when report.statusNum < CONST.REPORT.STATUS_NUM.CLOSED */
-        isEditable: boolean;
-
-        /** Current mode for the split editor: amount or percentage */
-        mode: ValueOf<typeof CONST.TAB.SPLIT>;
-
-        /** Percentage value to show when in percentage mode (0-100) */
-        percentage: number;
-
-        /**
-         * Function for updating value (amount or percentage based on mode)
-         */
-        onSplitExpenseValueChange: (transactionID: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => void;
-    };
-
-type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
@@ -1181,8 +1143,6 @@ export type {
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,
-    SplitListItemProps,
-    SplitListItemType,
     SearchListItem,
     UnreportedExpenseListItemType,
 };
