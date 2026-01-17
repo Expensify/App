@@ -369,6 +369,13 @@ function assignWorkspaceCompanyCard(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
                 value: {[optimisticCardAssignedReportAction.reportActionID]: {pendingAction: null}},
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feed}`,
+                value: {
+                    [encryptedCardNumber]: null,
+                },
+            },
         ],
         failureData: [
             {
