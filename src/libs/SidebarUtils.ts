@@ -893,7 +893,7 @@ function getOptionData({
         ) {
             result.alternateText = getWorkspaceCategoryUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES)) {
-            result.alternateText = getWorkspaceCategoriesUpdatedMessage(lastAction);
+            result.alternateText = getWorkspaceCategoriesUpdatedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translate('workspaceActions.importTags');
@@ -901,9 +901,9 @@ function getOptionData({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translate('workspaceActions.deletedAllTags');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST)) {
-            result.alternateText = getTagListUpdatedMessage(lastAction) ?? '';
+            result.alternateText = getTagListUpdatedMessage(translate, lastAction) ?? '';
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED)) {
-            result.alternateText = getTagListUpdatedRequiredMessage(lastAction) ?? '';
+            result.alternateText = getTagListUpdatedRequiredMessage(translate, lastAction) ?? '';
         } else if (
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX) ||
@@ -917,7 +917,7 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT)) {
             result.alternateText = getWorkspaceCustomUnitUpdatedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES)) {
-            result.alternateText = getWorkspaceCustomUnitRateImportedMessage(lastAction);
+            result.alternateText = getWorkspaceCustomUnitRateImportedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
             result.alternateText = getWorkspaceCustomUnitRateAddedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
@@ -925,9 +925,9 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
             result.alternateText = getWorkspaceCustomUnitRateDeletedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitSubRateUpdatedMessage(lastAction);
+            result.alternateText = getWorkspaceCustomUnitSubRateUpdatedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_SUB_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitSubRateDeletedMessage(lastAction);
+            result.alternateText = getWorkspaceCustomUnitSubRateDeletedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD)) {
             result.alternateText = getWorkspaceReportFieldAddMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD)) {
@@ -1002,29 +1002,29 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
             result.alternateText = getUpdatedManualApprovalThresholdMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) {
-            result.alternateText = getAddedBudgetMessage(lastAction, policy);
+            result.alternateText = getAddedBudgetMessage(translate, lastAction, policy);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) {
-            result.alternateText = getUpdatedBudgetMessage(lastAction, policy);
+            result.alternateText = getUpdatedBudgetMessage(translate, lastAction, policy);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET) {
-            result.alternateText = getDeletedBudgetMessage(lastAction, policy);
+            result.alternateText = getDeletedBudgetMessage(translate, lastAction, policy);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED) {
-            result.alternateText = getUpdatedTimeEnabledMessage(lastAction);
+            result.alternateText = getUpdatedTimeEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE) {
-            result.alternateText = getUpdatedTimeRateMessage(lastAction);
+            result.alternateText = getUpdatedTimeRateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES) {
-            result.alternateText = getUpdatedProhibitedExpensesMessage(lastAction);
+            result.alternateText = getUpdatedProhibitedExpensesMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE) {
-            result.alternateText = getUpdatedReimbursementChoiceMessage(lastAction);
+            result.alternateText = getUpdatedReimbursementChoiceMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN) {
-            result.alternateText = getSetAutoJoinMessage(lastAction);
+            result.alternateText = getSetAutoJoinMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE) {
-            result.alternateText = getUpdatedDefaultTitleMessage(lastAction);
+            result.alternateText = getUpdatedDefaultTitleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
-            result.alternateText = getUpdatedAutoHarvestingMessage(lastAction);
+            result.alternateText = getUpdatedAutoHarvestingMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION) {
-            result.alternateText = getUpdatedIndividualBudgetNotificationMessage(lastAction);
+            result.alternateText = getUpdatedIndividualBudgetNotificationMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION) {
-            result.alternateText = getUpdatedSharedBudgetNotificationMessage(lastAction);
+            result.alternateText = getUpdatedSharedBudgetNotificationMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             result.alternateText = translate('iou.retracted');
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
@@ -1034,7 +1034,7 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
             result.alternateText = Parser.htmlToText(getChangedApproverActionMessage(translate, lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
-            result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(lastAction, policy));
+            result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
             result.alternateText = Parser.htmlToText(getMovedTransactionMessage(lastAction));
         } else {

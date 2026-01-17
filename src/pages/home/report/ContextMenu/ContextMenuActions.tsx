@@ -784,7 +784,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 ) {
                     Clipboard.setString(getWorkspaceCategoryUpdateMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES) {
-                    Clipboard.setString(getWorkspaceCategoriesUpdatedMessage(reportAction));
+                    Clipboard.setString(getWorkspaceCategoriesUpdatedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS) {
                     Clipboard.setString(translate('workspaceActions.importTags'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS) {
@@ -798,15 +798,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
                     Clipboard.setString(getCleanedTagName(getTagListNameUpdatedMessage(translate, reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST) {
-                    Clipboard.setString(getCleanedTagName(getTagListUpdatedMessage(reportAction)));
+                    Clipboard.setString(getCleanedTagName(getTagListUpdatedMessage(translate, reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED) {
-                    Clipboard.setString(getCleanedTagName(getTagListUpdatedRequiredMessage(reportAction)));
+                    Clipboard.setString(getCleanedTagName(getTagListUpdatedRequiredMessage(translate, reportAction)));
                 } else if (isTagModificationAction(reportAction.actionName)) {
                     Clipboard.setString(getCleanedTagName(getWorkspaceTagUpdateMessage(translate, reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT) {
                     Clipboard.setString(getWorkspaceCustomUnitUpdatedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES) {
-                    Clipboard.setString(getWorkspaceCustomUnitRateImportedMessage(reportAction));
+                    Clipboard.setString(getWorkspaceCustomUnitRateImportedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE) {
                     Clipboard.setString(getWorkspaceCustomUnitRateAddedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE) {
@@ -814,9 +814,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
                     Clipboard.setString(getWorkspaceCustomUnitRateDeletedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE) {
-                    Clipboard.setString(getWorkspaceCustomUnitSubRateUpdatedMessage(reportAction));
+                    Clipboard.setString(getWorkspaceCustomUnitSubRateUpdatedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_SUB_RATE) {
-                    Clipboard.setString(getWorkspaceCustomUnitSubRateDeletedMessage(reportAction));
+                    Clipboard.setString(getWorkspaceCustomUnitSubRateDeletedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
                     Clipboard.setString(getWorkspaceReportFieldAddMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD) {
@@ -854,7 +854,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
-                    setClipboardMessage(Parser.htmlToText(getUpdatedOwnershipMessage(reportAction, policy) ?? ''));
+                    setClipboardMessage(Parser.htmlToText(getUpdatedOwnershipMessage(translate, reportAction, policy) ?? ''));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     setClipboardMessage(getUnreportedTransactionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
@@ -966,29 +966,29 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET)) {
-                    setClipboardMessage(getAddedBudgetMessage(reportAction, policy));
+                    setClipboardMessage(getAddedBudgetMessage(translate, reportAction, policy));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET)) {
-                    setClipboardMessage(getUpdatedBudgetMessage(reportAction, policy));
+                    setClipboardMessage(getUpdatedBudgetMessage(translate, reportAction, policy));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET)) {
-                    setClipboardMessage(getDeletedBudgetMessage(reportAction, policy));
+                    setClipboardMessage(getDeletedBudgetMessage(translate, reportAction, policy));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED)) {
-                    setClipboardMessage(getUpdatedTimeEnabledMessage(reportAction));
+                    setClipboardMessage(getUpdatedTimeEnabledMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE)) {
-                    setClipboardMessage(getUpdatedTimeRateMessage(reportAction));
+                    setClipboardMessage(getUpdatedTimeRateMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES)) {
-                    setClipboardMessage(getUpdatedProhibitedExpensesMessage(reportAction));
+                    setClipboardMessage(getUpdatedProhibitedExpensesMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE)) {
-                    setClipboardMessage(getUpdatedReimbursementChoiceMessage(reportAction));
+                    setClipboardMessage(getUpdatedReimbursementChoiceMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN)) {
-                    setClipboardMessage(getSetAutoJoinMessage(reportAction));
+                    setClipboardMessage(getSetAutoJoinMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
-                    setClipboardMessage(getUpdatedDefaultTitleMessage(reportAction));
+                    setClipboardMessage(getUpdatedDefaultTitleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
-                    setClipboardMessage(getUpdatedAutoHarvestingMessage(reportAction));
+                    setClipboardMessage(getUpdatedAutoHarvestingMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION)) {
-                    setClipboardMessage(getUpdatedIndividualBudgetNotificationMessage(reportAction));
+                    setClipboardMessage(getUpdatedIndividualBudgetNotificationMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION)) {
-                    setClipboardMessage(getUpdatedSharedBudgetNotificationMessage(reportAction));
+                    setClipboardMessage(getUpdatedSharedBudgetNotificationMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {

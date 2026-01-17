@@ -1481,7 +1481,7 @@ function PureReportActionItem({
         ) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCategoryUpdateMessage(translate, action, policy)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES)) {
-            children = <ReportActionItemBasicMessage message={getWorkspaceCategoriesUpdatedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getWorkspaceCategoriesUpdatedMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS) {
             children = <ReportActionItemBasicMessage message={translate('workspaceActions.importTags')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS) {
@@ -1495,15 +1495,15 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListNameUpdatedMessage(translate, action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST) {
-            children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListUpdatedMessage(action))} />;
+            children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListUpdatedMessage(translate, action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED) {
-            children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListUpdatedRequiredMessage(action))} />;
+            children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListUpdatedRequiredMessage(translate, action))} />;
         } else if (isTagModificationAction(action.actionName)) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getWorkspaceTagUpdateMessage(translate, action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitUpdatedMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES) {
-            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateImportedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateImportedMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateAddedMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE) {
@@ -1511,9 +1511,9 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateDeletedMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE) {
-            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitSubRateUpdatedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitSubRateUpdatedMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_SUB_RATE) {
-            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitSubRateDeletedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitSubRateDeletedMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
             children = <ReportActionItemBasicMessage message={getWorkspaceReportFieldAddMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD) {
@@ -1633,41 +1633,41 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET)) {
-            children = <ReportActionItemBasicMessage message={getAddedBudgetMessage(action, policy)} />;
+            children = <ReportActionItemBasicMessage message={getAddedBudgetMessage(translate, action, policy)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET)) {
-            children = <ReportActionItemBasicMessage message={getUpdatedBudgetMessage(action, policy)} />;
+            children = <ReportActionItemBasicMessage message={getUpdatedBudgetMessage(translate, action, policy)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET)) {
-            children = <ReportActionItemBasicMessage message={getDeletedBudgetMessage(action, policy)} />;
+            children = <ReportActionItemBasicMessage message={getDeletedBudgetMessage(translate, action, policy)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED)) {
-            children = <ReportActionItemBasicMessage message={getUpdatedTimeEnabledMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getUpdatedTimeEnabledMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE)) {
-            children = <ReportActionItemBasicMessage message={getUpdatedTimeRateMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getUpdatedTimeRateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES)) {
-            children = <ReportActionItemBasicMessage message={getUpdatedProhibitedExpensesMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getUpdatedProhibitedExpensesMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE)) {
-            children = <ReportActionItemBasicMessage message={getUpdatedReimbursementChoiceMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getUpdatedReimbursementChoiceMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN)) {
-            children = <ReportActionItemBasicMessage message={getSetAutoJoinMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getSetAutoJoinMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
-            children = <ReportActionItemBasicMessage message={getUpdatedDefaultTitleMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getUpdatedDefaultTitleMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
-            children = <ReportActionItemBasicMessage message={getUpdatedAutoHarvestingMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getUpdatedAutoHarvestingMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUpdatedIndividualBudgetNotificationMessage(action)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getUpdatedIndividualBudgetNotificationMessage(translate, action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUpdatedSharedBudgetNotificationMessage(action)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getUpdatedSharedBudgetNotificationMessage(translate, action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP)) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUpdatedOwnershipMessage(action, policy)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getUpdatedOwnershipMessage(translate, action, policy)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport) {
