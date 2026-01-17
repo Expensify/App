@@ -6378,15 +6378,11 @@ const translations = {
         updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `updated ${count} categories`,
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
         updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `updated tags on the list "${tagListName}"`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
-            `changed tag lists ${tagListsName
-                .split(',')
-                .map((v) => `"${v}"`)
-                .join(', ')} to "${isRequired ? 'required' : 'not required'}"`,
+        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `changed tag lists ${tagListsName} to ${isRequired ? 'required' : 'not required'}`,
         importTags: 'imported tags from a spreadsheet',
         deletedAllTags: 'deleted all tags',
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
+        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `removed the tag "${tagName}" from the list "${tagListName}"`,
         deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `removed "${count}" tags from the list "${tagListName}"`,
@@ -6405,7 +6401,7 @@ const translations = {
         addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `added a new ${customUnitName} rate "${rateName}"`,
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removed the "${customUnitName}" rate "${rateName}"`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
-            `changed the ${updatedField} of ${customUnitName} rate "${customUnitRateName}: ${customUnitSubRateName}" to "${newValue}" (previously "${oldValue}")`,
+            `changed "${customUnitName}" rate "${customUnitRateName}" sub-rate "${customUnitSubRateName}" ${updatedField} to "${newValue}" (previously "${oldValue}")`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `removed "${customUnitName}" rate "${customUnitRateName}" sub-rate "${removedSubRateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
@@ -6517,29 +6513,46 @@ const translations = {
             oldNotificationThreshold,
             newNotificationThreshold,
         }: UpdatedBudgetParams) => {
+            const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
+            const sharedChanged = !!(newShared && oldShared !== newShared);
+            const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
+            const thresholdChanged = !!(newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold);
             const changesList: string[] = [];
 
-            if (newFrequency && oldFrequency !== newFrequency) {
+            if (frequencyChanged) {
                 changesList.push(`changed budget frequency to "${newFrequency}" (previously "${oldFrequency}")`);
             }
 
-            if (newShared && oldShared !== newShared) {
+            if (sharedChanged) {
                 changesList.push(`changed total workspace budget to "${newShared}" (previously "${oldShared}")`);
             }
 
-            if (newIndividual && oldIndividual !== newIndividual) {
+            if (individualChanged) {
                 changesList.push(`changed individual budget to "${newIndividual}" (previously "${oldIndividual}")`);
             }
 
-            if (newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold) {
+            if (thresholdChanged) {
                 changesList.push(`changed notification threshold to "${newNotificationThreshold}%" (previously "${oldNotificationThreshold}%")`);
             }
 
-            const joined = changesList.join('; ');
-            if (!joined) {
+            if (!frequencyChanged && !sharedChanged && !individualChanged && !thresholdChanged) {
                 return `updated budget for the ${entityType} "${entityName}"`;
             }
-            return `updated budget for the ${entityType} "${entityName}": ${joined}`;
+
+            if (changesList.length === 1) {
+                if (frequencyChanged) {
+                    return `changed budget frequency for the ${entityType} "${entityName}" to "${newFrequency}" (previously "${oldFrequency}")`;
+                }
+                if (sharedChanged) {
+                    return `changed total workspace budget for the ${entityType} "${entityName}" to "${newShared}" (previously "${oldShared}")`;
+                }
+                if (individualChanged) {
+                    return `changed individual budget for the ${entityType} "${entityName}" to "${newIndividual}" (previously "${oldIndividual}")`;
+                }
+                return `changed notification threshold for the ${entityType} "${entityName}" to "${newNotificationThreshold}%" (previously "${oldNotificationThreshold}%")`;
+            }
+
+            return `updated budget for the ${entityType} "${entityName}": ${changesList.join('; ')}`;
         },
         deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? ` with notification threshold of "${notificationThreshold}%"` : '';
@@ -6572,7 +6585,7 @@ const translations = {
 
         updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) =>
             `took over ownership of <strong>${policyName}</strong>'s Workspace from ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => ` ${enabled ? 'enabled' : 'disabled'} scheduled submit`,
+        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `${enabled ? 'enabled' : 'disabled'} scheduled submit`,
 
         updatedIndividualBudgetNotification: ({
             budgetAmount,
