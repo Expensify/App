@@ -196,3 +196,10 @@
 - Upstream PR/issue: There won't be any upstream changes. We need to get rid of InteractionManager
 - E/App issue: https://github.com/Expensify/App/issues/71913
 - PR introducing patch: https://github.com/Expensify/App/pull/69535
+
+### [react-native+0.81.4+026+rounded-inline-code-background.patch](react-native+0.81.4+026+rounded-inline-code-background.patch)
+
+- Reason: Draws inline code block background with rounded corners on iOS when `borderTopLeftRadius` is set.
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/57556
+- PR introducing patch: https://github.com/Expensify/App/pull/79815
