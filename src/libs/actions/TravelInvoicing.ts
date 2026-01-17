@@ -54,7 +54,7 @@ function openPolicyTravelPage(policyID: string, workspaceAccountID: number) {
  * Sets the settlement account for Travel Invoicing.
  * Updates the paymentBankAccountID in the Travel Invoicing card settings.
  */
-function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountID: number, settlementBankAccountID: number) {
+function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountID: number, settlementBankAccountID: number, previousPaymentBankAccountID?: number) {
     const cardSettingsKey =
         `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}` as `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${string}`;
 
@@ -64,6 +64,7 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             key: cardSettingsKey,
             value: {
                 paymentBankAccountID: settlementBankAccountID,
+                previousPaymentBankAccountID,
                 isLoading: true,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
@@ -76,6 +77,7 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             key: cardSettingsKey,
             value: {
                 paymentBankAccountID: settlementBankAccountID,
+                previousPaymentBankAccountID: null,
                 isLoading: false,
                 pendingAction: null,
             },
@@ -89,6 +91,7 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             value: {
                 // Keep the attempted value visible (grayed out) until error is dismissed
                 paymentBankAccountID: settlementBankAccountID,
+                previousPaymentBankAccountID,
                 isLoading: false,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -106,9 +109,9 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
 
 /**
  * Clears any errors from the Travel Invoicing settlement account settings.
- * Also resets the paymentBankAccountID since the attempted value failed to save.
+ * Also resets the paymentBankAccountID to the previous valid value (or null if none existed).
  */
-function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number) {
+function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number, paymentBankAccountID: number | null) {
     const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -116,7 +119,8 @@ function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number)
             value: {
                 errors: null,
                 pendingAction: null,
-                paymentBankAccountID: null,
+                paymentBankAccountID,
+                previousPaymentBankAccountID: null,
             },
         },
     ];

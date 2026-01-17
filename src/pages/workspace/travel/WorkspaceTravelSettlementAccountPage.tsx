@@ -79,7 +79,8 @@ function WorkspaceTravelSettlementAccountPage({route}: WorkspaceTravelSettlement
     const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : [];
 
     const handleSelectAccount = (value: number) => {
-        setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, value);
+        const previousPaymentBankAccountID = cardSettings?.previousPaymentBankAccountID ?? cardSettings?.paymentBankAccountID;
+        setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, value, previousPaymentBankAccountID);
         Navigation.goBack();
     };
 
