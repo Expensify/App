@@ -9,6 +9,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -102,6 +103,11 @@ function IOURequestEditReportCommon({
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchived = useCallback(
+        (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`),
+        [archivedReportsIdSet],
+    );
 
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
 
@@ -143,7 +149,7 @@ function IOURequestEditReportCommon({
                         policyID,
                         resolvedReportOwnerAccountID,
                         outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-                        reportNameValuePairs,
+                        isReportArchived,
                         isEditing,
                     );
 
@@ -154,10 +160,10 @@ function IOURequestEditReportCommon({
             selectedPolicyID,
             resolvedReportOwnerAccountID,
             outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-            reportNameValuePairs,
+            isReportArchived,
             isEditing,
         );
-    }, [outstandingReportsByPolicyID, resolvedReportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing, personalPolicyID]);
+    }, [outstandingReportsByPolicyID, resolvedReportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing, personalPolicyID, isReportArchived]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
