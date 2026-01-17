@@ -69,6 +69,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     return false;
                 }
 
+                // Check if the transaction belongs to the current user by verifying card ownership
+                if (item?.cardID) {
+                    const card = cardList?.[item.cardID];
+                    if (card?.accountID !== currentUserAccountID) {
+                        return false;
+                    }
+                }
+
                 const transactionAmount = getTransactionDetails(item)?.amount ?? 0;
 
                 // Negative values are not allowed for unreported expenses
@@ -79,14 +87,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 // Zero amount expenses are not allowed in IOU reports
                 if (isIOUReport(report) && transactionAmount === 0) {
                     return false;
-                }
-
-                // Check if the transaction belongs to the current user by verifying card ownership
-                if (item?.cardID) {
-                    const card = cardList?.[item.cardID];
-                    if (card?.accountID !== currentUserAccountID) {
-                        return false;
-                    }
                 }
 
                 if (isPerDiemRequest(item)) {
