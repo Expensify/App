@@ -1,5 +1,5 @@
 ---
-name: pr-creator
+name: pull-request-creator
 description: Creates pull requests strictly following the repository's PR template
 tools: Read, Bash
 model: inherit
