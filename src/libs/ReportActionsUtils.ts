@@ -3996,6 +3996,7 @@ function getRoomChangeLogMessage(translate: LocalizedTranslate, reportAction: Re
     return `${actionText} ${targetAccountIDs.length} ${userText}`;
 }
 
+/* eslint-disable max-lines */
 /**
  * @private
  */
