@@ -809,14 +809,14 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
  * @returns true if the card is a personal card, false otherwise
  */
 function isPersonalCard(card?: Card) {
-    return !!card?.fundID && card.fundID !== '0';
+    return !card?.fundID || card.fundID === '0';
 }
 
 /**
  * Filter out personal (including cash) cards from the card list.
  */
 function filterPersonalCards(cards: CardList | undefined): CardList {
-    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
+    return filterObject(cards ?? {}, (key, card) => !isPersonalCard(card));
 }
 
 type SplitMaskedCardNumberResult = {
