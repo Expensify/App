@@ -5239,7 +5239,8 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const result = findLastAccessedReport(false);
+            const isReportArchived = (reportID?: string) => reportID === archivedReport.reportID;
+            const result = findLastAccessedReport(false, false, undefined, undefined, isReportArchived);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -6051,8 +6052,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
-            expect(isReportOutstanding(report, policy.id)).toBe(false);
+            const isReportArchived = (reportID?: string) => reportID === report.reportID;
+            expect(isReportOutstanding(report, policy.id, isReportArchived)).toBe(false);
         });
     });
 
