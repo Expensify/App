@@ -1187,7 +1187,7 @@ class TranslationGenerator {
                 return {action: TransformerAction.Remove};
             }
 
-            // Check if this is a property assignment that should be modified (exact match only)
+            // Check if this is a property assignment that should be modified
             if (ts.isPropertyAssignment(node) && currentPath && translatedCodeMap.has(currentPath)) {
                 const translatedCodeString = translatedCodeMap.get(currentPath);
                 if (!translatedCodeString) {
@@ -1197,6 +1197,9 @@ class TranslationGenerator {
 
                 // Parse the code string back to an AST expression
                 const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
+
+                // Note: There is a minor bug here where leading comments (such as @context) are not preserved between the old property assignement node and the new one.
+                // This doesn't affect functionality at all, as translation target files don't need context annotations for anything, and it's not trivial to fix, so I'm leaving it as is for now.
                 return {
                     action: TransformerAction.Replace,
                     newNode: () => ts.factory.createPropertyAssignment(node.name, translatedExpression),
