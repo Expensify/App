@@ -53,7 +53,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -98,7 +98,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 return true;
             });
         },
-        [policy, report, session?.accountID, cardList],
+        [policy, report, cardList, session?.accountID],
     );
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
