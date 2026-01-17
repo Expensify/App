@@ -8,6 +8,7 @@ import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString, convertToFrontendAmountAsInteger, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -52,9 +53,31 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
 
     /** The chatReportID of the request */
     chatReportID?: string;
+
+    /** Whether this is a P2P (1:1) request */
+    isP2P?: boolean;
 };
 
-const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
+const nonZeroExpenses = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
+const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean, isZeroAmountBetaEnabled: boolean) => {
+    if (!isZeroAmountBetaEnabled) {
+        return !amount.length || parseFloat(amount) < 0.01;
+    }
+
+    if (!amount.length || parseFloat(amount) < 0) {
+        return true;
+    }
+
+    if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(amount) < 0.01 && isP2P) {
+        return true;
+    }
+
+    if (parseFloat(amount) < 0.01 && nonZeroExpenses.has(iouType)) {
+        return true;
+    }
+
+    return false;
+};
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
     isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
@@ -77,6 +100,7 @@ function MoneyRequestAmountForm({
     chatReportID,
     hideCurrencySymbol = false,
     allowFlippingAmount = false,
+    isP2P = false,
     ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
@@ -87,6 +111,8 @@ function MoneyRequestAmountForm({
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [isNegative, setIsNegative] = useState(false);
+
+    const {isBetaEnabled} = usePermissions();
 
     const [formError, setFormError] = useState<string>('');
 
@@ -131,7 +157,7 @@ function MoneyRequestAmountForm({
         initializeIsNegative(amount);
 
         // we want to re-initialize the state only when the selected tab
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTab]);
 
     /**
@@ -139,11 +165,11 @@ function MoneyRequestAmountForm({
      */
     const submitAndNavigateToNextPage = useCallback(
         (iouPaymentType?: PaymentMethodType | undefined) => {
-            const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
+            const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes('taxAmount');
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
+            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P, isBetaEnabled(CONST.BETAS.ZERO_EXPENSES)))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
@@ -157,7 +183,7 @@ function MoneyRequestAmountForm({
 
             onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P, isBetaEnabled],
     );
 
     const buttonText: string = useMemo(() => {

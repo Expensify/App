@@ -1,14 +1,14 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -63,8 +63,6 @@ type MoneyRequestReportTransactionItemProps = {
     onArrowRightPress?: (transactionID: string) => void;
 };
 
-const expenseHeaders = getExpenseHeaders();
-
 function MoneyRequestReportTransactionItem({
     transaction,
     violations,
@@ -84,7 +82,8 @@ function MoneyRequestReportTransactionItem({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
@@ -107,11 +106,6 @@ function MoneyRequestReportTransactionItem({
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
-
-    const areAllOptionalColumnsHidden = useMemo(() => {
-        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
-        return canBeMissingColumns.every((column) => !columns.includes(column));
-    }, [columns]);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
@@ -136,27 +130,29 @@ function MoneyRequestReportTransactionItem({
                 ref={viewRef}
                 wrapperStyle={[animatedHighlightStyle, styles.userSelectNone]}
             >
-                <TransactionItemRow
-                    transactionItem={transaction}
-                    violations={violations}
-                    report={report}
-                    isSelected={isSelected}
-                    dateColumnSize={dateColumnSize}
-                    amountColumnSize={amountColumnSize}
-                    taxAmountColumnSize={taxAmountColumnSize}
-                    shouldShowTooltip
-                    shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
-                    shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
-                    onCheckboxPress={toggleTransaction}
-                    columns={columns}
-                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                    isDisabled={isPendingDelete}
-                    style={[styles.p3]}
-                    onButtonPress={() => {
-                        handleOnPress(transaction.transactionID);
-                    }}
-                    onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
-                />
+                {({hovered}) => (
+                    <TransactionItemRow
+                        transactionItem={transaction}
+                        violations={violations}
+                        report={report}
+                        isSelected={isSelected}
+                        dateColumnSize={dateColumnSize}
+                        amountColumnSize={amountColumnSize}
+                        taxAmountColumnSize={taxAmountColumnSize}
+                        shouldShowTooltip
+                        shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
+                        shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
+                        onCheckboxPress={toggleTransaction}
+                        columns={columns}
+                        isDisabled={isPendingDelete}
+                        style={[styles.p3]}
+                        onButtonPress={() => {
+                            handleOnPress(transaction.transactionID);
+                        }}
+                        onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
+                        isHover={hovered}
+                    />
+                )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );

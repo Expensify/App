@@ -4,9 +4,10 @@ import type Account from './Account';
 import type AccountData from './AccountData';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
-import type {AssignCard} from './AssignCard';
+import type {AssignCard, AssignCardData} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
+import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
@@ -15,7 +16,7 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type {CardList, FailedCompanyCardAssignment, FailedCompanyCardAssignments, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings, FundID} from './CardFeeds';
@@ -31,11 +32,12 @@ import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedVa
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
-import type {SamlMetadata} from './Domain';
+import type {DomainSecurityGroup, SamlMetadata} from './Domain';
 import type DomainErrors from './DomainErrors';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
@@ -62,6 +64,7 @@ import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
 import type Onboarding from './Onboarding';
+import type OnboardingRHPVariant from './OnboardingRHPVariant';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
@@ -109,13 +112,14 @@ import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchContext from './SearchContext';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
-import type SplitSelectedTabRequest from './SplitSelectedTabRequest';
 import type StripeCustomerID from './StripeCustomerID';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
@@ -125,6 +129,7 @@ import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
+import type UnshareBankAccount from './UnshareBankAccount';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
@@ -158,11 +163,15 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
     Download,
     DuplicateWorkspace,
     WorkspaceCardsList,
+    FailedCompanyCardAssignment,
+    FailedCompanyCardAssignments,
+    ExpenseRule,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
@@ -172,6 +181,7 @@ export type {
     GpsDraftDetails,
     IntroSelected,
     IssueNewCard,
+    AssignCardData,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
     CardContinuousReconciliation,
@@ -207,6 +217,7 @@ export type {
     PolicyTagLists,
     PrivatePersonalDetails,
     QuickAction,
+    ShareBankAccount,
     RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
@@ -230,7 +241,6 @@ export type {
     ScreenShareRequest,
     SecurityGroup,
     SelectedTabRequest,
-    SplitSelectedTabRequest,
     Session,
     Task,
     TaxRate,
@@ -277,10 +287,13 @@ export type {
     DomainSettings,
     SaveSearch,
     RecentSearchItem,
+    SearchContext,
     ImportedSpreadsheet,
+    BankAccountShareDetails,
     ImportedSpreadsheetMemberData,
     Onboarding,
     OnboardingPurpose,
+    OnboardingRHPVariant,
     ValidateMagicCodeAction,
     ShareTempFile,
     CorpayFields,
@@ -304,4 +317,5 @@ export type {
     SamlMetadata,
     DomainErrors,
     DomainPendingActions,
+    DomainSecurityGroup,
 };

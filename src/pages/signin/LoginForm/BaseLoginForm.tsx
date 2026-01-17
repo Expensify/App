@@ -40,7 +40,7 @@ import type LoginFormProps from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProps) {
+function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFormProps) {
     const {login, setLogin} = useLogin();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {canBeMissing: true});
@@ -164,7 +164,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
             input.current.focus();
         }
         return () => clearTimeout(focusTimeout);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     useEffect(() => {
@@ -175,7 +175,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
     }, [account?.isLoading]);
 
     useEffect(() => {
-        if (blurOnSubmit) {
+        if (submitBehavior === 'blurAndSubmit') {
             input.current?.blur();
         }
 
@@ -184,7 +184,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
             return;
         }
         input.current?.focus();
-    }, [blurOnSubmit, isVisible, prevIsVisible]);
+    }, [submitBehavior, isVisible, prevIsVisible]);
 
     useImperativeHandle(ref, () => ({
         isInputFocused() {

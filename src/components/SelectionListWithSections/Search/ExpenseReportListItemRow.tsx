@@ -16,7 +16,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, ReportAction} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import ExportedIconCell from './ExportedIconCell';
@@ -30,6 +30,7 @@ import WorkspaceCell from './WorkspaceCell';
 type ExpenseReportListItemRowProps = {
     item: ExpenseReportListItemType;
     policy?: Policy;
+    reportActions?: ReportAction[];
     showTooltip: boolean;
     canSelectMultiple?: boolean;
     isActionLoading?: boolean;
@@ -47,6 +48,7 @@ type ExpenseReportListItemRowProps = {
 function ExpenseReportListItemRow({
     item,
     policy,
+    reportActions,
     onCheckboxPress = () => {},
     onButtonPress = () => {},
     isActionLoading,
@@ -80,7 +82,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, false, false, false, false, item.shouldShowYearSubmitted)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, false, false, false, item.shouldShowYearSubmitted)]}>
                 <DateCell
                     date={item.submitted ?? ''}
                     showTooltip
@@ -89,7 +91,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, false, item.shouldShowYearApproved)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, item.shouldShowYearApproved)]}>
                 <DateCell
                     date={item.approved ?? ''}
                     showTooltip
@@ -98,7 +100,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, false, item.shouldShowYearExported)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, item.shouldShowYearExported)]}>
                 <DateCell
                     date={item.exported ?? ''}
                     showTooltip
@@ -128,7 +130,7 @@ function ExpenseReportListItemRow({
                     <UserInfoCell
                         accountID={item.from.accountID}
                         avatar={item.from.avatar}
-                        displayName={item.from.displayName ?? item.from.login ?? ''}
+                        displayName={item.formattedFrom ?? ''}
                     />
                 )}
             </View>
@@ -139,7 +141,7 @@ function ExpenseReportListItemRow({
                     <UserInfoCell
                         accountID={item.to.accountID}
                         avatar={item.to.avatar}
-                        displayName={item.to.displayName ?? item.to.login ?? ''}
+                        displayName={item.formattedTo ?? ''}
                     />
                 )}
             </View>
@@ -180,7 +182,7 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                <ExportedIconCell reportID={item.reportID} />
+                <ExportedIconCell reportActions={reportActions} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
