@@ -1,6 +1,6 @@
 ---
-name: pull-request-creator
-description: Creates pull requests strictly following the repository's PR template
+name: pr-creator
+description: Creates or updates pull requests strictly following the repository's PR template
 tools: Read, Bash
 model: inherit
 ---
@@ -44,6 +44,18 @@ git push -u origin $(git branch --show-current)
 
 ### Step 2: Gather Information
 
+**Check if PR already exists for this branch:**
+```bash
+gh pr list --head $(git branch --show-current) --json number,title,url
+```
+
+If a PR already exists:
+- Inform the user: "A PR already exists for this branch: [URL]"
+- Check for uncommitted changes with `git status --porcelain`
+- If there are uncommitted changes, commit and push them to update the PR
+- Then verify the PR body is complete and follows the template
+- Do NOT create a duplicate PR
+
 **Get the PR template:**
 ```bash
 cat .github/pull_request_template.md
@@ -81,25 +93,47 @@ Based on code analysis and issue context:
 
 ---
 
-### Step 4: Create PR
+### Step 4: Create or Update PR
 
-**Read template and fill each section:**
+**If PR already exists:**
+
+1. Commit and push any uncommitted changes:
+```bash
+git add -A
+git commit -m "Update: description"
+git push
+```
+
+2. Check if PR body needs updating:
+```bash
+gh pr view --json body
+```
+
+3. If PR body is incomplete or doesn't follow template, update it:
+```bash
+gh pr edit <PR_NUMBER> --body "$FILLED_TEMPLATE_CONTENT"
+```
+
+**If no PR exists, create one:**
 
 ```bash
 # Read template to identify sections
-cat .github/pull_request_template.md
+TEMPLATE=$(cat .github/pull_request_template.md)
 
-# Fill each section:
+# Prepare the filled template with:
 # - Summary → Brief WHY explanation
 # - Issues → Resolves #NUMBER
 # - Tests → Test cases
 # - Checklist → Check all boxes [x]
 
+# Create the PR (do not ask user for confirmation)
 gh pr create \
   --draft \
-  --title "Brief title" \
-  --body-file <(prepared_template_content)
+  --title "Brief descriptive title" \
+  --body "$FILLED_TEMPLATE_CONTENT"
 ```
+
+**Note:** Proceed directly with PR creation/update. Do not ask user for confirmation.
 
 **Critical:**
 - Follow template structure exactly
@@ -148,6 +182,31 @@ Check:
 - **Can't find issue**: Ask user for issue number
 - **Changes unclear**: Review conversation history
 - **Missing context**: Ask user for clarification
+
+---
+
+## Example Workflow
+
+**If PR already exists:**
+1. Check branch status
+2. Commit any pending relevant changes
+3. Push changes to update the PR
+4. Read existing PR body with `gh pr view --json body`
+5. If PR body is incomplete, update it with `gh pr edit`
+
+**If no PR exists:**
+1. Check branch status → Create branch if needed
+2. Commit any pending relevant changes
+3. Push branch to remote
+4. Read PR template with `cat .github/pull_request_template.md`
+5. Get issue with `gh issue view <NUMBER>`
+6. Read changes with `git diff main..HEAD`
+7. Analyze WHY the changes were made
+8. Prepare test cases
+9. Create draft PR with `gh pr create --draft`
+10. Fill all template sections
+11. Check all author checklist boxes
+12. Verify PR was created correctly
 
 ---
 
