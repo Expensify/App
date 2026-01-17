@@ -4,6 +4,7 @@ import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import useAllTransactions from '@hooks/useAllTransactions';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -46,6 +47,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchived = (reportId?: string) => !!reportId && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportId}`);
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(mergeTransactionID)}`, {canBeMissing: true});
@@ -78,8 +81,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const canDeleteReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true);
+    const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived);
+    const canDeleteReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true, undefined, undefined, undefined, undefined, undefined, isReportArchived);
 
     const shouldShowReplaceReceiptButton = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
     const shouldShowDeleteReceiptButton = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;

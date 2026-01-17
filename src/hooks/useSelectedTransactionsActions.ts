@@ -35,6 +35,7 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
+import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useReportIsArchived from './useReportIsArchived';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
@@ -78,6 +79,8 @@ function useSelectedTransactionsActions({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchivedByID = (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
     const {login} = useCurrentUserPersonalDetails();
     const selectedTransactionsList = useMemo(
@@ -298,7 +301,17 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
 
-            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+            const canMoveExpense = canEditFieldOfMoneyRequest(
+                iouReportAction,
+                CONST.EDIT_REQUEST_FIELD.REPORT,
+                undefined,
+                undefined,
+                outstandingReportsByPolicyID,
+                undefined,
+                undefined,
+                undefined,
+                isReportArchivedByID,
+            );
             return canMoveExpense;
         });
 

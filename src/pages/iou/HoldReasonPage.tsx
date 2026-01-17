@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useAncestors from '@hooks/useAncestors';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {putOnHold} from '@libs/actions/IOU/Hold';
@@ -28,6 +29,8 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const ancestors = useAncestors(report);
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchived = (reportId?: string) => !!reportId && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportId}`);
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
@@ -38,7 +41,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
         // as we do not allow requestee to edit fields like description and amount.
         // But, we still want the requestee to be able to put the request on hold
-        if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
+        if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction, false, undefined, undefined, undefined, isReportArchived) && isWorkspaceRequest) {
             return;
         }
 
@@ -56,7 +59,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
             // as we do not allow requestee to edit fields like description and amount.
             // But, we still want the requestee to be able to put the request on hold
-            if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
+            if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction, false, undefined, undefined, undefined, isReportArchived) && isWorkspaceRequest) {
                 const formErrors = {};
                 addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
                 setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
@@ -64,7 +67,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
             return errors;
         },
-        [parentReportAction, isWorkspaceRequest, translate],
+        [parentReportAction, isWorkspaceRequest, translate, isReportArchived],
     );
 
     useEffect(() => {
