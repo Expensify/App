@@ -6,6 +6,8 @@ import React, {memo, useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import WavePatternDark from '@assets/images/waves-pattern-dark.svg';
+import WavePatternLight from '@assets/images/waves-pattern-light.svg';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -50,15 +52,13 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import WavePatternDark from '@assets/images/waves-pattern-dark.svg';
-import WavePatternLight from '@assets/images/waves-pattern-light.svg';
 import Badge from './Badge';
 import Button from './Button';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from './Icon';
-import ImageSVG from './ImageSVG';
 import RESIZE_MODES from './Image/resizeModes';
+import ImageSVG from './ImageSVG';
 import ImageWithLoading from './ImageWithLoading';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -394,7 +394,7 @@ function MoneyRequestConfirmationListFooter({
     const shouldHideAutoFillValues = isScan && !shouldShowSmartScanFields;
     const amountDisplayValue = shouldHideAutoFillValues ? '' : formattedAmount;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const dateDisplayValue = shouldHideAutoFillValues ? '' : (iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+    const dateDisplayValue = shouldHideAutoFillValues ? '' : iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     // Determines whether the tax fields can be modified.
     // The tax fields can only be modified if the component is not in read-only mode
     // and it is not a distance request.
@@ -1173,9 +1173,7 @@ function MoneyRequestConfirmationListFooter({
                 {fields.filter((field) => field.shouldShow && (field.shouldShowAboveShowMore ?? false)).map((field) => field.item)}
 
                 {!shouldRestrictHeight &&
-                    fields
-                        .filter((field) => field.shouldShow && !(field.shouldShowAboveShowMore ?? false))
-                        .map((field) => <View key={field.item.key}>{field.item}</View>)}
+                    fields.filter((field) => field.shouldShow && !(field.shouldShowAboveShowMore ?? false)).map((field) => <View key={field.item.key}>{field.item}</View>)}
 
                 {shouldRestrictHeight && fields.some((field) => field.shouldShow && !(field.shouldShowAboveShowMore ?? false)) && (
                     <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
