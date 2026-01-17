@@ -42,6 +42,7 @@ type SelectPaymentTypeParams = {
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    isSelectedTransactionAction?: boolean;
 };
 
 /**
@@ -177,6 +178,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         confirmApproval,
         iouReport,
         iouReportNextStep,
+        isSelectedTransactionAction,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -201,7 +203,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         return;
     }
 
-    onPress({paymentType: iouPaymentType, skipAnimation: true});
+    onPress({paymentType: iouPaymentType, isSelectedTransactionAction});
 };
 
 type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, 'approve'>;

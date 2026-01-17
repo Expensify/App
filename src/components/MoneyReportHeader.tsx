@@ -506,7 +506,7 @@ function MoneyReportHeader({
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const confirmPayment = useCallback(
-        ({paymentType: selectedPaymentType, payAsBusiness, methodID, paymentMethod, skipAnimation}: PaymentActionParams) => {
+        ({paymentType: selectedPaymentType, payAsBusiness, methodID, paymentMethod, isSelectedTransactionAction}: PaymentActionParams) => {
             if (!selectedPaymentType || !chatReport) {
                 return;
             }
@@ -522,8 +522,7 @@ function MoneyReportHeader({
                     setIsHoldMenuVisible(true);
                 }
             } else if (isInvoiceReport) {
-                // Only start animation when skipAnimation is not set (default behavior for header button)
-                if (!skipAnimation) {
+                if (!isSelectedTransactionAction) {
                     startAnimation();
                 }
                 payInvoice({
@@ -541,7 +540,7 @@ function MoneyReportHeader({
                     activePolicy,
                 });
             } else {
-                if (!skipAnimation) {
+                if (!isSelectedTransactionAction) {
                     startAnimation();
                 }
                 payMoneyRequest(selectedPaymentType, chatReport, moneyRequestReport, introSelected, nextStep, undefined, true, activePolicy, policy);
@@ -555,6 +554,10 @@ function MoneyReportHeader({
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
+            }
+ 
+            if (!!isSelectedTransactionAction) {
+                clearSelectedTransactions(true);
             }
         },
         [
@@ -1644,7 +1647,7 @@ function MoneyReportHeader({
             />
         );
     }
-    const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
+    const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow, isSelectedTransactionAction?: boolean) =>
         selectPaymentType({
             event,
             iouPaymentType,
@@ -1659,6 +1662,7 @@ function MoneyReportHeader({
             confirmApproval,
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
+            isSelectedTransactionAction,
         });
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
@@ -1698,9 +1702,10 @@ function MoneyReportHeader({
                                 chatReportID={chatReport?.reportID}
                                 iouReport={moneyRequestReport}
                                 onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType, skipAnimation: true})}
+                                onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType, isSelectedTransactionAction: true})}
                                 options={selectedTransactionsOptions}
                                 customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                                isSelectedTransactionAction
                                 ref={kycWallRef}
                             />
                         )}
@@ -1714,9 +1719,10 @@ function MoneyReportHeader({
                             chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
                             onPaymentSelect={onPaymentSelect}
-                            onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType, skipAnimation: true})}
+                            onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType, isSelectedTransactionAction: true})}
                             options={selectedTransactionsOptions}
                             customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                            isSelectedTransactionAction
                             ref={kycWallRef}
                         />
                     </View>

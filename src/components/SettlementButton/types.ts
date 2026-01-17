@@ -15,7 +15,7 @@ type PaymentActionParams = {
     payAsBusiness?: boolean;
     methodID?: number;
     paymentMethod?: PaymentMethod;
-    skipAnimation?: boolean;
+    isSelectedTransactionAction?: boolean;
 };
 
 type SettlementButtonProps = {

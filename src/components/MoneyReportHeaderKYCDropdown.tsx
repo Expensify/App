@@ -18,8 +18,9 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     applicableSecondaryActions?: Array<DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>>;
     options?: Array<DropdownOption<string>>;
-    onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
+    onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow, isSelectedTransactionAction?: boolean) => void;
     customText?: string; // Custom text to display on the button
+    isSelectedTransactionAction?: boolean;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -31,6 +32,7 @@ function MoneyReportHeaderKYCDropdown({
     onPaymentSelect,
     ref,
     options,
+    isSelectedTransactionAction,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
@@ -60,11 +62,11 @@ function MoneyReportHeaderKYCDropdown({
                 <ButtonWithDropdownMenu
                     success={false}
                     onPress={() => {}}
-                    onSubItemSelected={(item, index, event) => {
+                    onSubItemSelected={(item, _index, event) => {
                         if (!isSecondaryActionAPaymentOption(item)) {
                             return;
                         }
-                        onPaymentSelect(event, item.value, triggerKYCFlow);
+                        onPaymentSelect(event, item.value, triggerKYCFlow, isSelectedTransactionAction);
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
