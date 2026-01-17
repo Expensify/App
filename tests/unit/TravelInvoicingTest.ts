@@ -96,7 +96,9 @@ describe('TravelInvoicing', () => {
                 expect.objectContaining({
                     key: cardSettingsKey,
                     value: expect.objectContaining({
-                        errors: null,
+                        errorFields: {
+                            paymentBankAccountID: null,
+                        },
                         pendingFields: expect.objectContaining({
                             paymentBankAccountID: null,
                         }),
@@ -112,7 +114,7 @@ describe('TravelInvoicing', () => {
         const workspaceAccountID = 456;
         const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
 
-        clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID);
+        clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, undefined);
 
         expect(spyOnyxUpdate).toHaveBeenCalledWith(
             expect.arrayContaining([
@@ -153,10 +155,14 @@ describe('TravelInvoicing', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             monthlySettlementDate: mockDate,
+                            previousMonthlySettlementDate: currentMonthlySettlementDate,
                             pendingFields: expect.objectContaining({
                                 monthlySettlementDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             }),
                             errors: null,
+                            errorFields: {
+                                monthlySettlementDate: null,
+                            },
                         }),
                     }),
                 ]),
@@ -165,10 +171,14 @@ describe('TravelInvoicing', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             monthlySettlementDate: mockDate,
+                            previousMonthlySettlementDate: null,
                             pendingFields: expect.objectContaining({
                                 monthlySettlementDate: null,
                             }),
                             errors: null,
+                            errorFields: {
+                                monthlySettlementDate: null,
+                            },
                         }),
                     }),
                 ]),
@@ -176,10 +186,15 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            monthlySettlementDate: currentMonthlySettlementDate,
+                            monthlySettlementDate: mockDate,
+                            previousMonthlySettlementDate: currentMonthlySettlementDate,
                             pendingFields: expect.objectContaining({
                                 monthlySettlementDate: null,
                             }),
+                            errors: null,
+                            errorFields: {
+                                monthlySettlementDate: expect.anything() as unknown,
+                            },
                         }),
                     }),
                 ]),
