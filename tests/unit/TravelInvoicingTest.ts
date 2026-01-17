@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
+import {clearTravelInvoicingSettlementAccountErrors, setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
 // We need to import API because it is used in the tests
 // eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
 import {PROGRAM_TRAVEL_US} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {clearTravelInvoicingSettlementAccountErrors, setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
 
 describe('TravelInvoicing', () => {
     let spyAPIWrite: jest.SpyInstance;
