@@ -328,11 +328,10 @@ function MoneyRequestView({
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', policy);
-    const childTransactions = useMemo(
-        () => getChildTransactions(allTransactions, allReports, transaction?.comment?.originalTransactionID),
-        [allTransactions, allReports, transaction?.comment?.originalTransactionID],
-    );
-    const hasMultipleSplits = childTransactions.length > 1;
+    const hasMultipleSplits = useMemo(() => {
+        const children = getChildTransactions(allTransactions, allReports, transaction?.comment?.originalTransactionID);
+        return children.length > 1;
+    }, [allTransactions, allReports, transaction?.comment?.originalTransactionID]);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
