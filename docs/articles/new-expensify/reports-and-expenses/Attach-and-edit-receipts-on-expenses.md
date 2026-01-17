@@ -1,18 +1,16 @@
 ---
 title: Attach and edit receipts on expenses
-description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify for audits and accounting.
-keywords: [attach receipt, verify receipt, missing receipt, expense attachments, audit trail, New Expensify, receipt not showing]
+description: LLearn how to attach, replace, and troubleshoot receipts on expenses in New Expensify to ensure they show up in audits, exports, and reports.
+keywords: [attach receipt, replace receipt, audit trail, verify receipt, missing receipt, report export, receipt not showing, New Expensify, expense attachment, PDF reports]
 ---
-
-<div id="new-expensify" markdown="1">
 
 Make sure your receipts are attached correctly to individual expenses for audit and accounting compliance. This guide explains how to attach, verify, and troubleshoot receipts in New Expensify — and when to use report comments for additional documentation.
 
-# How to Attach and Verify Receipts on Expenses
+# How to attach and verify receipts on expenses in New Expensify
 
 ## Who can attach receipts to an expense
-- **Attach or replace a receipt**: The member who created the expense, or a Workspace Admin.
-- **Edit a receipt in an Approved or Paid report**: Requires the report to be unapproved first (see below).
+- **Attach or replace receipts**: The member who created the expense, or a Workspace Admin.
+- **Edit receipts in an Approved or Paid report**: Requires the report to be unapproved first (see below).
 
 ---
 
@@ -27,7 +25,7 @@ Attaching receipts in the report comment thread does **not** link them to any ex
 
 ---
 
-## How to Attach a Receipt to an Expense
+## How to Attach Receipts to an Expense
 
 **On web:**
 1. Open the expense. 
@@ -100,7 +98,7 @@ It was likely uploaded in the report comments. Receipts must be attached directl
 No. Each expense must have its own receipt. You can upload the same file more than once if needed.
 
 ## Can someone else upload a receipt to my expense?
-Only the expense creator or a Workspace Admin can attach a receipt an expense.
+Only the expense creator, a Workspace Admin or the current approver can attach a receipt to an expense.
 
 ## Will auditors see receipts added in report comments?
 No. Receipts in the comments section are considered supplemental and are not included in audits, exports, or downloadable reports.
