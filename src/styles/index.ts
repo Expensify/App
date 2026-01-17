@@ -5629,6 +5629,9 @@ const staticStyles = (theme: ThemeColors) =>
             width: 179,
             height: 180,
         },
+        paymentMethodErrorRow: {
+            paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
