@@ -97,6 +97,7 @@ function mapTransactionItemToSelectedEntry(
     originalItemTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    isReportArchived?: (reportID?: string) => boolean,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
@@ -119,6 +120,7 @@ function mapTransactionItemToSelectedEntry(
                 item,
                 item.report,
                 item.policy,
+                isReportArchived,
             ),
             action: item.action,
             groupCurrency: item.groupCurrency,
@@ -142,6 +144,7 @@ function prepareTransactionsList(
     selectedTransactions: SelectedTransactions,
     currentUserLogin: string,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    isReportArchived?: (reportID?: string) => boolean,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -171,6 +174,7 @@ function prepareTransactionsList(
                 item,
                 item.report,
                 item.policy,
+                isReportArchived,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -253,6 +257,7 @@ function Search({
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useContext(WideRHPContext);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchived = (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
@@ -552,6 +557,7 @@ function Search({
                             transactionItem,
                             transactionItem.report,
                             transactionItem.policy,
+                            isReportArchived,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
@@ -606,6 +612,7 @@ function Search({
                         transactionItem,
                         transactionItem.report,
                         transactionItem.policy,
+                        isReportArchived,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
@@ -694,7 +701,7 @@ function Search({
                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                 setSelectedTransactions(
-                    prepareTransactionsList(item, itemTransaction, originalItemTransaction, selectedTransactions, email ?? '', outstandingReportsByPolicyID),
+                    prepareTransactionsList(item, itemTransaction, originalItemTransaction, selectedTransactions, email ?? '', outstandingReportsByPolicyID, isReportArchived),
                     filteredData,
                 );
                 return;
@@ -721,14 +728,14 @@ function Search({
                             .map((transactionItem) => {
                                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
+                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID, isReportArchived);
                             }),
                     ),
                 },
                 filteredData,
             );
         },
-        [setSelectedTransactions, selectedTransactions, filteredData, transactions, outstandingReportsByPolicyID, searchResults?.data, email],
+        [setSelectedTransactions, selectedTransactions, filteredData, transactions, outstandingReportsByPolicyID, searchResults?.data, email, isReportArchived],
     );
 
     const onSelectRow = useCallback(
@@ -960,7 +967,7 @@ function Search({
                             .map((transactionItem) => {
                                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
+                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID, isReportArchived);
                             }),
                     ),
                 ),
@@ -977,7 +984,7 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
+                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID, isReportArchived);
                     }),
             ),
             filteredData,
@@ -993,6 +1000,7 @@ function Search({
         outstandingReportsByPolicyID,
         searchResults?.data,
         email,
+        isReportArchived,
     ]);
 
     const onLayout = useCallback(() => {
