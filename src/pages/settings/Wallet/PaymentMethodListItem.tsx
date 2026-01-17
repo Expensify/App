@@ -11,14 +11,15 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
+import variables from '@styles/variables';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
-import type IconAsset from '@src/types/utils/IconAsset';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type PaymentMethodItem = PaymentMethod & {
     key?: string;
@@ -118,7 +119,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             onClose={item.canDismissError ? () => dismissError(item) : undefined}
             pendingAction={item.pendingAction}
             errors={item.errors}
-            errorRowStyles={styles.ph8}
+            errorRowStyles={[{paddingLeft: 32 + variables.iconSizeNormal / 2}, {paddingRight: 32 + variables.iconSizeNormal / 2}]}
             // shouldShowErrorMessages defaults to true - needed to display server-side deletion errors to the user
         >
             <MenuItem
