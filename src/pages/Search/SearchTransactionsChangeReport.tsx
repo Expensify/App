@@ -95,7 +95,7 @@ function SearchTransactionsChangeReport() {
                 policy: policyForMovingExpenses,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             clearSelectedTransactions();
         });
@@ -137,7 +137,7 @@ function SearchTransactionsChangeReport() {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-            allTransactionsCollection: allTransactions,
+            allTransactions,
         });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -156,7 +156,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
-            allTransactionsCollection: allTransactions,
+            allTransactions,
         });
         clearSelectedTransactions();
         Navigation.goBack();

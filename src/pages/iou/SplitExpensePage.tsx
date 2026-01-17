@@ -70,7 +70,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {showConfirmModal} = useConfirmModal();
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
-
     const searchContext = useSearchContext();
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`, {canBeMissing: true});
@@ -81,8 +80,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
-    const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -93,14 +90,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
-    const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
+    const currentReport = report ?? searchContext?.currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`, {canBeMissing: true});
 
     const policy = usePolicy(currentReport?.policyID);
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
-        : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+        : searchContext?.currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentPolicy);
 
@@ -116,6 +113,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
+    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`, {canBeMissing: true});
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
@@ -164,12 +162,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
             // When we try to save one split during splits creation and if the data is identical to the original transaction we should close the split flow
             if (!childTransactions.length && deepEqual(splitFieldDataFromOriginalTransactionWithoutID, splitExpenseWithoutID)) {
-                Navigation.dismissModal();
+                Navigation.dismissToPreviousRHP();
                 return;
             }
             // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
             if (childTransactions.length && deepEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
-                Navigation.dismissModal();
+                Navigation.dismissToPreviousRHP();
                 return;
             }
             // When we try to save one split during splits creation and if the data is not identical to the original transaction we should show the error
@@ -197,7 +195,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
         // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
         if (deepEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
-            Navigation.dismissModal();
+            Navigation.dismissToPreviousRHP();
             return;
         }
 
@@ -223,6 +221,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             allBetas,
             quickAction,
+            iouReportNextStep,
         });
     }, [
         splitExpenses,
@@ -255,6 +254,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         policyRecentlyUsedCurrencies,
         allBetas,
         quickAction,
+        iouReportNextStep,
     ]);
 
     const onSplitExpenseValueChange = useCallback(

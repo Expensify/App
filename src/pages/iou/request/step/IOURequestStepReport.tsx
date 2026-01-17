@@ -69,7 +69,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const handleGoBack = () => {
         if (isEditing) {
-            Navigation.dismissModal();
+            Navigation.dismissToSuperWideRHP();
         } else {
             Navigation.goBack(backTo);
         }
@@ -134,7 +134,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                     reportNextStep: undefined,
                     policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                    allTransactionsCollection: allTransactions,
+                    allTransactions,
                 });
                 removeTransaction(transaction.transactionID);
             }
@@ -168,7 +168,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             changeTransactionsReport({
@@ -176,7 +176,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             removeTransaction(transaction.transactionID);
         });

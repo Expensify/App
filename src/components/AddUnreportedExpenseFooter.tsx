@@ -52,7 +52,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
             setErrorMessage(translate('iou.selectUnreportedExpense'));
             return;
         }
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
@@ -77,7 +77,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     policy,
                     reportNextStep,
                     policyCategories,
-                    allTransactionsCollection: allTransactions,
+                    allTransactions,
                 });
             }
         });
