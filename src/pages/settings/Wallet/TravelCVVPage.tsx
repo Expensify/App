@@ -68,6 +68,9 @@ function TravelCVVPage() {
             return;
         }
 
+        // ValidateCodeActionContent only sends a magic code when validateCodeSent is false
+        // so we need to reset it to ensure a code is always sent
+        resetValidateActionCodeSent();
         // Switch to verification mode - shows ValidateCodeActionContent in RHP
         setIsVerifying(true);
     }, [isAccountLocked, showLockedAccountModal, travelCard, privatePersonalDetails]);
