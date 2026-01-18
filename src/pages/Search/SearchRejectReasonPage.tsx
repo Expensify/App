@@ -43,7 +43,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             } else {
                 context.clearSelectedTransactions();
             }
-            Navigation.dismissToSuperWideRHP();
+            Navigation.dismissModal();
             if (urlToNavigateBack) {
                 Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack as Route));
             }

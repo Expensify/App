@@ -39,7 +39,6 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
-import useActivePolicy from '@hooks/useActivePolicy';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -62,7 +61,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, getPersonalPolicy, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
@@ -90,11 +89,9 @@ import {
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDeleteMemberMessage,
-    getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
-    getReimburserUpdateMessage,
     getRemovedConnectionMessage,
     getRemovedFromApprovalChainMessage,
     getRenamedAction,
@@ -172,7 +169,6 @@ import {
     getForcedCorporateUpgradeMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
-    getOriginalReportID,
     getPolicyChangeMessage,
     getRejectedReportMessage,
     getUnreportedTransactionMessage,
@@ -199,7 +195,6 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 import {
     createTransactionThreadReport,
     expandURLPreview,
-    explain,
     resolveActionableMentionConfirmWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
@@ -236,9 +231,6 @@ type PureReportActionItemProps = {
 
     /** All the data of the policy collection */
     policies: OnyxCollection<OnyxTypes.Policy>;
-
-    /** The personal policy ID */
-    personalPolicyID: string | undefined;
 
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -356,7 +348,6 @@ type PureReportActionItemProps = {
         reactionObject: Emoji,
         existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>,
         paramSkinTone: number,
-        currentUserAccountID: number,
         ignoreSkinToneOnCompare: boolean | undefined,
     ) => void;
 
@@ -367,7 +358,6 @@ type PureReportActionItemProps = {
         actionName: IOUAction,
         reportActionID: string,
         introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-        activePolicy: OnyxEntry<OnyxTypes.Policy>,
         isRestrictedToPreferredPolicy?: boolean,
         preferredPolicyID?: string,
     ) => void;
@@ -428,7 +418,7 @@ type PureReportActionItemProps = {
     isTryNewDotNVPDismissed?: boolean;
 
     /** Current user's account id */
-    currentUserAccountID: number;
+    currentUserAccountID?: number;
 
     /** The bank account list */
     bankAccountList?: OnyxTypes.BankAccountList | undefined;
@@ -457,7 +447,6 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     allReports,
     policies,
-    personalPolicyID,
     introSelected,
     action,
     report,
@@ -528,7 +517,6 @@ function PureReportActionItem({
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const activePolicy = useActivePolicy();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -782,9 +770,9 @@ function PureReportActionItem({
 
     const toggleReaction = useCallback(
         (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => {
-            toggleEmojiReaction(reportID, action, emoji, emojiReactions, preferredSkinTone, currentUserAccountID, ignoreSkinToneOnCompare);
+            toggleEmojiReaction(reportID, action, emoji, emojiReactions, preferredSkinTone, ignoreSkinToneOnCompare);
         },
-        [reportID, action, emojiReactions, toggleEmojiReaction, currentUserAccountID],
+        [reportID, action, emojiReactions, toggleEmojiReaction],
     );
 
     const contextValue = useMemo(
@@ -889,7 +877,6 @@ function PureReportActionItem({
                             CONST.IOU.ACTION.SUBMIT,
                             action.reportActionID,
                             introSelected,
-                            activePolicy,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                         );
@@ -903,28 +890,14 @@ function PureReportActionItem({
                         text: 'actionableMentionTrackExpense.categorize',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(
-                                transactionID,
-                                reportActionReportID,
-                                CONST.IOU.ACTION.CATEGORIZE,
-                                action.reportActionID,
-                                introSelected,
-                                activePolicy,
-                            );
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID, introSelected);
                         },
                     },
                     {
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(
-                                transactionID,
-                                reportActionReportID,
-                                CONST.IOU.ACTION.SHARE,
-                                action.reportActionID,
-                                introSelected,
-                                activePolicy,
-                            );
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID, introSelected);
                         },
                     },
                 );
@@ -1014,7 +987,8 @@ function PureReportActionItem({
         }
 
         const actionableMentionWhisperOptions = [];
-        const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
 
         // Show the invite to submit expense button even if one of the mentioned users is a not a policy member
         const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login)) ?? false;
@@ -1063,10 +1037,8 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
-        activePolicy,
         report,
         originalReport,
-        personalPolicyID,
     ]);
 
     /**
@@ -1252,24 +1224,9 @@ function PureReportActionItem({
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-            const originalMessage = getOriginalMessage(action);
-            const isAISource = !!originalMessage && typeof originalMessage === 'object' && 'source' in originalMessage && originalMessage.source === CONST.CATEGORY_SOURCE.AI;
-            const modifiedExpenseMessageText = isAISource ? `${modifiedExpenseMessage}${translate('iou.AskToExplain')}` : modifiedExpenseMessage;
-
             children = (
                 <ReportActionItemBasicMessage>
-                    <RenderHTML
-                        html={`<comment><muted-text>${modifiedExpenseMessageText}</muted-text></comment>`}
-                        isSelectable={false}
-                        onLinkPress={(_evt, href) => {
-                            if (href !== `${CONST.DEEPLINK_BASE_URL}concierge/explain`) {
-                                return;
-                            }
-
-                            const actionOriginalReportID = getOriginalReportID(reportID, action);
-                            explain(action, actionOriginalReportID, translate, personalDetail?.timezone);
-                        }}
-                    />
+                    <RenderHTML html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
@@ -1498,8 +1455,6 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getSubmitsToUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO)) {
             children = <ReportActionItemBasicMessage message={getForwardsToUpdateMessage(translate, action)} />;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER)) {
-            children = <ReportActionItemBasicMessage message={getReimburserUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceReimbursementUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS)) {
@@ -1508,8 +1463,6 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountMessage(translate, action)} />;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE)) {
-            children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAgeMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultBillableMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE)) {
@@ -2021,7 +1974,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
     const prevParentReportAction = prevProps.parentReportAction;
     const nextParentReportAction = nextProps.parentReportAction;
     return (
-        prevProps.personalPolicyID === nextProps.personalPolicyID &&
         prevProps.displayAsGroup === nextProps.displayAsGroup &&
         prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
         prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&

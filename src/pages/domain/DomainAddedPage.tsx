@@ -23,8 +23,8 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     const {asset: Encryption} = useMemoizedLazyAsset(() => loadIllustration('Encryption'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const domainAccountID = route.params.domainAccountID;
-    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: true});
+    const accountID = route.params.accountID;
+    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: true});
 
     if (isLoadingOnyxValue(isAdminResults)) {
         return <FullScreenLoadingIndicator />;
@@ -45,7 +45,7 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
                 descriptionStyle={styles.textSupporting}
                 buttonText={translate('domain.domainAdded.configure')}
                 shouldShowButton
-                onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID))}
+                onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID))}
             />
         </ScreenWrapper>
     );

@@ -4,33 +4,33 @@ description: Learn how to book travel for guests in Expensify, even if they don�
 keywords: [book guest travel, guest traveler, expensify travel, book for non-member, travel booking, classic, new expensify]
 ---
 
-Any member with guest booking permission can book travel for someone who doesn’t have an Expensify account. This guide explains how to get permission and how to complete a guest booking.
 
-
----
-
-## Where to find Expensify Travel
-
-Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
-
-If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
+Any member with guest booking permission can book travel for a guest, aka someone who doesn’t have an Expensify account.
 
 ---
 
-## How to get permission to book travel for a guest
+## How to access the travel tool
 
-To book travel for a guest, a Travel Admin must assign you the **Travel Arranger** role and enable guest booking.
+- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
+- **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**To give a member guest booking permissions:**
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+
+---
+
+## How to get access
+
+Before arranging travel for another traveler, a Travel Admin must assign you the **Travel Arranger** role.
+
+**To set the Travel Arranger role for another travel member:**
 
 1. Head to Expensify Travel.
-2. Click **Program** > **Users**, then search and select the name of the member.
-3. Click the **Configuration** tab.
-4. Toggle on **Allow employee to book for guests**.
+2. Click on **Program** > **Users** > search and select the name of the user who needs to arrange travel.
+3. Click the **Configuration** tab and then click the toggle for **Allow employee to book for guests**.
 
 ---
 
-# How to book travel for a guest
+## How to book travel for a guest
 
 1. Click **Book for Guest** at the bottom of the booking tool.
 2. Choose a travel type:
@@ -46,7 +46,7 @@ To book travel for a guest, a Travel Admin must assign you the **Travel Arranger
 
 ---
 
-## What happens after booking with Expensify Travel 
+## What happens next
 
 - Bookings may require approval based on your company’s travel policy.
 - The guest will receive a confirmation email with their travel details.
@@ -57,13 +57,9 @@ To book travel for a guest, a Travel Admin must assign you the **Travel Arranger
 
 # FAQ
 
-## Does the guest need to have an Expensify account?
+## Will the guest need an Expensify account?
 No. Guest travelers don’t need an account to receive or use their travel reservation.
 
-## Will the guest travel booking show up in my reports?
+## Will the travel show up in my reports?
 Yes. The booking appears in your Expensify account, and receipts are automatically added to an expense report.
-
-## Who approves guest travel bookings?
-Guest travel follows the same approval workflow as the member who made the booking. If your company requires approval for flights, hotels, or other travel types, those steps will still apply.
-
 

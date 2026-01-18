@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionList';
 import SplitListItem from '@components/SelectionList/ListItem/SplitListItem';
 import type {ListItem, SplitListItemType} from '@components/SelectionList/ListItem/types';

@@ -5,7 +5,6 @@ import {ActivityIndicator as RNActivityIndicator} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import logAppStateOnLongLoading from '@libs/AppState';
 import type {ExtraLoadingContext} from '@libs/AppState';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 
 type ActivityIndicatorProps = RNActivityIndicatorProps & {
@@ -21,7 +20,6 @@ type ActivityIndicatorProps = RNActivityIndicatorProps & {
 
 function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, extraLoadingContext, ...rest}: ActivityIndicatorProps) {
     const theme = useTheme();
-    useSkeletonSpan('ActivityIndicator');
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {

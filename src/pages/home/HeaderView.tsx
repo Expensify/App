@@ -21,7 +21,6 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
@@ -143,7 +142,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportActions?.[`${parentReport?.parentReportActionID}`]);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // Use sorted display names for the title for group chats on native small screen widths
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
@@ -184,7 +182,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         !isChatThread &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO;
 
-    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID));
+    const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 

@@ -24,8 +24,6 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
-    const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-
     const submit = () => {
         Navigation.dismissModal();
     };
@@ -37,7 +35,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         prevScreen,
         screenIndex,
         moveTo,
-    } = useSubStep<SubStepWithPolicy>({bodyContent: tokenInputSteps, startFrom: hasAuthError ? 4 : 0, onFinished: submit});
+    } = useSubStep<SubStepWithPolicy>({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
@@ -53,7 +51,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         nextScreen();
     };
 
-    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !hasAuthError;
+    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
     return (
         <ConnectionLayout

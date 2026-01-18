@@ -33,7 +33,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
@@ -80,7 +79,8 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {shouldShowSearchPageFooter} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -109,16 +109,7 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {
-        selectedTransactions,
-        clearSelectedTransactions,
-        selectedReports,
-        lastSearchType,
-        setLastSearchType,
-        areAllMatchingItemsSelected,
-        selectAllMatchingItems,
-        currentSearchKey,
-    } = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const allTransactions = useAllTransactions();
@@ -135,6 +126,7 @@ function SearchPage({route}: SearchPageProps) {
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -250,18 +242,6 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
-
-    // Peggy injects default sortBy/sortOrder at parse time, so queryJSON
-    // can differ from the URL’s raw query. When they diverge, we need to replace the URL
-    useEffect(() => {
-        if (!queryJSON || !route.params.q) {
-            return;
-        }
-        const normalizedQueryString = buildSearchQueryString(queryJSON);
-        if (normalizedQueryString !== route.params.q) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: normalizedQueryString}), {forceReplace: true});
-        }
-    }, [queryJSON, route.params.q]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -634,8 +614,6 @@ function SearchPage({route}: SearchPageProps) {
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
-        const typeExpenseReport = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-
         // Gets the list of options for the export sub-menu
         // Gets the list of options for the export sub-menu
         const getExportOptions = () => {
@@ -654,6 +632,7 @@ function SearchPage({route}: SearchPageProps) {
 
             // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
+            const typeExpenseReport = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
             const typeExpense = queryJSON?.type === CONST.REPORT.TYPE.EXPENSE;
             const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => transaction.isFromOneTransactionReport);
@@ -900,7 +879,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
-        if (canAllTransactionsBeMoved && !hasMultipleOwners && !typeExpenseReport) {
+        if (canAllTransactionsBeMoved && !hasMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
                 icon: expensifyIcons.DocumentMerge,
@@ -1110,8 +1089,12 @@ function SearchPage({route}: SearchPageProps) {
     const {resetVideoPlayerData} = usePlaybackContext();
 
     const metadata = searchResults?.search;
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
-    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
+    const isSavedSearch = queryJSON?.hash !== null && queryJSON?.hash !== undefined && String(queryJSON.hash) in (savedSearches ?? {});
+    const shouldShowFooter = shouldShowSearchPageFooter({
+        isSavedSearch,
+        resultsCount: metadata?.count,
+        selectedTransactionsCount: selectedTransactionsKeys.length,
+    });
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
@@ -1152,26 +1135,14 @@ function SearchPage({route}: SearchPageProps) {
     }, []);
 
     const footerData = useMemo(() => {
-        if (!shouldAllowFooterTotals && selectedTransactionsKeys.length === 0) {
-            return {count: undefined, total: undefined, currency: undefined};
-        }
-
-        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
+        const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
         const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
 
         return {count, total, currency};
-    }, [
-        areAllMatchingItemsSelected,
-        metadata?.count,
-        metadata?.currency,
-        metadata?.total,
-        selectedTransactions,
-        selectedTransactionsKeys.length,
-        shouldAllowFooterTotals,
-    ]);
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
@@ -1234,7 +1205,6 @@ function SearchPage({route}: SearchPageProps) {
                             currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
                             confirmPayment={onBulkPaySelected}
                             latestBankItems={latestBankItems}
-                            shouldShowFooter={shouldShowFooter}
                         />
                         <DragAndDropConsumer onDrop={initScanRequest}>
                             <DropZoneUI

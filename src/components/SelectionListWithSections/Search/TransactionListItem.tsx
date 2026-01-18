@@ -21,9 +21,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
-import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,36 +54,17 @@ function TransactionListItem<TItem extends ListItem>({
     const theme = useTheme();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchContext();
+    const {currentSearchHash, currentSearchKey} = useSearchContext();
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const snapshotReport = useMemo(() => {
-        return (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
-    }, [currentSearchResults, transactionItem.reportID]);
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
+    }, [snapshot, transactionItem.reportID]);
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
-    // Use active policy (user's current workspace) as fallback for self DM tracking expenses
-    // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    // Use report's policyID as fallback when transaction doesn't have policyID directly
-    // Use active policy as final fallback for SelfDM (tracking expenses)
-    // NOTE: Using || instead of ?? to treat empty string "" as falsy
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyID;
-    const [parentPolicy] = originalUseOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-        selector: (policy) => policy?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
-    });
     const snapshotPolicy = useMemo(() => {
-        return (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
-    }, [currentSearchResults, transactionItem.policyID]);
-
-    const exportedReportActions = useMemo(() => {
-        const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
-        return actionsData ? Object.values(actionsData) : [];
-    }, [currentSearchResults, transactionItem.reportID]);
-
-    // Fetch policy categories directly from Onyx since they are not included in the search snapshot
-    const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {canBeMissing: true});
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
+    }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
@@ -140,34 +120,13 @@ function TransactionListItem<TItem extends ListItem>({
         transactionItem.shouldShowYearExported,
     ]);
 
-    // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
-    // like isAttendeeTrackingEnabled is not missing
-    // Use snapshotReport/snapshotPolicy as fallbacks to fix offline issues where
-    // newly created reports aren't in the search snapshot yet
-    const policyForViolations = parentPolicy ?? snapshotPolicy;
-    const reportForViolations = parentReport ?? snapshotReport;
-
     const transactionViolations = useMemo(() => {
-        const onyxViolations = (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
+        return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
-                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations) &&
-                shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transactionItem),
+                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, snapshotReport, snapshotPolicy) &&
+                shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false, transactionItem),
         );
-
-        // Sync missingAttendees violation with current policy category settings (can be removed later when BE handles this)
-        // Use live transaction data (attendees, category) to ensure we check against current state, not stale snapshot
-        const attendeeOnyxViolations = syncMissingAttendeesViolation(
-            onyxViolations,
-            policyCategories,
-            transaction?.category ?? transactionItem.category ?? '',
-            transaction?.comment?.attendees ?? transactionItem.attendees,
-            currentUserDetails,
-            policyForViolations?.isAttendeeTrackingEnabled ?? false,
-            policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
-        );
-
-        return mergeProhibitedViolations(attendeeOnyxViolations);
-    }, [policyForViolations, reportForViolations, policyCategories, transactionItem, currentUserDetails, violations]);
+    }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
@@ -252,6 +211,7 @@ function TransactionListItem<TItem extends ListItem>({
                             />
                         )}
                         <TransactionItemRow
+                            hash={currentSearchHash}
                             transactionItem={transactionItem}
                             report={transactionItem.report}
                             shouldShowTooltip={showTooltip}
@@ -274,7 +234,6 @@ function TransactionListItem<TItem extends ListItem>({
                             onArrowRightPress={onPress}
                             isHover={hovered}
                             customCardNames={customCardNames}
-                            reportActions={exportedReportActions}
                         />
                     </>
                 )}

@@ -194,7 +194,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         isTax: false,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const optimisticData = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             onyxMethod: Onyx.METHOD.MERGE,
@@ -205,20 +205,18 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 errorFields: null,
             },
         },
-        ...(policyExpenseReportIDs ?? []).map(
-            (reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                    },
+        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                fieldList: {
+                    [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                 },
-            }),
-        ),
-    ];
+            },
+        })),
+    ] as OnyxUpdate[];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const failureData = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             onyxMethod: Onyx.METHOD.MERGE,
@@ -231,20 +229,18 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 },
             },
         },
-        ...(policyExpenseReportIDs ?? []).map(
-            (reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [fieldKey]: null,
-                    },
+        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                fieldList: {
+                    [fieldKey]: null,
                 },
-            }),
-        ),
-    ];
+            },
+        })),
+    ] as OnyxUpdate[];
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT> = {
+    const onyxData: OnyxData = {
         optimisticData,
         successData: [
             {
@@ -293,7 +289,7 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         return acc;
     }, {});
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -360,7 +356,7 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
         type: nextType,
         defaultValue: newInitialValue,
     };
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
@@ -430,7 +426,7 @@ function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes,
     }
 
     // We are using the offline pattern A (optimistic without feedback)
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
@@ -470,7 +466,7 @@ function addReportFieldListValue({policy, reportFieldID, valueName}: AddReportFi
     updatedReportField.disabledOptions.push(false);
 
     // We are using the offline pattern A (optimistic without feedback)
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
@@ -518,7 +514,7 @@ function removeReportFieldListValue({policy, reportFieldID, valueIndexes}: Remov
     }
 
     // We are using the offline pattern A (optimistic without feedback)
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,

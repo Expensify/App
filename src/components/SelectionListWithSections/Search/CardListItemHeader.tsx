@@ -15,7 +15,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
-import TextCell from './TextCell';
+import ExpensesCell from './ExpensesCell';
 import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
@@ -98,7 +98,7 @@ function CardListItemHeader<TItem extends ListItem>({
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
             >
-                <TextCell text={String(cardItem.count)} />
+                <ExpensesCell count={cardItem.count} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (

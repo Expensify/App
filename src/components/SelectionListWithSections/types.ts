@@ -39,6 +39,7 @@ import type RadioListItem from './RadioListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionGroupListItem from './Search/TransactionGroupListItem';
 import type TransactionListItem from './Search/TransactionListItem';
+import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
@@ -684,6 +685,7 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type ValidListItem =
     | typeof RadioListItem
     | typeof UserListItem
+    | typeof TableListItem
     | typeof InviteMemberListItem
     | typeof TransactionListItem
     | typeof TransactionGroupListItem

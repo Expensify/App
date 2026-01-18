@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {duplicateExpenseTransaction, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import {duplicateExpenseTransaction, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/DuplicateAction';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -62,7 +62,7 @@ const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
 OnyxUpdateManager();
-describe('actions/Duplicate', () => {
+describe('actions/DuplicateAction', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,

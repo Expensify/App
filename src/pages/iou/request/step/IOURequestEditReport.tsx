@@ -53,51 +53,43 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
 
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
-            Navigation.dismissToSuperWideRHP();
+            Navigation.dismissModal();
             return;
         }
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
 
         setNavigationActionToMicrotaskQueue(() => {
-            changeTransactionsReport({
-                transactionIDs: selectedTransactionIDs,
+            changeTransactionsReport(
+                selectedTransactionIDs,
                 isASAPSubmitBetaEnabled,
-                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                email: session?.email ?? '',
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
                 newReport,
-                policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 reportNextStep,
-                policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                allTransactions,
-            });
+                allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+            );
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
         });
 
-        Navigation.dismissToSuperWideRHP();
+        Navigation.dismissModal();
     };
 
     const removeFromReport = () => {
         if (!selectedReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport({
-            transactionIDs: selectedTransactionIDs,
-            isASAPSubmitBetaEnabled,
-            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            email: session?.email ?? '',
-            allTransactions,
-        });
+        changeTransactionsReport(selectedTransactionIDs, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
         clearSelectedTransactions(true);
-        Navigation.dismissToSuperWideRHP();
+        Navigation.dismissModal();
     };
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {

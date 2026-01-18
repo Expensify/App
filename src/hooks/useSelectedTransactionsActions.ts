@@ -1,8 +1,7 @@
 import {useCallback, useMemo, useState} from 'react';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {initSplitExpense} from '@libs/actions/IOU';
-import {unholdRequest} from '@libs/actions/IOU/Hold';
+import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';

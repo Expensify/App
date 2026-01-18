@@ -5,7 +5,7 @@ import type Request from '../../src/types/onyx/Request';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-const request: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
+const request: Request = {
     command: 'OpenReport',
     successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
     failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
@@ -49,7 +49,7 @@ describe('PersistedRequests', () => {
 
     it('when onyx persist the request, it should remove from the list the ongoing request', () => {
         expect(PersistedRequests.getAll().length).toBe(1);
-        const request2: Request<'reportMetadata_3' | 'reportMetadata_4'> = {
+        const request2: Request = {
             command: 'AddComment',
             successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
@@ -64,7 +64,7 @@ describe('PersistedRequests', () => {
     });
 
     it('update the request at the given index with new data', () => {
-        const newRequest: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
+        const newRequest: Request = {
             command: 'OpenReport',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
@@ -75,7 +75,7 @@ describe('PersistedRequests', () => {
     });
 
     it('update the ongoing request with new data', () => {
-        const newRequest: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
+        const newRequest: Request = {
             command: 'OpenReport',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],

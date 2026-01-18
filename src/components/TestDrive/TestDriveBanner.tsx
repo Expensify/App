@@ -17,7 +17,7 @@ function TestDriveBanner({onPress}: TestDriveBannerProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={styles.highlightBG}>
+        <View style={[styles.highlightBG]}>
             <View style={[styles.gap2, styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.h10]}>
                 <Text>
                     {shouldUseNarrowLayout

@@ -2,6 +2,7 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
+import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -19,7 +20,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -30,7 +30,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -64,7 +64,7 @@ import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListI
 import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
 import variables from '@styles/variables';
-import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
+import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -167,12 +167,12 @@ function MoneyRequestReportActionsList({
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
@@ -349,7 +349,7 @@ function MoneyRequestReportActionsList({
 
         const hasNewMessagesInView = scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = reportActions.some(
-            (reportAction) => newMessageTimeReference && newMessageTimeReference < reportAction.created && reportAction.actorAccountID !== currentUserAccountID,
+            (reportAction) => newMessageTimeReference && newMessageTimeReference < reportAction.created && reportAction.actorAccountID !== getCurrentUserAccountID(),
         );
 
         if (!hasNewMessagesInView || !hasUnreadReportAction) {
@@ -399,7 +399,7 @@ function MoneyRequestReportActionsList({
                     message: reportAction,
                     nextMessage: nextAction,
                     isEarliestReceivedOfflineMessage,
-                    currentUserAccountID,
+                    accountID: currentUserAccountID,
                     prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
                     unreadMarkerTime,
                     scrollingVerticalOffset: scrollingVerticalBottomOffset.current,

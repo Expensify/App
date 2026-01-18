@@ -136,8 +136,7 @@ function MoneyRequestReceiptView({
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
 
-    const canEditReceipt =
-        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
+    const canEditReceipt = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -160,8 +159,7 @@ function MoneyRequestReceiptView({
 
     const transactionToCheck = updatedTransaction ?? transaction;
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
-    // Empty state for invoices should be displayed only in WideRHP
-    const shouldShowReceiptEmptyState = (isDisplayedInWideRHP || !isInvoice) && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
+    const shouldShowReceiptEmptyState = !isInvoice && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];

@@ -43,7 +43,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type Transaction from '@src/types/onyx/Transaction';
 import DiscardChangesConfirmation from './DiscardChangesConfirmation';
@@ -61,8 +61,7 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepDistanceOdometer({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backToReport},
-        name: routeName,
+        params: {action, iouType, reportID, transactionID, backTo, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -104,19 +103,15 @@ function IOURequestStepDistanceOdometer({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
-    // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingConfirmation = routeName !== SCREENS.MONEY_REQUEST.DISTANCE_CREATE && !isEditing;
-    const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
+    const isCreatingNewRequest = !(backTo ?? isEditing);
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
 
     const shouldUseDefaultExpensePolicy = useMemo(
         () =>
@@ -130,12 +125,6 @@ function IOURequestStepDistanceOdometer({
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
-
-    const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport);
-
-    useEffect(() => {
-        setShouldEnableDiscardConfirmation(!isEditingConfirmation && !isEditing);
-    }, [isEditing, isEditingConfirmation]);
 
     // Reset component state when transaction has no odometer data (happens when switching tabs)
     // In Phase 1, we don't persist data from transaction since users can't save and exit
@@ -162,7 +151,7 @@ function IOURequestStepDistanceOdometer({
         const shouldReset =
             hasInitializedRefs.current &&
             !isEditing &&
-            !isEditingConfirmation &&
+            !backToReport &&
             !hasTransactionData &&
             (wasCleared || (prevTransactionStartRef.current === undefined && prevTransactionEndRef.current === undefined));
 
@@ -181,7 +170,7 @@ function IOURequestStepDistanceOdometer({
         // Update refs to track previous values
         prevTransactionStartRef.current = currentStart;
         prevTransactionEndRef.current = currentEnd;
-    }, [isFocused, isEditing, isEditingConfirmation, transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
+    }, [isFocused, isEditing, backToReport, transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
 
     // Initialize initial values refs on mount for DiscardChangesConfirmation
     // These should never be updated after mount - they represent the "baseline" state
@@ -244,7 +233,7 @@ function IOURequestStepDistanceOdometer({
         if (shouldSkipConfirmation) {
             return translate('iou.createExpense');
         }
-        const shouldShowSave = isEditing || isEditingConfirmation;
+        const shouldShowSave = isEditing || backToReport;
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
@@ -299,11 +288,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const navigateBack = () => {
-        if (isEditingConfirmation) {
-            Navigation.goBack(confirmationRoute);
-            return;
-        }
-        Navigation.goBack();
+        Navigation.goBack(backTo);
     };
 
     // Navigate to next page following Manual tab pattern
@@ -343,15 +328,14 @@ function IOURequestStepDistanceOdometer({
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled: false,
-                    parentReportNextStep,
                 });
             }
             Navigation.goBack();
             return;
         }
 
-        if (isEditingConfirmation) {
-            Navigation.goBack(confirmationRoute);
+        if (backToReport) {
+            Navigation.goBack(backTo);
             return;
         }
 
@@ -362,11 +346,10 @@ function IOURequestStepDistanceOdometer({
             const derivedReports = (reportAttributesDerived as ReportAttributesDerivedValue | undefined)?.reports;
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, derivedReports);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, derivedReports);
             });
 
             if (shouldSkipConfirmation) {
-                setShouldEnableDiscardConfirmation(false);
                 setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
                 setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
 
@@ -504,6 +487,8 @@ function IOURequestStepDistanceOdometer({
         // When validation passes, call navigateToNextPage
         navigateToNextPage();
     };
+
+    const shouldEnableDiscardConfirmation = !backToReport && !shouldSkipConfirmation && !isEditing;
 
     return (
         <StepScreenWrapper

@@ -3,7 +3,7 @@ import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import usePolicy from '@hooks/usePolicy';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -20,8 +20,7 @@ function ImportPerDiemPage({route}: ImportPerDiemPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
-            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
             <ImportSpreadsheet
                 backTo={ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)}

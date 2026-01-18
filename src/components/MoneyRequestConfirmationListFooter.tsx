@@ -6,7 +6,6 @@ import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -42,6 +41,7 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -283,7 +283,6 @@ function MoneyRequestConfirmationListFooter({
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
@@ -352,12 +351,12 @@ function MoneyRequestConfirmationListFooter({
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
     const reportName = useMemo(() => {
-        const name = computeReportName(selectedReport, allReports, allPolicies, undefined, undefined, undefined, undefined, currentUserAccountID);
+        const name = computeReportName(selectedReport, allReports, allPolicies);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [isUnreported, selectedReport, allReports, allPolicies, translate, currentUserAccountID]);
+    }, [isUnreported, selectedReport, allReports, allPolicies, translate]);
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 
@@ -386,7 +385,6 @@ function MoneyRequestConfirmationListFooter({
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
-    const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
     // The per diem custom unit
@@ -512,7 +510,7 @@ function MoneyRequestConfirmationListFooter({
                         }
 
                         if (isOdometerDistanceRequest) {
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID));
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()) as Route);
                             return;
                         }
 
@@ -739,7 +737,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key="attendees"
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon
                     title={iouAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
                     description={`${translate('iou.attendees')} ${
                         iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
@@ -753,10 +751,8 @@ function MoneyRequestConfirmationListFooter({
 
                         Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
-                    interactive={!isReadOnly}
+                    interactive
                     shouldRenderAsHTML
-                    brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayAttendeesError ? translate(formError) : ''}
                 />
             ),
             shouldShow: shouldShowAttendees,

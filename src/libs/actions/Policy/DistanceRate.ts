@@ -48,7 +48,7 @@ function openPolicyDistanceRatesPage(policyID?: string) {
 }
 
 function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUnit: CustomUnit | undefined) {
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

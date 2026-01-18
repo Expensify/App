@@ -132,7 +132,6 @@ function isSplitAction(
 
     const isSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
     const isOpenReport = isOpenReportUtils(report);
     const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
@@ -217,7 +216,6 @@ function isSubmitAction({
 
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
     const isManager = report.managerID === getCurrentUserAccountID();
     if (!isReportSubmitter && !isAdmin && !isManager) {
         return false;
@@ -262,7 +260,6 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
     const currentUserAccountID = getCurrentUserAccountID();
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
@@ -321,7 +318,6 @@ function isUnapproveAction(currentUserLogin: string, report: Report, policy?: Po
     const isReportSettled = isSettled(report);
     const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
     const isManager = report.managerID === getCurrentUserAccountID();
 
     if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing) {

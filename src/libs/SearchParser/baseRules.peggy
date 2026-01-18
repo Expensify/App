@@ -12,7 +12,6 @@
 { 
   let nameOperator = false;
   let expectingNestedQuote = false;
-  let isColumnsContext = false;
 }
 
 // rules to match re-defined search syntax keys.
@@ -79,20 +78,14 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
-columns = "columns"i { 
-  isColumnsContext = true;
-  return "columns";
-}
+columns = "columns"i {return "columns"}
 
 // Value transformation rules
 values
-  = &{ return isColumnsContext; } columnsValues
-  / perDiem
+  = perDiem
   / draft
-
-columnsValues
-  = originalAmount
-  / taxRateValue
+  / originalAmount
+  / taxRate
   / taxAmount
   / policyName
   / withdrawalId
@@ -112,28 +105,27 @@ columnsValues
   / groupWithdrawn
   / groupWithdrawalId
 
-perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
-draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
-originalAmount          = "original-amount"i &wordBoundary          { return "originalamount"; }
-taxAmount               = "tax"i &wordBoundary                      { return "taxAmount"; }
-taxRateValue            = "tax-rate"i &wordBoundary                 { return "taxrate"; }
-policyName              = "policy-name"i &wordBoundary              { return "policyname"; }
-withdrawalId            = "withdrawal-id"i &wordBoundary            { return "withdrawalID"; }
-bankAccount             = "bank-account"i &wordBoundary             { return "bankAccount"; }
-reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
-base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
-exportedTo              = "exported-to"i &wordBoundary              { return "exportedto"; }
-exchangeRate            = "exchange-rate"i &wordBoundary            { return "exchangeRate"; }
-reimbursableTotal       = "reimbursable-total"i &wordBoundary       { return "reimbursableTotal"; }
-nonReimbursableTotal    = "non-reimbursable-total"i &wordBoundary   { return "nonReimbursableTotal"; }
-groupFrom               = "group-from"i &wordBoundary               { return "groupFrom"; }
-groupExpenses           = "group-expenses"i &wordBoundary           { return "groupExpenses"; }
-groupTotal              = "group-total"i &wordBoundary              { return "groupTotal"; }
-groupCard               = "group-card"i &wordBoundary               { return "groupCard"; }
-groupFeed               = "group-feed"i &wordBoundary               { return "groupFeed"; }
-groupBankAccount        = "group-bank-account"i &wordBoundary       { return "groupBankAccount"; }
-groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "groupWithdrawn"; }
-groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
+perDiem                 = "per-diem"i                  { return "perDiem"; }
+draft                  = "drafts"i / "draft"i         { return "drafts"; }
+originalAmount          = "original-amount"i           { return "originalamount"; }
+taxAmount               = "tax"i                       { return "taxAmount"; }
+policyName              = "policy-name"i               { return "policyname"; }
+withdrawalId            = "withdrawal-id"i             { return "withdrawalID"; }
+bankAccount             = "bank-account"i              { return "bankAccount"; }
+reportId                = "long-report-id"i            { return "reportID"; }
+base62ReportId          = "report-id"i                 { return "base62ReportID"; }
+exportedTo              = "exported-to"i               { return "exportedto"; }
+exchangeRate            = "exchange-rate"i             { return "exchangeRate"; }
+reimbursableTotal       = "reimbursable-total"i        { return "reimbursableTotal"; }
+nonReimbursableTotal    = "non-reimbursable-total"i    { return "nonReimbursableTotal"; }
+groupFrom               = "group-from"i                { return "groupFrom"; }
+groupExpenses           = "group-expenses"i            { return "groupExpenses"; }
+groupTotal              = "group-total"i               { return "groupTotal"; }
+groupCard               = "group-card"i                { return "groupCard"; }
+groupFeed               = "group-feed"i                { return "groupFeed"; }
+groupBankAccount        = "group-bank-account"i        { return "groupBankAccount"; }
+groupWithdrawn          = "group-withdrawn"i           { return "groupWithdrawn"; }
+groupWithdrawalId       = "group-withdrawal-id"i       { return "groupWithdrawalID"; }
 
 
 operator "operator"
@@ -149,16 +141,12 @@ filterOperator
       if (nameOperator) {
         expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
       }
-      isColumnsContext = false;
       return o;
   }
 
 alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
 
-logicalAnd = _ { 
-  isColumnsContext = false;
-  return "and";
-}
+logicalAnd = _ { return "and"; }
 
 _ "whitespace" = [ \t\r\n\xA0]* //handle no-breaking space
 
@@ -189,7 +177,3 @@ validClosingCondition
   = [ \t\n\r\xA0a-zA-Z0-9]* [a-zA-Z0-9]* [ \t\n\r\xA0]* operator  // Case 1: Followed by WORD + OPERATOR (new key-value pair)
   / [ \t\n\r\xA0a-zA-Z]* !operator !.  // Case 2: Followed by any number of spaces, or words, with no operator, and then an END OF INPUT.
   / [,] // Case 3: Followed by a comma
-
-wordBoundary
-  = [ \t\n\r\xA0,]  // whitespace or comma
-  / !.              // or end of input

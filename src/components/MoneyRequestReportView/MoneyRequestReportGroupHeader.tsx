@@ -4,7 +4,7 @@ import Checkbox from '@components/Checkbox';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
@@ -64,7 +64,7 @@ function MoneyRequestReportGroupHeader({
 }: MoneyRequestReportGroupHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const cleanedGroupName = isGroupedByTag && group.groupName ? getCommaSeparatedTagNameWithSanitizedColons(group.groupName) : group.groupName;
     const displayName = cleanedGroupName || translate(isGroupedByTag ? 'reportLayout.noTag' : 'reportLayout.uncategorized');

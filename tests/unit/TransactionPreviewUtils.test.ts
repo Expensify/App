@@ -106,15 +106,15 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
-        it('returns missing field message when appropriate', () => {
+        it('returns merchant missing and amount missing message when appropriate', () => {
             const functionArgs = {
                 ...basicProps,
-                transaction: {...basicProps.transaction, created: '', amount: 100},
+                transaction: {...basicProps.transaction, merchant: '', amount: 0},
                 originalTransaction: undefined,
                 shouldShowRBR: true,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.RBRMessage.translationPath).toEqual('iou.missingMerchant');
+            expect(result.RBRMessage.translationPath).toEqual('violations.reviewRequired');
         });
 
         it('should display showCashOrCard in previewHeaderText', () => {
@@ -140,12 +140,7 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('displays description when receipt is being scanned', () => {
-            const functionArgs = {
-                ...basicProps,
-                transaction: {...basicProps.transaction, merchant: '(none)', receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
-                originalTransaction: undefined,
-                merchant: 'Expense',
-            };
+            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.receipt'}]));
         });
@@ -160,7 +155,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 transactionDetails: {amount: 300, currency: 'EUR'},
-                transaction: {...basicProps.transaction, merchant: '(none)', receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
+                transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
                 originalTransaction: undefined,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
@@ -227,9 +222,8 @@ describe('TransactionPreviewUtils', () => {
     });
 
     describe('createTransactionPreviewConditionals', () => {
-        const currentUserAccountID = 999;
         beforeAll(() => {
-            Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: 999});
         });
         afterAll(() => {
             Onyx.clear([ONYXKEYS.SESSION]);
@@ -293,7 +287,6 @@ describe('TransactionPreviewUtils', () => {
                         type: CONST.REPORT.ACTIONS.TYPE.IOU,
                     },
                 },
-                currentUserAccountID,
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowSplitShare).toBeTruthy();
@@ -362,7 +355,6 @@ describe('TransactionPreviewUtils', () => {
                         type: CONST.REPORT.ACTIONS.TYPE.IOU,
                     },
                 },
-                currentUserAccountID,
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowSplitShare).toBeTruthy();

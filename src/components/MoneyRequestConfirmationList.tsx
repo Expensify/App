@@ -30,7 +30,6 @@ import {
     setMoneyRequestTaxRate,
     setSplitShares,
 } from '@libs/actions/IOU';
-import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -434,20 +433,11 @@ function MoneyRequestConfirmationList({
             setFormError('iou.receiptScanningFailed');
             return;
         }
-        // Reset the form error whenever the screen gains or loses focus
-        // but preserve violation-related errors since those represent real validation issues
-        // that can only be fixed by changing the underlying data
-        if (!formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
-            setFormError('');
-            return;
-        }
-        // Clear missingAttendees violation if user fixed it by changing category or attendees
-        const isMissingAttendeesViolation = getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
-        if (formError === 'violations.missingAttendees' && !isMissingAttendeesViolation) {
-            setFormError('');
-        }
+        // reset the form error whenever the screen gains or loses focus
+        setFormError('');
+
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
-    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, iouCategory, iouAttendees, policyCategories, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled]);
+    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
         // We want this effect to run only when the transaction is moving from Self DM to a expense chat
@@ -562,12 +552,9 @@ function MoneyRequestConfirmationList({
             if (iouAmount !== 0) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
-        } else if (isTypeSplit) {
-            text = translate('iou.splitAmount', {amount: formattedAmount});
-        } else if (iouAmount === 0) {
-            text = translate('iou.createExpense');
         } else {
-            text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
+            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
+            text = translate(translationKey, {amount: formattedAmount});
         }
         return [
             {
@@ -941,15 +928,6 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            // Since invoices are not expense reports that need attendee tracking, this validation should not apply to invoices
-            const isMissingAttendeesViolation =
-                iouType !== CONST.IOU.TYPE.INVOICE &&
-                getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
-            if (isMissingAttendeesViolation) {
-                setFormError('violations.missingAttendees');
-                return;
-            }
-
             if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
                 setFormError('iou.error.invalidSubrateLength');
                 return;
@@ -973,11 +951,6 @@ function MoneyRequestConfirmationList({
                 if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
-                    return;
-                }
-
-                if (isEditingSplitBill && iouAmount === 0) {
-                    setFormError('iou.error.invalidAmount');
                     return;
                 }
 
@@ -1028,8 +1001,6 @@ function MoneyRequestConfirmationList({
             showDelegateNoAccessModal,
             iouCategory,
             policyCategories,
-            iouAttendees,
-            currentUserPersonalDetails,
         ],
     );
 
@@ -1052,10 +1023,6 @@ function MoneyRequestConfirmationList({
         }
         if (isTypeSplit && !shouldShowReadOnlySplits) {
             return debouncedFormError && translate(debouncedFormError);
-        }
-        // Don't show error at the bottom of the form for missing attendees
-        if (formError === 'violations.missingAttendees') {
-            return;
         }
         return formError && translate(formError);
     }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);

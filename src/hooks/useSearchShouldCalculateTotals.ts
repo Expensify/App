@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
-function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, searchHash: number | undefined, enabled: boolean) {
+function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, queryHash: number | undefined, enabled: boolean) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
 
     const shouldCalculateTotals = useMemo(() => {
@@ -12,7 +12,11 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, search
             return false;
         }
 
-        if (!Object.keys(savedSearches ?? {}).length && !searchKey) {
+        if (queryHash !== null && queryHash !== undefined && String(queryHash) in (savedSearches ?? {})) {
+            return true;
+        }
+
+        if (!searchKey) {
             return false;
         }
 
@@ -27,13 +31,10 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, search
             CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
         ];
 
-        const isSuggestedSearchWithTotals = eligibleSearchKeys.includes(searchKey);
-        const isSavedSearch = searchHash !== undefined && savedSearches && !!savedSearches[searchHash];
+        return eligibleSearchKeys.includes(searchKey);
+    }, [enabled, savedSearches, searchKey, queryHash]);
 
-        return isSuggestedSearchWithTotals || isSavedSearch;
-    }, [enabled, savedSearches, searchKey, searchHash]);
-
-    return shouldCalculateTotals ?? false;
+    return shouldCalculateTotals;
 }
 
 export default useSearchShouldCalculateTotals;

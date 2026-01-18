@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -134,11 +133,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
-        >
+        <>
             <View style={styles.flex1}>{CurrentStep}</View>
             <ConfirmModal
                 isVisible={isModalVisible}
@@ -153,7 +148,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                     navigateToConciergeChat();
                 }}
             />
-        </AccessOrNotFoundWrapper>
+        </>
     );
 }
 

@@ -229,14 +229,7 @@ function AuthScreens() {
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
         if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
             if (delegatorEmail) {
-                connect({
-                    email: delegatorEmail,
-                    delegatedAccess: account?.delegatedAccess,
-                    credentials,
-                    session,
-                    activePolicyID,
-                    isFromOldDot: true,
-                })
+                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID, isFromOldDot: true})
                     ?.then((success) => {
                         App.setAppLoading(!!success);
                     })
@@ -355,7 +348,12 @@ function AuthScreens() {
                     return;
                 }
 
-                if (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderTertiaryOverlay) {
+                if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
+                    Navigation.dismissToPreviousRHP();
+                    return;
+                }
+
+                if (shouldRenderTertiaryOverlay) {
                     Navigation.dismissToPreviousRHP();
                     return;
                 }

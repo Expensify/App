@@ -35,7 +35,6 @@ function SearchTransactionsChangeReport() {
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -77,17 +76,16 @@ function SearchTransactionsChangeReport() {
         const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
-            changeTransactionsReport({
-                transactionIDs: selectedTransactionsKeys,
+            changeTransactionsReport(
+                selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
-                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                email: session?.email ?? '',
-                newReport: optimisticReport,
-                policy: policyForMovingExpenses,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
+                optimisticReport,
+                policyForMovingExpenses,
                 reportNextStep,
-                policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
-                allTransactions,
-            });
+                allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
+            );
             clearSelectedTransactions();
         });
         Navigation.goBack();
@@ -119,17 +117,16 @@ function SearchTransactionsChangeReport() {
 
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
-        changeTransactionsReport({
-            transactionIDs: selectedTransactionsKeys,
+        changeTransactionsReport(
+            selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
-            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            email: session?.email ?? '',
-            newReport: destinationReport,
-            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            session?.email ?? '',
+            destinationReport,
+            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
-            policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-            allTransactions,
-        });
+            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+        );
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -142,13 +139,7 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
-        changeTransactionsReport({
-            transactionIDs: selectedTransactionsKeys,
-            isASAPSubmitBetaEnabled,
-            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            email: session?.email ?? '',
-            allTransactions,
-        });
+        changeTransactionsReport(selectedTransactionsKeys, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
         clearSelectedTransactions();
         Navigation.goBack();
     };

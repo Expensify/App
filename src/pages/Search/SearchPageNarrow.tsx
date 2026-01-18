@@ -23,6 +23,7 @@ import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@componen
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -31,10 +32,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {isSearchDataLoaded, shouldShowSearchPageFooter} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
@@ -58,7 +61,6 @@ type SearchPageNarrowProps = {
     currentSelectedReportID?: string | undefined;
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
     latestBankItems?: BankAccountMenuItem[] | undefined;
-    shouldShowFooter?: boolean;
 };
 
 function SearchPageNarrow({
@@ -72,16 +74,18 @@ function SearchPageNarrow({
     currentSelectedReportID,
     latestBankItems,
     confirmPayment,
-    shouldShowFooter,
 }: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
+    const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {canBeMissing: true});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
@@ -178,8 +182,15 @@ function SearchPageNarrow({
         );
     }
 
+    const isSavedSearch = queryJSON?.hash !== null && queryJSON?.hash !== undefined && String(queryJSON.hash) in (savedSearches ?? {});
+    const shouldShowFooter = shouldShowSearchPageFooter({
+        isSavedSearch,
+        resultsCount: metadata?.count,
+        selectedTransactionsCount: Object.keys(selectedTransactions).length,
+    });
+
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
+    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 
     return (
         <ScreenWrapper

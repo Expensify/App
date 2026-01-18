@@ -37,16 +37,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {
-    NavigationPartialRoute,
-    NavigationRef,
-    NavigationRoute,
-    NavigationStateRoute,
-    ReportsSplitNavigatorParamList,
-    RightModalNavigatorParamList,
-    RootNavigatorParamList,
-    State,
-} from './types';
+import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([
@@ -236,20 +227,15 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     // Start a Sentry span for report navigation
-    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
+    if (route.startsWith('r/') || route.startsWith('search/r/')) {
         const routePath = Str.cutAfter(route, '?');
-        const reportIDMatch = route.match(/^(?:search\/)?(?:r|e)\/(\w+)/);
+        const reportIDMatch = routePath.match(/^(?:search\/)?r\/(\d+)(?:\/\d+)?$/);
         const reportID = reportIDMatch?.at(1);
         if (reportID) {
             const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
             let span = getSpan(spanId);
             if (!span) {
-                let spanName = '/r/*';
-                if (route.startsWith('search/r/')) {
-                    spanName = '/search/r/*';
-                } else if (route.startsWith('e/')) {
-                    spanName = '/e/*';
-                }
+                const spanName = route.startsWith('r/') ? '/r/*' : '/search/r/*';
                 span = startSpan(spanId, {
                     name: spanName,
                     op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -262,9 +248,11 @@ function navigate(route: Route, options?: LinkToOptions) {
             });
         }
     }
+
     linkTo(navigationRef.current, route, options);
     closeSidePanelOnNarrowScreen();
 }
+
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
@@ -608,38 +596,6 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
     return null;
 }
 
-function getTopmostSuperWideRHPReportParams(
-    state: NavigationState = navigationRef.getRootState(),
-): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT] | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT] | undefined {
-    if (!state) {
-        return;
-    }
-    const topmostRightModalNavigator = state.routes?.at(-1);
-
-    if (!topmostRightModalNavigator || topmostRightModalNavigator.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-        return;
-    }
-
-    const topmostSuperWideRHP = topmostRightModalNavigator.state?.routes.findLast((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name));
-
-    if (!topmostSuperWideRHP) {
-        return;
-    }
-
-    return topmostSuperWideRHP?.params as
-        | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]
-        | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT]
-        | undefined;
-}
-
-/**
- * Get the report ID from the topmost Super Wide RHP modal in the navigation stack.
- */
-function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.getRootState()): string | undefined {
-    const topmostReportParams = getTopmostSuperWideRHPReportParams(state);
-    return topmostReportParams?.reportID;
-}
-
 /**
  * Closes the modal navigator (RHP, onboarding).
  *
@@ -671,16 +627,8 @@ const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; cal
  */
 const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT], ref = navigationRef) => {
     isNavigationReady().then(() => {
-        const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
-        let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
-
-        if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
-            dismissToSuperWideRHP();
-            return;
-        }
-
         const topmostReportID = getTopmostReportId();
-        areReportsIDsDefined = !!topmostReportID && !!reportID;
+        const areReportsIDsDefined = !!topmostReportID && !!reportID;
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             dismissModal();
@@ -804,7 +752,7 @@ function dismissToModalStack(modalStackNames: Set<string>) {
         return;
     }
 
-    const lastFoundModalStackIndex = rhpState.routes.slice(0, -1).findLastIndex((route) => modalStackNames.has(route.name));
+    const lastFoundModalStackIndex = rhpState.routes.findLastIndex((route) => modalStackNames.has(route.name));
     const routesToPop = rhpState.routes.length - lastFoundModalStackIndex - 1;
 
     if (routesToPop <= 0 || lastFoundModalStackIndex === -1) {
@@ -822,10 +770,6 @@ function dismissToPreviousRHP() {
     return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
 }
 
-function navigateBackToLastSuperWideRHPScreen() {
-    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
-}
-
 function dismissToSuperWideRHP() {
     // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
     if (getIsNarrowLayout()) {
@@ -833,10 +777,10 @@ function dismissToSuperWideRHP() {
         return;
     }
     // On wide layouts, dismiss back to the Super Wide RHP modal stack
-    navigateBackToLastSuperWideRHPScreen();
+    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
 }
 
-function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
+function getTopmostReportIDInSearchRHP(state = navigationRef.getRootState()): string | undefined {
     if (!state) {
         return undefined;
     }
@@ -849,12 +793,10 @@ function getTopmostSearchReportRouteParams(state = navigationRef.getRootState())
     const nestedRoutes = lastRoute.state?.routes ?? [];
     const lastSearchReport = [...nestedRoutes].reverse().find((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
 
-    return lastSearchReport?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
-}
+    const params = lastSearchReport?.params;
+    const reportID = params && 'reportID' in params ? params.reportID : undefined;
 
-function getTopmostSearchReportID(state = navigationRef.getRootState()): string | undefined {
-    const params = getTopmostSearchReportRouteParams(state);
-    return params?.reportID;
+    return typeof reportID === 'string' ? reportID : undefined;
 }
 
 export default {
@@ -894,11 +836,7 @@ export default {
     isValidateLoginFlow,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
-    getTopmostSearchReportID,
-    getTopmostSuperWideRHPReportParams,
-    getTopmostSuperWideRHPReportID,
-    getTopmostSearchReportRouteParams,
-    navigateBackToLastSuperWideRHPScreen,
+    getTopmostReportIDInSearchRHP,
 };
 
 export {navigationRef};

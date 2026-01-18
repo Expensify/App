@@ -1,4 +1,4 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
@@ -41,7 +41,7 @@ function getRequiredQuickBooksConfig(update?: OnyxUpdate): QBOConnectionConfig {
     return config;
 }
 
-function getFirstWriteCall(): {command: WriteCommand; onyxData?: OnyxData<OnyxKey>} {
+function getFirstWriteCall(): {command: WriteCommand; onyxData?: OnyxData} {
     const call = writeSpy.mock.calls.at(0);
     if (!call) {
         throw new Error('API.write was not called');

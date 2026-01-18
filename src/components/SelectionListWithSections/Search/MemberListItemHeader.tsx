@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
-import TextCell from './TextCell';
+import ExpensesCell from './ExpensesCell';
 import TotalCell from './TotalCell';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
@@ -86,7 +86,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
             >
-                <TextCell text={String(memberItem.count)} />
+                <ExpensesCell count={memberItem.count} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (

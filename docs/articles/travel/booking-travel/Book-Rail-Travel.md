@@ -8,11 +8,12 @@ keywords: [New Expensify, book rail, train booking, rail travel, train tickets, 
 
 Book train tickets directly in Expensify Travel. This guide covers how to search, book, and view your rail itineraries in New Expensify.
 
-## Where to find Expensify Travel
+# How to access the travel tool
 
-Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
+From the left-hand menu, select **Reports > Trips**.  
+Click the green **+** button in the bottom-left corner, then select **Book travel**.
 
-If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
+If you don’t see this option, contact your Account Manager or Concierge to schedule a travel demo and enable travel booking for your account.
 
 # How to book rail travel
 
@@ -35,19 +36,19 @@ If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify T
 8. Confirm trip details and payment method.  
 9. Click **Pay** to finalize your booking.
 
-## What happens after booking with Expensify Travel 
+# What happens next
 
 - Your booking may require approval depending on your company’s travel policy.  
 - You’ll receive a confirmation email after booking.  
 - The rail booking receipt will sync automatically with your Expensify account.  
 - If your payment card is connected to Expensify, the receipt will merge with the imported expense.  
 
-**Note:** Rail bookings are not supported in all regions. Availability may vary
+> **Note:** Rail bookings are not supported in all regions. Availability may vary.
 
 # FAQ
 
 ## Can I book a train in Expensify Travel?  
-Yes. Once Expensify Travel is enabled for your workspace, you can book train tickets directly from the app.
+Yes. If travel is enabled on your account, you can search and book rail journeys directly in Expensify.  
 
 ## Will I receive a digital ticket?  
 Yes. Most rail bookings include a digital ticket or QR code in your confirmation email.  

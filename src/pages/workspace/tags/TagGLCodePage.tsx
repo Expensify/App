@@ -76,7 +76,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
             shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
