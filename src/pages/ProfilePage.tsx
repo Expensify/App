@@ -75,7 +75,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone', 'Pin', 'QrCode'] as const);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportKey = useMemo(() => {
@@ -163,7 +163,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
         if (report) {
-            result.push(PromotedActions.pin(report));
+            result.push(PromotedActions.pin(report, expensifyIcons));
         }
 
         // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
@@ -171,7 +171,7 @@ function ProfilePage({route}: ProfilePageProps) {
             result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID}));
         }
         return result;
-    }, [accountID, isCurrentUser, loginParams, report, currentUserAccountID]);
+    }, [accountID, isCurrentUser, loginParams, report, expensifyIcons, currentUserAccountID]);
 
     return (
         <ScreenWrapper testID="ProfilePage">

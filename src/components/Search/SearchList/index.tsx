@@ -188,7 +188,7 @@ function SearchList({
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
 
     const {hash, groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
@@ -520,7 +520,7 @@ function SearchList({
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={expensifyIcons.CheckSquare}
+                    icon={icons.CheckSquare}
                     onPress={turnOnSelectionMode}
                 />
             </Modal>

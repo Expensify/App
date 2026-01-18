@@ -2,9 +2,9 @@ import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import {DotIndicator} from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -40,6 +40,7 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
     const {translate} = useLocalize();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, {
         canBeMissing: true,
     });
@@ -67,7 +68,7 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
                 testID="TransactionItemRowRBR"
             >
                 <Icon
-                    src={DotIndicator}
+                    src={icons.DotIndicator}
                     fill={theme.danger}
                     height={variables.iconSizeExtraSmall}
                     width={variables.iconSizeExtraSmall}

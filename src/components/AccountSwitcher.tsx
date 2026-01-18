@@ -24,7 +24,6 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
@@ -39,7 +38,7 @@ type AccountSwitcherProps = {
 };
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown']);
+    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown', 'Checkmark'] as const);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -123,7 +122,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const menuItems = (): PopoverMenuItem[] => {
         const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
             shouldShowRightIcon: true,
-            iconRight: Expensicons.Checkmark,
+            iconRight: icons.Checkmark,
             success: true,
             isSelected: true,
         });

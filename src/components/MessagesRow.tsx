@@ -38,7 +38,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Close']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
 
     const showDismissButton = !!onDismiss;
 

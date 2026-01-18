@@ -6,8 +6,6 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -56,8 +54,8 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield']);
-    const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
+    const icons = useMemoizedLazyExpensifyIcons(['ClosedSign', 'Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield', 'Trashcan'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -181,7 +179,7 @@ function SecuritySettingsPage() {
 
         baseMenuItems.push({
             translationKey: 'closeAccountPage.closeAccount',
-            icon: Expensicons.ClosedSign,
+            icon: icons.ClosedSign,
             action: () => {
                 if (isAccountLocked) {
                     showLockedAccountModal();
@@ -213,6 +211,7 @@ function SecuritySettingsPage() {
         waitForNavigate,
         translate,
         styles.sectionMenuItemTopDescription,
+        icons.ClosedSign,
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
@@ -308,7 +307,7 @@ function SecuritySettingsPage() {
         },
         {
             text: translate('delegate.removeCopilot'),
-            icon: Expensicons.Trashcan,
+            icon: icons.Trashcan,
             onPress: () => {
                 if (selectedDelegate?.email !== account?.delegatedAccess?.delegate && isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());

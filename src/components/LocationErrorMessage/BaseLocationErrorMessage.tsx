@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -24,6 +24,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Close'] as const);
 
     if (!locationErrorCode) {
         return null;
@@ -35,7 +36,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
         <View style={[styles.dotIndicatorMessage, styles.mt4]}>
             <View style={styles.offlineFeedbackErrorDot}>
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={icons.DotIndicator}
                     fill={colors.red}
                 />
             </View>
@@ -66,7 +67,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                     >
                         <Icon
                             fill={theme.icon}
-                            src={Expensicons.Close}
+                            src={icons.Close}
                         />
                     </PressableWithoutFeedback>
                 </Tooltip>

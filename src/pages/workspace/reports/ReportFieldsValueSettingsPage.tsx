@@ -2,12 +2,12 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -35,6 +35,7 @@ function ReportFieldsValueSettingsPage({
         params: {policyID, valueIndex, reportFieldID},
     },
 }: ReportFieldsValueSettingsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
@@ -141,7 +142,7 @@ function ReportFieldsValueSettingsPage({
                     />
                     {!hasAccountingConnections && (
                         <MenuItem
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={() => setIsDeleteTagModalOpen(true)}
                         />
