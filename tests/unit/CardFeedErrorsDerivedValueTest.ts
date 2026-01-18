@@ -297,7 +297,7 @@ describe('CardFeedErrors Derived Value', () => {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardFeed.workspaceAccountID}`]: {
                         settings: {
                             companyCards: {
-                                [cardFeed.feedNameWithDomainID]: {
+                                [cardFeed.feedName]: {
                                     pending: false,
                                     errors: {
                                         feedError: 'Connection failed',
@@ -336,7 +336,7 @@ describe('CardFeedErrors Derived Value', () => {
                         },
                         settings: {
                             companyCards: {
-                                [cardFeed.feedNameWithDomainID]: {
+                                [cardFeed.feedName]: {
                                     pending: false,
                                 },
                             },
@@ -543,7 +543,7 @@ describe('CardFeedErrors Derived Value', () => {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardFeed.workspaceAccountID}`]: {
                         settings: {
                             companyCards: {
-                                [cardFeed.feedNameWithDomainID]: {
+                                [cardFeed.feedName]: {
                                     pending: false,
                                     errors: {error: 'Feed error'},
                                 },
