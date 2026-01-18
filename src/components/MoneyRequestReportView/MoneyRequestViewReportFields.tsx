@@ -6,12 +6,15 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
+import * as Formula from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     getAvailableReportFields,
     getFieldViolation,
     getFieldViolationTranslation,
     getReportFieldKey,
+    getReportFieldsByName,
+    getReportFieldValues,
     isInvoiceReport as isInvoiceReportUtils,
     isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
@@ -84,12 +87,21 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
+        const fieldValues = getReportFieldValues(report, policy?.fieldList ?? {});
+        const fieldsByName = getReportFieldsByName(report, policy?.fieldList ?? {});
+
         return fields
             .filter((field) => field.target === report?.type)
             .filter((reportField) => !shouldHideSingleReportField(reportField))
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
-                const fieldValue = field.value ?? field.defaultValue;
+                let fieldValue = field.value ?? field.defaultValue;
+                const parsedModel = Formula.parse(field.defaultValue);
+                const hasFieldRefs = parsedModel.some((part) => part.type === Formula.FORMULA_PART_TYPES.FIELD);
+
+                if (hasFieldRefs && report) {
+                    fieldValue = Formula.compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
+                }
                 const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);

@@ -2,7 +2,7 @@ import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMon
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
@@ -35,6 +35,8 @@ type FormulaContext = {
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
     allTransactions?: Record<string, Transaction>;
+    fieldValues?: Record<string, string>;
+    fieldsByName?: Record<string, PolicyReportField>;
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
@@ -296,7 +298,7 @@ function compute(formula?: string, context?: FormulaContext): string {
                 }
                 break;
             case FORMULA_PART_TYPES.FIELD:
-                value = computeFieldPart(part);
+                value = computeFieldPart(part, context);
                 break;
             case FORMULA_PART_TYPES.USER:
                 value = computeUserPart(part);
@@ -428,10 +430,32 @@ function formatStatus(statusNum: number | undefined): string {
 }
 
 /**
- * Compute the value of a field formula part
+ * Compute the value of a field formula part with recursive resolution support
  */
-function computeFieldPart(part: FormulaPart): string {
-    // Field computation will be implemented later
+function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
+    const fieldName = part.fieldPath.at(0)?.toLowerCase();
+
+    if (!fieldName) {
+        return part.definition;
+    }
+
+    // If we have the full field definitions, we can recursively resolve dependencies
+    if (context?.fieldsByName?.[fieldName]) {
+        const field = context.fieldsByName[fieldName];
+        // Recursively compute if the default value contains field references, ignoring the stale 'value'
+        const parsedModel = parse(field.defaultValue);
+        const hasFieldRefs = parsedModel.some((p) => p.type === FORMULA_PART_TYPES.FIELD);
+        if (hasFieldRefs) {
+            return compute(field.defaultValue, context);
+        }
+        return field.value ?? field.defaultValue ?? '';
+    }
+
+    // Fallback to flat value map
+    if (context?.fieldValues?.[fieldName]) {
+        return context.fieldValues[fieldName];
+    }
+
     return part.definition;
 }
 

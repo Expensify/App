@@ -12909,6 +12909,34 @@ function shouldHideSingleReportField(reportField: PolicyReportField) {
     return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
 }
 
+/**
+ * Get map of report field names to their values (or default values)
+ */
+function getReportFieldValues(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): Record<string, string> {
+    const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const values: Record<string, string> = {};
+    for (const field of fields) {
+        if (field.name) {
+            values[field.name.toLowerCase()] = field.value ?? field.defaultValue ?? '';
+        }
+    }
+    return values;
+}
+
+/**
+ * Get map of report field names to their definitions (PolicyReportField objects)
+ */
+function getReportFieldsByName(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): Record<string, PolicyReportField> {
+    const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const fieldsByName: Record<string, PolicyReportField> = {};
+    for (const field of fields) {
+        if (field.name) {
+            fieldsByName[field.name.toLowerCase()] = field;
+        }
+    }
+    return fieldsByName;
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -13045,6 +13073,8 @@ export {
     getReimbursementQueuedActionMessage,
     getReportDescription,
     getReportFieldKey,
+    getReportFieldValues,
+    getReportFieldsByName,
     getReportIDFromLink,
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated

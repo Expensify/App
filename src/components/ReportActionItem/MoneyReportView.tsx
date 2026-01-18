@@ -18,6 +18,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import * as Formula from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     getAvailableReportFields,
@@ -25,6 +26,8 @@ import {
     getFieldViolationTranslation,
     getMoneyRequestSpendBreakdown,
     getReportFieldKey,
+    getReportFieldsByName,
+    getReportFieldValues,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
@@ -41,7 +44,7 @@ import CONST from '@src/CONST';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type MoneyReportViewProps = {
@@ -89,10 +92,20 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
     const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
 
-    const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
+    const sortedPolicyReportFields = useMemo(() => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
-        return fields.filter((field) => field.target === report?.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
+        return fields
+            .filter((field) => field.target === report?.type)
+            .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
     }, [policy?.fieldList, report]);
+
+    const fieldValues = useMemo(() => {
+        return getReportFieldValues(report, policy?.fieldList ?? {});
+    }, [report, policy?.fieldList]);
+
+    const fieldsByName = useMemo(() => {
+        return getReportFieldsByName(report, policy?.fieldList ?? {});
+    }, [report, policy?.fieldList]);
 
     const enabledReportFields = sortedPolicyReportFields.filter(
         (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
@@ -138,7 +151,13 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     return null;
                                 }
 
-                                const fieldValue = reportField.value ?? reportField.defaultValue;
+                                const parsedModel = Formula.parse(reportField.defaultValue);
+                                const hasFieldRefs = parsedModel.some((part) => part.type === Formula.FORMULA_PART_TYPES.FIELD);
+
+                                let fieldValue = reportField.value ?? reportField.defaultValue;
+                                if (hasFieldRefs && report) {
+                                    fieldValue = Formula.compute(reportField.defaultValue, {report, policy, fieldValues, fieldsByName});
+                                }
                                 const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
