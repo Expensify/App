@@ -225,13 +225,24 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
                         // Check if we need to resize images
                         if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-                            return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
-                                for (const [index, resizedFile] of processedFiles.entries()) {
-                                    updateFileOrderMapping(convertedImages.at(index), resizedFile);
-                                }
-                                setIsLoaderVisible(false);
-                                return Promise.resolve({processedFiles, pdfsToLoad});
-                            });
+                            return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file)))
+                                .then((processedFiles) => {
+                                    for (const [index, resizedFile] of processedFiles.entries()) {
+                                        updateFileOrderMapping(convertedImages.at(index), resizedFile);
+                                    }
+                                    setIsLoaderVisible(false);
+                                    return Promise.resolve({processedFiles, pdfsToLoad});
+                                })
+                                .catch((error: unknown) => {
+                                    const errorMessage = error instanceof Error ? error.message : undefined;
+                                    if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE});
+                                    } else {
+                                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
+                                    }
+                                    setIsLoaderVisible(false);
+                                    return Promise.resolve({processedFiles: [] as FileObject[], pdfsToLoad});
+                                });
                         }
 
                         // No resizing needed, just return the converted images
@@ -243,13 +254,24 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 // No conversion needed, but check if we need to resize images
                 if (otherFiles.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                     setIsLoaderVisible(true);
-                    return Promise.all(otherFiles.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
-                        for (const [index, resizedFile] of processedFiles.entries()) {
-                            updateFileOrderMapping(otherFiles.at(index), resizedFile);
-                        }
-                        setIsLoaderVisible(false);
-                        return Promise.resolve({processedFiles, pdfsToLoad});
-                    });
+                    return Promise.all(otherFiles.map((file) => resizeImageIfNeeded(file)))
+                        .then((processedFiles) => {
+                            for (const [index, resizedFile] of processedFiles.entries()) {
+                                updateFileOrderMapping(otherFiles.at(index), resizedFile);
+                            }
+                            setIsLoaderVisible(false);
+                            return Promise.resolve({processedFiles, pdfsToLoad});
+                        })
+                        .catch((error: unknown) => {
+                            const errorMessage = error instanceof Error ? error.message : undefined;
+                            if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                                collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE});
+                            } else {
+                                collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
+                            }
+                            setIsLoaderVisible(false);
+                            return Promise.resolve({processedFiles: [] as FileObject[], pdfsToLoad});
+                        });
                 }
 
                 // No conversion or resizing needed, just return the valid images

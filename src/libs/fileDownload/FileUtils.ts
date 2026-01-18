@@ -678,6 +678,11 @@ const getFileValidationErrorText = (
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.protectedPDFNotSupported'),
             };
+        case CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE:
+            return {
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.imageDimensionsTooLarge'),
+            };
         default:
             return {
                 title: translate('attachmentPicker.attachmentError'),
