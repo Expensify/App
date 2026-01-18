@@ -41,6 +41,7 @@ function SearchFiltersWorkspacePage() {
     const selectionListRef = useRef<SelectionListHandle<WorkspaceListItem>>(null);
 
     const [selectedOptions, setSelectedOptions] = useState<string[]>(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []));
+    const initialSelectedRef = useRef<string[]>(searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []);
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
@@ -49,6 +50,8 @@ function SearchFiltersWorkspacePage() {
         selectedPolicyIDs: selectedOptions,
         searchTerm: debouncedSearchTerm,
         localeCompare,
+        prioritizeSelectedOnToggle: false,
+        initialSelectedPolicyIDs: initialSelectedRef.current,
     });
 
     const selectWorkspace = useCallback(
