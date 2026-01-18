@@ -7625,10 +7625,19 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             security: 'Expensify ist PCI-DSS-konform, verwendet eine Verschlüsselung auf Bankniveau und nutzt redundante Infrastruktur, um Ihre Daten zu schützen.',
             learnMoreAboutSecurity: 'Erfahren Sie mehr über unsere Sicherheit.',
         },
+        expensifyCode: {
+            title: 'Expensify-Code',
+            discountCode: 'Rabattcode',
+            enterCode: 'Geben Sie einen Expensify-Code ein, um ihn auf Ihr Abonnement anzuwenden.',
+            apply: 'Anwenden',
+            error: {
+                invalid: 'Dieser Code ist ungültig',
+            },
+        },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
-                `Abonnementstyp: ${subscriptionType}, Abonnementgröße: ${subscriptionSize}, Automatische Verlängerung: ${autoRenew}, Automatische jährliche Sitzplatzerhöhung: ${autoIncrease}`,
+            summary: ({subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `Abonnementstyp: ${subscriptionType}, Abonnementgröße: ${subscriptionSize}${expensifyCode ? `, Expensify-Code: ${expensifyCode}` : ''}, Automatische Verlängerung: ${autoRenew}, Automatische jährliche Sitzplatzerhöhung: ${autoIncrease}`,
             none: 'keine',
             on: 'Ein',
             off: 'Aus',

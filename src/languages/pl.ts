@@ -7581,10 +7581,19 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             security: 'Expensify jest zgodny z PCI-DSS, używa szyfrowania na poziomie bankowym i wykorzystuje redundantną infrastrukturę, aby chronić Twoje dane.',
             learnMoreAboutSecurity: 'Dowiedz się więcej o naszych zabezpieczeniach.',
         },
+        expensifyCode: {
+            title: 'Kod Expensify',
+            discountCode: 'Kod rabatowy',
+            enterCode: 'Wprowadź kod Expensify, aby zastosować go do swojej subskrypcji.',
+            apply: 'Zastosuj',
+            error: {
+                invalid: 'Ten kod jest nieprawidłowy',
+            },
+        },
         subscriptionSettings: {
             title: 'Ustawienia subskrypcji',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
-                `Typ subskrypcji: ${subscriptionType}, Rozmiar subskrypcji: ${subscriptionSize}, Automatyczne odnawianie: ${autoRenew}, Automatyczne zwiększanie rocznej liczby miejsc: ${autoIncrease}`,
+            summary: ({subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `Typ subskrypcji: ${subscriptionType}, Rozmiar subskrypcji: ${subscriptionSize}${expensifyCode ? `, Kod Expensify: ${expensifyCode}` : ''}, Automatyczne odnawianie: ${autoRenew}, Automatyczne zwiększanie rocznej liczby miejsc: ${autoIncrease}`,
             none: 'brak',
             on: 'włączone',
             off: 'Wył.',

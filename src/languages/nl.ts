@@ -7597,10 +7597,19 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             security: 'Expensify is PCI-DSS-conform, gebruikt versleuteling op bankniveau en maakt gebruik van redundante infrastructuur om je gegevens te beschermen.',
             learnMoreAboutSecurity: 'Meer informatie over onze beveiliging.',
         },
+        expensifyCode: {
+            title: 'Expensify-code',
+            discountCode: 'Kortingscode',
+            enterCode: 'Voer een Expensify-code in om toe te passen op je abonnement.',
+            apply: 'Toepassen',
+            error: {
+                invalid: 'Deze code is ongeldig',
+            },
+        },
         subscriptionSettings: {
             title: 'Abonnementsinstellingen',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
-                `Abonnementstype: ${subscriptionType}, Abonnementsgrootte: ${subscriptionSize}, Automatisch verlengen: ${autoRenew}, Aantal jaarlijkse licenties automatisch verhogen: ${autoIncrease}`,
+            summary: ({subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `Abonnementstype: ${subscriptionType}, Abonnementsgrootte: ${subscriptionSize}${expensifyCode ? `, Expensify-code: ${expensifyCode}` : ''}, Automatisch verlengen: ${autoRenew}, Aantal jaarlijkse licenties automatisch verhogen: ${autoIncrease}`,
             none: 'geen',
             on: 'aan',
             off: 'Uit',
