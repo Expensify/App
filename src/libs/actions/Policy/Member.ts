@@ -276,7 +276,8 @@ function resetAccountingPreferredExporter(policy: OnyxEntry<Policy>, loginList: 
     }
     const owner = policy?.owner ?? ReportUtils.getPersonalDetailsForAccountID(policy?.ownerAccountID).login ?? '';
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
-    const adminLoginList = loginList.filter((login) => isPolicyAdmin(policy, login));
+
+    const adminLoginList = loginList.filter((login) => isPolicyAdmin(policy, login, false));
     const connections = [CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.POLICY.CONNECTIONS.NAME.QBD];
 
     if (!adminLoginList.length) {
