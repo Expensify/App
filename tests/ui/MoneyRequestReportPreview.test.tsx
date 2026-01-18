@@ -39,7 +39,7 @@ jest.mock('@rnmapbox/maps', () => {
 
 jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () =>
     jest.fn((): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] => {
-        return [mockChatReport, [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID}], {violations: mockViolations}];
+        return [mockIOUReport, [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID}], {violations: mockViolations}];
     }),
 );
 
@@ -155,11 +155,12 @@ describe('MoneyRequestReportPreview', () => {
             await waitForBatchedUpdatesWithAct();
         });
         await waitForBatchedUpdatesWithAct();
-        const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
+
+        expect(screen.getByText(ReportUtils.getReportName(mockIOUReport, undefined, undefined, undefined, undefined, undefined))).toBeOnTheScreen();
+
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
 
-            expect(screen.getByText(moneyRequestReportPreviewName)).toBeOnTheScreen();
             expect(screen.getByText(transactionDisplayAmount)).toBeOnTheScreen();
             expect(screen.getAllByText(transactionHeaderText)).toHaveLength(arrayOfTransactions.length);
             expect(screen.getAllByText(transaction.merchant)).toHaveLength(arrayOfTransactions.length);
