@@ -40,10 +40,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const isReportArchived = useCallback(
-        (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`),
-        [archivedReportsIdSet],
-    );
+    const isReportArchived = useCallback((reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIdSet]);
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const {onboardingMessages} = useOnboardingMessages();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
@@ -97,14 +94,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID();
 
-        navigateAfterOnboardingWithMicrotaskQueue(
-            isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            onboardingPolicyID,
-            mergedAccountConciergeReportID,
-            false,
-            isReportArchived,
-        );
+        navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), onboardingPolicyID, mergedAccountConciergeReportID, false, isReportArchived);
     }, [
         onboardingPurposeSelected,
         currentUserPersonalDetails.firstName,

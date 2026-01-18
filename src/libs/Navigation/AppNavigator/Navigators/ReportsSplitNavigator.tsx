@@ -29,10 +29,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const isReportArchived = useCallback(
-        (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`),
-        [archivedReportsIdSet],
-    );
+    const isReportArchived = useCallback((reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIdSet]);
 
     // Determine if the current URL indicates a transition.
     const isTransitioning = useMemo(() => {

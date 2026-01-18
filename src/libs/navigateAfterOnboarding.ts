@@ -57,14 +57,7 @@ function navigateAfterOnboarding(
         return;
     }
 
-    const reportID = getReportIDAfterOnboarding(
-        isSmallScreenWidth,
-        canUseDefaultRooms,
-        onboardingPolicyID,
-        onboardingAdminsChatReportID,
-        shouldPreventOpenAdminRoom,
-        isReportArchived,
-    );
+    const reportID = getReportIDAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom, isReportArchived);
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }

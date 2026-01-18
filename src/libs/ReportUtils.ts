@@ -2225,6 +2225,7 @@ function findLastAccessedReport(
     openOnAdminRoom = false,
     policyID?: string,
     excludeReportID?: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- it will be used in the future
     isReportArchived?: IsReportArchived,
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
