@@ -373,8 +373,14 @@ function AttachmentPicker({
                                 height,
                             })),
                         )
-                        .catch(() => {
-                            showImageCorruptionAlert();
+                        .catch((error) => {
+                            if (error?.message === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                                showGeneralAlert(translate('attachmentPicker.imageDimensionsTooLarge'));
+                            } else if (error?.message) {
+                                showGeneralAlert(error.message);
+                            } else {
+                                showImageCorruptionAlert();
+                            }
                             return null;
                         });
                 }
@@ -396,8 +402,14 @@ function AttachmentPicker({
                                 };
                             }),
                         )
-                        .catch(() => {
-                            showImageCorruptionAlert();
+                        .catch((error) => {
+                            if (error?.message === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                                showGeneralAlert(translate('attachmentPicker.imageDimensionsTooLarge'));
+                            } else if (error?.message) {
+                                showGeneralAlert(error.message);
+                            } else {
+                                showImageCorruptionAlert();
+                            }
                             return null;
                         });
                 }

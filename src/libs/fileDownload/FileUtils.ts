@@ -467,6 +467,11 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
 
 const getImageDimensionsAfterResize = (file: FileObject) =>
     ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
+        const totalPixels = width * height;
+        if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
+            throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+        }
+
         const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
         const newWidth = Math.max(1, width * scaleFactor);
         const newHeight = Math.max(1, height * scaleFactor);
