@@ -45,6 +45,7 @@ function IOURequestStepMerchant({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
@@ -56,7 +57,7 @@ function IOURequestStepMerchant({
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const merchant = getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
-    const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
     const initialMerchant = isEmptyMerchant ? '' : merchant;
     const [currentMerchant, setCurrentMerchant] = useState(initialMerchant);
     const [isSaved, setIsSaved] = useState(false);
@@ -88,7 +89,10 @@ function IOURequestStepMerchant({
 
             if (isMerchantRequired && !value.moneyRequestMerchant) {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
-            } else if (isMerchantRequired && value.moneyRequestMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+            } else if (
+                isMerchantRequired &&
+                (value.moneyRequestMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || value.moneyRequestMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT)
+            ) {
                 errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
             } else if (!isValid) {
                 errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
@@ -120,18 +124,19 @@ function IOURequestStepMerchant({
         }
         setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
         if (isEditing) {
-            updateMoneyRequestMerchant(
+            updateMoneyRequestMerchant({
                 transactionID,
-                report,
+                transactionThreadReport: report,
                 parentReport,
-                newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 policy,
-                policyTags,
+                policyTagList: policyTags,
                 policyCategories,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-            );
+                parentReportNextStep,
+            });
         }
         setIsSaved(true);
         shouldNavigateAfterSaveRef.current = true;
