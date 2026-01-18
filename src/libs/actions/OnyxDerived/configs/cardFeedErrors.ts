@@ -1,5 +1,5 @@
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
-import {getCompanyCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
+import {filterInactiveCards, getCompanyCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
@@ -19,24 +19,24 @@ export default createOnyxDerivedValueConfig({
         let hasSomeWorkspaceErrors = false;
         let hasSomeFailedCardAssignment = false;
 
+        const cardsWithBrokenFeedConnection: Record<string, Card> = {};
+
+        const combinedCompanyCardFeeds = getCombinedCardFeedsFromAllFeeds(cardFeeds);
+        const workspaceCardFeedsStatus = getWorkspaceCardFeedsStatus(cardFeeds);
+
         function addErrorsForCard(card: Card) {
             const bankName = card.bank as CompanyCardFeedWithNumber;
             const workspaceAccountID = Number(card.fundID);
             const feedNameWithDomainID = getCompanyCardFeedWithDomainID(bankName, workspaceAccountID);
 
-            const combinedCompanyCardFeeds = getCombinedCardFeedsFromAllFeeds(cardFeeds);
-            const workspaceCardFeedsStatus = getWorkspaceCardFeedsStatus(cardFeeds);
-
             const selectedFeed = combinedCompanyCardFeeds?.[feedNameWithDomainID];
+            const feedErrors =selectedFeed?.errors
 
             const hasFailedCardAssignments = !isEmptyObject(
                 failedCompanyCardAssignmentsPerFeed?.[`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${workspaceAccountID}_${feedNameWithDomainID}`],
             );
 
-            const allFeedsErrors = cardFeedErrors[workspaceAccountID] ?? {};
-            const feedErrors = allFeedsErrors[bankName];
-            let cardErrors: Record<string, CardErrors> = feedErrors?.cardErrors ?? {};
-
+            let cardErrors: Record<string, CardErrors> = cardFeedErrors[feedNameWithDomainID]?.cardErrors ?? {};
             const hasCardErrors = !isEmptyObject(card.errors) || !isEmptyObject(card.errorFields) || card.pendingAction;
 
             if (hasCardErrors) {
@@ -51,15 +51,26 @@ export default createOnyxDerivedValueConfig({
             }
 
             const hasWorkspaceErrors = !!workspaceCardFeedsStatus?.[workspaceAccountID]?.errors;
-            const hasFeedError = feedNameWithDomainID ? !!selectedFeed?.errors : false;
+            const hasFeedErrors = feedNameWithDomainID ? !!feedErrors : false;
             const isFeedConnectionBroken = isCardConnectionBroken(card);
-            const shouldShowRBR = hasFailedCardAssignments || hasFeedError || isFeedConnectionBroken;
+            const shouldShowRBR = hasFailedCardAssignments || hasFeedErrors || isFeedConnectionBroken;
+
+            cardFeedErrors[feedNameWithDomainID] = {
+                cardErrors,
+                feedErrors,
+                shouldShowRBR,
+                hasWorkspaceErrors,
+                hasFeedErrors,
+                isFeedConnectionBroken,
+                hasFailedCardAssignments,
+            };
 
             if (isFeedConnectionBroken) {
                 isSomeFeedConnectionBroken = true;
+                cardsWithBrokenFeedConnection[card.cardID] = card;
             }
 
-            if (hasFeedError) {
+            if (hasFeedErrors) {
                 hasSomeFeedErrors = true;
             }
 
@@ -74,17 +85,6 @@ export default createOnyxDerivedValueConfig({
             rbrWorkspaceAccountIDMapping[workspaceAccountID] = rbrWorkspaceAccountIDMapping[workspaceAccountID] || shouldShowRBR;
 
             rbrFeedNameWithDomainIDMapping[feedNameWithDomainID] = rbrFeedNameWithDomainIDMapping[feedNameWithDomainID] || shouldShowRBR;
-
-            allFeedsErrors[bankName] = {
-                shouldShowRBR,
-                hasWorkspaceErrors,
-                hasFeedError,
-                isFeedConnectionBroken,
-                hasFailedCardAssignments,
-                cardErrors,
-            };
-
-            cardFeedErrors[workspaceAccountID] = allFeedsErrors;
         }
 
         for (const card of Object.values(globalCardList ?? {})) {
@@ -99,9 +99,8 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            const {cardList, ...cards} = workspaceCardFeedCards ?? {};
-
-            for (const card of Object.values(cards ?? {})) {
+            const {cardList, ...filteredCards} = filterInactiveCards(workspaceCardFeedCards);
+            for (const card of Object.values(filteredCards)) {
                 addErrorsForCard(card);
             }
         }
@@ -111,6 +110,7 @@ export default createOnyxDerivedValueConfig({
         return {
             // The errors of all card feeds.
             cardFeedErrors,
+            cardsWithBrokenFeedConnection,
 
             // Mappings of whether to show the RBR for each workspace account ID and per feed name with domain ID
             rbrWorkspaceAccountIDMapping,

@@ -2,7 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Card, CardFeed} from '.';
-import type {CompanyCardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -95,6 +95,15 @@ type CardErrors = {
  */
 type FeedErrors = {
     /**
+     * The errors of the feed.
+     */
+    feedErrors?: Errors;
+    /**
+     * The errors of all cards for a specific feed within a workspace/domain.
+     */
+    cardErrors: Record<string, CardErrors>;
+
+    /**
      * Whether to show the RBR for a specific feed within a workspace/domain.
      * This will be true, if any of the below conditions are true:
      * - There are failed card assignments for the feed.
@@ -114,15 +123,11 @@ type FeedErrors = {
     /**
      * Whether a specific feed within a workspace/domain has errors.
      */
-    hasFeedError: boolean;
+    hasFeedErrors: boolean;
     /**
      * Whether some feed connection is broken.
      */
     isFeedConnectionBroken: boolean;
-    /**
-     * The errors of all cards for a specific feed within a workspace/domain.
-     */
-    cardErrors: Record<string, CardErrors>;
 };
 
 /**
@@ -138,16 +143,20 @@ type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
 /**
  * The errors of all card feeds.
  */
-type CardFeedErrorsObject = Record<number, Record<CardFeedId, FeedErrors>>;
+type CardFeedErrorsObject = Record<CardFeedWithDomainID, FeedErrors>;
 
 /**
  *
  */
 type CardFeedErrors = {
     /**
-     * The errors of all card feeds.
+     * The errors of all card feeds by feed name with domain ID.
      */
     cardFeedErrors: CardFeedErrorsObject;
+    /**
+     * The cards with a broken feed connection.
+     */
+    cardsWithBrokenFeedConnection: Record<string, Card>;
     /**
      * Whether to show the RBR for all feeds.
      */

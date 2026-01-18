@@ -19,9 +19,18 @@ type CompanyCardFeedWithDomainID = `${CompanyCardFeedWithNumber}${typeof CONST.C
 type CardFeed = CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
 
 /**
- * Either a company card feed name with domain ID or the Expensify card bank name with domain ID.
+ * Either a company card feed name or the Expensify card bank name with a number.
  */
-type CardFeedWithDomainID = `${CardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
+type CardFeedWithNumber = CardFeed | `${CardFeed}${number}`;
+
+/**
+ * Card feed name with domain ID
+ */
+type CardFeedWithDomainID = `${CardFeedWithNumber}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
+
+/**
+ * Either a company card feed name with domain ID or the Expensify card bank name with domain ID.
+type CardFeedWithDomainID = `${CardFeedWithNumber}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
 
 /** Statement period end */
 type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
@@ -281,9 +290,12 @@ export type {
     AddNewCardFeedStep,
     AddNewCompanyCardFeed,
     AddNewCardFeedData,
-    CompanyCardFeed,
     CardFeed,
+    CardFeedWithNumber,
     CardFeedWithDomainID,
+    CompanyCardFeed,
+    CompanyCardFeedWithNumber,
+    CompanyCardFeedWithDomainID,
     CardFeedDetails,
     DirectCardFeedData,
     CardFeedProvider,
@@ -291,10 +303,8 @@ export type {
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
     CompanyFeeds,
-    CompanyCardFeedWithDomainID,
     CustomCardFeedData,
     CompanyCardNicknames,
-    CompanyCardFeedWithNumber,
     FundID,
     StatementPeriodEnd,
     StatementPeriodEndDay,

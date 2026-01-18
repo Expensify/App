@@ -4,6 +4,7 @@ import useOnyx from './useOnyx';
 
 const DEFAULT_CARD_FEED_ERRORS: CardFeedErrors = {
     cardFeedErrors: {},
+    cardsWithBrokenFeedConnection: {},
     shouldShowRBR: false,
     rbrWorkspaceAccountIDMapping: {},
     rbrFeedNameWithDomainIDMapping: {},
