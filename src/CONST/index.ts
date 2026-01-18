@@ -259,6 +259,8 @@ const CONST = {
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
     MAX_IMAGE_CANVAS_AREA: 16777216,
+
+    // Maximum pixel count (width × height) for processing images. Prevents memory crashes with extremely large images.
     MAX_IMAGE_PIXEL_COUNT: 50000000,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
 
