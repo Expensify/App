@@ -21,8 +21,8 @@ function usePoliciesWithCardFeedErrors(): PoliciesWithCardFeedErrors {
     const {rbrWorkspaceAccountIDMapping} = useCardFeedErrors();
     let hasCardFeedErrors = false;
     const policiesWithCardFeedErrors: Policy[] = [];
-    for (const [workspaceAccountID, value] of Object.entries(rbrWorkspaceAccountIDMapping)) {
-        if (!value) {
+    for (const [workspaceAccountID, hasErrors] of Object.entries(rbrWorkspaceAccountIDMapping)) {
+        if (!hasErrors) {
             continue;
         }
         hasCardFeedErrors = true;
