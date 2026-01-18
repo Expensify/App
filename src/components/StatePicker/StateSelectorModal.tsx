@@ -57,7 +57,10 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
         [translate, currentState],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countryStates);
+    const searchResults = useMemo(
+        () => searchOptions(debouncedSearchValue, countryStates, currentState ? [currentState] : []),
+        [countryStates, debouncedSearchValue, currentState],
+    );
 
     const textInputOptions = useMemo(
         () => ({

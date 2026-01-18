@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import StringUtils from './StringUtils';
 
 type Option = {
@@ -8,14 +9,34 @@ type Option = {
     searchValue: string;
 };
 
+function moveSelectedOptionsToTop<TOption extends {value: string}>(options: TOption[], initialSelectedValues: string[] = []): TOption[] {
+    if (options.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD || initialSelectedValues.length === 0) {
+        return options;
+    }
+
+    const initialSelectedValuesSet = new Set(initialSelectedValues);
+    const selectedOptions: TOption[] = [];
+    const unselectedOptions: TOption[] = [];
+
+    for (const option of options) {
+        if (initialSelectedValuesSet.has(option.value)) {
+            selectedOptions.push(option);
+        } else {
+            unselectedOptions.push(option);
+        }
+    }
+
+    return [...selectedOptions, ...unselectedOptions];
+}
+
 /**
  * Searches the options and returns sorted results based on the search query
  * @param options - An array of option objects
  * @returns An array of options sorted based on the search query
  */
-function searchOptions(searchValue: string, options: Option[]): Option[] {
+function searchOptions(searchValue: string, options: Option[], initialSelectedValues: string[] = []): Option[] {
     if (!searchValue) {
-        return options;
+        return moveSelectedOptionsToTop(options, initialSelectedValues);
     }
 
     const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
@@ -69,7 +90,7 @@ function searchOptions(searchValue: string, options: Option[]): Option[] {
             return 0;
         });
     }
-    return fullSorted;
+    return moveSelectedOptionsToTop(fullSorted, initialSelectedValues);
 }
 
 export default searchOptions;

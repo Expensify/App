@@ -67,7 +67,10 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         setSearchValue('');
     };
 
-    const searchResults = searchOptions(debouncedSearchValue, options);
+    const searchResults = useMemo(
+        () => searchOptions(debouncedSearchValue, options, selectedOption ? [selectedOption] : []),
+        [debouncedSearchValue, options, selectedOption],
+    );
 
     const textInputOptions = useMemo(
         () => ({

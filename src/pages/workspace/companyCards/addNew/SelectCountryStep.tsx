@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -50,7 +50,8 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         return getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
     }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
 
-    const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
+    const initialCountryRef = useRef<string | undefined>(getCountry());
+    const [currentCountry, setCurrentCountry] = useState<string | undefined>(initialCountryRef.current);
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
 
@@ -74,6 +75,10 @@ function SelectCountryStep({policyID}: CountryStepProps) {
 
     useEffect(() => {
         setCurrentCountry(getCountry());
+        // Keep the initial ref stable so we only reorder once when the list opens
+        if (!initialCountryRef.current) {
+            initialCountryRef.current = getCountry();
+        }
     }, [getCountry]);
 
     const handleBackButtonPress = () => {
@@ -105,7 +110,9 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const searchResults = useMemo(() => {
+        return searchOptions(debouncedSearchValue, countries, initialCountryRef.current ? [initialCountryRef.current] : []);
+    }, [countries, debouncedSearchValue]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const textInputOptions = useMemo(
@@ -146,10 +153,11 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 onSelectRow={onSelectionChange}
                 textInputOptions={textInputOptions}
                 confirmButtonOptions={confirmButtonOptions}
-                initiallyFocusedItemKey={currentCountry}
+                // Avoid auto-scroll/focus resets; ordering keeps the initial selection visible
+                initiallyFocusedItemKey={undefined}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
-                shouldUpdateFocusedIndex
+                shouldUpdateFocusedIndex={false}
                 addBottomSafeAreaPadding
                 shouldStopPropagation
             >

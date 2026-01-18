@@ -67,7 +67,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(searchValue, countries);
+    const searchResults = useMemo(() => searchOptions(searchValue, countries, formValues.bankCountry ? [formValues.bankCountry] : []), [countries, searchValue, formValues.bankCountry]);
 
     const textInputOptions = useMemo(
         () => ({

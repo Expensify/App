@@ -38,7 +38,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(searchValue, countries);
+    const searchResults = useMemo(() => searchOptions(searchValue, countries, currentCountry ? [currentCountry] : []), [countries, searchValue, currentCountry]);
 
     const selectCountry = useCallback(
         (option: Option) => {
