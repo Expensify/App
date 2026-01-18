@@ -48,12 +48,14 @@ type FocusTrapCallbacks = {
 
 let capturedFocusTrapOptions: FocusTrapCallbacks = {};
 
-// Mock @react-navigation/native with test-specific values
-// Note: This overrides the global mock in __mocks__ because we need
-// configurable values that change between tests
+// Mock @react-navigation/native - overrides global mock for configurable test values
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => mockIsFocused,
     useRoute: () => ({name: mockRouteName, key: 'test-route'}),
+    // useNavigation needed for beforeRemove listener in FocusTrapForScreen
+    useNavigation: () => ({
+        addListener: jest.fn(() => jest.fn()),
+    }),
 }));
 
 // Mock useResponsiveLayout - uses the existing mock in __mocks__ but we specify the return value
@@ -67,13 +69,20 @@ jest.mock('@libs/Navigation/helpers/isNavigatorName', () => ({
     isSidebarScreenName: (name: string) => name === 'SidebarScreen',
 }));
 
-// Mock CONST - partial mock for values used by FocusTrapForScreen
+// Mock Log to break the import chain that causes CONST-related issues
+// (NavigationFocusManager -> Log -> Console -> CONFIG -> CONST causes issues with partial mocks)
+jest.mock('@libs/Log');
+
+// Mock CONST - only the values actually used by FocusTrapForScreen
 jest.mock('@src/CONST', () => ({
-    ELEMENT_NAME: {
-        INPUT: 'INPUT',
-        TEXTAREA: 'TEXTAREA',
+    __esModule: true,
+    default: {
+        ELEMENT_NAME: {
+            INPUT: 'INPUT',
+            TEXTAREA: 'TEXTAREA',
+        },
+        ANIMATED_TRANSITION: 300,
     },
-    ANIMATED_TRANSITION: 300,
 }));
 
 // Mock focus-trap-react - kept inline because it needs to capture callbacks

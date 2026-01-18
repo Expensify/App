@@ -696,6 +696,20 @@ function MenuItem({
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
+    // When interactive={false}, don't pass onPress to allow events to bubble to parent wrapper.
+    // This is critical for components like ApprovalWorkflowSection where outer PressableWithoutFeedback
+    // handles all clicks and inner MenuItems are display-only.
+    const getResolvedOnPress = () => {
+        if (!interactive) {
+            return undefined;
+        }
+        if (shouldCheckActionAllowedOnPress) {
+            return callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction);
+        }
+        return onPressAction;
+    };
+    const resolvedOnPress = getResolvedOnPress();
+
     return (
         <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
@@ -718,7 +732,7 @@ function MenuItem({
                     <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPress={resolvedOnPress}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}

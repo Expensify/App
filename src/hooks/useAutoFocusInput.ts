@@ -28,6 +28,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     const inputRef = useRef<TextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const hasInitialFocused = useRef(false);
 
     useEffect(() => {
         if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
@@ -49,8 +50,15 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     useFocusEffect(
         useCallback(() => {
+            // Skip auto-focus if we've already focused once on initial mount
+            // This prevents stealing focus when user navigates back to this screen
+            if (hasInitialFocused.current) {
+                return;
+            }
+
             focusTimeoutRef.current = setTimeout(() => {
                 setIsScreenTransitionEnded(true);
+                hasInitialFocused.current = true;
             }, CONST.ANIMATED_TRANSITION);
             return () => {
                 setIsScreenTransitionEnded(false);
