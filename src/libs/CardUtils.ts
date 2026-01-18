@@ -753,20 +753,6 @@ function isCardConnectionBroken(card: Card): boolean {
 }
 
 /**
- * Check if any card from the provided feed(s) has a broken connection
- *
- * @param feedCards the list of the cards, related to one or several feeds
- * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
- */
-function checkIfFeedConnectionIsBroken(feedCards: CardList | undefined, feedToExclude?: string): boolean {
-    if (!feedCards || isEmptyObject(feedCards)) {
-        return false;
-    }
-
-    return Object.values(feedCards).some((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardConnectionBroken(card));
-}
-
-/**
  * Checks if an Expensify Card was issued for a given workspace.
  */
 function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList>): boolean {
@@ -991,7 +977,6 @@ export {
     getFeedType,
     flattenCompanyCards,
     isCardConnectionBroken,
-    checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
