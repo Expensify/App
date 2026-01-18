@@ -1,5 +1,5 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import React, {useMemo, useState} from 'react';
+import useIsReportArchivedCallback from '@hooks/useIsReportArchivedCallback';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
@@ -12,7 +12,6 @@ import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/N
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -28,8 +27,7 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-    const isReportArchived = useCallback((reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIdSet]);
+    const isReportArchived = useIsReportArchivedCallback();
 
     // Determine if the current URL indicates a transition.
     const isTransitioning = useMemo(() => {

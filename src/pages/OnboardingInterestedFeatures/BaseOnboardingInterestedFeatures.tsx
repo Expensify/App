@@ -11,8 +11,8 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Text from '@components/Text';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsReportArchivedCallback from '@hooks/useIsReportArchivedCallback';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -54,8 +54,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-    const isReportArchived = useCallback((reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIdSet]);
+    const isReportArchived = useIsReportArchivedCallback();
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();

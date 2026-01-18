@@ -23,10 +23,10 @@ import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import useIsReportArchivedCallback from '@hooks/useIsReportArchivedCallback';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -186,11 +186,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-    const isReportArchivedByID = useCallback(
-        (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`),
-        [archivedReportsIdSet],
-    );
+    const isReportArchivedByID = useIsReportArchivedCallback();
 
     const parentReportAction = useParentReportAction(reportOnyx);
 

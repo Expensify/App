@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useIsReportArchivedCallback from '@hooks/useIsReportArchivedCallback';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -50,8 +50,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-    const isReportArchived = useCallback((reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIdSet]);
+    const isReportArchived = useIsReportArchivedCallback();
 
     const isValidated = isCurrentUserValidated(loginList, session?.email);
 
