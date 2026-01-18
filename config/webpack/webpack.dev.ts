@@ -48,14 +48,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                 ...proxySettings,
                 historyApiFallback: true,
                 port,
-                host: 'dev.new.expensify.com',
-                server: {
-                    type: 'https',
-                    options: {
-                        key: path.join(__dirname, 'key.pem'),
-                        cert: path.join(__dirname, 'certificate.pem'),
-                    },
-                },
+                host: 'localhost',
                 headers: {
                     'Document-Policy': 'js-profiling',
                 },
@@ -65,7 +58,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                     'process.env.PORT': port,
                     'process.env.NODE_ENV': JSON.stringify('development'),
                 }),
-                new ReactRefreshWebpackPlugin({overlay: {sockProtocol: 'wss'}}),
+                new ReactRefreshWebpackPlugin({overlay: {sockProtocol: 'ws'}}),
                 new ForceGarbageCollectionPlugin(),
             ],
             // This prevents import error coming from react-native-tab-view/lib/module/TabView.js

@@ -763,8 +763,8 @@ function MenuItem({
                                 // - Be focusable via keyboard (tabindex="-1" instead of tabindex="0")
                                 role={interactive ? CONST.ROLE.MENUITEM : undefined}
                                 accessibilityLabel={title ? title.toString() : ''}
-                                accessible={shouldBeAccessible}
-                                tabIndex={tabIndex}
+                                accessible={interactive && shouldBeAccessible}
+                                tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >

@@ -193,6 +193,8 @@ function initGitServer() {
     fs.mkdirSync(GIT_REMOTE, {recursive: true});
     process.chdir(GIT_REMOTE);
     exec('git init -b main');
+    // Disable GPG signing for tags in test environment to avoid "no tag message" errors
+    exec('git config --local tag.gpgsign false');
     setupGitAsHuman();
     exec('npm init -y');
     exec('npm version --no-git-tag-version 1.0.0-0');
@@ -224,6 +226,8 @@ function checkoutRepo() {
     fs.mkdirSync(DUMMY_DIR);
     process.chdir(DUMMY_DIR);
     exec('git init');
+    // Disable GPG signing for tags in test environment to avoid "no tag message" errors
+    exec('git config --local tag.gpgsign false');
     exec(`git remote add origin ${GIT_REMOTE}`);
     exec('git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main');
     exec('git checkout --progress --force -B main refs/remotes/origin/main');
