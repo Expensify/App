@@ -4,10 +4,7 @@ import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 
 function useIsReportArchivedCallback() {
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    return useCallback(
-        (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`),
-        [archivedReportsIdSet],
-    );
+    return useCallback((reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`), [archivedReportsIdSet]);
 }
 
 export default useIsReportArchivedCallback;
