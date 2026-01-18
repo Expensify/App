@@ -46,7 +46,7 @@ type SearchPageWideProps = {
     initScanRequest: (e: DragEvent) => void;
     PDFValidationComponent: React.ReactNode;
     ErrorModal: React.ReactNode;
-    shouldShowFooter?: boolean;
+    shouldShowFooter: boolean;
 };
 
 function SearchPageWide({

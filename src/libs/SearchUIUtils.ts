@@ -3490,17 +3490,6 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
-type ShouldShowSearchPageFooterParams = {
-    isSavedSearch: boolean;
-    resultsCount?: number;
-    isDefaultExpensesSearch: boolean;
-    selectedTransactionsCount: number;
-};
-
-function shouldShowSearchPageFooter({isSavedSearch, resultsCount, isDefaultExpensesSearch, selectedTransactionsCount}: ShouldShowSearchPageFooterParams) {
-    return isSavedSearch || (!!resultsCount && !isDefaultExpensesSearch) || selectedTransactionsCount > 0;
-}
-
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -3548,7 +3537,6 @@ export {
     getTransactionFromTransactionListItem,
     getSearchColumnTranslationKey,
     getTableMinWidth,
-    shouldShowSearchPageFooter,
     getCustomColumns,
     getCustomColumnDefault,
 };

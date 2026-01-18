@@ -30,8 +30,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded, shouldShowSearchPageFooter} from '@libs/SearchUIUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
@@ -58,7 +58,7 @@ type SearchPageNarrowProps = {
     currentSelectedReportID?: string | undefined;
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
     latestBankItems?: BankAccountMenuItem[] | undefined;
-    shouldShowFooter?: boolean;
+    shouldShowFooter: boolean;
 };
 
 function SearchPageNarrow({
