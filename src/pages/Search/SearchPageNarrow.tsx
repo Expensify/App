@@ -61,6 +61,7 @@ type SearchPageNarrowProps = {
     currentSelectedReportID?: string | undefined;
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
     latestBankItems?: BankAccountMenuItem[] | undefined;
+    shouldShowFooter?: boolean;
 };
 
 function SearchPageNarrow({
@@ -74,13 +75,14 @@ function SearchPageNarrow({
     currentSelectedReportID,
     latestBankItems,
     confirmPayment,
+    shouldShowFooter,
 }: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
@@ -181,15 +183,6 @@ function SearchPageNarrow({
             </ScreenWrapper>
         );
     }
-
-    const isDefaultExpensesSearch = queryJSON ? isDefaultExpensesQuery(queryJSON) : false;
-    const isSavedSearch = queryJSON?.hash !== undefined && Object.prototype.hasOwnProperty.call(savedSearches ?? {}, String(queryJSON.hash));
-    const shouldShowFooter = shouldShowSearchPageFooter({
-        isSavedSearch,
-        resultsCount: metadata?.count,
-        isDefaultExpensesSearch,
-        selectedTransactionsCount: Object.keys(selectedTransactions).length,
-    });
 
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);

@@ -1,11 +1,10 @@
 import {useMemo} from 'react';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
-function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, similarSearchHash: number | undefined, enabled: boolean) {
+function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, searchHash: number | undefined, enabled: boolean) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
 
     const shouldCalculateTotals = useMemo(() => {
@@ -13,9 +12,7 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, simila
             return false;
         }
 
-        const savedSearchValues = Object.values(savedSearches ?? {});
-
-        if (!savedSearchValues.length && !searchKey) {
+        if (!Object.keys(savedSearches ?? {}).length && !searchKey) {
             return false;
         }
 
@@ -30,21 +27,13 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, simila
             CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
         ];
 
-        if (eligibleSearchKeys.includes(searchKey)) {
-            return true;
-        }
+        const isSuggestedSearchWithTotals = eligibleSearchKeys.includes(searchKey);
+        const isSavedSearch = searchHash !== undefined && savedSearches && !!savedSearches[searchHash];
 
-        for (const savedSearch of savedSearchValues) {
-            const searchData = buildSearchQueryJSON(savedSearch.query);
-            if (searchData && searchData.similarSearchHash === similarSearchHash) {
-                return true;
-            }
-        }
+        return isSuggestedSearchWithTotals || isSavedSearch;
+    }, [enabled, savedSearches, searchKey, searchHash]);
 
-        return false;
-    }, [enabled, savedSearches, searchKey, similarSearchHash]);
-
-    return shouldCalculateTotals;
+    return shouldCalculateTotals ?? false;
 }
 
 export default useSearchShouldCalculateTotals;
