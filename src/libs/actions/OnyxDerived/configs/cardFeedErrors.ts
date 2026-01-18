@@ -30,7 +30,7 @@ export default createOnyxDerivedValueConfig({
             const feedNameWithDomainID = getCompanyCardFeedWithDomainID(bankName, workspaceAccountID);
 
             const selectedFeed = combinedCompanyCardFeeds?.[feedNameWithDomainID];
-            const feedErrors =selectedFeed?.errors
+            const feedErrors = selectedFeed?.errors
 
             const hasFailedCardAssignments = !isEmptyObject(
                 failedCompanyCardAssignmentsPerFeed?.[`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${workspaceAccountID}_${feedNameWithDomainID}`],
