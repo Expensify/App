@@ -326,7 +326,9 @@ function MoneyRequestView({
     const isReportArchived = useReportIsArchived(transactionThreadReport?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(transactionThreadReport, isReportArchived) && !readonly;
     const canEdit =
-        isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction, isReportArchivedByID) && isEditable;
+        isMoneyRequestAction(parentReportAction) &&
+        canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction, isReportArchivedByID) &&
+        isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
@@ -339,11 +341,31 @@ function MoneyRequestView({
             (isExpenseSplit && isSplitAvailable));
     const canEditMerchant =
         isEditable &&
-        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy, isReportArchivedByID);
+        canEditFieldOfMoneyRequest(
+            parentReportAction,
+            CONST.EDIT_REQUEST_FIELD.MERCHANT,
+            undefined,
+            isChatReportArchived,
+            undefined,
+            transaction,
+            moneyRequestReport,
+            policy,
+            isReportArchivedByID,
+        );
 
     const canEditDate =
         isEditable &&
-        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy, isReportArchivedByID);
+        canEditFieldOfMoneyRequest(
+            parentReportAction,
+            CONST.EDIT_REQUEST_FIELD.DATE,
+            undefined,
+            isChatReportArchived,
+            undefined,
+            transaction,
+            moneyRequestReport,
+            policy,
+            isReportArchivedByID,
+        );
 
     const canEditDistance =
         isEditable &&

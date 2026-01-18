@@ -332,13 +332,9 @@ function MoneyRequestConfirmationListFooter({
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
 
     const availableOutstandingReports = useMemo(() => {
-        return getOutstandingReportsForUser(
-            policyID,
-            ownerAccountID,
-            outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-            isReportArchived,
-            false,
-        ).sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''));
+        return getOutstandingReportsForUser(policyID, ownerAccountID, outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, isReportArchived, false).sort((a, b) =>
+            localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
+        );
     }, [policyID, ownerAccountID, outstandingReportsByPolicyID, isReportArchived, localeCompare]);
 
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;

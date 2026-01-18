@@ -728,7 +728,14 @@ function Search({
                             .map((transactionItem) => {
                                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID, isReportArchived);
+                                return mapTransactionItemToSelectedEntry(
+                                    transactionItem,
+                                    itemTransaction,
+                                    originalItemTransaction,
+                                    email ?? '',
+                                    outstandingReportsByPolicyID,
+                                    isReportArchived,
+                                );
                             }),
                     ),
                 },
@@ -967,7 +974,14 @@ function Search({
                             .map((transactionItem) => {
                                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID, isReportArchived);
+                                return mapTransactionItemToSelectedEntry(
+                                    transactionItem,
+                                    itemTransaction,
+                                    originalItemTransaction,
+                                    email ?? '',
+                                    outstandingReportsByPolicyID,
+                                    isReportArchived,
+                                );
                             }),
                     ),
                 ),
