@@ -3402,6 +3402,7 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.shouldShowSearchPageFooter({
                     isSavedSearch: true,
                     resultsCount: 0,
+                    isDefaultExpensesSearch: true,
                     selectedTransactionsCount: 0,
                 }),
             ).toBe(true);
@@ -3412,9 +3413,21 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.shouldShowSearchPageFooter({
                     isSavedSearch: false,
                     resultsCount: 10,
+                    isDefaultExpensesSearch: false,
                     selectedTransactionsCount: 0,
                 }),
             ).toBe(true);
+        });
+
+        test('Should not show footer when results exist but it is the default expenses search', () => {
+            expect(
+                SearchUIUtils.shouldShowSearchPageFooter({
+                    isSavedSearch: false,
+                    resultsCount: 10,
+                    isDefaultExpensesSearch: true,
+                    selectedTransactionsCount: 0,
+                }),
+            ).toBe(false);
         });
 
         test('Should show footer when there are selected transactions', () => {
@@ -3422,6 +3435,7 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.shouldShowSearchPageFooter({
                     isSavedSearch: false,
                     resultsCount: 0,
+                    isDefaultExpensesSearch: true,
                     selectedTransactionsCount: 1,
                 }),
             ).toBe(true);
@@ -3432,16 +3446,7 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.shouldShowSearchPageFooter({
                     isSavedSearch: false,
                     resultsCount: 0,
-                    selectedTransactionsCount: 0,
-                }),
-            ).toBe(false);
-        });
-
-        test('Should not show footer for non-saved default expenses when there is no results count', () => {
-            expect(
-                SearchUIUtils.shouldShowSearchPageFooter({
-                    isSavedSearch: false,
-                    resultsCount: undefined,
+                    isDefaultExpensesSearch: false,
                     selectedTransactionsCount: 0,
                 }),
             ).toBe(false);
