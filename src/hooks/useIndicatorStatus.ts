@@ -12,10 +12,11 @@ type IndicatorStatusResult = {
 function useIndicatorStatus(): IndicatorStatusResult {
     const theme = useTheme();
 
-    const {accountStatus, infoStatus, policyIDWithErrors} = useNavigationTabBarIndicatorChecks();
+    const {accountStatus, infoStatus, policyStatus, policyIDWithErrors} = useNavigationTabBarIndicatorChecks();
 
-    const status = accountStatus ?? infoStatus;
-    const indicatorColor = accountStatus ? theme.danger : theme.success;
+    const errorStatus = accountStatus ?? policyStatus;
+    const status = errorStatus ?? infoStatus;
+    const indicatorColor = errorStatus ? theme.danger : theme.success;
 
     return {indicatorColor, status, policyIDWithErrors};
 }
