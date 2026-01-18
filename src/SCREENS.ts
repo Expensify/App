@@ -170,6 +170,7 @@ const SCREENS = {
             UNSHARE_BANK_ACCOUNT: 'Settings_Wallet_Unshare_Bank_Account',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
             SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
+            TRAVEL_CVV: 'Settings_Wallet_Travel_CVV',
         },
 
         EXIT_SURVEY: {

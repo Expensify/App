@@ -1,17 +1,37 @@
 import CONST from '@src/CONST';
+// Needed for testing usage with jest.spyOn
+// eslint-disable-next-line no-restricted-imports
+import * as Environment from '@src/libs/Environment/Environment';
 import {
     getIsTravelInvoicingEnabled,
+    getTravelInvoicingCard,
     getTravelLimit,
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelSpend,
     hasTravelInvoicingSettlementAccount,
+    isTravelCVVEligible,
     PROGRAM_TRAVEL_US,
 } from '@src/libs/TravelInvoicingUtils';
-import type {BankAccountList} from '@src/types/onyx';
+import type {BankAccountList, Beta, CardList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 
+jest.mock('@src/libs/Environment/Environment');
+
 describe('TravelInvoicingUtils', () => {
+    let isDevelopmentSpy: jest.SpyInstance;
+    let isInternalTestBuildSpy: jest.SpyInstance;
+
+    beforeAll(() => {
+        isDevelopmentSpy = jest.spyOn(Environment, 'isDevelopment').mockReturnValue(false);
+        isInternalTestBuildSpy = jest.spyOn(Environment, 'isInternalTestBuild').mockReturnValue(false);
+    });
+
+    afterEach(() => {
+        isDevelopmentSpy.mockReturnValue(false);
+        isInternalTestBuildSpy.mockReturnValue(false);
+        jest.clearAllMocks();
+    });
     describe('PROGRAM_TRAVEL_US constant', () => {
         it('Should be defined as TRAVEL_US', () => {
             expect(PROGRAM_TRAVEL_US).toBe('TRAVEL_US');
@@ -195,6 +215,156 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBeDefined();
             expect(result?.displayName).toBe('');
             expect(result?.last4).toBe('');
+        });
+    });
+
+    describe('getTravelInvoicingCard', () => {
+        it('Should return undefined when cardList is undefined', () => {
+            const result = getTravelInvoicingCard(undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return undefined when cardList is empty', () => {
+            const result = getTravelInvoicingCard({});
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return undefined when no travel card exists', () => {
+            const cardList = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1234': {
+                    cardID: 1234,
+                    state: 3,
+                    nameValuePairs: {
+                        isVirtual: true,
+                        isTravelCard: false,
+                    },
+                },
+            } as unknown as CardList;
+            const result = getTravelInvoicingCard(cardList);
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return the travel card when isTravelCard is true', () => {
+            const cardList = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1234': {
+                    cardID: 1234,
+                    state: 3,
+                    nameValuePairs: {
+                        isVirtual: true,
+                        isTravelCard: true,
+                    },
+                },
+            } as unknown as CardList;
+            const result = getTravelInvoicingCard(cardList);
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(1234);
+        });
+
+        it('Should return first travel card when multiple cards exist', () => {
+            const cardList = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1111': {
+                    cardID: 1111,
+                    state: 3,
+                    nameValuePairs: {
+                        isVirtual: true,
+                        isTravelCard: false,
+                    },
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '2222': {
+                    cardID: 2222,
+                    state: 3,
+                    nameValuePairs: {
+                        isVirtual: true,
+                        isTravelCard: true,
+                    },
+                },
+            } as unknown as CardList;
+            const result = getTravelInvoicingCard(cardList);
+            expect(result).toBeDefined();
+            expect(result?.nameValuePairs?.isTravelCard).toBe(true);
+        });
+        it('Should fallback to first available card when testing is enabled and no travel card exists', () => {
+            isDevelopmentSpy.mockReturnValue(true);
+
+            const cardList = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '9999': {
+                    cardID: 9999,
+                    state: 3,
+                    nameValuePairs: {
+                        isVirtual: true,
+                        isTravelCard: false,
+                    },
+                },
+            } as unknown as CardList;
+
+            const result = getTravelInvoicingCard(cardList);
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(9999);
+        });
+    });
+
+    describe('isTravelCVVEligible', () => {
+        const mockTravelCardList = {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            '1234': {
+                cardID: 1234,
+                state: 3,
+                nameValuePairs: {
+                    isVirtual: true,
+                    isTravelCard: true,
+                },
+            },
+        } as unknown as CardList;
+
+        const mockNonTravelCardList = {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            '5678': {
+                cardID: 5678,
+                state: 3,
+                nameValuePairs: {
+                    isVirtual: true,
+                    isTravelCard: false,
+                },
+            },
+        } as unknown as CardList;
+
+        const mockBetasWithTravelInvoicing: Beta[] = [CONST.BETAS.TRAVEL_INVOICING as Beta];
+        const mockBetasWithoutTravelInvoicing: Beta[] = [];
+
+        it('Should return false when betas is undefined', () => {
+            const result = isTravelCVVEligible(undefined, mockTravelCardList);
+            expect(result).toBe(false);
+        });
+
+        it('Should return false when cardList is undefined', () => {
+            const result = isTravelCVVEligible(mockBetasWithTravelInvoicing, undefined);
+            expect(result).toBe(false);
+        });
+
+        it('Should return false when no travel card exists', () => {
+            const result = isTravelCVVEligible(mockBetasWithTravelInvoicing, mockNonTravelCardList);
+            expect(result).toBe(false);
+        });
+
+        it('Should return false when beta is missing', () => {
+            const result = isTravelCVVEligible(mockBetasWithoutTravelInvoicing, mockTravelCardList);
+            expect(result).toBe(false);
+        });
+
+        it('Should return true when beta is present and travel card exists', () => {
+            const result = isTravelCVVEligible(mockBetasWithTravelInvoicing, mockTravelCardList);
+            expect(result).toBe(true);
+        });
+
+        it('Should return true when testing is enabled and beta is present even if no travel card exists', () => {
+            isDevelopmentSpy.mockReturnValue(true);
+            const result = isTravelCVVEligible(mockBetasWithTravelInvoicing, mockNonTravelCardList);
+            expect(result).toBe(true);
         });
     });
 });

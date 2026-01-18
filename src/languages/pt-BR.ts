@@ -2149,6 +2149,12 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderá o acesso a esta conta bancária comercial. Ainda concluiremos quaisquer pagamentos em andamento.`,
         reachOutForHelp: 'Está sendo usada com o Cartão Expensify. <concierge-link>Entre em contato com o Concierge</concierge-link> se precisar descompartilhar.',
         unshareErrorModalTitle: 'Não foi possível descompartilhar a conta bancária',
+        travelCVV: {
+            title: 'CVV de viagem',
+            subtitle: 'Use isto ao reservar viagens',
+            description: 'Este cartão consolida despesas como passagens aéreas, trem, aluguel de carros e, às vezes, hotéis em uma única conta.',
+            instructions: 'Será solicitado que você informe os últimos 4 dígitos. Você pode revelá-los abaixo usando o botão.',
+        },
     },
     cardPage: {
         expensifyCard: 'Cartão Expensify',

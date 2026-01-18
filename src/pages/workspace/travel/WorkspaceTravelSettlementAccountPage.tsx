@@ -4,13 +4,13 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,6 +54,7 @@ function WorkspaceTravelSettlementAccountPage({route}: WorkspaceTravelSettlement
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`, {canBeMissing: true});
@@ -111,7 +112,7 @@ function WorkspaceTravelSettlementAccountPage({route}: WorkspaceTravelSettlement
                                 initiallyFocusedItemKey={paymentBankAccountID?.toString()}
                                 listFooterContent={
                                     <MenuItem
-                                        icon={Expensicons.Plus}
+                                        icon={icons.Plus}
                                         title={translate('workspace.expensifyCard.addNewBankAccount')}
                                         onPress={() =>
                                             Navigation.navigate(
@@ -127,7 +128,7 @@ function WorkspaceTravelSettlementAccountPage({route}: WorkspaceTravelSettlement
                             />
                         ) : (
                             <MenuItem
-                                icon={Expensicons.Plus}
+                                icon={icons.Plus}
                                 title={translate('workspace.expensifyCard.addNewBankAccount')}
                                 onPress={() =>
                                     Navigation.navigate(

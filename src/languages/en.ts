@@ -2151,6 +2151,12 @@ const translations = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} will lose access to this business bank account. We’ll still complete any payments in process.`,
         reachOutForHelp: 'It’s being used with the Expensify Card. <concierge-link>Reach out to Concierge</concierge-link> if you need to unshare it.',
         unshareErrorModalTitle: 'Can’t unshare bank account',
+        travelCVV: {
+            title: 'Travel CVV',
+            subtitle: 'Use this when booking travel',
+            description: 'This card consolidates expenses like airfare, rail, car rentals, and sometimes hotels into a single account rather.',
+            instructions: "You'll be asked for the last 4 digits. You can reveal them below using the button.",
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

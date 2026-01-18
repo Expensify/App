@@ -2122,6 +2122,12 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} 将失去对此企业银行账户的访问权限。我们仍将完成所有正在进行的付款。`,
         reachOutForHelp: '此账户正在与 Expensify 卡一起使用。如果您需要取消共享，请联系礼宾部。',
         unshareErrorModalTitle: '无法取消共享银行账户',
+        travelCVV: {
+            title: '旅行 CVV',
+            subtitle: '预订差旅时使用此选项',
+            description: '此卡将机票、火车、租车，有时还包括酒店等费用合并到一个账户中。',
+            instructions: '系统将要求您提供最后 4 位数字。您可以使用下面的按钮查看它们。',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

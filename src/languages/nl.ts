@@ -2154,6 +2154,12 @@ const translations: TranslationDeepObject<typeof en> = {
             `${admin} verliest de toegang tot deze zakelijke bankrekening. We zullen alle betalingen die in behandeling zijn nog steeds voltooien.`,
         reachOutForHelp: 'Deze wordt gebruikt met de Expensify Card. <concierge-link>Neem contact op met Concierge</concierge-link> als u de deling ongedaan wilt maken.',
         unshareErrorModalTitle: 'Deling bankrekening kan niet ongedaan worden gemaakt',
+        travelCVV: {
+            title: 'Reis-CVV',
+            subtitle: 'Gebruik dit bij het boeken van reizen',
+            description: 'Deze kaart bundelt uitgaven zoals vliegtickets, treinreizen, autoverhuur en soms hotels in één enkele rekening.',
+            instructions: 'Je wordt gevraagd om de laatste 4 cijfers. Je kunt ze hieronder weergeven met de knop.',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

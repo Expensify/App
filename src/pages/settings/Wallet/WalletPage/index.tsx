@@ -48,6 +48,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
 import useWalletSectionIllustration from './useWalletSectionIllustration';
+import WalletTravelCVVSection from './WalletTravelCVVSection';
 
 const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
@@ -497,6 +498,7 @@ function WalletPage() {
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 />
+                                <WalletTravelCVVSection />
                             </Section>
                         ) : null}
 

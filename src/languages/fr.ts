@@ -2164,6 +2164,12 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perdra l’accès à ce compte bancaire professionnel. Les paiements en cours seront honorés.`,
         reachOutForHelp: 'Ce compte est utilisé avec la carte Expensify. <concierge-link>Contactez le service de conciergerie</concierge-link> si vous souhaitez le retirer du partage.',
         unshareErrorModalTitle: 'Impossible de retirer le partage du compte bancaire',
+        travelCVV: {
+            title: 'Cryptogramme visuel de la carte de voyage (CVV)',
+            subtitle: 'À utiliser lors de la réservation de voyages',
+            description: 'Cette carte regroupe les dépenses comme les billets d’avion, le train, les locations de voiture et parfois les hôtels dans un seul compte.',
+            instructions: 'On vous demandera les 4 derniers chiffres. Vous pouvez les afficher ci-dessous en utilisant le bouton.',
+        },
     },
     cardPage: {
         expensifyCard: 'Carte Expensify',

@@ -44,6 +44,7 @@ import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-i
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
@@ -93,5 +94,6 @@ export {
     Pencil,
     PendingTravel,
     Puzzle,
+    TravelCVV,
     TurtleInShell,
 };
