@@ -267,6 +267,11 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         onOptionsMenuHide?.();
                     }}
                     onModalShow={onOptionsMenuShow}
+                    onModalHide={() => {
+                        // Focus the anchor button after modal closes but before navigation triggers
+                        // This ensures NavigationFocusManager can capture it for focus restoration on back navigation
+                        (dropdownAnchor.current as unknown as HTMLElement)?.focus?.();
+                    }}
                     onItemSelected={(selectedSubitem, index, event) => {
                         onSubItemSelected?.(selectedSubitem, index, event);
                         if (selectedSubitem.shouldCloseModalOnSelect !== false) {

@@ -61,7 +61,10 @@ function NewTaskPage({route}: NewTaskPageProps) {
         focusTimeoutRef.current = setTimeout(() => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                blurActiveElement();
+                const activeElement = document?.activeElement;
+                if (activeElement instanceof HTMLElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+                    blurActiveElement();
+                }
             });
         }, CONST.ANIMATED_TRANSITION);
         return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
