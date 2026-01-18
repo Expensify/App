@@ -35,7 +35,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
-import {checkIfFeedConnectionIsBroken, filterPersonalCards, hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {filterPersonalCards, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
@@ -147,7 +147,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const {shouldShowRBR} = useCardFeedErrors();
 
-    const hasBrokenFeedConnection = shouldShowRBR || checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     const walletBrickRoadIndicator = useMemo(() => {
         if (
@@ -155,7 +154,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             !isEmptyObject(userWallet?.errors) ||
             !isEmptyObject(walletTerms?.errors) ||
             !isEmptyObject(unsharedBankAccount?.errors) ||
-            hasBrokenFeedConnection
+            shouldShowRBR
         ) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
@@ -163,7 +162,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
         return undefined;
-    }, [allCards, bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, unsharedBankAccount?.errors, userWallet?.errors, walletTerms?.errors]);
+    }, [allCards, bankAccountList, fundList, hasPendingCardAction, unsharedBankAccount?.errors, userWallet?.errors, walletTerms?.errors, shouldShowRBR]);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 

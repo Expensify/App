@@ -18,7 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyCardFeedWithDomainID, getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -57,8 +57,11 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
+
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const feed = getCompanyCardFeed(feedName);
+const feedWithDomainID = getCompanyCardFeedWithDomainID(feed, workspaceAccountID);
+
     const formattedFeedName = feedName ? getCustomOrFormattedFeedName(feed, cardFeeds?.[feedName]?.customFeedName) : undefined;
     const isCommercialFeed = isCustomFeed(feed);
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -68,10 +71,10 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const {cardFeedErrors} = useCardFeedErrors();
-    const workspaceCardFeedErrors = cardFeedErrors[workspaceAccountID]?.[feed];
-    const hasFeedError = workspaceCardFeedErrors?.hasFeedError;
-    const isFeedConnectionBroken = workspaceCardFeedErrors?.isFeedConnectionBroken;
-    const shouldShowRBR = workspaceCardFeedErrors?.shouldShowRBR;
+    const feedErrors = cardFeedErrors[feedWithDomainID];
+    const hasFeedErrors = feedErrors?.hasFeedErrors;
+    const isFeedConnectionBroken = feedErrors?.isFeedConnectionBroken;
+    const shouldShowRBR = feedErrors?.shouldShowRBR;
 
     const openBankConnection = () => {
         if (!feedName) {
@@ -168,7 +171,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     </View>
                 </View>
             </View>
-            {(isFeedConnectionBroken || hasFeedError) && (
+            {(isFeedConnectionBroken || hasFeedErrors) && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
                         src={expensifyIcons.DotIndicator}

@@ -2,8 +2,6 @@ import {useContext, useRef} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
-    checkIfFeedConnectionIsBroken,
-    filterInactiveCards,
     getCompanyCardFeed,
     getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
@@ -24,11 +22,11 @@ import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
-import useCardsList from './useCardsList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
+import useCardFeedErrors from './useCardFeedErrors';
 
 type UseAssignCardProps = {
     /** The currently selected card feed */
@@ -59,10 +57,10 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
 
-    const [cardsList] = useCardsList(feedName);
-    const filteredFeedCards = filterInactiveCards(cardsList);
-    const hasFeedError = feedName ? !!cardFeeds?.[feedName]?.errors : false;
-    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
+    const {cardFeedErrors} = useCardFeedErrors();
+    const feedErrors = feedName ? cardFeedErrors[feedName] : undefined;
+    const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
+
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
