@@ -202,8 +202,6 @@ function ReportActionsList({
     const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction), [parentReportAction]);
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
-    const topReportAction = sortedVisibleReportActions.at(-1);
-    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(false);
     const isAnonymousUser = useIsAnonymousUser();
 
     const reversedReportActions = useMemo(() => sortedVisibleReportActions.slice().reverse(), [sortedVisibleReportActions]);
@@ -369,9 +367,6 @@ function ReportActionsList({
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
             onScroll?.(event);
-            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-                setShouldScrollToEndAfterLayout(false);
-            }
         },
     });
 
@@ -395,7 +390,7 @@ function ReportActionsList({
             return;
         }
         requestAnimationFrame(() => reportScrollManager.scrollToEnd());
-    }, [hasCreatedActionAdded, prevHasCreatedActionAdded, shouldFocusToTopOnMount, shouldScrollToEndAfterLayout, reportScrollManager]);
+    }, [hasCreatedActionAdded, prevHasCreatedActionAdded, shouldFocusToTopOnMount, reportScrollManager]);
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
@@ -495,9 +490,6 @@ function ReportActionsList({
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            if (shouldScrollToEndAfterLayout) {
-                return;
-            }
             setIsFloatingMessageCounterVisible(false);
             reportScrollManager.scrollToBottom();
         });
@@ -525,7 +517,6 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
-            console.log('scrollToBottomForCurrentUserAction');
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
@@ -780,13 +771,8 @@ function ReportActionsList({
                 reportScrollManager.scrollToBottom();
                 setIsScrollToBottomEnabled(false);
             }
-            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-                requestAnimationFrame(() => {
-                    reportScrollManager.scrollToEnd();
-                });
-            }
         },
-        [isOffline, isScrollToBottomEnabled, onLayout, reportScrollManager, hasCreatedActionAdded, shouldScrollToEndAfterLayout],
+        [isScrollToBottomEnabled, onLayout, reportScrollManager],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {
@@ -818,20 +804,6 @@ function ReportActionsList({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }, [shouldShowSkeleton]);
 
-    const renderTopReportActions = useCallback(() => {
-        const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
-        return (
-            <>
-                {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
-                <View style={[styles.overflowScroll, styles.overflowXHidden, styles.pt4]}>
-                    {previewItems.map((action) => (
-                        <View key={action.reportActionID}>{renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
-                    ))}
-                </View>
-            </>
-        );
-    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
-
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
@@ -857,7 +829,6 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
@@ -868,11 +839,9 @@ function ReportActionsList({
                     // getItemType={(item) => {
                     //     return item.actionName;
                     // }}
+                    shouldStartRenderingFromTop={shouldFocusToTopOnMount && !reportActionID}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
-                    shouldHideContent={shouldScrollToEndAfterLayout}
-                    shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
-                    showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
+                    contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}

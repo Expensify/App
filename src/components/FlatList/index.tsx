@@ -4,7 +4,6 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {FlatList, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import type {CustomFlatListProps} from './types';
 
@@ -44,17 +43,7 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     return flatList?.getScrollableNode() as HTMLElement | undefined;
 }
 
-function MVCPFlatList<TItem>({
-    maintainVisibleContentPosition,
-    horizontal = false,
-    onScroll: onScrollProp,
-    initialNumToRender,
-    shouldHideContent = false,
-    ref,
-    CellRendererComponent,
-    ...restProps
-}: CustomFlatListProps<TItem>) {
-    const styles = useThemeStyles();
+function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll: onScrollProp, ref, CellRendererComponent, ...restProps}: CustomFlatListProps<TItem>) {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -243,17 +232,21 @@ function MVCPFlatList<TItem>({
         [emitComposerScrollEvents, onScrollProp, prepareForMaintainVisibleContentPosition],
     );
 
+    const shouldStartRenderingFromBottom = !restProps.shouldStartRenderingFromTop && !!restProps.inverted;
+
     return (
         <FlashList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
-            maintainVisibleContentPosition={{startRenderingFromBottom: !!restProps.inverted, autoscrollToBottomThreshold: 0.2, animateAutoScrollToBottom: false}}
+            maintainVisibleContentPosition={{
+                animateAutoScrollToBottom: false,
+                ...(shouldStartRenderingFromBottom ? {startRenderingFromBottom: true, autoscrollToBottomThreshold: 0.2} : {}),
+            }}
             horizontal={horizontal}
             onScroll={handleScroll}
             scrollEventThrottle={1}
             // drawDistance={1000}
             // ref={onRef}
-            initialNumToRender={Math.max(0, initialNumToRender ?? 0) || undefined}
             // CellRendererComponent={CellRendererComponent}
             // onLayout={(e) => {
             //     isListRenderedRef.current = true;
@@ -263,7 +256,6 @@ function MVCPFlatList<TItem>({
             //     }
             //     restProps.onLayout?.(e);
             // }}
-            contentContainerStyle={[restProps.contentContainerStyle, shouldHideContent && styles.visibilityHidden]}
         />
     );
 }

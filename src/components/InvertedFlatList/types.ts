@@ -2,12 +2,13 @@ import type {ForwardedRef} from 'react';
 import type {ListRenderItem, FlatList as RNFlatList} from 'react-native';
 import type {CustomFlatListProps} from '@components/FlatList/types';
 
-type InvertedFlatListProps<T> = Omit<CustomFlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex'> & {
+type InvertedFlatListProps<T> = Omit<CustomFlatListProps<T>, 'data' | 'renderItem'> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
     data: T[];
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
     ref?: ForwardedRef<RNFlatList>;
+    shouldStartRenderingFromTop?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export
