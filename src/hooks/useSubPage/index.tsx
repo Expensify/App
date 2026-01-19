@@ -21,7 +21,6 @@ function findLastPageIndex<TProps extends SubPageProps>(pages: Array<PageConfig<
     return lastIndex;
 }
 
-// MissingPersonalDetailsParamList
 /**
  * @param pages - array of objects with pageName and component to display in each page
  * @param onFinished - callback triggered after finishing the last page
