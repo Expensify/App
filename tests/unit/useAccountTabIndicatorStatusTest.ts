@@ -419,6 +419,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [`${ONYXKEYS.CARD_LIST}`]: {
                         card1: {
                             bank: CONST.EXPENSIFY_CARD.BANK,
+                            fundID: String(brokenCardFeed.workspaceAccountID),
                             lastScrapeResult: 403,
                         },
                     },
@@ -439,6 +440,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [`${ONYXKEYS.CARD_LIST}`]: {
                         card1: {
                             bank: 'Chase',
+                            fundID: String(brokenCardFeed.workspaceAccountID),
                             lastScrapeResult: 200,
                         },
                     },
