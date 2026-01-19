@@ -631,7 +631,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
 /**
  * Removes an error and pending actions after trying to add admin
  */
-function clearAdminError(domainAccountID: number, a: number) {
+function clearAdminError(domainAccountID: number, accountID: number) {
     const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
