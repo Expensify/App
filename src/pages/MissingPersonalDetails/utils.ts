@@ -5,7 +5,7 @@ import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
-function getSubstepValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, personalDetailsDraft: OnyxEntry<PersonalDetailsForm>): PersonalDetailsForm {
+function getSubPageValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, personalDetailsDraft: OnyxEntry<PersonalDetailsForm>): PersonalDetailsForm {
     const address = getCurrentAddress(privatePersonalDetails);
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
@@ -45,4 +45,4 @@ function getInitialSubPage(values: PersonalDetailsForm) {
     return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM;
 }
 
-export {getSubstepValues, getInitialSubPage};
+export {getSubPageValues, getInitialSubPage};

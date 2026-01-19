@@ -9,7 +9,7 @@ import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getSubstepValues} from '@pages/MissingPersonalDetails/utils';
+import {getSubPageValues} from '@pages/MissingPersonalDetails/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,7 +45,7 @@ function ExpensifyCardMissingDetailsMagicCodePage({
         clearPersonalDetailsErrors();
     }, [validateCodeAction?.errorFields, validateLoginError]);
 
-    const values = useMemo(() => normalizeCountryCode(getSubstepValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
+    const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {

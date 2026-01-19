@@ -1,10 +1,8 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
+import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
@@ -17,13 +15,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
-import Address from './substeps/Address';
-import Confirmation from './substeps/Confirmation';
-import DateOfBirth from './substeps/DateOfBirth';
-import LegalName from './substeps/LegalName';
-import PhoneNumber from './substeps/PhoneNumber';
+import Address from '@pages/MissingPersonalDetails/subPages/Address';
+import Confirmation from '@pages/MissingPersonalDetails/subPages/Confirmation';
+import DateOfBirth from '@pages/MissingPersonalDetails/subPages/DateOfBirth';
+import LegalName from '@pages/MissingPersonalDetails/subPages/LegalName';
+import PhoneNumber from '@pages/MissingPersonalDetails/subPages/PhoneNumber';
 import type {CustomSubPageProps} from './types';
-import {getInitialSubPage, getSubstepValues} from './utils';
+import {getInitialSubPage, getSubPageValues} from './utils';
 
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
@@ -56,9 +54,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
-
-    const values = useMemo(() => normalizeCountryCode(getSubstepValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
+    const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => findPageIndex(formPages, getInitialSubPage(values)), [values]);
 
@@ -69,7 +65,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         onComplete();
     }, [onComplete, values]);
 
-    const {CurrentPage, isEditing, currentPageName, prevPage, nextPage, lastPageIndex, moveTo, goToLastPage} = useSubPage<CustomSubPageProps>({
+    const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, goToLastPage} = useSubPage<CustomSubPageProps>({
         pages: formPages,
         startFrom,
         onFinished: handleFinishStep,
@@ -79,8 +75,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const handleBackButtonPress = () => {
         if (isEditing) {
             goToLastPage();
-            ref.current?.moveTo(lastPageIndex);
-
             return;
         }
 
@@ -90,17 +84,8 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             Navigation.closeRHPFlow();
             return;
         }
-        ref.current?.movePrevious();
         prevPage();
     };
-
-    const handleMoveTo = useCallback(
-        (pageIndex: number) => {
-            ref.current?.moveTo(pageIndex);
-            moveTo(pageIndex);
-        },
-        [moveTo],
-    );
 
     return (
         <ScreenWrapper
@@ -113,16 +98,16 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    ref={ref}
-                    startStepIndex={startFrom}
+                <InteractiveStepSubPageHeader
                     stepNames={CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST}
+                    currentStepIndex={pageIndex}
+                    onStepSelected={moveTo}
                 />
             </View>
             <CurrentPage
                 isEditing={isEditing}
                 onNext={nextPage}
-                onMove={handleMoveTo}
+                onMove={moveTo}
                 prevPage={prevPage}
                 currentPageName={currentPageName}
                 personalDetailsValues={values}
