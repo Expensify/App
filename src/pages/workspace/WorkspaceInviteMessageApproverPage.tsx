@@ -128,6 +128,9 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
 
     const handleOnSelectRow = useCallback(
         (approver: SelectionListApprover) => {
+            if (!approver.login) {
+                return;
+            }
             setWorkspaceInviteApproverDraft(policyID, approver.login);
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.goBack(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));

@@ -1175,6 +1175,9 @@ function clearWorkspaceInviteRoleDraft(policyID: string) {
 }
 
 function setWorkspaceInviteApproverDraft(policyID: string, approverEmail: string) {
+    if (!approverEmail) {
+        return;
+    }
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, approverEmail);
 }
 
@@ -1324,6 +1327,7 @@ function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, tran
 
 function clearInviteDraft(policyID: string) {
     setWorkspaceInviteMembersDraft(policyID, {});
+    clearWorkspaceInviteRoleDraft(policyID);
     clearWorkspaceInviteApproverDraft(policyID);
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }

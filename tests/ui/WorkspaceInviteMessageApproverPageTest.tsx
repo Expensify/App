@@ -90,8 +90,9 @@ describe('WorkspaceInviteMessageApproverPage', () => {
                 [selfAccountID]: TestHelper.buildPersonalDetails(selfEmail, selfAccountID, 'Self'),
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            const inviteeEmail = 'invitee@example.com';
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policy.id}`, {
-                'invitee@example.com': 9999,
+                [inviteeEmail]: 9999,
             });
         });
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
@@ -182,6 +183,32 @@ describe('WorkspaceInviteMessageApproverPage', () => {
         });
 
         expect(approverDraft).toBe(adminEmail);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should filter out invited members when preventSelfApproval is enabled', async () => {
+        const policyWithPreventSelfApproval = {
+            ...policy,
+            preventSelfApproval: true,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policyWithPreventSelfApproval);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policy.id}`, {
+                [userEmail]: userAccountID,
+            });
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER, {policyID: policy.id});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText('Owner')).toBeOnTheScreen();
+            expect(screen.getByText(adminEmail)).toBeOnTheScreen();
+            expect(screen.queryByText('User')).not.toBeOnTheScreen();
+        });
 
         unmount();
         await waitForBatchedUpdatesWithAct();
