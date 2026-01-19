@@ -502,15 +502,22 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
-        if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
-            newTransactionViolations.push({
-                name: CONST.VIOLATIONS.MISSING_ATTENDEES,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-                showInReview: true,
-            });
-        }
+        const shouldProcessMissingAttendees = !CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED;
 
-        if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
+        if (shouldProcessMissingAttendees) {
+            if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.MISSING_ATTENDEES,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                });
+            }
+
+            if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
+            }
+        } else if (hasMissingAttendeesViolation) {
+            // Feature flag is disabled - always remove missingAttendees violations
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
         }
 
@@ -715,7 +722,8 @@ const ViolationsUtils = {
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
-                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction) &&
+                    (!CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES)
                 );
             });
         });

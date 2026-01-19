@@ -114,7 +114,6 @@ import {
     buildOptimisticEmptyReport,
     buildOptimisticExportIntegrationAction,
     buildOptimisticGroupChatReport,
-    buildOptimisticIOUReportAction,
     buildOptimisticMovedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
@@ -161,6 +160,7 @@ import {
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
     isIOUReportUsingReport,
+    isMoneyRequest,
     isMoneyRequestReport,
     isOpenExpenseReport,
     isProcessingReport,
@@ -565,7 +565,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     if (text && !file) {
-        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
+        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, reportID);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -574,7 +574,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID);
+        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, reportID);
         attachmentAction = attachment.reportAction;
     }
 
@@ -1077,95 +1077,6 @@ function openReport(
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticSelfDMReport.reportID}`,
             value: null,
-        });
-    }
-
-    // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
-    if (transaction && !parentReportActionID) {
-        const transactionParentReportID = parentReportID ?? transaction?.reportID;
-        const iouReportActionID = rand64();
-
-        // Get the parent report to determine the actual submitter/owner of the expense
-        // Use optimisticSelfDMReport if provided (when selfDM exists but wasn't in allReports)
-        const parentReport =
-            transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
-        const submitterAccountID = parentReport?.ownerAccountID ?? deprecatedCurrentUserAccountID;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([submitterAccountID]).at(0) ?? deprecatedCurrentUserLogin ?? '';
-        const submitterPersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(submitterEmail);
-
-        const optimisticIOUAction = buildOptimisticIOUReportAction({
-            type: isSelfDM(parentReport) ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            amount: Math.abs(transaction.amount),
-            currency: transaction.currency,
-            comment: transaction.comment?.comment ?? '',
-            participants: [],
-            transactionID: transaction.transactionID,
-            isOwnPolicyExpenseChat: false,
-            reportActionID: iouReportActionID,
-            iouReportID: transactionParentReportID,
-        });
-
-        // Override actor fields to show the submitter instead of current user.
-        // This is needed for legacy transactions where the approver opens the transaction but it should show the submitter
-        optimisticIOUAction.actorAccountID = submitterAccountID;
-        optimisticIOUAction.person = [
-            {
-                style: 'strong',
-                text: submitterPersonalDetails?.displayName ?? submitterEmail,
-                type: 'TEXT',
-            },
-        ];
-        optimisticIOUAction.avatar = submitterPersonalDetails?.avatar;
-
-        // We have a case where the transaction data is only available from the snapshot
-        // So we need to add the transaction data to Onyx so it's available when opening the report
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
-        });
-
-        // Add violations if they exist. This is needed when opening from search results where
-        // violations are in the snapshot but not yet synced to the main collections, so we need
-        // to add them to Onyx to ensure they show up in the transaction thread
-        if (transactionViolations) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                value: transactionViolations,
-            });
-        }
-
-        // Attach the optimistic IOU report action created for the transaction to the transaction thread
-        // Set chatReportID to link back to the parent policy expense chat for proper avatar rendering
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                parentReportActionID: iouReportActionID,
-                chatReportID: transactionParentReportID,
-            },
-        });
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
-            value: {
-                [iouReportActionID]: {
-                    ...optimisticIOUAction,
-                    childReportID: reportID,
-                },
-            },
-        });
-
-        parameters.moneyRequestPreviewReportActionID = iouReportActionID;
-
-        // Log how often the legacy transaction fallback path is taken
-        Log.info('[Report] Legacy transaction fallback: creating money request preview', false, {
-            transactionParentReportID,
-            transactionID: transaction.transactionID,
-            reportID,
         });
     }
 
@@ -1951,10 +1862,13 @@ function handlePreexistingReport(report: Report) {
     }
 
     // Handle cleanup of stale optimistic IOU report and its report preview separately
-    if (isMoneyRequestReport(report) && parentReportActionID) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-            [parentReportActionID]: null,
-        });
+    if ((isMoneyRequestReport(report) || isMoneyRequest(report)) && parentReportID && parentReportActionID) {
+        const parentReportAction = allReportActions?.[parentReportID]?.[parentReportActionID];
+        if (parentReportAction?.childReportID === reportID) {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                [parentReportActionID]: null,
+            });
+        }
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
         return;
     }
@@ -1983,12 +1897,15 @@ function handlePreexistingReport(report: Report) {
             return;
         }
 
-        const activeRouteInfo = navigationRef.getCurrentRoute();
-        const backTo = (activeRouteInfo?.params as {backTo?: Route})?.backTo;
-        const screenName = activeRouteInfo?.name;
-        const activeRoute = activeRouteInfo?.path;
+        // Use Navigation.getActiveRoute() instead of navigationRef.getCurrentRoute()?.path because
+        // getCurrentRoute().path can be undefined during first navigation.
+        // We still need getCurrentRoute() for params and screen name as getActiveRoute() only returns the path string.
+        const activeRoute = Navigation.getActiveRoute();
+        const currentRouteInfo = navigationRef.getCurrentRoute();
+        const backTo = (currentRouteInfo?.params as {backTo?: Route})?.backTo;
+        const screenName = currentRouteInfo?.name;
 
-        const isOptimisticReportFocused = activeRoute?.includes(`/r/${reportID}`);
+        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`);
 
         // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
         // When user is editing a money request report (/e/:reportID route) and has
@@ -3709,7 +3626,7 @@ function toggleEmojiReaction(
 function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
-
+/** @deprecated This function is deprecated and will be removed soon after migration. Use the accountID from useCurrentUserPersonalDetails hook instead. */
 function getCurrentUserAccountID(): number {
     return deprecatedCurrentUserAccountID;
 }
@@ -3919,6 +3836,7 @@ function leaveRoom(reportID: string, currentUserAccountID: number, isWorkspaceMe
     // If this is the leave action from a workspace room, simply dismiss the modal, i.e., allow the user to view the room and join again immediately.
     // If this is the leave action from a chat thread (even if the chat thread is in a room), do not allow the user to stay in the thread after leaving.
     if (isWorkspaceMemberLeavingWorkspaceRoom && !isChatThread) {
+        Navigation.dismissModal();
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
@@ -6509,6 +6427,7 @@ export {
     exportReportToPDF,
     exportToIntegration,
     flagComment,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
     getCurrentUserAccountID,
     getMostRecentReportID,
     getNewerActions,
