@@ -197,6 +197,14 @@ function EmptySearchViewContent({
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
     const shouldShowEmptyReportConfirmation = hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, accountID) && hasDismissedEmptyReportsConfirmation !== true;
 
+    const filteredPolicyID = queryJSON?.policyID;
+    let isFilteredWorkspaceAccessible = true;
+    if (filteredPolicyID) {
+        const policyIDToCheck = Array.isArray(filteredPolicyID) ? filteredPolicyID.at(0) : filteredPolicyID;
+        const filteredPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToCheck}`];
+        isFilteredWorkspaceAccessible = !!filteredPolicy;
+    }
+
     const handleCreateWorkspaceReport = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         if (!defaultChatEnabledPolicy?.id) {
             return;
@@ -336,6 +344,13 @@ function EmptySearchViewContent({
                 };
                 break;
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+                if (!isFilteredWorkspaceAccessible) {
+                    return {
+                        ...defaultViewItemHeader.folder,
+                        title: translate('search.searchResults.emptyResults.title'),
+                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                    };
+                }
                 if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
                     content = {
                         ...defaultViewItemHeader.folder,
@@ -390,7 +405,13 @@ function EmptySearchViewContent({
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (!content) {
-                    if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
+                    if (!isFilteredWorkspaceAccessible) {
+                        content = {
+                            ...defaultViewItemHeader.folder,
+                            title: translate('search.searchResults.emptyResults.title'),
+                            subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                        };
+                    } else if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
                         content = {
                             ...defaultViewItemHeader.folder,
                             title: translate('search.searchResults.emptyResults.title'),

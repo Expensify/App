@@ -82,12 +82,12 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
+            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
             const duplicate = findDuplicate(columns);
             const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
             if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicateColumn.text});
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
             } else {
                 errors = {};
             }
