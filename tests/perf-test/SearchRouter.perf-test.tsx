@@ -45,6 +45,13 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@src/hooks/useRootNavigationState');
 
+// Mock useLazyAsset hook to prevent async loading causing extra renders
+jest.mock('@hooks/useLazyAsset', () => ({
+    useMemoizedLazyExpensifyIcons: jest.fn(() => ({
+        MagnifyingGlass: 'MagnifyingGlass',
+    })),
+}));
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
