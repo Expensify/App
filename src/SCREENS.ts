@@ -880,6 +880,7 @@ const SCREENS = {
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
         RESET_DOMAIN: 'Domain_Reset',
+        GROUPS: 'Domain_Groups',
     },
 } as const;
 
