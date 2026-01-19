@@ -27,6 +27,11 @@ export default createOnyxDerivedValueConfig({
         function addErrorsForCard(card: Card) {
             const bankName = card.bank as CompanyCardFeedWithNumber;
             const workspaceAccountID = Number(card.fundID);
+
+            if (Number.isNaN(workspaceAccountID)) {
+                return;
+            }
+
             const feedNameWithDomainID = getCompanyCardFeedWithDomainID(bankName, workspaceAccountID);
 
             const selectedFeed = combinedCompanyCardFeeds?.[feedNameWithDomainID];
