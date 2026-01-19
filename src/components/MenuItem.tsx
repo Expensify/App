@@ -746,13 +746,17 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
+                                role={interactive ? CONST.ROLE.MENUITEM : undefined}
                                 // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...(interactive && {
-                                    accessibilityLabel: title ? title.toString() : '',
-                                    role: CONST.ROLE.MENUITEM,
-                                })}
+                                {...(shouldBeAccessible && interactive
+                                    ? {
+                                          accessibilityLabel: title ? title.toString() : '',
+                                          accessible: true,
+                                      }
+                                    : {
+                                          accessible: false,
+                                      })}
                                 focusable={interactive}
-                                accessible={shouldBeAccessible && interactive ? true : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
