@@ -897,6 +897,7 @@ function buildAddMembersToWorkspaceOnyxData(
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
+            pendingAction: null,
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
         };
     }
