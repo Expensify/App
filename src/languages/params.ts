@@ -130,6 +130,8 @@ type RequestAmountParams = {amount: string};
 
 type ReportFieldParams = {name: string; value: string};
 
+type InvalidFormulaErrorParams = {placeholders: string};
+
 type SplitAmountParams = {amount: string};
 
 type UserSplitParams = {amount: string};
@@ -935,6 +937,7 @@ export type {
     MergeAccountIntoParams,
     NextStepParams,
     ReportFieldParams,
+    InvalidFormulaErrorParams,
     FocusModeUpdateParams,
     RoutedDueToDEWParams,
     UpdatedPolicyCustomUnitRateEnabledParams,

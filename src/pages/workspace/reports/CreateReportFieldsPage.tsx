@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import {hasCircularReferences} from '@libs/Formula';
+import {hasCircularReferences, validateFormula} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
@@ -105,6 +105,16 @@ function WorkspaceCreateReportFieldsPage({
 
             if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && hasCircularReferences(formInitialValue, name, policy?.fieldList)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
+            }
+
+            // Validate formula fields for unsupported placeholders
+            if (type === CONST.REPORT_FIELD_TYPES.FORMULA && formInitialValue) {
+                const validation = validateFormula(formInitialValue);
+                if (!validation.isValid) {
+                    errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.invalidFormulaError', {
+                        placeholders: validation.unsupportedPlaceholders.join(', '),
+                    });
+                }
             }
 
             if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {

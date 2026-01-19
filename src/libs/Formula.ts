@@ -910,6 +910,59 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
     }
 }
 
-export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences};
+/**
+ * Get all supported report field placeholders
+ */
+function getSupportedReportFields(): string[] {
+    return [
+        'id',
+        'status',
+        'expensescount',
+        'type',
+        'startdate',
+        'enddate',
+        'total',
+        'reimbursable',
+        'currency',
+        'policyname',
+        'workspacename',
+        'created',
+        'submit',
+        'autoreporting',
+    ];
+}
+
+/**
+ * Validate if a formula contains only supported placeholders
+ * @param formula - The formula string to validate
+ * @returns Object with isValid boolean and array of unsupported placeholders
+ */
+function validateFormula(formula?: string): {isValid: boolean; unsupportedPlaceholders: string[]} {
+    if (!formula || typeof formula !== 'string') {
+        return {isValid: true, unsupportedPlaceholders: []};
+    }
+
+    const parts = parse(formula);
+    const unsupportedPlaceholders: string[] = [];
+    const supportedReportFields = getSupportedReportFields();
+
+    for (const part of parts) {
+        // Only validate report and field types (skip user and freetext)
+        if (part.type === FORMULA_PART_TYPES.REPORT) {
+            const field = part.fieldPath.at(0)?.toLowerCase();
+            if (field && !supportedReportFields.includes(field)) {
+                unsupportedPlaceholders.push(part.definition);
+            }
+        }
+        // Note: Field and User types validation can be added later if needed
+    }
+
+    return {
+        isValid: unsupportedPlaceholders.length === 0,
+        unsupportedPlaceholders,
+    };
+}
+
+export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, validateFormula, getSupportedReportFields};
 
 export type {FormulaContext, FieldList, MinimalTransaction};
