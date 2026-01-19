@@ -896,8 +896,6 @@ const translations: TranslationDeepObject<typeof en> = {
             return `您确定要删除此${type}吗？`;
         },
         onlyVisible: '仅对…可见',
-        explain: '解释',
-        explainMessage: '请为我解释一下。',
         replyInThread: '在线程中回复',
         joinThread: '加入话题',
         leaveThread: '离开会话',
@@ -1468,7 +1466,6 @@ const translations: TranslationDeepObject<typeof en> = {
         splitByDate: '按日期拆分',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `报告因自定义审批工作流而转发至 ${to}`,
         timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'} @ ${rate} / 小时`, hrs: '小时'},
-        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>解释</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {

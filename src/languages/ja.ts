@@ -901,8 +901,6 @@ const translations: TranslationDeepObject<typeof en> = {
             return `この${type}を削除してもよろしいですか？`;
         },
         onlyVisible: 'にのみ表示',
-        explain: '説明する',
-        explainMessage: 'これを説明してください。',
         replyInThread: 'スレッドに返信',
         joinThread: 'スレッドに参加',
         leaveThread: 'スレッドから退出',
@@ -1493,7 +1491,6 @@ const translations: TranslationDeepObject<typeof en> = {
         splitByDate: '日付で分割',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
         timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`, hrs: '時間'},
-        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>説明する</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
