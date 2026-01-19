@@ -172,7 +172,6 @@ import {
     getForcedCorporateUpgradeMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
-    getOriginalReportID,
     getPolicyChangeMessage,
     getRejectedReportMessage,
     getUnreportedTransactionMessage,
@@ -199,7 +198,6 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 import {
     createTransactionThreadReport,
     expandURLPreview,
-    explain,
     resolveActionableMentionConfirmWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
@@ -1252,24 +1250,9 @@ function PureReportActionItem({
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-            const originalMessage = getOriginalMessage(action);
-            const isAISource = !!originalMessage && typeof originalMessage === 'object' && 'source' in originalMessage && originalMessage.source === CONST.CATEGORY_SOURCE.AI;
-            const modifiedExpenseMessageText = isAISource ? `${modifiedExpenseMessage}${translate('iou.AskToExplain')}` : modifiedExpenseMessage;
-
             children = (
                 <ReportActionItemBasicMessage>
-                    <RenderHTML
-                        html={`<comment><muted-text>${modifiedExpenseMessageText}</muted-text></comment>`}
-                        isSelectable={false}
-                        onLinkPress={(_evt, href) => {
-                            if (href !== `${CONST.DEEPLINK_BASE_URL}concierge/explain`) {
-                                return;
-                            }
-
-                            const actionOriginalReportID = getOriginalReportID(reportID, action);
-                            explain(action, actionOriginalReportID, translate, personalDetail?.timezone);
-                        }}
-                    />
+                    <RenderHTML html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {

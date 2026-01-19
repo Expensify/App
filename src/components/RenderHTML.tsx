@@ -12,16 +12,13 @@ type RenderHTMLProps = {
 
     /** Callback to handle link press */
     onLinkPress?: LinkPressHandler;
-
-    /** Whether the rendered text should be selectable */
-    isSelectable?: boolean;
 };
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
-function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProps) {
+function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
         return (
@@ -52,7 +49,7 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
 
     return onLinkPress ? (
         <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: isSelectable !== undefined ? isSelectable : true, allowFontScaling: false}}
+            defaultTextProps={{selectable: true, allowFontScaling: false}}
             renderersProps={renderersProps}
         >
             {htmlSource}

@@ -469,6 +469,8 @@ const CONST = {
         SHORT_DATE_FORMAT: 'MM-dd',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
+        MONTH_DAY_WEEKDAY_ABBR_FORMAT: 'EEEE, MMM d',
+        MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT: 'EEEE, MMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
@@ -3505,8 +3507,8 @@ const CONST = {
             FIXED: 'fixed',
         },
         LIMIT_VALUE: 21474836,
-        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
-        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4', '5'],
+        STEP_NAMES: ['1', '2', '3', '4', '5'],
+        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
@@ -7817,6 +7819,15 @@ const CONST = {
         INVERTED: 'inverted',
     },
 
+    VIOLATION_DISMISSAL: {
+        rter: {
+            manual: 'marked this receipt as cash',
+        },
+        duplicatedTransaction: {
+            manual: 'resolved the duplicate',
+        },
+    },
+
     SENTRY_LABEL: {
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
@@ -7937,7 +7948,6 @@ const CONST = {
             DEBUG: 'ContextMenu-Debug',
             DELETE: 'ContextMenu-Delete',
             MENU: 'ContextMenu-Menu',
-            EXPLAIN: 'ContextMenu-Explain',
         },
         MORE_MENU: {
             MORE_BUTTON: 'MoreMenu-MoreButton',
@@ -8053,6 +8063,20 @@ const FRAUD_PROTECTION_EVENT = {
     NEW_EMAILS_INVITED: 'NewEmailsInvited',
 };
 
+const DATE_TIME_FORMAT_OPTIONS: Record<string, Intl.DateTimeFormatOptions> = {
+    [CONST.DATE.FNS_FORMAT_STRING]: {year: 'numeric', month: '2-digit', day: '2-digit'},
+    [CONST.DATE.LOCAL_TIME_FORMAT]: {timeStyle: 'short'},
+    [CONST.DATE.MONTH_FORMAT]: {month: 'long'},
+    [CONST.DATE.WEEKDAY_TIME_FORMAT]: {weekday: 'long'},
+    [CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric'},
+    [CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'},
+    [CONST.DATE.MONTH_DAY_YEAR_FORMAT]: {dateStyle: 'long'},
+    [CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]: {month: 'short', day: 'numeric', year: 'numeric'},
+    [CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]: {dateStyle: 'full'},
+    FNS_DATE_WITH_LOCAL_TIME_FORMAT: {year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
+    SHORT_DATE_WITH_LOCAL_TIME_FORMAT: {month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
+};
+
 const COUNTRIES_US_BANK_FLOW: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI];
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
@@ -8068,6 +8092,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, DATE_TIME_FORMAT_OPTIONS};
 
 export default CONST;
