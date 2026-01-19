@@ -6631,6 +6631,17 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             previousReimburser
                 ? `ha modificato il pagatore autorizzato in "${newReimburser}" (precedentemente "${previousReimburser}")`
                 : `ha cambiato il pagatore autorizzato in "${newReimburser}"`,
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `imposta l'importo richiesto per la ricevuta su "${newValue}"`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `ha modificato l'importo della ricevuta obbligatoria a "${newValue}" (in precedenza "${oldValue}")`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `importo richiesto per la ricevuta rimosso (precedentemente "${oldValue}")`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `imposta l'importo massimo spesa su "${newValue}"`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `ha modificato l'importo massimo della spesa a "${newValue}" (precedentemente "${oldValue}")`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `importo massimo spesa rimosso (precedentemente "${oldValue}")`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `imposta età massima della spesa a "${newValue}" giorni`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima della spesa cambiata a "${newValue}" giorni (in precedenza "${oldValue}")`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima spesa rimossa (precedentemente "${oldValue}" giorni)`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
