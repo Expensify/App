@@ -36,6 +36,7 @@ function VideoPopoverMenu({
             menuItems={menuItems}
             anchorRef={videoPlayerMenuRef}
             shouldUseScrollView
+            shouldMaintainFocusAfterSubItemSelect={false}
         />
     );
 }
