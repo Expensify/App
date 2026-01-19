@@ -398,7 +398,7 @@ type TrackedExpenseReportInformation = {
     isLinkedTrackedExpenseReportArchived: boolean | undefined;
 };
 type TrackedExpenseParams = {
-    onyxData?: OnyxData<OnyxKey>;
+    onyxData?: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE>;
     reportInformation: TrackedExpenseReportInformation;
     transactionParams: TrackedExpenseTransactionParams;
     policyParams: TrackedExpensePolicyParams;
@@ -3785,7 +3785,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * Gathers all the data needed to make an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  */
-function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): TrackExpenseInformation | null {
+function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): TrackExpenseInformation {
     const {
         parentChatReport,
         moneyRequestReportID = '',
@@ -6737,7 +6737,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         quickAction,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
-    const onyxData = trackExpenseInformationOnyxData as OnyxData<BuildOnyxDataForTrackExpenseKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE>;
+    const onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE> =
+        trackExpenseInformationOnyxData;
 
     const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
@@ -6747,10 +6748,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
     });
 
     if (isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction)) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: transaction?.iouRequestType,
         });
     }
