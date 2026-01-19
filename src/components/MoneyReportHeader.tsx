@@ -1093,6 +1093,7 @@ function MoneyReportHeader({
             reportMetadata,
             policies,
             isChatReportArchived,
+            allBetas,
         });
     }, [
         moneyRequestReport,
@@ -1109,6 +1110,7 @@ function MoneyReportHeader({
         policies,
         isChatReportArchived,
         bankAccountList,
+        allBetas,
     ]);
 
     const secondaryExportActions = useMemo(() => {
