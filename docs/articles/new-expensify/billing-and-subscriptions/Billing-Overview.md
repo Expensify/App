@@ -61,7 +61,6 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
   <ul>
     <li>€5 per unique member/month</li>
     <li>Month-to-month — no contract</li>
-    <li>Optional Expensify Card</li>
   </ul>
   <strong>Control</strong>
   <ul>
