@@ -26,11 +26,10 @@ function getShouldShowRBR(state: Partial<CardFeedErrorState>): boolean {
     if (state.hasFailedCardAssignments) {
         return true;
     }
-    if (state.isFeedConnectionBroken) {
-        return true;
-    }
 
-    return false;
+    return !!state.isFeedConnectionBroken;
+
+
 }
 
 export default createOnyxDerivedValueConfig({
