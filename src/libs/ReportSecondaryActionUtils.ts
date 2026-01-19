@@ -173,7 +173,7 @@ function isSubmitAction({
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     violations?: OnyxCollection<TransactionViolation[]>;
     currentUserLogin?: string;
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
 }): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -254,15 +254,20 @@ function isSubmitAction({
     return !!isScheduledSubmitEnabled || !isPrimarySubmitAction;
 }
 
-function isApproveAction(currentUserLogin: string, report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
+function isApproveAction(
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    report: Report,
+    reportTransactions: Transaction[],
+    violations: OnyxCollection<TransactionViolation[]>,
+    policy?: Policy,
+): boolean {
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
-    const currentUserAccountID = getCurrentUserAccountID();
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
     if (!isCurrentUserManager) {
@@ -313,15 +318,14 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
-function isUnapproveAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
+function isUnapproveAction(currentUserLogin: string, currentUserAccountID: number, report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportSettled = isSettled(report);
     const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
-    const isManager = report.managerID === getCurrentUserAccountID();
+    const isManager = report.managerID === currentUserAccountID;
 
     if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing) {
         return false;
@@ -855,11 +859,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
-    if (isApproveAction(currentUserLogin, report, reportTransactions, violations, policy)) {
+    if (isApproveAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 
-    if (isUnapproveAction(currentUserLogin, report, policy)) {
+    if (isUnapproveAction(currentUserLogin, currentUserAccountID, report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
