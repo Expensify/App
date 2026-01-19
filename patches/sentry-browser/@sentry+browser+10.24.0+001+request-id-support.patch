@@ -1,0 +1,15 @@
+diff --git a/node_modules/@sentry/browser/build/npm/esm/tracing/request.js b/node_modules/@sentry/browser/build/npm/esm/tracing/request.js
+index da5822e..04f3c80 100644
+--- a/node_modules/@sentry/browser/build/npm/esm/tracing/request.js
++++ b/node_modules/@sentry/browser/build/npm/esm/tracing/request.js
+@@ -225,6 +225,10 @@ function xhrCallback(
+     const span = spans[spanId];
+     if (span && sentryXhrData.status_code !== undefined) {
+       setHttpStatus(span, sentryXhrData.status_code);
++      const requestId = handlerData.xhr.getResponseHeader('x-request-id');
++      if (requestId) {
++          span.setAttribute('request-id', requestId)
++      }
+       span.end();
+ 
+       onRequestSpanEnd?.(span, {
