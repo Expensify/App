@@ -2,7 +2,7 @@
 title: Managing Single Sign-On (SSO) and User Authentication in Expensify
 description: Learn how to set up and manage SAML-based Single Sign-On (SSO) for secure member login in Expensify Classic.
 internalScope: Audience: Domain Admins. Covers setting up SAML and solutions to common configuration issues, Does not cover individual account access troubleshooting. 
-keywords: [Expensify Classic, SAML SSO, single sign-on, identity provider, domain security, authentication, user login]
+keywords: [Expensify Classic, SAML SSO, domain security, single sign-on, identity provider, verified domain, enable SAML, Okta, Google Workspace, Microsoft Entra, ADFS]
 ---
 
 Set up secure and streamlined login across your organization by enabling SAML Single Sign-On (SSO) in Expensify Classic. This allows Workspace members to authenticate using your identity provider (IdP), rather than creating separate credentials.
