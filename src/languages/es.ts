@@ -8097,7 +8097,7 @@ ${amount} para ${merchant} - ${date}`,
             invite: 'Invitar',
             email: 'Dirección de correo electrónico',
             errors: {
-                addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.'
+                addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.',
             },
         },
     },
