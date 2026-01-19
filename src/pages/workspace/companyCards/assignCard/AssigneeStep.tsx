@@ -45,6 +45,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const policy = usePolicy(policyID);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
@@ -187,8 +189,27 @@ function AssigneeStep({route}: AssigneeStepProps) {
     }, [isOffline, policy?.employeeList, assignCard?.cardToAssign?.email, formatPhoneNumber, localeCompare, icons.FallbackAvatar]);
 
     const assignees = useMemo(() => {
+        // Filter out assigned Guide/AM from contact suggestions (but allow manual entry via userToInvite)
+        const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
+        const accountManagerLogin = account?.accountManagerAccountID ? personalDetails?.[Number(account.accountManagerAccountID)]?.login?.toLowerCase() : undefined;
+
+        const filterGuideAndAM = <T extends {login?: string | null; alternateText?: string | null}>(items: T[]): T[] =>
+            items.filter((item) => {
+                const itemLogin = item.login?.toLowerCase();
+                const itemAltText = item.alternateText?.toLowerCase();
+                // Exclude Guide
+                if (assignedGuideEmail && (itemLogin === assignedGuideEmail || itemAltText === assignedGuideEmail)) {
+                    return false;
+                }
+                // Exclude Account Manager
+                if (accountManagerLogin && (itemLogin === accountManagerLogin || itemAltText === accountManagerLogin)) {
+                    return false;
+                }
+                return true;
+            });
+
         if (!debouncedSearchTerm) {
-            return membersDetails;
+            return filterGuideAndAM(membersDetails);
         }
 
         if (!areOptionsInitialized) {
@@ -196,13 +217,13 @@ function AssigneeStep({route}: AssigneeStepProps) {
         }
 
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        const filteredOptions = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
+        const filteredOptions = tokenizedSearch(filterGuideAndAM(membersDetails), searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         const options = [
             ...filteredOptions,
             ...selectedOptionsForDisplay,
-            ...availableOptions.recentReports,
-            ...availableOptions.personalDetails,
+            ...filterGuideAndAM(availableOptions.recentReports),
+            ...filterGuideAndAM(availableOptions.personalDetails),
             ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
         ];
 
@@ -219,6 +240,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
         debouncedSearchTerm,
         membersDetails,
         selectedOptionsForDisplay,
+        policy?.assignedGuide?.email,
+        account?.accountManagerAccountID,
+        personalDetails,
     ]);
 
     useEffect(() => {

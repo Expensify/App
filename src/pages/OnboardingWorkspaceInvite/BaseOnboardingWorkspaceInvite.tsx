@@ -53,6 +53,8 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
@@ -104,11 +106,31 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             });
         }
 
+        // Filter out assigned Guide/AM from contact suggestions (but allow manual entry via userToInvite)
+        const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
+        const accountManagerLogin = account?.accountManagerAccountID ? personalDetails?.[Number(account.accountManagerAccountID)]?.login?.toLowerCase() : undefined;
+
+        const filteredPersonalDetails = availableOptions.personalDetails.filter((option) => {
+            const optionLogin = option.login?.toLowerCase();
+            if (!optionLogin) {
+                return true;
+            }
+            // Exclude Guide
+            if (assignedGuideEmail && optionLogin === assignedGuideEmail) {
+                return false;
+            }
+            // Exclude Account Manager
+            if (accountManagerLogin && optionLogin === accountManagerLogin) {
+                return false;
+            }
+            return true;
+        });
+
         // Contacts section
-        if (availableOptions.personalDetails.length > 0) {
+        if (filteredPersonalDetails.length > 0) {
             sectionsArr.push({
                 title: translate('common.contacts'),
-                data: availableOptions.personalDetails,
+                data: filteredPersonalDetails,
             });
         }
 
@@ -120,7 +142,16 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             });
         }
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+    }, [
+        areOptionsInitialized,
+        selectedOptionsForDisplay,
+        availableOptions.personalDetails,
+        availableOptions.userToInvite,
+        translate,
+        policy?.assignedGuide?.email,
+        account?.accountManagerAccountID,
+        personalDetails,
+    ]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
