@@ -58,7 +58,7 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
         [CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS]: isPolicyAdmin ? policiesWithCardFeedErrors.at(0) : undefined,
     };
 
-    // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
+    // All the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
     // we only care if a single error / info condition exists anywhere.
     const accountChecks: Partial<Record<IndicatorStatus, boolean>> = {
