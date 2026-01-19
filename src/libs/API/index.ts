@@ -12,6 +12,7 @@ import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -237,25 +238,37 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     });
 }
 
+type PaginateOnyxKeys =
+    | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+    | typeof ONYXKEYS.NVP_INTRO_SELECTED
+    | typeof ONYXKEYS.COLLECTION.POLICY
+    | typeof ONYXKEYS.NVP_ONBOARDING
+    | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+    | typeof ONYXKEYS.IS_CHECKING_PUBLIC_ROOM;
+
 function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<OnyxKey>,
+    onyxData: OnyxData<PaginateOnyxKeys>,
     config: PaginationConfig,
 ): Promise<Response | void>;
 function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.READ, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<OnyxKey>,
+    onyxData: OnyxData<PaginateOnyxKeys>,
     config: PaginationConfig,
 ): void;
 function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<OnyxKey>,
+    onyxData: OnyxData<PaginateOnyxKeys>,
     config: PaginationConfig,
     conflictResolver?: RequestConflictResolver,
 ): void;
@@ -263,7 +276,7 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<OnyxKey>,
+    onyxData: OnyxData<PaginateOnyxKeys>,
     config: PaginationConfig,
     conflictResolver: RequestConflictResolver = {},
 ): Promise<Response | void> | void {
