@@ -186,6 +186,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -751,6 +752,35 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'セッションの有効期限が切れました。',
         signIn: 'もう一度サインインしてください。',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: '生体認証テスト',
+            authenticationSuccessful: '認証成功',
+            successfullyAuthenticatedUsing: ({authType}) => `${authType}を使用して正常に認証されました。`,
+            troubleshootBiometricsStatus: ({registered}) => `生体認証（${registered ? '登録済み' : '未登録'}）`,
+            yourAttemptWasUnsuccessful: '認証試みが失敗しました。',
+            youCouldNotBeAuthenticated: '認証できませんでした',
+            areYouSureToReject: '本当に拒否しますか？この画面を閉じると認証試みが拒否されます。',
+            rejectAuthentication: '認証拒否',
+            test: 'テスト',
+            biometricsAuthentication: '生体認証',
+        },
+        pleaseEnableInSystemSettings: {
+            start: '',
+            link: 'システム設定',
+            end: 'で顔/指紋認証を有効にするか、デバイスのパスコードを設定してください。',
+        },
+        oops: 'おっと、何か問題が発生しました',
+        looksLikeYouRanOutOfTime: '時間切れのようです！ 商人で再試行してください。',
+        youRanOutOfTime: '時間切れでした',
+        letsVerifyItsYou: '本人確認をしましょう',
+        verifyYourself: {
+            biometrics: '顔または指紋で本人確認をしてください',
+        },
+        enableQuickVerification: {
+            biometrics: '顔または指紋を使用して、パスワードやコード不要の迅速かつ安全な認証を有効にしてください。',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             アブラカダブラ、
@@ -872,6 +902,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `この${type}を削除してもよろしいですか？`;
         },
         onlyVisible: 'にのみ表示',
+        explain: '説明する',
+        explainMessage: 'これを説明してください。',
         replyInThread: 'スレッドに返信',
         joinThread: 'スレッドに参加',
         leaveThread: 'スレッドから退出',
@@ -1306,6 +1338,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'このワークスペースでは無効なレートです。ワークスペースから利用可能なレートを選択してください。',
             endDateBeforeStartDate: '終了日は開始日より前にはできません',
             endDateSameAsStartDate: '終了日は開始日と同じにはできません',
+            manySplitsProvided: `許可される最大分割数は${CONST.IOU.SPLITS_LIMIT}です。`,
+            dateRangeExceedsMaxDays: `期間は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             invalidReadings: '開始と終了の両方の読みを入力してください',
             negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
         },
@@ -1459,6 +1493,8 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`, hrs: '時間'},
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>説明する</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
@@ -3096,6 +3132,7 @@ ${
         currencyHeader: 'あなたの銀行口座の通貨は何ですか？',
         confirmationStepHeader: '情報を確認してください。',
         confirmationStepSubHeader: '以下の詳細を再確認し、確認するには利用規約のチェックボックスをオンにしてください。',
+        toGetStarted: '払い戻しを受け取ったり、請求書を支払ったり、Expensify Wallet を有効にしたりするには、個人の銀行口座を追加します。',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',
@@ -6173,6 +6210,10 @@ ${reportName}
                 title: 'カテゴリルール',
                 approver: '承認者',
                 requireDescription: '説明を必須にする',
+                requireFields: 'フィールドを必須にする',
+                requiredFieldsTitle: '必須項目',
+                requiredFieldsDescription: (categoryName: string) => `これは<strong>${categoryName}</strong>として分類されたすべての経費に適用されます。`,
+                requireAttendees: '参加者の入力を必須にする',
                 descriptionHint: '説明のヒント',
                 descriptionHintDescription: (categoryName: string) => `従業員に「${categoryName}」での支出について追加情報を提供するよう促します。このヒントは経費の説明欄に表示されます。`,
                 descriptionHintLabel: 'ヒント',
@@ -6403,10 +6444,6 @@ ${reportName}
         deleteReportField: (fieldType: string, fieldName?: string) => `${fieldType} レポートフィールド「${fieldName}」を削除しました`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `「自分自身での承認を防ぐ」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大領収書必須経費金額を${newValue}に変更しました（以前は${oldValue}）`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `違反となる経費の上限金額を${newValue}（以前は${oldValue}）に変更しました`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `「最大経費期間（日数）」を「${newValue}」（以前は「${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}」）に更新しました`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `月次レポートの提出日を「${newValue}」に設定してください`;
@@ -6554,8 +6591,19 @@ ${reportName}
                 }
             }
         },
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense amount to "${newValue}"`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense amount (previously "${oldValue}")`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense age to "${newValue}" days`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense age (previously "${oldValue}" days)`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `カスタムレポート名の数式を「${newValue}」（以前は「${oldValue}」）に変更しました`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser ? `認可された支払者を「${newReimburser}」（以前は「${previousReimburser}」）に変更しました` : `承認済み支払者を「${newReimburser}」に変更しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -7149,6 +7197,7 @@ ${reportName}
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `${maxAge}日より前の日付`,
         missingCategory: 'カテゴリ未設定',
         missingComment: '選択したカテゴリーには説明が必要です',
+        missingAttendees: 'このカテゴリには複数の参加者が必要です',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `${tagName ?? 'タグ'} が見つかりません`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7878,7 +7927,15 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             addAdminError: 'このメンバーを管理者として追加できません。もう一度お試しください。',
             revokeAdminAccess: '管理者アクセスを取り消す',
             cantRevokeAdminAccess: '技術連絡先から管理者アクセス権を取り消すことはできません',
-            error: {removeAdmin: 'このユーザーを管理者として削除できません。もう一度お試しください。'},
+            error: {
+                removeAdmin: 'このユーザーを管理者として削除できません。もう一度お試しください。',
+                removeDomain: 'このドメインを削除できません。もう一度お試しください。',
+                removeDomainNameInvalid: 'リセットするドメイン名を入力してください。',
+            },
+            resetDomain: 'ドメインをリセット',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `ドメインのリセットを確認するため、<strong>${domainName}</strong> と入力してください。`,
+            enterDomainName: 'ここにドメイン名を入力してください',
+            resetDomainInfo: `この操作は<strong>永久的</strong>であり、次のデータが削除されます：<br/> <ul><li>会社カードの接続およびそれらのカードからの未報告の経費</li> <li>SAML とグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：関連付けられているメールアドレスを<a href="#">連絡先方法</a>から削除することで、このドメインをドメイン一覧から消去できます。`,
         },
         members: {title: 'メンバー', findMember: 'メンバーを検索'},
     },

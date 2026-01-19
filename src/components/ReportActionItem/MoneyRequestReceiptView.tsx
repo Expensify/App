@@ -138,7 +138,8 @@ function MoneyRequestReceiptView({
     // TODO add correct link to card page in wallet settings
     const connectionLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
 
-    const canEditReceipt = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived);
+    const canEditReceipt =
+        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -161,7 +162,8 @@ function MoneyRequestReceiptView({
 
     const transactionToCheck = updatedTransaction ?? transaction;
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
-    const shouldShowReceiptEmptyState = !isInvoice && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
+    // Empty state for invoices should be displayed only in WideRHP
+    const shouldShowReceiptEmptyState = (isDisplayedInWideRHP || !isInvoice) && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
