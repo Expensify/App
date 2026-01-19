@@ -40,9 +40,9 @@ export default createOnyxDerivedValueConfig({
         const shouldShowRbrForWorkspaceAccountID: Record<number, boolean> = {};
         const shouldShowRbrForFeedNameWithDomainID: Record<string, boolean> = {};
 
-        const allFeedsState: CardFeedErrorState = DEFAULT_CARD_FEED_ERROR_STATE
-        const companyCardFeedsState: CardFeedErrorState = DEFAULT_CARD_FEED_ERROR_STATE
-        const expensifyCardFeedStates: CardFeedErrorState = DEFAULT_CARD_FEED_ERROR_STATE
+        const allFeedsState: CardFeedErrorState = {...DEFAULT_CARD_FEED_ERROR_STATE};
+        const companyCardFeedsState: CardFeedErrorState = {...DEFAULT_CARD_FEED_ERROR_STATE};
+        const expensifyCardFeedStates: CardFeedErrorState = {...DEFAULT_CARD_FEED_ERROR_STATE};
 
         const cardsWithBrokenFeedConnection: Record<string, Card> = {};
 
