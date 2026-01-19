@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
+import useCardFeedErrors from './useCardFeedErrors';
 
 type IndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
 
@@ -44,7 +45,8 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
     // those should be cleaned out before doing any error checking
     const cleanPolicies = Object.values(policies ?? {}).filter((policy) => policy?.id);
 
-    const {policiesWithCardFeedErrors, isPolicyAdmin, hasCardFeedErrors} = usePoliciesWithCardFeedErrors();
+    const {companyCards: {shouldShowRBR: hasCompanyCardFeedErrors}} = useCardFeedErrors();
+    const {policiesWithCardFeedErrors, isPolicyAdmin} = usePoliciesWithCardFeedErrors();
 
     const policyChecks: Partial<Record<IndicatorStatus, Policy | undefined>> = {
         [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS]: cleanPolicies.find(shouldShowPolicyError),
@@ -77,7 +79,7 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         [CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
         [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersonalDetails?.errorFields?.phoneNumber,
-        [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS]: !isPolicyAdmin && hasCardFeedErrors,
+        [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS]: !isPolicyAdmin ? hasCompanyCardFeedErrors : false,
     };
 
     const infoChecks: Partial<Record<IndicatorStatus, boolean>> = {
