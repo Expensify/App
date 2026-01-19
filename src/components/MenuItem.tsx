@@ -212,6 +212,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Text to display for the item */
         title?: string;
 
+        /** Accessibility label for the menu item */
+        accessibilityLabel?: string;
+
         /** Component to display as the title */
         titleComponent?: ReactElement;
 
@@ -479,6 +482,7 @@ function MenuItem({
     focused = false,
     disabled = false,
     title,
+    accessibilityLabel,
     titleComponent,
     titleContainerStyle,
     subtitle,
