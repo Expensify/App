@@ -28,15 +28,18 @@ From this page, Domain Admins can:
 
 A domain-wide issue usually points to a problem with your Identity Provider (IdP). Check the following: 
 
-- **Has your IdP certificate expired or rotated?**  
- If yes, copy the updated metadata XML from your IdP and paste it into the **Identity Provider Metadata** field in your Expensify SAML settings.
+**Has your IdP certificate expired or rotated?**  
 
-- **Have any IdP settings changed?**  
+If yes, copy the updated metadata XML from your IdP and paste it into the **Identity Provider Metadata** field in your Expensify SAML settings.
+
+**Have any IdP settings changed?**  
+
 Changes to entity IDs, SSO endpoints, or user attributes can break login.
- - If your certificate or SSO endpoints have changed, upload updated metadata from your IdP to Expensify.
- - If user attributes like NameID Format or email mappings have changed, confirm they match the values expected in your domain's SAML settings in Expensify.
+   - If your certificate or SSO endpoints have changed, upload updated metadata from your IdP to Expensify.
+   - If user attributes like NameID Format or email mappings have changed, confirm they match the values expected in your domain's SAML settings in Expensify.
 
-- **Is “Require SAML login” turned on?**  
+ **Is “Require SAML login” turned on?**  
+ 
  If enabled, no one — including Domain Admins — can log in without a working SAML configuration. If you're still signed in, go to your domain’s SAML settings and temporarily disable **Require SAML login** while troubleshooting. 
 
 ## Some members can’t log in, but others can
