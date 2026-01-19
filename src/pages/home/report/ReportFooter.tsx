@@ -225,7 +225,12 @@ function ReportFooter({
                             isSmallSizeLayout={isSmallSizeLayout || isInSidePanel}
                         />
                     )}
-                    {isArchivedRoom && <ArchivedReportFooter report={report} />}
+                    {isArchivedRoom && (
+                        <ArchivedReportFooter
+                            report={report}
+                            currentUserAccountID={personalDetail.accountID}
+                        />
+                    )}
                     {!isArchivedRoom && !!isBlockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !isBlockedFromChat && (
