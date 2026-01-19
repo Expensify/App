@@ -5768,23 +5768,23 @@ function getReportName(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) && policy && 'outputCurrency' in policy) {
-        return getAddedBudgetMessage(parentReportAction, policy);
+        return getAddedBudgetMessage(translateLocal, parentReportAction, policy);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) && policy && 'outputCurrency' in policy) {
-        return getUpdatedBudgetMessage(parentReportAction, policy);
+        return getUpdatedBudgetMessage(translateLocal, parentReportAction, policy);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET) && policy && 'outputCurrency' in policy) {
-        return getDeletedBudgetMessage(parentReportAction, policy);
+        return getDeletedBudgetMessage(translateLocal, parentReportAction, policy);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED)) {
-        return getUpdatedTimeEnabledMessage(parentReportAction);
+        return getUpdatedTimeEnabledMessage(translateLocal, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE)) {
-        return getUpdatedTimeRateMessage(parentReportAction);
+        return getUpdatedTimeRateMessage(translateLocal, parentReportAction);
     }
 
     if (parentReportAction?.actionName && isTagModificationAction(parentReportAction?.actionName)) {
