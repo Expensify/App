@@ -738,6 +738,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 loginList,
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, currentUserEmail: CURRENT_USER_EMAIL},
             );
             // When we call orderOptions()
             results = orderOptions(results);
@@ -775,6 +776,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 loginList,
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, currentUserEmail: CURRENT_USER_EMAIL},
             );
             // When we call orderOptions()
             results = orderOptions(results);
@@ -825,6 +827,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 loginList,
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, currentUserEmail: CURRENT_USER_EMAIL},
             );
 
             // Then the result should include all personalDetails except the currently logged in user
@@ -923,6 +926,8 @@ describe('OptionsListUtils', () => {
                     includeP2P: true,
                     canShowManagerMcTest: true,
                     betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserEmail: CURRENT_USER_EMAIL,
                 },
             );
 
