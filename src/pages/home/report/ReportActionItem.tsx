@@ -35,7 +35,10 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'allTransactionDrafts'> & {
+type ReportActionItemProps = Omit<
+    PureReportActionItemProps,
+    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts'
+> & {
     /** All the data of the report collection */
     allReports: OnyxCollection<Report>;
 
@@ -103,6 +106,7 @@ function ReportActionItem({
     const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`];
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -123,6 +127,7 @@ function ReportActionItem({
             introSelected={introSelected}
             allTransactionDrafts={allTransactionDrafts}
             policies={policies}
+            personalPolicyID={personalPolicyID}
             action={action}
             report={report}
             policy={policy}
