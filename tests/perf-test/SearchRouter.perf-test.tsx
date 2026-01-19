@@ -43,7 +43,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isDisplayedInModal: jest.fn(() => false),
 }));
 
-jest.mock('@src/hooks/useRootNavigationState');
+jest.mock('@src/hooks/useRootNavigationState', () => ({__esModule: true, default: () => ({contextualReportID: undefined, isSearchRouterScreen: false})}));
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
