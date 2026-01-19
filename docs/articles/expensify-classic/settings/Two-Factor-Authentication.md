@@ -86,8 +86,6 @@ Expensify's 2FA is implemented via a Time-based One-Time Password (TOTP) algorit
 
 When you enable 2FA, you are prompted to either copy or download backup codes which you can use in lieu of the 6-digit authenticator code. If you downloaded the codes they will be saved with the file name `two-factor-auth-codes`. 
 
-If you are unable to access the codes, see [Troubleshoot login issues](LINK) for instructions. 
-
 ## What authenticator apps does Expensify recommend? 
 
 You can use any authenticator app, but here are a few we recommend:
