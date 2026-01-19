@@ -2255,7 +2255,7 @@ ${amount} para ${merchant} - ${date}`,
             expensesFromSubtitle: 'Todos os membros do workspace já pertencem a um fluxo de aprovação existente.',
             approverSubtitle: 'Todos os aprovadores pertencem a um fluxo de trabalho existente.',
         },
-        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver ${approvers}`,
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `despesas de ${members}, e o aprovador ${approvers}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'A frequência de envio não pôde ser alterada. Tente novamente ou entre em contato com o suporte.',

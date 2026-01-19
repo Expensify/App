@@ -2262,7 +2262,7 @@ ${amount} voor ${merchant} - ${date}`,
             expensesFromSubtitle: 'Alle werkruimteleden behoren al tot een bestaande goedkeuringsworkflow.',
             approverSubtitle: 'Alle fiatteurs behoren tot een bestaande workflow.',
         },
-        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver ${approvers}`,
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `kosten van ${members}, en de goedkeurder ${approvers}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indien frequentie van indienen niet kon worden gewijzigd. Probeer het opnieuw of neem contact op met support.',

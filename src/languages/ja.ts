@@ -2254,7 +2254,7 @@ ${merchant} への ${amount}（${date}）`,
             expensesFromSubtitle: 'すべてのワークスペースメンバーは、すでに既存の承認ワークフローに属しています。',
             approverSubtitle: 'すべての承認者は既存のワークフローに属しています。',
         },
-        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver ${approvers}`,
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `${members} の経費、および承認者 ${approvers}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '送信頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
