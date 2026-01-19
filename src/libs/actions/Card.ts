@@ -10,7 +10,7 @@ import type {
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
     RevealExpensifyCardDetailsParams,
-    SetCardReimbursableSettingParams,
+    SetPersonalCardReimbursableParams,
     UnassignCompanyCard,
     StartIssueNewCardFlowParams,
     UpdateCardTransactionStartDateParams,
@@ -264,7 +264,7 @@ function clearCardNameValuePairsErrorField(cardID: number, fieldName: string) {
     });
 }
 
-function setCardReimbursableSetting(cardID: number, markTransactionsAsReimbursable: boolean, previousValue?: boolean) {
+function setPersonalCardReimbursable(cardID: number, markTransactionsAsReimbursable: boolean, previousValue?: boolean) {
     const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
         return;
@@ -320,13 +320,13 @@ function setCardReimbursableSetting(cardID: number, markTransactionsAsReimbursab
         },
     ];
 
-    const parameters: SetCardReimbursableSettingParams = {
+    const parameters: SetPersonalCardReimbursableParams = {
         authToken,
         cardID,
         reimbursable: markTransactionsAsReimbursable,
     };
 
-    API.write(WRITE_COMMANDS.SET_CARD_REIMBURSABLE_SETTING, parameters, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.SET_PERSONAL_CARD_REIMBURSABLE, parameters, {optimisticData, finallyData, failureData});
 }
 
 function syncCompanyCard(cardID: number, lastScrapeResult?: number) {
@@ -1442,7 +1442,7 @@ export {
     clearActivatedCardPin,
     clearCardErrorField,
     clearCardNameValuePairsErrorField,
-    setCardReimbursableSetting,
+    setPersonalCardReimbursable,
     syncCompanyCard,
     unassignCompanyCard,
     updateAssignedCardName,

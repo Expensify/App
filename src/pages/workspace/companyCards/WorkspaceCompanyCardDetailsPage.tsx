@@ -40,7 +40,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
-import {clearCardErrorField, clearCardNameValuePairsErrorField, setCardReimbursableSetting, syncCompanyCard, unassignCompanyCard} from '@userActions/Card';
+import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable, syncCompanyCard, unassignCompanyCard} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -249,7 +249,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             rightComponent={
                                 <Switch
                                     isOn={reimbursableSetting}
-                                    onToggle={(isOn) => card && setCardReimbursableSetting(card.cardID, isOn, reimbursableSetting)}
+                                    onToggle={(isOn) => card && setPersonalCardReimbursable(card.cardID, isOn, reimbursableSetting)}
                                     accessibilityLabel={translate('cardPage.markTransactionsAsReimbursable')}
                                     disabled={isOffline || !!card?.pendingFields?.markTransactionsAsReimbursable}
                                 />
