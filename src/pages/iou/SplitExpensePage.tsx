@@ -62,7 +62,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -112,6 +112,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
+    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`, {canBeMissing: true});
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
@@ -218,6 +219,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
+            iouReportNextStep,
         });
     }, [
         splitExpenses,
@@ -249,6 +251,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionViolations,
         policyRecentlyUsedCurrencies,
         quickAction,
+        iouReportNextStep,
     ]);
 
     const onSplitExpenseValueChange = useCallback(
@@ -287,6 +290,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const date = DateUtils.formatWithUTCTimeZone(
                 item.created,
                 DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+                preferredLocale,
             );
             previewHeaderText.unshift({text: date}, dotSeparator);
 
@@ -332,6 +336,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         translate,
         getTranslatedText,
         onSplitExpenseValueChange,
+        preferredLocale,
     ]);
 
     const isInitialSplit = useMemo(() => childTransactions.length === 0, [childTransactions.length]);
