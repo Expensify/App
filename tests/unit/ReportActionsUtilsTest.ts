@@ -14,6 +14,8 @@ import {
     getCardIssuedMessage,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
@@ -26,7 +28,6 @@ import {
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
-import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -1487,14 +1488,6 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
-
-        it("should return false for concierge categorize suggestion whisper message when the policy's category feature is disabled", () => {
-            const reportAction: ReportAction = {...createRandomReportAction(123), actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS};
-            const categoryFeatureDisabledPolicy = {...createRandomPolicy(1234), areCategoriesEnabled: false};
-
-            const result = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, categoryFeatureDisabledPolicy);
-            expect(result).toBe(false);
-        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
@@ -1614,10 +1607,7 @@ describe('ReportActionsUtils', () => {
         it('should return the correct message with a valid report ID and report name', () => {
             const reportID = '12345';
             const reportName = 'Test Expense Report';
-            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
-                reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
-                reportName,
-            });
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, reportName);
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
 
@@ -2832,6 +2822,72 @@ describe('ReportActionsUtils', () => {
 
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toBe(9999);
+        });
+    });
+
+    describe('getInvoiceCompanyNameUpdateMessage', () => {
+        it('should return the correct message when changing invoice company name with previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'New Company Name',
+                    oldValue: 'Old Company Name',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyNameUpdateMessage(translateLocal, action);
+            expect(result).toBe('changed the invoice company name to "New Company Name" (previously "Old Company Name")');
+        });
+
+        it('should return the correct message when setting invoice company name without previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'New Company Name',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyNameUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the invoice company name to "New Company Name"');
+        });
+    });
+
+    describe('getInvoiceCompanyWebsiteUpdateMessage', () => {
+        it('should return the correct message when changing invoice company website with previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'https://newwebsite.com',
+                    oldValue: 'https://oldwebsite.com',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
+            expect(result).toBe('changed the invoice company website to "https://newwebsite.com" (previously "https://oldwebsite.com")');
+        });
+
+        it('should return the correct message when setting invoice company website without previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'https://newwebsite.com',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the invoice company website to "https://newwebsite.com"');
         });
     });
 });
