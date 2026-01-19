@@ -573,6 +573,7 @@ function Search({
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                         reportAction: transactionItem.reportAction,
+                        isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                     };
                 }
             }
@@ -626,6 +627,7 @@ function Search({
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     reportAction: transactionItem.reportAction,
+                    isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                 };
             }
         }
