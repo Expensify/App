@@ -28,24 +28,6 @@ import type {
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
-    FileLimitParams,
-    FileTypeParams,
-    FiltersAmountBetweenParams,
-    FlightLayoverParams,
-    FlightParams,
-    FocusModeUpdateParams,
-    FormattedMaxLengthParams,
-    GoBackMessageParams,
-    HarvestCreatedExpenseReportParams,
-    ImportedTagsMessageParams,
-    ImportedTypesParams,
-    ImportFieldParams,
-    ImportMembersSuccessfulDescriptionParams,
-    ImportPerDiemRatesSuccessfulDescriptionParams,
-    ImportTagsSuccessfulDescriptionParams,
-    IncorrectZipFormatParams,
-    IndividualExpenseRulesSubtitleParams,
-    InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
     IntegrationSyncFailedParams,
@@ -133,9 +115,6 @@ import type {
     SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
-    SpreadCategoriesParams,
-    SpreadFieldNameParams,
-    SpreadSheetColumnParams,
     StatementTitleParams,
     StepCounterParams,
     StripePaidParams,
@@ -280,8 +259,7 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Cerca...',
         next: 'Avanti',
         previous: 'Precedente',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
-        goBack: 'Torna indietro',
+        goBack: 'Indietro',
         create: 'Crea',
         add: 'Aggiungi',
         resend: 'Reinvia',
@@ -710,12 +688,12 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'I PDF protetti da password non sono supportati',
         attachmentImageResized: 'Questa immagine è stata ridimensionata per l’anteprima. Scarica per la risoluzione completa.',
         attachmentImageTooLarge: 'Questa immagine è troppo grande per essere visualizzata in anteprima prima del caricamento.',
-        tooManyFiles: ({fileLimit}: FileLimitParams) => `Puoi caricare al massimo ${fileLimit} file alla volta.`,
+        tooManyFiles: (fileLimit: number) => `Puoi caricare al massimo ${fileLimit} file alla volta.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `I file superano ${maxUploadSizeInMB} MB. Riprova.`,
         someFilesCantBeUploaded: 'Alcuni file non possono essere caricati',
         sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `I file devono essere inferiori a ${maxUploadSizeInMB} MB. I file più grandi non verranno caricati.`,
         maxFileLimitExceeded: 'Puoi caricare fino a 30 ricevute alla volta. Le eventuali ricevute in più non verranno caricate.',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `I file ${fileType} non sono supportati. Verranno caricati solo i tipi di file supportati.`,
+        unsupportedFileType: (fileType: string) => `I file ${fileType} non sono supportati. Verranno caricati solo i tipi di file supportati.`,
         learnMoreAboutSupportedFiles: 'Scopri di più sui formati supportati.',
         passwordProtected: 'I PDF protetti da password non sono supportati. Verranno caricati solo i file supportati.',
     },
@@ -740,8 +718,8 @@ const translations: TranslationDeepObject<typeof en> = {
     composer: {
         noExtensionFoundForMimeType: 'Nessuna estensione trovata per il tipo MIME',
         problemGettingImageYouPasted: "Si è verificato un problema durante l'acquisizione dell'immagine che hai incollato",
-        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `La lunghezza massima del commento è di ${formattedMaxLength} caratteri.`,
-        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `La lunghezza massima del titolo dell’attività è di ${formattedMaxLength} caratteri.`,
+        commentExceededMaxLength: (formattedMaxLength: string) => `La lunghezza massima del commento è di ${formattedMaxLength} caratteri.`,
+        taskTitleExceededMaxLength: (formattedMaxLength: string) => `La lunghezza massima del titolo dell’attività è di ${formattedMaxLength} caratteri.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Aggiorna app',
@@ -874,10 +852,6 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Emoji',
         collapse: 'Comprimi',
         expand: 'Espandi',
-        askConciergeToCreate: 'Chiedi a Concierge AI di creare una spesa...',
-        askConciergeToUpdate: 'Chiedi a Concierge AI di aggiornare una spesa...',
-        askConciergeToCorrect: 'Chiedi a Concierge AI di correggere una spesa...',
-        addColleagueWithMention: 'Aggiungi un collega con una menzione "@"...',
     },
     reportActionContextMenu: {
         copyMessage: 'Copia messaggio',
@@ -907,8 +881,6 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Sei sicuro di voler eliminare questo ${type}?`;
         },
         onlyVisible: 'Visibile solo a',
-        explain: 'Spiega',
-        explainMessage: 'Per favore, spiegami questo.',
         replyInThread: 'Rispondi nel thread',
         joinThread: 'Unisciti al thread',
         leaveThread: 'Abbandona conversazione',
@@ -956,7 +928,7 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Solo gli amministratori possono inviare messaggi in questa stanza.',
     reportAction: {
         asCopilot: 'come copilota per',
-        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+        harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `ha creato questo rapporto per raccogliere tutte le spese di <a href="${reportUrl}">${reportName}</a> che non sono state inviate con la frequenza scelta`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
             `ha creato questo report per eventuali spese in sospeso da <a href="${reportUrl}">${reportName}</a>`,
@@ -1024,13 +996,13 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseSpreadsheet: '<muted-link>Seleziona un file di foglio di calcolo da importare. Formati supportati: .csv, .txt, .xls e .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Seleziona un file di foglio di calcolo da importare. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Ulteriori informazioni</a> sui formati di file supportati.</muted-link>`,
         fileContainsHeader: 'Il file contiene intestazioni di colonna',
-        column: ({name}: SpreadSheetColumnParams) => `Colonna ${name}`,
-        fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Ops! Un campo obbligatorio ("${fieldName}") non è stato mappato. Controlla e riprova.`,
-        singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) => `Ops! Hai associato un singolo campo ("${fieldName}") a più colonne. Controlla e riprova.`,
-        emptyMappedField: ({fieldName}: SpreadFieldNameParams) => `Ops! Il campo («${fieldName}») contiene uno o più valori vuoti. Controlla e riprova.`,
+        column: (name: string) => `Colonna ${name}`,
+        fieldNotMapped: (fieldName: string) => `Ops! Un campo obbligatorio ("${fieldName}") non è stato mappato. Controlla e riprova.`,
+        singleFieldMultipleColumns: (fieldName: string) => `Ops! Hai associato un singolo campo ("${fieldName}") a più colonne. Controlla e riprova.`,
+        emptyMappedField: (fieldName: string) => `Ops! Il campo («${fieldName}») contiene uno o più valori vuoti. Controlla e riprova.`,
         importSuccessfulTitle: 'Importazione riuscita',
-        importCategoriesSuccessfulDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `Sono state aggiunte ${categories} categorie.` : '1 categoria è stata aggiunta.'),
-        importMembersSuccessfulDescription: ({added, updated}: ImportMembersSuccessfulDescriptionParams) => {
+        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `Sono state aggiunte ${categories} categorie.` : '1 categoria è stata aggiunta.'),
+        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Nessun membro è stato aggiunto o aggiornato.';
             }
@@ -1042,10 +1014,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `${added} membri sono stati aggiunti.` : 'È stato aggiunto 1 membro.';
         },
-        importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfulDescriptionParams) => (tags > 1 ? `Sono stati aggiunti ${tags} tag.` : 'È stato aggiunto 1 tag.'),
+        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `Sono stati aggiunti ${tags} tag.` : 'È stato aggiunto 1 tag.'),
         importMultiLevelTagsSuccessfulDescription: 'Sono stati aggiunti i tag multilivello.',
-        importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfulDescriptionParams) =>
-            rates > 1 ? `Sono state aggiunte le tariffe di diaria ${rates}.` : 'È stata aggiunta 1 tariffa di diaria.',
+        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `Sono state aggiunte le tariffe di diaria ${rates}.` : 'È stata aggiunta 1 tariffa di diaria.'),
         importFailedTitle: 'Importazione non riuscita',
         importFailedDescription: 'Assicurati che tutti i campi siano compilati correttamente e riprova. Se il problema persiste, contatta Concierge.',
         importDescription: 'Scegli quali campi mappare dal tuo foglio di calcolo cliccando il menu a discesa accanto a ciascuna colonna importata qui sotto.',
@@ -1497,8 +1468,13 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} giorni)`,
         splitByDate: 'Dividi per data',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapporto inoltrato a ${to} a causa del flusso di lavoro di approvazione personalizzato`,
-        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'ora' : 'ore'} @ ${rate} / ora`, hrs: 'ore'},
-        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Spiegare</strong></a> &#x2728;',
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'ora' : 'ore'} @ ${rate} / ora`,
+            hrs: 'ore',
+            hours: 'Ore',
+            ratePreview: (rate: string) => `${rate} / ora`,
+            amountTooLargeError: 'L’importo totale è troppo elevato. Riduci le ore o diminuisci la tariffa.',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2383,7 +2359,7 @@ ${amount} per ${merchant} - ${date}`,
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Trasferimento${amount ? ` ${amount}` : ''}`,
         instant: 'Immediato (Carta di debito)',
-        instantSummary: ({rate, minAmount}: InstantSummaryParams) => `Commissione del ${rate}% (${minAmount} minimo)`,
+        instantSummary: (rate: string, minAmount: string) => `Commissione del ${rate}% (${minAmount} minimo)`,
         ach: '1-3 giorni lavorativi (Conto bancario)',
         achSummary: 'Nessuna commissione',
         whichAccount: 'Quale conto?',
@@ -2915,7 +2891,7 @@ ${
             dateShouldBeBefore: (dateString: string) => `La data deve essere precedente a ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `La data deve essere successiva a ${dateString}`,
             hasInvalidCharacter: 'Il nome può includere solo caratteri latini',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Formato del codice postale non corretto${zipFormat ? `Formato accettabile: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Formato del codice postale non corretto${zipFormat ? `Formato accettabile: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Assicurati che il numero di telefono sia valido (ad es. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
@@ -2998,7 +2974,7 @@ ${
     },
     focusModeUpdateModal: {
         title: 'Benvenuto nella modalità #focus!',
-        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+        prompt: (priorityModePageUrl: string) =>
             `Rimani sempre aggiornato visualizzando solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi modificare questa impostazione in qualsiasi momento dalle <a href="${priorityModePageUrl}">impostazioni</a>.`,
     },
     notFound: {
@@ -3172,6 +3148,8 @@ ${
     onfidoStep: {
         acceptTerms: 'Continuando con la richiesta di attivare il tuo Expensify Wallet, confermi di aver letto, compreso e accettato',
         facialScan: 'Informativa e liberatoria di Onfido per la scansione facciale',
+        onfidoLinks: (onfidoTitle: string) =>
+            `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Informativa e liberatoria di Onfido per la scansione facciale</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Privacy</a> e <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Termini di servizio</a>.</muted-text-micro>`,
         tryAgain: 'Riprova',
         verifyIdentity: 'Verifica identità',
         letsVerifyIdentity: 'Verifichiamo la tua identità',
@@ -3669,7 +3647,7 @@ ${
         flight: 'Volo',
         flightDetails: {
             passenger: 'Passeggero',
-            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>Hai uno <strong>scalo di ${layover}</strong> prima di questo volo</muted-text-label>`,
+            layover: (layover: string) => `<muted-text-label>Hai uno <strong>scalo di ${layover}</strong> prima di questo volo</muted-text-label>`,
             takeOff: 'Decollo',
             landing: 'Pagina iniziale',
             seat: 'Postazione',
@@ -3759,17 +3737,18 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `Abilitazione dei viaggi non riuscita per il dominio: ${domain}. Controlla e abilita i viaggi per questo dominio.`,
         },
         updates: {
-            bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
                 `Il tuo volo ${airlineCode} (${origin} → ${destination}) del ${startDate} è stato prenotato. Codice di conferma: ${confirmationID}`,
-            ticketVoided: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Il tuo biglietto per il volo ${airlineCode} (${origin} → ${destination}) del ${startDate} è stato annullato.`,
-            ticketRefunded: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketRefunded: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Il tuo biglietto per il volo ${airlineCode} (${origin} → ${destination}) del ${startDate} è stato rimborsato o modificato.`,
-            flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            flightCancelled: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Il tuo volo ${airlineCode} (${origin} → ${destination}) del ${startDate}} è stato cancellato dalla compagnia aerea.`,
             flightScheduleChangePending: (airlineCode: string) => `La compagnia aerea ha proposto un cambio di orario per il volo ${airlineCode}; siamo in attesa di conferma.`,
             flightScheduleChangeClosed: (airlineCode: string, startDate?: string) => `Cambio di programmazione confermato: il volo ${airlineCode} ora parte alle ${startDate}.`,
-            flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `Il tuo volo ${airlineCode} (${origin} → ${destination}) del ${startDate} è stato aggiornato.`,
+            flightUpdated: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+                `Il tuo volo ${airlineCode} (${origin} → ${destination}) del ${startDate} è stato aggiornato.`,
             flightCabinChanged: (airlineCode: string, cabinClass?: string) => `La tua classe di cabina è stata aggiornata a ${cabinClass} sul volo ${airlineCode}.`,
             flightSeatConfirmed: (airlineCode: string) => `La tua assegnazione del posto sul volo ${airlineCode} è stata confermata.`,
             flightSeatChanged: (airlineCode: string) => `La tua assegnazione del posto sul volo ${airlineCode} è stata modificata.`,
@@ -4586,7 +4565,7 @@ ${
                 importTaxDescription: 'Importa gruppi di imposte da NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: "Scegli un'opzione qui sotto:",
-                    label: ({importedTypes}: ImportedTypesParams) => `Importato come ${importedTypes.join('e')}`,
+                    label: (importedTypes: string[]) => `Importato come ${importedTypes.join('e')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Inserisci il/la ${fieldName}`,
                     customSegments: {
                         title: 'Segmenti/record personalizzati',
@@ -4701,18 +4680,18 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'Impostazione predefinita dipendente NetSuite',
                         description: "Non importato in Expensify, applicato all'esportazione",
-                        footerContent: ({importField}: ImportFieldParams) =>
+                        footerContent: (importField: string) =>
                             `Se utilizzi ${importField} in NetSuite, applicheremo il valore predefinito impostato nel record del dipendente all'esportazione verso Expense Report o Journal Entry.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Tag',
                         description: 'A livello di singola voce',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} sarà selezionabile per ogni singola spesa nel report di un dipendente.`,
+                        footerContent: (importField: string) => `${startCase(importField)} sarà selezionabile per ogni singola spesa nel report di un dipendente.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Campi del report',
                         description: 'Livello del report',
-                        footerContent: ({importField}: ImportFieldParams) => `La selezione ${startCase(importField)} verrà applicata a tutte le spese nel rendiconto di un dipendente.`,
+                        footerContent: (importField: string) => `La selezione ${startCase(importField)} verrà applicata a tutte le spese nel rendiconto di un dipendente.`,
                     },
                 },
             },
@@ -4789,7 +4768,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 commercialFeedPlaidDetails: `Richiede la configurazione con la tua banca, ma ti guideremo noi. Di solito è limitato alle aziende più grandi.`,
                 directFeedDetails: 'L’approccio più semplice. Connettiti subito utilizzando le tue credenziali master. Questo metodo è il più comune.',
                 enableFeed: {
-                    title: ({provider}: GoBackMessageParams) => `Abilita il tuo feed ${provider}`,
+                    title: (provider: string) => `Abilita il tuo feed ${provider}`,
                     heading:
                         'Abbiamo un’integrazione diretta con l’emittente della tua carta e possiamo importare i dati delle tue transazioni in Expensify in modo rapido e accurato.\n\nPer iniziare, ti basta:',
                     visa: 'Abbiamo integrazioni globali con Visa, anche se l’idoneità varia in base alla banca e al programma della carta.\n\nPer iniziare, ti basta:',
@@ -5352,7 +5331,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 prompt3: 'scarica un backup',
                 prompt4: 'primo.',
             },
-            importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
+            importedTagsMessage: (columnCounts: number) =>
                 `Abbiamo trovato *${columnCounts} colonne* nel tuo foglio di calcolo. Seleziona *Nome* accanto alla colonna che contiene i nomi dei tag. Puoi anche selezionare *Abilitato* accanto alla colonna che imposta lo stato dei tag.`,
             cannotDeleteOrDisableAllTags: {
                 title: 'Impossibile eliminare o disattivare tutti i tag',
@@ -6178,7 +6157,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         rules: {
             individualExpenseRules: {
                 title: 'Spese',
-                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>Imposta controlli di spesa e valori predefiniti per le singole spese. Puoi anche creare regole per le <a href="${categoriesPageLink}">categorie</a> e per i <a href="${tagsPageLink}">tag</a>.</muted-text>`,
                 receiptRequiredAmount: 'Importo richiesto della ricevuta',
                 receiptRequiredAmountDescription: 'Richiedi ricevute quando la spesa supera questo importo, a meno che non venga sostituito da una regola della categoria.',
@@ -6821,7 +6800,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Meno di ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Maggiore di ${amount ?? ''}`,
-                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Tra ${greaterThan} e ${lessThan}`,
+                between: (greaterThan: string, lessThan: string) => `Tra ${greaterThan} e ${lessThan}`,
                 equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Uguale a ${amount ?? ''}`,
             },
             card: {
@@ -7359,6 +7338,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'ha risolto il duplicato',
         companyCardRequired: 'Acquisti con carta aziendale obbligatori',
+        noRoute: 'Seleziona un indirizzo valido',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,
@@ -8032,6 +8012,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
             button: 'Scarica l’app',
         },
+        notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per completare"},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

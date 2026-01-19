@@ -1,4 +1,4 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 /** Model of commands data */
 type Data = {
@@ -21,7 +21,7 @@ type Response = {
     jsonCode?: number | string;
 
     /** Collection of onyx updates (SET/MERGE/...) */
-    onyxData?: OnyxUpdate[];
+    onyxData?: Array<OnyxUpdate<OnyxKey>>;
 
     /** ID of the request that triggered this response */
     requestID?: string;

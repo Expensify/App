@@ -88,6 +88,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
@@ -106,6 +107,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            allPolicies,
             draftComments,
             nvpDismissedProductTraining,
             loginList,
@@ -123,6 +125,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         areOptionsInitialized,
         options.reports,
         options.personalDetails,
+        allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         loginList,
