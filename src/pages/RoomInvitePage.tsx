@@ -20,7 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteToRoomAction, searchInServer} from '@libs/actions/Report';
+import {inviteToRoom, inviteToRoomAction, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -31,12 +31,14 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
+import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportName, isHiddenForCurrentUser} from '@libs/ReportUtils';
+import {getReportName, isHiddenForCurrentUser, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,7 +60,7 @@ function RoomInvitePage({
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -193,6 +195,8 @@ function RoomInvitePage({
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
+    const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
+    const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const backRoute = useMemo(() => {
         return reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, backTo, isReportArchived]);
@@ -202,7 +206,7 @@ function RoomInvitePage({
 
     const ancestors = useAncestors(report);
 
-    const inviteUsers = useCallback(() => {
+    const inviteUsers = () => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
         if (!validate()) {
@@ -218,7 +222,11 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = Number(accountID);
         }
         if (report?.reportID) {
-            inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            if (isPolicyExpenseChat(report)) {
+                inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            } else {
+                inviteToRoom(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
+            }
             clearUserSearchPhrase();
             if (backTo) {
                 Navigation.goBack(backTo);
@@ -226,7 +234,7 @@ function RoomInvitePage({
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             }
         }
-    }, [validate, selectedOptions, ancestors, report, currentUserPersonalDetails.timezone, backTo]);
+    };
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
@@ -270,7 +278,7 @@ function RoomInvitePage({
             >
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
-                    subtitle={reportName}
+                    subtitle={shouldParserToHTML ? Parser.htmlToText(reportName) : reportName}
                     onBackButtonPress={goBack}
                 />
                 <SelectionList

@@ -5706,7 +5706,9 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
-    if (!enforced === policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable) {
+    // When fieldList is empty, deletable is undefined. We treat undefined as true (not enforced) to match OldDot's fallback behavior.
+    const currentDeletable = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.deletable ?? true;
+    if (!enforced === currentDeletable) {
         return;
     }
 
