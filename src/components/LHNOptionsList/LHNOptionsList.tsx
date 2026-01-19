@@ -74,8 +74,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     const theme = useTheme();
     const styles = useThemeStyles();
