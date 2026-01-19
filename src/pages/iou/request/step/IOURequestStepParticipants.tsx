@@ -334,7 +334,7 @@ function IOURequestStepParticipants({
                 const firstParticipant = _participants?.at(0);
                 const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
                 const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-                const defaultCategory = policyDistance?.defaultCategory ?? '';
+                const defaultCategory = isDistanceRequest(transaction) && policyDistance?.defaultCategory ? policyDistance?.defaultCategory : '';
                 const category = isMovingTransactionFromTrackExpense ? (transaction?.category ?? '') : defaultCategory;
                 setMoneyRequestCategory(transaction.transactionID, category, undefined);
                 if (shouldUpdateTransactionReportID) {
