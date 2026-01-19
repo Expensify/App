@@ -37,8 +37,8 @@ jobs:
 
       - name: Cache Jest cache
         id: cache-jest-cache
-        # v4
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .jest-cache
           key: ${{ runner.os }}-jest
