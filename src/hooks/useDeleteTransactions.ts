@@ -36,6 +36,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -149,6 +150,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
+                    iouReportNextStep,
                 });
             }
 
@@ -184,20 +186,21 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             return Array.from(deletedTransactionThreadReportIDs);
         },
         [
-            reportActions,
-            allTransactions,
-            allReports,
-            report,
             allPolicyRecentlyUsedCategories,
             allReportNameValuePairs,
-            policyCategories,
-            policy,
-            isBetaEnabled,
+            allReports,
+            allTransactions,
+            archivedReportsIdSet,
             currentUserPersonalDetails,
-            transactionViolations,
+            iouReportNextStep,
+            isBetaEnabled,
+            policy,
+            policyCategories,
             policyRecentlyUsedCurrencies,
             quickAction,
-            archivedReportsIdSet,
+            report,
+            reportActions,
+            transactionViolations,
         ],
     );
 
