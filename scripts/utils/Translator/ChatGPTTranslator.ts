@@ -12,6 +12,15 @@ type LocaleSession = {
     conversationID: string;
 };
 
+/**
+ * Represents a translation that failed after all retries.
+ */
+type FailedTranslation = {
+    text: string;
+    targetLang: TranslationTargetLocale;
+    error: string;
+};
+
 class ChatGPTTranslator extends Translator {
     /**
      * The maximum number of times we'll retry a successful translation request in the event of hallucinations.
@@ -28,9 +37,21 @@ class ChatGPTTranslator extends Translator {
      */
     private readonly sessions = new Map<TranslationTargetLocale, LocaleSession>();
 
+    /**
+     * Tracks translations that failed after all retries, for summary reporting.
+     */
+    private readonly failedTranslations: FailedTranslation[] = [];
+
     public constructor(apiKey: string) {
         super();
         this.openai = new OpenAIUtils(apiKey);
+    }
+
+    /**
+     * Get all translations that failed after exhausting retries.
+     */
+    public getFailedTranslations(): FailedTranslation[] {
+        return [...this.failedTranslations];
     }
 
     /**
@@ -84,6 +105,8 @@ class ChatGPTTranslator extends Translator {
                 console.error(`Error translating "${text}" to ${targetLang} (attempt ${attempt + 1}):`, error);
 
                 if (attempt === ChatGPTTranslator.MAX_RETRIES) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    this.failedTranslations.push({text, targetLang, error: errorMessage});
                     return text; // Final fallback
                 }
             }

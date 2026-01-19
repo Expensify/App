@@ -35,6 +35,12 @@ abstract class Translator {
     public abstract estimateCost(stringsToTranslate: StringWithContext[], targetLanguages: TranslationTargetLocale[]): Promise<number>;
 
     /**
+     * Get all translations that failed after exhausting retries.
+     * Used for summary reporting at the end of a translation run.
+     */
+    public abstract getFailedTranslations(): Array<{text: string; targetLang: TranslationTargetLocale; error: string}>;
+
+    /**
      * Trim a string to keep logs readable.
      */
     private trimForLogs(text: string) {

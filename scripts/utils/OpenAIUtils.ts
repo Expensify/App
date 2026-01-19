@@ -184,9 +184,20 @@ class OpenAIUtils {
     private static isRetryableError(error: unknown): boolean {
         // Handle known/predictable API errors
         if (error instanceof OpenAI.APIError) {
-            // Only retry 429 (rate limit) or 5xx errors
             const status = error.status as number;
-            return !!status && (status === 429 || status >= 500);
+
+            // Retry 429 (rate limit) or 5xx errors
+            if (status === 429 || status >= 500) {
+                return true;
+            }
+
+            // Retry conversation_locked errors (another process is still operating on this conversation)
+            // This can happen when a previous request is still being processed by OpenAI
+            if ('code' in error && error.code === 'conversation_locked') {
+                return true;
+            }
+
+            return false;
         }
 
         // Handle random/unpredictable network errors

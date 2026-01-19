@@ -9,6 +9,10 @@ class DummyTranslator extends Translator {
     public estimateCost(): Promise<number> {
         return Promise.resolve(0);
     }
+
+    public getFailedTranslations(): Array<{text: string; targetLang: TranslationTargetLocale; error: string}> {
+        return []; // Dummy translator never fails
+    }
 }
 
 export default DummyTranslator;

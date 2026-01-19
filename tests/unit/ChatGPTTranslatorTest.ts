@@ -134,4 +134,31 @@ describe('ChatGPTTranslator.performTranslation', () => {
         expect(secondCall?.previousResponseID).toBeUndefined();
         expect(secondCall?.instructions).toBeUndefined();
     });
+
+    it('tracks failed translations after exhausting all retries', async () => {
+        // Always throw an error
+        const testError = new Error('Test API error');
+        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockRejectedValue(testError);
+
+        // @ts-expect-error TS2445
+        await translator.performTranslation(targetLang, original);
+
+        const failures = translator.getFailedTranslations();
+        expect(failures).toHaveLength(1);
+        expect(failures.at(0)).toMatchObject({
+            text: original,
+            targetLang,
+            error: 'Test API error',
+        });
+    });
+
+    it('returns empty array when no translations have failed', async () => {
+        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockResolvedValue(mockResponse(validTranslation));
+
+        // @ts-expect-error TS2445
+        await translator.performTranslation(targetLang, original);
+
+        const failures = translator.getFailedTranslations();
+        expect(failures).toHaveLength(0);
+    });
 });

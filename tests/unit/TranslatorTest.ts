@@ -8,6 +8,10 @@ class TestTranslator extends Translator {
     public estimateCost(): Promise<number> {
         return Promise.resolve(0);
     }
+
+    public getFailedTranslations() {
+        return [];
+    }
 }
 
 describe('Translator - Chinese Brackets Fix', () => {

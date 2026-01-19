@@ -269,6 +269,49 @@ class TranslationGenerator {
             localePool.add(() => this.generateTranslationsForLocale(targetLanguage, stringsToTranslate, translations.get(targetLanguage) ?? new Map<number, string>())),
         );
         await Promise.all(localePromises);
+
+        // Print error summary if there were any failures
+        this.printErrorSummary();
+    }
+
+    /**
+     * Print a summary of all translations that failed after exhausting retries.
+     */
+    private printErrorSummary(): void {
+        const failures = this.translator.getFailedTranslations();
+        if (failures.length === 0) {
+            return;
+        }
+
+        console.log('\n');
+        console.log('═'.repeat(80));
+        console.log('                           ❌ TRANSLATION ERRORS SUMMARY');
+        console.log('═'.repeat(80));
+        console.log(`\nThe following ${failures.length} translation(s) failed after exhausting all retries:`);
+        console.log('(The original text was used as a fallback for these translations)\n');
+
+        // Group failures by locale for cleaner output
+        const byLocale = new Map<string, typeof failures>();
+        for (const failure of failures) {
+            const existing = byLocale.get(failure.targetLang) ?? [];
+            existing.push(failure);
+            byLocale.set(failure.targetLang, existing);
+        }
+
+        for (const [locale, localeFailures] of byLocale) {
+            console.log(`\n📍 ${locale.toUpperCase()} (${localeFailures.length} failure${localeFailures.length > 1 ? 's' : ''}):`);
+            console.log('─'.repeat(60));
+            for (const failure of localeFailures) {
+                const truncatedText = failure.text.length > 60 ? `${failure.text.slice(0, 60)}...` : failure.text;
+                console.log(`  • "${truncatedText}"`);
+                const firstErrorLine = failure.error.split('\n').at(0) ?? failure.error;
+                console.log(`    Error: ${firstErrorLine}`);
+            }
+        }
+
+        console.log(`\n${'═'.repeat(80)}`);
+        console.log(`Total failures: ${failures.length}`);
+        console.log(`${'═'.repeat(80)}\n`);
     }
 
     /**
