@@ -1175,6 +1175,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            iouReportNextStep: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -1283,6 +1284,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            iouReportNextStep: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -1404,6 +1406,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            iouReportNextStep: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -1572,6 +1575,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            iouReportNextStep: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -1729,6 +1733,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            iouReportNextStep: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -1900,6 +1905,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            iouReportNextStep: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2094,6 +2100,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            iouReportNextStep: undefined,
         });
 
         await waitForBatchedUpdates();

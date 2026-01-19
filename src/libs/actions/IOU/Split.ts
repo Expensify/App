@@ -96,6 +96,7 @@ type UpdateSplitTransactionsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
 };
 
 type SplitBillActionsParams = {
@@ -986,6 +987,7 @@ function updateSplitTransactions({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
+    iouReportNextStep,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -1215,6 +1217,7 @@ function updateSplitTransactions({
                     currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
                     currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
                     isASAPSubmitBetaEnabled,
+                    iouReportNextStep,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
