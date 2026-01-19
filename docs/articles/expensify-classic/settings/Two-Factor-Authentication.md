@@ -8,9 +8,9 @@ Setting up two-factor authentication (2FA) in Expensify Classic adds an extra la
 
 ---
 
-# Who can use Two-Factor Authentication in Expensify Classic
+# Who can enable Two-Factor Authentication in Expensify Classic
 
-Anyone can enable Two-Factor Authentication on their own account. Domain admins can also enable Two-Factor Authentication for domains, which forces each domain member to set up Two-Factor Authentication on their account. 
+Anyone can enable Two-Factor Authentication on their own account. Domain Admins can require all members on a domain to enable Two-Factor Authentication on their accounts.
 
 # How to enable Two-Factor Authentication on your account in Expensify Classic 
 
