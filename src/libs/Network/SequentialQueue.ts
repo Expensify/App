@@ -166,6 +166,14 @@ function process(): Promise<void> {
             return process();
         })
         .catch((error: RequestError) => {
+            Log.info('[TERMINATE]', false, {error: JSON.stringify(error, null, 2)});
+
+            if (error.name === CONST.ERROR.REQUEST_CANCELLED && error.message === CONST.ERROR.REQUEST_ABORTED) {
+                rollbackOngoingPersistedRequest();
+                Log.info('[TERMINATE] Queue after rollback', false, {commands: getAllPersistedRequests().map((request) => request.command)});
+                return;
+            }
+
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
@@ -404,6 +412,7 @@ function resetQueue(): void {
 }
 
 export {
+    getAllPersistedRequests,
     flush,
     getCurrentRequest,
     getShouldFailAllRequests,
