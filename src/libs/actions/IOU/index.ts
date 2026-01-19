@@ -11,7 +11,6 @@ import type {SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchContextProps, SearchQueryJSON} from '@components/Search/types';
-import {setTransactionReport} from '@libs/actions/Transaction';
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -1323,13 +1322,12 @@ function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolea
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reimbursable});
 }
 
-function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isTestTransaction = false, participantsAutoAssigned?: boolean) {
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isTestTransaction = false) {
     // We should change the reportID and isFromGlobalCreate of the test transaction since this flow can start inside an existing report
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         participants,
         isFromGlobalCreate: isTestTransaction ? true : undefined,
         reportID: isTestTransaction ? participants?.at(0)?.reportID : undefined,
-        participantsAutoAssigned,
     });
 }
 
@@ -11929,10 +11927,9 @@ function setMoneyRequestParticipantAsPolicyExpenseChat(transactionID: string, po
     if (!policyExpenseReportID) {
         return;
     }
-    setTransactionReport(transactionID, {reportID: policyExpenseReportID}, isDraft);
-    return setMoneyRequestParticipants(
-        transactionID,
-        [
+
+    return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        participants: [
             {
                 selected: true,
                 accountID: 0,
@@ -11941,9 +11938,8 @@ function setMoneyRequestParticipantAsPolicyExpenseChat(transactionID: string, po
                 policyID,
             },
         ],
-        false,
-        true,
-    );
+        participantsAutoAssigned: true,
+    });
 }
 
 function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null) {
