@@ -5,6 +5,11 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
+type MultifactorAuthenticationTranslationParams = {
+    authType?: string;
+    registered?: boolean;
+};
+
 type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
@@ -325,6 +330,8 @@ type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
 type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
 
 type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
+
+type UpdatedPolicyReimburserParams = {newReimburser: string; previousReimburser?: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
@@ -900,6 +907,7 @@ export type {
     UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
+    UpdatedPolicyReimburserParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     UpdatedPolicyApprovalRuleParams,
@@ -939,4 +947,5 @@ export type {
     FocusModeUpdateParams,
     RoutedDueToDEWParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
+    MultifactorAuthenticationTranslationParams,
 };

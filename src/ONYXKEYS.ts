@@ -949,6 +949,8 @@ const ONYXKEYS = {
         TEXT_PICKER_MODAL_FORM_DRAFT: 'textPickerModalFormDraft',
         REPORTS_DEFAULT_TITLE_MODAL_FORM: 'ReportsDefaultTitleModalForm',
         REPORTS_DEFAULT_TITLE_MODAL_FORM_DRAFT: 'ReportsDefaultTitleModalFormDraft',
+        RESET_DOMAIN_FORM: 'resetDomainForm',
+        RESET_DOMAIN_FORM_DRAFT: 'resetDomainFormDraft',
         RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM: 'rulesAutoApproveReportsUnderModalForm',
         RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM_DRAFT: 'rulesAutoApproveReportsUnderModalFormDraft',
         RULES_RANDOM_REPORT_AUDIT_MODAL_FORM: 'rulesRandomReportAuditModalForm',
@@ -1043,6 +1045,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD]: FormTypes.ReportVirtualCardFraudForm;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: FormTypes.ReportPhysicalCardForm;
     [ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM]: FormTypes.ReportFieldsEditForm;
+    [ONYXKEYS.FORMS.RESET_DOMAIN_FORM]: FormTypes.ResetDomainForm;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
     [ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM]: FormTypes.EnterSignerInfoForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM]: FormTypes.PersonalBankAccountForm;
