@@ -11637,7 +11637,6 @@ describe('actions/IOU', () => {
             const currentUserEmail = 'current@test.com';
             const payerAccountID = 20;
             const payerEmail = 'payer@test.com';
-            const selfDMReportID = 'selfDM200';
             const targetReportID = 'iouReport200';
             const chatReportID = 'chatReport200';
 
