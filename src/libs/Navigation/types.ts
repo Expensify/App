@@ -1944,6 +1944,20 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.SET_DEFAULT_WORKSPACE]: {
         navigateTo?: Routes;
     };
+    [SCREENS.MONEY_REQUEST.STEP_TIME_RATE]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        reportActionID: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_HOURS]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        reportActionID: string;
+    };
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
