@@ -110,6 +110,8 @@ const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
+    dismissToPreviousRHP: jest.fn(),
+    dismissToSuperWideRHP: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
@@ -1194,7 +1196,7 @@ describe('actions/IOU', () => {
                             attendees: [],
                             currency: CONST.CURRENCY.USD,
                             created: '',
-                            merchant: '',
+                            merchant: '(none)',
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
@@ -1515,7 +1517,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction?.reportID).toBe(iouReportID);
                                     expect(newTransaction?.amount).toBe(amount);
                                     expect(newTransaction?.comment?.comment).toBe(comment);
-                                    expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+                                    expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                     expect(newTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
@@ -1695,7 +1697,7 @@ describe('actions/IOU', () => {
                                         expect(transaction?.reportID).toBe(iouReportID);
                                         expect(transaction?.amount).toBe(amount);
                                         expect(transaction?.comment?.comment).toBe(comment);
-                                        expect(transaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+                                        expect(transaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                         // The transactionID on the iou action should match the one from the transactions collection
@@ -3578,6 +3580,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
+                iouReportNextStep: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3686,6 +3689,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
+                iouReportNextStep: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3807,6 +3811,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
+                iouReportNextStep: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -5140,6 +5145,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     isASAPSubmitBetaEnabled: false,
                     policyRecentlyUsedCurrencies: [],
+                    parentReportNextStep: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -6808,6 +6814,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -6885,6 +6892,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     isASAPSubmitBetaEnabled: false,
+                    parentReportNextStep: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -6929,6 +6937,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     isASAPSubmitBetaEnabled: false,
+                    parentReportNextStep: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -6986,6 +6995,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -7306,7 +7316,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(0),
                 reportID,
                 amount: 0,
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -7318,7 +7328,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -7368,7 +7378,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -7663,7 +7673,7 @@ describe('actions/IOU', () => {
             reportID: fakeReport.reportID,
             transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             isFromGlobalCreate: true,
-            merchant: '(none)',
+            merchant: 'Expense',
         };
 
         const currentDate = '2025-04-01';
@@ -7716,6 +7726,7 @@ describe('actions/IOU', () => {
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
                         ...transactionResult,
+                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     });
                 });
@@ -7792,6 +7803,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 policyRecentlyUsedCurrencies: initialCurrencies,
+                parentReportNextStep: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -7860,6 +7872,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 policyRecentlyUsedCurrencies: [],
+                parentReportNextStep: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -7877,7 +7890,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            expect(updatedTransaction?.modifiedAmount).toBe(0);
+            expect(updatedTransaction?.modifiedAmount).toBe('');
         });
     });
 
@@ -7949,6 +7962,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 policyRecentlyUsedCurrencies: [],
+                parentReportNextStep: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -8928,7 +8942,7 @@ describe('actions/IOU', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 newReport: result.current.report,
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -9122,6 +9136,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
+                    iouReportNextStep: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -9279,6 +9294,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
+                    iouReportNextStep: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -9450,6 +9466,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
+                    iouReportNextStep: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -9644,6 +9661,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
+                    iouReportNextStep: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -10252,6 +10270,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: '',
                 isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -10303,6 +10322,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                 isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
             });
 
             waitForBatchedUpdates();

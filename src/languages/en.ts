@@ -16,24 +16,6 @@ import type {
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
-    FileLimitParams,
-    FileTypeParams,
-    FiltersAmountBetweenParams,
-    FlightLayoverParams,
-    FlightParams,
-    FocusModeUpdateParams,
-    FormattedMaxLengthParams,
-    GoBackMessageParams,
-    HarvestCreatedExpenseReportParams,
-    ImportedTagsMessageParams,
-    ImportedTypesParams,
-    ImportFieldParams,
-    ImportMembersSuccessfulDescriptionParams,
-    ImportPerDiemRatesSuccessfulDescriptionParams,
-    ImportTagsSuccessfulDescriptionParams,
-    IncorrectZipFormatParams,
-    IndividualExpenseRulesSubtitleParams,
-    InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
     IntegrationSyncFailedParams,
@@ -122,9 +104,6 @@ import type {
     SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
-    SpreadCategoriesParams,
-    SpreadFieldNameParams,
-    SpreadSheetColumnParams,
     StatementTitleParams,
     StepCounterParams,
     StripePaidParams,
@@ -696,12 +675,12 @@ const translations = {
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
         attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
-        tooManyFiles: ({fileLimit}: FileLimitParams) => `You can only upload up to ${fileLimit} files at a time.`,
+        tooManyFiles: (fileLimit: number) => `You can only upload up to ${fileLimit} files at a time.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
         someFilesCantBeUploaded: "Some files can't be uploaded",
         sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Files must be under ${maxUploadSizeInMB} MB. Any larger files won't be uploaded.`,
         maxFileLimitExceeded: "You can upload up to 30 receipts at a time. Any extras won't be uploaded.",
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} files aren't supported. Only supported file types will be uploaded.`,
+        unsupportedFileType: (fileType: string) => `${fileType} files aren't supported. Only supported file types will be uploaded.`,
         learnMoreAboutSupportedFiles: 'Learn more about supported formats.',
         passwordProtected: "Password-protected PDFs aren't supported. Only supported files will be uploaded.",
     },
@@ -726,8 +705,8 @@ const translations = {
     composer: {
         noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
-        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
-        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum task title length is ${formattedMaxLength} characters.`,
+        commentExceededMaxLength: (formattedMaxLength: string) => `The maximum comment length is ${formattedMaxLength} characters.`,
+        taskTitleExceededMaxLength: (formattedMaxLength: string) => `The maximum task title length is ${formattedMaxLength} characters.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
@@ -935,7 +914,7 @@ const translations = {
     adminOnlyCanPost: 'Only admins can send messages in this room.',
     reportAction: {
         asCopilot: 'as copilot for',
-        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+        harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `created this report to hold all expenses from <a href="${reportUrl}">${reportName}</a> that couldn't be submitted on your chosen frequency`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
             `created this report for any held expenses from <a href="${reportUrl}">${reportName}</a>`,
@@ -1012,13 +991,13 @@ const translations = {
         chooseSpreadsheet: '<muted-link>Select a spreadsheet file to import. Supported formats: .csv, .txt, .xls, and .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Select a spreadsheet file to import. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Learn more</a> about supported file formats.</muted-link>`,
         fileContainsHeader: 'File contains column headers',
-        column: ({name}: SpreadSheetColumnParams) => `Column ${name}`,
-        fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Oops! A required field ("${fieldName}") hasn't been mapped. Please review and try again.`,
-        singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
-        emptyMappedField: ({fieldName}: SpreadFieldNameParams) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
+        column: (name: string) => `Column ${name}`,
+        fieldNotMapped: (fieldName: string) => `Oops! A required field ("${fieldName}") hasn't been mapped. Please review and try again.`,
+        singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
+        emptyMappedField: (fieldName: string) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
         importSuccessfulTitle: 'Import successful',
-        importCategoriesSuccessfulDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
-        importMembersSuccessfulDescription: ({added, updated}: ImportMembersSuccessfulDescriptionParams) => {
+        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'No members have been added or updated.';
             }
@@ -1033,10 +1012,9 @@ const translations = {
 
             return added > 1 ? `${added} members have been added.` : '1 member has been added.';
         },
-        importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfulDescriptionParams) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
+        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
-        importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfulDescriptionParams) =>
-            rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.',
+        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.'),
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
         importDescription: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
@@ -1480,6 +1458,9 @@ const translations = {
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hour' : 'hours'} @ ${rate} / hour`,
             hrs: 'hrs',
+            hours: 'Hours',
+            ratePreview: (rate: string) => `${rate} / hour`,
+            amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
     },
     transactionMerge: {
@@ -2355,7 +2336,7 @@ const translations = {
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
         instant: 'Instant (Debit card)',
-        instantSummary: ({rate, minAmount}: InstantSummaryParams) => `${rate}% fee (${minAmount} minimum)`,
+        instantSummary: (rate: string, minAmount: string) => `${rate}% fee (${minAmount} minimum)`,
         ach: '1-3 Business days (Bank account)',
         achSummary: 'No fee',
         whichAccount: 'Which account?',
@@ -2904,7 +2885,7 @@ const translations = {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
             hasInvalidCharacter: 'Name can only include Latin characters',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Incorrect zip code format${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Please ensure the phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
@@ -2984,7 +2965,7 @@ const translations = {
     },
     focusModeUpdateModal: {
         title: 'Welcome to #focus mode!',
-        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+        prompt: (priorityModePageUrl: string) =>
             `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
     },
     notFound: {
@@ -3655,7 +3636,7 @@ const translations = {
         flight: 'Flight',
         flightDetails: {
             passenger: 'Passenger',
-            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>You have a <strong>${layover} layover</strong> before this flight</muted-text-label>`,
+            layover: (layover: string) => `<muted-text-label>You have a <strong>${layover} layover</strong> before this flight</muted-text-label>`,
             takeOff: 'Take-off',
             landing: 'Landing',
             seat: 'Seat',
@@ -3744,17 +3725,18 @@ const translations = {
             conciergeMessage: ({domain}: {domain: string}) => `Travel enablement failed for domain: ${domain}. Please review and enable travel for this domain.`,
         },
         updates: {
-            bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
                 `Your flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been booked. Confirmation code: ${confirmationID}`,
-            ticketVoided: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Your ticket for flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been voided.`,
-            ticketRefunded: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketRefunded: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Your ticket for flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been refunded or exchanged.`,
-            flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            flightCancelled: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Your flight ${airlineCode} (${origin} → ${destination}) on ${startDate}} has been canceled by the airline.`,
             flightScheduleChangePending: (airlineCode: string) => `The airline has proposed a schedule change for flight ${airlineCode}; we are awaiting confirmation.`,
             flightScheduleChangeClosed: (airlineCode: string, startDate?: string) => `Schedule change confirmed: flight ${airlineCode} now departs at ${startDate}.`,
-            flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `Your flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been updated.`,
+            flightUpdated: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+                `Your flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been updated.`,
             flightCabinChanged: (airlineCode: string, cabinClass?: string) => `Your cabin class has been updated to ${cabinClass} on flight ${airlineCode}.`,
             flightSeatConfirmed: (airlineCode: string) => `Your seat assignment on flight ${airlineCode} has been confirmed.`,
             flightSeatChanged: (airlineCode: string) => `Your seat assignment on flight ${airlineCode} has been changed.`,
@@ -4561,7 +4543,7 @@ const translations = {
                 importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Choose an option below:',
-                    label: ({importedTypes}: ImportedTypesParams) => `Imported as ${importedTypes.join(' and ')}`,
+                    label: (importedTypes: string[]) => `Imported as ${importedTypes.join(' and ')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Please enter the ${fieldName}`,
                     customSegments: {
                         title: 'Custom segments/records',
@@ -4637,18 +4619,18 @@ const translations = {
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'NetSuite employee default',
                         description: 'Not imported into Expensify, applied on export',
-                        footerContent: ({importField}: ImportFieldParams) =>
+                        footerContent: (importField: string) =>
                             `If you use ${importField} in NetSuite, we'll apply the default set on the employee record upon export to Expense Report or Journal Entry.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Tags',
                         description: 'Line-item level',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} will be selectable for each individual expense on an employee's report.`,
+                        footerContent: (importField: string) => `${startCase(importField)} will be selectable for each individual expense on an employee's report.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Report fields',
                         description: 'Report level',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} selection will apply to all expense on an employee's report.`,
+                        footerContent: (importField: string) => `${startCase(importField)} selection will apply to all expense on an employee's report.`,
                     },
                 },
             },
@@ -4725,7 +4707,7 @@ const translations = {
                 commercialFeedPlaidDetails: `Requires setup with your bank, but we'll guide you. This is typically limited to larger companies.`,
                 directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
                 enableFeed: {
-                    title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
+                    title: (provider: string) => `Enable your ${provider} feed`,
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
                     visa: 'We have global integrations with Visa, though eligibility varies by bank and card program.\n\nTo get started, simply:',
                     mastercard: 'We have global integrations with Mastercard, though eligibility varies by bank and card program.\n\nTo get started, simply:',
@@ -5264,7 +5246,7 @@ const translations = {
                 prompt3: ' download a backup',
                 prompt4: ' first.',
             },
-            importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
+            importedTagsMessage: (columnCounts: number) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
             cannotDeleteOrDisableAllTags: {
                 title: 'Cannot delete or disable all tags',
@@ -6071,7 +6053,7 @@ const translations = {
         rules: {
             individualExpenseRules: {
                 title: 'Expenses',
-                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>Set spend controls and defaults for individual expenses. You can also create rules for <a href="${categoriesPageLink}">categories</a> and <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Receipt required amount',
                 receiptRequiredAmountDescription: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
@@ -6380,12 +6362,15 @@ const translations = {
         deleteReportField: (fieldType: string, fieldName?: string) => `removed ${fieldType} Report Field "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `changed the maximum receipt required expense amount to ${newValue} (previously ${oldValue})`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `changed the maximum expense amount for violations to ${newValue} (previously ${oldValue})`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `updated "Max expense age (days)" to "${newValue}" (previously "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense amount to "${newValue}"`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense amount (previously "${oldValue}")`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense age to "${newValue}" days`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense age (previously "${oldValue}" days)`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `set the monthly report submission date to "${newValue}"`;
@@ -6708,7 +6693,7 @@ const translations = {
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,
-                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Between ${greaterThan} and ${lessThan}`,
+                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
                 equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Equal to ${amount ?? ''}`,
             },
             card: {
