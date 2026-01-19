@@ -28,7 +28,7 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {getIneligibleInvitees, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, getSoftExclusionsForGuideAndAccountManager} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
@@ -70,23 +70,10 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         );
     }, [policy?.employeeList]);
 
-    const softExclusions = useMemo(() => {
-        const result: Record<string, boolean> = {};
-
-        // Exclude Guide from auto-suggestions (but allow manual entry)
-        const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
-        if (assignedGuideEmail) {
-            result[assignedGuideEmail] = true;
-        }
-
-        // Exclude Account Manager from auto-suggestions (but allow manual entry)
-        const accountManagerLogin = account?.accountManagerAccountID ? personalDetails?.[Number(account.accountManagerAccountID)]?.login?.toLowerCase() : undefined;
-        if (accountManagerLogin) {
-            result[accountManagerLogin] = true;
-        }
-
-        return result;
-    }, [policy?.assignedGuide?.email, account?.accountManagerAccountID, personalDetails]);
+    const softExclusions = useMemo(
+        () => getSoftExclusionsForGuideAndAccountManager(policy, account?.accountManagerAccountID, personalDetails),
+        [policy, account?.accountManagerAccountID, personalDetails],
+    );
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, searchOptions} =
         useSearchSelector({
@@ -125,7 +112,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             });
         }
 
-        // Contacts section (Guide/AM already filtered at data layer via excludeFromSuggestionsOnly)
+        // Contacts section
         if (availableOptions.personalDetails.length > 0) {
             sectionsArr.push({
                 title: translate('common.contacts'),
@@ -133,7 +120,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             });
         }
 
-        // User to invite section (allows manual entry of Guide/AM)
+        // User to invite section
         if (availableOptions.userToInvite) {
             sectionsArr.push({
                 title: undefined,

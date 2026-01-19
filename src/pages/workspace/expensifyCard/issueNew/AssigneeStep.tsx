@@ -17,7 +17,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
-import {getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {filterGuideAndAccountManager, getIneligibleInvitees, getSoftExclusionsForGuideAndAccountManager, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import {clearIssueNewCardFlow, getCardDefaultName, setDraftInviteAccountID, setIssueNewCardStepAndData} from '@userActions/Card';
@@ -64,23 +64,10 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         );
     }, [policy?.employeeList]);
 
-    const softExclusions = useMemo(() => {
-        const result: Record<string, boolean> = {};
-
-        // Exclude Guide from auto-suggestions (but allow manual entry)
-        const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
-        if (assignedGuideEmail) {
-            result[assignedGuideEmail] = true;
-        }
-
-        // Exclude Account Manager from auto-suggestions (but allow manual entry)
-        const accountManagerLogin = account?.accountManagerAccountID ? personalDetails?.[Number(account.accountManagerAccountID)]?.login?.toLowerCase() : undefined;
-        if (accountManagerLogin) {
-            result[accountManagerLogin] = true;
-        }
-
-        return result;
-    }, [policy?.assignedGuide?.email, account?.accountManagerAccountID, personalDetails]);
+    const softExclusions = useMemo(
+        () => getSoftExclusionsForGuideAndAccountManager(policy, account?.accountManagerAccountID, personalDetails),
+        [policy, account?.accountManagerAccountID, personalDetails],
+    );
 
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, selectedOptionsForDisplay, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
@@ -178,23 +165,8 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
         const accountManagerLogin = account?.accountManagerAccountID ? personalDetails?.[Number(account.accountManagerAccountID)]?.login?.toLowerCase() : undefined;
 
-        const filterGuideAndAMFromMembers = (items: ListItem[]): ListItem[] =>
-            items.filter((item) => {
-                const itemLogin = item.login?.toLowerCase();
-                const itemAltText = item.alternateText?.toLowerCase();
-                // Exclude Guide
-                if (assignedGuideEmail && (itemLogin === assignedGuideEmail || itemAltText === assignedGuideEmail)) {
-                    return false;
-                }
-                // Exclude Account Manager
-                if (accountManagerLogin && (itemLogin === accountManagerLogin || itemAltText === accountManagerLogin)) {
-                    return false;
-                }
-                return true;
-            });
-
         if (!debouncedSearchTerm) {
-            return filterGuideAndAMFromMembers(membersDetails);
+            return filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
         }
 
         if (!areOptionsInitialized) {
@@ -202,15 +174,15 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         }
 
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-
-        const filteredMembers = tokenizedSearch(filterGuideAndAMFromMembers(membersDetails), searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
+        const filteredMembersBeforeSearch = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
+        const filteredMembers = tokenizedSearch(filteredMembersBeforeSearch, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         const options = [
             ...filteredMembers,
             ...selectedOptionsForDisplay,
-            ...availableOptions.recentReports, // Already filtered at data layer
-            ...availableOptions.personalDetails, // Already filtered at data layer
-            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []), // Allows manual entry
+            ...availableOptions.recentReports,
+            ...availableOptions.personalDetails,
+            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
         ];
 
         return options.map((option) => ({

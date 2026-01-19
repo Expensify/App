@@ -8,7 +8,19 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction, TravelSettings} from '@src/types/onyx';
+import type {
+    OnyxInputOrEntry,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyEmployeeList,
+    PolicyTagLists,
+    PolicyTags,
+    Report,
+    TaxRate,
+    Transaction,
+    TravelSettings,
+} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -502,6 +514,69 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     }
 
     return memberEmailsToExclude;
+}
+
+/**
+ * Get soft exclusions (Guide/Account Manager) that should be hidden from auto-suggestions
+ * but can still be manually entered by the user.
+ *
+ * @param policy - The policy to get the assigned guide from
+ * @param accountManagerAccountID - The account manager's account ID from the account object (string from ONYXKEYS.ACCOUNT)
+ * @param personalDetails - Personal details collection to look up account manager login
+ * @returns Record mapping lowercase emails to true for Guide and Account Manager
+ */
+function getSoftExclusionsForGuideAndAccountManager(
+    policy: OnyxEntry<Policy>,
+    accountManagerAccountID: string | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): Record<string, boolean> {
+    const result: Record<string, boolean> = {};
+
+    // Exclude Guide from auto-suggestions (but allow manual entry)
+    const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
+    if (assignedGuideEmail) {
+        result[assignedGuideEmail] = true;
+    }
+
+    // Exclude Account Manager from auto-suggestions (but allow manual entry)
+    const accountManagerLogin = accountManagerAccountID ? personalDetails?.[Number(accountManagerAccountID)]?.login?.toLowerCase() : undefined;
+    if (accountManagerLogin) {
+        result[accountManagerLogin] = true;
+    }
+
+    return result;
+}
+
+/**
+ * Filter out Guide and Account Manager from a list of items.
+ * Used for filtering local data (e.g., policy.employeeList) that isn't filtered at the data layer.
+ *
+ * @param items - Array of items to filter (must have login or alternateText properties)
+ * @param assignedGuideEmail - The assigned guide's email (should be lowercase)
+ * @param accountManagerLogin - The account manager's login (should be lowercase)
+ * @returns Filtered array with Guide and Account Manager removed
+ */
+function filterGuideAndAccountManager<T extends {login?: string | null; alternateText?: string | null}>(
+    items: T[],
+    assignedGuideEmail: string | undefined,
+    accountManagerLogin: string | undefined,
+): T[] {
+    return items.filter((item) => {
+        const itemLogin = item.login?.toLowerCase();
+        const itemAltText = item.alternateText?.toLowerCase();
+
+        // Exclude Guide
+        if (assignedGuideEmail && (itemLogin === assignedGuideEmail || itemAltText === assignedGuideEmail)) {
+            return false;
+        }
+
+        // Exclude Account Manager
+        if (accountManagerLogin && (itemLogin === accountManagerLogin || itemAltText === accountManagerLogin)) {
+            return false;
+        }
+
+        return true;
+    });
 }
 
 function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagLists>): Array<keyof PolicyTagLists> {
@@ -1694,6 +1769,8 @@ export {
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
+    getSoftExclusionsForGuideAndAccountManager,
+    filterGuideAndAccountManager,
     getNumericValue,
     isMultiLevelTags,
     // This will be fixed as part of https://github.com/Expensify/App/issues/66397
