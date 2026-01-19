@@ -9447,6 +9447,95 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
     return {holdReportActions, holdTransactions};
 }
 
+type OptimisticReportActionCopyIDs = Record<string, string>;
+
+/**
+ * Gets duplicate workflow actions for a partial expense report.
+ * Used when splitting held expenses into a new partial report to maintain action history.
+ *
+ * @param sourceReportID - The ID of the original report to copy actions from
+ * @param targetReportID - The ID of the new partial expense report to copy actions to
+ * @returns A tuple of [optimisticData, successData, failureData, duplicatedReportActionIDs]
+ */
+function getDuplicateActionsForPartialReport(
+    sourceReportID: string | undefined,
+    targetReportID: string | undefined,
+): [
+    Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
+    Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
+    Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
+    OptimisticReportActionCopyIDs,
+] {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const optimisticReportActionCopyIDs: OptimisticReportActionCopyIDs = {};
+
+    if (!sourceReportID || !targetReportID) {
+        return [optimisticData, successData, failureData, optimisticReportActionCopyIDs];
+    }
+
+    const sourceReportActions = getAllReportActions(sourceReportID);
+
+    // Match the backend's WORKFLOW_ACTIONS list
+    const workflowActionTypes = [
+        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+        CONST.REPORT.ACTIONS.TYPE.APPROVED,
+        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+        CONST.REPORT.ACTIONS.TYPE.REJECTED,
+        CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+        CONST.REPORT.ACTIONS.TYPE.CLOSED,
+        CONST.REPORT.ACTIONS.TYPE.REOPENED,
+        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+        CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+        CONST.REPORT.ACTIONS.TYPE.REROUTE,
+    ] as const;
+
+    const copiedActions: Record<string, OnyxTypes.ReportAction> = {};
+    const copiedActionsSuccess: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const copiedActionsFailure: Record<string, null> = {};
+
+    for (const action of Object.values(sourceReportActions)) {
+        if (action && (workflowActionTypes as readonly string[]).includes(action.actionName)) {
+            const newActionID = NumberUtils.rand64();
+            copiedActions[newActionID] = {
+                ...action,
+                reportActionID: newActionID,
+                reportID: targetReportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            copiedActionsSuccess[newActionID] = {
+                pendingAction: null,
+            };
+            copiedActionsFailure[newActionID] = null;
+            optimisticReportActionCopyIDs[action.reportActionID] = newActionID;
+        }
+    }
+
+    if (Object.keys(copiedActions).length > 0) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: copiedActions,
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: copiedActionsSuccess,
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: copiedActionsFailure,
+        });
+    }
+
+    return [optimisticData, successData, failureData, optimisticReportActionCopyIDs];
+}
+
 function getReportFromHoldRequestsOnyxData({
     chatReport,
     iouReport,
@@ -9466,6 +9555,7 @@ function getReportFromHoldRequestsOnyxData({
     optimisticHoldActionID: string;
     optimisticCreatedReportForUnapprovedTransactionsActionID: string | undefined;
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
+    optimisticReportActionCopyIDs: OptimisticReportActionCopyIDs;
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
@@ -9710,6 +9800,17 @@ function getReportFromHoldRequestsOnyxData({
         },
     ];
 
+    // Copy submission/approval actions to the new report
+    const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure, optimisticReportActionCopyIDs] = getDuplicateActionsForPartialReport(
+        iouReport?.reportID,
+        optimisticExpenseReport.reportID,
+    );
+    // Only copy the report action for approval flow
+    if (isApprovalFlow && !isEmptyObject(optimisticReportActionCopyIDs)) {
+        optimisticData.push(...copiedActionsOptimistic);
+        successData.push(...copiedActionsSuccess);
+        failureData.push(...copiedActionsFailure);
+    }
     // add optimistic system message explaining the created report for unapproved transactions
     if (isApprovalFlow && optimisticCreatedReportForUnapprovedAction) {
         optimisticData.push({
@@ -9748,6 +9849,7 @@ function getReportFromHoldRequestsOnyxData({
         successData,
         optimisticHoldReportID: optimisticExpenseReport.reportID,
         optimisticHoldReportExpenseActionIDs,
+        optimisticReportActionCopyIDs,
     };
 }
 
@@ -10454,6 +10556,7 @@ function approveMoneyRequest(
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
+    let optimisticReportActionCopyIDs;
     let optimisticCreatedReportForUnapprovedTransactionsActionID;
     if (!full && !!chatReport && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
@@ -10473,6 +10576,7 @@ function approveMoneyRequest(
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
         optimisticCreatedReportForUnapprovedTransactionsActionID = holdReportOnyxData.optimisticCreatedReportForUnapprovedTransactionsActionID;
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+        optimisticReportActionCopyIDs = JSON.stringify(holdReportOnyxData.optimisticReportActionCopyIDs);
     }
 
     // Remove duplicates violations if we approve the report
@@ -10515,6 +10619,7 @@ function approveMoneyRequest(
         optimisticHoldReportID,
         optimisticHoldActionID,
         optimisticHoldReportExpenseActionIDs,
+        optimisticReportActionCopyIDs,
         optimisticCreatedReportForUnapprovedTransactionsActionID,
     };
 
