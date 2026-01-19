@@ -27,7 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
+import {getCachedLastMessageText, getCachedReportActionsForDisplay, getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -52,6 +52,11 @@ import useEmptyLHNIllustration from './useEmptyLHNIllustration';
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
+    const componentRenderCount = useRef(0);
+    const renderItemCountByReportID = useRef<Record<string, number>>({});
+    const previousExtraDataRef = useRef<string>('');
+    
+    componentRenderCount.current += 1;
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashListRef<Report>>(null);
@@ -86,6 +91,85 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const isWeb = platform === CONST.PLATFORM.WEB;
     const emptyLHNIllustration = useEmptyLHNIllustration();
 
+    const renderStatsRef = useRef({
+        renderItemCallCount: 0,
+        getSortedReportActionsForDisplayTime: 0,
+        getLastMessageTextForReportTime: 0,
+        getSortedReportActionsTime: 0,
+        shouldReportActionBeVisibleAsLastActionTime: 0,
+        shouldReportActionBeVisibleAsLastActionCallCount: 0,
+        totalRenderItemTime: 0,
+    });
+
+    const previousDataLength = usePrevious(data.length);
+    const hasLoggedInitialStats = useRef(false);
+
+    useEffect(() => {
+        const totalReports = Object.keys(reports ?? {}).length;
+        const totalReportActions = Object.keys(reportActions ?? {}).length;
+        const reportsInLHN = data.length;
+
+        if (reportsInLHN > 0 && !hasLoggedInitialStats.current) {
+            hasLoggedInitialStats.current = true;
+
+            Log.info('[LHN DEBUG] LHN loaded', false, {
+                reportsInLHN,
+                totalReports,
+                totalReportActions,
+                optionMode,
+            });
+        }
+    }, [data.length, reports, reportActions, optionMode]);
+
+    useEffect(() => {
+        if (renderStatsRef.current.renderItemCallCount === 0) {
+            return;
+        }
+
+        const stats = renderStatsRef.current;
+        const callCount = stats.renderItemCallCount;
+        const avgRenderItemTime = stats.totalRenderItemTime / callCount;
+        const avgGetSortedTime = stats.getSortedReportActionsForDisplayTime / callCount;
+        const avgGetLastMessageTime = stats.getLastMessageTextForReportTime / callCount;
+        const avgGetSortedActionsTime = stats.getSortedReportActionsTime / callCount;
+        const avgVisibilityCheckTime = stats.shouldReportActionBeVisibleAsLastActionTime / (stats.shouldReportActionBeVisibleAsLastActionCallCount || 1);
+
+        const redundantRenders = Object.entries(renderItemCountByReportID.current).filter(([, count]) => count > 1);
+        const maxRenderCount = Math.max(...Object.values(renderItemCountByReportID.current), 0);
+        const topRedundantRenders = redundantRenders
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 5)
+            .map(([reportID, count]) => ({reportID: reportID.substring(0, 8), count}));
+
+        Log.info('[LHN DEBUG] Render Performance Summary', false, {
+            componentRenderCount: componentRenderCount.current,
+            renderItemCallCount: callCount,
+            avgRenderItemTime: `${avgRenderItemTime.toFixed(2)}ms`,
+            avgGetSortedReportActionsForDisplay: `${avgGetSortedTime.toFixed(2)}ms`,
+            avgGetLastMessageTextForReport: `${avgGetLastMessageTime.toFixed(2)}ms`,
+            avgGetSortedReportActions: `${avgGetSortedActionsTime.toFixed(2)}ms`,
+            avgShouldReportActionBeVisibleAsLastAction: `${avgVisibilityCheckTime.toFixed(2)}ms`,
+            visibilityCheckCallCount: stats.shouldReportActionBeVisibleAsLastActionCallCount,
+            totalTime: `${stats.totalRenderItemTime.toFixed(2)}ms`,
+            reportsInLHN: data.length,
+            redundantRendersCount: redundantRenders.length,
+            maxRenderCount,
+            topRedundantRenders,
+        });
+
+        renderItemCountByReportID.current = {};
+
+        renderStatsRef.current = {
+            renderItemCallCount: 0,
+            getSortedReportActionsForDisplayTime: 0,
+            getLastMessageTextForReportTime: 0,
+            getSortedReportActionsTime: 0,
+            shouldReportActionBeVisibleAsLastActionTime: 0,
+            shouldReportActionBeVisibleAsLastActionCallCount: 0,
+            totalRenderItemTime: 0,
+        };
+    }, [data.length, previousDataLength]);
+
     const firstReportIDWithGBRorRBR = useMemo(() => {
         const firstReportWithGBRorRBR = data.find((report) => {
             const itemReportErrors = reportAttributes?.[report.reportID]?.reportErrors;
@@ -102,8 +186,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         return firstReportWithGBRorRBR?.reportID;
     }, [data, reportAttributes]);
 
-    // When the first item renders we want to call the onFirstItemRendered callback.
-    // At this point in time we know that the list is actually displaying items.
     const hasCalledOnLayout = React.useRef(false);
     const onLayoutItem = useCallback(() => {
         if (hasCalledOnLayout.current) {
@@ -114,8 +196,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         onFirstItemRendered();
     }, [onFirstItemRendered]);
 
-    // Controls the visibility of the educational tooltip based on user scrolling.
-    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
 
     const emptyLHNSubtitle = useMemo(
@@ -169,12 +249,11 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         ],
     );
 
-    /**
-     * Function which renders a row in the list
-     */
     const renderItem = useCallback(
         ({item, index}: RenderItemProps): ReactElement => {
+            const renderStartTime = performance.now();
             const reportID = item.reportID;
+            renderItemCountByReportID.current[reportID] = (renderItemCountByReportID.current[reportID] || 0) + 1;
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.chatReportID}`];
@@ -206,17 +285,22 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 !draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]?.match(CONST.REGEX.EMPTY_COMMENT);
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
-            const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
-            const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
-            const lastReportAction = sortedReportActions.at(0);
 
-            // Get the transaction for the last report action
+            const getSortedStartTime = performance.now();
+            const sortedReportActionsForDisplay = getCachedReportActionsForDisplay(reportID);
+            const getSortedEndTime = performance.now();
+            const getSortedDuration = getSortedEndTime - getSortedStartTime;
+
+            renderStatsRef.current.getSortedReportActionsForDisplayTime += getSortedDuration;
+            renderStatsRef.current.renderItemCallCount += 1;
+
+            const lastReportAction = sortedReportActionsForDisplay.at(0);
+
             const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
                 ? (getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
                 : CONST.DEFAULT_NUMBER_ID;
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 
-            // SidebarUtils.getOptionData in OptionRowLHNData does not get re-evaluated when the linked task report changes, so we have the lastMessageTextFromReport evaluation logic here
             let lastActorDetails: Partial<PersonalDetails> | null = item?.lastActorAccountID && personalDetails?.[item.lastActorAccountID] ? personalDetails[item.lastActorAccountID] : null;
             if (!lastActorDetails && lastReportAction) {
                 const lastActorDisplayName = lastReportAction?.person?.[0]?.text;
@@ -230,37 +314,62 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
-            const lastMessageTextFromReport = getLastMessageTextForReport({
-                translate,
-                report: item,
-                lastActorDetails,
-                movedFromReport,
-                movedToReport,
-                policy: itemPolicy,
-                isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
-                policyForMovingExpensesID,
-                reportMetadata: itemReportMetadata,
-                currentUserAccountID,
-            });
+
+            const getLastMessageStartTime = performance.now();
+            const cachedLastMessageText = getCachedLastMessageText(reportID);
+            const lastMessageTextFromReport =
+                cachedLastMessageText ??
+                getLastMessageTextForReport({
+                    translate,
+                    report: item,
+                    lastActorDetails,
+                    movedFromReport,
+                    movedToReport,
+                    policy: itemPolicy,
+                    isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
+                    policyForMovingExpensesID,
+                    reportMetadata: itemReportMetadata,
+                    currentUserAccountID,
+                });
+            const getLastMessageEndTime = performance.now();
+            const getLastMessageDuration = getLastMessageEndTime - getLastMessageStartTime;
+
+            renderStatsRef.current.getLastMessageTextForReportTime += getLastMessageDuration;
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
             let lastAction: ReportAction | undefined;
+            const getSortedActionsDuration = 0;
             if (!itemReportActions || !item) {
                 lastAction = undefined;
             } else {
-                const canUserPerformWriteAction = canUserPerformWriteActionUtil(item, isReportArchived);
-                const actionsArray = getSortedReportActions(Object.values(itemReportActions));
-                const reportActionsForDisplay = actionsArray.filter(
-                    (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-                );
-                lastAction = reportActionsForDisplay.at(-1);
+                lastAction = sortedReportActionsForDisplay.at(-1);
             }
 
             let lastActionReport: OnyxEntry<Report> | undefined;
             if (isInviteOrRemovedAction(lastAction)) {
                 const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
                 lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
+            }
+
+            const renderEndTime = performance.now();
+            const renderDuration = renderEndTime - renderStartTime;
+            renderStatsRef.current.totalRenderItemTime += renderDuration;
+
+            const renderCount = renderItemCountByReportID.current[reportID];
+            if (renderDuration > 5 || renderStatsRef.current.renderItemCallCount <= 5 || renderCount > 1) {
+                const actionCount = Object.keys(itemReportActions ?? {}).length;
+                Log.info('[LHN DEBUG] renderItem Performance', false, {
+                    reportID,
+                    index,
+                    renderCount,
+                    renderDuration: `${renderDuration.toFixed(2)}ms`,
+                    getSortedReportActionsForDisplay: `${getSortedDuration.toFixed(2)}ms`,
+                    getLastMessageTextForReport: `${getLastMessageDuration.toFixed(2)}ms`,
+                    getSortedReportActions: `${getSortedActionsDuration.toFixed(2)}ms`,
+                    actionCount,
+                    isArchived: isReportArchived,
+                });
             }
 
             return (
@@ -336,23 +445,53 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => [
-            reportActions,
-            reports,
-            reportAttributes,
-            reportNameValuePairs,
-            transactionViolations,
-            policy,
-            personalDetails,
-            data.length,
-            draftComments,
-            optionMode,
-            preferredLocale,
-            transactions,
-            isOffline,
-            isScreenFocused,
-            isReportsSplitNavigatorLast,
-        ],
+        () => {
+            const newExtraData = [
+                reportActions,
+                reports,
+                reportAttributes,
+                reportNameValuePairs,
+                transactionViolations,
+                policy,
+                personalDetails,
+                data.length,
+                draftComments,
+                optionMode,
+                preferredLocale,
+                transactions,
+                isOffline,
+                isScreenFocused,
+                isReportsSplitNavigatorLast,
+            ];
+            const extraDataKeys = ['reportActions', 'reports', 'reportAttributes', 'reportNameValuePairs', 'transactionViolations', 'policy', 'personalDetails', 'data.length', 'draftComments', 'optionMode', 'preferredLocale', 'transactions', 'isOffline', 'isScreenFocused', 'isReportsSplitNavigatorLast'];
+            const extraDataValues = newExtraData.map((item) => {
+                if (typeof item === 'object' && item !== null) {
+                    return Object.keys(item).length;
+                }
+                return item;
+            });
+            const extraDataString = JSON.stringify(extraDataValues);
+            
+            if (previousExtraDataRef.current && previousExtraDataRef.current !== extraDataString) {
+                const previousValues = JSON.parse(previousExtraDataRef.current);
+                const changedKeys = extraDataKeys.filter((_, index) => previousValues[index] !== extraDataValues[index]);
+                const changes = changedKeys.map((key, idx) => {
+                    const keyIndex = extraDataKeys.indexOf(key);
+                    return {
+                        key,
+                        from: previousValues[keyIndex],
+                        to: extraDataValues[keyIndex],
+                    };
+                });
+                
+                Log.info('[LHN DEBUG] extraData changed', false, {
+                    componentRenderCount: componentRenderCount.current,
+                    changes,
+                });
+            }
+            previousExtraDataRef.current = extraDataString;
+            return newExtraData;
+        },
         [
             reportActions,
             reports,

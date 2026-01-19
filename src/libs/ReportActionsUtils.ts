@@ -134,6 +134,29 @@ getEnvironmentURL().then((url: string) => (environmentURL = url));
 let oldDotEnvironmentURL: string;
 getOldDotEnvironmentURL().then((url: string) => (oldDotEnvironmentURL = url));
 
+const functionCallStats = {
+    getSortedReportActionsForDisplay: {count: 0, lastLogTime: 0},
+    getSortedReportActions: {count: 0, lastLogTime: 0},
+    shouldReportActionBeVisibleAsLastAction: {count: 0, lastLogTime: 0},
+};
+
+const LOG_INTERVAL_MS = 5000;
+
+function logFunctionStats(functionName: keyof typeof functionCallStats) {
+    const stats = functionCallStats[functionName];
+    stats.count += 1;
+    const now = Date.now();
+    
+    if (now - stats.lastLogTime >= LOG_INTERVAL_MS) {
+        Log.info(`[LHN DEBUG] ${functionName} calls`, false, {
+            totalCalls: stats.count,
+            callsPerSecond: (stats.count / ((now - stats.lastLogTime) / 1000)).toFixed(2),
+        });
+        stats.count = 0;
+        stats.lastLogTime = now;
+    }
+}
+
 /*
  * Url to the Xero non reimbursable expenses list
  */
@@ -584,6 +607,8 @@ function isTransactionThread(parentReportAction: OnyxInputOrEntry<ReportAction>)
  *
  */
 function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false): ReportAction[] {
+    // Log.info('[LHN DEBUG] getSortedReportActions', false, {actionsCount: reportActions?.length ?? 0});
+    logFunctionStats('getSortedReportActions');
     if (!Array.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
@@ -1131,6 +1156,8 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
 function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<ReportAction>, canUserPerformWriteAction?: boolean): boolean {
+    // Log.info('[LHN DEBUG] shouldReportActionBeVisibleAsLastAction', false, {actionName: reportAction?.actionName});
+    logFunctionStats('shouldReportActionBeVisibleAsLastAction');
     if (!reportAction) {
         return false;
     }
@@ -1320,6 +1347,9 @@ function getSortedReportActionsForDisplay(
     canUserPerformWriteAction?: boolean,
     shouldIncludeInvisibleActions = false,
 ): ReportAction[] {
+    const actionsCount = Array.isArray(reportActions) ? reportActions.length : Object.keys(reportActions ?? {}).length;
+    // Log.info('[LHN DEBUG] getSortedReportActionsForDisplay', false, {actionsCount});
+    logFunctionStats('getSortedReportActionsForDisplay');
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];

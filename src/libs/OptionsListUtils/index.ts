@@ -15,9 +15,10 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhon
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import Log from '@libs/Log';
 import {MaxHeap} from '@libs/MaxHeap';
 import {MinHeap} from '@libs/MinHeap';
-import {getForReportAction} from '@libs/ModifiedExpenseMessage';
+import {getForReportAction, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -236,10 +237,46 @@ Onyx.connect({
     },
 });
 
+const functionCallStats = {
+    getLastMessageTextForReport: {count: 0, lastLogTime: 0},
+    getSortedReportActionsForDisplay: {count: 0, lastLogTime: 0},
+    getSortedReportActions: {count: 0, lastLogTime: 0},
+    shouldReportActionBeVisibleAsLastAction: {count: 0, lastLogTime: 0},
+};
+
+const LOG_INTERVAL_MS = 5000;
+
+function logFunctionStats(functionName: keyof typeof functionCallStats) {
+    const stats = functionCallStats[functionName];
+    stats.count += 1;
+    const now = Date.now();
+    
+    if (now - stats.lastLogTime >= LOG_INTERVAL_MS) {
+        Log.info(`[LHN DEBUG] ${functionName} calls`, false, {
+            totalCalls: stats.count,
+            callsPerSecond: (stats.count / ((now - stats.lastLogTime) / 1000)).toFixed(2),
+        });
+        stats.count = 0;
+        stats.lastLogTime = now;
+    }
+}
+
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 let allReportActions: OnyxCollection<ReportActions>;
 const lastVisibleReportActions: ReportActions = {};
+const filteredReportActionsCache: Record<string, ReportAction[]> = {};
+const lastMessageTextCache: Record<string, string> = {};
+const filteredReportActionsCacheStats = {
+    hits: 0,
+    misses: 0,
+    lastLogTime: 0,
+};
+const lastMessageTextCacheStats = {
+    hits: 0,
+    misses: 0,
+    lastLogTime: 0,
+};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -291,12 +328,46 @@ Onyx.connect({
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
+            filteredReportActionsCache[reportID] = reportActionsForDisplay;
+
             const reportActionForDisplay = reportActionsForDisplay.at(0);
             if (!reportActionForDisplay) {
                 delete lastVisibleReportActions[reportID];
+                delete lastMessageTextCache[reportID];
+                delete filteredReportActionsCache[reportID];
                 continue;
             }
             lastVisibleReportActions[reportID] = reportActionForDisplay;
+
+            const lastActorAccountID = report?.lastActorAccountID;
+            let lastActorDetails: Partial<PersonalDetails> | null =
+                lastActorAccountID && allPersonalDetails?.[lastActorAccountID] ? allPersonalDetails[lastActorAccountID] : null;
+
+            if (!lastActorDetails && reportActionForDisplay) {
+                const lastActorDisplayName = reportActionForDisplay.person?.[0]?.text;
+                lastActorDetails = lastActorDisplayName
+                    ? {
+                          displayName: lastActorDisplayName,
+                          accountID: lastActorAccountID,
+                      }
+                    : null;
+            }
+
+            const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportActionForDisplay, CONST.REPORT.MOVE_TYPE.FROM)}`];
+            const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportActionForDisplay, CONST.REPORT.MOVE_TYPE.TO)}`];
+            const itemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
+            const lastMessageText = getLastMessageTextForReport({
+                report,
+                lastActorDetails,
+                movedFromReport,
+                movedToReport,
+                policy: itemPolicy,
+                isReportArchived,
+                policyForMovingExpensesID: undefined,
+                reportMetadata: undefined,
+            });
+            lastMessageTextCache[reportID] = lastMessageText;
         }
     },
 });
@@ -336,6 +407,57 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, perso
         }
     }
     return personalDetailsForAccountIDs;
+}
+
+function getCachedReportActionsForDisplay(reportID: string): ReportAction[] {
+    const now = Date.now();
+    const cached = filteredReportActionsCache[reportID];
+    if (cached) {
+        filteredReportActionsCacheStats.hits += 1;
+    } else {
+        filteredReportActionsCacheStats.misses += 1;
+    }
+
+    if (now - filteredReportActionsCacheStats.lastLogTime >= LOG_INTERVAL_MS) {
+        const total = filteredReportActionsCacheStats.hits + filteredReportActionsCacheStats.misses || 1;
+        const hitRate = (filteredReportActionsCacheStats.hits / total) * 100;
+        Log.info('[LHN DEBUG] filteredReportActionsCache', false, {
+            hits: filteredReportActionsCacheStats.hits,
+            misses: filteredReportActionsCacheStats.misses,
+            hitRate: `${hitRate.toFixed(1)}%`,
+        });
+        filteredReportActionsCacheStats.hits = 0;
+        filteredReportActionsCacheStats.misses = 0;
+        filteredReportActionsCacheStats.lastLogTime = now;
+    }
+
+    return cached ?? [];
+}
+
+function getCachedLastMessageText(reportID: string): string | undefined {
+    const now = Date.now();
+    const cached = lastMessageTextCache[reportID];
+
+    if (cached) {
+        lastMessageTextCacheStats.hits += 1;
+    } else {
+        lastMessageTextCacheStats.misses += 1;
+    }
+
+    if (now - lastMessageTextCacheStats.lastLogTime >= LOG_INTERVAL_MS) {
+        const total = lastMessageTextCacheStats.hits + lastMessageTextCacheStats.misses || 1;
+        const hitRate = (lastMessageTextCacheStats.hits / total) * 100;
+        Log.info('[LHN DEBUG] lastMessageTextCache', false, {
+            hits: lastMessageTextCacheStats.hits,
+            misses: lastMessageTextCacheStats.misses,
+            hitRate: `${hitRate.toFixed(1)}%`,
+        });
+        lastMessageTextCacheStats.hits = 0;
+        lastMessageTextCacheStats.misses = 0;
+        lastMessageTextCacheStats.lastLogTime = now;
+    }
+
+    return cached;
 }
 
 /**
@@ -617,6 +739,7 @@ function getLastMessageTextForReport({
     reportMetadata?: OnyxEntry<ReportMetadata>;
     currentUserAccountID: number;
 }): string {
+    logFunctionStats('getLastMessageTextForReport');
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
@@ -3120,6 +3243,8 @@ export {
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
+    getCachedReportActionsForDisplay,
+    getCachedLastMessageText,
     getManagerMcTestParticipant,
     getMemberInviteOptions,
     getParticipantsOption,
