@@ -411,11 +411,7 @@ function uniqFast(items: string[]): string[] {
     return result;
 }
 
-/**
- * Get the last actor display name from last actor details.
- * @param currentUserAccountIDParam - Current user account ID used to determine if "You" should be shown.
- */
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam: number) {
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number) {
     if (!lastActorDetails) {
         return '';
     }
@@ -424,22 +420,18 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
         return CONST.CONCIERGE_DISPLAY_NAME;
     }
 
-    return lastActorDetails.accountID !== currentUserAccountIDParam
+    return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(lastActorDetails))
         : // eslint-disable-next-line @typescript-eslint/no-deprecated
           translateLocal('common.you');
 }
 
-/**
- * Should show the last actor display name from last actor details.
- * @param currentUserAccountIDParam - Current user account ID used to determine display logic.
- */
 function shouldShowLastActorDisplayName(
     report: OnyxEntry<Report>,
     lastActorDetails: Partial<PersonalDetails> | null,
     lastAction: OnyxEntry<ReportAction>,
-    currentUserAccountIDParam: number,
+    currentUserAccountID: number,
 ) {
     const reportID = report?.reportID;
     const lastReportAction = (reportID ? lastVisibleReportActions[reportID] : undefined) ?? lastAction;
@@ -451,7 +443,7 @@ function shouldShowLastActorDisplayName(
         !lastActionName ||
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
-        (isDM(report) && lastActorDetails.accountID !== currentUserAccountIDParam) ||
+        (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
         lastActionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
         (lastActionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
@@ -459,7 +451,7 @@ function shouldShowLastActorDisplayName(
         return false;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID);
 
     if (!lastActorDisplayName) {
         return false;
@@ -576,7 +568,7 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
-function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam: number): string {
+function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
 
@@ -593,11 +585,11 @@ function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>
         }
 
         if (actorDetails) {
-            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam);
+            return getLastActorDisplayName(actorDetails, currentUserAccountID);
         }
     }
 
-    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam);
+    return getLastActorDisplayName(lastActorDetails, currentUserAccountID);
 }
 
 /**
