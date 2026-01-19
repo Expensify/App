@@ -92,21 +92,13 @@ function IOURequestStepDestination({
         if (isEmptyObject(customUnit)) {
             return;
         }
-
         let targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
-        let targetIOUType: IOUType = iouType;
-
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
                 if (iouType === CONST.IOU.TYPE.CREATE && transaction?.isFromGlobalCreate) {
-                    const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-                    targetReport = shouldAutoReport ? getPolicyExpenseChat(accountID, defaultExpensePolicy?.id) : selfDMReport;
+                    targetReport = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
                 }
-                const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
-                if (transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                    targetIOUType = CONST.IOU.TYPE.TRACK;
-                }
-                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+                setTransactionReport(transactionID, {reportID: targetReport?.reportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
@@ -119,7 +111,7 @@ function IOURequestStepDestination({
         if (backTo) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIOUType, transactionID, targetReport?.reportID ?? reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, targetReport?.reportID ?? reportID));
         }
     };
 
