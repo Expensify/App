@@ -27,6 +27,9 @@ type PrivateSubscription = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Subscription size */
     userCount?: number;
 
+    /** Applied Expensify code */
+    expensifyCode?: string;
+
     /** An error message */
     errors?: OnyxCommon.Errors;
 
