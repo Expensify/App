@@ -23,6 +23,4 @@ function SearchRouterPage() {
     );
 }
 
-SearchRouterPage.displayName = 'SearchRouterPage';
-
 export default SearchRouterPage;

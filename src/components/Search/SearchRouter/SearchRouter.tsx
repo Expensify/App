@@ -1,9 +1,7 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -37,57 +35,21 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {getPolicyNameWithFallback, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
 import {setSearchContext} from '@userActions/Search';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
-
-function getContextualSearchAutocompleteKey(item: SearchQueryItem, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
-    if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery}`;
-    }
-    if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
-    }
-    if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : ''}`;
-    }
-}
-
-function getContextualSearchQuery(item: SearchQueryItem, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
-    const baseQuery = `${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE}:${item.roomType}`;
-    let additionalQuery = '';
-
-    switch (item.roomType) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeSearchValue(item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : '')}`;
-            break;
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
-            if (item.autocompleteID) {
-                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
-            }
-            break;
-        case CONST.SEARCH.DATA_TYPES.CHAT:
-        default:
-            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
-            break;
-    }
-    return baseQuery + additionalQuery;
-}
+import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 
 type SearchRouterProps = {
     onRouterClose: () => void;
@@ -124,30 +86,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
-    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState((state) => {
-        // Safe handling when navigation is not yet initialized
-        if (!state) {
-            return {contextualReportID: undefined, isSearchRouterScreen: false};
-        }
-        const focusedRoute = findFocusedRoute(state);
-        let maybeReportRoute = focusedRoute;
-        // eslint-disable-next-line @typescript-eslint/no-shadow
-        const isSearchRouterScreen = focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_ROUTER;
-        if (focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_ROUTER) {
-            const stateWithoutLastRoute = {
-                ...state,
-                routes: state.routes.slice(0, -1),
-                index: state.index !== 0 ? state.index - 1 : 0,
-            };
-            maybeReportRoute = findFocusedRoute(stateWithoutLastRoute);
-        }
-
-        if (maybeReportRoute?.name === SCREENS.REPORT || focusedRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
-            // We're guaranteed that the type of params is of SCREENS.REPORT
-            return {contextualReportID: (maybeReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID, isSearchRouterScreen};
-        }
-        return {contextualReportID: undefined, isSearchRouterScreen};
-    });
+    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
         ({recentReports}) => {
@@ -224,7 +163,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, textInputValue, isSearchRouterDisplayed, translate, expensifyIcons.MagnifyingGlass, styles.activeComponentBG, reports, personalDetails],
+        [contextualReportID, textInputValue, isSearchRouterDisplayed, isSearchRouterScreen, translate, expensifyIcons.MagnifyingGlass, styles.activeComponentBG, reports, personalDetails],
     );
 
     const searchQueryItem = textInputValue
