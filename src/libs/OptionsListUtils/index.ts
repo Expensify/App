@@ -2391,7 +2391,6 @@ function getSearchOptions({
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
     loginList,
-    personalDetails,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2421,7 +2420,6 @@ function getSearchOptions({
             includeUserToInvite,
             shouldShowGBR,
             shouldUnreadBeBold,
-            personalDetails,
         },
         countryCode,
     );
