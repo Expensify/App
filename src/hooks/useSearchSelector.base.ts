@@ -314,6 +314,7 @@ function useSearchSelectorBase({
         includeCurrentUser,
         currentUserAccountID,
         currentUserEmail,
+        allPolicies,
     ]);
 
     const isOptionSelected = useMemo(() => {
