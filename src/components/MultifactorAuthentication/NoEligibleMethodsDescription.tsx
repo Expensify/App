@@ -4,21 +4,21 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import goToSettings from '@libs/goToSettings';
 
-const base = 'multifactorAuthentication.pleaseEnableInSystemSettings' as const;
+const baseTranslationPath = 'multifactorAuthentication.pleaseEnableInSystemSettings' as const;
 
-const tPaths = {
-    start: `${base}.start`,
-    link: `${base}.link`,
-    end: `${base}.end`,
+const translationPaths = {
+    start: `${baseTranslationPath}.start`,
+    link: `${baseTranslationPath}.link`,
+    end: `${baseTranslationPath}.end`,
 } as const;
 
 function NoEligibleMethodsDescription() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const start = translate(tPaths.start);
-    const link = translate(tPaths.link);
-    const end = translate(tPaths.end);
+    const start = translate(translationPaths.start);
+    const link = translate(translationPaths.link);
+    const end = translate(translationPaths.end);
 
     return (
         <Text style={[styles.textAlignCenter, styles.textSupporting]}>

@@ -9,6 +9,7 @@ type MultifactorAuthenticationTriggerCancelConfirmModalProps = {
     onCancel: () => void;
 };
 
+// TODO: this config will be part of the scenario configuration, the current implementation is for testing purposes (https://github.com/Expensify/App/issues/79373)
 const mockedConfig = {
     title: 'common.areYouSure',
     description: 'multifactorAuthentication.biometricsTest.areYouSureToReject',

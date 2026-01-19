@@ -1,17 +1,22 @@
-import React from 'react';
+import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
+import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
+type MultifactorAuthenticationValidateCodeResendButtonHandle = {
+    resetCountdown: () => void;
+};
+
 type MultifactorAuthenticationValidateCodeResendButtonProps = {
-    shouldShowTimer: boolean;
-    timeRemaining: number;
+    ref?: React.Ref<MultifactorAuthenticationValidateCodeResendButtonHandle>;
     shouldDisableResendCode: boolean;
     hasError: boolean;
     resendButtonText: TranslationPaths;
@@ -19,8 +24,7 @@ type MultifactorAuthenticationValidateCodeResendButtonProps = {
 };
 
 function MultifactorAuthenticationValidateCodeResendButton({
-    shouldShowTimer,
-    timeRemaining,
+    ref,
     shouldDisableResendCode,
     hasError,
     resendButtonText,
@@ -29,36 +33,52 @@ function MultifactorAuthenticationValidateCodeResendButton({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
-    if (shouldShowTimer) {
-        return (
-            <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
-                <RenderHTML
-                    html={translate('validateCodeForm.requestNewCode', {
-                        timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
-                    })}
-                />
-            </View>
-        );
-    }
+    const [isCountdownRunning, setIsCountdownRunning] = useState(true);
+    const countdownRef = useRef<ValidateCodeCountdownHandle>(null);
+
+    const handleCountdownFinish = useCallback(() => {
+        setIsCountdownRunning(false);
+    }, []);
+
+    useImperativeHandle(ref, () => ({
+        resetCountdown: () => {
+            countdownRef.current?.resetCountdown();
+            setIsCountdownRunning(true);
+        },
+    }));
 
     return (
-        <PressableWithFeedback
-            style={styles.mt5}
-            onPress={onResendValidationCode}
-            disabled={shouldDisableResendCode}
-            hoverDimmingValue={1}
-            pressDimmingValue={0.2}
-            role={CONST.ROLE.BUTTON}
-            accessibilityLabel={translate(resendButtonText)}
-        >
-            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendCode)]}>
-                {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate(resendButtonText)}
-            </Text>
-        </PressableWithFeedback>
+        <View style={styles.alignItemsStart}>
+            {isCountdownRunning && !isOffline ? (
+                <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
+                    <ValidateCodeCountdown
+                        ref={countdownRef}
+                        onCountdownFinish={handleCountdownFinish}
+                    />
+                </View>
+            ) : (
+                <PressableWithFeedback
+                    style={styles.mt5}
+                    onPress={onResendValidationCode}
+                    disabled={shouldDisableResendCode}
+                    hoverDimmingValue={1}
+                    pressDimmingValue={0.2}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate(resendButtonText)}
+                >
+                    <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendCode)]}>
+                        {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate(resendButtonText)}
+                    </Text>
+                </PressableWithFeedback>
+            )}
+        </View>
     );
 }
 
 MultifactorAuthenticationValidateCodeResendButton.displayName = 'MultifactorAuthenticationValidateCodeResendButton';
 
 export default MultifactorAuthenticationValidateCodeResendButton;
+
+export type {MultifactorAuthenticationValidateCodeResendButtonHandle};

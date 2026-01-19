@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
+import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -44,39 +45,16 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
-    const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    const resendButtonRef = useRef<MultifactorAuthenticationValidateCodeResendButtonHandle>(null);
     const hasClearedInitialErrorsRef = useRef(false);
 
     // Derived state
     const hasError = !!account && !isEmptyObject(account?.errors);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const shouldDisableResendCode = isOffline ?? account?.isLoading;
-    const shouldShowTimer = timeRemaining > 0 && !isOffline;
-
-    // Timer handling
-    useEffect(() => {
-        // Clear any existing timeout first
-        if (timerRef.current) {
-            clearTimeout(timerRef.current);
-        }
-
-        if (timeRemaining > 0) {
-            timerRef.current = setTimeout(() => {
-                setTimeRemaining(timeRemaining - 1);
-            }, 1000);
-        }
-
-        return () => {
-            if (!timerRef.current) {
-                return;
-            }
-            clearTimeout(timerRef.current);
-        };
-    }, [timeRemaining]);
 
     // Auto-blur on error
     useEffect(() => {
@@ -131,7 +109,7 @@ function MultifactorAuthenticationValidateCodePage() {
         setInputCode('');
         setFormError({});
         setCanShowError(false);
-        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
+        resendButtonRef.current?.resetCountdown();
     };
 
     /**
@@ -177,7 +155,8 @@ function MultifactorAuthenticationValidateCodePage() {
 
     const onGoBackPress = () => {
         // Temporary navigation, expected behavior: trigger onBack from the MultifactorAuthenticationContext
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
+        // Close the RHP instead of returning to the invisible biometrics test screen
+        Navigation.dismissModal();
     };
 
     return (
@@ -203,8 +182,7 @@ function MultifactorAuthenticationValidateCodePage() {
                     />
                     {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                     <MultifactorAuthenticationValidateCodeResendButton
-                        shouldShowTimer={shouldShowTimer}
-                        timeRemaining={timeRemaining}
+                        ref={resendButtonRef}
                         shouldDisableResendCode={shouldDisableResendCode}
                         hasError={hasError}
                         resendButtonText="validateCodeForm.magicCodeNotReceived"

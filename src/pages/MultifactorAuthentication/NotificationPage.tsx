@@ -16,12 +16,14 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
 
+// TODO: this config will be part of the scenario configuration, the current implementation is for testing purposes (https://github.com/Expensify/App/issues/79373)
 const mockedConfigSuccess = {
     headerTitle: 'multifactorAuthentication.biometricsTest.biometricsTest',
     title: 'multifactorAuthentication.biometricsTest.authenticationSuccessful',
     description: 'multifactorAuthentication.biometricsTest.successfullyAuthenticatedUsing',
 } as const satisfies Record<string, TranslationPaths>;
 
+// TODO: this config will be part of the scenario configuration, the current implementation is for testing purposes (https://github.com/Expensify/App/issues/79373)
 const mockedConfigFailure = {
     headerTitle: 'multifactorAuthentication.biometricsTest.biometricsTest',
     title: 'multifactorAuthentication.oops',

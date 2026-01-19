@@ -20,8 +20,8 @@ function MultifactorAuthenticationPromptContent({title, subtitle, animation}: Mu
         <View style={styles.flex1}>
             <BlockingView
                 animation={animation}
-                animationStyles={styles.emptyLHNAnimation}
-                animationWebStyle={styles.emptyLHNAnimation}
+                animationStyles={styles.mfaBlockingViewAnimation}
+                animationWebStyle={styles.mfaBlockingViewAnimation}
                 title={translate(title)}
                 titleStyles={styles.mb2}
                 subtitle={translate(subtitle)}
