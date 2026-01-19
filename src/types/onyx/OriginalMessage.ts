@@ -455,6 +455,12 @@ type OriginalMessagePolicyChangeLog = {
     /** New value for max expense amount for violations */
     newMaxExpenseAmount?: number;
 
+    /** Old value for max expense age (days) */
+    oldMaxExpenseAge?: number;
+
+    /** New value for max expense age (days) */
+    newMaxExpenseAge?: number;
+
     /** Old default billable value */
     oldDefaultBillable?: string;
 
@@ -599,6 +605,26 @@ type OriginalMessagePolicyChangeLog = {
 
     /** The name of the enabled/disabled feature */
     featureName?: string;
+
+    /** The new reimburser details */
+    reimburser?: {
+        /** The email of the new reimburser */
+        email: string;
+        /** The name of the new reimburser */
+        name: string;
+        /** The accountID of the new reimburser */
+        accountID: number;
+    };
+
+    /** The previous reimburser details */
+    previousReimburser?: {
+        /** The email of the previous reimburser */
+        email: string;
+        /** The name of the previous reimburser */
+        name: string;
+        /** The accountID of the previous reimburser */
+        accountID: number;
+    };
 };
 
 /** Model of `join policy` report action */
