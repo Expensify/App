@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
+import React from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
-import ConfirmModal from '@components/ConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useVacationDelegate from '@hooks/useVacationDelegate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,9 +22,7 @@ type DomainMemberVacationDelegatePageProps = PlatformStackScreenProps<SettingsNa
 function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegatePageProps) {
     const {domainAccountID, accountID} = route.params;
     const {translate} = useLocalize();
-
-    const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
-    const [newVacationDelegateLogin, setNewVacationDelegateLogin] = useState('');
+    const {showConfirmModal} = useConfirmModal();
 
     const vacationDelegate = useVacationDelegate(domainAccountID, accountID);
     const onSelectRow = (option: Participant) => {
@@ -38,29 +37,33 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
             return;
         }
 
-        setDomainVacationDelegate(domainAccountID, accountID, memberLogin, option.login ?? '', vacationDelegate?.delegate ?? '', false).then((response) => {
+        setDomainVacationDelegate(domainAccountID, accountID, memberLogin, option.login ?? '', vacationDelegate?.delegate ?? '', false).then(async (response) => {
             if (!response?.jsonCode) {
                 Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
                 return;
             }
 
             if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                setIsWarningModalVisible(true);
-                setNewVacationDelegateLogin(delegateLogin);
+                const {action} = await showConfirmModal({
+                    title: translate('common.headsUp'),
+                    prompt: translate('statusPage.vacationDelegateWarning', {
+                        nameOrEmail: getPersonalDetailByEmail(delegateLogin)?.displayName ?? delegateLogin,
+                    }),
+                    confirmText: translate('common.confirm'),
+                    cancelText: translate('common.cancel'),
+                    danger: true,
+                });
+
+                if (action === ModalActions.CONFIRM) {
+                    setDomainVacationDelegate(domainAccountID, accountID, memberLogin, delegateLogin, vacationDelegate?.delegate ?? '', true).then(() => {
+                        Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
+                    });
+                } else {
+                    clearVacationDelegateError(vacationDelegate?.delegate);
+                }
+                return;
             }
 
-            Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
-        });
-    };
-
-    const confirmPolicyDiff = () => {
-        const memberLogin = getLoginByAccountID(accountID);
-        if (!memberLogin) {
-            return;
-        }
-
-        setIsWarningModalVisible(false);
-        setDomainVacationDelegate(domainAccountID, accountID, memberLogin, newVacationDelegateLogin, vacationDelegate?.delegate ?? '', true).then(() => {
             Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
         });
     };
@@ -74,25 +77,10 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
                 <BaseVacationDelegateSelectionComponent
                     currentVacationDelegate={vacationDelegate?.delegate}
                     onSelectRow={onSelectRow}
-                    headerTitle={translate('domain.common.vacationDelegate')}
+                    headerTitle={translate('domain.members.vacationDelegate')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID))}
                 />
             </ScreenWrapper>
-            <ConfirmModal
-                isVisible={isWarningModalVisible}
-                title={translate('common.headsUp')}
-                prompt={translate('statusPage.vacationDelegateWarning', {
-                    nameOrEmail: getPersonalDetailByEmail(newVacationDelegateLogin)?.displayName ?? newVacationDelegateLogin,
-                })}
-                onConfirm={confirmPolicyDiff}
-                onCancel={() => {
-                    setIsWarningModalVisible(false);
-                    clearVacationDelegateError(vacationDelegate?.delegate);
-                }}
-                confirmText={translate('common.confirm')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
         </DomainNotFoundPageWrapper>
     );
 }
