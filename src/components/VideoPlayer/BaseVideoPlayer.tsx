@@ -71,6 +71,7 @@ function BaseVideoPlayer({
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
 
+    const isOffline = useNetwork().isOffline;
     const [duration, setDuration] = useState(videoDuration);
     const [isEnded, setIsEnded] = useState(false);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -87,7 +88,7 @@ function BaseVideoPlayer({
     /* eslint-disable no-param-reassign */
     // According to the library docs, the player is configured by mutating the provided instance
     const videoPlayerRef = useRef<VideoPlayer>(
-        useVideoPlayer(sourceURL, (player) => {
+        useVideoPlayer(isOffline ? '' : sourceURL, (player) => {
             player.loop = isLooping;
             player.muted = true;
             player.timeUpdateEventInterval = 0.1;
@@ -107,7 +108,7 @@ function BaseVideoPlayer({
         return status === 'error';
     }, [status]);
 
-    const {isOffline} = useNetwork({
+    useNetwork({
         onReconnect: () => {
             if (!(currentTime <= 0 && hasError)) {
                 return;
