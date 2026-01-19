@@ -87,6 +87,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
     const currentReport = report ?? searchContext?.currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
@@ -282,6 +283,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
             const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
             const currentItemReport = getReportOrDraftReport(currentTransaction?.reportID);
+            const currentItemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentItemReport?.policyID)}`];
             const isApproved = isReportApproved({report: currentItemReport});
             const isSettled = isSettledReportUtils(currentItemReport?.reportID);
             const isCancelled = currentItemReport && currentItemReport?.isCancelledIOU;
@@ -319,7 +321,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseValueChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-                isEditable: (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
+                isEditable: !currentTransaction || isSplitAction(currentItemReport, [currentTransaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentItemPolicy),
             };
         });
 
@@ -328,13 +330,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transaction,
         draftTransaction?.comment?.splitExpenses,
         draftTransaction?.currency,
-        allTransactions,
         transactionDetailsAmount,
+        allTransactions,
+        allPolicies,
         currencySymbol,
+        onSplitExpenseValueChange,
         splitExpenseTransactionID,
+        originalTransaction,
         translate,
         getTranslatedText,
-        onSplitExpenseValueChange,
+        currentUserPersonalDetails.login,
     ]);
 
     const isInitialSplit = useMemo(() => childTransactions.length === 0, [childTransactions.length]);
