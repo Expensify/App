@@ -13821,7 +13821,6 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
         });
 
-        let updateMoneyRequestParamsOnyxData: OnyxData<OnyxKey> = {};
         const currentSplit = splits.at(index);
 
         // For existing split transactions, update the field change messages
@@ -13874,7 +13873,9 @@ function updateSplitTransactions({
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
                 }
-                updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
+                optimisticData.push(...(moneyRequestParamsOnyxData.optimisticData ?? []));
+                successData.push(...(moneyRequestParamsOnyxData.successData ?? []));
+                failureData.push(...(moneyRequestParamsOnyxData.failureData ?? []));
             }
             // For new split transactions, set the reportID once the transaction and associated report are created
         } else if (currentSplit) {
@@ -13887,9 +13888,9 @@ function updateSplitTransactions({
             currentSplit.splitReportActionID = iouAction.reportActionID;
         }
 
-        optimisticData.push(...(onyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));
-        successData.push(...(onyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []));
-        failureData.push(...(onyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
+        optimisticData.push(...(onyxData.optimisticData ?? []));
+        successData.push(...(onyxData.successData ?? []));
+        failureData.push(...(onyxData.failureData ?? []));
     }
 
     // All transactions that were deleted in the split list will be marked as deleted in onyx
