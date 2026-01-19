@@ -247,7 +247,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [orderedAvailableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, personalDetails, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 shouldShow: true,
             });
