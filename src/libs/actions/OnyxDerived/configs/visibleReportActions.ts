@@ -1,5 +1,10 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {isActionableWhisperRequiringWritePermission, isMovedTransactionAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {
+    isActionableWhisperRequiringWritePermission,
+    isConciergeCategoryOptions,
+    isMovedTransactionAction,
+    shouldReportActionBeVisible,
+} from '@libs/ReportActionsUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +24,14 @@ function doesActionDependOnReportExistence(action: ReportAction): boolean {
     const isMovedTransaction = isMovedTransactionAction(action as OnyxEntry<ReportAction>);
 
     return isUnreportedTransaction || isMovedTransaction;
+}
+
+/**
+ * Returns true if the action's visibility depends on runtime context that can't be cached,
+ * such as write permissions or policy settings.
+ */
+function shouldSkipCachingAction(action: ReportAction): boolean {
+    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action);
 }
 
 export default createOnyxDerivedValueConfig({
@@ -50,7 +63,7 @@ export default createOnyxDerivedValueConfig({
 
                 for (const [actionID, action] of Object.entries(reportActions)) {
                     if (action) {
-                        if (isActionableWhisperRequiringWritePermission(action)) {
+                        if (shouldSkipCachingAction(action)) {
                             continue;
                         }
                         reportVisibility[actionID] = shouldReportActionBeVisible(action, actionID);
@@ -79,7 +92,7 @@ export default createOnyxDerivedValueConfig({
                     }
 
                     if (doesActionDependOnReportExistence(action)) {
-                        if (isActionableWhisperRequiringWritePermission(action)) {
+                        if (shouldSkipCachingAction(action)) {
                             delete reportVisibility[actionID];
                             continue;
                         }
@@ -114,7 +127,7 @@ export default createOnyxDerivedValueConfig({
                     continue;
                 }
 
-                if (isActionableWhisperRequiringWritePermission(action)) {
+                if (shouldSkipCachingAction(action)) {
                     delete reportVisibility[actionID];
                     continue;
                 }
