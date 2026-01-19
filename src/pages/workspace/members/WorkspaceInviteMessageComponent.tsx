@@ -89,6 +89,10 @@ function WorkspaceInviteMessageComponent({
 
     const shouldShowApproverRow = isControlPolicy(policy) && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
 
+    const navigateToApproverPage = useCallback(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.getRoute(policyID));
+    }, [policyID]);
+
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
@@ -282,9 +286,7 @@ function WorkspaceInviteMessageComponent({
                                     title={getDisplayNameOrDefault(approverDetails, workspaceInviteApproverDraft, false)}
                                     description={translate('workflowsPage.approver')}
                                     shouldShowRightIcon
-                                    onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.getRoute(policyID));
-                                    }}
+                                    onPress={navigateToApproverPage}
                                 />
                             )}
                         </View>

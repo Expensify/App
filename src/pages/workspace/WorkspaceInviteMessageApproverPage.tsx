@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -28,6 +28,8 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
 type WorkspaceInviteMessageApproverPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER>;
+
+const ACCESS_VARIANTS = [CONST.POLICY.ACCESS_VARIANTS.ADMIN] as const;
 
 function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: WorkspaceInviteMessageApproverPageProps) {
     const {translate, localeCompare} = useLocalize();
@@ -116,14 +118,19 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
         icons.FallbackAvatar,
     ]);
 
-    const goBack = () => {
+    const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
-    };
+    }, [policyID]);
 
-    const handleOnSelectRow = (approver: SelectionListApprover) => {
-        setWorkspaceInviteApproverDraft(policyID, approver.login);
-        Navigation.setNavigationActionToMicrotaskQueue(goBack);
-    };
+    const handleOnSelectRow = useCallback(
+        (approver: SelectionListApprover) => {
+            setWorkspaceInviteApproverDraft(policyID, approver.login);
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
+            });
+        },
+        [policyID],
+    );
 
     const textInputOptions = useMemo(
         () => ({
@@ -135,17 +142,27 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
         [searchTerm, orderedApprovers.length, setSearchTerm, translate],
     );
 
+    const screenWrapperStyle = useMemo(() => ({marginTop: viewportOffsetTop}), [viewportOffsetTop]);
+
+    const fullPageNotFoundViewProps = useMemo(
+        () => ({
+            subtitleKey: isEmptyObject(policy) ? undefined : ('workspace.common.notAuthorized' as const),
+            onLinkPress: goBackFromInvalidPolicy,
+        }),
+        [policy],
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
+            accessVariants={ACCESS_VARIANTS}
+            fullPageNotFoundViewProps={fullPageNotFoundViewProps}
         >
             <ScreenWrapper
                 testID="WorkspaceInviteMessageApproverPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                style={{marginTop: viewportOffsetTop}}
+                style={screenWrapperStyle}
             >
                 <HeaderWithBackButton
                     title={translate('workflowsPage.approver')}
