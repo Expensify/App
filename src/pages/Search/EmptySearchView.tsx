@@ -345,13 +345,12 @@ function EmptySearchViewContent({
                 break;
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
                 if (!isFilteredWorkspaceAccessible) {
-                    return {
+                    content = {
                         ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyResults.title'),
                         subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     };
-                }
-                if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
+                } else if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
                     content = {
                         ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyResults.title'),
