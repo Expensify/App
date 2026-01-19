@@ -202,7 +202,7 @@ function StatusPage() {
                     title={delegatorDetails?.displayName ?? displayLogin}
                     description={displayLogin}
                     avatarID={delegatorDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                    icon={delegatorDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    icon={delegatorDetails?.avatar ?? icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     numberOfLinesDescription={1}
                     containerStyle={[styles.pr2, styles.mt1]}

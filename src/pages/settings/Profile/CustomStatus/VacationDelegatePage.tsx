@@ -2,10 +2,12 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +20,6 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -166,9 +167,27 @@ function VacationDelegatePage() {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    if (hasActiveDelegations) {
-        return <NotFoundPage />;
-    }
+    const renderDelegatorList = () => {
+        return vacationDelegate?.delegatorFor?.map((delegatorEmail) => {
+            const delegatorDetails = getPersonalDetailByEmail(delegatorEmail);
+            const formattedLogin = formatPhoneNumber(delegatorDetails?.login ?? '');
+            const displayLogin = formattedLogin || delegatorEmail;
+
+            return (
+                <MenuItem
+                    key={delegatorEmail}
+                    title={delegatorDetails?.displayName ?? displayLogin}
+                    description={displayLogin}
+                    avatarID={delegatorDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                    icon={delegatorDetails?.avatar ?? icons.FallbackAvatar}
+                    iconType={CONST.ICON_TYPE_AVATAR}
+                    numberOfLinesDescription={1}
+                    containerStyle={[styles.pr2, styles.mt1]}
+                    interactive={false}
+                />
+            );
+        });
+    };
 
     return (
         <>
@@ -180,21 +199,28 @@ function VacationDelegatePage() {
                     title={translate('statusPage.vacationDelegate')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
                 />
-                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
-                        sections={areOptionsInitialized ? sections : []}
-                        ListItem={UserListItem}
-                        onSelectRow={onSelectRow}
-                        shouldSingleExecuteRowSelect
-                        onChangeText={setSearchTerm}
-                        textInputValue={searchTerm}
-                        headerMessage={headerMessage}
-                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
-                        onEndReached={onListEndReached}
-                    />
-                </View>
+                {hasActiveDelegations ? (
+                    <View style={[styles.mb2, styles.mt6]}>
+                        <Text style={[styles.mh5, styles.mb4]}>{translate('statusPage.cannotSetVacationDelegate')}</Text>
+                        {renderDelegatorList()}
+                    </View>
+                ) : (
+                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <SelectionList
+                            sections={areOptionsInitialized ? sections : []}
+                            ListItem={UserListItem}
+                            onSelectRow={onSelectRow}
+                            shouldSingleExecuteRowSelect
+                            onChangeText={setSearchTerm}
+                            textInputValue={searchTerm}
+                            headerMessage={headerMessage}
+                            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                            showLoadingPlaceholder={!areOptionsInitialized}
+                            isLoadingNewOptions={!!isSearchingForReports}
+                            onEndReached={onListEndReached}
+                        />
+                    </View>
+                )}
             </ScreenWrapper>
             <ConfirmModal
                 isVisible={isWarningModalVisible}
