@@ -166,7 +166,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         }
 
         if (!isApprover) {
-            return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
+            return translate('workspace.people.removeMemberPrompt', displayName);
         }
 
         if (isApprover) {
@@ -176,10 +176,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             });
         }
 
-        return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: displayName,
-            ownerName: policyOwnerDisplayName,
-        });
+        return translate('workspace.people.removeMembersWarningPrompt', displayName, policyOwnerDisplayName);
     }, [policy, memberLogin, details.login, isReimburser, translate, displayName, policyOwnerDisplayName]);
 
     useEffect(() => {

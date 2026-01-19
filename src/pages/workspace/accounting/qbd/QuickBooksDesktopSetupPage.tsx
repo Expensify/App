@@ -86,7 +86,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                     />
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.qbd.setupPage.setupErrorTitle')}</Text>
                     <View style={[styles.renderHTML, styles.ph5, styles.mv3]}>
-                        <RenderHTML html={translate('workspace.qbd.setupPage.setupErrorBody', {conciergeLink: `${environmentURL}/${ROUTES.CONCIERGE}`})} />
+                        <RenderHTML html={translate('workspace.qbd.setupPage.setupErrorBody', `${environmentURL}/${ROUTES.CONCIERGE}`)} />
                     </View>
                 </View>
             )}
