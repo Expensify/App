@@ -7964,6 +7964,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             resetDomainInfo: `Questa azione è <strong>permanente</strong> e i seguenti dati verranno eliminati: <br/> <ul><li>Connessioni alle carte aziendali e tutte le spese non riportate da tali carte</li> <li>Impostazioni SAML e di gruppo</li> </ul> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/>Nota: puoi rimuovere questo dominio dall'elenco dei tuoi domini eliminando l'email associata dalle tue <a href="#">modalità di contatto</a>.`,
         },
         members: {title: 'Membri', findMember: 'Trova membro'},
+        domainAdmins: 'Amministratori di dominio',
     },
     gps: {
         tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
