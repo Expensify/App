@@ -1,6 +1,7 @@
 /**
  * @jest-environment node
  */
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';

@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node
+
 /* eslint-disable no-console */
 import {execSync} from 'child_process';
 import fs from 'fs';
