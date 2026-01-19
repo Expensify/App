@@ -406,6 +406,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether to show the badge below the title */
         shouldShowBadgeBelow?: boolean;
+
+        /** Whether item should be accessible */
+        shouldBeAccessible?: boolean;
+
+        /** Whether item should be focusable with keyboard */
+        tabIndex?: 0 | -1;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -538,6 +544,8 @@ function MenuItem({
     ref,
     isFocused,
     sentryLabel,
+    shouldBeAccessible = true,
+    tabIndex = 0,
 }: MenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
     const theme = useTheme();
@@ -737,7 +745,8 @@ function MenuItem({
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={CONST.ROLE.MENUITEM}
                                 accessibilityLabel={title ? title.toString() : ''}
-                                accessible
+                                accessible={shouldBeAccessible}
+                                tabIndex={tabIndex}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >

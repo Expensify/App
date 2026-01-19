@@ -37,8 +37,7 @@ function canSubmit(
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
-    const submitToAccountID = getSubmitToAccountID(policy, report);
-    const isManager = submitToAccountID === currentUserAccountID || report.managerID === currentUserAccountID;
+    const isManager = report.managerID === currentUserAccountID;
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
@@ -50,6 +49,8 @@ function canSubmit(
     if (transactions?.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
         return false;
     }
+
+    const submitToAccountID = getSubmitToAccountID(policy, report);
 
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
