@@ -158,7 +158,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
     // Refresh transactions when expanding - always starts fresh from offset 0
-    // This is stable because it only depends on queryJSON, avoiding infinite loops
+    // This is stable because it only depends on queryJSON and loading state
     const refreshTransactions = useCallback(() => {
         if (!groupItem.transactionsQueryJSON) {
             return;
@@ -169,12 +169,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
             searchKey: undefined,
             offset: 0,
             shouldCalculateTotals: false,
-            isLoading: false,
+            isLoading: !!transactionsSnapshot?.search?.isLoading,
         });
-    }, [groupItem.transactionsQueryJSON]);
+    }, [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
 
     // Load more transactions for pagination - uses current offset
-    const loadMoreTransactions = useCallback(
+    const searchTransactions = useCallback(
         (pageSize = 0) => {
             if (!groupItem.transactionsQueryJSON) {
                 return;
@@ -403,7 +403,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 isExpenseReportType={isExpenseReportType}
                                 transactionsSnapshot={transactionsSnapshot}
                                 transactionsQueryJSON={groupItem.transactionsQueryJSON}
-                                searchTransactions={loadMoreTransactions}
+                                searchTransactions={searchTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 onLongPress={onExpandedRowLongPress}
                             />
