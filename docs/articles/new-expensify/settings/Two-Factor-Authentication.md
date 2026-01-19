@@ -1,16 +1,16 @@
 ---
 title: Two-Factor Authentication (2FA)
 description: Learn how to set up, use, and recover your Expensify account with two-factor authentication (2FA), including lost device and admin recovery options.
-keywords: [New Expensify, two-factor authentication, 2FA, login security, authenticator app, recovery codes, locked out, lost phone, account recovery, Domain Admin reset, backup codes.
+keywords: [New Expensify, two-factor authentication, 2FA, login security, authenticator app, recovery codes, locked out, lost phone, account recovery, Domain Admin reset, backup codes]
 ---
 
 Setting up two-factor authentication (2FA) in New Expensify adds an extra layer of protection to your account. This guide explains how to enable 2FA and what to expect if you're ever locked out.
 
 ---
 
-# Who can use Two-Factor Authentication in Expensify Classic
+# Who can enable Two-Factor Authentication in New Expensify
 
-Anyone can enable Two-Factor Authentication on their own account. Domain admins can also enable Two-Factor Authentication for domains, which forces each domain member to set up Two-Factor Authentication on their account. 
+Anyone can enable Two-Factor Authentication on their own account. Domain Admins can require all members on a domain to enable Two-Factor Authentication on their accounts.
 
 ---
 
@@ -64,7 +64,7 @@ If your domain doesn't have 2FA enabled yet:
 2. Enable **Two-Factor Authentication**.
 3. Then follow the steps above to reset 2FA for the member.
 
-**Note** Domain Admin 2FA resets are only available in Expensify Classic. To complete these steps, temporarily [switch to Expensify Classic]([url](https://help.expensify.com/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic.html)). 
+**Note** Domain Admin 2FA resets are only available in Expensify Classic. To complete these steps, temporarily [switch to Expensify Classic](https://help.expensify.com/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic.html)). 
 
 ---
 
@@ -73,8 +73,6 @@ If your domain doesn't have 2FA enabled yet:
 If you can’t access your authenticator app and don’t have your recovery codes, contact your Domain Admin to reset your 2FA. 
 
 If no Domain Admin is available and you're using a company email, you can follow [this guide](https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain) to claim the domain and reset your 2FA settings yourself.
-
-For more help regaining access, see [Troubleshoot login issues](LINK).
 
 ---
 
@@ -90,7 +88,7 @@ Expensify's 2FA is implemented via a Time-based One-Time Password (TOTP) algorit
 
 ## What can I do if I can't access my authenticator app? 
 
-When you enable 2FA, you are prompted to either copy or download backup codes which you can use in lieu of the 6-digit authenticator code. If you downloaded the codes they will be saved with the file name `two-factor-auth-codes. 
+When you enable 2FA, you are prompted to either copy or download backup codes which you can use in lieu of the 6-digit authenticator code. If you downloaded the codes they will be saved with the file name `two-factor-auth-codes`. 
 
 ## What authenticator apps does Expensify recommend? 
 
