@@ -6597,6 +6597,22 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 }
             }
         },
+        setDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `definir a conta bancária empresarial padrão como "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}"`,
+        removedDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `removeu a conta bancária empresarial padrão "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}"`,
+        changedDefaultBankAccount: ({
+            bankAccountName,
+            maskedBankAccountNumber,
+            oldBankAccountName,
+            oldMaskedBankAccountNumber,
+        }: {
+            bankAccountName: string;
+            maskedBankAccountNumber: string;
+            oldBankAccountName: string;
+            oldMaskedBankAccountNumber: string;
+        }) =>
+            `alterou a conta bancária empresarial padrão para "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}" (anteriormente "${oldBankAccountName ? `${oldBankAccountName}: ` : ''}${oldMaskedBankAccountNumber}")`,
         changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `alterou o nome da empresa da fatura para "${newValue}" (anteriormente "${oldValue}")` : `definir o nome da empresa da fatura como "${newValue}"`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>

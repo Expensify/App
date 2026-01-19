@@ -220,6 +220,7 @@ import {
     getSortedReportActions,
     getSubmitsToUpdateMessage,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -5658,6 +5659,10 @@ function getReportName(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getWorkspaceFeatureEnabledMessage(translateLocal, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getUpdateACHAccountMessage(translateLocal, parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated

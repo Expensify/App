@@ -3151,6 +3151,36 @@ function getWorkspaceReimbursementUpdateMessage(translate: LocalizedTranslate, a
     return getReportActionText(action);
 }
 
+type UpdateACHAccountOriginalMessage = {
+    bankAccountName?: string;
+    maskedBankAccountNumber?: string;
+    oldBankAccountName?: string;
+    oldMaskedBankAccountNumber?: string;
+};
+
+function getUpdateACHAccountMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {bankAccountName, maskedBankAccountNumber, oldBankAccountName, oldMaskedBankAccountNumber} =
+        (getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT>) as UpdateACHAccountOriginalMessage | undefined) ?? {};
+
+    if (!!maskedBankAccountNumber && !oldMaskedBankAccountNumber) {
+        return translate('workspaceActions.setDefaultBankAccount', {bankAccountName: bankAccountName ?? '', maskedBankAccountNumber});
+    }
+    if (!maskedBankAccountNumber && oldMaskedBankAccountNumber) {
+        return translate('workspaceActions.removedDefaultBankAccount', {bankAccountName: oldBankAccountName ?? '', maskedBankAccountNumber: oldMaskedBankAccountNumber});
+    }
+
+    if (!!maskedBankAccountNumber && !!oldMaskedBankAccountNumber) {
+        return translate('workspaceActions.changedDefaultBankAccount', {
+            bankAccountName: bankAccountName ?? '',
+            maskedBankAccountNumber,
+            oldBankAccountName: oldBankAccountName ?? '',
+            oldMaskedBankAccountNumber,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
 function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
@@ -3833,6 +3863,7 @@ export {
     getInvoiceCompanyWebsiteUpdateMessage,
     getReimburserUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
+    getUpdateACHAccountMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,

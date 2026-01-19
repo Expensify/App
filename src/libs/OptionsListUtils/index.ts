@@ -59,6 +59,7 @@ import {
     getRoomChangeLogMessage,
     getSortedReportActions,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getUpdateRoomDescriptionMessage,
     hasPendingDEWSubmit,
     isActionableAddPaymentCard,
@@ -826,6 +827,10 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = getUpdateACHAccountMessage(translateLocal, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
