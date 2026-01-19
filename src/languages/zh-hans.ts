@@ -185,6 +185,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -746,6 +747,35 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: '您的会话已过期。',
         signIn: '请重新登录。',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: '生物特征测试',
+            authenticationSuccessful: '认证成功',
+            successfullyAuthenticatedUsing: ({authType}) => `您已成功使用${authType}进行认证。`,
+            troubleshootBiometricsStatus: ({registered}) => `生物特征（${registered ? '已注册' : '未注册'}）`,
+            yourAttemptWasUnsuccessful: '您的认证尝试未成功。',
+            youCouldNotBeAuthenticated: '无法认证您',
+            areYouSureToReject: '您确定要拒绝吗？如果您关闭此屏幕，认证尝试将被拒绝。',
+            rejectAuthentication: '拒绝认证',
+            test: '测试',
+            biometricsAuthentication: '生物特征认证',
+        },
+        pleaseEnableInSystemSettings: {
+            start: '请在',
+            link: '系统设置',
+            end: '中启用面部/指纹验证或设置设备密码。',
+        },
+        oops: '哎呀，出错了',
+        looksLikeYouRanOutOfTime: '看起来你的时间用完了！请在商户处再试一次。',
+        youRanOutOfTime: '时间已经用完',
+        letsVerifyItsYou: '让我们验证是不是你',
+        verifyYourself: {
+            biometrics: '用你的脸部或指纹进行身份验证',
+        },
+        enableQuickVerification: {
+            biometrics: '使用您的脸部或指纹启用快速安全验证。无需密码或代码。',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             阿布拉卡达布拉，
@@ -866,6 +896,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `您确定要删除此${type}吗？`;
         },
         onlyVisible: '仅对…可见',
+        explain: '解释',
+        explainMessage: '请为我解释一下。',
         replyInThread: '在线程中回复',
         joinThread: '加入话题',
         leaveThread: '离开会话',
@@ -1436,6 +1468,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitByDate: '按日期拆分',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `报告因自定义审批工作流而转发至 ${to}`,
         timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'} @ ${rate} / 小时`, hrs: '小时'},
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>解释</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
@@ -6070,6 +6103,10 @@ ${reportName}
                 title: '类别规则',
                 approver: '审批人',
                 requireDescription: '要求描述',
+                requireFields: '必填字段',
+                requiredFieldsTitle: '必填项',
+                requiredFieldsDescription: (categoryName: string) => `这将适用于所有被归类为 <strong>${categoryName}</strong> 的费用。`,
+                requireAttendees: '要求与会者',
                 descriptionHint: '描述提示',
                 descriptionHintDescription: (categoryName: string) => `提醒员工为“${categoryName}”支出提供更多信息。此提示将显示在报销单的描述字段中。`,
                 descriptionHintLabel: '提示',
@@ -6295,10 +6332,6 @@ ${reportName}
         deleteReportField: (fieldType: string, fieldName?: string) => `已移除 ${fieldType} 报告字段“${fieldName}”`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `已将“Prevent self-approval”更新为“${newValue === 'true' ? '已启用' : '已禁用'}”（先前为“${oldValue === 'true' ? '已启用' : '已禁用'}”）`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将需要收据的报销金额上限更改为 ${newValue}（之前为 ${oldValue}）`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将违规的最高报销金额更改为 ${newValue}（之前为 ${oldValue}）`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `已将“费用最长期限（天）”更新为“${newValue}”（之前为“${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}”）`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `将月度报表提交日期设置为“${newValue}”`;
@@ -6441,7 +6474,18 @@ ${reportName}
                 }
             }
         },
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销金额设置为“${newValue}”`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最高报销金额更改为“${newValue}”（之前为“${oldValue}”）`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除最高报销金额（原为“${oldValue}”）`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最高报销天数设置为“${newValue}”天`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销天数更改为“${newValue}”天（之前为“${oldValue}”）`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `移除最大报销时限（之前为“${oldValue}”天）`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将自定义报表名称公式更改为“${newValue}”（之前为“${oldValue}”）`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser ? `将授权付款人更改为“${newReimburser}”（原为“${previousReimburser}”）` : `已将授权付款人更改为“${newReimburser}”`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7028,6 +7072,7 @@ ${reportName}
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `日期早于 ${maxAge} 天`,
         missingCategory: '缺少类别',
         missingComment: '所选类别需要填写描述',
+        missingAttendees: '此类别需要多个参与者',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `缺少 ${tagName ?? '标签'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7725,7 +7770,11 @@ ${reportName}
             addAdminError: '无法将此成员添加为管理员。请重试。',
             revokeAdminAccess: '撤销管理员访问权限',
             cantRevokeAdminAccess: '无法撤销技术联系人的管理员访问权限',
-            error: {removeAdmin: '无法将此用户移除管理员角色。请重试。'},
+            error: {removeAdmin: '无法将此用户从管理员中移除。请重试。', removeDomain: '无法移除此域名。请重试。', removeDomainNameInvalid: '请输入您的域名以重置。'},
+            resetDomain: '重置域名',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `请输入 <strong>${domainName}</strong> 以确认重置该域名。`,
+            enterDomainName: '在此输入您的域名',
+            resetDomainInfo: `此操作是<strong>永久性的</strong>，并且以下数据将被删除：<br/> <ul><li>公司卡连接以及这些卡片上所有未报销的费用</li> <li>SAML 和群组设置</li> </ul> 所有账户、工作区、报表、费用以及其他数据将会保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域名从您的域名列表中清除。`,
         },
         members: {title: '成员', findMember: '查找成员'},
     },
