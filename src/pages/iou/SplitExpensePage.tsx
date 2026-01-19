@@ -47,7 +47,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -111,6 +111,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
+
+    const isEditingSplitExpense = !!Number(splitExpenseTransactionID);
+    const splitTransactionIOUAction = getIOUActionForTransactions([splitExpenseTransactionID], expenseReport?.reportID).at(0);
+    const canEditSplitExpense = canEditFieldOfMoneyRequest(splitTransactionIOUAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
+
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`, {canBeMissing: true});
 
@@ -286,6 +291,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const isSettled = isSettledReportUtils(currentItemReport?.reportID);
             const isCancelled = currentItemReport && currentItemReport?.isCancelledIOU;
             const percentage = adjustedPercentages.at(index) ?? 0;
+            const isEditable =
+                !currentTransaction ||
+                canEditFieldOfMoneyRequest(getIOUActionForTransactions([currentTransaction?.transactionID], currentItemReport?.reportID).at(0), CONST.EDIT_REQUEST_FIELD.AMOUNT);
 
             const date = DateUtils.formatWithUTCTimeZone(
                 item.created,
@@ -320,7 +328,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseValueChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-                isEditable: (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
+                isEditable,
             };
         });
 
@@ -434,7 +442,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const initiallyFocusedOptionKey = options.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList;
 
     const headerTitle = useMemo(() => {
-        if (Number(splitExpenseTransactionID)) {
+        if (isEditingSplitExpense) {
             return translate('iou.editSplits');
         }
         if (isPercentageMode) {
@@ -444,7 +452,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return translate('iou.splitByDate');
         }
         return translate('iou.split');
-    }, [splitExpenseTransactionID, isDateMode, isPercentageMode, translate]);
+    }, [isDateMode, isPercentageMode, translate, isEditingSplitExpense]);
 
     const onSelectRow = useCallback(
         (item: SplitListItemType) => {
@@ -466,6 +474,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         [draftTransaction, reportID, showConfirmModal, translate],
     );
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(() => {
+        return isEmptyObject(draftTransaction) || !reportID || (isEditingSplitExpense ? !canEditSplitExpense : !isSplitAvailable);
+    }, [isEditingSplitExpense, canEditSplitExpense, draftTransaction, reportID, isSplitAvailable]);
+
     if (isLoadingDraftTransaction) {
         return <FullScreenLoadingIndicator style={[styles.opacity1]} />;
     }
@@ -477,7 +490,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
