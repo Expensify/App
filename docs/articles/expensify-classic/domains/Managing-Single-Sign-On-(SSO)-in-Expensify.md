@@ -13,7 +13,7 @@ Set up secure and streamlined login across your organization by enabling SAML Si
 To set up SAML Single Sign-On (SSO), verify your domain. 
 [Learn how to claim and verify your domain](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain#step-2-verify-domain-ownership)
 
-Once your domain is verified:
+Once you are a Domain Admin on a verified domain, you can configure SAML SSO login: 
 
 1. Go to **Settings > Domains > [Domain Name] > SAML**.
 2. Toggle **SAML Login** to **Enabled**.
@@ -32,7 +32,7 @@ Once your domain is verified:
 2. Toggle **SAML Login** to **Enabled**.
 3. Download Expensify’s **Service Provider metadata** to upload to your IdP.
 4. Paste your IdP metadata in the **Identity Provider MetaData** field.
-5. Test logging in to confirm that SAML SSO is configured correctly (recommended) 
+5. Test logging in to confirm that SAML SSO is configured correctly (recommended).
 6. Enable **Required for login** to ensure  members sign in via SSO only.
    
 Select your Identity (SAML) Provider for detailed steps on configuring SAML Single Sign-On (SSO): 
