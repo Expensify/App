@@ -78,6 +78,7 @@ import type {
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
+    ParentNavigationSummaryParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -7049,7 +7050,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         reply: 'Beantwoorden',
         from: 'Van',
         in: 'in',
-        parentNavigationSummary: (reportName?: string, workspaceName?: string) => `Van ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Van ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'URL kopiëren',

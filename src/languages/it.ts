@@ -78,6 +78,7 @@ import type {
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
+    ParentNavigationSummaryParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -7064,7 +7065,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         reply: 'Rispondi',
         from: 'Da',
         in: 'in',
-        parentNavigationSummary: (reportName?: string, workspaceName?: string) => `Da ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Da ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'Copia URL',

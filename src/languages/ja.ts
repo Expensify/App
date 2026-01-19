@@ -78,6 +78,7 @@ import type {
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
+    ParentNavigationSummaryParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -7006,7 +7007,7 @@ ${reportName}
         reply: '返信',
         from: '差出人',
         in: '内',
-        parentNavigationSummary: (reportName?: string, workspaceName?: string) => `${reportName}${workspaceName ? `${workspaceName} 内` : ''} から`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `${reportName}${workspaceName ? `${workspaceName} 内` : ''} から`,
     },
     qrCodes: {
         copy: 'URLをコピー',

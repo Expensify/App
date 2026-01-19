@@ -7179,7 +7179,7 @@ ${amount} para ${merchant} - ${date}`,
         reply: 'Respuesta',
         from: 'De',
         in: 'en',
-        parentNavigationSummary: (reportName, workspaceName) => `De ${reportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}) => `De ${reportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'Copiar URL',

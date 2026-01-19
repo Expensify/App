@@ -209,7 +209,7 @@ function ParentNavigationSubtitle({
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
                                 onPress={onPress}
-                                accessibilityLabel={translate('threads.parentNavigationSummary', reportName, workspaceName)}
+                                accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
                                 style={[
                                     pressableStyles,
                                     styles.optionAlternateText,

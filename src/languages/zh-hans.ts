@@ -78,6 +78,7 @@ import type {
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
+    ParentNavigationSummaryParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -6892,7 +6893,7 @@ ${reportName}
         reply: '回复',
         from: '从',
         in: '在',
-        parentNavigationSummary: (reportName?: string, workspaceName?: string) => `来自 ${reportName}${workspaceName ? `在 ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `来自 ${reportName}${workspaceName ? `在 ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: '复制 URL',

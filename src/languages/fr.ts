@@ -78,6 +78,7 @@ import type {
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
+    ParentNavigationSummaryParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -7087,7 +7088,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         reply: 'Répondre',
         from: 'De',
         in: 'dans',
-        parentNavigationSummary: (reportName?: string, workspaceName?: string) => `De ${reportName}${workspaceName ? `dans ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `De ${reportName}${workspaceName ? `dans ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'Copier l’URL',

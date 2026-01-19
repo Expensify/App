@@ -78,6 +78,7 @@ import type {
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
+    ParentNavigationSummaryParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -7078,7 +7079,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         reply: 'Antworten',
         from: 'Von',
         in: 'in',
-        parentNavigationSummary: (reportName?: string, workspaceName?: string) => `Von ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Von ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'URL kopieren',

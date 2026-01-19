@@ -78,6 +78,7 @@ import type {
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
+    ParentNavigationSummaryParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -7038,7 +7039,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         reply: 'Responder',
         from: 'De',
         in: 'em',
-        parentNavigationSummary: (reportName?: string, workspaceName?: string) => `De ${reportName}${workspaceName ? `em ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `De ${reportName}${workspaceName ? `em ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copy: 'Copiar URL',
