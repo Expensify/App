@@ -139,7 +139,6 @@ function DatePicker({
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    readOnly
                     onPress={handlePress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
