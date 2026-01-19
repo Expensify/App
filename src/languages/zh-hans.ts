@@ -259,7 +259,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: '搜索…',
         next: '下一步',
         previous: '上一步',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: '返回',
         create: '创建',
         add: '添加',
@@ -3098,6 +3097,8 @@ ${
     onfidoStep: {
         acceptTerms: '通过继续申请激活您的 Expensify Wallet，即表示您确认已阅读、理解并接受',
         facialScan: 'Onfido 面部扫描政策与授权',
+        onfidoLinks: (onfidoTitle: string) =>
+            `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfido 面部扫描政策与授权</a>，<a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>隐私</a> 和 <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>服务条款</a>。</muted-text-micro>`,
         tryAgain: '重试',
         verifyIdentity: '验证身份',
         letsVerifyIdentity: '让我们验证您的身份',
@@ -6455,18 +6456,38 @@ ${reportName}
                 }
             }
         },
-        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
-        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
-        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
-        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销金额设置为“${newValue}”`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最高报销金额更改为“${newValue}”（之前为“${oldValue}”）`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除最高报销金额（原为“${oldValue}”）`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最高报销天数设置为“${newValue}”天`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销天数更改为“${newValue}”天（之前为“${oldValue}”）`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `移除最大报销时限（之前为“${oldValue}”天）`,
+        setDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `将默认企业银行账户设置为“${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}”`,
+        removedDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `移除了默认的企业银行账户 “${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}”`,
+        changedDefaultBankAccount: ({
+            bankAccountName,
+            maskedBankAccountNumber,
+            oldBankAccountName,
+            oldMaskedBankAccountNumber,
+        }: {
+            bankAccountName: string;
+            maskedBankAccountNumber: string;
+            oldBankAccountName: string;
+            oldMaskedBankAccountNumber: string;
+        }) =>
+            `已将默认企业银行账户更改为“${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}”（之前为“${oldBankAccountName ? `${oldBankAccountName}: ` : ''}${oldMaskedBankAccountNumber}”）`,
+        changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `将发票公司名称更改为“${newValue}”（之前为“${oldValue}”）` : `将发票公司名称设置为“${newValue}”`,
+        changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `将发票公司网站更改为 “${newValue}”（之前为 “${oldValue}”）` : `将发票公司网站设置为“${newValue}”`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将自定义报表名称公式更改为“${newValue}”（之前为“${oldValue}”）`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `将授权付款人更改为“${newReimburser}”（原为“${previousReimburser}”）` : `已将授权付款人更改为“${newReimburser}”`,
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将报销单必填金额设置为“${newValue}”`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将报销单所需金额更改为“${newValue}”（之前为“${oldValue}”）`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除所需报销单金额（先前为“${oldValue}”）`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最高报销金额设置为“${newValue}”`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最高报销金额更改为 “${newValue}”（之前为 “${oldValue}”）`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除最⾼报销金额（原为“${oldValue}”）`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销天数设置为“${newValue}”天`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销单据天数更改为 “${newValue}” 天（之前为 “${oldValue}”）`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除费用最长期限（之前为“${oldValue}”天）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7159,6 +7180,7 @@ ${reportName}
         hold: '此报销已被搁置',
         resolvedDuplicates: '已解决重复项',
         companyCardRequired: '需要公司卡消费',
+        noRoute: '请选择一个有效的地址',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName}为必填项`,
@@ -7771,11 +7793,11 @@ ${reportName}
         stopGpsTrackingModal: {title: '停止 GPS 追踪', prompt: '你确定吗？这将结束你当前的旅程。', cancel: '恢复追踪', confirm: '停止 GPS 追踪'},
         discardDistanceTrackingModal: {title: '丢弃距离跟踪', prompt: '您确定吗？这将放弃您当前的流程，且无法撤销。', confirm: '丢弃距离跟踪'},
         zeroDistanceTripModal: {title: '无法创建报销', prompt: '你不能创建起点和终点相同的报销。'},
-
         locationRequiredModal: {title: '需要访问位置信息', prompt: '请在设备设置中允许位置访问以开始 GPS 距离跟踪。', allow: '允许'},
         androidBackgroundLocationRequiredModal: {title: '需要后台位置访问权限', prompt: '请在设备设置中允许应用使用“始终允许”位置访问权限，以开始 GPS 距离跟踪。'},
         preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},
         desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
+        notification: {title: '正在进行 GPS 跟踪', body: '前往应用完成'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
