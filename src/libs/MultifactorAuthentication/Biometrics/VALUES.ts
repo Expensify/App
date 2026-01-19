@@ -155,9 +155,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
      * Keychain service name for secure key storage.
      */
     KEYCHAIN_SERVICE: 'Expensify',
-    /**
-     * EdDSA key type identifier referred to as EdDSA in the Auth system.
-     */
+    /** Referred to as the EdDSA in the Auth */
     ED25519_TYPE: 'biometric',
     /**
      * Key alias identifiers for secure storage.
@@ -167,6 +165,12 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         PRIVATE_KEY: '3DS_SCA_KEY_PRIVATE',
     },
     EXPO_ERRORS,
+    NO_SCENARIO_FOR_STATUS_REASON: {
+        REGISTER: 'REGISTER',
+        CANCEL: 'CANCEL',
+        UPDATE: 'UPDATE',
+        FULFILL: 'FULFILL',
+    },
     /**
      * Defines the requirements and configuration for each authentication factor.
      */

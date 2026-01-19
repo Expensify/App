@@ -2,6 +2,8 @@
  * Type definitions for multifactor authentication biometrics operations.
  */
 import type {EmptyObject, Simplify, ValueOf} from 'type-fest';
+import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
+import type {NotificationPaths} from '@components/MultifactorAuthentication/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
@@ -15,13 +17,6 @@ type BasicMultifactorAuthenticationRequirementTypes = {
 };
 
 /**
- * Represents the reason for a multifactor authentication response from the backend.
- */
-type MultifactorAuthenticationReason = ValueOf<{
-    [K in keyof typeof VALUES.REASON]: ValueOf<(typeof VALUES.REASON)[K]>;
-}>;
-
-/**
  * Conditional type for including or omitting the step field in partial status.
  */
 type MultifactorAuthenticationPartialStatusConditional<OmitStep> = OmitStep extends false
@@ -29,6 +24,13 @@ type MultifactorAuthenticationPartialStatusConditional<OmitStep> = OmitStep exte
           step: MultifactorAuthenticationStep;
       }
     : EmptyObject;
+
+/**
+ * Represents the reason for a multifactor authentication response from the backend.
+ */
+type MultifactorAuthenticationReason = ValueOf<{
+    [K in keyof typeof VALUES.REASON]: ValueOf<(typeof VALUES.REASON)[K]>;
+}>;
 
 /**
  * Represents a partial status result of multifactor authentication operations.
@@ -40,6 +42,20 @@ type MultifactorAuthenticationPartialStatus<T, OmitStep = false> = MultifactorAu
     reason: MultifactorAuthenticationReason;
 
     type?: ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
+};
+
+type MultifactorAuthenticationStatus<T, OmitStep = false> = MultifactorAuthenticationPartialStatus<T, OmitStep> & {
+    typeName?: string;
+
+    headerTitle: string;
+
+    title: string;
+
+    description: string;
+
+    scenario: MultifactorAuthenticationScenario | undefined;
+
+    notificationPaths: NotificationPaths;
 };
 
 /**
@@ -147,11 +163,12 @@ export type {
     MultifactorAuthenticationResponseMap,
     MultifactorAuthenticationKeyType,
     AllMultifactorAuthenticationFactors,
+    MultifactorAuthenticationStatus,
     MultifactorAuthenticationPartialStatus,
+    MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationActionParams,
     MultifactorKeyStoreOptions,
     MultifactorAuthenticationReason,
-    MultifactorAuthenticationKeyInfo,
     ResponseDetails,
     ChallengeType,
 };
