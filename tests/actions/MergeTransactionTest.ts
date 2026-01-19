@@ -555,6 +555,7 @@ describe('mergeTransactionRequest', () => {
                 sourceTransaction,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
+                targetTransactionThreadParentReportNextStep: undefined,
                 allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID),
                 policy: undefined,
                 policyTags: undefined,
