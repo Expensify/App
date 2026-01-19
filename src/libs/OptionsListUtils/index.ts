@@ -413,9 +413,9 @@ function uniqFast(items: string[]): string[] {
 
 /**
  * Get the last actor display name from last actor details.
- * @param currentUserAccountIDParam - Optional current user account ID to use (for cold start scenarios where module-level Onyx callbacks may not have been fired yet)
+ * @param currentUserAccountIDParam - Current user account ID used to determine if "You" should be shown.
  */
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam?: number) {
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam: number) {
     if (!lastActorDetails) {
         return '';
     }
@@ -424,10 +424,7 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
         return CONST.CONCIERGE_DISPLAY_NAME;
     }
 
-    // Use the passed currentUserAccountIDParam if available, otherwise fall back to the module-level Onyx callback-set currentUserAccountID
-    const effectiveCurrentUserAccountID = currentUserAccountIDParam ?? currentUserAccountID;
-
-    return lastActorDetails.accountID !== effectiveCurrentUserAccountID
+    return lastActorDetails.accountID !== currentUserAccountIDParam
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(lastActorDetails))
         : // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -436,13 +433,13 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 
 /**
  * Should show the last actor display name from last actor details.
- * @param currentUserAccountIDParam - Optional current user account ID to use (for cold start scenarios)
+ * @param currentUserAccountIDParam - Current user account ID used to determine display logic.
  */
 function shouldShowLastActorDisplayName(
     report: OnyxEntry<Report>,
     lastActorDetails: Partial<PersonalDetails> | null,
     lastAction: OnyxEntry<ReportAction>,
-    currentUserAccountIDParam?: number,
+    currentUserAccountIDParam: number,
 ) {
     const reportID = report?.reportID;
     const lastReportAction = (reportID ? lastVisibleReportActions[reportID] : undefined) ?? lastAction;
@@ -450,14 +447,11 @@ function shouldShowLastActorDisplayName(
     // Use report.lastActionType as fallback when report actions aren't loaded yet (e.g., on cold start)
     const lastActionName = lastReportAction?.actionName ?? report?.lastActionType;
 
-    // Use the passed currentUserAccountIDParam if available, otherwise fall back to the module-level Onyx callback-set currentUserAccountID
-    const effectiveCurrentUserAccountID = currentUserAccountIDParam ?? currentUserAccountID;
-
     if (
         !lastActionName ||
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
-        (isDM(report) && lastActorDetails.accountID !== effectiveCurrentUserAccountID) ||
+        (isDM(report) && lastActorDetails.accountID !== currentUserAccountIDParam) ||
         lastActionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
         (lastActionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
@@ -465,7 +459,7 @@ function shouldShowLastActorDisplayName(
         return false;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, effectiveCurrentUserAccountID);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam);
 
     if (!lastActorDisplayName) {
         return false;
@@ -582,7 +576,7 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
-function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam?: number): string {
+function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam: number): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
 

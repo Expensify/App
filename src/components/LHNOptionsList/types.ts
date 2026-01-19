@@ -142,8 +142,8 @@ type OptionRowLHNDataProps = {
 
     lastActionReport: OnyxEntry<Report> | undefined;
 
-    /** The current user's account ID from session */
-    currentUserAccountID?: number;
+    /** The current user's account ID */
+    currentUserAccountID: number;
 };
 
 type OptionRowLHNProps = {
