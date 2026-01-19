@@ -748,7 +748,7 @@ function MenuItem({
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={CONST.ROLE.MENUITEM}
-                                accessibilityLabel={[description, title].filter(Boolean).join(', ')}
+                                accessibilityLabel={accessibilityLabel ?? [description, title].filter(Boolean).join(', ')}
                                 accessible={shouldBeAccessible}
                                 tabIndex={tabIndex}
                                 onFocus={onFocus}
