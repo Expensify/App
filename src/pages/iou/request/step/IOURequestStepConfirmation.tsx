@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -128,6 +129,7 @@ function IOURequestStepConfirmation({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
+    const isFocused = useIsFocused();
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -419,7 +421,7 @@ function IOURequestStepConfirmation({
         }
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionIDs, requestType, defaultCategory, policy?.id]);
+    }, [transactionIDs, requestType, defaultCategory, isFocused, policy?.id]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
