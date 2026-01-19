@@ -62,7 +62,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, getPersonalPolicy, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
@@ -90,6 +90,7 @@ import {
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
@@ -234,8 +235,14 @@ type PureReportActionItemProps = {
     /** All the data of the policy collection */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
+    /** The personal policy ID */
+    personalPolicyID: string | undefined;
+
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
+
+    /** All transaction drafts */
+    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
 
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -361,6 +368,7 @@ type PureReportActionItemProps = {
         actionName: IOUAction,
         reportActionID: string,
         introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+        allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>,
         activePolicy: OnyxEntry<OnyxTypes.Policy>,
         isRestrictedToPreferredPolicy?: boolean,
         preferredPolicyID?: string,
@@ -451,7 +459,9 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     allReports,
     policies,
+    personalPolicyID,
     introSelected,
+    allTransactionDrafts,
     action,
     report,
     policy,
@@ -882,6 +892,7 @@ function PureReportActionItem({
                             CONST.IOU.ACTION.SUBMIT,
                             action.reportActionID,
                             introSelected,
+                            allTransactionDrafts,
                             activePolicy,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
@@ -902,6 +913,7 @@ function PureReportActionItem({
                                 CONST.IOU.ACTION.CATEGORIZE,
                                 action.reportActionID,
                                 introSelected,
+                                allTransactionDrafts,
                                 activePolicy,
                             );
                         },
@@ -916,6 +928,7 @@ function PureReportActionItem({
                                 CONST.IOU.ACTION.SHARE,
                                 action.reportActionID,
                                 introSelected,
+                                allTransactionDrafts,
                                 activePolicy,
                             );
                         },
@@ -1007,8 +1020,7 @@ function PureReportActionItem({
         }
 
         const actionableMentionWhisperOptions = [];
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
+        const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
 
         // Show the invite to submit expense button even if one of the mentioned users is a not a policy member
         const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login)) ?? false;
@@ -1057,9 +1069,11 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
+        allTransactionDrafts,
         activePolicy,
         report,
         originalReport,
+        personalPolicyID,
     ]);
 
     /**
@@ -1486,6 +1500,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE)) {
+            children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAgeMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultBillableMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE)) {
@@ -1997,6 +2013,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
     const prevParentReportAction = prevProps.parentReportAction;
     const nextParentReportAction = nextProps.parentReportAction;
     return (
+        prevProps.personalPolicyID === nextProps.personalPolicyID &&
         prevProps.displayAsGroup === nextProps.displayAsGroup &&
         prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
         prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&

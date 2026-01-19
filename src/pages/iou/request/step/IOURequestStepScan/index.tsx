@@ -95,6 +95,7 @@ function IOURequestStepScan({
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const isArchived = isArchivedReport(reportNameValuePairs);
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -156,8 +157,8 @@ function IOURequestStepScan({
             return false;
         }
 
-        return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, reportNameValuePairs]);
+        return !isArchived && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, isArchived]);
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
@@ -334,7 +335,7 @@ function IOURequestStepScan({
                 shouldSkipConfirmation,
                 defaultExpensePolicy,
                 shouldGenerateTransactionThreadReport,
-                isArchivedExpenseReport: isArchivedReport(reportNameValuePairs),
+                isArchivedExpenseReport: isArchived,
                 isAutoReporting: !!personalPolicy?.autoReporting,
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
@@ -342,6 +343,7 @@ function IOURequestStepScan({
                 policyRecentlyUsedCurrencies,
                 introSelected,
                 activePolicyID,
+                privateIsArchived: reportNameValuePairs?.private_isArchived,
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
@@ -356,7 +358,7 @@ function IOURequestStepScan({
             initialTransaction?.currency,
             initialTransaction?.participants,
             initialTransaction?.reportID,
-            reportNameValuePairs,
+            isArchived,
             iouType,
             defaultExpensePolicy,
             report,

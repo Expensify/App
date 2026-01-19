@@ -5,7 +5,14 @@ import lodashHas from 'lodash/has';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
+import type {
+    ChangeTransactionsReportParams,
+    DismissViolationParams,
+    GetDuplicateTransactionDetailsParams,
+    GetRouteParams,
+    MarkAsCashParams,
+    TransactionThreadInfo,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
@@ -50,19 +57,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
-import {getCurrentUserAccountID} from './Report';
-
-const allTransactions: OnyxCollection<Transaction> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    callback: (transaction, key) => {
-        if (!key || !transaction) {
-            return;
-        }
-        const transactionID = CollectionUtils.extractCollectionItemID(key);
-        allTransactions[transactionID] = transaction;
-    },
-});
 
 let allTransactionDrafts: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -385,27 +379,53 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     });
 }
 
+type DismissDuplicateTransactionViolationProps = {
+    transactionIDs: string[];
+    dismissedPersonalDetails: PersonalDetails;
+    expenseReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    isASAPSubmitBetaEnabled: boolean;
+    allTransactions: OnyxCollection<Transaction>;
+};
+
 /**
  * Dismisses the duplicate transaction violation for the provided transactionIDs
  * and updates the transaction to include the dismissed violation in the comment.
  */
-function dismissDuplicateTransactionViolation(
-    transactionIDs: string[],
-    dismissedPersonalDetails: PersonalDetails,
-    expenseReport: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    isASAPSubmitBetaEnabled: boolean,
-) {
+function dismissDuplicateTransactionViolation({
+    transactionIDs,
+    dismissedPersonalDetails,
+    expenseReport,
+    policy,
+    isASAPSubmitBetaEnabled,
+    allTransactions,
+}: DismissDuplicateTransactionViolationProps) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
-    const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
+    const currentTransactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction?.reportID, transaction?.transactionID));
     const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
 
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        >
+    > = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        >
+    > = [];
 
     if (expenseReport) {
         const hasOtherViolationsBesideDuplicates = currentTransactionViolations.some(
@@ -477,7 +497,7 @@ function dismissDuplicateTransactionViolation(
     }
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+    const optimisticReportActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -489,17 +509,16 @@ function dismissDuplicateTransactionViolation(
                 : undefined,
         };
     });
-    const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
+    const optimisticDataTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         value: transactionViolations.violations?.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
     }));
 
     optimisticData.push(...optimisticDataTransactionViolations);
     optimisticData.push(...optimisticReportActions);
 
-    const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
+    const optimisticDataTransactions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
@@ -517,14 +536,13 @@ function dismissDuplicateTransactionViolation(
 
     optimisticData.push(...optimisticDataTransactions);
 
-    const failureDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
+    const failureDataTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         value: transactionViolations.violations?.map((violation) => violation),
     }));
 
-    const failureDataTransaction: OnyxUpdate[] = currentTransactions.map((transaction) => ({
+    const failureDataTransaction: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
@@ -533,7 +551,7 @@ function dismissDuplicateTransactionViolation(
     }));
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+    const failureReportActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -551,7 +569,7 @@ function dismissDuplicateTransactionViolation(
     failureData.push(...failureReportActions);
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const successReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+    const successReportActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -700,7 +718,7 @@ type ChangeTransactionsReportProps = {
     policy?: OnyxEntry<Policy>;
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
-    allTransactionsCollection: OnyxCollection<Transaction>;
+    allTransactions: OnyxCollection<Transaction>;
 };
 
 function changeTransactionsReport({
@@ -712,11 +730,11 @@ function changeTransactionsReport({
     policy,
     reportNextStep,
     policyCategories,
-    allTransactionsCollection,
+    allTransactions,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    const transactions = transactionIDs.map((id) => allTransactionsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
@@ -728,7 +746,16 @@ function changeTransactionsReport({
         currentTransactionViolations[id] = allTransactionViolation?.[id] ?? [];
     }
 
-    const optimisticData: OnyxUpdate[] = [];
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+        >
+    > = [];
     const failureData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT
@@ -752,7 +779,6 @@ function changeTransactionsReport({
     const existingSelfDMReportID = findSelfDMReportID();
     let selfDMReport: Report | undefined;
     let selfDMCreatedReportAction: ReportAction | undefined;
-    const currentUserAccountID = getCurrentUserAccountID();
 
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
@@ -921,7 +947,6 @@ function changeTransactionsReport({
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
                     });
                 }
@@ -1117,7 +1142,7 @@ function changeTransactionsReport({
                     parentReportID: targetReportID,
                     parentReportActionID: optimisticMoneyRequestReportActionID,
                     policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
-                    participants: isUnreported && shouldRemoveOtherParticipants ? {[currentUserAccountID]: participants?.[currentUserAccountID]} : participants,
+                    participants: isUnreported && shouldRemoveOtherParticipants ? {[accountID]: participants?.[accountID]} : participants,
                 },
             });
         }
@@ -1464,6 +1489,18 @@ function getDraftTransactions(draftTransactions?: OnyxCollection<Transaction>): 
     return Object.values(draftTransactions ?? allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
+function getDuplicateTransactionDetails(transactionID?: string) {
+    if (!transactionID) {
+        return;
+    }
+
+    const parameters: GetDuplicateTransactionDetailsParams = {
+        transactionID,
+    };
+
+    API.read(READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS, parameters);
+}
+
 export {
     saveWaypoint,
     removeWaypoint,
@@ -1482,4 +1519,5 @@ export {
     revert,
     changeTransactionsReport,
     setTransactionReport,
+    getDuplicateTransactionDetails,
 };

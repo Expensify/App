@@ -92,6 +92,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
     activePolicyID?: string;
+    privateIsArchived?: string;
     files: ReceiptFile[];
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
@@ -127,6 +128,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
     activePolicyID?: string;
+    privateIsArchived?: string;
 };
 
 function createTransaction({
@@ -221,12 +223,13 @@ function getMoneyRequestParticipantOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    privateIsArchived?: string,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
+        return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived);
     });
 }
 
@@ -254,6 +257,7 @@ function handleMoneyRequestStepScanParticipants({
     policyRecentlyUsedCurrencies,
     introSelected,
     activePolicyID,
+    privateIsArchived,
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
@@ -290,7 +294,7 @@ function handleMoneyRequestStepScanParticipants({
     // to the confirmation step.
     // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (!initialTransaction?.isFromGlobalCreate && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
 
         if (shouldSkipConfirmation) {
             const firstReceiptFile = files.at(0);
@@ -478,6 +482,7 @@ function handleMoneyRequestStepDistanceNavigation({
     policyRecentlyUsedCurrencies,
     introSelected,
     activePolicyID,
+    privateIsArchived,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
 
@@ -496,7 +501,7 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
 
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {

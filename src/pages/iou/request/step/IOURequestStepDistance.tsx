@@ -73,7 +73,9 @@ function IOURequestStepDistance({
     const {isBetaEnabled} = usePermissions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const isArchived = isArchivedReport(reportNameValuePairs);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
@@ -188,12 +190,8 @@ function IOURequestStepDistance({
             return false;
         }
 
-        return (
-            iouType !== CONST.IOU.TYPE.SPLIT &&
-            !isArchivedReport(reportNameValuePairs) &&
-            !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
-        );
-    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, reportNameValuePairs, iouType]);
+        return iouType !== CONST.IOU.TYPE.SPLIT && !isArchived && !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, isArchived, iouType]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -297,7 +295,7 @@ function IOURequestStepDistance({
             backToReport,
             shouldSkipConfirmation,
             defaultExpensePolicy,
-            isArchivedExpenseReport: isArchivedReport(reportNameValuePairs),
+            isArchivedExpenseReport: isArchived,
             isAutoReporting: !!personalPolicy?.autoReporting,
             isASAPSubmitBetaEnabled,
             transactionViolations,
@@ -308,12 +306,13 @@ function IOURequestStepDistance({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
+            privateIsArchived: reportNameValuePairs?.private_isArchived,
         });
     }, [
         transaction,
         backTo,
         report,
-        reportNameValuePairs,
+        isArchived,
         iouType,
         defaultExpensePolicy,
         setDistanceRequestData,
@@ -416,6 +415,7 @@ function IOURequestStepDistance({
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
+                    parentReportNextStep,
                 });
             }
             transactionWasSaved.current = true;

@@ -88,6 +88,9 @@ type ReportVerifyAccountNavigatorParamList = {
     [SCREENS.REPORT_VERIFY_ACCOUNT]: {
         reportID: string;
     };
+    [SCREENS.EXPENSE_REPORT_VERIFY_ACCOUNT]: {
+        reportID: string;
+    };
 };
 
 type SettingsNavigatorParamList = {
@@ -1941,6 +1944,20 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.SET_DEFAULT_WORKSPACE]: {
         navigateTo?: Routes;
     };
+    [SCREENS.MONEY_REQUEST.STEP_TIME_RATE]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        reportActionID: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_HOURS]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        reportActionID: string;
+    };
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
@@ -2254,14 +2271,24 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
+    [SCREENS.RIGHT_MODAL.EXPENSE_REPORT]: {
+        reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]: {
+        reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
         reportID: string;
         reportActionID?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2794,11 +2821,6 @@ type SearchFullscreenNavigatorParamList = {
         rawQuery?: SearchQueryString;
         name?: string;
         groupBy?: string;
-    };
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
-        reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
 };
 

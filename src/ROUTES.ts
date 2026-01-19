@@ -91,6 +91,17 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+
+    EXPENSE_REPORT_RHP: {
+        route: 'e/:reportID',
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `e/${reportID}` as const;
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
+    },
+
     SEARCH_REPORT_VERIFY_ACCOUNT: {
         route: `search/view/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `search/view/${reportID}/${VERIFY_ACCOUNT}` as const,
@@ -592,6 +603,10 @@ const ROUTES = {
     REPORT_VERIFY_ACCOUNT: {
         route: `r/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `r/${reportID}/${VERIFY_ACCOUNT}` as const,
+    },
+    EXPENSE_REPORT_VERIFY_ACCOUNT: {
+        route: `e/:reportID/${VERIFY_ACCOUNT}`,
+        getRoute: (reportID: string) => `e/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -1292,6 +1307,16 @@ const ROUTES = {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
+    },
+    MONEY_REQUEST_STEP_TIME_RATE: {
+        route: ':action/:iouType/rate/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/rate/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
+    },
+    MONEY_REQUEST_STEP_HOURS: {
+        route: ':action/:iouType/hours/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/hours/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
     },
     DISTANCE_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID/distance-new/:backToReport?',
