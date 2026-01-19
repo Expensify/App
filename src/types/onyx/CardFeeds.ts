@@ -195,7 +195,8 @@ type CardFeeds = {
         /** Whether to use the technical contact's billing card */
         useTechnicalContactBillingCard?: boolean;
     };
-} & CardFeedsStatus &  DomainSettings;
+} & CardFeedsStatus &
+    DomainSettings;
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
