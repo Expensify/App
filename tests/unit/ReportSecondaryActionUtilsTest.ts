@@ -425,7 +425,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             allBetas: [CONST.BETAS.ALL],
-                });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
 
@@ -463,7 +463,7 @@ describe('getSecondaryAction', () => {
             originalTransaction: {} as Transaction,
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
-            policy, 
+            policy,
             allBetas: [CONST.BETAS.ALL],
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
@@ -780,7 +780,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             allBetas: [CONST.BETAS.ALL],
-            });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
 
@@ -808,7 +808,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             allBetas: [CONST.BETAS.ALL],
-            });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
 
@@ -837,7 +837,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             allBetas: [CONST.BETAS.ALL],
-            });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
 
@@ -1030,7 +1030,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             allBetas: [CONST.BETAS.ALL],
-            });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
@@ -1134,7 +1134,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             allBetas: [CONST.BETAS.ALL],
-            });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
@@ -1319,7 +1319,7 @@ describe('getSecondaryAction', () => {
             policy: oldPolicy,
             policies,
             allBetas: [CONST.BETAS.ALL],
-            });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -1467,7 +1467,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             allBetas: [CONST.BETAS.ALL],
-                });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -1685,7 +1685,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             allBetas: [CONST.BETAS.ALL],
-            });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -1913,7 +1913,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             allBetas: [CONST.BETAS.ALL],
-                });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -2117,7 +2117,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             allBetas: [CONST.BETAS.ALL],
-            });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
     });
 
@@ -2204,7 +2204,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             allBetas: [CONST.BETAS.ALL],
-                });
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
     });
 });
@@ -2771,7 +2771,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 originalTransaction: {} as Transaction,
                 violations: {},
                 bankAccountList: {},
-                policy, 
+                policy,
                 allBetas: [CONST.BETAS.ALL],
             });
 
@@ -2961,7 +2961,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 violations: {},
                 bankAccountList: {},
                 allBetas: [CONST.BETAS.ALL],
-                });
+            });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(true);
         });
