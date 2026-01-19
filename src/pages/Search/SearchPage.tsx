@@ -109,16 +109,8 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {
-        selectedTransactions,
-        clearSelectedTransactions,
-        selectedReports,
-        lastSearchType,
-        setLastSearchType,
-        areAllMatchingItemsSelected,
-        selectAllMatchingItems,
-        currentSearchKey,
-    } = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems, currentSearchKey} =
+        useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const allTransactions = useAllTransactions();
@@ -1164,15 +1156,7 @@ function SearchPage({route}: SearchPageProps) {
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
 
         return {count, total, currency};
-    }, [
-        areAllMatchingItemsSelected,
-        metadata?.count,
-        metadata?.currency,
-        metadata?.total,
-        selectedTransactions,
-        selectedTransactionsKeys.length,
-        shouldAllowFooterTotals,
-    ]);
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length, shouldAllowFooterTotals]);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
