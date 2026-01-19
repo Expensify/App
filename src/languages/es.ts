@@ -3595,6 +3595,11 @@ ${amount} para ${merchant} - ${date}`,
             memberAlternateText: 'Presentar y aprobar informes.',
             adminAlternateText: 'Gestionar informes y configuración del área de trabajo.',
             auditorAlternateText: 'Ver y comentar los informes.',
+            reimbursementChoice: {
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Directo',
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Ninguno',
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: 'Indirecto',
+            },
             roleName: ({role} = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -3615,6 +3620,18 @@ ${amount} para ${merchant} - ${date}`,
                 weekly: 'Semanal',
                 semimonthly: 'Dos veces al mes',
                 monthly: 'Mensual',
+            },
+            budgetFrequency: {
+                monthly: 'mensual',
+                yearly: 'anual',
+            },
+            budgetFrequencyUnit: {
+                monthly: 'mes',
+                yearly: 'año',
+            },
+            budgetTypeForNotificationMessage: {
+                tag: 'etiqueta',
+                category: 'categoría',
             },
             planType: 'Tipo de plan',
             youCantDowngradeInvoicing:
@@ -6076,7 +6093,12 @@ ${amount} para ${merchant} - ${date}`,
             return `cambió la categoría "${categoryName}" a ${newValue} (previamente ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}) => `renombró la categoría "${oldName}" a "${newName}"`,
+        updateCategories: ({count}) => `actualizó ${count} categorías`,
         updateTagListName: ({oldName, newName}) => `cambió el nombre de la lista de etiquetas a "${newName}" (previamente "${oldName}")`,
+        updateTagList: ({tagListName}) => `actualizó las etiquetas de la lista "${tagListName}"`,
+        updateTagListRequired: ({tagListsName, isRequired}) => `cambió las listas de etiquetas ${tagListsName} a ${isRequired ? 'requeridas' : 'no requeridas'}`,
+        importTags: 'importó etiquetas desde una hoja de cálculo',
+        deletedAllTags: 'eliminó todas las etiquetas',
         addTag: ({tagListName, tagName}) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
@@ -6090,7 +6112,18 @@ ${amount} para ${merchant} - ${date}`,
         },
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}) => `cambió el ${customUnitName} ${updatedField} a "${newValue}" (previamente "${oldValue}")`,
         updateCustomUnitTaxEnabled: ({newValue}) => `${newValue ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos en tasas de distancia`,
-        addCustomUnitRate: (customUnitName, rateName) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}) =>
+            `cambió la categoría predeterminada de ${customUnitName} a "${newValue}" ${oldValue ? `(anteriormente "${oldValue}")` : ''}`,
+        importCustomUnitRates: ({customUnitName}) => `importó tasas para la unidad personalizada "${customUnitName}"`,
+        addCustomUnitRate: ({customUnitName, rateName}) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        deleteCustomUnitRate: ({customUnitName, rateName}) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
+        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}) =>
+            `cambió la sub-tasa "${customUnitSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}" ${updatedField} a "${newValue}" (anteriormente "${oldValue}")`,
+        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}) =>
+            `eliminó la sub-tasa "${removedSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}"`,
+        addedReportField: ({fieldType, fieldName}) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}) =>
+            `cambió el índice de la tasa ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(previamente "${oldValue}")` : ''}`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}) =>
             `cambió la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}) => {
@@ -6108,8 +6141,6 @@ ${amount} para ${merchant} - ${date}`,
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}) => {
             return `${newValue ? 'habilitó' : 'deshabilitó'} la tasa de ${customUnitName} "${customUnitRateName}"`;
         },
-        deleteCustomUnitRate: (customUnitName, rateName) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
-        addedReportField: (fieldType, fieldName) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}) => `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
         addedReportFieldOption: ({fieldName, optionName}) => `añadió la opción "${optionName}" al campo de informe "${fieldName}"`,
         removedReportFieldOption: ({fieldName, optionName}) => `eliminó la opción "${optionName}" del campo de informe "${fieldName}"`,
@@ -6179,6 +6210,121 @@ ${amount} para ${merchant} - ${date}`,
             previousReimburser ? `cambió el pagador autorizado a "${newReimburser}" (previamente "${previousReimburser}")` : `cambió el pagador autorizado a "${newReimburser}"`,
         updateReimbursementEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
+        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}) => {
+            const thresholdSuffix = notificationThreshold ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
+            if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
+                return `añadió presupuesto ${frequency} individual de "${individual}" y presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} al ${entityType} "${entityName}"`;
+            }
+            if (typeof individual !== 'undefined') {
+                return `añadió presupuesto ${frequency} individual de "${individual}"${thresholdSuffix} al ${entityType} "${entityName}"`;
+            }
+            return `añadió presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} al ${entityType} "${entityName}"`;
+        },
+        updateBudget: ({
+            entityType,
+            entityName,
+            oldFrequency,
+            newFrequency,
+            oldIndividual,
+            newIndividual,
+            oldShared,
+            newShared,
+            oldNotificationThreshold,
+            newNotificationThreshold,
+        }) => {
+            const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
+            const sharedChanged = !!(newShared && oldShared !== newShared);
+            const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
+            const thresholdChanged = !!(newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold);
+            const changesList: string[] = [];
+
+            if (frequencyChanged) {
+                changesList.push(`cambió la frecuencia del presupuesto a "${newFrequency}" (antes "${oldFrequency}")`);
+            }
+
+            if (sharedChanged) {
+                changesList.push(`cambió el presupuesto compartido total del espacio de trabajo a "${newShared}" (antes "${oldShared}")`);
+            }
+
+            if (individualChanged) {
+                changesList.push(`cambió el presupuesto individual a "${newIndividual}" (antes "${oldIndividual}")`);
+            }
+
+            if (thresholdChanged) {
+                changesList.push(`cambió el umbral de notificación a "${newNotificationThreshold}%" (antes "${oldNotificationThreshold}%")`);
+            }
+
+            if (!frequencyChanged && !sharedChanged && !individualChanged && !thresholdChanged) {
+                return `actualizó el presupuesto para ${entityType} "${entityName}"`;
+            }
+
+            if (changesList.length === 1) {
+                if (frequencyChanged) {
+                    return `cambió la frecuencia del presupuesto para ${entityType} "${entityName}" a "${newFrequency}" (antes "${oldFrequency}")`;
+                }
+                if (sharedChanged) {
+                    return `cambió el presupuesto compartido total para ${entityType} "${entityName}" a "${newShared}" (antes "${oldShared}")`;
+                }
+                if (individualChanged) {
+                    return `cambió el presupuesto individual para ${entityType} "${entityName}" a "${newIndividual}" (antes "${oldIndividual}")`;
+                }
+                return `cambió el umbral de notificación para ${entityType} "${entityName}" a "${newNotificationThreshold}%" (antes "${oldNotificationThreshold}%")`;
+            }
+
+            return `actualizó el presupuesto para ${entityType} "${entityName}": ${changesList.join('; ')}`;
+        },
+        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}) => {
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
+            if (shared && individual) {
+                return `eliminó el presupuesto ${frequency} compartido de "${shared}" y el presupuesto individual de "${individual}"${thresholdSuffix} del ${entityType} "${entityName}"`;
+            }
+            if (shared) {
+                return `eliminó el presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} del ${entityType} "${entityName}"`;
+            }
+            if (individual) {
+                return `eliminó el presupuesto ${frequency} individual de "${individual}"${thresholdSuffix} del ${entityType} "${entityName}"`;
+            }
+            return `eliminó el presupuesto del ${entityType} "${entityName}"`;
+        },
+        updatedTimeEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de tiempo`,
+        updatedTimeRate: ({newRate, oldRate}) => `cambió la tarifa por hora a "${newRate}" (anteriormente "${oldRate}")`,
+        addedProhibitedExpense: ({prohibitedExpense}) => `añadió "${prohibitedExpense}" a los gastos prohibidos`,
+        removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
+        updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}) =>
+            `cambió el método de reembolso a "${newReimbursementChoice}" (previamente "${oldReimbursementChoice}")`,
+        setAutoJoin: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} la aprobación previa de solicitudes para unirse al espacio de trabajo`,
+        updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}) =>
+            `cambió la fórmula personalizada del nombre del informe a "${newDefaultTitle}" (previamente "${oldDefaultTitle}")`,
+        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}) =>
+            `asumió la propiedad del espacio de trabajo de <strong>${policyName}</strong> de ${oldOwnerName} (${oldOwnerEmail})`,
+        updatedAutoHarvesting: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} el envío programado`,
+        updatedIndividualBudgetNotification: ({
+            budgetAmount,
+            budgetFrequency,
+            budgetName,
+            budgetTypeForNotificationMessage,
+            summaryLink,
+            thresholdPercentage,
+            totalSpend,
+            unsubmittedSpend,
+            userEmail,
+            awaitingApprovalSpend,
+            approvedReimbursedClosedSpend,
+        }) =>
+            `¡Atención! Este espacio de trabajo tiene un presupuesto ${budgetFrequency} ${budgetTypeForNotificationMessage} de "${budgetAmount}" para la categoría "${budgetName}". ${userEmail} está actualmente en ${approvedReimbursedClosedSpend}, lo que supera el ${thresholdPercentage}% del presupuesto. También hay ${awaitingApprovalSpend} en espera de aprobación y ${unsubmittedSpend} que aún no se ha enviado, para un total de ${totalSpend}.${summaryLink ? ` <a href="${summaryLink}">Aquí hay un informe</a> con todos esos gastos para tus registros.` : ''}`,
+        updatedSharedBudgetNotification: ({
+            budgetAmount,
+            budgetFrequency,
+            budgetName,
+            budgetTypeForNotificationMessage,
+            summaryLink,
+            thresholdPercentage,
+            totalSpend,
+            unsubmittedSpend,
+            awaitingApprovalSpend,
+            approvedReimbursedClosedSpend,
+        }) =>
+            `¡Atención! Este espacio de trabajo tiene un presupuesto ${budgetFrequency} ${budgetTypeForNotificationMessage} de "${budgetAmount}" para la categoría "${budgetName}". Actualmente estás en ${approvedReimbursedClosedSpend}, lo que supera el ${thresholdPercentage}% del presupuesto. También hay ${awaitingApprovalSpend} en espera de aprobación y ${unsubmittedSpend} que aún no se ha enviado, para un total de ${totalSpend}.${summaryLink ? ` <a href="${summaryLink}">Aquí hay un informe</a> con todos esos gastos para tus registros.` : ''}`,
         updatedFeatureEnabled: ({enabled, featureName}) => {
             switch (featureName) {
                 case 'categories':
