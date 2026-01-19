@@ -12102,7 +12102,7 @@ function prepareOnboardingOnyxData({
  * DM, and we saved the report ID in the user's `onboarding` NVP. As a fallback for users who don't have the NVP, we now
  * only use the Concierge chat.
  */
-function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData, onboardingValue?: OnyxEntry<Onboarding>, onboardingPurposeSelected?: OnboardingPurpose): boolean {
+function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData, onboardingValue: OnyxEntry<Onboarding>, onboardingPurposeSelected?: OnboardingPurpose): boolean {
     // onboarding can be an empty object for old accounts and accounts created from olddot
     if (onboardingValue && !isEmptyObject(onboardingValue) && onboardingValue.chatReportID) {
         return onboardingValue.chatReportID === optionOrReport?.reportID;
@@ -12131,7 +12131,7 @@ function isPostingTasksInAdminsRoom(engagementChoice?: OnboardingPurpose): boole
  * Get the report used for the user's onboarding process. For most users it is the Concierge chat, however in the past
  * we also used the system DM for A/B tests.
  */
-function getChatUsedForOnboarding(onboardingValue?: OnyxEntry<Onboarding>): OnyxEntry<Report> {
+function getChatUsedForOnboarding(onboardingValue: OnyxEntry<Onboarding>): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find((report) => isChatUsedForOnboarding(report, onboardingValue));
 }
 
