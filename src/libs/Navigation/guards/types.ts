@@ -24,7 +24,7 @@ type GuardContext = {
  * Navigation guard interface
  * Guards can intercept navigation actions and allow, block, or redirect them
  */
-interface NavigationGuard {
+type NavigationGuard = {
     /** Guard name for debugging and logging */
     name: string;
 
@@ -41,6 +41,6 @@ interface NavigationGuard {
      * - REDIRECT: Replace the navigation with a redirect to a different route
      */
     evaluate(state: NavigationState, action: NavigationAction, context: GuardContext): GuardResult;
-}
+};
 
 export type {GuardResult, GuardContext, NavigationGuard};

@@ -1,6 +1,5 @@
-import {CommonActions} from '@react-navigation/native';
+import {CommonActions, StackRouter} from '@react-navigation/native';
 import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';

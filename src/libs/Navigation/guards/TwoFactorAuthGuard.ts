@@ -126,7 +126,7 @@ const TwoFactorAuthGuard: NavigationGuard = {
         return true;
     },
 
-    evaluate(state: NavigationState, action: NavigationAction, context: GuardContext): GuardResult {
+    evaluate(state: NavigationState, action: NavigationAction): GuardResult {
         if (shouldShow2FASetup()) {
             // Already on 2FA page - allow navigation
             if (isCurrentlyOn2FAPage(state)) {
