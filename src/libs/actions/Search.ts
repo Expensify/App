@@ -10,7 +10,7 @@ import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports,
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
-import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, OpenSearchPageParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -18,6 +18,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
@@ -376,8 +377,8 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchPage() {
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
+function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParams) {
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
 }
 
 function search({
@@ -845,13 +846,22 @@ function rejectMoneyRequestsOnSearch(
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {
             const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
+            const focusedNavigator = navigationRef.getRootState()?.routes?.at(-1);
             const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
-            const isUserOnSearchMoneyRequestReport = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+            const isUserOnSearchMoneyRequestReport =
+                focusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR &&
+                focusedNavigator?.state?.routes?.some((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT);
             if (isUserOnSearchPage) {
-                urlToNavigateBack = undefined;
-            } else if (isUserOnSearchMoneyRequestReport) {
-                const lastRouteParams = lastRoute?.params;
-                urlToNavigateBack = lastRouteParams && 'backTo' in lastRouteParams ? lastRouteParams?.backTo : undefined;
+                if (isUserOnSearchMoneyRequestReport && lastRoute?.params) {
+                    const searchParams = lastRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+                    urlToNavigateBack = ROUTES.SEARCH_ROOT.getRoute({
+                        query: searchParams.q,
+                        ...(searchParams?.rawQuery && {rawQuery: searchParams.rawQuery}),
+                        ...(searchParams?.name && {name: searchParams.name}),
+                    });
+                } else {
+                    urlToNavigateBack = undefined;
+                }
             } else {
                 urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report?.chatReportID);
             }
