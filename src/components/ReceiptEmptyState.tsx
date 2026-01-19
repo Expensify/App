@@ -58,7 +58,7 @@ function ReceiptEmptyState({
         styles.alignItemsCenter,
         styles.justifyContentCenter,
         styles.moneyRequestViewImage,
-        isDisplayedInWideRHP && !disabled && styles.pb3,
+        isDisplayedInWideRHP && !disabled && styles.pb5,
         isThumbnail && !isInMoneyRequestView ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
         shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
         style,
@@ -101,7 +101,7 @@ function ReceiptEmptyState({
                     </View>
                     {!isThumbnail && isDisplayedInWideRHP && (
                         <>
-                            <Text style={[styles.textHeadline, styles.mt4, styles.mb1]}>{translate('receipt.addAReceipt.phrase1')}</Text>
+                            <Text style={[styles.textHeadline, styles.mt4]}>{translate('receipt.addAReceipt.phrase1')}</Text>
                             <Text style={[styles.textSupporting, styles.textNormal]}>{translate('receipt.addAReceipt.phrase2')}</Text>
                         </>
                     )}
