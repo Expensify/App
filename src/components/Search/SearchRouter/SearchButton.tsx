@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
