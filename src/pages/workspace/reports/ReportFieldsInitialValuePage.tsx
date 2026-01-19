@@ -10,7 +10,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hasCircularReferences} from '@libs/Formula';
+import {hasCircularReferences, validateFormula} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -74,6 +74,16 @@ function ReportFieldsInitialValuePage({
                 hasCircularReferences(formInitialValue, reportField?.name, policy?.fieldList)
             ) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
+            }
+
+            // Validate formula fields for unsupported placeholders
+            if (reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA && formInitialValue) {
+                const validation = validateFormula(formInitialValue);
+                if (!validation.isValid) {
+                    errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.invalidFormulaError', {
+                        placeholders: validation.unsupportedPlaceholders.join(', '),
+                    });
+                }
             }
 
             if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
