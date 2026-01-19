@@ -181,6 +181,10 @@ function getDistanceForDisplay(
         return translate('iou.fieldPending');
     }
 
+    if (!distanceInMeters) {
+        return '';
+    }
+
     const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
     if (useShortFormUnit) {
         return `${distanceInUnits} ${unit}`;
@@ -219,6 +223,10 @@ function getDistanceMerchant(
 ): string {
     if (!hasRoute || !rate) {
         return translate('iou.fieldPending');
+    }
+
+    if (!distanceInMeters) {
+        return '';
     }
 
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true);
