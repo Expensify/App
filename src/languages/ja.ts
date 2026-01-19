@@ -1096,7 +1096,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitBill: '経費を分割',
         splitScan: 'レシートを分割',
         splitDistance: '距離を分割',
-        paySomeone: ({name}: PaySomeoneParams = {}) => `${name ?? '誰か'} を支払う`,
+        paySomeone: (name?: string) => `${name ?? '誰か'} を支払う`,
         assignTask: 'タスクを割り当てる',
         header: 'クイックアクション',
         noLongerHaveReportAccess: '以前のクイックアクションの送信先にはアクセスできなくなりました。下から新しい送信先を選択してください。',
@@ -1132,7 +1132,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: '分割を削除',
         splitExpenseCannotBeEditedModalTitle: 'この経費は編集できません',
         splitExpenseCannotBeEditedModalDescription: '承認済みまたは支払済みの経費は編集できません',
-        paySomeone: ({name}: PaySomeoneParams = {}) => `${name ?? '誰か'} を支払う`,
+        paySomeone: (name?: string) => `${name ?? '誰か'} を支払う`,
         expense: '経費',
         categorize: 'カテゴリ分け',
         share: '共有',
@@ -1259,11 +1259,11 @@ const translations: TranslationDeepObject<typeof en> = {
         didSplitAmount: (formattedAmount: string, comment: string) => `分割 ${formattedAmount}${comment ? `${comment} 用` : ''}`,
         yourSplit: ({amount}: UserSplitParams) => `あなたの分担額 ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} の未払い金額は ${amount}${comment ? `${comment} 用` : ''}`,
-        payerOwes: ({payer}: PayerOwesParams) => `${payer} の負担額:`,
+        payerOwes: (payer: string) => `${payer} の負担額:`,
         payerPaidAmount: (amount: number | string, payer?: string) => `${payer ? `${payer} ` : ''}が${amount}を支払いました`,
-        payerPaid: ({payer}: PayerPaidParams) => `${payer} が支払いました:`,
+        payerPaid: (payer: string) => `${payer} が支払いました:`,
         payerSpentAmount: (amount: number | string, payer?: string) => `${payer} は ${amount} を使いました`,
-        payerSpent: ({payer}: PayerPaidParams) => `${payer} の支出:`,
+        payerSpent: (payer: string) => `${payer} の支出:`,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} が承認しました:`,
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} が ${amount} を承認しました`,
         payerSettled: (amount: number | string) => `支払い済み ${amount}`,
@@ -1291,7 +1291,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `${valueName} を ${newValueToDisplay} に`,
         setTheDistanceMerchant: ({translatedChangedField, newMerchant, newAmountToDisplay}: SetTheDistanceMerchantParams) =>
             `${translatedChangedField} を ${newMerchant} に設定したため、金額が ${newAmountToDisplay} に設定されました`,
-        removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `${valueName}（以前は ${oldValueToDisplay}）`,
+        removedTheRequest: (valueName: string, oldValueToDisplay: string) => `${valueName}（以前は ${oldValueToDisplay}）`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `${valueName} を ${newValueToDisplay} に（以前は ${oldValueToDisplay}）`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `${translatedChangedField} を ${newMerchant}（以前は ${oldMerchant}）に変更し、それにより金額が ${newAmountToDisplay}（以前は ${oldAmountToDisplay}）に更新されました`,
@@ -2511,7 +2511,7 @@ ${merchant} への ${amount}（${date}）`,
         },
         cannotGetAccountDetails: 'アカウント情報を取得できませんでした。もう一度サインインしてください。',
         loginForm: 'ログインフォーム',
-        notYou: ({user}: NotYouParams) => `${user}ではありませんか？`,
+        notYou: (user: string) => `${user}ではありませんか？`,
     },
     onboarding: {
         welcome: 'ようこそ！',
@@ -2919,8 +2919,7 @@ ${
         successfullyUnlinkedLogin: 'セカンダリログインの連携を正常に解除しました！',
     },
     emailDeliveryFailurePage: {
-        ourEmailProvider: ({login}: OurEmailProviderParams) =>
-            `配信エラーにより、メールプロバイダーが一時的に ${login} へのメール送信を停止しました。ログインを再有効化するには、次の手順に従ってください。`,
+        ourEmailProvider: (login: string) => `配信エラーにより、メールプロバイダーが一時的に ${login} へのメール送信を停止しました。ログインを再有効化するには、次の手順に従ってください。`,
         confirmThat: (login: string) =>
             `<strong>${login} が正しく綴られており、実際にメールを受信できる有効なメールアドレスであることを確認してください。</strong> 「expenses@domain.com」などのメールエイリアスは、有効な Expensify ログインとなるために、そのエイリアス専用のメール受信ボックスにアクセスできなければなりません。`,
         ensureYourEmailClient: `<strong>お使いのメールクライアントで expensify.com からのメールが受信できるように設定してください。</strong> この手順の完了方法は<a href="${CONST.SET_NOTIFICATION_LINK}">こちら</a>で確認できますが、メール設定の構成については IT 部門のサポートが必要になる場合があります。`,
@@ -2932,7 +2931,7 @@ ${
         refreshAndTryAgain: '再読み込みして、もう一度お試しください',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `${login} に SMS メッセージを送信できなかったため、一時的に停止しました。次の手順で番号の認証をお試しください：`,
+        smsDeliveryFailureMessage: (login: string) => `${login} に SMS メッセージを送信できなかったため、一時的に停止しました。次の手順で番号の認証をお試しください：`,
         validationSuccess: 'あなたの番号は確認されました！下をクリックして、新しいマジックサインインコードを送信してください。',
         validationFailed: ({
             timeData,
@@ -3713,7 +3712,7 @@ ${
         tripSummary: '出張サマリー',
         departs: '出発',
         errorMessage: '問題が発生しました。後でもう一度お試しください。',
-        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+        phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>出張を予約するには、<a href="${phoneErrorMethodsRoute}">勤務先のメールアドレスをメインのログインとして追加</a>してください。</rbr>`,
         domainSelector: {
             title: 'ドメイン',
@@ -3761,10 +3760,10 @@ ${
             bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `ベンダーがあなたの${type}予約 ${id}をキャンセルしました。`,
             bookingRebooked: ({type, id = ''}: TravelTypeParams) => `あなたの${type}予約は再予約されました。新しい確認番号：${id}。`,
             bookingUpdated: ({type}: TravelTypeParams) => `${type}の予約が更新されました。旅程で新しい詳細を確認してください。`,
-            railTicketRefund: ({origin, destination, startDate}: RailTicketParams) =>
+            railTicketRefund: (origin: string, destination: string, startDate: string) =>
                 `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが払い戻しされました。クレジットが処理されます。`,
-            railTicketExchange: ({origin, destination, startDate}: RailTicketParams) => `${startDate} の ${origin} → ${destination} 行きの乗車券は、変更されました。`,
-            railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが更新されました。`,
+            railTicketExchange: (origin: string, destination: string, startDate: string) => `${startDate} の ${origin} → ${destination} 行きの乗車券は、変更されました。`,
+            railTicketUpdate: (origin: string, destination: string, startDate: string) => `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが更新されました。`,
             defaultUpdate: ({type}: TravelTypeParams) => `あなたの${type}予約が更新されました。`,
         },
         flightTo: 'フライト先',
@@ -3892,15 +3891,14 @@ ${
             planType: 'プランの種類',
             defaultCategory: 'デフォルトのカテゴリ',
             viewTransactions: '取引を表示',
-            policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName} の経費`,
+            policyExpenseChatName: (displayName: string) => `${displayName} の経費`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card の取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">当社のインテグレーション</a>によって作成される「Expensify Card 負債勘定」に自動的にエクスポートされます。</muted-text-label>`,
             youCantDowngradeInvoicing:
                 '請求書払いのサブスクリプションでは、プランをダウングレードできません。サブスクリプションについて相談したり変更したりする場合は、アカウントマネージャーまたはConciergeまでお問い合わせください。',
         },
         receiptPartners: {
             uber: {
-                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
-                    organizationName ? `${organizationName} に接続しました` : '組織全体の出張およびフードデリバリー経費を自動化します。',
+                subtitle: (organizationName: string) => (organizationName ? `${organizationName} に接続しました` : '組織全体の出張およびフードデリバリー経費を自動化します。'),
                 sendInvites: '招待を送信',
                 sendInvitesDescription: 'これらのワークスペースメンバーは、まだ Uber for Business アカウントを持っていません。今は招待したくないメンバーの選択を解除してください。',
                 confirmInvite: '招待を確認',
@@ -4025,7 +4023,7 @@ ${
                 title: '接続するにはこのリンクを開いてください',
                 body: 'セットアップを完了するには、QuickBooks Desktop が実行されているコンピューターで次のリンクを開いてください。',
                 setupErrorTitle: '問題が発生しました',
-                setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
+                setupErrorBody: (conciergeLink: string) =>
                     `<muted-text><centered-text>現在、QuickBooks Desktop との接続が機能していません。しばらくしてからもう一度お試しいただくか、問題が解決しない場合は<a href="${conciergeLink}">Concierge へお問い合わせください</a>。</centered-text></muted-text>`,
             },
             importDescription: 'QuickBooks Desktop から Expensify へインポートするコーディング設定を選択してください。',
@@ -5409,7 +5407,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 one: `${memberName} を削除してもよろしいですか？`,
                 other: 'これらのメンバーを削除してもよろしいですか？',
             }),
-            removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
+            removeMembersWarningPrompt: (memberName: string, ownerName: string) =>
                 `${memberName} はこのワークスペースの承認者です。このワークスペースの共有を解除すると、承認ワークフロー内の承認者はワークスペースのオーナーである ${ownerName} に置き換えられます`,
             removeMembersTitle: () => ({
                 one: 'メンバーを削除',
@@ -5419,7 +5417,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             removeWorkspaceMemberButtonTitle: 'ワークスペースから削除',
             removeGroupMemberButtonTitle: 'グループから削除',
             removeRoomMemberButtonTitle: 'チャットから削除',
-            removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `${memberName} を削除してもよろしいですか？`,
+            removeMemberPrompt: (memberName: string) => `${memberName} を削除してもよろしいですか？`,
             removeMemberTitle: 'メンバーを削除',
             transferOwner: 'オーナーを移行',
             makeMember: () => ({
@@ -5891,7 +5889,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             amountOwedText: 'このアカウントには前月からの未払い残高があります。\n\n残高を精算して、このワークスペースの請求管理を引き継ぎますか？',
             ownerOwesAmountTitle: '未払い残高',
             ownerOwesAmountButtonText: '残高を振替',
-            ownerOwesAmountText: ({email, amount}: OwnerOwesAmountParams) => `このワークスペースの所有アカウント（${email}）には、前月からの未払残高があります。
+            ownerOwesAmountText: (email: string, amount: string) => `このワークスペースの所有アカウント（${email}）には、前月からの未払残高があります。
 
 このワークスペースの請求を引き継ぐために、この金額（${amount}）を振り替えますか？お支払いカードには直ちに請求が行われます。`,
             subscriptionTitle: '年間サブスクリプションを引き継ぐ',
@@ -6107,7 +6105,7 @@ ${reportName}
         payAndDowngrade: {
             title: '支払いとダウングレード',
             headline: '最終のお支払い',
-            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `このサブスクリプションの最終請求額は<strong>${formattedAmount}</strong>です`,
+            description1: (formattedAmount: string) => `このサブスクリプションの最終請求額は<strong>${formattedAmount}</strong>です`,
             description2: (date: string) => `${date} の内訳は以下のとおりです：`,
             subscription:
                 'ご注意ください！この操作を行うと、Expensify のサブスクリプションが終了し、このワークスペースが削除され、すべてのワークスペースメンバーが削除されます。  \nこのワークスペースを残したまま自分だけを削除したい場合は、先に別の管理者に請求の管理を引き継いでもらってください。',
@@ -6297,7 +6295,7 @@ ${reportName}
         roomNameInvalidError: 'ルーム名には、小文字の英字、数字、およびハイフンのみを使用できます',
         pleaseEnterRoomName: 'ルーム名を入力してください',
         pleaseSelectWorkspace: 'ワークスペースを選択してください',
-        renamedRoomAction: ({oldName, newName, actorName, isExpenseReport}: RenamedRoomActionParams) => {
+        renamedRoomAction: (oldName: string, newName: string, isExpenseReport: boolean, actorName?: string) => {
             const actor = actorName ? `${actorName} ` : '';
             return isExpenseReport ? `${actor}は"${newName}"に名前を変更しました（以前は"${oldName}"）` : `${actor}がこのルーム名を「${newName}」（以前は「${oldName}」）に変更しました`;
         },
@@ -6422,11 +6420,11 @@ ${reportName}
         addedReportField: (fieldType: string, fieldName?: string) => `${fieldType} レポートフィールド「${fieldName}」を追加しました`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `レポートフィールド「${fieldName}」のデフォルト値を「${defaultValue}」に設定する`,
-        addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `レポートフィールド「${fieldName}」にオプション「${optionName}」を追加しました`,
-        removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `レポートフィールド「${fieldName}」からオプション「${optionName}」を削除しました`,
-        updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
+        addedReportFieldOption: (optionName: string, fieldName?: string) => `レポートフィールド「${fieldName}」にオプション「${optionName}」を追加しました`,
+        removedReportFieldOption: (optionName: string, fieldName?: string) => `レポートフィールド「${fieldName}」からオプション「${optionName}」を削除しました`,
+        updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
             `レポートフィールド「${fieldName}」のオプション「${optionName}」を${optionEnabled ? '有効' : '無効'}`,
-        updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled, toggledOptionsCount}: PolicyDisabledReportFieldAllOptionsParams) => {
+        updateReportFieldAllOptionsDisabled: (fieldName: string, optionName: string, allEnabled: boolean, toggledOptionsCount?: number) => {
             if (toggledOptionsCount && toggledOptionsCount > 1) {
                 return `${allEnabled ? '有効' : '無効'} レポートフィールド「${fieldName}」のすべてのオプション`;
             }
@@ -6444,10 +6442,10 @@ ${reportName}
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `「クライアントへ経費を再請求」を「${newValue}」（以前は「${oldValue}」）に更新しました`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `「現金経費のデフォルト」を「${newValue}」（以前は「${oldValue}」）に更新しました`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `「Enforce default report titles」を有効にしました ${value ? 'オン' : 'オフ'}`,
-        renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `このワークスペース名を「${newName}」（以前は「${oldName}」）に更新しました`,
+        renamedWorkspaceNameAction: (oldName: string, newName: string) => `このワークスペース名を「${newName}」（以前は「${oldName}」）に更新しました`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription ? `このワークスペースの説明を「${newDescription}」に設定する` : `このワークスペースの説明を「${newDescription}」（以前は「${oldDescription}」）に更新しました`,
-        removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';
@@ -6971,8 +6969,8 @@ ${reportName}
         },
     },
     chronos: {
-        oooEventSummaryFullDay: ({summary, dayCount, date}: OOOEventSummaryFullDayParams) => `${date} までの ${dayCount} ${dayCount === 1 ? '日' : '日'} の${summary}`,
-        oooEventSummaryPartialDay: ({summary, timePeriod, date}: OOOEventSummaryPartialDayParams) => `${date}の${timePeriod}の${summary}`,
+        oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${date} までの ${dayCount} ${dayCount === 1 ? '日' : '日'} の${summary}`,
+        oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${date}の${timePeriod}の${summary}`,
     },
     footer: {
         features: '機能',
@@ -7032,7 +7030,7 @@ ${reportName}
         reply: '返信',
         from: '差出人',
         in: '内',
-        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `${reportName}${workspaceName ? `${workspaceName} 内` : ''} から`,
+        parentNavigationSummary: (reportName?: string, workspaceName?: string) => `${reportName}${workspaceName ? `${workspaceName} 内` : ''} から`,
     },
     qrCodes: {
         copy: 'URLをコピー',
