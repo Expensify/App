@@ -42,6 +42,7 @@ function OptionRowLHNData({
     isReportArchived = false,
     lastAction,
     lastActionReport,
+    currentUserAccountID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;

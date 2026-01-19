@@ -70,6 +70,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -85,6 +86,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            allPolicies,
             draftComments,
             nvpDismissedProductTraining,
             loginList,
@@ -109,6 +111,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         didScreenTransitionEnd,
         options.reports,
         options.personalDetails,
+        allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         loginList,

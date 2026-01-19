@@ -6,7 +6,7 @@ import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSear
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, Policy} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import {formatSectionsFromSearchTerm} from '../../src/libs/OptionsListUtils';
 import createCollection from '../utils/collections/createCollection';
@@ -70,6 +70,19 @@ const mockedPersonalDetailsMap = getMockedPersonalDetails(PERSONAL_DETAILS_LIST_
 
 const mockedBetas = Object.values(CONST.BETAS);
 
+const allPolicies = {
+    [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
+        id: 'policy1',
+        name: 'Test Policy',
+        role: 'admin',
+        type: CONST.POLICY.TYPE.TEAM,
+        owner: 'test@expensify.com',
+        outputCurrency: 'USD',
+        isPolicyExpenseChatEnabled: false,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+    } as Policy,
+};
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
@@ -131,7 +144,7 @@ describe('OptionsListUtils', () => {
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, {
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, allPolicies, {}, nvpDismissedProductTraining, loginList, {
             ...ValidOptionsConfig,
             currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
             currentUserEmail: MOCK_CURRENT_USER_EMAIL,
@@ -142,7 +155,7 @@ describe('OptionsListUtils', () => {
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, {
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, allPolicies, {}, nvpDismissedProductTraining, loginList, {
             ...ValidOptionsConfig,
             currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
             currentUserEmail: MOCK_CURRENT_USER_EMAIL,
@@ -156,7 +169,7 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, {
+            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, allPolicies, {}, nvpDismissedProductTraining, loginList, {
                 betas: mockedBetas,
                 includeMultipleParticipantReports: true,
                 showChatPreviewLine: true,

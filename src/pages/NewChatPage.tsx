@@ -86,6 +86,7 @@ function useOptions() {
     });
 
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const reports = listOptions?.reports ?? [];
     const personalDetails = listOptions?.personalDetails ?? [];
@@ -95,6 +96,7 @@ function useOptions() {
             reports,
             personalDetails: personalDetails.concat(contacts),
         },
+        allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         loginList,
