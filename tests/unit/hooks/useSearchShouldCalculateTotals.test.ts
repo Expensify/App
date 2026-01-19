@@ -19,6 +19,7 @@ const mockUseOnyx = jest.fn(
 );
 
 jest.mock('@hooks/useOnyx', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: (key: string, options?: {selector?: (value: unknown) => unknown}) => mockUseOnyx(key, options),
 }));
@@ -49,6 +50,7 @@ describe('useSearchShouldCalculateTotals', () => {
 
     it('returns true for saved searches that match the hash', () => {
         onyxData[ONYXKEYS.SAVED_SEARCHES] = {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             456: {
                 name: 'My search',
                 query: 'type:expense',
@@ -62,6 +64,7 @@ describe('useSearchShouldCalculateTotals', () => {
 
     it('returns false when saved searches do not match the hash', () => {
         onyxData[ONYXKEYS.SAVED_SEARCHES] = {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             456: {
                 name: 'My search',
                 query: 'type:expense',
