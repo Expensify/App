@@ -35,6 +35,7 @@ type TrackExpenseParams = {
     customUnitRateID?: string;
     description?: string;
     distance?: number;
+    gpsCoordinates?: string;
 };
 
 export default TrackExpenseParams;

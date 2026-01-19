@@ -214,6 +214,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isFetchingWaypointsFromServer,
+    isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isMapDistanceRequest,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
@@ -606,6 +607,7 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     receipt?: Receipt;
     odometerStart?: number;
     odometerEnd?: number;
+    gpsCoordinates?: string;
 };
 
 type CreateDistanceRequestInformation = {
@@ -668,6 +670,7 @@ type TrackExpenseTransactionParams = {
     isLinkedTrackedExpenseReportArchived?: boolean;
     odometerStart?: number;
     odometerEnd?: number;
+    gpsCoordinates?: string;
 };
 
 type TrackExpenseAccountantParams = {
@@ -711,6 +714,7 @@ type GetTrackExpenseInformationTransactionParams = {
     distance?: number;
     odometerStart?: number;
     odometerEnd?: number;
+    gpsCoordinates?: string;
 };
 
 type GetTrackExpenseInformationParticipantParams = {
@@ -952,6 +956,12 @@ Onyx.connect({
     callback: (val) => (recentWaypoints = val ?? []),
 });
 
+let firstCreatedGpsExpenseDateNewDot: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT,
+    callback: (val) => (firstCreatedGpsExpenseDateNewDot = val),
+});
+
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
     return allPersonalDetails;
 }
@@ -1113,7 +1123,8 @@ function initMoneyRequest({
         newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
         newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
         newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
-        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS
     ) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
@@ -1356,6 +1367,63 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
                 ...(!isFakeP2PRate && {defaultP2PRate: null}),
             },
         },
+    });
+}
+
+function getGPSWaypoints(gpsDraftDetails: OnyxTypes.GpsDraftDetails | undefined): WaypointCollection {
+    const gpsCoordinates = gpsDraftDetails?.gpsPoints ?? [];
+    const firstPoint = gpsCoordinates.at(0);
+    const lastPoint = gpsCoordinates.at(-1);
+
+    return {
+        ...(firstPoint
+            ? {
+                  waypoint0: {
+                      lat: firstPoint.lat,
+                      lng: firstPoint.long,
+                      address: gpsDraftDetails?.startAddress.value ?? '',
+                      name: gpsDraftDetails?.startAddress.value ?? '',
+                  },
+              }
+            : {}),
+        ...(lastPoint
+            ? {
+                  waypoint1: {
+                      lat: lastPoint.lat,
+                      lng: lastPoint.long,
+                      address: gpsDraftDetails?.endAddress.value ?? '',
+                      name: gpsDraftDetails?.endAddress.value ?? '',
+                  },
+              }
+            : {}),
+    };
+}
+
+function getGPSRoutes(gpsDraftDetails: OnyxTypes.GpsDraftDetails | undefined): Routes {
+    const distanceInMeters = parseFloat((gpsDraftDetails?.distanceInMeters ?? 0).toFixed(2));
+    const gpsCoordinates = gpsDraftDetails?.gpsPoints ?? [];
+
+    return {
+        route0: {
+            distance: distanceInMeters,
+            geometry: {
+                type: 'LineString',
+                coordinates: gpsCoordinates.map(({lat, long}) => [long, lat]),
+            },
+        },
+    };
+}
+
+function setGPSTransactionDraftData(transactionID: string, gpsDraftDetails: OnyxTypes.GpsDraftDetails | undefined, distance: number) {
+    const waypoints = getGPSWaypoints(gpsDraftDetails);
+    const routes = getGPSRoutes(gpsDraftDetails);
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: {quantity: distance},
+            waypoints,
+        },
+        routes,
     });
 }
 
@@ -3151,7 +3219,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         (existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
             existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
             existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
-            existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+            existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
+            existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS);
     const isManualDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID: optimisticTransactionID,
@@ -3713,6 +3782,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         attendees,
         odometerStart,
         odometerEnd,
+        gpsCoordinates,
     } = transactionParams;
 
     const optimisticData: OnyxUpdate[] = [];
@@ -3890,6 +3960,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);
     const isManualDistanceRequest = existingTransaction && isManualDistanceRequestTransactionUtils(existingTransaction);
     const isOdometerDistanceRequest = existingTransaction && isOdometerDistanceRequestTransactionUtils(existingTransaction);
+    const isGPSDistanceRequest = existingTransaction && isGPSDistanceRequestTransactionUtils(existingTransaction);
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID: optimisticTransactionID,
         existingTransaction,
@@ -3914,6 +3985,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             attendees,
             odometerStart: isOdometerDistanceRequest ? odometerStart : undefined,
             odometerEnd: isOdometerDistanceRequest ? odometerEnd : undefined,
+            gpsCoordinates: isGPSDistanceRequest ? gpsCoordinates : undefined,
         },
     });
     if (iouReport) {
@@ -6401,6 +6473,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         attendees,
         odometerStart,
         odometerEnd,
+        gpsCoordinates,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
@@ -6491,6 +6564,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 attendees,
                 odometerStart,
                 odometerEnd,
+                gpsCoordinates,
             },
             policyParams: {
                 policy,
@@ -6514,12 +6588,22 @@ function trackExpense(params: CreateTrackExpenseParams) {
         value: recentServerValidatedWaypoints,
     });
 
-    if (isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction)) {
+    const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
+
+    if (isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction) || isGPSDistanceRequest) {
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
             value: transaction?.iouRequestType,
+        });
+    }
+
+    if (isGPSDistanceRequest && !firstCreatedGpsExpenseDateNewDot) {
+        onyxData?.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT,
+            value: DateUtils.getDBTime(),
         });
     }
 
@@ -6664,10 +6748,12 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
                 description: parsedComment,
+                gpsCoordinates,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
+
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
@@ -8189,10 +8275,12 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         receipt,
         odometerStart,
         odometerEnd,
+        gpsCoordinates,
     } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const isGPSDistanceRequest = !!gpsCoordinates;
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isManualDistanceRequest = isEmptyObject(validWaypoints);
@@ -8264,6 +8352,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             attendees: attendees ? JSON.stringify(attendees) : undefined,
             odometerStart,
             odometerEnd,
+            gpsCoordinates,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -8321,12 +8410,25 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
         onyxData = moneyRequestOnyxData;
 
-        if (transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || isManualDistanceRequest || transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
+        if (
+            transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+            transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
+            isManualDistanceRequest ||
+            transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
+        ) {
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             onyxData?.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
                 value: transaction.iouRequestType,
+            });
+        }
+
+        if (isGPSDistanceRequest && !firstCreatedGpsExpenseDateNewDot) {
+            onyxData?.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT,
+                value: DateUtils.getDBTime(),
             });
         }
 
@@ -8357,6 +8459,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             customUnitRateID,
             description: parsedComment,
             attendees: attendees ? JSON.stringify(attendees) : undefined,
+            gpsCoordinates,
         };
     }
 
@@ -14209,6 +14312,9 @@ export {
     resetDraftTransactionsCustomUnit,
     savePreferredPaymentMethod,
     setCustomUnitRateID,
+    getGPSWaypoints,
+    getGPSRoutes,
+    setGPSTransactionDraftData,
     setCustomUnitID,
     removeSubrate,
     addSubrate,

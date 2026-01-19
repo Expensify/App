@@ -117,6 +117,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Flag indicating if it is an odometer distance request */
     isOdometerDistanceRequest?: boolean;
 
+    /** Flag indicating if it is a GPS distance request */
+    isGPSDistanceRequest: boolean;
+
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
 
@@ -235,6 +238,7 @@ function MoneyRequestConfirmationListFooter({
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
+    isGPSDistanceRequest,
     isPerDiemRequest,
     isMerchantEmpty,
     isMerchantRequired,
@@ -494,7 +498,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={!isReadOnly && !isGPSDistanceRequest}
                     title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
@@ -517,7 +521,7 @@ function MoneyRequestConfirmationListFooter({
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={!isReadOnly && !isGPSDistanceRequest}
                 />
             ),
             shouldShow: isDistanceRequest,

@@ -90,6 +90,7 @@ import {
     isCategoryBeingAnalyzed,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
+    isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -278,8 +279,9 @@ function MoneyRequestView({
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction, !!mergeTransactionID);
+    const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
-    const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
+    const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest && !isGPSDistanceRequest;
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
@@ -327,13 +329,18 @@ function MoneyRequestView({
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
-        isEditable && (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || (isExpenseSplit && isSplitAvailable));
+        !isGPSDistanceRequest &&
+        isEditable &&
+        (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || (isExpenseSplit && isSplitAvailable));
     const canEditMerchant = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived);
 
     const canEditDate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
 
     const canEditDistance =
-        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived) && isPolicyAccessible(policy, currentUserEmailParam);
+        !isGPSDistanceRequest &&
+        isEditable &&
+        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived) &&
+        isPolicyAccessible(policy, currentUserEmailParam);
 
     const canEditDistanceRate =
         isEditable &&
@@ -866,7 +873,7 @@ function MoneyRequestView({
                         copyable={!!descriptionCopyValue}
                     />
                 </OfflineWithFeedback>
-                {isManualDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
+                {isManualDistanceRequest || isGPSDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
