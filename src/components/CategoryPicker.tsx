@@ -90,7 +90,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             contentContainerStyle={contentContainerStyle}
-            listItemTitleStyles={styles.mnw100}
+            listItemTitleStyles={styles.w100}
         />
     );
 }

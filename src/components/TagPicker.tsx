@@ -135,7 +135,7 @@ function TagPicker({
 
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
-    const listItemTitleStyles = useMemo(() => [styles.breakAll, styles.mnw100], [styles.breakAll, styles.mnw100]);
+    const listItemTitleStyles = useMemo(() => [styles.breakAll, styles.w100], [styles.breakAll, styles.w100]);
 
     return (
         <SelectionList
