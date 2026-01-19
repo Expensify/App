@@ -1,12 +1,12 @@
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
 import {filterInactiveCards, getCompanyCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 import type {CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {CardErrors, CardFeedErrorsObject, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import CONST from '@src/CONST';
 
 const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
     shouldShowRBR: false,
@@ -28,8 +28,6 @@ function getShouldShowRBR(state: Partial<CardFeedErrorState>): boolean {
     }
 
     return !!state.isFeedConnectionBroken;
-
-
 }
 
 export default createOnyxDerivedValueConfig({
@@ -61,7 +59,7 @@ export default createOnyxDerivedValueConfig({
 
             const currentFeedNameWithDomainID = getCompanyCardFeedWithDomainID(bankName as CompanyCardFeedWithNumber, workspaceAccountID);
             const currentFeed = combinedCompanyCardFeeds?.[currentFeedNameWithDomainID];
-            const currentFeedErrors = currentFeed?.errors
+            const currentFeedErrors = currentFeed?.errors;
 
             const hasFailedCardAssignments = !isEmptyObject(
                 failedCompanyCardAssignmentsPerFeed?.[`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${workspaceAccountID}_${currentFeedNameWithDomainID}`],
@@ -88,7 +86,7 @@ export default createOnyxDerivedValueConfig({
                 hasFailedCardAssignments,
             };
 
-            const shouldShowRbrForCurrentFeed = getShouldShowRBR(currentFeedState)
+            const shouldShowRbrForCurrentFeed = getShouldShowRBR(currentFeedState);
 
             cardFeedErrors[currentFeedNameWithDomainID] = {
                 ...currentFeedState,

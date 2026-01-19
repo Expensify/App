@@ -93,7 +93,7 @@ type CardErrors = {
 /**
  * The state of card feed errors.
  */
-type CardFeedErrorState ={
+type CardFeedErrorState = {
     /**
      * Whether to show the RBR for a specific feed within a workspace/domain.
      * This will be true, if any of the below conditions are true:
@@ -119,7 +119,7 @@ type CardFeedErrorState ={
      * Whether some feed connection is broken.
      */
     isFeedConnectionBroken: boolean;
-}
+};
 
 /**
  * The errors of a card feed.
@@ -149,7 +149,6 @@ type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
  * The errors of all card feeds.
  */
 type CardFeedErrorsObject = Record<CardFeedWithDomainID, FeedErrors>;
-
 
 /**
  * The errors of card feeds.

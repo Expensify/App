@@ -60,7 +60,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const feed = getCompanyCardFeed(feedName);
-const feedWithDomainID = getCompanyCardFeedWithDomainID(feed, workspaceAccountID);
+    const feedWithDomainID = getCompanyCardFeedWithDomainID(feed, workspaceAccountID);
 
     const formattedFeedName = feedName ? getCustomOrFormattedFeedName(feed, cardFeeds?.[feedName]?.customFeedName) : undefined;
     const isCommercialFeed = isCustomFeed(feed);

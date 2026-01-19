@@ -1,13 +1,13 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {IndicatorTestCase} from 'tests/utils/IndicatorTestUtils';
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
-import type { IndicatorTestCase } from 'tests/utils/IndicatorTestUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const userID = 'johndoe12@expensify.com';
@@ -15,22 +15,20 @@ const userID = 'johndoe12@expensify.com';
 const brokenCardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
     workspaceAccountID: 12345,
-  };
+};
 
-
-const accountCardFeedTestCases= {
-    admin:{
-      name: 'has no account card feed error if admin',
-      indicatorColor: defaultTheme.success,
-      status: undefined,
+const accountCardFeedTestCases = {
+    admin: {
+        name: 'has no account card feed error if admin',
+        indicatorColor: defaultTheme.success,
+        status: undefined,
     },
-    employee:{
-    name: 'has account card feed error if employee (non-admin)',
-    indicatorColor: defaultTheme.danger,
-    status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS,
-  },
-  } as const satisfies  Record<'admin' | 'employee', IndicatorTestCase>
-
+    employee: {
+        name: 'has account card feed error if employee (non-admin)',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS,
+    },
+} as const satisfies Record<'admin' | 'employee', IndicatorTestCase>;
 
 const getMockForStatus = ({status, name}: IndicatorTestCase) =>
     ({
@@ -112,7 +110,7 @@ const getMockForStatus = ({status, name}: IndicatorTestCase) =>
         [ONYXKEYS.CARD_LIST]: {
             card1: {
                 bank: 'OTHER_BANK',
-                lastScrapeResult: name === accountCardFeedTestCases.admin.name || name === accountCardFeedTestCases.employee.name  ? 403 : 200,
+                lastScrapeResult: name === accountCardFeedTestCases.admin.name || name === accountCardFeedTestCases.employee.name ? 403 : 200,
                 fundID: String(brokenCardFeed.workspaceAccountID),
             },
         },

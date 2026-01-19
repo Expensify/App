@@ -10,9 +10,9 @@ import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
-import useCardFeedErrors from './useCardFeedErrors';
 
 type IndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
 
@@ -45,7 +45,9 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
     // those should be cleaned out before doing any error checking
     const cleanPolicies = Object.values(policies ?? {}).filter((policy) => policy?.id);
 
-    const {companyCards: {shouldShowRBR: hasCompanyCardFeedErrors}} = useCardFeedErrors();
+    const {
+        companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
+    } = useCardFeedErrors();
     const {policiesWithCardFeedErrors, isPolicyAdmin} = usePoliciesWithCardFeedErrors();
 
     const policyChecks: Partial<Record<IndicatorStatus, Policy | undefined>> = {

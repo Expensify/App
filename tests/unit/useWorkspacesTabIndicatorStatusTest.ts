@@ -1,27 +1,27 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {IndicatorTestCase} from 'tests/utils/IndicatorTestUtils';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { IndicatorTestCase } from 'tests/utils/IndicatorTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const workspaceCardFeedTestCases= {
-    admin:{
-      name: 'has workspace card feed error if admin',
-      indicatorColor: defaultTheme.danger,
-      status: CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS,
-  },
-  employee:{
-      name: 'has no workspace card feed error if employee (non-admin)',
-      indicatorColor: defaultTheme.success,
-      status: undefined,
-  }} as const satisfies  Record<'admin' | 'employee', IndicatorTestCase>
-
+const workspaceCardFeedTestCases = {
+    admin: {
+        name: 'has workspace card feed error if admin',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS,
+    },
+    employee: {
+        name: 'has no workspace card feed error if employee (non-admin)',
+        indicatorColor: defaultTheme.success,
+        status: undefined,
+    },
+} as const satisfies Record<'admin' | 'employee', IndicatorTestCase>;
 
 const userID = 'admin@expensify.com';
 const otherUserID = 'employee@example.com';
@@ -36,7 +36,6 @@ const CARD_FEED = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
     workspaceAccountID: WORKSPACE.workspaceAccountID,
 };
-
 
 const TEST_CASE_NAMES = {
     hasPolicyErrors: 'has policy errors',
@@ -79,23 +78,27 @@ const getMockForStatus = ({name}: IndicatorTestCase) =>
             // Sync errors - use connections with sync errors
             // hasSynchronizationErrorMessage requires: !isSyncInProgress && lastSync exists && isSuccessful === false && errorDate exists
             connections: {
-                ...(name === TEST_CASE_NAMES.hasSyncErrors ? {
-                    quickbooksOnline: {
-                        lastSync: {
-                            errorMessage: 'Sync failed',
-                            isSuccessful: false,
-                            errorDate: new Date().toISOString(),
-                        },
-                    },
-                } : {}),
-                ...(name === TEST_CASE_NAMES.hasQBOExportError ? {
-                    quickbooksOnline: {
-                        config: {
-                            reimbursableExpensesExportDestination: 'VENDOR_BILL',
-                            reimbursableExpensesAccount: undefined,
-                        },
-                    },
-                } : {}),
+                ...(name === TEST_CASE_NAMES.hasSyncErrors
+                    ? {
+                          quickbooksOnline: {
+                              lastSync: {
+                                  errorMessage: 'Sync failed',
+                                  isSuccessful: false,
+                                  errorDate: new Date().toISOString(),
+                              },
+                          },
+                      }
+                    : {}),
+                ...(name === TEST_CASE_NAMES.hasQBOExportError
+                    ? {
+                          quickbooksOnline: {
+                              config: {
+                                  reimbursableExpensesExportDestination: 'VENDOR_BILL',
+                                  reimbursableExpensesAccount: undefined,
+                              },
+                          },
+                      }
+                    : {}),
             },
             // Uber credentials error
             receiptPartners:

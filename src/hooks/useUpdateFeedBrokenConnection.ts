@@ -3,9 +3,9 @@ import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from
 import {updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
 import usePolicy from './usePolicy';
-import useCardFeedErrors from './useCardFeedErrors';
 
 export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyID?: string; feed?: CompanyCardFeedWithDomainID}) {
     const policy = usePolicy(policyID);
@@ -13,7 +13,10 @@ export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyI
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const domainOrWorkspaceAccountID = feed ? getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]) : CONST.DEFAULT_NUMBER_ID;
-    const {all: {isFeedConnectionBroken}, cardsWithBrokenFeedConnection} = useCardFeedErrors();
+    const {
+        all: {isFeedConnectionBroken},
+        cardsWithBrokenFeedConnection,
+    } = useCardFeedErrors();
 
     const [brokenCardId, firstCardWithBrokenFeedConnection] = Object.entries(cardsWithBrokenFeedConnection).at(0) ?? [];
 
