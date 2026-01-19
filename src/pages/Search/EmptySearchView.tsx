@@ -531,6 +531,7 @@ function EmptySearchViewContent({
         hasTransactions,
         shouldRedirectToExpensifyClassic,
         hasExpenseReports,
+        isFilteredWorkspaceAccessible,
         defaultChatEnabledPolicyID,
         handleCreateReportClick,
         queryJSON,
