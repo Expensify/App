@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-image-size/android/build.gradle b/node_modules/react-native-image-size/android/build.gradle
+index cc2d50a..877577b 100644
+--- a/node_modules/react-native-image-size/android/build.gradle
++++ b/node_modules/react-native-image-size/android/build.gradle
+@@ -1,7 +1,7 @@
+ buildscript {
+     repositories {
+         mavenCentral()
+-        jcenter()
++        google()
+     }
+ 
+     dependencies {
