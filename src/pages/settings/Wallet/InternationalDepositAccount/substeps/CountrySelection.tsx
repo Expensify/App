@@ -17,7 +17,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
     const onCountrySelected = useCallback(() => {
         if (COUNTRIES_US_BANK_FLOW.includes(selectedCountry)) {
             if (isUserValidated) {
-                Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+                Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT);
             } else {
                 Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT);
             }

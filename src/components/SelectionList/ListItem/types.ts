@@ -11,12 +11,16 @@ import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type BaseListItem from './BaseListItem';
+import type InviteMemberListItem from './InviteMemberListItem';
 import type MultiSelectListItem from './MultiSelectListItem';
 import type RadioListItem from './RadioListItem';
 import type SingleSelectListItem from './SingleSelectListItem';
 import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 import type SplitListItem from './SplitListItem';
+import type TableListItem from './TableListItem';
 import type TravelDomainListItem from './TravelDomainListItem';
+import type UserListItem from './UserListItem';
+import type UserSelectionListItem from './UserSelectionListItem';
 
 type ListItem<K extends string | number = string> = {
     /** Text to display */
@@ -264,13 +268,17 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 };
 
 type ValidListItem =
-    | typeof RadioListItem
     | typeof BaseListItem
+    | typeof InviteMemberListItem
     | typeof MultiSelectListItem
+    | typeof RadioListItem
     | typeof SingleSelectListItem
     | typeof SpendCategorySelectorListItem
+    | typeof SplitListItem
+    | typeof TableListItem
     | typeof TravelDomainListItem
-    | typeof SplitListItem;
+    | typeof UserListItem
+    | typeof UserSelectionListItem;
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;

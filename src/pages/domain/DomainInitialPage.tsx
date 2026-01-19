@@ -57,7 +57,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     const domainAccountID = route.params?.domainAccountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
-    const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
+    const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
     const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
 
     const domainMenuItems: DomainMenuItem[] = useMemo(() => {
