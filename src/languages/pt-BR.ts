@@ -902,8 +902,6 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Tem certeza de que deseja excluir este(a) ${type}?`;
         },
         onlyVisible: 'Visível apenas para',
-        explain: 'Explicar',
-        explainMessage: 'Por favor, explique isso para mim.',
         replyInThread: 'Responder na conversa',
         joinThread: 'Participar da conversa',
         leaveThread: 'Sair da conversa',
@@ -1496,7 +1494,6 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / hora`,
             amountTooLargeError: 'O valor total é muito alto. Reduza as horas ou diminua a tarifa.',
         },
-        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Explicar</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {

@@ -10,7 +10,6 @@ import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
-import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
@@ -147,7 +146,6 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {setDownload} from '@userActions/Download';
 import {
     deleteReportActionDraft,
-    explain,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
     openReport,
@@ -244,7 +242,6 @@ type ContextMenuActionPayload = {
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
-    currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -263,21 +260,7 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
         | IconAsset
         | Extract<
               ExpensifyIconName,
-              | 'Download'
-              | 'ThreeDots'
-              | 'ChatBubbleReply'
-              | 'ChatBubbleUnread'
-              | 'Mail'
-              | 'Pencil'
-              | 'Stopwatch'
-              | 'Bell'
-              | 'Copy'
-              | 'LinkCopy'
-              | 'Pin'
-              | 'Flag'
-              | 'Bug'
-              | 'Trashcan'
-              | 'Concierge'
+              'Download' | 'ThreeDots' | 'ChatBubbleReply' | 'ChatBubbleUnread' | 'Mail' | 'Pencil' | 'Stopwatch' | 'Bell' | 'Copy' | 'LinkCopy' | 'Pin' | 'Flag' | 'Bug' | 'Trashcan'
           >;
     successTextTranslateKey?: TranslationPaths;
     successIcon?:
@@ -299,7 +282,6 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
               | 'Bug'
               | 'Trashcan'
               | 'ThreeDots'
-              | 'Concierge'
           >;
     onPress: OnPress;
     getDescription: GetDescription;
@@ -413,40 +395,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_UNREAD,
-    },
-    {
-        isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.explain',
-        icon: 'Concierge',
-        shouldShow: ({type, reportAction, isArchivedRoom}): boolean => {
-            if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || isArchivedRoom || !reportAction) {
-                return false;
-            }
-
-            const originalMessage = getOriginalMessage(reportAction);
-            const hasReasoning = !!(originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && originalMessage.reasoning);
-
-            return hasReasoning;
-        },
-        onPress: (closePopover, {reportAction, reportID, translate, currentUserPersonalDetails}) => {
-            if (!reportID) {
-                return;
-            }
-
-            const originalReportID = getOriginalReportID(reportID, reportAction);
-            if (closePopover) {
-                hideContextMenu(false, () => {
-                    KeyboardUtils.dismiss().then(() => {
-                        explain(reportAction, originalReportID, translate, currentUserPersonalDetails?.timezone);
-                    });
-                });
-                return;
-            }
-
-            explain(reportAction, originalReportID, translate, currentUserPersonalDetails?.timezone);
-        },
-        getDescription: () => {},
-        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,
     },
     {
         isAnonymousAction: false,
