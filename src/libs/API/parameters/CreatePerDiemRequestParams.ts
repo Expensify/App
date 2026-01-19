@@ -23,6 +23,7 @@ type CreatePerDiemRequestParams = {
     billable?: boolean;
     reimbursable?: boolean;
     attendees?: string;
+    customUnitPolicyID?: string;
 };
 
 export default CreatePerDiemRequestParams;

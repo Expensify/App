@@ -196,13 +196,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     activePolicyID,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    customUnitPolicyID: policy?.id,
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
                 });
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, introSelected, activePolicyID, quickAction, policyRecentlyUsedCurrencies],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, introSelected, activePolicyID, quickAction, policyRecentlyUsedCurrencies, policy?.id],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (

@@ -461,6 +461,7 @@ type DuplicateExpenseTransactionParams = {
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    customUnitPolicyID?: string;
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
@@ -475,6 +476,7 @@ function duplicateExpenseTransaction({
     activePolicyID,
     quickAction,
     policyRecentlyUsedCurrencies,
+    customUnitPolicyID,
     targetPolicy,
     targetPolicyCategories,
     targetReport,
@@ -566,6 +568,7 @@ function duplicateExpenseTransaction({
                     customUnit: transaction?.comment?.customUnit ?? {},
                 },
                 hasViolations: false,
+                customUnitPolicyID,
             };
             return submitPerDiemExpense(perDiemParams);
         }
