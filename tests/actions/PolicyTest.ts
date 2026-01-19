@@ -765,6 +765,86 @@ describe('actions/Policy', () => {
 
             apiWriteSpy.mockRestore();
         });
+
+        it('creates a CORPORATE workspace when introSelected.selectedPlanType is corporate', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with selectedPlanType set to CORPORATE (from pricing page selection)
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {
+                    choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                    selectedPlanType: CONST.POLICY.TYPE.CORPORATE,
+                },
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+            });
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the workspace type should be CORPORATE
+            expect(policy?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
+
+        it('creates a CORPORATE workspace when corporate features are selected even if selectedPlanType is TEAM', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with TEAM plan but corporate features enabled
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                featuresMap: [
+                    {
+                        id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+                        enabled: true,
+                        enabledByDefault: false,
+                        requiresUpdate: true,
+                    },
+                ],
+                introSelected: {
+                    choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                    selectedPlanType: CONST.POLICY.TYPE.TEAM,
+                },
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+            });
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the workspace type should be CORPORATE because features require it
+            expect(policy?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
     });
 
     describe('createDraftInitialWorkspace', () => {
