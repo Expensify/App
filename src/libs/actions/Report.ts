@@ -24,6 +24,7 @@ import type {
     FlagCommentParams,
     GetNewerActionsParams,
     GetOlderActionsParams,
+    GetOutstandingReportsParams,
     GetReportPrivateNoteParams,
     InviteToGroupChatParams,
     InviteToRoomParams,
@@ -4561,6 +4562,55 @@ function searchInServer(searchInput: string, policyID?: string) {
     searchForReports(isOffline, searchInput, policyID);
 }
 
+/**
+ * Fetch all outstanding reports for a workspace to ensure they are available in Onyx
+ */
+function fetchOutstandingReportsForWorkspace(policyID: string, accountID: number) {
+    // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
+    const isOffline = NetworkStore.isOffline();
+
+    // We do not try to make this request while offline because it sets a loading indicator optimistically
+    if (isOffline) {
+        Onyx.set(ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS, false);
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
+            value: true,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
+            value: false,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
+            value: false,
+        },
+    ];
+
+    const parameters: GetOutstandingReportsParams = {
+        policyID,
+        accountID,
+    };
+
+    API.read(READ_COMMANDS.GET_OUTSTANDING_REPORTS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 function updateLastVisitTime(reportID: string) {
     if (!isValidReportIDFromPath(reportID)) {
         return;
@@ -6500,6 +6550,7 @@ export {
     saveReportActionDraft,
     saveReportDraftComment,
     searchInServer,
+    fetchOutstandingReportsForWorkspace,
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
