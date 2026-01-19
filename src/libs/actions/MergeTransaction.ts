@@ -6,6 +6,7 @@ import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import {
     areTransactionsEligibleForMerge,
     getMergeableDataAndConflictFields,
@@ -526,6 +527,8 @@ function mergeTransactionRequest({
     const successTargetReportActionData: OnyxUpdate[] = [];
     const failureTargetReportActionData: OnyxUpdate[] = [];
     const finallyTargetReportActionData: OnyxUpdate[] = [];
+    const optimisticTargetReportData: OnyxUpdate[] = [];
+    const failureTargetReportData: OnyxUpdate[] = [];
 
     if (reportIDChanged && mergeTransaction.reportID) {
         const transactionThreadReportID = getTransactionThreadReportID(targetTransaction);
@@ -538,6 +541,27 @@ function mergeTransactionRequest({
 
         // For expense reports, IOU actions are stored in the expense report itself, not in the parent report
         const reportIDForIOUAction = mergeTransaction.reportID;
+
+        const isOffline = NetworkStore.isOffline();
+        const targetReport = getReportOrDraftReport(reportIDForIOUAction);
+        const targetReportExists = !!targetReport;
+
+        if (!targetReportExists) {
+            optimisticTargetReportData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDForIOUAction}`,
+                value: {
+                    reportID: reportIDForIOUAction,
+                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                },
+            });
+
+            failureTargetReportData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDForIOUAction}`,
+                value: null,
+            });
+        }
 
         if (oldIOUAction) {
             const originalMessage = getOriginalMessage(oldIOUAction) as OriginalMessageIOU;
@@ -642,6 +666,7 @@ function mergeTransactionRequest({
     const optimisticData: OnyxUpdate[] = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
         ...optimisticTargetReportActionData,
+        ...optimisticTargetReportData,
         ...optimisticSourceTransactionData,
         ...optimisticSourceReportData,
         optimisticMergeTransactionData,
@@ -655,6 +680,7 @@ function mergeTransactionRequest({
         ...(onyxTargetTransactionData.failureData ?? []),
         ...failureSourceTransactionData,
         ...failureSourceReportData,
+        ...failureTargetReportData,
         ...failureTransactionViolations,
         ...failureSourceReportActionData,
         ...failureTargetReportActionData,

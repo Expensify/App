@@ -988,32 +988,18 @@ function openReport(
         return;
     }
 
-    const isOffline = NetworkStore.isOffline();
-    const hasReportActions = reportActionsExist(reportID);
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const reportExists = !!report;
-
-    if (isOffline && hasReportActions && reportExists) {
-        return;
-    }
-
-    // Create optimistic report if it doesn't exist yet and we need it for UI rendering
-    let optimisticReport: Partial<Report> | undefined;
-    if (!reportExists && (!hasReportActions || isOffline)) {
-        optimisticReport = {
-            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-        };
-        if (isOffline) {
-            optimisticReport.reportID = reportID;
-        }
-    }
+    const optimisticReport = reportActionsExist(reportID)
+        ? {}
+        : {
+              reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+          };
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingInitialReportActions: !isOffline,
+                isLoadingInitialReportActions: true,
                 isLoadingOlderReportActions: false,
                 hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,
@@ -1022,7 +1008,7 @@ function openReport(
         },
     ];
 
-    if (optimisticReport) {
+    if (Object.keys(optimisticReport).length > 0) {
         optimisticData.unshift({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
