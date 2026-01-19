@@ -20,7 +20,7 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -129,6 +129,26 @@ function IOURequestStepAmount({
         return !(isReportArchived || isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, isReportArchived]);
 
+    // When editing, the `report` is the transaction thread which only has the current user as participant.
+    // To correctly determine if this is a P2P expense, we need to traverse to the actual chat report
+    // (e.g., the 1:1 DM) via the IOU/expense report's chatReportID.
+    const chatReportForP2PCheck = useMemo(() => {
+        if (!isEditing) {
+            return report;
+        }
+
+        // When editing, report is the transaction thread. We need to get the actual chat report.
+        // Transaction thread's chatReportID points to the IOU/expense report,
+        // and the IOU/expense report's chatReportID points to the actual chat.
+        const iouOrExpenseReport = report?.chatReportID ? getReportOrDraftReport(report.chatReportID) : undefined;
+        if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
+            return getReportOrDraftReport(iouOrExpenseReport.chatReportID);
+        }
+
+        // Fallback to the passed report if we can't traverse
+        return report;
+    }, [isEditing, report]);
+
     useFocusEffect(
         useCallback(() => {
             if (isCurrencyPickerVisible) {
@@ -188,7 +208,7 @@ function IOURequestStepAmount({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
@@ -412,6 +432,7 @@ function IOURequestStepAmount({
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
+                isP2P={isParticipantP2P(getMoneyRequestParticipantsFromReport(chatReportForP2PCheck, currentUserPersonalDetails.accountID).at(0))}
                 isCurrencyPressable={!isUnreportedDistanceExpense}
             />
         </StepScreenWrapper>
