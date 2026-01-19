@@ -4437,6 +4437,9 @@ ${amount} para ${merchant} - ${date}`,
         companyCards: {
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
+            error: {
+                feedsCouldNotBeLoaded: 'Ocurrió un error al cargar los feeds. Por favor, inténtelo de nuevo o contacte a su administrador.',
+            },
             addNewCard: {
                 other: 'Otros',
                 cardProviders: {

@@ -2,6 +2,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import CardFeedIcon from '@components/CardFeedIcon';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import ScrollView from '@components/ScrollView';
 import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Table from '@components/Table';
@@ -21,6 +22,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
@@ -49,6 +51,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         feedName,
         cardList,
         assignedCards,
+        workspaceCardFeedsStatus,
         cardNames,
         cardFeedType,
         selectedFeed,
@@ -66,6 +69,8 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
 
+    const workspaceCardFeedsErrors = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
+    const isFeedsError = !isEmptyObject(workspaceCardFeedsErrors);
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || policy?.id === undefined || isLoadingOnyxValue(lastSelectedFeedMetadata);
@@ -73,8 +78,8 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const isLoadingCards = cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata));
 
-    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed;
-    const showTableControls = showCards && !!selectedFeed && !isLoadingCards;
+    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed && !isFeedsError;
+    const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !isFeedsError;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
@@ -302,6 +307,13 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                         </View>
                     )}
                 </ScrollView>
+            )}
+
+            {isFeedsError && (
+                <ErrorMessageRow
+                    errors={workspaceCardFeedsErrors}
+                    errorRowStyles={[styles.mh5]}
+                />
             )}
 
             {showCards && (

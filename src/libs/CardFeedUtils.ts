@@ -4,7 +4,7 @@ import type {AdditionalCardProps} from '@components/SelectionListWithSections/Se
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardFeedsStatus, CardFeedsStatusByDomainID, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
@@ -508,6 +508,21 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
     return cardFeedsForDisplayPerPolicy;
 }
 
+function getCardFeedStatus(feed: CardFeeds | undefined): CardFeedsStatus {
+    return {
+        errors: feed?.errors,
+        isLoading: feed?.isLoading,
+    };
+}
+
+function getWorkspaceCardFeedsStatus(allFeeds: OnyxCollection<CardFeeds> | undefined): CardFeedsStatusByDomainID {
+    return Object.entries(allFeeds ?? {}).reduce<CardFeedsStatusByDomainID>((acc, [onyxKey, feeds]) => {
+        const domainID = Number(onyxKey.split('_').at(-1));
+        acc[domainID] = getCardFeedStatus(feeds);
+        return acc;
+    }, {} as CardFeedsStatusByDomainID);
+}
+
 export type {CardFilterItem, CardFeedNamesWithType, CardFeedForDisplay};
 export {
     buildCardsData,
@@ -522,4 +537,6 @@ export {
     getDomainFeedData,
     getCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
+    getCardFeedStatus,
+    getWorkspaceCardFeedsStatus,
 };

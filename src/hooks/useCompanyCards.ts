@@ -5,7 +5,7 @@ import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
 import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {CardFeedsStatusByDomainID, CompanyCardFeed, CompanyCardFeedWithDomainID, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed, CombinedCardFeeds} from './useCardFeeds';
 import useCardsList from './useCardsList';
@@ -24,6 +24,7 @@ type UsCompanyCardsResult = Partial<{
     feedName: CompanyCardFeedWithDomainID;
     cardList: AssignableCardsList;
     assignedCards: CardList;
+    workspaceCardFeedsStatus: CardFeedsStatusByDomainID;
     cardNames: string[];
     allCardFeeds: CombinedCardFeeds;
     companyCardFeeds: CompanyFeeds;
@@ -38,7 +39,7 @@ type UsCompanyCardsResult = Partial<{
 
 function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UsCompanyCardsResult {
     const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
-    const [allCardFeeds, allCardFeedsMetadata] = useCardFeeds(policyID);
+    const [allCardFeeds, allCardFeedsMetadata, workspaceCardFeedsStatus] = useCardFeeds(policyID);
 
     const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);
     const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
@@ -69,7 +70,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
         return {onyxMetadata};
     }
 
-    return {allCardFeeds, feedName, companyCardFeeds, cardList, assignedCards, cardNames, selectedFeed, bankName, cardFeedType, onyxMetadata};
+    return {allCardFeeds, feedName, companyCardFeeds, cardList, assignedCards,workspaceCardFeedsStatus, cardNames, selectedFeed, bankName, cardFeedType, onyxMetadata};
 }
 
 export default useCompanyCards;

@@ -154,6 +154,20 @@ type DomainSettings = {
     };
 };
 
+/** Card feeds status */
+type CardFeedsStatus = {
+    /** Whether we are loading the data via the API */
+    isLoading?: boolean;
+
+    /** Collection of errors coming from BE */
+    errors?: OnyxCommon.Errors;
+};
+
+/**
+ * Collection of card feeds status by domain ID
+ */
+type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
+
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
@@ -173,6 +187,9 @@ type CardFeeds = {
         /** Whether to use the technical contact's billing card */
         useTechnicalContactBillingCard?: boolean;
     };
+
+    /** Errors related to all card feeds within a workspace or domain */
+    errors?: OnyxCommon.Errors;
 
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
@@ -251,6 +268,8 @@ export type {
     DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
+    CardFeedsStatus,
+    CardFeedsStatusByDomainID,
     CompanyFeeds,
     CompanyCardFeedWithDomainID,
     CustomCardFeedData,
