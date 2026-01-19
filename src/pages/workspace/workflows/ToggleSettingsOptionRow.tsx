@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo} from 'react';
-import type {AccessibilityState, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
@@ -179,8 +179,6 @@ function ToggleSettingOptionRow({
 
     const shouldMakeContentPressable = isActive && onPress;
 
-    const switchAccessibilityState: AccessibilityState | undefined = useMemo(() => (subMenuItems ? {expanded: isActive} : undefined), [subMenuItems, isActive]);
-
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
@@ -204,7 +202,6 @@ function ToggleSettingOptionRow({
                     <Switch
                         disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}
-                        accessibilityState={switchAccessibilityState}
                         onToggle={(isOn) => {
                             shouldAnimateAccordionSection.set(true);
                             onToggle(isOn);
