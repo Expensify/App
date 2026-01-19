@@ -45,6 +45,7 @@ function IOURequestStepMerchant({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
@@ -123,18 +124,19 @@ function IOURequestStepMerchant({
         }
         setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
         if (isEditing) {
-            updateMoneyRequestMerchant(
+            updateMoneyRequestMerchant({
                 transactionID,
-                report,
+                transactionThreadReport: report,
                 parentReport,
-                newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 policy,
-                policyTags,
+                policyTagList: policyTags,
                 policyCategories,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-            );
+                parentReportNextStep,
+            });
         }
         setIsSaved(true);
         shouldNavigateAfterSaveRef.current = true;
