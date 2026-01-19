@@ -1,6 +1,7 @@
 ---
 title: Managing Single Sign-On (SSO) and User Authentication in Expensify
 description: Learn how to set up and manage SAML-based Single Sign-On (SSO) for secure member login in Expensify Classic.
+internalScope: Audience: Domain Admins. Covers setting up SAML and solutions to common configuration issues, Does not cover individual account access troubleshooting. 
 keywords: [Expensify Classic, SAML SSO, single sign-on, identity provider, domain security, authentication, user login]
 ---
 
