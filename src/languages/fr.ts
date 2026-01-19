@@ -259,7 +259,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Rechercher...',
         next: 'Suivant',
         previous: 'Précédent',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Retour',
         create: 'Créer',
         add: 'Ajouter',
@@ -7363,6 +7362,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         hold: 'Cette dépense a été mise en attente',
         resolvedDuplicates: 'a résolu le doublon',
         companyCardRequired: 'Achats avec carte d’entreprise requis',
+        noRoute: 'Veuillez sélectionner une adresse valide',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} est requis`,

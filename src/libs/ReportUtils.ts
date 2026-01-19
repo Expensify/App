@@ -301,6 +301,7 @@ import {
     getConvertedAmount,
     getCurrency,
     getDescription,
+    getDistanceInMeters,
     getFormattedCreated,
     getFormattedPostedDate,
     getMCCGroup,
@@ -327,6 +328,7 @@ import {
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isMapDistanceRequest,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense,
     isPending,
@@ -5043,6 +5045,12 @@ function getTransactionReportName({
     if (isFetchingWaypointsFromServer(transaction) && getMerchant(transaction) === translateLocal('iou.fieldPending')) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.fieldPending');
+    }
+
+    // The unit does not matter as we are only interested in whether the distance is zero or not
+    if (isMapDistanceRequest(transaction) && !getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('violations.noRoute');
     }
 
     if (isSentMoneyReportAction(reportAction)) {

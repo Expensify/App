@@ -259,8 +259,7 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Cerca...',
         next: 'Avanti',
         previous: 'Precedente',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
-        goBack: 'Torna indietro',
+        goBack: 'Indietro',
         create: 'Crea',
         add: 'Aggiungi',
         resend: 'Reinvia',
@@ -7339,6 +7338,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'ha risolto il duplicato',
         companyCardRequired: 'Acquisti con carta aziendale obbligatori',
+        noRoute: 'Seleziona un indirizzo valido',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,

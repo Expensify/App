@@ -259,7 +259,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: '検索...',
         next: '次へ',
         previous: '前へ',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: '戻る',
         create: '作成',
         add: '追加',
@@ -7282,6 +7281,7 @@ ${reportName}
         hold: 'この経費は保留になっています',
         resolvedDuplicates: '重複を解決しました',
         companyCardRequired: '法人カードでの購入が必須',
+        noRoute: '有効な住所を選択してください',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} は必須です`,

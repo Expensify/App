@@ -5809,6 +5809,7 @@ const CONST = {
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
+        NO_ROUTE: 'noRoute',
         MISSING_ATTENDEES: 'missingAttendees',
     },
     RTER_VIOLATION_TYPES: {

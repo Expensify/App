@@ -259,7 +259,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Zoeken...',
         next: 'Volgende',
         previous: 'Vorige',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Ga terug',
         create: 'Maken',
         add: 'Toevoegen',
@@ -7326,6 +7325,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         hold: 'Deze uitgave is in de wacht gezet',
         resolvedDuplicates: 'het duplicaat opgelost',
         companyCardRequired: 'Aankopen met bedrijfskaart verplicht',
+        noRoute: 'Selecteer een geldig adres',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is verplicht`,
