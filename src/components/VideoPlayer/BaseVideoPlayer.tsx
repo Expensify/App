@@ -108,6 +108,8 @@ function BaseVideoPlayer({
         return status === 'error';
     }, [status]);
 
+    const [hasErrorIconVisible, setHasErrorIconVisible] = useState(false);
+
     useNetwork({
         onReconnect: () => {
             if (!(currentTime <= 0 && hasError)) {
@@ -261,13 +263,16 @@ function BaseVideoPlayer({
     });
 
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
-        if (payload.status !== 'error') {
+        if (payload.status === 'error') {
+            setHasErrorIconVisible(true);
+        } else {
             updatePlayerStatus(payload.status);
         }
         if (payload.status !== 'readyToPlay') {
             return;
         }
         isReadyForDisplayRef.current = true;
+        setHasErrorIconVisible(false);
         if (isFirstLoad) {
             setIsFirstLoad(false);
             if (videoPlayerRef.current === currentVideoPlayerRef.current && !isUploading) {
@@ -490,7 +495,7 @@ function BaseVideoPlayer({
                                             // has to be switched to fullscreenOptions={{enable: true}} when mobile Safari gets fixed
                                             allowsFullscreen
                                             player={videoPlayerRef.current}
-                                            style={[styles.w100, styles.h100, videoPlayerStyle]}
+                                            style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}]}
                                             nativeControls={isFullScreenRef.current}
                                             playsInline
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
