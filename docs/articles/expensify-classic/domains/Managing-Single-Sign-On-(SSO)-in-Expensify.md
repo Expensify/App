@@ -64,7 +64,6 @@ Select your Identity (SAML) Provider for detailed steps on configuring SAML Sing
 
 - Use [samltool.com](https://samltool.com) to validate your IdP metadata and certificate.
 - Make sure the email domain in your IdP exactly matches your verified domain in Expensify.
-- Review the [SAML SSO troubleshooting guide](LINK) for step-by-step help resolving common errors.
 
 ## What is Expensify’s Entity ID?
 
@@ -122,7 +121,7 @@ Yes. Disable **Require SAML login** before making changes. This allows members t
 
 ## What do I do if a member can’t log in after SAML Single Sign-On (SSO) is enabled?
 
-First, confirm that the member’s email matches your verified domain and that their account exists in your Identity Provider (IdP) with the correct access permissions. If they’re still unable to log in, follow the steps in [Troubleshoot SAML SSO login](LINK) to identify and resolve the issue.
+First, confirm that the member’s email matches your verified domain and that their account exists in your Identity Provider (IdP) with the correct access permissions. 
 
 ## Are custom NameID, ACS, or SLO URLs supported in SAML Single Sign-On (SSO)?
 
