@@ -1389,7 +1389,7 @@ function MoneyReportHeader({
                             false,
                         );
                         if (goBackRoute) {
-                            requestAnimationFrame(() => {
+                            Navigation.setNavigationActionToMicrotaskQueue(() => {
                                 navigateOnDeleteExpense(goBackRoute);
                             });
                         }
