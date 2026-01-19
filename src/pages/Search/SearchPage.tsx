@@ -456,9 +456,15 @@ function SearchPage({route}: SearchPageProps) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (isExpenseReportType) {
-                    // For expense reports, call deleteAppReport which properly unreports the expenses
+                    // For expense reports, call deleteAppReport which properly un-reports the expenses
                     for (const reportID of selectedReportIDs) {
-                        deleteAppReport(reportID, currentUserPersonalDetails?.login ?? '', allTransactions ?? {}, allTransactionViolations, bankAccountList);
+                        deleteAppReport(
+                            reportID,
+                            currentUserPersonalDetails?.login ?? '',
+                            Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined)),
+                            allTransactionViolations,
+                            bankAccountList,
+                        );
                     }
                 } else {
                     // For individual expenses, delete the transactions
