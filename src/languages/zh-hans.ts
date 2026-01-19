@@ -867,10 +867,6 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '表情符号',
         collapse: '折叠',
         expand: '展开',
-        askConciergeToCreate: '让 Concierge AI 创建一笔报销…',
-        askConciergeToUpdate: '让 Concierge AI 更新一笔报销…',
-        askConciergeToCorrect: '让 Concierge AI 更正一笔报销…',
-        addColleagueWithMention: '使用“@”提及来添加同事…',
     },
     reportActionContextMenu: {
         copyMessage: '复制消息',
