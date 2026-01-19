@@ -5768,22 +5768,27 @@ function getReportName(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) && policy && 'outputCurrency' in policy) {
+         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getAddedBudgetMessage(translateLocal, parentReportAction, policy);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) && policy && 'outputCurrency' in policy) {
+         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getUpdatedBudgetMessage(translateLocal, parentReportAction, policy);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET) && policy && 'outputCurrency' in policy) {
+         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getDeletedBudgetMessage(translateLocal, parentReportAction, policy);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED)) {
+         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getUpdatedTimeEnabledMessage(translateLocal, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE)) {
+         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getUpdatedTimeRateMessage(translateLocal, parentReportAction);
     }
 
