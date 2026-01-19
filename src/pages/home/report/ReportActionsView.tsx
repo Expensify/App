@@ -1,5 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Freeze} from 'react-freeze';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -317,21 +318,24 @@ function ReportActionsView({
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
-            <ReportActionsList
-                report={report}
-                transactionThreadReport={transactionThreadReport}
-                parentReportAction={parentReportAction}
-                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={reportActions}
-                sortedVisibleReportActions={visibleReportActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                loadOlderChats={loadOlderChats}
-                loadNewerChats={loadNewerChats}
-                listID={listID}
-                shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
-                hasCreatedActionAdded={shouldAddCreatedAction}
-            />
+            {/* Temp fix re-renderings of the not focused report, more info in https://github.com/Expensify/App/issues/33725#issuecomment-3768435794 */}
+            <Freeze freeze={!isFocused}>
+                <ReportActionsList
+                    report={report}
+                    transactionThreadReport={transactionThreadReport}
+                    parentReportAction={parentReportAction}
+                    parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                    onLayout={recordTimeToMeasureItemLayout}
+                    sortedReportActions={reportActions}
+                    sortedVisibleReportActions={visibleReportActions}
+                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                    loadOlderChats={loadOlderChats}
+                    loadNewerChats={loadNewerChats}
+                    listID={listID}
+                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
+                    hasCreatedActionAdded={shouldAddCreatedAction}
+                />
+            </Freeze>
             <UserTypingEventListener report={report} />
         </>
     );
