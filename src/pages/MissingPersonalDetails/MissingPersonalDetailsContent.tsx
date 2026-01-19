@@ -71,7 +71,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const {CurrentPage, isEditing, currentPageName, prevPage, nextPage, lastPageIndex, moveTo, goToLastPage} = useSubPage<CustomSubPageProps>({
         pages: formPages,
-        initialPageName: getInitialSubPage(values),
+        startFrom,
         onFinished: handleFinishStep,
         buildRoute: (pageName, action) => ROUTES.MISSING_PERSONAL_DETAILS.getRoute(pageName, action),
     });
@@ -87,7 +87,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         // Clicking back on the first screen should dismiss the modal
         if (currentPageName === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME) {
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            Navigation.goBack();
+            Navigation.closeRHPFlow();
             return;
         }
         ref.current?.movePrevious();

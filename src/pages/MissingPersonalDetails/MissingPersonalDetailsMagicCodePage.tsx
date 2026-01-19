@@ -74,7 +74,7 @@ function MissingPersonalDetailsMagicCodePage() {
             clearError={clearError}
             onClose={() => {
                 resetValidateActionCodeSent();
-                Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME));
+                Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute());
             }}
             isLoading={privatePersonalDetails?.isLoading}
         />

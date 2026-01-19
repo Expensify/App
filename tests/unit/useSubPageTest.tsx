@@ -89,7 +89,7 @@ describe('useSubPage hook', () => {
             expect(typeof goToLastPage).toBe('function');
         });
 
-        it('starts at the first page when no subStep param is present and no initialPageName is provided', () => {
+        it('starts at the first page when no subPage param is present and no startFrom is provided', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
 
@@ -106,7 +106,7 @@ describe('useSubPage hook', () => {
             expect(result.current.isEditing).toBe(false);
         });
 
-        it('starts at the initialPageName when provided and no subStep param is present', () => {
+        it('starts at the startFrom index when provided and no subPage param is present', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
 
@@ -114,7 +114,7 @@ describe('useSubPage hook', () => {
                 useSubPage({
                     pages,
                     onFinished: mockOnFinished,
-                    initialPageName: 'page2',
+                    startFrom: 1,
                     buildRoute,
                 }),
             );
@@ -124,13 +124,50 @@ describe('useSubPage hook', () => {
             expect(result.current.CurrentPage).toBe(mockSubPageTwo);
         });
 
-        it('uses subStep from URL params when available', () => {
+        it('navigates to startFrom page on mount when no subPage param is present', () => {
+            const pages = createMockPages();
+            const buildRoute = createBuildRoute();
+
+            renderHook(() =>
+                useSubPage({
+                    pages,
+                    onFinished: mockOnFinished,
+                    startFrom: 2,
+                    buildRoute,
+                }),
+            );
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page3'), {forceReplace: true});
+        });
+
+        it('does not navigate on mount when subPage param is present in URL', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page3'},
+                params: {subPage: 'page2'},
+            } as AnyRoute);
+
+            renderHook(() =>
+                useSubPage({
+                    pages,
+                    onFinished: mockOnFinished,
+                    startFrom: 0,
+                    buildRoute,
+                }),
+            );
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('uses subPage from URL params when available', () => {
+            const pages = createMockPages();
+            const buildRoute = createBuildRoute();
+            mockUseRoute.mockReturnValue({
+                name: 'TestRoute',
+                key: 'test-key',
+                params: {subPage: 'page3'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -152,7 +189,7 @@ describe('useSubPage hook', () => {
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page2', action: 'edit'},
+                params: {subPage: 'page2', action: 'edit'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -166,13 +203,13 @@ describe('useSubPage hook', () => {
             expect(result.current.isEditing).toBe(true);
         });
 
-        it('falls back to first page when subStep param does not match any page', () => {
+        it('falls back to first page when subPage param does not match any page', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'nonExistentPage'},
+                params: {subPage: 'nonExistentPage'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -195,7 +232,7 @@ describe('useSubPage hook', () => {
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page4'},
+                params: {subPage: 'page4'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -238,7 +275,7 @@ describe('useSubPage hook', () => {
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page2'},
+                params: {subPage: 'page2'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -257,6 +294,11 @@ describe('useSubPage hook', () => {
         it('does not navigate when calling prevPage on the first page', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
+            mockUseRoute.mockReturnValue({
+                name: 'TestRoute',
+                key: 'test-key',
+                params: {subPage: 'page1'},
+            } as AnyRoute);
 
             const {result} = renderHook(() =>
                 useSubPage({
@@ -308,6 +350,11 @@ describe('useSubPage hook', () => {
         it('does not navigate when moveTo step index is out of bounds', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
+            mockUseRoute.mockReturnValue({
+                name: 'TestRoute',
+                key: 'test-key',
+                params: {subPage: 'page1'},
+            } as AnyRoute);
 
             const {result} = renderHook(() =>
                 useSubPage({
@@ -345,7 +392,7 @@ describe('useSubPage hook', () => {
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page3'},
+                params: {subPage: 'page3'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -384,7 +431,7 @@ describe('useSubPage hook', () => {
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page1', action: 'edit'},
+                params: {subPage: 'page1', action: 'edit'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -445,7 +492,7 @@ describe('useSubPage hook', () => {
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page4'},
+                params: {subPage: 'page4'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -468,7 +515,7 @@ describe('useSubPage hook', () => {
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page4'},
+                params: {subPage: 'page4'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -525,7 +572,7 @@ describe('useSubPage hook', () => {
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page2'},
+                params: {subPage: 'page2'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -549,7 +596,7 @@ describe('useSubPage hook', () => {
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page2'},
+                params: {subPage: 'page2'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>
@@ -572,7 +619,7 @@ describe('useSubPage hook', () => {
             mockUseRoute.mockReturnValue({
                 name: 'TestRoute',
                 key: 'test-key',
-                params: {subStep: 'page1', action: 'edit'},
+                params: {subPage: 'page1', action: 'edit'},
             } as AnyRoute);
 
             const {result} = renderHook(() =>

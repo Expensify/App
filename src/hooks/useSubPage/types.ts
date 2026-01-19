@@ -39,8 +39,8 @@ type UseSubPageProps<TProps extends SubPageProps> = {
     /** called on last sub page */
     onFinished: (data?: unknown) => void;
 
-    /** name of initial sub page to display (used when no subStep param in URL) */
-    initialPageName?: string;
+    /** index of the page to start from (used when no subPage param in URL) */
+    startFrom?: number;
 
     /** array of page names to skip */
     skipPages?: string[];

@@ -3127,8 +3127,13 @@ const ROUTES = {
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
     MISSING_PERSONAL_DETAILS: {
-        route: 'missing-personal-details/:subPage/:action?',
-        getRoute: (subPage: string, action?: 'edit') => `missing-personal-details/${subPage}${action ? `/${action}` : ''}` as const,
+        route: 'missing-personal-details/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return 'missing-personal-details' as const;
+            }
+            return `missing-personal-details/${subPage}${action ? `/${action}` : ''}` as const;
+        },
     },
     MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'missing-personal-details/confirm-magic-code',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
