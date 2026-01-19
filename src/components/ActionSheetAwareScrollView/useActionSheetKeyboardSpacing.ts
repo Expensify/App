@@ -86,7 +86,6 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
             if (lastState === syncLocalWorkletState.get()) {
                 return;
             }
-            // eslint-disable-next-line react-compiler/react-compiler
             syncLocalWorkletState.set(lastState);
 
             if (lastState === KeyboardState.OPEN) {
