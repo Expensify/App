@@ -85,7 +85,6 @@ jobs:
         run: |
           chmod +x scripts/fetch-pr-review-comments.sh
           chmod +x scripts/update-issue-reactions.sh
-          chmod +x scripts/post-negative-feedback-comment.sh
           chmod +x scripts/utils/reactions-common.sh
 
       - name: Fetch PR review comments
