@@ -282,14 +282,14 @@ index 410dfe3..d36fb18 100644
 +         * https://fburl.com/workplace/6291gfvu */
 +        /* $FlowFixMe[invalid-computed-prop] Natural Inference rollout. See
 +         * https://fburl.com/workplace/6291gfvu */
-+        _emitter.emit(InteractionManager.Events.interactionComplete);
++        _emitter.emit(InteractionManagerImpl.Events.interactionComplete);
 +    } else if (interactionCount === 0 && nextInteractionCount !== 0) {
 +        // transition from 0 --> 1+ interactions
 +        /* $FlowFixMe[prop-missing] Natural Inference rollout. See
 +         * https://fburl.com/workplace/6291gfvu */
 +        /* $FlowFixMe[invalid-computed-prop] Natural Inference rollout. See
 +         * https://fburl.com/workplace/6291gfvu */
-+        _emitter.emit(InteractionManager.Events.interactionStart);
++        _emitter.emit(InteractionManagerImpl.Events.interactionStart);
 +    }
 +
 +    // process the queue regardless of a transition
