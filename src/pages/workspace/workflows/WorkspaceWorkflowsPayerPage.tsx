@@ -18,6 +18,7 @@ import type {ListItem, Section} from '@components/SelectionListWithSections/type
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -63,11 +64,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const policyName = policy?.name ?? '';
     const bankAccountID = policy?.achAccount?.bankAccountID;
     const {isOffline} = useNetwork();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const [searchTerm, setSearchTerm] = useState('');
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
-    const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(undefined);
+    const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(policy?.achAccount?.reimburser);
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope'] as const);
@@ -79,10 +81,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
     const selectedPayerDetails = selectedPayer ? getPersonalDetailByEmail(selectedPayer) : undefined;
     const ownerDetails = policy?.owner ? getPersonalDetailByEmail(policy?.owner) : undefined;
-
-    useEffect(() => {
-        setSelectedPayer(policy?.achAccount?.reimburser);
-    }, [policy?.achAccount?.reimburser]);
 
     useEffect(() => {
         return () => {
@@ -383,11 +381,11 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         </Text>
                         <TextLink
                             onPress={() => {
-                                if (!selectedPayerDetails?.accountID || !policy?.ownerAccountID) {
+                                if (!currentUserPersonalDetails?.accountID || !policy?.ownerAccountID) {
                                     return;
                                 }
                                 setShowErrorModal(false);
-                                navigateToAndOpenReportWithAccountIDs([selectedPayerDetails.accountID], policy.ownerAccountID);
+                                navigateToAndOpenReportWithAccountIDs([currentUserPersonalDetails.accountID], policy.ownerAccountID);
                             }}
                         >
                             {translate('workflowsPayerPage.shareBankAccount.errorDescriptionLink', {
