@@ -79,6 +79,7 @@ function BaseTextInput({
     iconContainerStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
+    accessibilityValue,
     ...props
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -368,7 +369,7 @@ function BaseTextInput({
                                 // eslint-disable-next-line
                                 {...inputProps}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? label}
-                                accessibilityValue={{text: inputProps.secureTextEntry ? undefined : value}}
+                                accessibilityValue={accessibilityValue}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}

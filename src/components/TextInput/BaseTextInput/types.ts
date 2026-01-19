@@ -1,7 +1,7 @@
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {NavigationProp, NavigationState} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityValue, GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -206,6 +206,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps & {
 
     /** Label for Sentry tracking */
     sentryLabel?: string;
+
+    /** Accessibility value for screen readers */
+    accessibilityValue?: AccessibilityValue;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
