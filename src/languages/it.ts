@@ -1964,6 +1964,13 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Chatta con Concierge per risolvere i problemi di sicurezza e sbloccare il tuo account.',
         chatWithConcierge: 'Chatta con Concierge',
     },
+    passwordPage: {
+        changePassword: 'Cambia password',
+        changingYourPasswordPrompt: 'La modifica della password aggiornerà la password sia per il tuo account Expensify.com sia per il tuo account New Expensify.',
+        currentPassword: 'Password attuale',
+        newPassword: 'Nuova password',
+        newPasswordPrompt: 'La nuova password deve essere diversa dalla vecchia password e contenere almeno 8 caratteri, 1 lettera maiuscola, 1 lettera minuscola e 1 numero.',
+    },
     twoFactorAuth: {
         headerTitle: 'Autenticazione a due fattori',
         twoFactorAuthEnabled: 'Autenticazione a due fattori abilitata',
@@ -2957,6 +2964,15 @@ ${
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ops... ${isBreakLine ? '\n' : ''}Qualcosa è andato storto`,
         subtitle: 'Impossibile completare la tua richiesta. Riprova più tardi.',
         wrongTypeSubtitle: 'Questa ricerca non è valida. Prova a modificare i criteri di ricerca.',
+    },
+    setPasswordPage: {
+        enterPassword: 'Inserisci una password',
+        setPassword: 'Imposta password',
+        newPasswordPrompt: 'La tua password deve contenere almeno 8 caratteri, 1 lettera maiuscola, 1 lettera minuscola e 1 numero.',
+        passwordFormTitle: 'Bentornato nella nuova Expensify! Imposta la tua password.',
+        passwordNotSet: 'Non è stato possibile impostare la tua nuova password. Ti abbiamo inviato un nuovo link per la password per riprovare.',
+        setPasswordLinkInvalid: 'Questo link per impostare la password non è valido o è scaduto. Un nuovo link ti sta aspettando nella tua casella di posta!',
+        validateAccount: 'Verifica account',
     },
     statusPage: {
         status: 'Stato',
