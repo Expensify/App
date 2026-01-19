@@ -842,39 +842,7 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
         feed,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
-            value: {
-                isLoading: false,
-                errors: null,
-            },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
-            value: {
-                isLoading: false,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.error.feedsCouldNotBeLoaded'),
-            },
-        },
-    ];
-
-    API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);
 }
 
 function openAssignFeedCardPage(policyID: string, feed: CompanyCardFeed, domainOrWorkspaceAccountID: number) {

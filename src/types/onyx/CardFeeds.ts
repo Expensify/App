@@ -171,21 +171,11 @@ type DomainSettings = {
         /** Email to primary contact from the domain */
         technicalContactEmail?: string;
     };
-};
 
-/** Card feeds status */
-type CardFeedsStatus = {
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
-
-    /** Collection of errors coming from BE */
-    errors?: OnyxCommon.Errors;
 };
 
-/**
- * Collection of card feeds status by domain ID
- */
-type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
 
 /** Card feeds model, including domain settings */
 type CardFeeds = {
@@ -206,7 +196,7 @@ type CardFeeds = {
         /** Whether to use the technical contact's billing card */
         useTechnicalContactBillingCard?: boolean;
     };
-} & CardFeedsStatus &
+} &
     DomainSettings;
 
 /** Data required to be sent to add a new card */
@@ -300,8 +290,6 @@ export type {
     DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
-    CardFeedsStatus,
-    CardFeedsStatusByDomainID,
     CompanyFeeds,
     CustomCardFeedData,
     CompanyCardNicknames,

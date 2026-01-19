@@ -4692,9 +4692,6 @@ const translations = {
         companyCards: {
             addCards: 'Add cards',
             selectCards: 'Select cards',
-            error: {
-                feedsCouldNotBeLoaded: 'An error occurred while loading the feeds. Please try again or contact your administrator.',
-            },
             addNewCard: {
                 other: 'Other',
                 cardProviders: {
