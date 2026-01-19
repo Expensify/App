@@ -1961,13 +1961,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'セキュリティ上の懸念を解決し、アカウントのロックを解除するためにConciergeとチャットしましょう。',
         chatWithConcierge: 'Conciergeとチャット',
     },
-    passwordPage: {
-        changePassword: 'パスワードを変更',
-        changingYourPasswordPrompt: 'パスワードを変更すると、Expensify.com アカウントと New Expensify アカウントの両方のパスワードが更新されます。',
-        currentPassword: '現在のパスワード',
-        newPassword: '新しいパスワード',
-        newPasswordPrompt: '新しいパスワードは、以前のパスワードと異なるものであり、8文字以上で、少なくとも1つの大文字、1つの小文字、1つの数字を含める必要があります。',
-    },
     twoFactorAuth: {
         headerTitle: '二要素認証',
         twoFactorAuthEnabled: '2 要素認証が有効になりました',
@@ -2957,15 +2950,6 @@ ${
         title: ({isBreakLine}: {isBreakLine: boolean}) => `おっと… ${isBreakLine ? '\n' : ''}問題が発生しました`,
         subtitle: 'リクエストを完了できませんでした。時間をおいて、もう一度お試しください。',
         wrongTypeSubtitle: 'その検索条件は無効です。検索条件を調整してやり直してください。',
-    },
-    setPasswordPage: {
-        enterPassword: 'パスワードを入力してください',
-        setPassword: 'パスワードを設定',
-        newPasswordPrompt: 'パスワードは8文字以上で、大文字1文字、小文字1文字、数字1文字を含める必要があります。',
-        passwordFormTitle: '新しい Expensify へお帰りなさい！パスワードを設定してください。',
-        passwordNotSet: '新しいパスワードを設定できませんでした。再試行用の新しいパスワードリンクを送信しました。',
-        setPasswordLinkInvalid: 'このパスワード設定リンクは無効か、有効期限が切れています。新しいリンクをメール受信箱にお送りしました。',
-        validateAccount: 'アカウントを確認',
     },
     statusPage: {
         status: 'ステータス',

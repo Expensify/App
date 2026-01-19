@@ -1933,13 +1933,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: '与 Concierge 聊天以解决安全问题并解锁您的账户。',
         chatWithConcierge: '与 Concierge 聊天',
     },
-    passwordPage: {
-        changePassword: '更改密码',
-        changingYourPasswordPrompt: '更改密码会同时更新您在 Expensify.com 和 New Expensify 账户中的密码。',
-        currentPassword: '当前密码',
-        newPassword: '新密码',
-        newPasswordPrompt: '您的新密码必须不同于旧密码，并且至少包含 8 个字符，1 个大写字母、1 个小写字母和 1 个数字。',
-    },
     twoFactorAuth: {
         headerTitle: '双重身份验证',
         twoFactorAuthEnabled: '已启用双重身份验证',
@@ -2919,15 +2912,6 @@ ${
         title: ({isBreakLine}: {isBreakLine: boolean}) => `哎呀……${isBreakLine ? '\n' : ''}出现了一些问题`,
         subtitle: '无法完成您的请求。请稍后再试。',
         wrongTypeSubtitle: '该搜索无效。请尝试调整你的搜索条件。',
-    },
-    setPasswordPage: {
-        enterPassword: '输入密码',
-        setPassword: '设置密码',
-        newPasswordPrompt: '您的密码必须至少包含 8 个字符，且至少包含 1 个大写字母、1 个小写字母和 1 个数字。',
-        passwordFormTitle: '欢迎回到全新 Expensify！请设置您的密码。',
-        passwordNotSet: '我们未能设置您的新密码。我们已向您发送了一个新的密码链接，请重试。',
-        setPasswordLinkInvalid: '该设置密码链接无效或已过期。新的链接已发送到您的邮箱！',
-        validateAccount: '验证账户',
     },
     statusPage: {
         status: '状态',
