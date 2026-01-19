@@ -17,7 +17,6 @@ import {
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as NetworkStore from '@libs/Network/NetworkStore';
 import {rand64} from '@libs/NumberUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
@@ -548,9 +547,8 @@ function mergeTransactionRequest({
         // For expense reports, IOU actions are stored in the expense report itself, not in the parent report
         const reportIDForIOUAction = mergeTransaction.reportID;
 
-        const isOffline = NetworkStore.isOffline();
-        const targetReport = getReportOrDraftReport(reportIDForIOUAction);
-        const targetReportExists = !!targetReport;
+        const targetReportForIOUAction = getReportOrDraftReport(reportIDForIOUAction);
+        const targetReportExists = !!targetReportForIOUAction;
 
         if (!targetReportExists) {
             optimisticTargetReportData.push({
