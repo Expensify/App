@@ -8,6 +8,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
@@ -121,6 +122,8 @@ function MoneyRequestReceiptView({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchivedByID = (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
@@ -133,11 +136,25 @@ function MoneyRequestReceiptView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
-    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
+    const canEdit =
+        isMoneyRequestAction(parentReportAction) &&
+        canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction, isReportArchivedByID) &&
+        isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
 
     const canEditReceipt =
-        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
+        isEditable &&
+        canEditFieldOfMoneyRequest(
+            parentReportAction,
+            CONST.EDIT_REQUEST_FIELD.RECEIPT,
+            undefined,
+            isChatReportArchived,
+            undefined,
+            transaction,
+            moneyRequestReport,
+            policy,
+            isReportArchivedByID,
+        );
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {

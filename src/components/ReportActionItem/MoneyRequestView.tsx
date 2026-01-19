@@ -15,6 +15,7 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -315,6 +316,8 @@ function MoneyRequestView({
     const isSettled = isSettledReportUtils(moneyRequestReport);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchivedByID = (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const pendingAction = transaction?.pendingAction;
     const shouldShowPaid = isSettled && transactionReimbursable && !pendingAction;
 
@@ -322,7 +325,10 @@ function MoneyRequestView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(transactionThreadReport?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(transactionThreadReport, isReportArchived) && !readonly;
-    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
+    const canEdit =
+        isMoneyRequestAction(parentReportAction) &&
+        canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction, isReportArchivedByID) &&
+        isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
@@ -330,21 +336,65 @@ function MoneyRequestView({
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
-        isEditable && (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || (isExpenseSplit && isSplitAvailable));
+        isEditable &&
+        (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived, undefined, undefined, undefined, undefined, isReportArchivedByID) ||
+            (isExpenseSplit && isSplitAvailable));
     const canEditMerchant =
-        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
+        isEditable &&
+        canEditFieldOfMoneyRequest(
+            parentReportAction,
+            CONST.EDIT_REQUEST_FIELD.MERCHANT,
+            undefined,
+            isChatReportArchived,
+            undefined,
+            transaction,
+            moneyRequestReport,
+            policy,
+            isReportArchivedByID,
+        );
 
     const canEditDate =
-        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
+        isEditable &&
+        canEditFieldOfMoneyRequest(
+            parentReportAction,
+            CONST.EDIT_REQUEST_FIELD.DATE,
+            undefined,
+            isChatReportArchived,
+            undefined,
+            transaction,
+            moneyRequestReport,
+            policy,
+            isReportArchivedByID,
+        );
 
     const canEditDistance =
         isEditable &&
-        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy) &&
+        canEditFieldOfMoneyRequest(
+            parentReportAction,
+            CONST.EDIT_REQUEST_FIELD.DISTANCE,
+            undefined,
+            isChatReportArchived,
+            undefined,
+            transaction,
+            moneyRequestReport,
+            policy,
+            isReportArchivedByID,
+        ) &&
         isPolicyAccessible(policy, currentUserEmailParam);
 
     const canEditDistanceRate =
         isEditable &&
-        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy) &&
+        canEditFieldOfMoneyRequest(
+            parentReportAction,
+            CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
+            undefined,
+            isChatReportArchived,
+            undefined,
+            transaction,
+            moneyRequestReport,
+            policy,
+            isReportArchivedByID,
+        ) &&
         isPolicyAccessible(policy, currentUserEmailParam);
 
     const canEditReport =
@@ -358,6 +408,7 @@ function MoneyRequestView({
             transaction,
             moneyRequestReport,
             policy,
+            isReportArchivedByID,
         ) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
@@ -389,7 +440,17 @@ function MoneyRequestView({
         !isInvoice;
     const canEditReimbursable =
         isEditable &&
-        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
+        canEditFieldOfMoneyRequest(
+            parentReportAction,
+            CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+            undefined,
+            isChatReportArchived,
+            undefined,
+            transaction,
+            moneyRequestReport,
+            policy,
+            isReportArchivedByID,
+        );
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);

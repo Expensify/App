@@ -19,6 +19,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useAncestors from '@hooks/useAncestors';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
@@ -215,6 +216,8 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchivedByID = (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
@@ -237,7 +240,10 @@ function ReportActionCompose({
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
     const parentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const canEditReceipt = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT) && !transaction?.receipt?.isTestDriveReceipt;
+    const canEditReceipt =
+        canUserPerformWriteAction &&
+        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchivedByID) &&
+        !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);

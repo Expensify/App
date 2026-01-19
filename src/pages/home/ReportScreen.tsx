@@ -23,6 +23,7 @@ import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -185,6 +186,11 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchivedByID = useCallback(
+        (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`),
+        [archivedReportsIdSet],
+    );
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -209,7 +215,13 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             return;
         }
 
-        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom)?.reportID;
+        const lastAccessedReportID = findLastAccessedReport(
+            !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
+            undefined,
+            undefined,
+            isReportArchivedByID,
+        )?.reportID;
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
@@ -220,7 +232,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
             navigation.setParams({reportID: lastAccessedReportID});
         });
-    }, [isBetaEnabled, navigation, route.params]);
+    }, [isBetaEnabled, isReportArchivedByID, navigation, route.params]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {

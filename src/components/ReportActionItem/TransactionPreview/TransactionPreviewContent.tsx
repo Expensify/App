@@ -11,6 +11,7 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -83,6 +84,8 @@ function TransactionPreviewContent({
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isReportArchivedByID = (reportID?: string) => !!reportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserDetails.email ?? '';
     const currentUserAccountID = currentUserDetails.accountID;
@@ -115,7 +118,7 @@ function TransactionPreviewContent({
 
     const firstViolation = violations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
-    const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction);
+    const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction, isReportArchivedByID);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL) : undefined;
 
