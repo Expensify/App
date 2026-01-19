@@ -731,7 +731,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             (prevDeletedParentAction && !deletedParentAction)
         ) {
             const currentRoute = navigationRef.getCurrentRoute();
-            const topmostReportIDInSearchRHP = Navigation.getTopmostReportIDInSearchRHP();
+            const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
             const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
             const isHoldScreenOpenInRHP =
                 currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);

@@ -57,19 +57,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
-import {getCurrentUserAccountID} from './Report';
-
-const allTransactions: OnyxCollection<Transaction> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    callback: (transaction, key) => {
-        if (!key || !transaction) {
-            return;
-        }
-        const transactionID = CollectionUtils.extractCollectionItemID(key);
-        allTransactions[transactionID] = transaction;
-    },
-});
 
 let allTransactionDrafts: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -392,19 +379,29 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     });
 }
 
+type DismissDuplicateTransactionViolationProps = {
+    transactionIDs: string[];
+    dismissedPersonalDetails: PersonalDetails;
+    expenseReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    isASAPSubmitBetaEnabled: boolean;
+    allTransactions: OnyxCollection<Transaction>;
+};
+
 /**
  * Dismisses the duplicate transaction violation for the provided transactionIDs
  * and updates the transaction to include the dismissed violation in the comment.
  */
-function dismissDuplicateTransactionViolation(
-    transactionIDs: string[],
-    dismissedPersonalDetails: PersonalDetails,
-    expenseReport: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    isASAPSubmitBetaEnabled: boolean,
-) {
+function dismissDuplicateTransactionViolation({
+    transactionIDs,
+    dismissedPersonalDetails,
+    expenseReport,
+    policy,
+    isASAPSubmitBetaEnabled,
+    allTransactions,
+}: DismissDuplicateTransactionViolationProps) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
-    const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
+    const currentTransactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction?.reportID, transaction?.transactionID));
     const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
@@ -707,7 +704,7 @@ type ChangeTransactionsReportProps = {
     policy?: OnyxEntry<Policy>;
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
-    allTransactionsCollection: OnyxCollection<Transaction>;
+    allTransactions: OnyxCollection<Transaction>;
 };
 
 function changeTransactionsReport({
@@ -719,11 +716,11 @@ function changeTransactionsReport({
     policy,
     reportNextStep,
     policyCategories,
-    allTransactionsCollection,
+    allTransactions,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    const transactions = transactionIDs.map((id) => allTransactionsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
@@ -759,7 +756,6 @@ function changeTransactionsReport({
     const existingSelfDMReportID = findSelfDMReportID();
     let selfDMReport: Report | undefined;
     let selfDMCreatedReportAction: ReportAction | undefined;
-    const currentUserAccountID = getCurrentUserAccountID();
 
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
@@ -1124,7 +1120,7 @@ function changeTransactionsReport({
                     parentReportID: targetReportID,
                     parentReportActionID: optimisticMoneyRequestReportActionID,
                     policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
-                    participants: isUnreported && shouldRemoveOtherParticipants ? {[currentUserAccountID]: participants?.[currentUserAccountID]} : participants,
+                    participants: isUnreported && shouldRemoveOtherParticipants ? {[accountID]: participants?.[accountID]} : participants,
                 },
             });
         }
