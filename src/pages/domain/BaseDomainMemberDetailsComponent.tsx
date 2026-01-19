@@ -14,14 +14,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLatestError} from '@libs/ErrorUtils';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import {clearSetPrimaryContactError} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Domain, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type BaseDomainMemberDetailsComponentProps = {
@@ -47,7 +45,6 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}
         canBeMissing: true,
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
     });
-
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
     const phoneNumber = getPhoneNumber(personalDetails);

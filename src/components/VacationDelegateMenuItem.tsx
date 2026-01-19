@@ -1,27 +1,26 @@
 import React from 'react';
-import { View } from 'react-native';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { formatPhoneNumber } from '@libs/LocalePhoneNumber';
-import { getPersonalDetailByEmail } from '@libs/PersonalDetailsUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
-import type { PersonalDetails } from '@src/types/onyx';
-import type { Errors, PendingAction } from '@src/types/onyx/OnyxCommon';
-import type { BaseVacationDelegate } from '@src/types/onyx/VacationDelegate';
+import type {PersonalDetails} from '@src/types/onyx';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
-
 
 type VacationDelegateSectionProps = {
     /** Currently selected vacation delegate (if any) */
     vacationDelegate?: BaseVacationDelegate;
 
-    /** Validation or API errors related to the vacation delegate section */
+    /** Errors related to setting the vacation delegate */
     errors?: Errors;
 
-    /** Indicates a pending async action (e.g. loading or submitting state) */
+    /** Pending actions related to setting the vacation delegate */
     pendingAction?: PendingAction;
 
     /**
@@ -41,7 +40,7 @@ type VacationDelegateSectionProps = {
     additionalDescription?: string;
 };
 
-function VacationDelegateSection({vacationDelegate, errors, pendingAction, onCloseError, onPress, additionalDescription}: VacationDelegateSectionProps) {
+function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCloseError, onPress, additionalDescription}: VacationDelegateSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
@@ -89,6 +88,6 @@ function VacationDelegateSection({vacationDelegate, errors, pendingAction, onClo
     );
 }
 
-VacationDelegateSection.displayName = 'VacationDelegateSection';
+VacationDelegateMenuItem.displayName = 'VacationDelegateSection';
 
-export default VacationDelegateSection;
+export default VacationDelegateMenuItem;

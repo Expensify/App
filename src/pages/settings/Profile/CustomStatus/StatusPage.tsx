@@ -13,6 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -36,9 +37,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
-import VacationDelegateSection from '@components/VacationDelegateSection';
-import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 const initialEmoji = '💬';
 
@@ -265,7 +265,7 @@ function StatusPage() {
                         />
                     )}
                 </View>
-                <VacationDelegateSection
+                <VacationDelegateMenuItem
                     vacationDelegate={vacationDelegate}
                     errors={vacationDelegate?.errors}
                     pendingAction={vacationDelegate?.pendingAction}

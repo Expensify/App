@@ -1,16 +1,16 @@
 import React from 'react';
+import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 import useOnyx from '@hooks/useOnyx';
 import useVacationDelegate from '@hooks/useVacationDelegate';
-import { getLatestError } from '@libs/ErrorUtils';
+import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
-import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
-import type { SettingsNavigatorParamList } from '@navigation/types';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
-import { clearVacationDelegateError } from '@userActions/Domain';
+import {clearVacationDelegateError} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import VacationDelegateSection from '@components/VacationDelegateSection';
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
 
@@ -22,19 +22,18 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     });
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
 
-
     return (
         <BaseDomainMemberDetailsComponent
             domainAccountID={domainAccountID}
             accountID={accountID}
         >
-                <VacationDelegateSection
-                    vacationDelegate={vacationDelegate}
-                    errors={getLatestError(domainErrors?.vacationDelegateErrors?.[accountID])}
-                    pendingAction={domainPendingActions?.vacationDelegate?.[accountID]}
-                    onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate, domainAccountID, accountID)}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
-                />
+            <VacationDelegateMenuItem
+                vacationDelegate={vacationDelegate}
+                errors={getLatestError(domainErrors?.vacationDelegateErrors?.[accountID])}
+                pendingAction={domainPendingActions?.vacationDelegate?.[accountID]}
+                onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate, domainAccountID, accountID)}
+                onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
+            />
         </BaseDomainMemberDetailsComponent>
     );
 }

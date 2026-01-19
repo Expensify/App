@@ -1,21 +1,20 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import ConfirmModal from '@components/ConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useVacationDelegate from '@hooks/useVacationDelegate';
 import Navigation from '@libs/Navigation/Navigation';
-import { getLoginByAccountID, getPersonalDetailByEmail } from '@libs/PersonalDetailsUtils';
-import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
-import type { SettingsNavigatorParamList } from '@navigation/types';
+import {getLoginByAccountID, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {deleteDomainVacationDelegate, setDomainVacationDelegate} from '@userActions/Domain';
-import { clearVacationDelegateError } from '@userActions/VacationDelegate';
+import {clearVacationDelegateError} from '@userActions/VacationDelegate';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { Participant } from '@src/types/onyx/IOU';
-
+import type {Participant} from '@src/types/onyx/IOU';
 
 type DomainMemberVacationDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VACATION_DELEGATE>;
 
@@ -28,7 +27,6 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
 
     const vacationDelegate = useVacationDelegate(domainAccountID, accountID);
     const onSelectRow = (option: Participant) => {
-
         const memberLogin = getLoginByAccountID(accountID);
         const delegateLogin = option?.login;
 
@@ -36,11 +34,11 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
             return;
         }
         if (delegateLogin === vacationDelegate?.delegate) {
-            deleteDomainVacationDelegate(vacationDelegate,domainAccountID,accountID);
+            deleteDomainVacationDelegate(vacationDelegate, domainAccountID, accountID);
             return;
         }
 
-        setDomainVacationDelegate(domainAccountID, accountID, memberLogin, option.login ?? '',vacationDelegate?.delegate??'', false).then((response) => {
+        setDomainVacationDelegate(domainAccountID, accountID, memberLogin, option.login ?? '', vacationDelegate?.delegate ?? '', false).then((response) => {
             if (!response?.jsonCode) {
                 Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
                 return;
@@ -62,10 +60,10 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
         }
 
         setIsWarningModalVisible(false);
-        setDomainVacationDelegate(domainAccountID, accountID, memberLogin, newVacationDelegateLogin, vacationDelegate?.delegate??'',true).then(() => {
+        setDomainVacationDelegate(domainAccountID, accountID, memberLogin, newVacationDelegateLogin, vacationDelegate?.delegate ?? '', true).then(() => {
             Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
         });
-    }
+    };
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -77,8 +75,7 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
                     currentVacationDelegate={vacationDelegate?.delegate}
                     onSelectRow={onSelectRow}
                     headerTitle={translate('domain.common.vacationDelegate')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID))
-                    }
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID))}
                 />
             </ScreenWrapper>
             <ConfirmModal

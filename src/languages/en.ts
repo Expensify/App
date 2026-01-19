@@ -7843,9 +7843,10 @@ const translations = {
         members: {
             title: 'Members',
             findMember: 'Find member',
-        },
-        common: {
             vacationDelegate: 'Vacation delegate',
+            error: {
+                vacationDelegate: 'Unable to set this user as an vacation delegate. Please try again.',
+            },
         },
     },
 };

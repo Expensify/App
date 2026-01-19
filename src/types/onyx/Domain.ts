@@ -2,8 +2,7 @@ import type CONST from '@src/CONST';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type * as OnyxCommon from './OnyxCommon';
 import type SecurityGroup from './SecurityGroup';
-import VacationDelegate, { BaseVacationDelegate } from './VacationDelegate';
-
+import VacationDelegate, {BaseVacationDelegate} from './VacationDelegate';
 
 /** Model of domain data */
 type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
