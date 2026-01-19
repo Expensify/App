@@ -101,7 +101,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             return defaultListOptions;
         }
 
-        const result = memoizedGetValidOptions(
+        return memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -119,7 +119,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             },
             countryCode,
         );
-        return result;
     }, [
         areOptionsInitialized,
         options.reports,
@@ -222,7 +221,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         newSections.push(formattedResults.section);
 
         // Filter current user from recentReports to avoid duplicate with currentUserOption section
-        const filteredRecentReports = chatOptions.recentReports.filter((report) => report.accountID !== chatOptions.currentUserOption?.accountID);
+        // Only filter if both the report and currentUserOption have valid accountIDs to avoid
+        // accidentally filtering out name-only attendees (which have accountID: undefined)
+        const filteredRecentReports = chatOptions.recentReports.filter(
+            (report) => !report.accountID || !chatOptions.currentUserOption?.accountID || report.accountID !== chatOptions.currentUserOption.accountID,
+        );
 
         newSections.push({
             title: '',
