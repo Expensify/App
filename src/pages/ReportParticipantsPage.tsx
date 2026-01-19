@@ -242,7 +242,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
-    const removeUsers = () => {
+    const removeUsers = useCallback(() => {
         // Remove the admin from the list
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report.reportID, accountIDsToRemove);
@@ -252,7 +252,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             setSelectedMembers([]);
             clearUserSearchPhrase();
         });
-    };
+    }, [selectedMembers, currentUserAccountID, report.reportID]);
 
     const showRemoveMembersModal = useCallback(async () => {
         const {action} = await showConfirmModal({

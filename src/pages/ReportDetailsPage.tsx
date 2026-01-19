@@ -1009,6 +1009,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             return;
         }
         isTransactionDeleted.current = true;
+        Navigation.dismissModal();
     }, [showConfirmModal, translate, caseID]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
