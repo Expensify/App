@@ -352,10 +352,10 @@ Onyx.connect({
     },
 });
 
-let introSelected: OnyxEntry<IntroSelected> = {};
+let introSelectedOnyx: OnyxEntry<IntroSelected> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (val) => (introSelected = val),
+    callback: (val) => (introSelectedOnyx = val),
 });
 
 let allReportDraftComments: Record<string, string | undefined> = {};
@@ -1080,7 +1080,7 @@ function openReport(
         });
     }
 
-    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+    const isInviteOnboardingComplete = introSelectedOnyx?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
 
     // Some cases we can have two open report requests with guide setup data because isInviteOnboardingComplete is not updated completely.
@@ -1090,8 +1090,8 @@ function openReport(
 
     // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
     // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
-    if (introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete && !hasOpenReportWithGuidedSetupData) {
-        const {choice, inviteType} = introSelected;
+    if (introSelectedOnyx && !isOnboardingCompleted && !isInviteOnboardingComplete && !hasOpenReportWithGuidedSetupData) {
+        const {choice, inviteType} = introSelectedOnyx;
         const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
         const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
 
@@ -1103,10 +1103,10 @@ function openReport(
             }
 
             const onboardingData = prepareOnboardingOnyxData({
-                introSelected,
+                introSelected: introSelectedOnyx,
                 engagementChoice: choice,
                 onboardingMessage,
-                companySize: introSelected?.companySize as OnboardingCompanySize,
+                companySize: introSelectedOnyx?.companySize as OnboardingCompanySize,
             });
 
             if (onboardingData) {
@@ -4361,6 +4361,7 @@ type CompleteOnboardingProps = {
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldWaitForRHPVariantInitialization?: boolean;
+    introSelected: OnyxEntry<IntroSelected>;
 };
 
 async function completeOnboarding({
@@ -4379,6 +4380,7 @@ async function completeOnboarding({
     isInvitedAccountant,
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
+    introSelected,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
