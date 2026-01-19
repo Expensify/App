@@ -21,7 +21,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
-    filterPersonalCards,
     getAssignedCardSortKey,
     getCardFeedIcon,
     getPlaidInstitutionIconUrl,
@@ -179,7 +178,7 @@ function PaymentMethodList({
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -202,34 +201,42 @@ function PaymentMethodList({
             const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-                // Include active company cards (domain) and active personal cards from OldDot (no domain + owned by current user)
+                // Include active Expensify cards, company cards (domain), and personal cards from OldDot (no domain + owned by current user)
                 .filter(
                     (card) =>
-                        !isExpensifyCard(card) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) && (!!card.domainName || isPersonalCardFromOldDot(card, currentUserAccountID)),
+                        CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
+                        (isExpensifyCard(card) || !!card.domainName || isPersonalCardFromOldDot(card, currentUserAccountID)),
                 );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
-            console.log('cardList', cardList);
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const isPersonalOldDotCard = isPersonalCardFromOldDot(card, currentUserAccountID);
                 const isCSVCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
-                const icon = isPersonalOldDotCard
-                    ? isCSVCard
-                        ? getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons)
-                        : getBankIcon({styles, bankName: card.bank as BankName, isCard: true}).icon
-                    : getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+
+                let icon;
+                if (isPersonalOldDotCard && isCSVCard) {
+                    icon = getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
+                } else if (isPersonalOldDotCard) {
+                    icon = getBankIcon({styles, bankName: card.bank as BankName, isCard: true}).icon;
+                } else {
+                    icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+                }
 
                 if (!isExpensifyCard(card)) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const cardDisplayName = maskCardNumber(card.cardName, card.bank);
-                    const cardDescription = isPersonalOldDotCard
-                        ? lastFourPAN
-                        : lastFourPAN
-                          ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                          : getDescriptionForPolicyDomainCard(card.domainName);
+
+                    let cardDescription;
+                    if (isPersonalOldDotCard) {
+                        cardDescription = lastFourPAN;
+                    } else if (lastFourPAN) {
+                        cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`;
+                    } else {
+                        cardDescription = getDescriptionForPolicyDomainCard(card.domainName);
+                    }
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl: isPersonalOldDotCard ? undefined : plaidUrl,
