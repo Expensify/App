@@ -89,9 +89,19 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     const routeNameForLookup = getSearchScreenNameForRoute(route);
     if (RHP_TO_SEARCH[routeNameForLookup]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[routeNameForLookup]);
+        const copiedParams = paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : {};
+        let queryParam: Record<string, string> = {};
+        if (route.path) {
+            const decodedPath = decodeURIComponent(route.path);
+            const searchMatch = decodedPath.match(/[?&]q=([^&/]+)/);
+            if (searchMatch?.[1]) {
+                queryParam = {q: decodeURIComponent(searchMatch[1])};
+            }
+        }
+
         const searchRoute = {
             name: RHP_TO_SEARCH[routeNameForLookup],
-            params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            params: Object.keys({...copiedParams, ...queryParam}).length > 0 ? {...copiedParams, ...queryParam} : undefined,
         };
         return {
             name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,

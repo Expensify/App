@@ -16,6 +16,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -820,7 +821,11 @@ function SearchPage({route}: SearchPageProps) {
                     const isDismissed = areAllTransactionsFromSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                     if (isDismissed) {
-                        Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                        if (isSearchTopmostFullScreenRoute()) {
+                            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_SEARCH.getRoute(Navigation.getActiveRoute()));
+                        } else {
+                            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                        }
                     } else if (areAllTransactionsFromSubmitter) {
                         setIsHoldEducationalModalVisible(true);
                     } else {
@@ -896,7 +901,13 @@ function SearchPage({route}: SearchPageProps) {
                 icon: expensifyIcons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
+                onSelected: () => {
+                    if (isSearchTopmostFullScreenRoute()) {
+                        Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute(Navigation.getActiveRoute()));
+                    } else {
+                        Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute());
+                    }
+                },
             });
         }
 
@@ -1177,7 +1188,11 @@ function SearchPage({route}: SearchPageProps) {
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
         if (hash && selectedTransactionsKeys.length > 0) {
-            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+            if (isSearchTopmostFullScreenRoute()) {
+                Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_SEARCH.getRoute(Navigation.getActiveRoute()));
+            } else {
+                Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+            }
         }
     }, [hash, selectedTransactionsKeys.length, isOffline]);
 
@@ -1185,7 +1200,11 @@ function SearchPage({route}: SearchPageProps) {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (hash && selectedTransactionsKeys.length > 0) {
-                Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                if (isSearchTopmostFullScreenRoute()) {
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_SEARCH.getRoute(Navigation.getActiveRoute()));
+                } else {
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                }
             }
         } else {
             dismissRejectUseExplanation();

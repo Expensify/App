@@ -133,8 +133,25 @@ const ROUTES = {
         getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}/reject` as const,
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
+    TRANSACTION_HOLD_REASON_SEARCH: {
+        route: 'search/hold/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/hold/search';
+            }
+            return `search/hold/search/${encodeURIComponent(backTo)}`;
+        },
+    },
     SEARCH_REJECT_REASON_RHP: 'search/reject',
-    MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
+    MOVE_TRANSACTIONS_SEARCH_RHP: {
+        route: 'search/move-transactions/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/move-transactions/search';
+            }
+            return `search/move-transactions/search/${encodeURIComponent(backTo)}`;
+        },
+    },
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
