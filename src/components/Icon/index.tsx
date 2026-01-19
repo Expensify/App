@@ -173,6 +173,9 @@ function Icon({
         <View
             testID={testID}
             style={additionalStyles}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            accessible={false}
         >
             <ImageSVG
                 src={src}
