@@ -73,7 +73,7 @@ function TransactionListItem<TItem extends ListItem>({
         canBeMissing: true,
         selector: (policy) => policy?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
     });
-    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {}) as Policy;
+    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
 
     const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
     const exportedReportActions = actionsData ? Object.values(actionsData) : [];
