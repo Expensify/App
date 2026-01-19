@@ -53,6 +53,7 @@ const REASON = {
         FACTORS_VERIFIED: 'Authentication factors verified',
     },
     KEYSTORE: {
+        KEY_PAIR_GENERATED: 'Key pair generated successfully',
         KEY_DELETED: 'Key successfully deleted from SecureStore',
         KEY_MISSING_ON_THE_BACKEND: 'Key is stored locally but not found on server',
         KEY_MISSING: 'Key is missing',
