@@ -3,7 +3,7 @@ import {filterInactiveCards, getCompanyCardFeedWithDomainID, isCardConnectionBro
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
-import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {CardErrors, CardFeedErrorsObject, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import CONST from '@src/CONST';
@@ -59,7 +59,7 @@ export default createOnyxDerivedValueConfig({
                 return;
             }
 
-            const currentFeedNameWithDomainID = getCompanyCardFeedWithDomainID(bankName, workspaceAccountID);
+            const currentFeedNameWithDomainID = getCompanyCardFeedWithDomainID(bankName as CompanyCardFeedWithNumber, workspaceAccountID);
             const currentFeed = combinedCompanyCardFeeds?.[currentFeedNameWithDomainID];
             const currentFeedErrors = currentFeed?.errors
 
