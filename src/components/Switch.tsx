@@ -27,7 +27,7 @@ type SwitchProps = {
     /** Callback to fire when the switch is toggled in disabled state */
     disabledAction?: () => void;
 
-    /** Accessibility state indicating whether the switch is on or off*/
+    /** Accessibility state indicating whether the switch is on or off */
     accessibilityState?: AccessibilityState;
 };
 
