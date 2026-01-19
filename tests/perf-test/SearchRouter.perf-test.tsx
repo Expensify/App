@@ -43,12 +43,17 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isDisplayedInModal: jest.fn(() => false),
 }));
 
-jest.mock('@src/hooks/useRootNavigationState');
+// Mock useRootNavigationState to return a stable value
+jest.mock('@src/hooks/useRootNavigationState', () => {
+    return jest.fn(() => undefined);
+});
 
 // Mock useLazyAsset hook to prevent async loading causing extra renders
+// Must include all icons used by SearchRouter and its children (SearchAutocompleteList)
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
         MagnifyingGlass: 'MagnifyingGlass',
+        History: 'History',
     })),
 }));
 
