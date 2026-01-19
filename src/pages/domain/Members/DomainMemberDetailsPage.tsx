@@ -1,35 +1,23 @@
 import {adminAccountIDsSelector, domainNameSelector} from '@selectors/Domain';
-import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Avatar from '@components/Avatar';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {closeUserAccount} from '@libs/actions/Domain';
-import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import CONST from '@src/CONST';
+import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -39,12 +27,17 @@ type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info', 'RemoveMembers'] as const);
     const [isModalVisible, setIsModalVisible] = useState(false);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
+
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminAccountIDsSelector,
+    });
 
     const [_, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
@@ -66,11 +59,10 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
 
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
     const memberLogin = personalDetails?.login ?? '';
-    const isSMSLogin = Str.isSMSLogin(memberLogin);
-    const phoneNumber = getPhoneNumber(personalDetails);
-    const fallbackIcon = personalDetails?.fallbackIcon ?? '';
+
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     if (isLoadingOnyxValue(domainMetadata)) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
@@ -102,65 +94,22 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         handleCloseAccount(false);
     };
 
+    const avatarButton = (
+        <Button
+            text={translate('domain.members.closeAccount')}
+            onPress={() => setIsModalVisible(true)}
+            isDisabled={!isAdmin}
+            icon={icons.RemoveMembers}
+            style={styles.mb5}
+        />
+    );
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            testID={DomainMemberDetailsPage.displayName}
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldForceFullScreen
-            >
-                <HeaderWithBackButton title={displayName} />
-                <ScrollView addBottomSafeAreaPadding>
-                    <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
-                        <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                            <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
-                                <Avatar
-                                    containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
-                                    imageStyles={styles.avatarXLarge}
-                                    source={personalDetails?.avatar}
-                                    avatarID={accountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.X_LARGE}
-                                    fallbackIcon={fallbackIcon}
-                                />
-                            </OfflineWithFeedback>
-                            {!!displayName && (
-                                <Text
-                                    style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
-                                    numberOfLines={1}
-                                >
-                                    {displayName}
-                                </Text>
-                            )}
-                            <Button
-                                text={translate('domain.members.closeAccount')}
-                                onPress={() => setIsModalVisible(true)}
-                                // isDisabled={isAdmin}
-                                icon={icons.RemoveMembers}
-                                style={styles.mb5}
-                            />
-                        </View>
-                        <View style={styles.w100}>
-                            <MenuItemWithTopDescription
-                                title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                interactive={false}
-                                copyable
-                            />
-                            <MenuItem
-                                style={styles.mb5}
-                                title={translate('common.profile')}
-                                icon={icons.Info}
-                                onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
-                                shouldShowRightIcon
-                            />
-                        </View>
-                    </View>
-                </ScrollView>
-            </FullPageNotFoundView>
+        <>
+            <BaseDomainMemberDetailsComponent
+                domainAccountID={domainAccountID}
+                accountID={accountID}
+                avatarButton={avatarButton}
+            />
             <DecisionModal
                 title={translate('domain.members.closeAccount')}
                 prompt={translate('domain.members.closeAccountInfo')}
@@ -174,10 +123,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 firstOptionDanger
                 secondOptionSuccess
             />
-        </ScreenWrapper>
+        </>
     );
 }
-
-DomainMemberDetailsPage.displayName = 'DomainAdminDetailsPage';
 
 export default DomainMemberDetailsPage;
