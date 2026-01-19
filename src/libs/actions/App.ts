@@ -17,6 +17,7 @@ import Performance from '@libs/Performance';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -367,9 +368,23 @@ function getOnyxDataForOpenOrReconnect(
  * Fetches data needed for app initialization
  */
 function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>) {
+    const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+
+    if (bootsplashSpan) {
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            parentSpan: bootsplashSpan,
+        });
+    }
+
     return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
         return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments));
+    }).finally(() => {
+        if (bootsplashSpan) {
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+        }
     });
 }
 
@@ -378,8 +393,22 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
 function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
+    const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+
+    if (bootsplashSpan) {
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            parentSpan: bootsplashSpan,
+        });
+    }
+
     hasLoadedAppPromise.then(() => {
         if (!hasLoadedApp) {
+            // If app hasn't loaded yet, call openApp instead (which has its own span)
+            if (bootsplashSpan) {
+                endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+            }
             openApp();
             return;
         }
@@ -394,7 +423,12 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
 
             const isFullReconnect = !updateIDFrom;
-            API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
+            API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded))
+                .finally(() => {
+                    if (bootsplashSpan) {
+                        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+                    }
+                });
         });
     });
 }

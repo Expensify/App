@@ -1731,12 +1731,13 @@ const CONST = {
         SPAN_LOCALE: {
             ROOT: 'BootsplashVisibleLocale',
             TRANSLATIONS_LOAD: 'LocaleTranslationsLoad',
-            EMOJI_IMPORT: 'Locale_EmojiImport',
+            EMOJI_IMPORT: 'LocaleEmojiImport',
         },
         SPAN_NAVIGATION: {
             ROOT: 'BootsplashVisibleNavigation',
             ROOT_READY: 'NavigationRootReady',
             PUSHER_INIT: 'NavigationPusherInit',
+            APP_OPEN: 'NavigationAppOpen',
         },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
