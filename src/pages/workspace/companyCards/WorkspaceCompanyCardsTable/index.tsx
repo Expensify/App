@@ -303,7 +303,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 </View>
             )}
 
-            {(isLoadingPage || isFeedPending || isNoFeed) && (
+            {(isLoadingPage || isFeedPending || isNoFeed) && !hasWorkspaceFeedsError && (
                 <ScrollView>
                     {isLoadingPage && <TableRowSkeleton fixedNumItems={5} />}
 
