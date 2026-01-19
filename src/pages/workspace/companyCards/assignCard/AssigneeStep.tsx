@@ -61,11 +61,30 @@ function AssigneeStep({route}: AssigneeStepProps) {
         );
     }, [policy?.employeeList]);
 
+    const softExclusions = useMemo(() => {
+        const result: Record<string, boolean> = {};
+
+        // Exclude Guide from auto-suggestions (but allow manual entry)
+        const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
+        if (assignedGuideEmail) {
+            result[assignedGuideEmail] = true;
+        }
+
+        // Exclude Account Manager from auto-suggestions (but allow manual entry)
+        const accountManagerLogin = account?.accountManagerAccountID ? personalDetails?.[Number(account.accountManagerAccountID)]?.login?.toLowerCase() : undefined;
+        if (accountManagerLogin) {
+            result[accountManagerLogin] = true;
+        }
+
+        return result;
+    }, [policy?.assignedGuide?.email, account?.accountManagerAccountID, personalDetails]);
+
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, selectedOptionsForDisplay, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
+        excludeFromSuggestionsOnly: softExclusions,
         includeRecentReports: true,
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -189,11 +208,12 @@ function AssigneeStep({route}: AssigneeStepProps) {
     }, [isOffline, policy?.employeeList, assignCard?.cardToAssign?.email, formatPhoneNumber, localeCompare, icons.FallbackAvatar]);
 
     const assignees = useMemo(() => {
-        // Filter out assigned Guide/AM from contact suggestions (but allow manual entry via userToInvite)
+        // Filter Guide/AM from locally-computed membersDetails (policy.employeeList)
+        // Note: availableOptions.recentReports and .personalDetails are already filtered at data layer
         const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
         const accountManagerLogin = account?.accountManagerAccountID ? personalDetails?.[Number(account.accountManagerAccountID)]?.login?.toLowerCase() : undefined;
 
-        const filterGuideAndAM = <T extends {login?: string | null; alternateText?: string | null}>(items: T[]): T[] =>
+        const filterGuideAndAMFromMembers = (items: ListItem[]): ListItem[] =>
             items.filter((item) => {
                 const itemLogin = item.login?.toLowerCase();
                 const itemAltText = item.alternateText?.toLowerCase();
@@ -209,7 +229,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
             });
 
         if (!debouncedSearchTerm) {
-            return filterGuideAndAM(membersDetails);
+            return filterGuideAndAMFromMembers(membersDetails);
         }
 
         if (!areOptionsInitialized) {
@@ -217,14 +237,14 @@ function AssigneeStep({route}: AssigneeStepProps) {
         }
 
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        const filteredOptions = tokenizedSearch(filterGuideAndAM(membersDetails), searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
+        const filteredOptions = tokenizedSearch(filterGuideAndAMFromMembers(membersDetails), searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         const options = [
             ...filteredOptions,
             ...selectedOptionsForDisplay,
-            ...filterGuideAndAM(availableOptions.recentReports),
-            ...filterGuideAndAM(availableOptions.personalDetails),
-            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+            ...availableOptions.recentReports, // Already filtered at data layer
+            ...availableOptions.personalDetails, // Already filtered at data layer
+            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []), // Allows manual entry
         ];
 
         return options.map((option) => ({

@@ -33,8 +33,11 @@ type UseSearchSelectorConfig = {
     /** Whether to include user to invite option */
     includeUserToInvite?: boolean;
 
-    /** Logins to exclude from results */
+    /** Logins to exclude from results (hard exclusions - cannot be selected at all) */
     excludeLogins?: Record<string, boolean>;
+
+    /** Logins to exclude from suggestions only (soft exclusions - can still be manually entered) */
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
 
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
@@ -133,6 +136,7 @@ function useSearchSelectorBase({
     searchContext = 'search',
     includeUserToInvite = true,
     excludeLogins = CONST.EMPTY_OBJECT,
+    excludeFromSuggestionsOnly = CONST.EMPTY_OBJECT,
     includeRecentReports = false,
     getValidOptionsConfig = CONST.EMPTY_OBJECT,
     onSelectionChange,
@@ -202,6 +206,7 @@ function useSearchSelectorBase({
                     includeP2P: true,
                     includeSelectedOptions: false,
                     excludeLogins,
+                    excludeFromSuggestionsOnly,
                     includeRecentReports,
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
@@ -217,6 +222,7 @@ function useSearchSelectorBase({
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
                     excludeLogins,
+                    excludeFromSuggestionsOnly,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
                 return getValidOptions(
@@ -264,6 +270,7 @@ function useSearchSelectorBase({
                     includeP2P: true,
                     includeSelectedOptions: false,
                     excludeLogins,
+                    excludeFromSuggestionsOnly,
                     loginsToExclude: excludeLogins,
                     includeRecentReports,
                     maxElements: maxResults,
@@ -289,6 +296,7 @@ function useSearchSelectorBase({
         countryCode,
         loginList,
         excludeLogins,
+        excludeFromSuggestionsOnly,
         includeRecentReports,
         maxRecentReportsToShow,
         getValidOptionsConfig,

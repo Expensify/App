@@ -78,6 +78,24 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         );
     }, [policy?.employeeList]);
 
+    const softExclusions = useMemo(() => {
+        const result: Record<string, boolean> = {};
+
+        // Exclude Guide from auto-suggestions (but allow manual entry)
+        const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
+        if (assignedGuideEmail) {
+            result[assignedGuideEmail] = true;
+        }
+
+        // Exclude Account Manager from auto-suggestions (but allow manual entry)
+        const accountManagerLogin = account?.accountManagerAccountID ? personalDetails?.[Number(account.accountManagerAccountID)]?.login?.toLowerCase() : undefined;
+        if (accountManagerLogin) {
+            result[accountManagerLogin] = true;
+        }
+
+        return result;
+    }, [policy?.assignedGuide?.email, account?.accountManagerAccountID, personalDetails]);
+
     const initiallySelectedOptions = useMemo(() => {
         if (!invitedEmailsToAccountIDsDraft || !personalDetails) {
             return [];
@@ -112,6 +130,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
+        excludeFromSuggestionsOnly: softExclusions,
         includeRecentReports: false,
         shouldInitialize: didScreenTransitionEnd,
         initialSelected: initiallySelectedOptions,
@@ -132,35 +151,15 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             });
         }
 
-        // Filter out assigned Guide/AM from contact suggestions (but allow manual entry via userToInvite)
-        const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
-        const accountManagerLogin = account?.accountManagerAccountID ? personalDetails?.[Number(account.accountManagerAccountID)]?.login?.toLowerCase() : undefined;
-
-        const filteredPersonalDetails = availableOptions.personalDetails.filter((option) => {
-            const optionLogin = option.login?.toLowerCase();
-            if (!optionLogin) {
-                return true;
-            }
-            // Exclude Guide
-            if (assignedGuideEmail && optionLogin === assignedGuideEmail) {
-                return false;
-            }
-            // Exclude Account Manager
-            if (accountManagerLogin && optionLogin === accountManagerLogin) {
-                return false;
-            }
-            return true;
-        });
-
-        // Contacts section
-        if (filteredPersonalDetails.length > 0) {
+        // Contacts section (Guide/AM already filtered at data layer via excludeFromSuggestionsOnly)
+        if (availableOptions.personalDetails.length > 0) {
             sectionsArr.push({
                 title: translate('common.contacts'),
-                data: filteredPersonalDetails,
+                data: availableOptions.personalDetails,
             });
         }
 
-        // User to invite section
+        // User to invite section (allows manual entry of Guide/AM)
         if (availableOptions.userToInvite) {
             sectionsArr.push({
                 title: undefined,
@@ -169,16 +168,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
 
         return sectionsArr;
-    }, [
-        areOptionsInitialized,
-        selectedOptionsForDisplay,
-        availableOptions.personalDetails,
-        availableOptions.userToInvite,
-        translate,
-        policy?.assignedGuide?.email,
-        account?.accountManagerAccountID,
-        personalDetails,
-    ]);
+    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
