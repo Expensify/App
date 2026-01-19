@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
 
@@ -91,32 +92,55 @@ function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     return uniqueIDs.length > 0 ? uniqueIDs : getEmptyArray<number>();
 }
 
+type SecurityGroupKey = `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}`;
+
 /**
- * Gets all security group IDs for a given account ID.
- * It searches through all security groups in the domain and returns the group IDs
+ * Type guard to check if a domain entry is a security group entry.
+ */
+function isSecurityGroupEntry(entry: [string, unknown]): entry is [SecurityGroupKey, DomainSecurityGroup] {
+    const [key, value] = entry;
+    return key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX) && typeof value === 'object' && value !== null && 'shared' in value;
+}
+
+/**
+ * Gets all security groups for a given account ID.
+ * Searches through all security groups in the domain and returns those
  * where the account ID appears in the 'shared' property.
  *
  * @param domain - The domain object from Onyx
  * @param accountID - The account ID to search for
- * @returns An array of security group IDs that the account belongs to
+ * @returns Object containing:
+ *   - keys: Array of security group keys the account belongs to
+ *   - securityGroups: Record of security group data keyed by their prefixed IDs
  */
-function selectSecurityGroupIDsForAccount(domain: Domain | undefined, accountID: number): number[] {
+function selectSecurityGroupsForAccount(
+    domain: Domain | undefined,
+    accountID: number,
+): {
+    keys: SecurityGroupKey[];
+    securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>;
+} {
     if (!domain) {
-        return [];
+        return {keys: [], securityGroups: {}};
     }
 
     const accountIDStr = String(accountID);
+    const keys: SecurityGroupKey[] = [];
+    const securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
 
-    return Object.entries(domain)
-        .filter(([key]) => key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX))
-        .filter(([, value]) => {
-            const groupData = value as {shared?: Record<string, string>};
-            return groupData?.shared && accountIDStr in groupData.shared;
-        })
-        .map(([key]) => {
-            // Extract the group ID from the key: "domain_securityGroup_<groupID>" -> "<groupID>"
-            return parseInt(key.replace(`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}`, ''), 10);
-        });
+    for (const entry of Object.entries(domain)) {
+        if (!isSecurityGroupEntry(entry)) {
+            continue;
+        }
+
+        const [key, group] = entry;
+        if (accountIDStr in group.shared) {
+            keys.push(key);
+            securityGroups[key] = group;
+        }
+    }
+
+    return {keys, securityGroups};
 }
 
 const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.members ?? {};
@@ -134,6 +158,6 @@ export {
     domainEmailSelector,
     adminPendingActionSelector,
     technicalContactSettingsSelector,
-    selectSecurityGroupIDsForAccount,
+    selectSecurityGroupsForAccount,
     memberPendingActionSelector,
 };

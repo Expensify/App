@@ -1,8 +1,9 @@
-import {memberAccountIDsSelector} from '@selectors/Domain';
+import {memberAccountIDsSelector, memberPendingActionSelector} from '@selectors/Domain';
 import React from 'react';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {clearDomainMemberError} from '@libs/actions/Domain';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
@@ -23,6 +24,20 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         selector: memberAccountIDsSelector,
     });
 
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        canBeMissing: true,
+    });
+
+    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: memberPendingActionSelector,
+    });
+
+    const getCustomRowProps = (accountID: number, accountEmail?: string) => ({
+        errors: accountEmail && domainErrors?.memberErrors?.[accountEmail]?.errors ? domainErrors?.memberErrors?.[accountEmail]?.errors : domainErrors?.memberErrors?.[accountID]?.errors,
+        pendingAction: accountEmail ? domainPendingAction?.[accountEmail] : undefined,
+    });
+
     return (
         <BaseDomainMembersPage
             domainAccountID={domainAccountID}
@@ -31,6 +46,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             searchPlaceholder={translate('domain.members.findMember')}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
             headerIcon={illustrations.Profile}
+            getCustomRowProps={getCustomRowProps}
+            onDismissError={(item) => clearDomainMemberError(domainAccountID, item.accountID, item.login)}
         />
     );
 }

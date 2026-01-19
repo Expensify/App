@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, domainNameSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, domainNameSelector, selectSecurityGroupsForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -19,7 +19,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {Domain, PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
@@ -34,22 +34,16 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
-    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
 
-    const [_, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const [securityGroupsData] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: adminAccountIDsSelector,
+        selector: (d: OnyxEntry<Domain>) => selectSecurityGroupsForAccount(d, accountID),
     });
-
-    // Commenting out data needed for optimistic updates for now
-    // // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
-    // const [securityGroupIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-    //     canBeMissing: true,
-    //     selector: (domain: OnyxEntry<Domain>) => selectSecurityGroupIDsForAccount(domain, accountID),
-    // });
 
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -82,7 +76,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             setIsModalVisible(true);
             return;
         }
-        closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, force);
+        closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, securityGroupsData?.keys ?? [], securityGroupsData?.securityGroups, force);
         Navigation.dismissModal();
     };
 

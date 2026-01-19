@@ -33,7 +33,7 @@ type DomainErrors = {
      * Errors for members
      */
     memberErrors?: Record<
-        number,
+        number | string,
         {
             /**
              * General member errors

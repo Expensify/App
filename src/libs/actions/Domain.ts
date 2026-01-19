@@ -13,7 +13,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain} from '@src/types/onyx';
+import type {Domain, DomainSecurityGroup} from '@src/types/onyx';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
@@ -786,27 +786,41 @@ function clearDomainErrors(domainAccountID: number) {
 }
 
 /** Sends a request to remove user from a domain and close their account */
-function closeUserAccount(domainAccountID: number, domain: string, accountID: number, targetEmail: string, overrideProcessingReports = false) {
-    // const optimisticValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
-    // for (const groupID of securityGroupIDs) {
-    //     optimisticValue[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`] = {
-    //         shared: {
-    //             [accountID]: null,
-    //         },
-    //     };
-    // }
+function closeUserAccount(
+    domainAccountID: number,
+    domain: string,
+    accountID: number,
+    targetEmail: string,
+    securityGroupIDs: Array<`${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}`> = [],
+    securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup> = {},
+    overrideProcessingReports = false,
+) {
+    const optimisticValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
+    const failureValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
+    for (const groupID of securityGroupIDs) {
+        optimisticValue[groupID] = {
+            shared: {
+                [accountID]: null,
+            },
+        };
+        failureValue[groupID] = {
+            shared: {
+                [accountID]: securityGroups?.[groupID]?.shared?.[accountID],
+            },
+        };
+    }
 
     const optimisticData: OnyxUpdate[] = [
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-        //     value: optimisticValue,
-        // },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: optimisticValue,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                members: {[accountID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                members: {[targetEmail]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
             },
         },
     ];
@@ -816,19 +830,35 @@ function closeUserAccount(domainAccountID: number, domain: string, accountID: nu
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                members: {[accountID]: null},
+                members: {[targetEmail]: null},
             },
         },
     ];
+
     const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [targetEmail]: {errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.error.removeMember')},
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: failureValue,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                members: {[accountID]: null},
+                members: {[targetEmail]: null},
             },
         },
     ];
+
     const parameters: DeleteDomainMemberParams = {
         domain,
         targetEmail,
@@ -838,15 +868,16 @@ function closeUserAccount(domainAccountID: number, domain: string, accountID: nu
     API.write(WRITE_COMMANDS.DELETE_DOMAIN_MEMBER, parameters, {optimisticData, successData, failureData});
 }
 
-function clearDomainMemberError(domainAccountID: number, accountID: number) {
+function clearDomainMemberError(domainAccountID: number, accountID: number, email: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         memberErrors: {
             [accountID]: null,
+            [email]: null,
         },
     });
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        members: {[accountID]: null},
+        members: {[email]: null},
     });
 }
 
