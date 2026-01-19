@@ -29,6 +29,11 @@ type TestCase = {
     status: string | undefined;
 };
 
+const cardFeedErrorTestCaseNames = {
+    admin: 'has card feed error if admin',
+    employee: 'has no card feed error if employee (non-admin)',
+} as const;
+
 const TEST_CASE_NAMES = {
     hasPolicyErrors: 'has policy errors',
     hasCustomUnitsError: 'has custom units error',
@@ -36,20 +41,21 @@ const TEST_CASE_NAMES = {
     hasSyncErrors: 'has sync errors',
     hasQBOExportError: 'has QBO export error',
     hasUberCredentialsError: 'has Uber credentials error',
-    hasAdminCardFeedErrors: 'has admin card feed errors',
+    hasAdminCardFeedErrors: cardFeedErrorTestCaseNames.admin,
+    hasNoCardFeedErrorsForEmployee: cardFeedErrorTestCaseNames.employee,
     noErrors: 'no errors',
 } as const;
 
 const getMockForStatus = ({name}: TestCase) =>
     ({
         [ONYXKEYS.SESSION]: {
-            email: userID,
+            email: name === cardFeedErrorTestCaseNames.employee ? otherUserID : userID,
         },
         [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
             id: WORKSPACE.policyID,
             name: WORKSPACE.policyName,
-            owner: userID,
-            role: 'admin',
+            owner: name === cardFeedErrorTestCaseNames.employee ? userID : userID,
+            role: name === cardFeedErrorTestCaseNames.employee ? 'user' : 'admin',
             workspaceAccountID: WORKSPACE.workspaceAccountID,
             // Policy errors
             errors: name === TEST_CASE_NAMES.hasPolicyErrors ? {policyError: 'Something went wrong'} : undefined,
@@ -97,9 +103,10 @@ const getMockForStatus = ({name}: TestCase) =>
                       }
                     : undefined,
         },
-        // Card feed errors for admin
+        // Card feed errors - both admin and employee test cases have broken card connection
+        // Admin sees HAS_POLICY_ADMIN_CARD_FEED_ERRORS, employee does NOT see it in workspaces tab
         [`${ONYXKEYS.CARD_LIST}`]:
-            name === TEST_CASE_NAMES.hasAdminCardFeedErrors
+            name === cardFeedErrorTestCaseNames.admin || name === cardFeedErrorTestCaseNames.employee
                 ? {
                       card1: {
                           cardID: 1,
@@ -151,9 +158,14 @@ const TEST_CASES: TestCase[] = [
         status: CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR,
     },
     {
-        name: TEST_CASE_NAMES.hasAdminCardFeedErrors,
+        name: cardFeedErrorTestCaseNames.admin,
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS,
+    },
+    {
+        name: cardFeedErrorTestCaseNames.employee,
+        indicatorColor: defaultTheme.success,
+        status: undefined,
     },
 ];
 
@@ -191,7 +203,12 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
             const {policyIDWithErrors} = result.current;
-            expect(policyIDWithErrors).toBe(WORKSPACE.policyID);
+            // Employee test case has no policy errors visible (card feed errors don't show for employees in workspaces tab)
+            if (testCase.name === cardFeedErrorTestCaseNames.employee) {
+                expect(policyIDWithErrors).toBeUndefined();
+            } else {
+                expect(policyIDWithErrors).toBe(WORKSPACE.policyID);
+            }
         });
     });
 
@@ -265,80 +282,6 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             const {status} = result.current;
             // Policy errors require admin role
             expect(status).toBeUndefined();
-        });
-    });
-
-    describe('card feed errors - admin vs non-admin', () => {
-        beforeEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('shows card feed errors for admin user', async () => {
-            await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: userID,
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        workspaceAccountID: WORKSPACE.workspaceAccountID,
-                    },
-                    [`${ONYXKEYS.CARD_LIST}`]: {
-                        card1: {
-                            cardID: 1,
-                            bank: CARD_FEED.feedName,
-                            lastScrapeResult: 403, // Broken connection
-                            fundID: String(CARD_FEED.workspaceAccountID),
-                        },
-                    },
-                } as unknown as OnyxMultiSetInput);
-                await waitForBatchedUpdatesWithAct();
-            });
-
-            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
-            await waitForBatchedUpdatesWithAct();
-            const {status, indicatorColor} = result.current;
-
-            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS);
-            expect(indicatorColor).toBe(defaultTheme.danger);
-        });
-
-        it('does NOT show card feed errors in workspaces tab for non-admin user', async () => {
-            await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: otherUserID,
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'user', // Non-admin
-                        workspaceAccountID: WORKSPACE.workspaceAccountID,
-                    },
-                    [`${ONYXKEYS.CARD_LIST}`]: {
-                        card1: {
-                            cardID: 1,
-                            bank: CARD_FEED.feedName,
-                            lastScrapeResult: 403, // Broken connection
-                            fundID: String(CARD_FEED.workspaceAccountID),
-                        },
-                    },
-                } as unknown as OnyxMultiSetInput);
-                await waitForBatchedUpdatesWithAct();
-            });
-
-            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
-            await waitForBatchedUpdatesWithAct();
-            const {status} = result.current;
-
-            // Non-admin should NOT see policy admin card feed errors in workspaces tab
-            // (they see it in account tab as HAS_EMPLOYEE_CARD_FEED_ERRORS instead)
-            expect(status).not.toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS);
         });
     });
 
