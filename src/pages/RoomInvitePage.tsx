@@ -66,6 +66,7 @@ function RoomInvitePage({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.email;
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
@@ -100,7 +101,7 @@ function RoomInvitePage({
             nvpDismissedProductTraining,
             loginList,
             currentUserAccountID,
-            currentUserPersonalDetails.login,
+            currentUserEmail,
             betas ?? [],
             excludedUsers,
             false,
@@ -126,17 +127,7 @@ function RoomInvitePage({
             recentReports: [],
             currentUserOption: null,
         };
-    }, [
-        areOptionsInitialized,
-        betas,
-        excludedUsers,
-        loginList,
-        nvpDismissedProductTraining,
-        options.personalDetails,
-        selectedOptions,
-        currentUserAccountID,
-        currentUserPersonalDetails.login,
-    ]);
+    }, [areOptionsInitialized, betas, excludedUsers, loginList, nvpDismissedProductTraining, options.personalDetails, selectedOptions, currentUserAccountID, currentUserEmail]);
 
     const inviteOptions = useMemo(() => {
         if (debouncedSearchTerm.trim() === '') {
@@ -144,12 +135,12 @@ function RoomInvitePage({
         }
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, {
             excludeLogins: excludedUsers,
-            currentUserEmail: currentUserPersonalDetails.login,
+            currentUserEmail,
             currentUserAccountID,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, countryCode, loginList, excludedUsers, currentUserAccountID, currentUserPersonalDetails.login]);
+    }, [debouncedSearchTerm, defaultOptions, countryCode, loginList, excludedUsers, currentUserAccountID, currentUserEmail]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];

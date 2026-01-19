@@ -102,7 +102,7 @@ function useOptions() {
             betas: betas ?? [],
             includeSelfDM: true,
             currentUserAccountID,
-            currentUserEmail: personalData.login,
+            currentUserEmail: personalData.email,
             shouldAlwaysIncludeDM: true,
         },
         countryCode,
@@ -115,7 +115,7 @@ function useOptions() {
     const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        currentUserEmail: personalData.login,
+        currentUserEmail: personalData.email,
         currentUserAccountID,
     });
 
@@ -160,7 +160,7 @@ function useOptions() {
                       getUserToInviteOption({
                           searchValue: participant?.login,
                           loginList,
-                          currentUserEmail: personalData.login,
+                          currentUserEmail: personalData.email,
                           currentUserAccountID: personalData.accountID,
                       });
                   if (participantOption) {

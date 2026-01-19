@@ -167,7 +167,7 @@ function useSearchSelectorBase({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const currentUserEmail = currentUserPersonalDetails.login;
+    const currentUserEmail = currentUserPersonalDetails.email;
 
     const onListEndReached = useDebounce(
         useCallback(() => {
