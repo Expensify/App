@@ -1949,7 +1949,6 @@ function handlePreexistingReport(report: Report) {
         // If the parent report is a one transaction report, we want to copy the draft comment to the one transaction report instead of the preexisting thread report
         const reportToCopyDraftTo = !!parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
 
-
         if (!navigationRef.isReady()) {
             callback();
             return;
