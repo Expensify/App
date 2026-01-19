@@ -79,7 +79,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
   <strong>Control</strong>
   <ul>
     <li>AU$30 per active member/month with Annual Subscription</li>
-    <li>AU$60 ay-per-use</li>
+    <li>AU$60 pay-per-use</li>
   </ul>
 </div>
 
