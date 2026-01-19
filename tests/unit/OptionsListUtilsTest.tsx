@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {render, renderHook} from '@testing-library/react-native';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -25,6 +25,7 @@ import {
     getLastMessageTextForReport,
     getMemberInviteOptions,
     getPersonalDetailSearchTerms,
+    getReportDisplayOption,
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
@@ -54,7 +55,8 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -3107,7 +3109,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, policy);
+            const option = getReportOption(participant, undefined, policy);
 
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
@@ -3162,7 +3164,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, policy);
+            const option = getReportOption(participant, undefined, policy);
 
             expect(option.text).toBe('Test Workspace with Submit');
             // The submitsTo logic may or may not apply depending on complex approval rules
@@ -3185,7 +3187,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, POLICY);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -3221,7 +3223,7 @@ describe('OptionsListUtils', () => {
                 isSelfDM: true,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, POLICY);
 
             // The option.isSelfDM is set by createOption based on the report type
             // Just verify the alternateText is correct for self DM
@@ -3256,10 +3258,209 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, POLICY);
 
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.alternateText).toBe(translateLocal('workspace.common.invoices'));
+        });
+
+        it('should return option with correct text for workspace chat', async () => {
+            const workspaceReport: Report = {
+                lastReadTime: '2021-01-14 11:25:39.302',
+                lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                isPinned: false,
+                reportID: '18',
+                participants: {
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+                reportName: '',
+                policyID,
+                policyName: POLICY.name,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}18`, workspaceReport);
+            await waitForBatchedUpdates();
+
+            const participant: Participant = {
+                reportID: '18',
+                selected: false,
+            };
+
+            let reportNameValuePair: OnyxEntry<ReportNameValuePairs>;
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`,
+                waitForCollectionCallback: false,
+                callback: (value) => {
+                    reportNameValuePair = value;
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY);
+
+            expect(option.text).toBe(POLICY.name);
+            expect(option.alternateText).toBeTruthy();
+            expect(option.alternateText === translateLocal('workspace.common.workspace') || option.alternateText?.includes('Submits to')).toBe(true);
+        });
+
+        it('should handle draft reports', async () => {
+            const draftReport: Report = {
+                lastReadTime: '2021-01-14 11:25:39.302',
+                lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                isPinned: false,
+                reportID: '19',
+                participants: {
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+                reportName: 'Draft Report',
+                type: CONST.REPORT.TYPE.CHAT,
+                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}19`, draftReport);
+            await waitForBatchedUpdates();
+
+            const draftReports = {
+                '19': draftReport,
+            };
+
+            const participant: Participant = {
+                reportID: '19',
+                selected: false,
+            };
+
+            let reportNameValuePair: OnyxEntry<ReportNameValuePairs>;
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`,
+                waitForCollectionCallback: false,
+                callback: (value) => {
+                    reportNameValuePair = value;
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, undefined, draftReports);
+
+            expect(option.isDisabled).toBe(true);
+        });
+    });
+
+    describe('getReportDisplayOption', () => {
+        it('should use reportNameValuePair parameter for archived reports', async () => {
+            const reportID = '23';
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [2, 7]),
+                reportID,
+                lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            };
+
+            const reportNameValuePair: ReportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+
+            expect(option).toBeDefined();
+            expect(option.reportID).toBe(reportID);
+            expect(option.private_isArchived).toBeDefined();
+            expect(option.private_isArchived).toBe(reportNameValuePair.private_isArchived);
+            expect(option.isDisabled).toBe(true);
+            expect(option.isSelected).toBe(false);
+        });
+
+        it('should use reportNameValuePair parameter for non-archived reports', async () => {
+            const reportID = '24';
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [2, 7]),
+                reportID,
+                lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            };
+
+            const reportNameValuePair: ReportNameValuePairs = {};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+
+            expect(option).toBeDefined();
+            expect(option.reportID).toBe(reportID);
+            expect(option.private_isArchived).toBeUndefined();
+            expect(option.isDisabled).toBe(true);
+            expect(option.isSelected).toBe(false);
+        });
+
+        it('should handle undefined reportNameValuePair', async () => {
+            const reportID = '25';
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [2, 7]),
+                reportID,
+                lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const option = getReportDisplayOption(report, undefined, undefined);
+
+            expect(option).toBeDefined();
+            expect(option.reportID).toBe(reportID);
+            expect(option.isDisabled).toBe(true);
+            expect(option.isSelected).toBe(false);
+        });
+
+        it('should use reportNameValuePair for invoice room reports', async () => {
+            const reportID = '26';
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [2, 7]),
+                reportID,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            };
+
+            const reportNameValuePair: ReportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+
+            expect(option).toBeDefined();
+            expect(option.reportID).toBe(reportID);
+            expect(option.isInvoiceRoom).toBe(true);
+            expect(option.private_isArchived).toBeDefined();
+            expect(option.private_isArchived).toBe(reportNameValuePair.private_isArchived);
+        });
+
+        it('should use reportNameValuePair for self DM reports', async () => {
+            const reportID = '27';
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [2]),
+                reportID,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                ownerAccountID: 2,
+                lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            };
+
+            const reportNameValuePair: ReportNameValuePairs = {};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+
+            expect(option).toBeDefined();
+            expect(option.reportID).toBe(reportID);
+            expect(option.isSelfDM).toBe(true);
         });
 
         it('should preserve selected state from participant', async () => {
@@ -3278,7 +3479,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, POLICY);
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -3299,7 +3500,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined);
+            const option = getReportOption(participant, undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -3321,7 +3522,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY);
 
             expect(option).toBeDefined();
         });

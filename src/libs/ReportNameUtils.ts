@@ -551,8 +551,8 @@ function computeReportNameBasedOnReportAction(
 
 function computeChatThreadReportName(
     translate: LocalizedTranslate,
+    isArchived: boolean,
     report: Report,
-    reportNameValuePairs: ReportNameValuePairs,
     reports: OnyxCollection<Report>,
     parentReportAction?: ReportAction,
 ): string | undefined {
@@ -564,7 +564,7 @@ function computeChatThreadReportName(
     }
 
     const parentReportActionMessage = getReportActionMessageFromActionsUtils(parentReportAction);
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, isArchived);
 
     if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
         let formattedName = getTransactionReportName({reportAction: parentReportAction});
@@ -642,15 +642,16 @@ function computeReportName(
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
     currentUserAccountID?: number,
+    privateIsArchived?: string,
 ): string {
     if (!report || !report.reportID) {
         return '';
     }
 
-    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+    const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!privateIsArchivedValue);
 
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
@@ -667,7 +668,7 @@ function computeReportName(
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const chatThreadReportName = computeChatThreadReportName(translateLocal, report, reportNameValuePairs ?? {}, reports ?? {}, parentReportAction);
+    const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction);
     if (chatThreadReportName) {
         return chatThreadReportName;
     }
