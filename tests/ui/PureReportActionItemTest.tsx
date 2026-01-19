@@ -87,6 +87,7 @@ describe('PureReportActionItem', () => {
                             <PureReportActionItem
                                 allReports={undefined}
                                 policies={undefined}
+                                personalPolicyID={undefined}
                                 report={undefined}
                                 reportActions={[]}
                                 parentReportAction={undefined}
@@ -263,6 +264,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     allReports={undefined}
+                                    personalPolicyID={undefined}
                                     policies={{testPolicy: dewPolicy as Policy}}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
@@ -321,6 +323,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     allReports={undefined}
+                                    personalPolicyID={undefined}
                                     policies={{testPolicy: basicPolicy as Policy}}
                                     policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}

@@ -203,6 +203,8 @@ import {
     getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDefaultTitleMessage,
+    getPolicyChangeLogMaxExpenseAgeMessage,
+    getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getReimburserUpdateMessage,
     getRenamedAction,
@@ -928,12 +930,6 @@ type OutstandingChildRequest = {
 };
 
 type ParsingDetails = {
-    /**
-     * this param is deprecated
-     * Currently there are no calls/reference that use this param
-     * This should be removed after https://github.com/Expensify/App/issues/50724 as a followup
-     */
-    shouldEscapeText?: boolean;
     reportID?: string;
     policyID?: string;
 };
@@ -5246,7 +5242,7 @@ function getReportPreviewMessage(
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal(translatePhraseKey, '', payerDisplayName ?? '');
+            return translateLocal(translatePhraseKey, formattedAmount, payerDisplayName ?? '');
         }
     }
 
@@ -5691,7 +5687,14 @@ function getReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
         return Parser.htmlToText(getMovedTransactionMessage(parentReportAction));
     }
-
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, parentReportAction);
+    }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, parentReportAction);
@@ -5986,7 +5989,13 @@ function getReportName(
     }
 
     if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies});
+        formattedName = getInvoicesChatName({
+            report,
+            receiverPolicy: invoiceReceiverPolicy,
+            personalDetails,
+            policies,
+            currentUserAccountID,
+        });
     }
 
     if (isSelfDM(report)) {
@@ -6007,7 +6016,7 @@ function getReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails, currentUserAccountID});
 
     const finalName = formattedName || (report?.reportName ?? '');
 
@@ -6022,6 +6031,40 @@ function getReportName(
 function getSearchReportName(props: GetReportNameParams): string {
     const {report, policy} = props;
     if (isChatThread(report) && policy?.name) {
+        // Traverse up the parent chain to find the first expense report
+        // If found, return the expense report name instead of workspace name
+        let currentParent = getParentReport(report);
+        const visitedReportIDs = new Set<string>();
+
+        while (currentParent) {
+            if (!currentParent.reportID) {
+                break;
+            }
+            if (visitedReportIDs.has(currentParent.reportID)) {
+                break;
+            }
+            visitedReportIDs.add(currentParent.reportID);
+
+            if (isExpenseReport(currentParent)) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                return getReportName(
+                    currentParent,
+                    policy,
+                    props.parentReportActionParam,
+                    props.personalDetails,
+                    props.invoiceReceiverPolicy,
+                    undefined,
+                    props.transactions,
+                    props.isReportArchived,
+                    props.reports,
+                    props.policies,
+                );
+            }
+
+            // Continue traversing up the parent chain
+            currentParent = getParentReport(currentParent);
+        }
+
         return policy.name;
     }
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
@@ -6369,20 +6412,15 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return Parser.htmlToText(policy.description);
 }
 
-/**
- * Fixme the `shouldEscapeText` arg is never used (it's always set to undefined)
- * it should be removed after https://github.com/Expensify/App/issues/50724 gets fixed as a followup
- */
 function buildOptimisticAddCommentReportAction(
     text?: string,
     file?: FileObject,
     actorAccountID?: number,
     createdOffset = 0,
-    shouldEscapeText?: boolean,
     reportID?: string,
     reportActionID: string = rand64(),
 ): OptimisticReportAction {
-    const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
+    const commentText = getParsedComment(text ?? '', {reportID});
     const attachmentHtml = getUploadingAttachmentHtml(file);
 
     const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
@@ -6494,7 +6532,7 @@ function buildOptimisticTaskCommentReportAction(
     actorAccountID?: number,
     createdOffset = 0,
 ): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, undefined, taskReportID);
+    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, taskReportID);
     if (Array.isArray(reportAction.reportAction.message)) {
         const message = reportAction.reportAction.message.at(0);
         if (message) {
