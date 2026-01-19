@@ -74,7 +74,7 @@ Managing multiple domains with one Entity ID is supported. Contact Concierge or 
 
 # Advanced configurations for SAML Single Sign-On (SSO)
 
-## Okta SCIM API and SAML provisioning
+## Okta SCIM API for account deprovisioning
 
 Once SAML is configured: 
 
