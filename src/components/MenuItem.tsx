@@ -696,6 +696,20 @@ function MenuItem({
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
+    // When interactive={false}, don't pass onPress to allow events to bubble to parent wrapper.
+    // This is critical for components like ApprovalWorkflowSection where outer PressableWithoutFeedback
+    // handles all clicks and inner MenuItems are display-only.
+    const getResolvedOnPress = () => {
+        if (!interactive) {
+            return undefined;
+        }
+        if (shouldCheckActionAllowedOnPress) {
+            return callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction);
+        }
+        return onPressAction;
+    };
+    const resolvedOnPress = getResolvedOnPress();
+
     return (
         <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
@@ -718,7 +732,7 @@ function MenuItem({
                     <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPress={resolvedOnPress}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -743,10 +757,14 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={CONST.ROLE.MENUITEM}
+                                // When interactive={false}, the MenuItem is display-only and should not:
+                                // - Have role="menuitem" (incorrect WCAG semantics for static content)
+                                // - Be accessible to screen readers as an interactive element
+                                // - Be focusable via keyboard (tabindex="-1" instead of tabindex="0")
+                                role={interactive ? CONST.ROLE.MENUITEM : undefined}
                                 accessibilityLabel={title ? title.toString() : ''}
-                                accessible={shouldBeAccessible}
-                                tabIndex={tabIndex}
+                                accessible={interactive && shouldBeAccessible}
+                                tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >

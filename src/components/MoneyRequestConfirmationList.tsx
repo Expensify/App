@@ -1054,7 +1054,12 @@ function MoneyRequestConfirmationList({
             focusTimeoutRef.current = setTimeout(() => {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    blurActiveElement();
+                    // Only blur input elements to dismiss keyboard.
+                    // Don't blur other elements to preserve focus restoration on back navigation.
+                    const activeElement = document?.activeElement;
+                    if (activeElement instanceof HTMLElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+                        blurActiveElement();
+                    }
                 });
             }, CONST.ANIMATED_TRANSITION);
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);

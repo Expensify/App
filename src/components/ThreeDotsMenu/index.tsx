@@ -142,6 +142,18 @@ function ThreeDotsMenu({
                     <PressableWithoutFeedback
                         onPress={onThreeDotsPress}
                         disabled={disabled}
+                        onKeyDown={(e: React.KeyboardEvent) => {
+                            // When nested inside another pressable (e.g., workspace row), keyboard activation
+                            // propagates to the parent due to role="presentation". We intercept Enter/Space
+                            // to open the menu directly. Double activation is prevented by blur() in
+                            // onThreeDotsPress() which moves focus away before RNW's keyup handler fires.
+                            if (!isNested || (e.key !== 'Enter' && e.key !== ' ')) {
+                                return;
+                            }
+                            e.stopPropagation();
+                            e.preventDefault();
+                            onThreeDotsPress();
+                        }}
                         onMouseDown={(e) => {
                             /* Keep the focus state on mWeb like we did on the native apps. */
                             if (!isMobile()) {
