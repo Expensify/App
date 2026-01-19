@@ -108,7 +108,19 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
         const filteredApprovers = tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (approver) => [approver.text ?? '', approver.login ?? '']);
 
         return sortAlphabetically(filteredApprovers, 'text', localeCompare);
-    }, [employeeList, policyOwner, preventSelfApproval, policyMemberEmailsToAccountIDs, invitedEmails, debouncedSearchTerm, countryCode, localeCompare, personalDetails, selectedApprover, icons.FallbackAvatar]);
+    }, [
+        employeeList,
+        policyOwner,
+        preventSelfApproval,
+        policyMemberEmailsToAccountIDs,
+        invitedEmails,
+        debouncedSearchTerm,
+        countryCode,
+        localeCompare,
+        personalDetails,
+        selectedApprover,
+        icons.FallbackAvatar,
+    ]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
