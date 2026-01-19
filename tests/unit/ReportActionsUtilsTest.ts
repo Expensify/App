@@ -2950,7 +2950,6 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-<<<<<<< HEAD
     describe('getExpenseReportTransactionIDs', () => {
         const expenseReportID = 'expense-report-123';
         const transactionID1 = 'transaction-1';

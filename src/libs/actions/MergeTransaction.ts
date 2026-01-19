@@ -6,7 +6,6 @@ import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import * as NetworkStore from '@libs/Network/NetworkStore';
 import {
     areTransactionsEligibleForMerge,
     getMergeableDataAndConflictFields,
@@ -18,6 +17,7 @@ import {
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import {rand64} from '@libs/NumberUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';

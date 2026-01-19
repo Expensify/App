@@ -901,7 +901,6 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
     });
 
-<<<<<<< HEAD
     it('should return early when offline and report has actions and exists', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
