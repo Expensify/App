@@ -7,7 +7,7 @@ index 7e86543..595acb9 100644
        var scrollAwayPaddingTop: Int = 0,
        /** Get the Fabric state of last scroll position */
 -      val lastStateUpdateScroll: Point = Point(-1, -1),
-+      val lastStateUpdateScroll: Point = Point(0, 0)
++      val lastStateUpdateScroll: Point = Point(0, 0),
        /** Get true if the previous animation was canceled */
        var isCanceled: Boolean = false,
        /** Get true if previous animation was finished */
