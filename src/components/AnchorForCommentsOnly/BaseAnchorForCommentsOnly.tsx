@@ -10,7 +10,6 @@ import Tooltip from '@components/Tooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {hideContextMenu, showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -81,7 +80,6 @@ function BaseAnchorForCommentsOnly({
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             role={CONST.ROLE.LINK}
-            tabIndex={isSafari() ? 0 : -1}
             accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
         >
@@ -93,6 +91,7 @@ function BaseAnchorForCommentsOnly({
                     ref={linkRef}
                     style={StyleSheet.flatten([style, defaultTextStyle])}
                     role={CONST.ROLE.LINK}
+                    tabIndex={-1}
                     hrefAttrs={{
                         rel,
                         target: isEmail || !linkProps.href ? '_self' : target,
