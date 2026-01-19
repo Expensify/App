@@ -6,7 +6,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain, DomainSecurityGroup} from '@src/types/onyx';
-import PrefixedRecord from '@src/types/utils/PrefixedRecord';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

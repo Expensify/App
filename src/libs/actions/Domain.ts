@@ -792,7 +792,7 @@ function closeUserAccount(
     accountID: number,
     targetEmail: string,
     securityGroupIDs: Array<`${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}`> = [],
-    securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup> = {},
+    securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {},
     overrideProcessingReports = false,
 ) {
     const optimisticValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
@@ -805,7 +805,7 @@ function closeUserAccount(
         };
         failureValue[groupID] = {
             shared: {
-                [accountID]: securityGroups?.[groupID]?.shared?.[accountID],
+                [accountID]: securityGroups?.[groupID]?.shared?.[accountID] ?? null,
             },
         };
     }
