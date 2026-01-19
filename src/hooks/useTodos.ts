@@ -97,7 +97,7 @@ export default function useTodos() {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const {login = '', accountID} = useCurrentUserPersonalDetails();
+    const {login = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const todos = useMemo(() => {
         const reportsToSubmit: Report[] = [];
@@ -132,10 +132,10 @@ export default function useTodos() {
             if (isSubmitAction(report, reportTransactions, policy, reportNameValuePair)) {
                 reportsToSubmit.push(report);
             }
-            if (isApproveAction(report, reportTransactions, policy)) {
+            if (isApproveAction(report, reportTransactions, currentUserAccountID, policy)) {
                 reportsToApprove.push(report);
             }
-            if (isPrimaryPayAction(report, accountID, login, bankAccountList, policy, reportNameValuePair)) {
+            if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
                 reportsToPay.push(report);
             }
             if (isExportAction(report, login, policy, reportActions)) {
@@ -144,7 +144,7 @@ export default function useTodos() {
         }
 
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
-    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, accountID, login, bankAccountList]);
+    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, currentUserAccountID, login, bankAccountList]);
 
     const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID} = todos;
 

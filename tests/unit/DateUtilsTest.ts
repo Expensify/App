@@ -16,6 +16,10 @@ jest.mock('@src/libs/Log');
 
 const LOCALE = CONST.LOCALES.EN;
 const UTC = 'UTC';
+const SHORT_DATE_FORMAT = CONST.DATE.SHORT_DATE_FORMAT.replace('-', '/'); // Short date format for en locale is MM/dd
+const SHORT_DATE_WITH_LOCAL_TIME_FORMAT = `${SHORT_DATE_FORMAT}, ${CONST.DATE.LOCAL_TIME_FORMAT}`; // e.g. "MM/dd, h:mm a"
+const FNS_FORMAT_STRING = 'MM/dd/yyyy'; // FNS format string for en locale is MM/dd/yyyy
+const FNS_DATE_WITH_LOCAL_TIME_FORMAT = `${FNS_FORMAT_STRING}, ${CONST.DATE.LOCAL_TIME_FORMAT}`; // e.g. "MM/dd/yyyy, h:mm a"
 describe('DateUtils', () => {
     beforeAll(() => {
         Onyx.init({
@@ -60,16 +64,16 @@ describe('DateUtils', () => {
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
-        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime);
+        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime, LOCALE);
         expect(formattedDate).toBe('Monday, November 7, 2022');
     });
 
     it('formatToDayOfWeek should return a weekday', () => {
-        const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime));
+        const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime), LOCALE);
         expect(weekDay).toBe('Monday');
     });
     it('formatToLocalTime should return a date in a local format', () => {
-        const localTime = DateUtils.formatToLocalTime(datetime);
+        const localTime = DateUtils.formatToLocalTime(datetime, LOCALE);
         expect(localTime).toBe('12:00 AM');
     });
 
@@ -399,7 +403,7 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrParis, inputTimeZoneParis);
             const converted = toZonedTime(date, currentTimeZone);
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+            const expectedLabel = tzFormat(converted, SHORT_DATE_WITH_LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
@@ -413,7 +417,7 @@ describe('DateUtils', () => {
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
 
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+            const expectedLabel = tzFormat(converted, SHORT_DATE_WITH_LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
@@ -426,7 +430,7 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+            const expectedLabel = tzFormat(converted, FNS_DATE_WITH_LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
