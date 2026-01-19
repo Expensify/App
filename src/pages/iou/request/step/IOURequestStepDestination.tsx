@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -9,17 +10,20 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import {
     clearSubrates,
@@ -31,9 +35,11 @@ import {
     setMoneyRequestParticipantsFromReport,
 } from '@userActions/IOU';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -63,7 +69,9 @@ function IOURequestStepDestination({
     const {top} = useSafeAreaInsets();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
-
+    const defaultExpensePolicy = useDefaultExpensePolicy();
+    const personalPolicy = usePersonalPolicy();
+    const selfDMReport = useSelfDMReport();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {translate} = useLocalize();
@@ -84,10 +92,22 @@ function IOURequestStepDestination({
         if (isEmptyObject(customUnit)) {
             return;
         }
+
+        let targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
+        let targetIOUType: IOUType = iouType;
+
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                setTransactionReport(transactionID, {reportID: policyExpenseReport?.reportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, accountID);
+                if (iouType === CONST.IOU.TYPE.CREATE && transaction?.isFromGlobalCreate) {
+                    const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+                    targetReport = shouldAutoReport ? getPolicyExpenseChat(accountID, defaultExpensePolicy?.id) : selfDMReport;
+                }
+                const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
+                if (transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                    targetIOUType = CONST.IOU.TYPE.TRACK;
+                }
+                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+                setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
@@ -98,10 +118,8 @@ function IOURequestStepDestination({
 
         if (backTo) {
             navigateBack();
-        } else if (explicitPolicyID && transaction?.isFromGlobalCreate) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, policyExpenseReport?.reportID ?? reportID));
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIOUType, transactionID, targetReport?.reportID ?? reportID));
         }
     };
 
@@ -122,7 +140,7 @@ function IOURequestStepDestination({
             return;
         }
         fetchPerDiemRates(policy?.id);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
     useEffect(() => {
@@ -134,7 +152,7 @@ function IOURequestStepDestination({
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
         setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits]);
 
     const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;

@@ -136,7 +136,7 @@ describe('ReportUtils', () => {
         const shouldFallbackToHidden = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, shouldFallbackToHidden));
+        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, formatPhoneNumber, shouldFallbackToHidden));
     });
 
     test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {
@@ -268,7 +268,7 @@ describe('ReportUtils', () => {
             requiresTag: true,
         };
 
-        const onyxData: OnyxData = {
+        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
             optimisticData: [],
             failureData: [],
             successData: [],

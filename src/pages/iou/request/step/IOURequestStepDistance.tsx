@@ -47,10 +47,11 @@ import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransac
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getPersonalPolicy, getPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, hasRoute, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
@@ -87,17 +88,22 @@ function IOURequestStepDistance({
     const {isBetaEnabled} = usePermissions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const selfDMReport = useSelfDMReport();
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const waypoints = useMemo(
         () =>
             optimisticWaypoints ??
@@ -169,7 +175,7 @@ function IOURequestStepDistance({
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const IOUpolicy = getPolicy(report?.policyID ?? IOUpolicyID);
-            const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+            const policyCurrency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
             const mileageRates = DistanceRequestUtils.getMileageRates(IOUpolicy);
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
@@ -189,7 +195,7 @@ function IOURequestStepDistance({
                 setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
             }
         },
-        [report, allReports, transaction, transactionID, isSplitRequest, policy?.outputCurrency, reportID, customUnitRateID],
+        [report, allReports, transaction, transactionID, isSplitRequest, policy?.outputCurrency, reportID, customUnitRateID, personalPolicy?.outputCurrency],
     );
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
@@ -270,7 +276,7 @@ function IOURequestStepDistance({
             }
             openReport(transaction?.reportID);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = useCallback(() => {
@@ -322,7 +328,7 @@ function IOURequestStepDistance({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
@@ -354,6 +360,10 @@ function IOURequestStepDistance({
                             attendees: transaction?.comment?.attendees,
                         },
                         isASAPSubmitBetaEnabled,
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
+                        introSelected,
+                        activePolicyID,
                         quickAction,
                     });
                     return;
@@ -428,6 +438,7 @@ function IOURequestStepDistance({
         reportNameValuePairs,
         iouType,
         defaultExpensePolicy,
+        currentUserPersonalDetails.accountID,
         setDistanceRequestData,
         shouldSkipConfirmation,
         transactionID,
@@ -441,15 +452,16 @@ function IOURequestStepDistance({
         lastSelectedDistanceRates,
         backToReport,
         isASAPSubmitBetaEnabled,
+        transactionViolations,
+        quickAction,
+        policyRecentlyUsedCurrencies,
         customUnitRateID,
+        introSelected,
+        activePolicyID,
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
-        transactionViolations,
-        currentUserPersonalDetails.accountID,
-        quickAction,
         selfDMReport,
-        policyRecentlyUsedCurrencies,
     ]);
 
     const getError = () => {
@@ -520,7 +532,8 @@ function IOURequestStepDistance({
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
                     transactionID: transaction?.transactionID,
-                    transactionThreadReportID: report?.reportID,
+                    transactionThreadReport: report,
+                    parentReport,
                     waypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
@@ -528,6 +541,7 @@ function IOURequestStepDistance({
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
+                    parentReportNextStep,
                 });
             }
             transactionWasSaved.current = true;
@@ -537,20 +551,21 @@ function IOURequestStepDistance({
 
         navigateToNextStep();
     }, [
-        navigateBack,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
         isLoadingRoute,
+        isEditing,
         isLoading,
         isCreatingNewRequest,
-        isEditing,
         navigateToNextStep,
         transactionBackup,
         waypoints,
-        transaction?.transactionID,
         transaction?.routes,
-        report?.reportID,
+        transaction?.transactionID,
+        report,
+        navigateBack,
+        parentReport,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
