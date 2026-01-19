@@ -1090,7 +1090,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanFailed: 'De bon kon niet worden gescand, omdat er een handelaar, datum of bedrag ontbreekt.',
         addAReceipt: {
             phrase1: 'Bon toevoegen',
-            phrase2: 'of sleep hem hierheen.',
+            phrase2: 'of sleep hem hierheen',
         },
     },
     quickAction: {

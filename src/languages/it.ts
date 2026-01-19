@@ -1090,7 +1090,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanFailed: 'Impossibile acquisire la ricevuta perché mancano l’esercente, la data o l’importo.',
         addAReceipt: {
             phrase1: 'Aggiungi una ricevuta',
-            phrase2: 'o trascinala e rilasciala qui.',
+            phrase2: 'o trascinala e rilasciala qui',
         },
     },
     quickAction: {

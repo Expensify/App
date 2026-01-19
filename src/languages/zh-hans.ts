@@ -1075,7 +1075,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanFailed: '无法扫描该收据，因为缺少商家、日期或金额。',
         addAReceipt: {
             phrase1: '添加收据',
-            phrase2: '或者拖拽到这里。',
+            phrase2: '或者拖拽到这里',
         },
     },
     quickAction: {

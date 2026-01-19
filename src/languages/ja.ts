@@ -1091,7 +1091,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanFailed: 'この領収書は、店舗名、日付、または金額が欠けているためスキャンできませんでした。',
         addAReceipt: {
             phrase1: '領収書を追加',
-            phrase2: 'またはここにドラッグ＆ドロップしてください。',
+            phrase2: 'またはここにドラッグ＆ドロップしてください',
         },
     },
     quickAction: {

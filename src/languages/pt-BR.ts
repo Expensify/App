@@ -1089,7 +1089,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanFailed: 'O recibo não pôde ser escaneado, pois está faltando o comerciante, a data ou o valor.',
         addAReceipt: {
             phrase1: 'Adicionar um recibo',
-            phrase2: 'ou arraste e solte um aqui.',
+            phrase2: 'ou arraste e solte um aqui',
         },
     },
     quickAction: {
