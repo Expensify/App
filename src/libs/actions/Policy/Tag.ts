@@ -185,6 +185,8 @@ function createPolicyTag(policyData: PolicyData, tagName: string) {
         ],
     };
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, tagListsOptimisticData);
+
     const parameters = {
         policyID,
         tags: JSON.stringify([{name: newTagName}]),

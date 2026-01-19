@@ -4,7 +4,6 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
-import type PolicyData from '@hooks/usePolicyData/types';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {
     buildOptimisticPolicyRecentlyUsedTags,
@@ -288,16 +287,17 @@ describe('actions/Policy', () => {
             const tagListName = 'Fake tag';
             const newTagName = 'new tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
-            const policyData = {
-                policy: fakePolicy,
-                tags: fakePolicyTags,
-            } as PolicyData;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
             mockFetch.pause();
             await waitForBatchedUpdates();
 
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
             // When creating a new tag
-            createPolicyTag(policyData, newTagName);
+            createPolicyTag(policyData.current, newTagName);
             await waitForBatchedUpdates();
 
             // Then the tag should appear optimistically with pending state so the user sees immediate feedback
@@ -327,17 +327,17 @@ describe('actions/Policy', () => {
             const newTagName = 'new tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
             mockFetch.pause();
             await waitForBatchedUpdates();
             mockFetch.fail();
 
-            const policyData = {
-                policy: fakePolicy,
-                tags: fakePolicyTags,
-            } as PolicyData;
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When the API fails
-            createPolicyTag(policyData, newTagName);
+            createPolicyTag(policyData.current, newTagName);
             await waitForBatchedUpdates();
             mockFetch.resume();
             await waitForBatchedUpdates();
@@ -355,15 +355,15 @@ describe('actions/Policy', () => {
 
             const newTagName = 'new tag';
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
             mockFetch.pause();
             await waitForBatchedUpdates();
 
-            const policyData = {
-                policy: fakePolicy,
-            } as PolicyData;
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When adding the first tag
-            createPolicyTag(policyData, newTagName);
+            createPolicyTag(policyData.current, newTagName);
             await waitForBatchedUpdates();
 
             // Then the tag should be created in a new list with pending state so the user sees immediate feedback
@@ -403,6 +403,7 @@ describe('actions/Policy', () => {
 
             mockFetch.pause();
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
             await waitForBatchedUpdates();
 
@@ -412,10 +413,10 @@ describe('actions/Policy', () => {
                 expect(result.current[0]).toBeDefined();
             });
 
-            const policyData = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider}).result.current;
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When using data from useOnyx hook
-            createPolicyTag(policyData, newTagName);
+            createPolicyTag(policyData.current, newTagName);
             await waitForBatchedUpdates();
 
             // Then the tag should appear optimistically with pending state so the user sees immediate feedback
