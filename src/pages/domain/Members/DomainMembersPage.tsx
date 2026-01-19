@@ -49,7 +49,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             text={translate('domain.members.addMember')}
             icon={icons.Plus}
             innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3, styles.alignItemsCenter]}
+            style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
         />
     ) : null;
 
