@@ -31,7 +31,7 @@ type WorkspaceInviteMessageApproverPageProps = WithPolicyAndFullscreenLoadingPro
 
 const ACCESS_VARIANTS = [CONST.POLICY.ACCESS_VARIANTS.ADMIN];
 
-function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: WorkspaceInviteMessageApproverPageProps) {
+function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingReportData, route}: WorkspaceInviteMessageApproverPageProps) {
     const {translate, localeCompare} = useLocalize();
     const viewportOffsetTop = useViewportOffsetTop();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -181,6 +181,7 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
                     onSelectRow={handleOnSelectRow}
                     textInputOptions={textInputOptions}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    showLoadingPlaceholder={isLoadingReportData}
                     disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
                     showScrollIndicator

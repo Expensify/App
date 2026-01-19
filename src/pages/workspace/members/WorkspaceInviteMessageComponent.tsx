@@ -87,7 +87,12 @@ function WorkspaceInviteMessageComponent({
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = getPersonalDetailByEmail(workspaceInviteApproverDraft);
 
-    const shouldShowApproverRow = isControlPolicy(policy) && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+    const isControl = isControlPolicy(policy);
+    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+
+    // Validate approver is not empty and is a valid workspace member before sending to API
+    const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
+    const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
 
     const navigateToApproverPage = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.getRoute(policyID));
@@ -157,7 +162,7 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
-            shouldShowApproverRow ? workspaceInviteApproverDraft : undefined,
+            shouldShowApproverRow ? validatedApprover : undefined,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
