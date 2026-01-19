@@ -18,6 +18,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
@@ -845,13 +846,22 @@ function rejectMoneyRequestsOnSearch(
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {
             const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
+            const focusedNavigator = navigationRef.getRootState()?.routes?.at(-1);
             const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
-            const isUserOnSearchMoneyRequestReport = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+            const isUserOnSearchMoneyRequestReport =
+                focusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR &&
+                focusedNavigator?.state?.routes?.some((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT);
             if (isUserOnSearchPage) {
-                urlToNavigateBack = undefined;
-            } else if (isUserOnSearchMoneyRequestReport) {
-                const lastRouteParams = lastRoute?.params;
-                urlToNavigateBack = lastRouteParams && 'backTo' in lastRouteParams ? lastRouteParams?.backTo : undefined;
+                if (isUserOnSearchMoneyRequestReport && lastRoute?.params) {
+                    const searchParams = lastRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+                    urlToNavigateBack = ROUTES.SEARCH_ROOT.getRoute({
+                        query: searchParams.q,
+                        ...(searchParams?.rawQuery && {rawQuery: searchParams.rawQuery}),
+                        ...(searchParams?.name && {name: searchParams.name}),
+                    });
+                } else {
+                    urlToNavigateBack = undefined;
+                }
             } else {
                 urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report?.chatReportID);
             }
