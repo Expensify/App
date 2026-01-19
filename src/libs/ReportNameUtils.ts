@@ -641,8 +641,8 @@ function computeReportName(
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
-    privateIsArchived?: string,
     currentUserAccountID?: number,
+    privateIsArchived?: string,
 ): string {
     if (!report || !report.reportID) {
         return '';
