@@ -4990,7 +4990,7 @@ function deleteAppReport(
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.SELF_DM_REPORT_ID}`,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
                 value: selfDMReportID,
             },
             {
