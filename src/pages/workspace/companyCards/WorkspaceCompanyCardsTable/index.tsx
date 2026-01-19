@@ -69,11 +69,9 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
 
-    const areWorkspaceCardFeedsLoading = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
+    const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
     const workspaceCardFeedsErrors = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
     const hasWorkspaceFeedsError = !isEmptyObject(workspaceCardFeedsErrors);
-
-    console.log({workspaceCardFeedsErrors, workspaceCardFeedsStatus, areWorkspaceCardFeedsLoading});
 
     const selectedFeedStatus = selectedFeed?.status;
     const selectedFeedErrors = selectedFeedStatus?.errors;
@@ -263,6 +261,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
             isNarrowLayoutRef.current = true;
             const activeSorting = tableRef.current?.getActiveSorting();
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setActiveSortingInWideLayout(activeSorting);
             tableRef.current?.updateSorting({columnKey: 'member', order: 'asc'});
             return;
@@ -275,8 +274,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         isNarrowLayoutRef.current = false;
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
-
-    console.log({hasWorkspaceFeedsError, hasSelectedFeedError, hasFeedError: hasFeedErrors, showCards, feedErrors});
 
     return (
         <Table
