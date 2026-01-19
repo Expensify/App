@@ -2,6 +2,8 @@ import {Platform} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import Log from '@libs/Log';
 
+const BYTES_PER_MB = 1024 * 1024;
+
 type MemoryInfo = {
     usedMemoryBytes: number | null;
     totalMemoryBytes: number | null;
@@ -25,13 +27,31 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
         const usedMemoryBytes = usedMemory.status === 'fulfilled' ? usedMemory.value : null;
         const maxMemoryBytes = maxMemory.status === 'fulfilled' ? maxMemory.value : null;
 
-        return {
+        const memoryInfo = {
             usedMemoryBytes,
             totalMemoryBytes,
             maxMemoryBytes,
-            usagePercentage: usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0 ? Math.round((usedMemoryBytes / totalMemoryBytes) * 100 * 100) / 100 : null,
+            usagePercentage: usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0 
+            ? parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(2))
+            : null,
             platform: Platform.OS,
         };
+
+        const totalOrMax = memoryInfo.maxMemoryBytes ?? memoryInfo.totalMemoryBytes;
+        const freeMemoryMB = totalOrMax && memoryInfo.usedMemoryBytes ? Math.round((totalOrMax - memoryInfo.usedMemoryBytes) / BYTES_PER_MB) : null;
+        const usedMemoryMB = memoryInfo.usedMemoryBytes ? Math.round(memoryInfo.usedMemoryBytes / BYTES_PER_MB) : null;
+
+        Log.info(
+            `[getMemoryInfo] Memory check: ${usedMemoryMB ?? '?'}MB used / ${freeMemoryMB ?? '?'}MB free`,
+            true,
+            {
+                ...memoryInfo,
+                freeMemoryMB,
+                usedMemoryMB,
+            },
+        );
+
+        return memoryInfo;
     } catch (error) {
         Log.hmmm('[getMemoryInfo] Failed to get memory info', {error});
         return {
