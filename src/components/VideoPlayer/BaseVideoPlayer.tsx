@@ -119,11 +119,11 @@ function BaseVideoPlayer({
         },
     });
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (isOffline && isLoading) {
-            videoPlayerRef.current.replaceAsync('');
+        if (!(isOffline && isLoading)) {
+            return;
         }
+        videoPlayerRef.current.replaceAsync('');
     }, [isLoading, isOffline]);
 
     const videoViewRef = useRef<VideoView | null>(null);
