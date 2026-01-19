@@ -1404,24 +1404,28 @@ describe('OptionsListUtils', () => {
     describe('getLastActorDisplayName()', () => {
         it('should return correct display name', () => {
             renderLocaleContextProvider();
-            // Given two different personal details
-            // When we call getLastActorDisplayName
-            const result1 = getLastActorDisplayName(PERSONAL_DETAILS['2']);
-            const result2 = getLastActorDisplayName(PERSONAL_DETAILS['3']);
+            // Given two different personal details and current user is accountID 2
+            const currentUserAccountID = 2;
 
-            // We should expect the display names to be the same as the personal details
+            // When we call getLastActorDisplayName
+            const result1 = getLastActorDisplayName(PERSONAL_DETAILS['2'], currentUserAccountID);
+            const result2 = getLastActorDisplayName(PERSONAL_DETAILS['3'], currentUserAccountID);
+
+            // We should expect "You" for current user and first name for others
             expect(result1).toBe('You');
             expect(result2).toBe('Spider-Man');
         });
     });
 
     describe('shouldShowLastActorDisplayName()', () => {
+        const currentUserAccountID = 2;
+
         it('should return false when lastReportAction is not available', () => {
             // Given a report with no lastVisibleReportAction and no lastAction provided
             const report = REPORTS['1'];
             const lastActorDetails = PERSONAL_DETAILS['3'];
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, undefined);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, undefined, currentUserAccountID);
             expect(result).toBe(false);
         });
 
@@ -1430,7 +1434,7 @@ describe('OptionsListUtils', () => {
             const report = REPORTS['1'];
             const lastAction = createRandomReportAction(1);
 
-            const result = shouldShowLastActorDisplayName(report, null, lastAction);
+            const result = shouldShowLastActorDisplayName(report, null, lastAction, currentUserAccountID);
             expect(result).toBe(false);
         });
 
@@ -1441,7 +1445,7 @@ describe('OptionsListUtils', () => {
             const lastAction = createRandomReportAction(1);
 
             // When we call shouldShowLastActorDisplayName with a self DM report
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
             expect(result).toBe(false);
         });
 
@@ -1454,7 +1458,7 @@ describe('OptionsListUtils', () => {
             const lastActorDetails = PERSONAL_DETAILS['3'];
             const lastAction = createRandomReportAction(1);
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
             expect(result).toBe(false);
         });
 
@@ -1467,7 +1471,7 @@ describe('OptionsListUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             };
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
             expect(result).toBe(false);
         });
 
@@ -1486,7 +1490,7 @@ describe('OptionsListUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
             expect(result).toBe(false);
         });
 
@@ -1502,7 +1506,7 @@ describe('OptionsListUtils', () => {
             };
             const lastAction = createRandomReportAction(1);
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
             expect(result).toBe(false);
         });
 
@@ -1517,7 +1521,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call shouldShowLastActorDisplayName with all valid conditions
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
             expect(result).toBe(true);
         });
 
@@ -1531,7 +1535,7 @@ describe('OptionsListUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             };
 
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
             expect(result).toBe(true);
         });
 
@@ -1546,7 +1550,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call shouldShowLastActorDisplayName with the current user as last actor
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
             expect(result).toBe(true);
         });
     });
