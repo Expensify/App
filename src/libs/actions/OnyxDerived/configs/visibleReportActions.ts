@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {isMovedTransactionAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {isActionableWhisperRequiringWritePermission, isMovedTransactionAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,6 +50,9 @@ export default createOnyxDerivedValueConfig({
 
                 for (const [actionID, action] of Object.entries(reportActions)) {
                     if (action) {
+                        if (isActionableWhisperRequiringWritePermission(action)) {
+                            continue;
+                        }
                         reportVisibility[actionID] = shouldReportActionBeVisible(action, actionID);
                     }
                 }
@@ -76,6 +79,10 @@ export default createOnyxDerivedValueConfig({
                     }
 
                     if (doesActionDependOnReportExistence(action)) {
+                        if (isActionableWhisperRequiringWritePermission(action)) {
+                            delete reportVisibility[actionID];
+                            continue;
+                        }
                         reportVisibility[actionID] = shouldReportActionBeVisible(action, actionID);
                     }
                 }
@@ -103,6 +110,11 @@ export default createOnyxDerivedValueConfig({
 
             for (const [actionID, action] of actionsToProcess) {
                 if (!action) {
+                    delete reportVisibility[actionID];
+                    continue;
+                }
+
+                if (isActionableWhisperRequiringWritePermission(action)) {
                     delete reportVisibility[actionID];
                     continue;
                 }
