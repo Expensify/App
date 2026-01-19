@@ -209,7 +209,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.LOGIN_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [`${ONYXKEYS.CARD_LIST}`]: {},
+                    [ONYXKEYS.CARD_LIST]: {},
                     [ONYXKEYS.SESSION]: {
                         email: 'johndoe12@expensify.com',
                     },
