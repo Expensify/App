@@ -118,7 +118,6 @@ function ReportActionsView({
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();

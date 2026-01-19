@@ -1,7 +1,6 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
-import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -63,7 +62,7 @@ import {
 import Visibility from '@libs/Visibility';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
+import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -166,7 +165,7 @@ function ReportActionsList({
     isLoadingInitialReportActions,
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -185,7 +184,6 @@ function ReportActionsList({
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -294,7 +292,7 @@ function ReportActionsList({
                     message: reportAction,
                     nextMessage: nextAction,
                     isEarliestReceivedOfflineMessage,
-                    accountID,
+                    currentUserAccountID,
                     prevSortedVisibleReportActionsObjects,
                     unreadMarkerTime,
                     scrollingVerticalOffset: scrollingVerticalOffset.current,
@@ -306,7 +304,7 @@ function ReportActionsList({
         }
 
         return [null, -1];
-    }, [accountID, isAnonymousUser, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
+    }, [currentUserAccountID, isAnonymousUser, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
@@ -454,7 +452,7 @@ function ReportActionsList({
             (reportAction) =>
                 newMessageTimeReference &&
                 newMessageTimeReference < reportAction.created &&
-                (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== getCurrentUserAccountID(),
+                (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== currentUserAccountID,
         );
 
         if (!isArchivedReport && (!hasNewMessagesInView || !hasUnreadReportAction)) {
@@ -770,7 +768,7 @@ function ReportActionsList({
         [unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
-    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
+    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
     const onLayoutInner = useCallback(
