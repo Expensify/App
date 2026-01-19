@@ -29,7 +29,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 
 type WorkspaceInviteMessageApproverPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER>;
 
-const ACCESS_VARIANTS = [CONST.POLICY.ACCESS_VARIANTS.ADMIN] as const;
+const ACCESS_VARIANTS = [CONST.POLICY.ACCESS_VARIANTS.ADMIN];
 
 function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: WorkspaceInviteMessageApproverPageProps) {
     const {translate, localeCompare} = useLocalize();
@@ -52,13 +52,17 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
 
     const invitedEmails = useMemo(() => Object.keys(invitedEmailsToAccountIDsDraft ?? {}), [invitedEmailsToAccountIDsDraft]);
 
-    const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList), [policy?.employeeList]);
+    const employeeList = policy?.employeeList;
+    const policyOwner = policy?.owner;
+    const preventSelfApproval = policy?.preventSelfApproval;
+
+    const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(employeeList), [employeeList]);
 
     const orderedApprovers = useMemo(() => {
         const approvers: SelectionListApprover[] = [];
 
-        if (policy?.employeeList) {
-            const availableApprovers = Object.values(policy.employeeList)
+        if (employeeList) {
+            const availableApprovers = Object.values(employeeList)
                 .map((employee): SelectionListApprover | null => {
                     const email = employee.email;
 
@@ -68,7 +72,7 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
                     }
 
                     // If preventSelfApproval is enabled, filter out all invited emails
-                    if (policy?.preventSelfApproval && invitedEmails.includes(email)) {
+                    if (preventSelfApproval && invitedEmails.includes(email)) {
                         return null;
                     }
 
@@ -90,7 +94,7 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
                         rightElement: (
                             <MemberRightIcon
                                 role={employee.role}
-                                owner={policy?.owner}
+                                owner={policyOwner}
                                 login={login}
                             />
                         ),
@@ -104,19 +108,7 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
         const filteredApprovers = tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (approver) => [approver.text ?? '', approver.login ?? '']);
 
         return sortAlphabetically(filteredApprovers, 'text', localeCompare);
-    }, [
-        policy?.employeeList,
-        policy?.owner,
-        policy?.preventSelfApproval,
-        policyMemberEmailsToAccountIDs,
-        invitedEmails,
-        debouncedSearchTerm,
-        countryCode,
-        localeCompare,
-        personalDetails,
-        selectedApprover,
-        icons.FallbackAvatar,
-    ]);
+    }, [employeeList, policyOwner, preventSelfApproval, policyMemberEmailsToAccountIDs, invitedEmails, debouncedSearchTerm, countryCode, localeCompare, personalDetails, selectedApprover, icons.FallbackAvatar]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
@@ -144,7 +136,7 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
 
     const screenWrapperStyle = useMemo(() => ({marginTop: viewportOffsetTop}), [viewportOffsetTop]);
 
-    const fullPageNotFoundViewProps = useMemo(
+    const accessDeniedViewProps = useMemo(
         () => ({
             subtitleKey: isEmptyObject(policy) ? undefined : ('workspace.common.notAuthorized' as const),
             onLinkPress: goBackFromInvalidPolicy,
@@ -156,7 +148,7 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, route}: Wo
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={ACCESS_VARIANTS}
-            fullPageNotFoundViewProps={fullPageNotFoundViewProps}
+            fullPageNotFoundViewProps={accessDeniedViewProps}
         >
             <ScreenWrapper
                 testID="WorkspaceInviteMessageApproverPage"

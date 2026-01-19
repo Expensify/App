@@ -1287,7 +1287,6 @@ describe('actions/PolicyMember', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, approverEmail);
             await waitForBatchedUpdates();
 
-            // Verify the draft exists first
             const initialDraft = await new Promise<string | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`,
