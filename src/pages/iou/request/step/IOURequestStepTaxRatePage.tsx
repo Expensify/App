@@ -71,15 +71,17 @@ function IOURequestStepTaxRatePage({
         if (shouldClearTax && isEditing) {
             updateMoneyRequestTaxRate({
                 transactionID: currentTransaction?.transactionID,
-                optimisticReportActionID: report?.reportID,
+                transactionThreadReport: report,
+                parentReport,
                 taxCode: '',
-                taxAmount: convertToBackendAmount(0),
+                taxAmount: 0,
                 policy,
                 policyTagList: policyTags,
                 policyCategories,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
+                parentReportNextStep,
             });
             navigateBack();
             return;
