@@ -1276,6 +1276,33 @@ describe('actions/PolicyMember', () => {
             expect(draft1).toBe(approver1);
             expect(draft2).toBe(approver2);
         });
+
+        it('should not save draft when approver email is empty string', async () => {
+            // Given a policy ID with an existing approver draft
+            const policyID = '1';
+            const existingApprover = 'existing@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, existingApprover);
+            await waitForBatchedUpdates();
+
+            // When setWorkspaceInviteApproverDraft is called with empty string
+            Member.setWorkspaceInviteApproverDraft(policyID, '');
+            await waitForBatchedUpdates();
+
+            // Then the existing draft should remain unchanged
+            const draft = await new Promise<string | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as string | null | undefined);
+                    },
+                });
+            });
+
+            expect(draft).toBe(existingApprover);
+        });
     });
 
     describe('clearWorkspaceInviteApproverDraft', () => {
@@ -1360,6 +1387,65 @@ describe('actions/PolicyMember', () => {
             // Onyx returns undefined when value is cleared/null
             expect(draft1).toBeFalsy();
             expect(draft2).toBe(approver2);
+        });
+    });
+
+    describe('clearInviteDraft', () => {
+        it('should clear all invite drafts including members, role, and approver', async () => {
+            // Given existing drafts for members, role, and approver
+            const policyID = '1';
+            const memberEmail = 'member@example.com';
+            const membersDraft = {[memberEmail]: 123};
+            const roleDraft = CONST.POLICY.ROLE.ADMIN;
+            const approverDraft = 'approver@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, membersDraft);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, roleDraft);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, approverDraft);
+            await waitForBatchedUpdates();
+
+            // When clearInviteDraft is called
+            Member.clearInviteDraft(policyID);
+            await waitForBatchedUpdates();
+
+            // Then all drafts should be cleared
+            const clearedMembersDraft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as Record<string, number> | null | undefined);
+                    },
+                });
+            });
+
+            const clearedRoleDraft = await new Promise<string | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as string | null | undefined);
+                    },
+                });
+            });
+
+            const clearedApproverDraft = await new Promise<string | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as string | null | undefined);
+                    },
+                });
+            });
+
+            // Members draft is set to empty object, role and approver drafts are cleared (null/undefined)
+            expect(clearedMembersDraft).toEqual({});
+            expect(clearedRoleDraft).toBeFalsy();
+            expect(clearedApproverDraft).toBeFalsy();
         });
     });
 });
