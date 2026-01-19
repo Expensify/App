@@ -7,13 +7,14 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
@@ -203,17 +204,9 @@ function Search({
     const prevIsOffline = usePrevious(isOffline);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
-
-    const handleDEWModalOpen = useCallback(() => {
-        if (onDEWModalOpen) {
-            onDEWModalOpen();
-        } else {
-            setIsDEWModalVisible(true);
-        }
-    }, [onDEWModalOpen]);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
@@ -273,6 +266,22 @@ function Search({
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
+
+    const handleDEWModalOpen = useCallback(async () => {
+        if (onDEWModalOpen) {
+            onDEWModalOpen();
+        } else {
+            const result = await showConfirmModal({
+                title: translate('customApprovalWorkflow.title'),
+                prompt: translate('customApprovalWorkflow.description'),
+                confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
+                shouldShowCancelButton: false,
+            });
+            if (result.action === ModalActions.CONFIRM) {
+                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+            }
+        }
+    }, [onDEWModalOpen, showConfirmModal, translate]);
 
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
         clearSelectedTransactions(hash);
@@ -1107,7 +1116,9 @@ function Search({
                     canSelectMultiple={canSelectMultiple}
                     selectedTransactions={selectedTransactions}
                     shouldPreventLongPressRow={isChat || isTask}
-                    onDEWModalOpen={handleDEWModalOpen}
+                    onDEWModalOpen={() => {
+                        handleDEWModalOpen();
+                    }}
                     isDEWBetaEnabled={isDEWBetaEnabled}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
@@ -1155,18 +1166,6 @@ function Search({
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
                     customCardNames={customCardNames}
-                />
-                <ConfirmModal
-                    title={translate('customApprovalWorkflow.title')}
-                    isVisible={isDEWModalVisible}
-                    onConfirm={() => {
-                        setIsDEWModalVisible(false);
-                        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                    }}
-                    onCancel={() => setIsDEWModalVisible(false)}
-                    prompt={translate('customApprovalWorkflow.description')}
-                    confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
-                    shouldShowCancelButton={false}
                 />
             </Animated.View>
         </SearchScopeProvider>

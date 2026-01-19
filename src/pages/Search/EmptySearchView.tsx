@@ -7,12 +7,12 @@ import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewS
 import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
-import ConfirmModal from '@components/ConfirmModal';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia, MediaTypes} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
@@ -20,6 +20,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
@@ -172,7 +173,7 @@ function EmptySearchViewContent({
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
         setContextMenuAnchor(node);
     }, []);
-    const [modalVisible, setModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -245,6 +246,40 @@ function EmptySearchViewContent({
             handleCreateWorkspaceReport(false);
         }
     }, [handleCreateWorkspaceReport, openCreateReportFromSearch, shouldShowEmptyReportConfirmation]);
+
+    const handleRedirectToExpensifyClassic = useCallback(() => {
+        showConfirmModal({
+            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+            confirmText: translate('exitSurvey.goToExpensifyClassic'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        });
+    }, [showConfirmModal, translate]);
+
+    const handleCreateExpense = useCallback(() => {
+        interceptAnonymousUser(() => {
+            if (shouldRedirectToExpensifyClassic) {
+                handleRedirectToExpensifyClassic();
+                return;
+            }
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
+        });
+    }, [shouldRedirectToExpensifyClassic, handleRedirectToExpensifyClassic]);
+
+    const handleCreateInvoice = useCallback(() => {
+        interceptAnonymousUser(() => {
+            if (shouldRedirectToExpensifyClassic) {
+                handleRedirectToExpensifyClassic();
+                return;
+            }
+            startMoneyRequest(CONST.IOU.TYPE.INVOICE, generateReportID());
+        });
+    }, [shouldRedirectToExpensifyClassic, handleRedirectToExpensifyClassic]);
 
     const typeMenuItems = useMemo(() => {
         return typeMenuSections.map((section) => section.menuItems).flat();
@@ -319,6 +354,7 @@ function EmptySearchViewContent({
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useSearchEmptyStateIllustration();
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const content: EmptySearchViewItem = useMemo(() => {
         // Begin by going through all of our To-do searches, and returning their empty state
         // if it exists
@@ -430,14 +466,7 @@ function EmptySearchViewContent({
                                 : []),
                             {
                                 buttonText: translate('iou.createExpense'),
-                                buttonAction: () =>
-                                    interceptAnonymousUser(() => {
-                                        if (shouldRedirectToExpensifyClassic) {
-                                            setModalVisible(true);
-                                            return;
-                                        }
-                                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
-                                    }),
+                                buttonAction: handleCreateExpense,
                                 success: true,
                             },
                         ],
@@ -461,14 +490,7 @@ function EmptySearchViewContent({
                                 : []),
                             {
                                 buttonText: translate('workspace.invoices.sendInvoice'),
-                                buttonAction: () =>
-                                    interceptAnonymousUser(() => {
-                                        if (shouldRedirectToExpensifyClassic) {
-                                            setModalVisible(true);
-                                            return;
-                                        }
-                                        startMoneyRequest(CONST.IOU.TYPE.INVOICE, generateReportID());
-                                    }),
+                                buttonAction: handleCreateInvoice,
                                 success: true,
                             },
                         ],
@@ -504,11 +526,12 @@ function EmptySearchViewContent({
         groupPoliciesWithChatEnabled.length,
         tripViewChildren,
         hasTransactions,
-        shouldRedirectToExpensifyClassic,
         hasExpenseReports,
         defaultChatEnabledPolicyID,
         handleCreateReportClick,
         queryJSON,
+        handleCreateExpense,
+        handleCreateInvoice,
     ]);
 
     return (
@@ -534,18 +557,6 @@ function EmptySearchViewContent({
                 </GenericEmptyStateComponent>
             </ScrollView>
             {CreateReportConfirmationModal}
-            <ConfirmModal
-                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
-                isVisible={modalVisible}
-                onConfirm={() => {
-                    setModalVisible(false);
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setModalVisible(false)}
-                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
-                confirmText={translate('exitSurvey.goToExpensifyClassic')}
-                cancelText={translate('common.cancel')}
-            />
         </>
     );
 }
