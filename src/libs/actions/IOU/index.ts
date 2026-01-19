@@ -551,6 +551,7 @@ type MoneyRequestInformationParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -596,6 +597,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     currentUserEmailParam: string;
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -3015,6 +3017,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        personalDetails,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -3324,6 +3327,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         quickAction,
+        personalDetails,
     });
 
     return {
@@ -5724,6 +5728,7 @@ function convertBulkTrackedExpensesToIOU(
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     policyRecentlyUsedCurrencies: string[],
     quickAction: OnyxEntry<OnyxTypes.QuickAction>,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
 ) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
 
@@ -5846,6 +5851,7 @@ function convertBulkTrackedExpensesToIOU(
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            personalDetails,
         });
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
