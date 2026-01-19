@@ -378,7 +378,7 @@ function IOURequestStartPage({
                                                     <IOURequestStepHours
                                                         route={route}
                                                         navigation={navigation}
-                                                        explicitPolicyID={policiesWithTimeEnabled.length > 1 ? undefined : policiesWithTimeEnabled.at(0)?.id}
+                                                        explicitPolicyID={isFromGlobalCreate ? policiesWithTimeEnabled.at(0)?.id : undefined}
                                                     />
                                                 )}
                                             </TabScreenWithFocusTrapWrapper>

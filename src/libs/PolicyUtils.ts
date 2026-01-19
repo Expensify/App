@@ -108,7 +108,7 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: 
 }
 
 function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => isTimeTrackingEnabled(policy));
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isTimeTrackingEnabled);
 }
 
 /**

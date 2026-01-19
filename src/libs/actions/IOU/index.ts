@@ -11,6 +11,7 @@ import type {SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchContextProps, SearchQueryJSON} from '@components/Search/types';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -150,6 +151,7 @@ import {
     getOutstandingChildRequest,
     getParsedComment,
     getPersonalDetailsForAccountID,
+    getPolicyExpenseChat,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
@@ -11830,6 +11832,31 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     });
 }
 
+/**
+ * Sets transaction's participant and reportID to the policy's expense chat.
+ */
+function setMoneyRequestParticipantAsPolicyExpenseChat(transactionID: string, policyID: string, currentUserAccountID: number, isDraft: boolean) {
+    const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, policyID)?.reportID;
+    if (!policyExpenseReportID) {
+        return;
+    }
+    setTransactionReport(transactionID, {reportID: policyExpenseReportID}, isDraft);
+    return setMoneyRequestParticipants(
+        transactionID,
+        [
+            {
+                selected: true,
+                accountID: 0,
+                isPolicyExpenseChat: true,
+                reportID: policyExpenseReportID,
+                policyID,
+            },
+        ],
+        false,
+        true,
+    );
+}
+
 function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxCode});
 }
@@ -14317,6 +14344,7 @@ export {
     getSearchOnyxUpdate,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
+    setMoneyRequestParticipantAsPolicyExpenseChat,
 };
 export type {
     GPSPoint as GpsPoint,

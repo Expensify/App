@@ -14,13 +14,12 @@ import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabiliti
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
 import variables from '@styles/variables';
 import {
     setMoneyRequestAmount,
     setMoneyRequestMerchant,
-    setMoneyRequestParticipants,
+    setMoneyRequestParticipantAsPolicyExpenseChat,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTimeCount,
     setMoneyRequestTimeRate,
@@ -114,24 +113,9 @@ function IOURequestStepHours({
         setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
 
         if (isEmbeddedInStartPage) {
-            if (explicitPolicyID) {
-                await setMoneyRequestParticipants(
-                    transactionID,
-                    [
-                        {
-                            selected: true,
-                            accountID: 0,
-                            isPolicyExpenseChat: true,
-                            reportID: getPolicyExpenseChat(accountID, explicitPolicyID)?.reportID,
-                            policyID: explicitPolicyID,
-                        },
-                    ],
-                    false,
-                    true,
-                );
-            } else {
-                await setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
-            }
+            await (explicitPolicyID
+                ? setMoneyRequestParticipantAsPolicyExpenseChat(transactionID, explicitPolicyID, accountID, isTransactionDraft)
+                : setMoneyRequestParticipantsFromReport(transactionID, report, accountID));
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
@@ -180,9 +164,4 @@ function IOURequestStepHours({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepHoursWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepHours);
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepHoursWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepHoursWithWritableReportOrNotFound);
-
-export default IOURequestStepHoursWithFullTransactionOrNotFound;
+export default withFullTransactionOrNotFound(withWritableReportOrNotFound(IOURequestStepHours));
