@@ -95,6 +95,7 @@ function isSplitAction(
     reportTransactions: Array<OnyxEntry<Transaction>>,
     originalTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
+    currentUserAccountID: number,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     if (Number(reportTransactions?.length) !== 1 || !report) {
@@ -132,8 +133,7 @@ function isSplitAction(
 
     const isSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
-    const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
+    const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === currentUserAccountID;
     const isOpenReport = isOpenReportUtils(report);
     const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
     const userIsPolicyMember = isPolicyMember(policy, currentUserLogin);
@@ -888,7 +888,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, policy)) {
+    if (isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -955,6 +955,7 @@ function getSecondaryExportReportActions(
 
 function getSecondaryTransactionThreadActions(
     currentUserLogin: string,
+    currentUserAccountID: number,
     parentReport: Report,
     reportTransaction: Transaction,
     reportAction: ReportAction | undefined,
@@ -976,7 +977,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, policy)) {
+    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 
