@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -13,7 +14,6 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
@@ -28,6 +28,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -61,8 +62,8 @@ import {
 } from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
+    getAttendees,
     getDefaultTaxCode,
-    getOriginalAttendees,
     getRateID,
     getRequestType,
     getValidWaypoints,
@@ -127,6 +128,7 @@ function IOURequestStepConfirmation({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
+    const isFocused = useIsFocused();
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -259,7 +261,7 @@ function IOURequestStepConfirmation({
         isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
         hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const parentReportAction = useParentReportAction(viewTourTaskReport);
 
     const receiptFilename = transaction?.receipt?.filename;
@@ -304,9 +306,12 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, reportDrafts);
+                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
+                return participant.accountID
+                    ? getParticipantsOption(participant, personalDetails)
+                    : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived, reportDrafts);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
@@ -413,7 +418,7 @@ function IOURequestStepConfirmation({
         }
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionIDs, requestType, defaultCategory, policy?.id]);
+    }, [transactionIDs, requestType, defaultCategory, isFocused, policy?.id]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -563,7 +568,7 @@ function IOURequestStepConfirmation({
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
                 const isLinkedTrackedExpenseReportArchived =
-                    !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
+                    !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
 
                 if (isTestDriveReceipt) {
                     completeTestDriveTask(
@@ -599,7 +604,7 @@ function IOURequestStepConfirmation({
                     action,
                     transactionParams: {
                         amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
-                        distance: isManualDistanceRequest && item.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
+                        distance: isManualDistanceRequest && typeof item.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
                         attendees: item.comment?.attendees,
                         currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
                         created: item.created,
@@ -641,7 +646,7 @@ function IOURequestStepConfirmation({
         [
             transactions,
             receiptFiles,
-            archivedReportsIdSet,
+            privateIsArchivedMap,
             report,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
@@ -745,7 +750,7 @@ function IOURequestStepConfirmation({
             }
             for (const [index, item] of transactions.entries()) {
                 const isLinkedTrackedExpenseReportArchived =
-                    !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
+                    !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
                 const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
                 trackExpenseIOUActions({
@@ -816,7 +821,7 @@ function IOURequestStepConfirmation({
             isDraftPolicy,
             isManualDistanceRequest,
             isOdometerDistanceRequest,
-            archivedReportsIdSet,
+            privateIsArchivedMap,
             isASAPSubmitBetaEnabled,
             introSelected,
             activePolicyID,
@@ -1336,8 +1341,7 @@ function IOURequestStepConfirmation({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields =
-        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
+    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
@@ -1396,7 +1400,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getOriginalAttendees(transaction, currentUserPersonalDetails)}
+                        iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}
@@ -1429,6 +1433,8 @@ function IOURequestStepConfirmation({
                         expensesNumber={transactions.length}
                         isReceiptEditable
                         isTimeRequest={isTimeRequest}
+                        iouTimeCount={transaction?.comment?.units?.count}
+                        iouTimeRate={transaction?.comment?.units?.rate}
                     />
                 </View>
             </DragAndDropProvider>
