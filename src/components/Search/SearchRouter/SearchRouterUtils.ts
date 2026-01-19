@@ -21,9 +21,9 @@ type ContextualReportData = {
  * 2. The reportID of the contextual report (if any) that was focused before opening the SearchRouter
  *
  * When the SearchRouter is open, it looks at the previous route in the stack to find the underlying
- * report context. Otherwise it looks @ current screen for report context. 
+ * report context. Otherwise it looks @ current screen for report context.
  * This allows the search to provide contextual suggestions based on the report
- * the user was viewing when they opened the search. 
+ * the user was viewing when they opened the search.
  *
  * @param state - The root navigation state from useRootNavigationState hook
  * @returns Object containing contextualReportID (the report ID if on a report screen) and isSearchRouterScreen (whether SearchRouter is focused)
