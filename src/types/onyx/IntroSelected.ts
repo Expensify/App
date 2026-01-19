@@ -1,4 +1,6 @@
 import type {OnboardingInvite} from '@src/CONST';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {OnboardingPurpose} from './index';
 
 /** The tasks of IntroSelected model */
@@ -23,6 +25,9 @@ type IntroSelected = {
 
     /** Company size selected during onboarding */
     companySize?: string;
+
+    /** Selected plan type from pricing page */
+    selectedPlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
 
     /** Task reportID for 'setupCategories' type */
     setupCategories?: string;

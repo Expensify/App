@@ -2114,10 +2114,11 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
         engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
     const shouldSetCreatedPolicyAsActive = !activePolicyID || deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
-    // Determine workspace type based on selected features or user reported integration
+    // Determine workspace type: CORPORATE if explicitly selected OR required by features/integrations, otherwise TEAM
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
     const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
-    const workspaceType = isCorporateFeature || isCorporateIntegration ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+    const explicitlySelectedCorporate = introSelected?.selectedPlanType === CONST.POLICY.TYPE.CORPORATE;
+    const workspaceType = explicitlySelectedCorporate || isCorporateFeature || isCorporateIntegration ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
 
     const areDistanceRatesEnabled = !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
