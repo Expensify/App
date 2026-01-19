@@ -13,7 +13,7 @@ export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyI
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const domainOrWorkspaceAccountID = feed ? getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]) : CONST.DEFAULT_NUMBER_ID;
-    const {isFeedConnectionBroken, cardsWithBrokenFeedConnection} = useCardFeedErrors();
+    const {all: {isFeedConnectionBroken}, cardsWithBrokenFeedConnection} = useCardFeedErrors();
 
     const [brokenCardId, firstCardWithBrokenFeedConnection] = Object.entries(cardsWithBrokenFeedConnection).at(0) ?? [];
 

@@ -91,18 +91,9 @@ type CardErrors = {
 };
 
 /**
- * The errors of a card feed.
+ * The state of card feed errors.
  */
-type FeedErrors = {
-    /**
-     * The errors of the feed.
-     */
-    feedErrors?: Errors;
-    /**
-     * The errors of all cards for a specific feed within a workspace/domain.
-     */
-    cardErrors: Record<string, CardErrors>;
-
+type CardFeedErrorState ={
     /**
      * Whether to show the RBR for a specific feed within a workspace/domain.
      * This will be true, if any of the below conditions are true:
@@ -113,7 +104,7 @@ type FeedErrors = {
      */
     shouldShowRBR: boolean;
     /**
-     *
+     * Whether some failed card assignments.
      */
     hasFailedCardAssignments: boolean;
     /**
@@ -128,6 +119,20 @@ type FeedErrors = {
      * Whether some feed connection is broken.
      */
     isFeedConnectionBroken: boolean;
+}
+
+/**
+ * The errors of a card feed.
+ */
+type FeedErrors = CardFeedErrorState & {
+    /**
+     * The errors of the feed.
+     */
+    feedErrors?: Errors;
+    /**
+     * The errors of all cards for a specific feed within a workspace/domain.
+     */
+    cardErrors: Record<string, CardErrors>;
 };
 
 /**
@@ -145,8 +150,9 @@ type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
  */
 type CardFeedErrorsObject = Record<CardFeedWithDomainID, FeedErrors>;
 
+
 /**
- *
+ * The errors of card feeds.
  */
 type CardFeedErrors = {
     /**
@@ -158,10 +164,6 @@ type CardFeedErrors = {
      */
     cardsWithBrokenFeedConnection: Record<string, Card>;
     /**
-     * Whether to show the RBR for all feeds.
-     */
-    shouldShowRBR: boolean;
-    /**
      * Whether to show the RBR for each workspace account ID.
      */
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
@@ -169,22 +171,19 @@ type CardFeedErrors = {
      * Whether to show the RBR for each feed name with domain ID.
      */
     shouldShowRbrForFeedNameWithDomainID: Record<string, boolean>;
+
     /**
-     * Whether some feed connection is broken.
+     * The errors of all card feeds.
      */
-    isFeedConnectionBroken: boolean;
+    all: CardFeedErrorState;
     /**
-     * Whether some feed has errors.
+     * The errors of company cards.
      */
-    hasFeedErrors: boolean;
+    companyCards: CardFeedErrorState;
     /**
-     * Whether some workspace has errors.
+     * The errors of expensify card.
      */
-    hasWorkspaceErrors: boolean;
-    /**
-     * Whether some failed card assignments.
-     */
-    hasFailedCardAssignment: boolean;
+    expensifyCard: CardFeedErrorState;
 };
 
 /**
@@ -203,6 +202,7 @@ export type {
     AllCardFeedErrorsMap,
     CardFeedErrorsObject,
     FeedErrors,
+    CardFeedErrorState,
     CardFeedErrors,
     CardErrors,
 };

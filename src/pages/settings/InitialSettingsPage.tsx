@@ -145,7 +145,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const {shouldShowRBR} = useCardFeedErrors();
+    const {all: {shouldShowRBR}} = useCardFeedErrors();
 
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     const walletBrickRoadIndicator = useMemo(() => {

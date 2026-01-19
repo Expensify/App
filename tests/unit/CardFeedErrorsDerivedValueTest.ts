@@ -74,18 +74,20 @@ describe('CardFeedErrors Derived Value', () => {
 
             expect(result.cardFeedErrors).toEqual({});
             expect(result.cardsWithBrokenFeedConnection).toEqual({});
-            expect(result.shouldShowRBR).toBe(false);
-            expect(result.isFeedConnectionBroken).toBe(false);
-            expect(result.hasFeedErrors).toBe(false);
-            expect(result.hasWorkspaceErrors).toBe(false);
-            expect(result.hasFailedCardAssignment).toBe(false);
+            expect(result.shouldShowRbrForWorkspaceAccountID).toEqual({});
+            expect(result.shouldShowRbrForFeedNameWithDomainID).toEqual({});
+            expect(result.all.shouldShowRBR).toBe(false);
+            expect(result.all.isFeedConnectionBroken).toBe(false);
+            expect(result.all.hasFeedErrors).toBe(false);
+            expect(result.all.hasWorkspaceErrors).toBe(false);
+            expect(result.all.hasFailedCardAssignments).toBe(false);
         });
 
         it('should return empty errors when all inputs are undefined', () => {
             const result = cardFeedErrorsConfig.compute([undefined, undefined, undefined, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.cardFeedErrors).toEqual({});
-            expect(result.shouldShowRBR).toBe(false);
+            expect(result.all.shouldShowRBR).toBe(false);
         });
 
         describe('broken feed connection detection', () => {
@@ -102,8 +104,8 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.isFeedConnectionBroken).toBe(true);
-                expect(result.shouldShowRBR).toBe(true);
+                expect(result.all.isFeedConnectionBroken).toBe(true);
+                expect(result.all.shouldShowRBR).toBe(true);
                 expect(result.cardsWithBrokenFeedConnection[CARD_IDS.card1]).toEqual(card);
             });
 
@@ -120,7 +122,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.isFeedConnectionBroken).toBe(false);
+                expect(result.all.isFeedConnectionBroken).toBe(false);
                 expect(result.cardsWithBrokenFeedConnection).toEqual({});
             });
 
@@ -137,7 +139,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.isFeedConnectionBroken).toBe(false);
+                expect(result.all.isFeedConnectionBroken).toBe(false);
             });
 
             it('should NOT detect broken connection when lastScrapeResult is undefined', () => {
@@ -153,7 +155,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.isFeedConnectionBroken).toBe(false);
+                expect(result.all.isFeedConnectionBroken).toBe(false);
             });
         });
 
@@ -173,7 +175,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.isFeedConnectionBroken).toBe(true);
+                expect(result.all.isFeedConnectionBroken).toBe(true);
                 expect(result.cardsWithBrokenFeedConnection[CARD_IDS.card2]).toEqual(card);
             });
 
@@ -259,8 +261,8 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, failedAssignments, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.hasFailedCardAssignment).toBe(true);
-                expect(result.shouldShowRBR).toBe(true);
+                expect(result.all.hasFailedCardAssignments  ).toBe(true);
+                expect(result.all.shouldShowRBR).toBe(true);
                 expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.hasFailedCardAssignments).toBe(true);
             });
 
@@ -277,7 +279,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.hasFailedCardAssignment).toBe(false);
+                expect(result.all.hasFailedCardAssignments).toBe(false);
             });
         });
 
@@ -310,8 +312,8 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
 
-                expect(result.hasFeedErrors).toBe(true);
-                expect(result.shouldShowRBR).toBe(true);
+                expect(result.all.hasFeedErrors).toBe(true);
+                expect(result.all.shouldShowRBR).toBe(true);
                 expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.hasFeedErrors).toBe(true);
                 expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.feedErrors).toEqual({feedError: 'Connection failed'});
             });
@@ -346,7 +348,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
 
-                expect(result.hasWorkspaceErrors).toBe(true);
+                expect(result.all.hasWorkspaceErrors).toBe(true);
                 expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.hasWorkspaceErrors).toBe(true);
             });
         });
@@ -465,7 +467,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed.workspaceAccountID]).toBe(false);
                 expect(result.shouldShowRbrForFeedNameWithDomainID[cardFeed.feedNameWithDomainID]).toBe(false);
-                expect(result.shouldShowRBR).toBe(false);
+                expect(result.all.shouldShowRBR).toBe(false);
             });
         });
 
@@ -493,7 +495,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed1.workspaceAccountID]).toBe(true);
                 expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed2.workspaceAccountID]).toBe(false);
-                expect(result.isFeedConnectionBroken).toBe(true);
+                expect(result.all.isFeedConnectionBroken).toBe(true);
                 expect(result.cardsWithBrokenFeedConnection).toHaveProperty(String(CARD_IDS.card1));
                 expect(result.cardsWithBrokenFeedConnection).not.toHaveProperty(String(CARD_IDS.card2));
             });
@@ -554,7 +556,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
 
-                expect(result.shouldShowRBR).toBe(true);
+                expect(result.all.shouldShowRBR).toBe(true);
             });
 
             it('should return true when hasFailedCardAssignment is true', () => {
@@ -584,7 +586,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, failedAssignments, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.shouldShowRBR).toBe(true);
+                expect(result.all.shouldShowRBR).toBe(true);
             });
 
             it('should return true when isFeedConnectionBroken is true', () => {
@@ -601,7 +603,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.shouldShowRBR).toBe(true);
+                expect(result.all.shouldShowRBR).toBe(true);
             });
 
             it('should return false when no errors exist', () => {
@@ -618,7 +620,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT );
 
-                expect(result.shouldShowRBR).toBe(false);
+                expect(result.all.shouldShowRBR).toBe(false);
             });
         });
     });
