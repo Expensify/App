@@ -10,6 +10,7 @@ import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const userID = 'johndoe12@expensify.com';
+const POLICY_ONYX_KEY = `${ONYXKEYS.COLLECTION.POLICY}1` as const
 
 const brokenCardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
@@ -98,14 +99,14 @@ const getMockForStatus = ({status, name}: TestCase) =>
         [ONYXKEYS.SESSION]: {
             email: userID,
         },
-        [`${ONYXKEYS.CARD_LIST}`]: {
+        [ONYXKEYS.CARD_LIST]: {
             card1: {
                 bank: 'OTHER_BANK',
                 lastScrapeResult: name === cardFeedErrorTestCaseNames.admin || name === cardFeedErrorTestCaseNames.employee  ? 403 : 200,
                 fundID: String(brokenCardFeed.workspaceAccountID),
             },
         },
-        [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
+        [POLICY_ONYX_KEY]: {
             id: '1',
             name: 'Workspace 1',
             owner: name === cardFeedErrorTestCaseNames.admin ? userID : 'otheruser@expensify.com',
@@ -248,7 +249,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.LOGIN_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [`${ONYXKEYS.CARD_LIST}`]: {},
+                    [ONYXKEYS.CARD_LIST]: {},
                     [ONYXKEYS.SESSION]: {
                         email: 'johndoe12@expensify.com',
                     },
@@ -288,7 +289,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.LOGIN_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [`${ONYXKEYS.CARD_LIST}`]: {},
+                    [ONYXKEYS.CARD_LIST]: {},
                     [ONYXKEYS.SESSION]: {
                         email: 'johndoe12@expensify.com',
                     },
@@ -335,7 +336,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     },
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [`${ONYXKEYS.CARD_LIST}`]: {},
+                    [ONYXKEYS.CARD_LIST]: {},
                     [ONYXKEYS.SESSION]: {
                         email: 'johndoe12@expensify.com',
                     },
@@ -369,7 +370,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.LOGIN_LIST]: null,
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: null,
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: null,
-                    [`${ONYXKEYS.CARD_LIST}`]: null,
+                    [ONYXKEYS.CARD_LIST]: null,
                     [ONYXKEYS.SESSION]: null,
                 } as unknown as OnyxMultiSetInput);
                 await waitForBatchedUpdatesWithAct();
@@ -394,7 +395,7 @@ describe('useAccountTabIndicatorStatus', () => {
         it('shows error for third party card with broken connection', async () => {
             await act(async () => {
                 await Onyx.multiSet({
-                    [`${ONYXKEYS.CARD_LIST}`]: {
+                    [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: brokenCardFeed.feedName,
                             fundID: String(brokenCardFeed.workspaceAccountID),
@@ -416,7 +417,7 @@ describe('useAccountTabIndicatorStatus', () => {
         it('does not show error for Expensify Card with broken connection', async () => {
             await act(async () => {
                 await Onyx.multiSet({
-                    [`${ONYXKEYS.CARD_LIST}`]: {
+                    [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: CONST.EXPENSIFY_CARD.BANK,
                             fundID: String(brokenCardFeed.workspaceAccountID),
@@ -437,7 +438,7 @@ describe('useAccountTabIndicatorStatus', () => {
         it('does not show error for third party card with good connection', async () => {
             await act(async () => {
                 await Onyx.multiSet({
-                    [`${ONYXKEYS.CARD_LIST}`]: {
+                    [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: 'Chase',
                             fundID: String(brokenCardFeed.workspaceAccountID),
