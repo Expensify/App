@@ -11929,6 +11929,7 @@ function setMoneyRequestParticipantAsPolicyExpenseChat(transactionID: string, po
     }
 
     return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        reportID: policyExpenseReportID,
         participants: [
             {
                 selected: true,
