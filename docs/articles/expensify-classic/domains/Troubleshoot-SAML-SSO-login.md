@@ -10,16 +10,15 @@ If you're having trouble logging in with SAML Single Sign-On (SSO) in Expensify 
 
 # Where to find SAML SSO settings in Expensify Classic
 
-To check your SAML SSO configuration, go to **Settings > Domains > [Domain Name] > SAML**.
+To check your domain's SAML SSO configuration, go to **Settings > Domains > [Domain Name] > SAML**.
 
-From this page, you can:
+From this page, Domain Admins can: 
 
+- Enable SAML SSO login for the domain 
 - View and update your Identity Provider (IdP) metadata
-- Check if **Require SAML login** is enabled
 - Disable or enable **Require SAML login**
 
 **Note:** SAML SSO settings are not available on mobile. 
----
 
 # How to fix domain-wide SAML SSO login issues
 
