@@ -15,11 +15,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
-import Address from '@pages/MissingPersonalDetails/subPages/Address';
-import Confirmation from '@pages/MissingPersonalDetails/subPages/Confirmation';
-import DateOfBirth from '@pages/MissingPersonalDetails/subPages/DateOfBirth';
-import LegalName from '@pages/MissingPersonalDetails/subPages/LegalName';
-import PhoneNumber from '@pages/MissingPersonalDetails/subPages/PhoneNumber';
+import Address from './subPages/Address';
+import Confirmation from './subPages/Confirmation';
+import DateOfBirth from './subPages/DateOfBirth';
+import LegalName from './subPages/LegalName';
+import PhoneNumber from './subPages/PhoneNumber';
 import type {CustomSubPageProps} from './types';
 import {getInitialSubPage, getSubPageValues} from './utils';
 

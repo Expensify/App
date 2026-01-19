@@ -74,7 +74,7 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
 
         const targetPage = pages.at(targetIndex);
         if (targetPage) {
-            navigateToPage(targetPage.pageName);
+            Navigation.goBack(buildRoute(targetPage.pageName));
         }
     };
 
