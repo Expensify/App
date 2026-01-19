@@ -57,7 +57,7 @@ function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, compa
         feedName,
         cardList,
         assignedCards,
-        workspaceCardFeedsStatus: cardFeedsStatus,
+        workspaceCardFeedsStatus,
         cardNames,
         cardFeedType,
         selectedFeed,
@@ -76,7 +76,8 @@ function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, compa
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || isLoadingOnyxValue(lastSelectedFeedMetadata);
 
-    const isFeedsError = !isEmptyObject(cardFeedsStatus?.errors);
+    const workspaceCardFeedsErrors = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
+    const isFeedsError = !isEmptyObject(workspaceCardFeedsErrors);
 
     const isLoadingCards = cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
 
@@ -315,7 +316,7 @@ function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, compa
 
             {isFeedsError && (
                 <ErrorMessageRow
-                    errors={cardFeedsStatus?.errors}
+                    errors={workspaceCardFeedsErrors}
                     errorRowStyles={[styles.mh5]}
                 />
             )}
