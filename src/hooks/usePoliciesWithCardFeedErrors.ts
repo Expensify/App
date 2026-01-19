@@ -18,10 +18,10 @@ function usePoliciesWithCardFeedErrors(): PoliciesWithCardFeedErrors {
     // those should be cleaned out before doing any error checking
     const cleanPolicies = Object.values(policies ?? {}).filter((policy) => policy?.id);
 
-    const {rbrWorkspaceAccountIDMapping} = useCardFeedErrors();
+    const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
     let hasCardFeedErrors = false;
     const policiesWithCardFeedErrors: Policy[] = [];
-    for (const [workspaceAccountID, hasErrors] of Object.entries(rbrWorkspaceAccountIDMapping)) {
+    for (const [workspaceAccountID, hasErrors] of Object.entries(shouldShowRbrForWorkspaceAccountID)) {
         if (!hasErrors) {
             continue;
         }

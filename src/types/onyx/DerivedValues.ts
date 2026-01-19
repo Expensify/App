@@ -164,11 +164,11 @@ type CardFeedErrors = {
     /**
      * Whether to show the RBR for each workspace account ID.
      */
-    rbrWorkspaceAccountIDMapping: Record<number, boolean>;
+    shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
     /**
      * Whether to show the RBR for each feed name with domain ID.
      */
-    rbrFeedNameWithDomainIDMapping: Record<string, boolean>;
+    shouldShowRbrForFeedNameWithDomainID: Record<string, boolean>;
     /**
      * Whether some feed connection is broken.
      */

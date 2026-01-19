@@ -56,14 +56,14 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
-    const {rbrFeedNameWithDomainIDMapping} = useCardFeedErrors();
+    const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
 
     const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
         const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
         const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
         const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
 
-        const shouldShowRBR = rbrFeedNameWithDomainIDMapping[feedName];
+        const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedName];
 
         return {
             value: feedName,

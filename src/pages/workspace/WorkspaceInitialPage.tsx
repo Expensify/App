@@ -198,10 +198,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const [highlightedFeature, setHighlightedFeature] = useState<string | undefined>(undefined);
 
-    const {cardFeedErrors} = useCardFeedErrors();
-    const policyCardFeedErrors = Object.entries(cardFeedErrors ?? {}).filter(([key]) => key.includes(String(workspaceAccountID)));
-
-    const shouldShowRBR = policyCardFeedErrors.some(([, feedErrors]) => feedErrors.shouldShowRBR);
+    const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
+    const shouldShowRBR = shouldShowRbrForWorkspaceAccountID[workspaceAccountID];
 
     const workspaceMenuItems: WorkspaceMenuItem[] = useMemo(() => {
         const protectedMenuItems: WorkspaceMenuItem[] = [];

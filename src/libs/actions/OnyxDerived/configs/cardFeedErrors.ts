@@ -12,8 +12,8 @@ export default createOnyxDerivedValueConfig({
     dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER],
     compute: ([globalCardList, allWorkspaceCards, failedCompanyCardAssignmentsPerFeed, cardFeeds]) => {
         const cardFeedErrors: CardFeedErrorsObject = {};
-        const rbrWorkspaceAccountIDMapping: Record<number, boolean> = {};
-        const rbrFeedNameWithDomainIDMapping: Record<string, boolean> = {};
+        const shouldShowRbrForWorkspaceAccountID: Record<number, boolean> = {};
+        const shouldShowRbrForFeedNameWithDomainID: Record<string, boolean> = {};
         let isSomeFeedConnectionBroken = false;
         let hasSomeFeedErrors = false;
         let hasSomeWorkspaceErrors = false;
@@ -87,9 +87,9 @@ export default createOnyxDerivedValueConfig({
                 hasSomeFailedCardAssignment = true;
             }
 
-            rbrWorkspaceAccountIDMapping[workspaceAccountID] = rbrWorkspaceAccountIDMapping[workspaceAccountID] || shouldShowRBR;
+            shouldShowRbrForWorkspaceAccountID[workspaceAccountID] = shouldShowRbrForWorkspaceAccountID[workspaceAccountID] || shouldShowRBR;
 
-            rbrFeedNameWithDomainIDMapping[feedNameWithDomainID] = rbrFeedNameWithDomainIDMapping[feedNameWithDomainID] || shouldShowRBR;
+            shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID] = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID] || shouldShowRBR;
         }
 
         for (const card of Object.values(globalCardList ?? {})) {
@@ -118,8 +118,8 @@ export default createOnyxDerivedValueConfig({
             cardsWithBrokenFeedConnection,
 
             // Mappings of whether to show the RBR for each workspace account ID and per feed name with domain ID
-            rbrWorkspaceAccountIDMapping,
-            rbrFeedNameWithDomainIDMapping,
+            shouldShowRbrForWorkspaceAccountID,
+            shouldShowRbrForFeedNameWithDomainID,
 
             // Whether any of the feeds has one of the below errors
             shouldShowRBR,

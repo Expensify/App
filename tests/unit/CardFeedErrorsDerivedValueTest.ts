@@ -415,7 +415,7 @@ describe('CardFeedErrors Derived Value', () => {
         });
 
         describe('RBR mappings', () => {
-            it('should set rbrWorkspaceAccountIDMapping correctly', () => {
+            it('should set shouldShowRbrForWorkspaceAccountID correctly', () => {
                 const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
 
                 const card = createCard({
@@ -429,10 +429,10 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.rbrWorkspaceAccountIDMapping[cardFeed.workspaceAccountID]).toBe(true);
+                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed.workspaceAccountID]).toBe(true);
             });
 
-            it('should set rbrFeedNameWithDomainIDMapping correctly', () => {
+            it('should set shouldShowRbrForFeedNameWithDomainID correctly', () => {
                 const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
 
                 const card = createCard({
@@ -446,7 +446,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.rbrFeedNameWithDomainIDMapping[cardFeed.feedNameWithDomainID]).toBe(true);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[cardFeed.feedNameWithDomainID]).toBe(true);
             });
 
             it('should not set RBR when no errors exist', () => {
@@ -463,8 +463,8 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.rbrWorkspaceAccountIDMapping[cardFeed.workspaceAccountID]).toBe(false);
-                expect(result.rbrFeedNameWithDomainIDMapping[cardFeed.feedNameWithDomainID]).toBe(false);
+                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed.workspaceAccountID]).toBe(false);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[cardFeed.feedNameWithDomainID]).toBe(false);
                 expect(result.shouldShowRBR).toBe(false);
             });
         });
@@ -491,8 +491,8 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
 
-                expect(result.rbrWorkspaceAccountIDMapping[cardFeed1.workspaceAccountID]).toBe(true);
-                expect(result.rbrWorkspaceAccountIDMapping[cardFeed2.workspaceAccountID]).toBe(false);
+                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed1.workspaceAccountID]).toBe(true);
+                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed2.workspaceAccountID]).toBe(false);
                 expect(result.isFeedConnectionBroken).toBe(true);
                 expect(result.cardsWithBrokenFeedConnection).toHaveProperty(String(CARD_IDS.card1));
                 expect(result.cardsWithBrokenFeedConnection).not.toHaveProperty(String(CARD_IDS.card2));
