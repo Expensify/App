@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
@@ -37,32 +37,30 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
 
     const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'HandCard', 'MagnifyingGlassMoney', 'CompanyCardsEmptyState']);
 
-    const companyCardFeatures = useMemo(() => {
-        const features = [
-            {
-                icon: illustrations.CreditCardsNew,
-                translationKey: 'workspace.moreFeatures.companyCards.feed.features.support' as const,
-            },
+    const features = [
+        {
+            icon: illustrations.CreditCardsNew,
+            translationKey: 'workspace.moreFeatures.companyCards.feed.features.support' as const,
+        },
 
-            {
-                icon: illustrations.HandCard,
-                translationKey: 'workspace.moreFeatures.companyCards.feed.features.assignCards' as const,
-            },
+        {
+            icon: illustrations.HandCard,
+            translationKey: 'workspace.moreFeatures.companyCards.feed.features.assignCards' as const,
+        },
 
-            {
-                icon: illustrations.MagnifyingGlassMoney,
-                translationKey: 'workspace.moreFeatures.companyCards.feed.features.automaticImport' as const,
-            },
-        ];
-        return features
-            .filter((feature) => feature.icon !== null)
-            .map((feature) => ({
-                icon: feature.icon,
-                translationKey: feature.translationKey,
-            }));
-    }, [illustrations.CreditCardsNew, illustrations.HandCard, illustrations.MagnifyingGlassMoney]);
+        {
+            icon: illustrations.MagnifyingGlassMoney,
+            translationKey: 'workspace.moreFeatures.companyCards.feed.features.automaticImport' as const,
+        },
+    ];
+    const companyCardFeatures = features
+        .filter((feature) => feature.icon !== null)
+        .map((feature) => ({
+            icon: feature.icon,
+            translationKey: feature.translationKey,
+        }));
 
-    const handleCtaPress = useCallback(() => {
+    const handleCtaPress = () => {
         if (!policy?.id) {
             return;
         }
@@ -72,7 +70,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
         }
         clearAddNewCardFlow();
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy.id));
-    }, [policy?.id, isActingAsDelegate, showDelegateNoAccessModal]);
+    };
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
