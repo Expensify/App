@@ -109,14 +109,12 @@ describe('NewChatPage', () => {
             fireEvent.changeText(input, email);
 
             // And waited for the user option to appear
-            // The accessibility label combines text and alternateText (both are the email for users without displayName)
-            const expectedAccessibilityLabel = `${email}, ${email}`;
             await waitFor(() => {
-                expect(screen.getByLabelText(expectedAccessibilityLabel)).toBeOnTheScreen();
+                expect(screen.getByLabelText(email)).toBeOnTheScreen();
             });
 
             // Then "Add to group" button should not appear
-            const userOption = screen.getByLabelText(expectedAccessibilityLabel);
+            const userOption = screen.getByLabelText(email);
             const addButton = within(userOption).queryByText(translateLocal('newChatPage.addToGroup'));
             expect(addButton).not.toBeOnTheScreen();
         });
