@@ -1,4 +1,5 @@
 import {useMemo} from 'react';
+// We need direct access to useOnyx from react-native-onyx to avoid using snapshots for live to-do data
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
@@ -15,7 +16,8 @@ type TodoSearchResultsData = SearchResults['data'];
  */
 function buildSearchResultsData(
     reports: Report[],
-    allTransactions: Record<string, Transaction> | undefined,
+    transactionsByReportID: Record<string, Transaction[]>,
+    allReports: Record<string, Report> | undefined,
     allPolicies: Record<string, unknown> | undefined,
     allReportActions: Record<string, Record<string, unknown>> | undefined,
     allReportNameValuePairs: Record<string, unknown> | undefined,
@@ -37,10 +39,21 @@ function buildSearchResultsData(
             }
         }
 
-        if (report.chatReportID && allReportNameValuePairs) {
-            const nvpKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`;
-            if (allReportNameValuePairs[nvpKey] && !data[nvpKey]) {
-                data[nvpKey] = allReportNameValuePairs[nvpKey];
+        if (report.chatReportID) {
+            // Add the chat report itself (needed by getChatReport > canIOUBePaid for pay eligibility checks)
+            if (allReports) {
+                const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`;
+                if (allReports[chatReportKey] && !data[chatReportKey]) {
+                    data[chatReportKey] = allReports[chatReportKey];
+                }
+            }
+
+            // Add the report name value pairs for the chat report
+            if (allReportNameValuePairs) {
+                const nvpKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`;
+                if (allReportNameValuePairs[nvpKey] && !data[nvpKey]) {
+                    data[nvpKey] = allReportNameValuePairs[nvpKey];
+                }
             }
         }
 
@@ -50,12 +63,12 @@ function buildSearchResultsData(
                 data[actionsKey] = allReportActions[actionsKey];
             }
         }
-    }
 
-    if (allTransactions) {
-        const reportIDs = new Set(reports.map((r) => r.reportID));
-        for (const [transactionKey, transaction] of Object.entries(allTransactions)) {
-            if (transaction?.reportID && reportIDs.has(transaction.reportID)) {
+        // Add transactions for this report using the pre-computed mapping
+        const reportTransactions = transactionsByReportID[report.reportID];
+        if (reportTransactions) {
+            for (const transaction of reportTransactions) {
+                const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
                 data[transactionKey] = transaction;
 
                 if (transactionViolations) {
@@ -84,20 +97,20 @@ export default function useTodos() {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const {login = '', accountID} = useCurrentUserPersonalDetails();
+    const {login = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const todos = useMemo(() => {
         const reportsToSubmit: Report[] = [];
         const reportsToApprove: Report[] = [];
         const reportsToPay: Report[] = [];
         const reportsToExport: Report[] = [];
+        const transactionsByReportID: Record<string, Transaction[]> = {};
 
         const reports = allReports ? Object.values(allReports) : [];
         if (reports.length === 0) {
-            return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
+            return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
         }
 
-        const transactionsByReportID: Record<string, Transaction[]> = {};
         if (allTransactions) {
             for (const transaction of Object.values(allTransactions)) {
                 if (!transaction?.reportID) {
@@ -119,10 +132,10 @@ export default function useTodos() {
             if (isSubmitAction(report, reportTransactions, policy, reportNameValuePair)) {
                 reportsToSubmit.push(report);
             }
-            if (isApproveAction(report, reportTransactions, policy)) {
+            if (isApproveAction(report, reportTransactions, currentUserAccountID, policy)) {
                 reportsToApprove.push(report);
             }
-            if (isPrimaryPayAction(report, accountID, login, bankAccountList, policy, reportNameValuePair)) {
+            if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
                 reportsToPay.push(report);
             }
             if (isExportAction(report, login, policy, reportActions)) {
@@ -130,10 +143,10 @@ export default function useTodos() {
             }
         }
 
-        return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
-    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, accountID, login, bankAccountList]);
+        return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
+    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, currentUserAccountID, login, bankAccountList]);
 
-    const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport} = todos;
+    const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID} = todos;
 
     // Build SearchResults-formatted data for each to-do category
     const todoSearchResultsData = useMemo(() => {
@@ -144,7 +157,8 @@ export default function useTodos() {
             }
             return buildSearchResultsData(
                 reports,
-                allTransactions as Record<string, Transaction> | undefined,
+                transactionsByReportID,
+                allReports as Record<string, Report> | undefined,
                 allPolicies as Record<string, unknown> | undefined,
                 allReportActions as Record<string, Record<string, unknown>> | undefined,
                 allReportNameValuePairs as Record<string, unknown> | undefined,
@@ -164,7 +178,8 @@ export default function useTodos() {
         reportsToApprove,
         reportsToPay,
         reportsToExport,
-        allTransactions,
+        transactionsByReportID,
+        allReports,
         allPolicies,
         allReportActions,
         allReportNameValuePairs,
@@ -173,7 +188,10 @@ export default function useTodos() {
     ]);
 
     return {
-        ...todos,
+        reportsToSubmit,
+        reportsToApprove,
+        reportsToPay,
+        reportsToExport,
         todoSearchResultsData,
     };
 }

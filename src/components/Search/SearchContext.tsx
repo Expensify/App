@@ -1,4 +1,5 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+// We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 import useTodos from '@hooks/useTodos';
@@ -14,6 +15,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchContextData, SearchContextProps, SearchQueryJSON, SelectedTransactions} from './types';
 
 // Default search info when building from live data
+// Used for to-do searches where we build SearchResults from live Onyx data instead of API snapshots
 const defaultSearchInfo: SearchResultsInfo = {
     offset: 0,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -134,15 +136,7 @@ function SearchContextProvider({children}: ChildrenProps) {
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
-                .filter((item) => {
-                    if (!isMoneyRequestReport(item)) {
-                        return false;
-                    }
-                    if (item.transactions.length === 0) {
-                        return !!item.keyForList && selectedTransactions[item.keyForList]?.isSelected;
-                    }
-                    return item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected);
-                })
+                .filter((item) => isMoneyRequestReport(item) && item.transactions.length > 0 && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
                 .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, chatReportID}) => ({
                     reportID,
                     action,
