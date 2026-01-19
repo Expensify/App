@@ -207,7 +207,6 @@ import {
     getDistanceInMeters,
     getMerchant,
     getOriginalTransactionWithSplitInfo,
-    getTransactionType,
     getUpdatedTransaction,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
@@ -14324,6 +14323,7 @@ export type {
     ReplaceReceipt,
     RequestMoneyParticipantParams,
     PerDiemExpenseTransactionParams,
+    PerDiemExpenseInformation,
     UpdateMoneyRequestData,
     BasePolicyParams,
 };
