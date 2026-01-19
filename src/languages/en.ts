@@ -889,8 +889,6 @@ const translations = {
             return `Are you sure you want to delete this ${type}?`;
         },
         onlyVisible: 'Only visible to',
-        explain: 'Explain',
-        explainMessage: 'Please explain this to me.',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
@@ -1483,7 +1481,6 @@ const translations = {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hour' : 'hours'} @ ${rate} / hour`,
             hrs: 'hrs',
         },
-        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Explain</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
