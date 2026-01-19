@@ -217,8 +217,8 @@ function isSubmitAction({
 
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
-    const isManager = report.managerID === getCurrentUserAccountID();
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const isManager = submitToAccountID === currentUserAccountID || report.managerID === currentUserAccountID;
     if (!isReportSubmitter && !isAdmin && !isManager) {
         return false;
     }
@@ -228,7 +228,6 @@ function isSubmitAction({
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
