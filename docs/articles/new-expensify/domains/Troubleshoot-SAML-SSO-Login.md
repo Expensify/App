@@ -1,6 +1,6 @@
 ---
 title: Troubleshoot SAML SSO login
-description: Learn how to quickly diagnose and resolve issues with SAML SSO login in Expensify Classic, including lockouts, expired certificates, and identity provider errors.
+description: Learn how to quickly diagnose and resolve issues with SAML SSO login in New Expensify, including lockouts, expired certificates, and identity provider errors.
 keywords: [New Expensify, SAML SSO, SSO login failed, Require SAML login, domain locked out, expired certificate, identity provider, IdP, metadata, troubleshooting]
 ---
 
