@@ -88,7 +88,7 @@ function BaseVideoPlayer({
     /* eslint-disable no-param-reassign */
     // According to the library docs, the player is configured by mutating the provided instance
     const videoPlayerRef = useRef<VideoPlayer>(
-        useVideoPlayer(isOffline ? '' : sourceURL, (player) => {
+        useVideoPlayer(sourceURL, (player) => {
             player.loop = isLooping;
             player.muted = true;
             player.timeUpdateEventInterval = 0.1;
@@ -116,6 +116,13 @@ function BaseVideoPlayer({
             videoPlayerRef.current.replaceAsync(sourceURL);
         },
     });
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (isOffline && isLoading) {
+            videoPlayerRef.current.replaceAsync('');
+        }
+    }, [isLoading, isOffline]);
 
     const videoViewRef = useRef<VideoView | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
