@@ -174,12 +174,6 @@ function Expensify() {
         });
     }, [isCheckingPublicRoom]);
 
-    useEffect(() => {
-        if (!isNavigationReady) {
-            return;
-        }
-        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
-    }, [isNavigationReady]);
 
     useEffect(() => {
         if (!preferredLocale) {

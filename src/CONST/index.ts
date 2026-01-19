@@ -1720,13 +1720,24 @@ const CONST = {
         SPAN_BOOTSPLASH: {
             ROOT: 'BootsplashVisible',
             ONYX: 'BootsplashVisibleOnyx',
+            ONYX_MIGRATIONS: 'BootsplashVisibleOnyxMigrations',
             PUBLIC_ROOM_CHECK: 'BootsplashVisiblePublicRoomCheck',
+            PUBLIC_ROOM_API: 'BootsplashVisiblePublicRoomAPI',
             NAVIGATION: 'BootsplashVisibleNavigation',
             LOCALE: 'BootsplashVisibleLocale',
             DEEP_LINK: 'BootsplashVisibleDeepLink',
             SPLASH_HIDER: 'BootsplashVisibleHider',
         },
-        SPAN_INITIAL_ROUTE_DETERMINATION: 'InitialRouteDetermination',
+        SPAN_LOCALE: {
+            ROOT: 'BootsplashVisibleLocale',
+            TRANSLATIONS_LOAD: 'LocaleTranslationsLoad',
+            EMOJI_IMPORT: 'Locale_EmojiImport',
+        },
+        SPAN_NAVIGATION: {
+            ROOT: 'BootsplashVisibleNavigation',
+            ROOT_READY: 'NavigationRootReady',
+            PUSHER_INIT: 'NavigationPusherInit',
+        },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',

@@ -114,18 +114,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
-        const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
-        startSpan(CONST.TELEMETRY.SPAN_INITIAL_ROUTE_DETERMINATION, {
-            name: CONST.TELEMETRY.SPAN_INITIAL_ROUTE_DETERMINATION,
-            op: CONST.TELEMETRY.SPAN_INITIAL_ROUTE_DETERMINATION,
-            parentSpan: bootsplashSpan,
-        });
-
-        const endRouteSpan = (result: ReturnType<typeof getAdaptedStateFromPath> | undefined) => {
-            endSpan(CONST.TELEMETRY.SPAN_INITIAL_ROUTE_DETERMINATION);
-            return result;
-        };
-
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
 
         if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
@@ -133,16 +121,16 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
             });
 
-            return endRouteSpan(getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config));
+            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         }
 
         if (!account || account.isFromPublicDomain) {
-            return endRouteSpan(undefined);
+            return undefined;
         }
 
         const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
         if (shouldShowRequire2FAPage) {
-            return endRouteSpan(getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config));
+            return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config);
         }
 
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -150,24 +138,22 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // If we have a transition URL, don't restore last visited path - let React Navigation handle it
         // This prevents reusing deep links after logout regardless of authentication status
         if (isTransitioning) {
-            return endRouteSpan(undefined);
+            return undefined;
         }
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated) {
-            return endRouteSpan(
-                getAdaptedStateFromPath(
-                    getOnboardingInitialPath({
-                        isUserFromPublicDomain: !!account.isFromPublicDomain,
-                        hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
-                        currentOnboardingPurposeSelected,
-                        currentOnboardingCompanySize,
-                        onboardingInitialPath,
-                        onboardingValues,
-                    }),
-                    linkingConfig.config,
-                ),
+            return getAdaptedStateFromPath(
+                getOnboardingInitialPath({
+                    isUserFromPublicDomain: !!account.isFromPublicDomain,
+                    hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
+                    currentOnboardingPurposeSelected,
+                    currentOnboardingCompanySize,
+                    onboardingInitialPath,
+                    onboardingValues,
+                }),
+                linkingConfig.config,
             );
         }
 
@@ -179,12 +165,12 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
             if (!isSpecificDeepLink) {
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
-                return endRouteSpan(getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config));
+                return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
             }
         }
 
         // Default behavior - let React Navigation handle the initial state
-        return endRouteSpan(undefined);
+        return undefined;
 
         // The initialState value is relevant only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -285,6 +271,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const onReadyWithSentry = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
         onReady();
         navigationIntegration.registerNavigationContainer(navigationRef);
     }, [onReady]);

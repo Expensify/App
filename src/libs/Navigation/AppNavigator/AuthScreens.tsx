@@ -32,6 +32,7 @@ import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -217,8 +218,19 @@ function AuthScreens() {
 
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => handleNetworkReconnect());
+
+        // Pusher initialization span
+        const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT,
+            parentSpan: bootsplashSpan,
+        });
         PusherConnectionManager.init();
-        initializePusher();
+        initializePusher().finally(() => {
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
+        });
+
         // Sometimes when we transition from old dot to new dot, the client is not the leader
         // so we need to initialize the client again
         if (!isClientTheLeader() && isTransitioning) {

@@ -76,6 +76,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -3652,6 +3653,7 @@ function toggleEmojiReaction(
 }
 
 function doneCheckingPublicRoom() {
+    endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
 
