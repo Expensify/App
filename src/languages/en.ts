@@ -4925,6 +4925,8 @@ const translations = {
             travel: {
                 title: 'Travel',
                 subtitle: 'Book, manage, and reconcile all your business travel.',
+                notAvailableTitle: 'Travel not available',
+                notAvailablePrompt: 'Travel is only available for team and corporate workspaces. Please create or use a team workspace to enable travel.',
                 getStarted: {
                     title: 'Get started with Expensify Travel',
                     subtitle: "We just need a few more pieces of info about your business, then you'll be ready for takeoff.",
