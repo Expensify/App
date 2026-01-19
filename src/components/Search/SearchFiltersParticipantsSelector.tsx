@@ -72,10 +72,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                personalDetails,
             },
             countryCode,
         );
-    }, [areOptionsInitialized, options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
+    }, [areOptionsInitialized, options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails]);
 
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));

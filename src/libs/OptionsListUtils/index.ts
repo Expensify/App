@@ -1999,6 +1999,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
         showRBR = true,
         shouldShowGBR = false,
         shouldUnreadBeBold = false,
+        personalDetails,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2069,7 +2070,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
             if (report?.policyID) {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
-                const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+                const submitsToAccountDetails = (personalDetails ?? allPersonalDetails)?.[submitToAccountID];
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
                 if (subtitle) {
@@ -2147,6 +2148,7 @@ function getValidOptions(
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
         shouldAcceptName = false,
+        personalDetails,
         ...config
     }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
@@ -2227,6 +2229,7 @@ function getValidOptions(
                 shouldSeparateSelfDMChat,
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
+                personalDetails,
             }).at(0);
         }
 
@@ -2240,6 +2243,7 @@ function getValidOptions(
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
             shouldShowGBR,
+            personalDetails,
         });
 
         workspaceChats = prepareReportOptionsForDisplay(workspaceChats, {
@@ -2249,6 +2253,7 @@ function getValidOptions(
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
             shouldShowGBR,
+            personalDetails,
         });
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
@@ -2364,6 +2369,7 @@ type SearchOptionsConfig = {
     shouldShowGBR?: boolean;
     shouldUnreadBeBold?: boolean;
     loginList: OnyxEntry<Login>;
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
 };
 
 /**
@@ -2385,6 +2391,7 @@ function getSearchOptions({
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
     loginList,
+    personalDetails,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2414,6 +2421,7 @@ function getSearchOptions({
             includeUserToInvite,
             shouldShowGBR,
             shouldUnreadBeBold,
+            personalDetails,
         },
         countryCode,
     );
