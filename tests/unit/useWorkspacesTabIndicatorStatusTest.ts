@@ -7,7 +7,21 @@ import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type { IndicatorTestCase } from 'tests/utils/IndicatorTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+const workspaceCardFeedTestCases= {
+    admin:{
+      name: 'has workspace card feed error if admin',
+      indicatorColor: defaultTheme.danger,
+      status: CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS,
+  },
+  employee:{
+      name: 'has no workspace card feed error if employee (non-admin)',
+      indicatorColor: defaultTheme.success,
+      status: undefined,
+  }} as const satisfies  Record<'admin' | 'employee', IndicatorTestCase>
+
 
 const userID = 'admin@expensify.com';
 const otherUserID = 'employee@example.com';
@@ -23,16 +37,6 @@ const CARD_FEED = {
     workspaceAccountID: WORKSPACE.workspaceAccountID,
 };
 
-type TestCase = {
-    name: string;
-    indicatorColor: string;
-    status: string | undefined;
-};
-
-const cardFeedErrorTestCaseNames = {
-    admin: 'has card feed error if admin',
-    employee: 'has no card feed error if employee (non-admin)',
-} as const;
 
 const TEST_CASE_NAMES = {
     hasPolicyErrors: 'has policy errors',
@@ -41,21 +45,21 @@ const TEST_CASE_NAMES = {
     hasSyncErrors: 'has sync errors',
     hasQBOExportError: 'has QBO export error',
     hasUberCredentialsError: 'has Uber credentials error',
-    hasAdminCardFeedErrors: cardFeedErrorTestCaseNames.admin,
-    hasNoCardFeedErrorsForEmployee: cardFeedErrorTestCaseNames.employee,
+    hasAdminCardFeedErrors: workspaceCardFeedTestCases.admin.name,
+    hasNoCardFeedErrorsForEmployee: workspaceCardFeedTestCases.employee.name,
     noErrors: 'no errors',
 } as const;
 
-const getMockForStatus = ({name}: TestCase) =>
+const getMockForStatus = ({name}: IndicatorTestCase) =>
     ({
         [ONYXKEYS.SESSION]: {
-            email: name === cardFeedErrorTestCaseNames.employee ? otherUserID : userID,
+            email: name === workspaceCardFeedTestCases.employee.name ? otherUserID : userID,
         },
         [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
             id: WORKSPACE.policyID,
             name: WORKSPACE.policyName,
-            owner: name === cardFeedErrorTestCaseNames.employee ? userID : userID,
-            role: name === cardFeedErrorTestCaseNames.employee ? 'user' : 'admin',
+            owner: name === workspaceCardFeedTestCases.employee.name ? userID : userID,
+            role: name === workspaceCardFeedTestCases.employee.name ? 'user' : 'admin',
             workspaceAccountID: WORKSPACE.workspaceAccountID,
             // Policy errors
             errors: name === TEST_CASE_NAMES.hasPolicyErrors ? {policyError: 'Something went wrong'} : undefined,
@@ -106,7 +110,7 @@ const getMockForStatus = ({name}: TestCase) =>
         // Card feed errors - both admin and employee test cases have broken card connection
         // Admin sees HAS_POLICY_ADMIN_CARD_FEED_ERRORS, employee does NOT see it in workspaces tab
         [`${ONYXKEYS.CARD_LIST}`]:
-            name === cardFeedErrorTestCaseNames.admin || name === cardFeedErrorTestCaseNames.employee
+            name === workspaceCardFeedTestCases.admin.name || name === workspaceCardFeedTestCases.employee.name
                 ? {
                       card1: {
                           cardID: 1,
@@ -126,7 +130,7 @@ const getMockForStatus = ({name}: TestCase) =>
                 : undefined,
     }) as unknown as OnyxMultiSetInput;
 
-const TEST_CASES: TestCase[] = [
+const TEST_CASES: IndicatorTestCase[] = [
     {
         name: TEST_CASE_NAMES.hasPolicyErrors,
         indicatorColor: defaultTheme.danger,
@@ -157,16 +161,8 @@ const TEST_CASES: TestCase[] = [
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR,
     },
-    {
-        name: cardFeedErrorTestCaseNames.admin,
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS,
-    },
-    {
-        name: cardFeedErrorTestCaseNames.employee,
-        indicatorColor: defaultTheme.success,
-        status: undefined,
-    },
+    workspaceCardFeedTestCases.admin,
+    workspaceCardFeedTestCases.employee,
 ];
 
 describe('useWorkspacesTabIndicatorStatus', () => {
@@ -204,7 +200,7 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             await waitForBatchedUpdatesWithAct();
             const {policyIDWithErrors} = result.current;
             // Employee test case has no policy errors visible (card feed errors don't show for employees in workspaces tab)
-            if (testCase.name === cardFeedErrorTestCaseNames.employee) {
+            if (testCase.name === workspaceCardFeedTestCases.employee.name) {
                 expect(policyIDWithErrors).toBeUndefined();
             } else {
                 expect(policyIDWithErrors).toBe(WORKSPACE.policyID);

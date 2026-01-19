@@ -2,20 +2,45 @@ import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
-import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import initWithOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
+import type { IndicatorTestCase } from '../utils/IndicatorTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
+const userID = 'johndoe12@expensify.com';
+const otherUserID = 'otheruser@expensify.com';
+
+const brokenCardFeed = {
+    feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+    workspaceAccountID: 12345,
+  };
+
+  const cardFeedErrorTestCases= {
+    admin:{
+      name: 'has policy card feed error if admin',
+      indicatorColor: defaultTheme.danger,
+      status: CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS,
+      policyIDWithErrors: '1',
+    },
+    employee:{
+      name: 'has account card feed error if employee (non-admin)',
+      indicatorColor: defaultTheme.danger,
+      status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS,
+    },
+  } as const satisfies  Record<'admin' | 'employee', IndicatorTestCase>
+
+
+const getMockForStatus = ({status, name}: IndicatorTestCase, isAdmin: boolean) =>
     ({
         [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
             id: '1',
             name: 'Workspace 1',
-            owner: 'johndoe12@expensify.com',
+            owner: isAdmin ? userID : otherUserID,
             role: isAdmin ? 'admin' : 'user',
+            workspaceAccountID: brokenCardFeed.workspaceAccountID,
             customUnits:
                 status === CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR
                     ? {
@@ -28,7 +53,7 @@ const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
         [`${ONYXKEYS.COLLECTION.POLICY}2` as const]: {
             id: '2',
             name: 'Workspace 2',
-            owner: 'johndoe12@expensify.com',
+            owner: userID,
             role: isAdmin ? 'admin' : 'user',
             errors:
                 status === CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS
@@ -40,12 +65,12 @@ const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
         [`${ONYXKEYS.COLLECTION.POLICY}3` as const]: {
             id: '3',
             name: 'Workspace 3',
-            owner: 'johndoe12@expensify.com',
+            owner: userID,
             role: isAdmin ? 'admin' : 'user',
             employeeList: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                'johndoe12@expensify.com': {
-                    email: 'johndoe12@expensify.com',
+                [userID]: {
+                    email: userID,
                     errors:
                         status === CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR
                             ? {
@@ -58,7 +83,7 @@ const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
         [`${ONYXKEYS.COLLECTION.POLICY}4` as const]: {
             id: '4',
             name: 'Workspace 4',
-            owner: 'johndoe12@expensify.com',
+            owner: userID,
             role: isAdmin ? 'admin' : 'auditor',
             connections:
                 status === CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS
@@ -103,9 +128,9 @@ const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
         },
         [ONYXKEYS.LOGIN_LIST]: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            'johndoe12@expensify.com': {
+            [userID]: {
                 partnerName: 'John Doe',
-                partnerUserID: 'johndoe12@expensify.com',
+                partnerUserID: userID,
                 validatedDate: status !== CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? new Date().toISOString() : undefined,
                 errorFields:
                     status === CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR
@@ -136,7 +161,13 @@ const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
                 cardID: 123456,
                 bank: CONST.EXPENSIFY_CARD.BANK,
                 accountID: 123,
+                fundID: String(brokenCardFeed.workspaceAccountID),
                 state: status === CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO ? CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED : CONST.EXPENSIFY_CARD.STATE.OPEN,
+            },
+            card1: {
+                bank: 'OTHER_BANK',
+                lastScrapeResult: (name === cardFeedErrorTestCases.admin.name || name === cardFeedErrorTestCases.employee.name)  ? 403 : 200,
+                fundID: String(brokenCardFeed.workspaceAccountID),
             },
         },
         [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
@@ -152,14 +183,7 @@ const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
         },
     }) as OnyxMultiSetInput;
 
-type TestCase = {
-    name: string;
-    indicatorColor: string;
-    status: IndicatorStatus;
-    policyIDWithErrors?: string;
-};
-
-const TEST_CASES: TestCase[] = [
+const TEST_CASES: IndicatorTestCase[] = [
     {
         name: 'has policy errors',
         indicatorColor: defaultTheme.danger,
@@ -238,9 +262,10 @@ const TEST_CASES: TestCase[] = [
         status: CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO,
         policyIDWithErrors: undefined,
     },
+cardFeedErrorTestCases.admin,
 ];
 
-const TEST_CASES_NON_ADMIN: TestCase[] = [
+const TEST_CASES_NON_ADMIN: IndicatorTestCase[] = [
     {
         name: 'has custom units error but not an admin so no RBR',
         indicatorColor: defaultTheme.success,
@@ -261,6 +286,7 @@ const TEST_CASES_NON_ADMIN: TestCase[] = [
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
     },
+    cardFeedErrorTestCases.employee,
 ];
 
 describe('useIndicatorStatusTest', () => {
@@ -268,10 +294,12 @@ describe('useIndicatorStatusTest', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        initWithOnyxDerivedValues();
     });
+
     describe.each(TEST_CASES)('$name', (testCase) => {
         beforeAll(async () => {
-            await Onyx.multiSet(getMockForStatus(testCase.status));
+            await Onyx.multiSet(getMockForStatus(testCase, true));
             await waitForBatchedUpdates();
         });
         it('returns correct indicatorColor', async () => {
@@ -301,7 +329,7 @@ describe('useIndicatorStatusTest', () => {
     });
     describe.each(TEST_CASES_NON_ADMIN)('$name', (testCase) => {
         beforeAll(async () => {
-            await Onyx.multiSet(getMockForStatus(testCase.status, false));
+            await Onyx.multiSet(getMockForStatus(testCase, false));
             await waitForBatchedUpdates();
         });
         it('returns correct indicatorColor', async () => {

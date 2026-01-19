@@ -7,22 +7,32 @@ import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
+import type { IndicatorTestCase } from 'tests/utils/IndicatorTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const userID = 'johndoe12@expensify.com';
-const POLICY_ONYX_KEY = `${ONYXKEYS.COLLECTION.POLICY}1` as const
 
 const brokenCardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
     workspaceAccountID: 12345,
-};
+  };
 
-const cardFeedErrorTestCaseNames = {
-    employee: 'has card feed error if employee (non-admin)',
-    admin: 'has no card feed error if admin',
-} as const
 
-const getMockForStatus = ({status, name}: TestCase) =>
+const accountCardFeedTestCases= {
+    admin:{
+      name: 'has no account card feed error if admin',
+      indicatorColor: defaultTheme.success,
+      status: undefined,
+    },
+    employee:{
+    name: 'has account card feed error if employee (non-admin)',
+    indicatorColor: defaultTheme.danger,
+    status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS,
+  },
+  } as const satisfies  Record<'admin' | 'employee', IndicatorTestCase>
+
+
+const getMockForStatus = ({status, name}: IndicatorTestCase) =>
     ({
         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -102,26 +112,20 @@ const getMockForStatus = ({status, name}: TestCase) =>
         [ONYXKEYS.CARD_LIST]: {
             card1: {
                 bank: 'OTHER_BANK',
-                lastScrapeResult: name === cardFeedErrorTestCaseNames.admin || name === cardFeedErrorTestCaseNames.employee  ? 403 : 200,
+                lastScrapeResult: name === accountCardFeedTestCases.admin.name || name === accountCardFeedTestCases.employee.name  ? 403 : 200,
                 fundID: String(brokenCardFeed.workspaceAccountID),
             },
         },
-        [POLICY_ONYX_KEY]: {
+        [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
             id: '1',
             name: 'Workspace 1',
-            owner: name === cardFeedErrorTestCaseNames.admin ? userID : 'otheruser@expensify.com',
-            role: name === cardFeedErrorTestCaseNames.admin ? 'admin' : 'user',
+            owner: name === accountCardFeedTestCases.admin.name ? userID : 'otheruser@expensify.com',
+            role: name === accountCardFeedTestCases.admin.name ? 'admin' : 'user',
             workspaceAccountID: brokenCardFeed.workspaceAccountID,
         },
     }) as unknown as OnyxMultiSetInput;
 
-type TestCase = {
-    name: string;
-    indicatorColor: string;
-    status: string | undefined;
-};
-
-const TEST_CASES: TestCase[] = [
+const TEST_CASES: IndicatorTestCase[] = [
     {
         name: 'has user wallet errors',
         indicatorColor: defaultTheme.danger,
@@ -157,16 +161,8 @@ const TEST_CASES: TestCase[] = [
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO,
     },
-    {
-        name: cardFeedErrorTestCaseNames.employee,
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS,
-    },
-    {
-        name: cardFeedErrorTestCaseNames.admin,
-        indicatorColor: defaultTheme.success,
-        status: undefined,
-    },
+    accountCardFeedTestCases.employee,
+    accountCardFeedTestCases.admin,
 ];
 
 describe('useAccountTabIndicatorStatus', () => {
