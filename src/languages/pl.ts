@@ -7960,7 +7960,14 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             enterDomainName: 'Wpisz tutaj swoją nazwę domeny',
             resetDomainInfo: `Ta akcja jest <strong>trwała</strong> i następujące dane zostaną usunięte: <br/> <ul><li>Połączenia kart firmowych i wszystkie nierozliczone wydatki z tych kart</li> <li>Ustawienia SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
-        members: {title: 'Członkowie', findMember: 'Znajdź członka'},
+        members: {
+            title: 'Członkowie',
+            findMember: 'Znajdź członka',
+            addMember: 'Dodaj członka',
+            invite: 'Zaproś',
+            email: 'Adres e-mail',
+            errors: {addMember: 'Nie można dodać tego członka. Spróbuj ponownie.'},
+        },
     },
     gps: {
         tooltip: 'Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.',
@@ -7978,7 +7985,6 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             confirm: 'Odrzuć śledzenie dystansu',
         },
         zeroDistanceTripModal: {title: 'Nie można utworzyć wydatku', prompt: 'Nie możesz utworzyć wydatku z tym samym miejscem początkowym i końcowym.'},
-
         locationRequiredModal: {
             title: 'Wymagany dostęp do lokalizacji',
             prompt: 'Aby rozpocząć śledzenie dystansu GPS, zezwól na dostęp do lokalizacji w ustawieniach swojego urządzenia.',

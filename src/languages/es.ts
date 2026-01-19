@@ -8093,6 +8093,12 @@ ${amount} para ${merchant} - ${date}`,
         members: {
             title: 'Miembros',
             findMember: 'Buscar miembro',
+            addMember: 'Añadir miembro',
+            invite: 'Invitar',
+            email: 'Dirección de correo electrónico',
+            errors: {
+                addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.'
+            },
         },
     },
     gps: {
