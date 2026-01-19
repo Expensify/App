@@ -6,8 +6,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 import type {CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {CardErrors, CardFeedErrorsObject, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type { Errors } from '@src/types/onyx/OnyxCommon';
 
 const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
     shouldShowRBR: false,
@@ -74,18 +74,20 @@ export default createOnyxDerivedValueConfig({
             const hasCardErrors = !isEmptyObject(card.errors) || !isEmptyObject(card.errorFields) || card.pendingAction;
             const cardErrors = {
                 ...previousFeedErrors.cardErrors,
-                ...cardFeedErrors[feedNameWithDomainID]?.cardErrors ?? {},
-                ...(hasCardErrors ? {
-                    [card.cardID]: {
-                        errors: card.errors,
-                        errorFields: card.errorFields,
-                        pendingAction: card.pendingAction,
-                    },
-                } : {}),
+                ...(cardFeedErrors[feedNameWithDomainID]?.cardErrors ?? {}),
+                ...(hasCardErrors
+                    ? {
+                          [card.cardID]: {
+                              errors: card.errors,
+                              errorFields: card.errorFields,
+                              pendingAction: card.pendingAction,
+                          },
+                      }
+                    : {}),
             } as Record<string, CardErrors>;
 
-            const isFeedConnectionBroken = isCardConnectionBroken(card)
-            const hasFeedErrors = feedNameWithDomainID ? !!feedErrors : false
+            const isFeedConnectionBroken = isCardConnectionBroken(card);
+            const hasFeedErrors = feedNameWithDomainID ? !!feedErrors : false;
             const hasWorkspaceErrors = !!workspaceCardFeedsStatus?.[workspaceAccountID]?.errors;
 
             const newFeedState: Omit<CardFeedErrorState, 'shouldShowRBR'> = {
