@@ -565,7 +565,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     if (text && !file) {
-        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
+        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, reportID);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -574,7 +574,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID);
+        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, reportID);
         attachmentAction = attachment.reportAction;
     }
 
@@ -1928,12 +1928,15 @@ function handlePreexistingReport(report: Report) {
             return;
         }
 
-        const activeRouteInfo = navigationRef.getCurrentRoute();
-        const backTo = (activeRouteInfo?.params as {backTo?: Route})?.backTo;
-        const screenName = activeRouteInfo?.name;
-        const activeRoute = activeRouteInfo?.path;
+        // Use Navigation.getActiveRoute() instead of navigationRef.getCurrentRoute()?.path because
+        // getCurrentRoute().path can be undefined during first navigation.
+        // We still need getCurrentRoute() for params and screen name as getActiveRoute() only returns the path string.
+        const activeRoute = Navigation.getActiveRoute();
+        const currentRouteInfo = navigationRef.getCurrentRoute();
+        const backTo = (currentRouteInfo?.params as {backTo?: Route})?.backTo;
+        const screenName = currentRouteInfo?.name;
 
-        const isOptimisticReportFocused = activeRoute?.includes(`/r/${reportID}`);
+        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`);
 
         // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
         // When user is editing a money request report (/e/:reportID route) and has
@@ -3654,7 +3657,7 @@ function toggleEmojiReaction(
 function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
-
+/** @deprecated This function is deprecated and will be removed soon after migration. Use the accountID from useCurrentUserPersonalDetails hook instead. */
 function getCurrentUserAccountID(): number {
     return deprecatedCurrentUserAccountID;
 }
@@ -3864,6 +3867,7 @@ function leaveRoom(reportID: string, currentUserAccountID: number, isWorkspaceMe
     // If this is the leave action from a workspace room, simply dismiss the modal, i.e., allow the user to view the room and join again immediately.
     // If this is the leave action from a chat thread (even if the chat thread is in a room), do not allow the user to stay in the thread after leaving.
     if (isWorkspaceMemberLeavingWorkspaceRoom && !isChatThread) {
+        Navigation.dismissModal();
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
@@ -6455,6 +6459,7 @@ export {
     exportReportToPDF,
     exportToIntegration,
     flagComment,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
     getCurrentUserAccountID,
     getMostRecentReportID,
     getNewerActions,

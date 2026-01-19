@@ -874,10 +874,6 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Emoji',
         collapse: 'Samenvouwen',
         expand: 'Uitvouwen',
-        askConciergeToCreate: 'Vraag Concierge AI om een uitgave aan te maken...',
-        askConciergeToUpdate: 'Vraag Concierge AI om een uitgave bij te werken...',
-        askConciergeToCorrect: 'Vraag Concierge AI om een uitgave te corrigeren...',
-        addColleagueWithMention: 'Voeg een collega toe met een “@”-vermelding...',
     },
     reportActionContextMenu: {
         copyMessage: 'Bericht kopiëren',
