@@ -187,10 +187,6 @@ function BasePicker<TPickerValue>({
                     isHighlighted && styles.borderColorFocus,
                     hasError && styles.borderColorDanger,
                 ]}
-                accessible
-                accessibilityLabel={label ? `${label}, ${value}` : String(value)}
-                accessibilityRole="combobox"
-                accessibilityState={{expanded: isHighlighted, disabled: isDisabled}}
             >
                 {!!label && <Text style={[styles.pickerLabel, styles.textLabelSupporting, styles.pointerEventsNone]}>{label}</Text>}
                 <RNPickerSelect
