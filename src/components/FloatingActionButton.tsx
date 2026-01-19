@@ -94,92 +94,52 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
         onLongPress?.(event);
     };
 
-    if (isLHBVisible) {
-        return (
-            <Tooltip text={translate('common.create')}>
-                <PressableWithoutFeedback
-                    ref={(el) => {
-                        fabPressable.current = el ?? null;
-                        if (buttonRef && 'current' in buttonRef) {
-                            buttonRef.current = el ?? null;
-                        }
-                    }}
-                    style={[
-                        styles.navigationTabBarFABItem,
-
-                        // Prevent text selection on touch devices (e.g. on long press)
-                        canUseTouchScreen() && styles.userSelectNone,
-                        styles.flex1,
-                    ]}
-                    accessibilityLabel={accessibilityLabel}
-                    onPress={toggleFabAction}
-                    onLongPress={longPressFabAction}
-                    role={role}
-                    shouldUseHapticsOnLongPress
-                    testID="floating-action-button"
-                    sentryLabel={sentryLabel}
-                >
-                    {({hovered}) => {
-                        isHovered.set(hovered);
-
-                        return (
-                            <Animated.View
-                                style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, animatedStyle]}
-                                testID="fab-animated-container"
-                            >
-                                <Svg
-                                    width={fabSize}
-                                    height={fabSize}
-                                >
-                                    <AnimatedPath
-                                        d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
-                                        fill={icon}
-                                    />
-                                </Svg>
-                            </Animated.View>
-                        );
-                    }}
-                </PressableWithoutFeedback>
-            </Tooltip>
-        );
-    }
-
     return (
-        <PressableWithFeedback
-            onPress={onPress}
-            role={CONST.ROLE.BUTTON}
-            accessibilityLabel={translate('common.create')}
-            wrapperStyle={styles.flex1}
-            style={[
-                styles.navigationTabBarFABItem,
+        <Tooltip text={translate('common.create')}>
+            <PressableWithoutFeedback
+                ref={(el) => {
+                    fabPressable.current = el ?? null;
+                    if (buttonRef && 'current' in buttonRef) {
+                        buttonRef.current = el ?? null;
+                    }
+                }}
+                style={[
+                    styles.navigationTabBarFABItem,
 
-                // Prevent text selection on touch devices (e.g. on long press)
-                canUseTouchScreen() && styles.userSelectNone,
-                styles.flex1,
-            ]}
-            testID="create-action-button"
-            sentryLabel={sentryLabel}
-        >
-            <View
-                testID="fab-container"
-                style={styles.navigationTabBarItem}
+                    // Prevent text selection on touch devices (e.g. on long press)
+                    canUseTouchScreen() && styles.userSelectNone,
+                    styles.flex1,
+                ]}
+                accessibilityLabel={accessibilityLabel}
+                onPress={toggleFabAction}
+                onLongPress={longPressFabAction}
+                role={role}
+                shouldUseHapticsOnLongPress
+                testID="floating-action-button"
+                sentryLabel={sentryLabel}
             >
-                <View>
-                    <Icon
-                        src={PlusCircle}
-                        fill={icon}
-                        width={variables.iconBottomBar}
-                        height={variables.iconBottomBar}
-                    />
-                </View>
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, styles.textSupporting, styles.navigationTabBarLabel]}
-                >
-                    {translate('common.create')}
-                </Text>
-            </View>
-        </PressableWithFeedback>
+                {({hovered}) => {
+                    isHovered.set(hovered);
+
+                    return (
+                        <Animated.View
+                            style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, animatedStyle]}
+                            testID="fab-animated-container"
+                        >
+                            <Svg
+                                width={fabSize}
+                                height={fabSize}
+                            >
+                                <AnimatedPath
+                                    d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
+                                    fill={icon}
+                                />
+                            </Svg>
+                        </Animated.View>
+                    );
+                }}
+            </PressableWithoutFeedback>
+        </Tooltip>
     );
 }
 

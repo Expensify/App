@@ -318,7 +318,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                                 </>
                             )}
                         </PressableWithFeedback>
-
                         <PressableWithFeedback
                             onPress={navigateToChats}
                             role={CONST.ROLE.TAB}
@@ -462,35 +461,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
             >
-                <PressableWithFeedback
-                    onPress={navigateToNewDotHome}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel="Home"
-                    wrapperStyle={styles.flex1}
-                    style={styles.navigationTabBarItem}
-                    sentryLabel="NavigationTabBar.Home"
-                >
-                    <View>
-                        <Icon
-                            src={expensifyIcons.Home}
-                            fill={selectedTab === NAVIGATION_TABS.NEW_DOT_HOME ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                    </View>
-                    <Text
-                        numberOfLines={1}
-                        style={[
-                            styles.textSmall,
-                            styles.textAlignCenter,
-                            styles.mt1Half,
-                            selectedTab === NAVIGATION_TABS.NEW_DOT_HOME ? styles.textBold : styles.textSupporting,
-                            styles.navigationTabBarLabel,
-                        ]}
-                    >
-                        Home
-                    </Text>
-                </PressableWithFeedback>
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.TAB}
