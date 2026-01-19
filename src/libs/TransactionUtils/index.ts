@@ -2044,11 +2044,18 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
 /**
  * Gets the name corresponding to the taxCode that is displayed to the user
  */
-function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, shouldFallbackToValue = false) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+
     // transaction?.taxCode may be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode || defaultTaxCode))?.modifiedName;
+    const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === (transaction?.taxCode || defaultTaxCode));
+
+    if (shouldFallbackToValue && taxRate?.value !== transaction?.taxValue) {
+        return transaction?.taxValue;
+    }
+
+    return taxRate?.modifiedName;
 }
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
