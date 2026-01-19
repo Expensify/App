@@ -1467,7 +1467,13 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
-        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`, hrs: '時間'},
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours}  ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`,
+            hrs: '時間',
+            hours: '時間',
+            ratePreview: (rate: string) => `${rate} / 時間`,
+            amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
+        },
     },
     transactionMerge: {
         listPage: {
