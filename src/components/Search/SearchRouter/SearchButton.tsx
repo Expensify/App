@@ -27,6 +27,21 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
     const pressableRef = useRef<View>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
+    const onPress = () => {
+        callFunctionIfActionIsAllowed(() => {
+            pressableRef.current?.blur();
+
+            Timing.start(CONST.TIMING.OPEN_SEARCH);
+            Performance.markStart(CONST.TIMING.OPEN_SEARCH);
+            startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
+                name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+            });
+
+            openSearchRouter();
+        })();
+    };
+
     return (
         <Tooltip text={translate('common.search')}>
             <PressableWithoutFeedback
@@ -36,19 +51,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 shouldUseAutoHitSlop={shouldUseAutoHitSlop}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SEARCH_BUTTON}
-                // eslint-disable-next-line react-hooks/refs
-                onPress={callFunctionIfActionIsAllowed(() => {
-                    pressableRef?.current?.blur();
-
-                    Timing.start(CONST.TIMING.OPEN_SEARCH);
-                    Performance.markStart(CONST.TIMING.OPEN_SEARCH);
-                    startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
-                        name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
-                        op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
-                    });
-
-                    openSearchRouter();
-                })}
+                onPress={onPress}
             >
                 <Icon
                     src={expensifyIcons.MagnifyingGlass}
