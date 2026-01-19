@@ -1844,7 +1844,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfig, draftComment: string | undefined): boolean {
+function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, config: IsValidReportsConfig, draftComment: string | undefined): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1897,7 +1897,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     const isChatRoom = option.isChatRoom;
     const accountIDs = getParticipantsAccountIDsForDisplay(option.item);
 
-    if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
+    if (excludeNonAdminWorkspaces && !isPolicyAdmin(policy)) {
         return false;
     }
 
@@ -1949,8 +1949,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
         option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
 
-    const shouldShowInvoiceRoom =
-        includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
+    const shouldShowInvoiceRoom = includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(policy) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
 
     /*
     Exclude the report option if it doesn't meet any of the following conditions:
@@ -1969,8 +1968,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     }
 
     if (action === CONST.IOU.ACTION.CATEGORIZE) {
-        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`];
-        if (!reportPolicy?.areCategoriesEnabled) {
+        if (!policy?.areCategoriesEnabled) {
             return false;
         }
     }
@@ -1986,7 +1984,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
-function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
+function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, policiesCollection: OnyxCollection<Policy>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
@@ -2066,7 +2064,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
             newReportOption.alternateText = translateLocal('workspace.common.workspace');
 
             if (report?.policyID) {
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
                 const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
@@ -2128,6 +2126,7 @@ function getRestrictedLogins(
  */
 function getValidOptions(
     options: OptionList,
+    policiesCollection: OnyxCollection<Policy>,
     draftComments: OnyxCollection<string> | undefined,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     loginList: OnyxEntry<Login>,
@@ -2197,6 +2196,7 @@ function getValidOptions(
         };
 
         const filteringFunction = (report: SearchOption<Report>) => {
+            const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
             if (!isSearchTermsFound(report)) {
                 return false;
             }
@@ -2205,6 +2205,7 @@ function getValidOptions(
 
             return isValidReport(
                 report,
+                policy,
                 {
                     ...getValidReportsConfig,
                     includeP2P,
@@ -2219,7 +2220,7 @@ function getValidOptions(
         [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
 
         if (selfDMChats.length > 0) {
-            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, {
+            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, policiesCollection, {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
@@ -2232,7 +2233,7 @@ function getValidOptions(
         if (maxRecentReportElements) {
             recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
         }
-        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, {
+        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, policiesCollection, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
@@ -2241,7 +2242,7 @@ function getValidOptions(
             shouldShowGBR,
         });
 
-        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, {
+        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policiesCollection, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
@@ -2390,6 +2391,7 @@ function getSearchOptions({
 
     const optionList = getValidOptions(
         options,
+        allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         loginList,
@@ -2515,6 +2517,7 @@ function getMemberInviteOptions(
 ): Options {
     return getValidOptions(
         {personalDetails, reports: []},
+        allPolicies,
         undefined,
         nvpDismissedProductTraining,
         loginList,
