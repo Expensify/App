@@ -273,6 +273,7 @@ export type {
     CardFeedData,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
+    WorkspaceCardFeedsStatus,
     CompanyFeeds,
     CompanyCardFeedWithDomainID,
     CustomCardFeedData,
