@@ -138,6 +138,8 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         searchPageInputRef.current = undefined;
     };
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsContextValue = {
         openSearchRouter,
         closeSearchRouter,
@@ -146,6 +148,8 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         unregisterSearchPageInput,
     };
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateContextValue = {isSearchRouterDisplayed};
 
     return (

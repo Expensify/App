@@ -36,6 +36,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 shouldUseAutoHitSlop={shouldUseAutoHitSlop}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SEARCH_BUTTON}
+                // eslint-disable-next-line react-hooks/refs
                 onPress={callFunctionIfActionIsAllowed(() => {
                     pressableRef?.current?.blur();
 
