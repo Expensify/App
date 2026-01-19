@@ -2,12 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {duplicateExpenseTransaction, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/DuplicateAction';
+import {duplicateExpenseTransaction, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
-import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -62,7 +62,7 @@ const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
 OnyxUpdateManager();
-describe('actions/DuplicateAction', () => {
+describe('actions/Duplicate', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -690,6 +690,8 @@ describe('actions/DuplicateAction', () => {
                 },
             };
 
+            await Onyx.clear();
+
             duplicateExpenseTransaction({
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -721,6 +723,64 @@ describe('actions/DuplicateAction', () => {
             expect(duplicatedTransaction?.transactionID).toBeDefined();
             // The duplicated transaction should have a different transactionID than the original
             expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpenseTransaction.transactionID);
+        });
+
+        it('should create a duplicate time expense successfully', async () => {
+            const transactionID = 'time-1';
+            const HOURLY_RATE = 9.99;
+            const HOURS_WORKED = 15;
+            const AMOUNT_CENTS = Math.round(HOURS_WORKED * HOURLY_RATE * 100);
+
+            const mockTimeExpenseTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: AMOUNT_CENTS,
+                comment: {
+                    type: 'time' as const,
+                    units: {
+                        unit: 'h' as const,
+                        count: HOURS_WORKED,
+                        rate: HOURLY_RATE,
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockTimeExpenseTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
+                    expect(transactions).toHaveLength(1);
+                    duplicatedTransaction = transactions.at(0);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.comment?.units?.count).toEqual(HOURS_WORKED);
+            expect(duplicatedTransaction?.comment?.units?.rate).toEqual(HOURLY_RATE);
+            expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
+            expect(duplicatedTransaction?.comment?.type).toBe('time');
+            expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
         });
     });
 
