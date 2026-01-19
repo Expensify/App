@@ -1,7 +1,7 @@
 ---
 title: Two-Factor Authentication
 description: Learn how to set up two-factor authentication in Expensify Classic and what to do if you're locked out of your account.
-keywords: [two-factor authentication, 2FA, authenticator app, recovery, locked out, Domain Admin, Expensify Classic, backup codes]
+keywords: [Expensify Classic, two-factor authentication, 2FA, login security, authenticator app, recovery codes, locked out, lost phone, account recovery, Domain Admin reset, backup codes]
 ---
 
 Setting up two-factor authentication (2FA) in Expensify Classic adds an extra layer of protection to your account. This guide explains how to enable 2FA and what to expect if you're ever locked out.
@@ -20,7 +20,7 @@ Anyone can enable Two-Factor Authentication on their own account. Domain admins 
 4. Save a copy of your backup codes:
    - Click **Download** to save them to your computer.
    - Click **Copy** to store them in a secure location.
-**Important:** If you lose access to your authenticator app and didn’t save your recovery codes, you may permanently lose access to your account.
+**Important:** If you lose access to your authenticator app and didn’t save your recovery codes, you may permanently lose access to your account. Consider adding 2FA on multiple devices (e.g., phone and tablet) for backup.  
 5. Click **Continue**.
 6. Open your authenticator app and either:
    - Scan the QR code displayed on your screen.
@@ -97,4 +97,6 @@ You can use any authenticator app, but here are a few we recommend:
 - [Google Authenticator](https://support.google.com/accounts/answer/1066447)
 - [Microsoft Authenticator](https://www.microsoft.com/en-us/security/mobile-authenticator-app)
 
+## What if my verification code isn’t working?
+Make sure your device’s clock is set to update automatically. Authenticator apps rely on your system clock being accurate, and even a small time difference can cause verification codes to fail.
 
