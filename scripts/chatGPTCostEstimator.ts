@@ -1,5 +1,4 @@
 #!/usr/bin/env npx ts-node
-
 /**
  * This script estimates the cost of OpenAI API calls based on input and output tokens.
  */

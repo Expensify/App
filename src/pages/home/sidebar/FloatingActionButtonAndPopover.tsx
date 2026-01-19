@@ -52,7 +52,8 @@ import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@li
 import {
     generateReportID,
     getDisplayNameForParticipant,
-    getIcons, // Will be fixed in https://github.com/Expensify/App/issues/76852
+    getIcons,
+    // Will be fixed in https://github.com/Expensify/App/issues/76852
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getWorkspaceChats,
