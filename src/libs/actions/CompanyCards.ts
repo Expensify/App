@@ -31,6 +31,7 @@ import type {
     CardFeedDetails,
     CompanyCardFeed,
     CompanyCardFeedWithDomainID,
+    CompanyCardFeedWithNumber,
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
@@ -823,6 +824,7 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
             value: {
                 isLoading: false,
+                errors: null
             },
         },
     ];
@@ -833,6 +835,7 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
             value: {
                 isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.error.workspaceFeedsCouldNotBeLoaded'),
             },
         },
     ];
@@ -844,7 +847,7 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, successData, failureData});
 }
 
-function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, feed: CompanyCardFeed) {
+function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, feed: CompanyCardFeedWithNumber) {
     const parameters: OpenPolicyCompanyCardsFeedParams = {
         domainAccountID,
         policyID,
@@ -856,7 +859,13 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
             value: {
-                isLoading: true,
+                settings: {
+                    cardFeedsStatus: {
+                        [feed]: {
+                            isLoading: true,
+                        },
+                    },
+                },
             },
         },
     ];
@@ -866,8 +875,14 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
             value: {
-                isLoading: false,
-                errors: null,
+                settings: {
+                    cardFeedsStatus: {
+                        [feed]: {
+                            isLoading: false,
+                            errors: null
+                        },
+                    },
+                },
             },
         },
     ];
@@ -877,8 +892,14 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
             value: {
-                isLoading: false,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.error.feedsCouldNotBeLoaded'),
+                settings: {
+                    cardFeedsStatus: {
+                        [feed]: {
+                            isLoading: false,
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.error.feedCouldNotBeLoaded'),
+                        },
+                    },
+                },
             },
         },
     ];

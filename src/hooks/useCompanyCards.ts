@@ -39,7 +39,7 @@ type UsCompanyCardsResult = Partial<{
 
 function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UsCompanyCardsResult {
     const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
-    const [allCardFeeds, allCardFeedsMetadata, workspaceCardFeedsStatus] = useCardFeeds(policyID);
+    const [allCardFeeds, allCardFeedsMetadata, , workspaceCardFeedsStatus] = useCardFeeds(policyID);
 
     const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);
     const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
@@ -70,7 +70,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
         return {onyxMetadata};
     }
 
-    return {allCardFeeds, feedName, companyCardFeeds, cardList, assignedCards,workspaceCardFeedsStatus, cardNames, selectedFeed, bankName, cardFeedType, onyxMetadata};
+    return {allCardFeeds, feedName, companyCardFeeds, cardList, assignedCards, workspaceCardFeedsStatus, cardNames, selectedFeed, bankName, cardFeedType, onyxMetadata};
 }
 
 export default useCompanyCards;

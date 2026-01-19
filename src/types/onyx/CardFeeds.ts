@@ -168,6 +168,11 @@ type CardFeedsStatus = {
  */
 type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
 
+/**
+ * Collection of card feeds status by domain ID
+ */
+type WorkspaceCardFeedsStatus = Record<CompanyCardFeed, CardFeedsStatus>;
+
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
@@ -181,19 +186,16 @@ type CardFeeds = {
         /** Account details */
         oAuthAccountDetails?: Partial<Record<CompanyCardFeed, DirectCardFeedData>>;
 
+        /** Collection of card feeds status by domain ID */
+        cardFeedsStatus?: WorkspaceCardFeedsStatus;
+
         /** Email address of the technical contact for the domain */
         technicalContactEmail?: string;
 
         /** Whether to use the technical contact's billing card */
         useTechnicalContactBillingCard?: boolean;
     };
-
-    /** Errors related to all card feeds within a workspace or domain */
-    errors?: OnyxCommon.Errors;
-
-    /** Whether we are loading the data via the API */
-    isLoading?: boolean;
-} & DomainSettings;
+} & CardFeedsStatus &  DomainSettings;
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {

@@ -69,17 +69,30 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
 
+    const areWorkspaceCardFeedsLoading = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
     const workspaceCardFeedsErrors = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
-    const isFeedsError = !isEmptyObject(workspaceCardFeedsErrors);
+    const hasWorkspaceFeedsError = !isEmptyObject(workspaceCardFeedsErrors);
+
+    console.log({workspaceCardFeedsErrors, workspaceCardFeedsStatus, areWorkspaceCardFeedsLoading});
+
+    const selectedFeedStatus = selectedFeed?.status;
+    const selectedFeedErrors = selectedFeedStatus?.errors;
+    const hasSelectedFeedError = !isEmptyObject(selectedFeedErrors);
+
+    const hasFeedErrors = hasWorkspaceFeedsError || hasSelectedFeedError;
+    const feedErrors = {...workspaceCardFeedsErrors, ...selectedFeedErrors};
+
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
-    const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || policy?.id === undefined || isLoadingOnyxValue(lastSelectedFeedMetadata);
+    const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || policy?.id === undefined || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading;
 
     const isLoadingCards = cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
-    const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata));
+    const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
 
-    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed && !isFeedsError;
-    const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !isFeedsError;
+    const isShowingLoadingState = isLoadingPage || isLoadingFeed;
+
+    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed && !hasFeedErrors;
+    const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !hasFeedErrors;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
@@ -263,6 +276,8 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
+    console.log({hasWorkspaceFeedsError, hasSelectedFeedError, hasFeedError: hasFeedErrors, showCards, feedErrors});
+
     return (
         <Table
             ref={tableRef}
@@ -276,7 +291,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             filters={filterConfig}
             ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
-            {(showCards || isLoadingPage || isFeedPending) && (
+            {(showCards || isLoadingPage || isFeedPending || (hasSelectedFeedError && !hasWorkspaceFeedsError)) && (
                 <View style={shouldUseNarrowTableLayout && styles.mb5}>
                     <WorkspaceCompanyCardsTableHeaderButtons
                         isLoading={isLoadingPage}
@@ -309,9 +324,9 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 </ScrollView>
             )}
 
-            {isFeedsError && (
+            {hasFeedErrors && !isShowingLoadingState && (
                 <ErrorMessageRow
-                    errors={workspaceCardFeedsErrors}
+                    errors={feedErrors}
                     errorRowStyles={[styles.mh5]}
                 />
             )}

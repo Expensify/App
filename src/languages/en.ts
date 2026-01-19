@@ -4693,7 +4693,8 @@ const translations = {
             addCards: 'Add cards',
             selectCards: 'Select cards',
             error: {
-                feedsCouldNotBeLoaded: 'An error occurred while loading the feeds. Please try again or contact your administrator.',
+                workspaceFeedsCouldNotBeLoaded: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
+                feedCouldNotBeLoaded: 'An error occurred while loading this feed. Please try again or contact your administrator.',
             },
             addNewCard: {
                 other: 'Other',
