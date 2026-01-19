@@ -8131,6 +8131,10 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Registra millas o kilómetros automáticamente con GPS y convierte los viajes en gastos al instante.',
             button: 'Descarga la app',
         },
+        notification: {
+            title: 'Seguimiento GPS en curso',
+            body: 'Ve a la app para finalizar',
+        },
     },
 };
 

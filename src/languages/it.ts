@@ -8012,6 +8012,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
             button: 'Scarica l’app',
         },
+        notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per completare"},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -7968,7 +7968,6 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             confirm: 'Descartar rastreamento de distância',
         },
         zeroDistanceTripModal: {title: 'Não é possível criar a despesa', prompt: 'Você não pode criar uma despesa com o mesmo local de partida e de chegada.'},
-
         locationRequiredModal: {
             title: 'Acesso à localização necessário',
             prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
@@ -7987,6 +7986,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             subtitle: 'Registre milhas ou quilômetros automaticamente com o GPS e transforme viagens em despesas instantaneamente.',
             button: 'Baixar o app',
         },
+        notification: {title: 'Rastreamento de GPS em andamento', body: 'Vá para o app para finalizar'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
