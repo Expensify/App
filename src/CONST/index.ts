@@ -7819,6 +7819,15 @@ const CONST = {
         INVERTED: 'inverted',
     },
 
+    VIOLATION_DISMISSAL: {
+        rter: {
+            manual: 'marked this receipt as cash',
+        },
+        duplicatedTransaction: {
+            manual: 'resolved the duplicate',
+        },
+    },
+
     SENTRY_LABEL: {
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',

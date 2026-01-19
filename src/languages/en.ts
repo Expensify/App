@@ -1458,6 +1458,9 @@ const translations = {
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hour' : 'hours'} @ ${rate} / hour`,
             hrs: 'hrs',
+            hours: 'Hours',
+            ratePreview: (rate: string) => `${rate} / hour`,
+            amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
     },
     transactionMerge: {
