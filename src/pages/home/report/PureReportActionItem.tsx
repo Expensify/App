@@ -241,6 +241,9 @@ type PureReportActionItemProps = {
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
+    /** All transaction drafts */
+    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
+
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -365,6 +368,7 @@ type PureReportActionItemProps = {
         actionName: IOUAction,
         reportActionID: string,
         introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+        allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>,
         activePolicy: OnyxEntry<OnyxTypes.Policy>,
         isRestrictedToPreferredPolicy?: boolean,
         preferredPolicyID?: string,
@@ -457,6 +461,7 @@ function PureReportActionItem({
     policies,
     personalPolicyID,
     introSelected,
+    allTransactionDrafts,
     action,
     report,
     policy,
@@ -887,6 +892,7 @@ function PureReportActionItem({
                             CONST.IOU.ACTION.SUBMIT,
                             action.reportActionID,
                             introSelected,
+                            allTransactionDrafts,
                             activePolicy,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
@@ -907,6 +913,7 @@ function PureReportActionItem({
                                 CONST.IOU.ACTION.CATEGORIZE,
                                 action.reportActionID,
                                 introSelected,
+                                allTransactionDrafts,
                                 activePolicy,
                             );
                         },
@@ -921,6 +928,7 @@ function PureReportActionItem({
                                 CONST.IOU.ACTION.SHARE,
                                 action.reportActionID,
                                 introSelected,
+                                allTransactionDrafts,
                                 activePolicy,
                             );
                         },
@@ -1061,6 +1069,7 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
+        allTransactionDrafts,
         activePolicy,
         report,
         originalReport,
