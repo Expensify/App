@@ -67,9 +67,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
 
     const onSelectDayOfMonth = (item: WorkspaceAutoReportingMonthlyOffsetPageItem) => {
         setWorkspaceAutoReportingMonthlyOffset(policy?.id, item.isNumber ? parseInt(item.keyForList, 10) : (item.keyForList as AutoReportingOffsetKeys));
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id));
-        });
+        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id));
     };
     const textInputOptions = useMemo(
         () => ({
@@ -111,7 +109,6 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                         shouldSingleExecuteRowSelect
                         addBottomSafeAreaPadding
                         showScrollIndicator
-                        shouldBlockScrollOnSelect
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
