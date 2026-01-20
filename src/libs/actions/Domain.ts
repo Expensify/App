@@ -1,15 +1,14 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {AddAdminToDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, SetVacationDelegateParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
+import type {AddAdminToDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getAuthToken} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
@@ -796,10 +795,14 @@ function setDomainVacationDelegate(
         },
     ];
 
-    // Will be replaced with new api call
+    // Will be replaced with a new api call
     Onyx.update(optimisticData);
-    return new Promise((resolve) => {
-        resolve();
+    return new Promise<{jsonCode?: ValueOf<typeof CONST.JSON_CODE>}>((resolve) => {
+        if (!shouldOverridePolicyDiffWarning) {
+            resolve({jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING});
+            return;
+        }
+        resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
     });
 }
 
@@ -815,10 +818,10 @@ function deleteDomainVacationDelegate(vacationDelegate: BaseVacationDelegate, do
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
-                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
+                [vacationDelegateKey]: {
                     delegate: null,
                     creator: null,
-                    previousDelegate: previousDelegate,
+                    previousDelegate: previousDelegate ?? null,
                 },
             } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, BaseVacationDelegate>,
         },
@@ -934,7 +937,7 @@ function clearVacationDelegateError(domainMemberAccountID: number, domainAccount
                     creator: null,
                     previousDelegate: null,
                 },
-            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, BaseVacationDelegate>,
+            } as unknown as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, BaseVacationDelegate>,
         },
     ];
 
