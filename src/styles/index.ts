@@ -3296,6 +3296,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 180,
         },
 
+        mfaBlockingViewAnimation: {
+            width: 180,
+            height: 180,
+        },
+
         locationErrorLinkText: {
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
@@ -5632,6 +5637,9 @@ const staticStyles = (theme: ThemeColors) =>
         saveTheWorldStaticIllustration: {
             width: 179,
             height: 180,
+        },
+        paymentMethodErrorRow: {
+            paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
     }) satisfies StaticStyles;
 
