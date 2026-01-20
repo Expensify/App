@@ -705,20 +705,6 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCard
 }
 
 /**
- * Filter out the Expensify cards from the list of cards
- *
- * @param cards the list of cards to filter
- * @returns the list of cards without Expensify cards
- */
-function filterCardsByNonExpensify(cards: CardList | undefined): CardList {
-    if (!cards) {
-        return {};
-    }
-
-    return Object.fromEntries(Object.entries(cards).filter(([key]) => !key.includes(CONST.EXPENSIFY_CARD.BANK)));
-}
-
-/**
  * Takes the list of cards divided by workspaces and feeds and returns the flattened non-Expensify cards related to the provided workspace
  *
  * @param allCardsList the list where cards split by workspaces and feeds and stored under `card_${workspaceAccountID}_${feedName}` keys
@@ -932,7 +918,6 @@ export {
     getDomainOrWorkspaceAccountID,
     mergeCardListWithWorkspaceFeeds,
     isCard,
-    filterCardsByNonExpensify,
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
     getFeedType,
