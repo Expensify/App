@@ -350,8 +350,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         return;
     }
 
-    // return;
-
     const {
         policyID,
         activePolicyID,
