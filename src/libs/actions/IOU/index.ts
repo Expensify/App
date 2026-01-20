@@ -14589,4 +14589,5 @@ export type {
     UpdateMoneyRequestData,
     BasePolicyParams,
     RejectMoneyRequestData,
+    CreateDistanceRequestInformation,
 };

@@ -22,7 +22,7 @@ import currencyList from '../../unit/currencyList.json';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import {createRandomReport} from '../../utils/collections/reports';
-import createRandomTransaction from '../../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -824,7 +824,10 @@ describe('actions/Duplicate', () => {
                 return;
             }
 
-            isTransactionDuplicated(mockDistanceTransaction, duplicatedTransaction);
+            expect(duplicatedTransaction?.transactionID).not.toBe(mockDistanceTransaction.transactionID);
+            expect(duplicatedTransaction?.comment?.customUnit?.name).toEqual(CONST.CUSTOM_UNITS.NAME_DISTANCE);
+            expect(duplicatedTransaction?.comment?.customUnit?.distanceUnit).toEqual(mockDistanceTransaction.comment?.customUnit?.distanceUnit);
+            expect(duplicatedTransaction?.comment?.customUnit?.waypoints).toEqual(mockDistanceTransaction.comment?.customUnit?.waypoints);
         });
     });
 
