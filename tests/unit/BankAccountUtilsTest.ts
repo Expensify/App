@@ -59,10 +59,10 @@ describe('BankAccountUtils', () => {
         });
 
         it.each([
-            {field: 'street', address: {street: '', city: 'New York', state: 'NY', zip: '10001', country: 'US', current: true}},
-            {field: 'city', address: {street: '123 Main St', city: '', state: 'NY', zip: '10001', country: 'US', current: true}},
-            {field: 'state', address: {street: '123 Main St', city: 'New York', state: '', zip: '10001', country: 'US', current: true}},
-            {field: 'zip', address: {street: '123 Main St', city: 'New York', state: 'NY', zip: '', country: 'US', current: true}},
+            {field: 'street', address: {street: '', city: 'New York', state: 'NY', zip: '10001', country: 'US' as const, current: true}},
+            {field: 'city', address: {street: '123 Main St', city: '', state: 'NY', zip: '10001', country: 'US' as const, current: true}},
+            {field: 'state', address: {street: '123 Main St', city: 'New York', state: '', zip: '10001', country: 'US' as const, current: true}},
+            {field: 'zip', address: {street: '123 Main St', city: 'New York', state: 'NY', zip: '', country: 'US' as const, current: true}},
         ])('returns true when address $field is missing', ({address}) => {
             const details: PrivatePersonalDetails = {
                 ...completePersonalDetails,
