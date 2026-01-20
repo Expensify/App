@@ -349,20 +349,19 @@ describe('SettlementButton', () => {
         describe('IOU reports', () => {
             it('shows no subtitle when shouldUseShortForm is true', async () => {
                 const iouReport = createIOUReport();
-                const bankAccountList = createPersonalBankAccount();
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
-                    await Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+                await setupOnyxState({
+                    report: iouReport,
+                    chatReport: createChatReport(),
+                    bankAccountList: createPersonalBankAccount(),
+                    lastPaymentMethod: {
                         [CONST.POLICY.ID_FAKE]: {
                             lastUsed: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                             iou: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                             expense: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                             invoice: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                         },
-                    } as LastPaymentMethod);
+                    },
                 });
 
                 render(
@@ -384,17 +383,17 @@ describe('SettlementButton', () => {
             it('shows no subtitle when last payment method is ELSEWHERE', async () => {
                 const iouReport = createIOUReport();
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+                await setupOnyxState({
+                    report: iouReport,
+                    chatReport: createChatReport(),
+                    lastPaymentMethod: {
                         [CONST.POLICY.ID_FAKE]: {
                             lastUsed: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
                             iou: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
                             expense: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
                             invoice: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         },
-                    });
+                    },
                 });
 
                 render(
@@ -415,9 +414,9 @@ describe('SettlementButton', () => {
             it('shows no subtitle when only ELSEWHERE option is available', async () => {
                 const iouReport = createIOUReport();
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
+                await setupOnyxState({
+                    report: iouReport,
+                    chatReport: createChatReport(),
                 });
 
                 render(
@@ -437,20 +436,19 @@ describe('SettlementButton', () => {
 
             it('shows "Wallet" when payment method is EXPENSIFY and personal bank accounts exist', async () => {
                 const iouReport = createIOUReport();
-                const bankAccountList = createPersonalBankAccount();
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
-                    await Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+                await setupOnyxState({
+                    report: iouReport,
+                    chatReport: createChatReport(),
+                    bankAccountList: createPersonalBankAccount(),
+                    lastPaymentMethod: {
                         [CONST.POLICY.ID_FAKE]: {
                             lastUsed: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                             iou: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                             expense: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                             invoice: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                         },
-                    });
+                    },
                 });
 
                 render(
@@ -471,17 +469,17 @@ describe('SettlementButton', () => {
             it('shows no wallet when payment method is EXPENSIFY but no personal bank accounts exist', async () => {
                 const iouReport = createIOUReport();
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+                await setupOnyxState({
+                    report: iouReport,
+                    chatReport: createChatReport(),
+                    lastPaymentMethod: {
                         [CONST.POLICY.ID_FAKE]: {
                             lastUsed: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                             iou: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                             expense: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                             invoice: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                         },
-                    });
+                    },
                 });
 
                 render(
@@ -501,12 +499,11 @@ describe('SettlementButton', () => {
 
             it('shows no wallet when only business bank accounts exist', async () => {
                 const iouReport = createIOUReport();
-                const bankAccountList = createBankAccountList('9999');
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+                await setupOnyxState({
+                    report: iouReport,
+                    chatReport: createChatReport(),
+                    bankAccountList: createBankAccountList('9999'),
                 });
 
                 render(
@@ -527,20 +524,19 @@ describe('SettlementButton', () => {
 
             it('shows policy name when last payment method references a policy', async () => {
                 const iouReport = createIOUReport();
-                const policy = createTestPolicy({name: 'My Workspace'});
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                    await Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+                await setupOnyxState({
+                    report: iouReport,
+                    chatReport: createChatReport(),
+                    policy: createTestPolicy({name: 'My Workspace'}),
+                    lastPaymentMethod: {
                         [CONST.POLICY.ID_FAKE]: {
                             lastUsed: {name: POLICY_ID},
                             iou: {name: POLICY_ID},
                             expense: {name: POLICY_ID},
                             invoice: POLICY_ID,
                         },
-                    });
+                    },
                 });
 
                 render(
@@ -560,20 +556,19 @@ describe('SettlementButton', () => {
 
             it('does not show bank account last four digits (only expense reports show this)', async () => {
                 const iouReport = createIOUReport();
-                const bankAccountList = createBankAccountList('7777');
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
-                    await Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+                await setupOnyxState({
+                    report: iouReport,
+                    chatReport: createChatReport(),
+                    bankAccountList: createBankAccountList('7777'),
+                    lastPaymentMethod: {
                         [CONST.POLICY.ID_FAKE]: {
                             lastUsed: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
                             iou: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
                             expense: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
                             invoice: CONST.IOU.PAYMENT_TYPE.VBBA,
                         },
-                    });
+                    },
                 });
 
                 render(
@@ -595,32 +590,30 @@ describe('SettlementButton', () => {
         describe('expense reports', () => {
             it('shows bank account last four digits when policy has achAccount', async () => {
                 const expenseReport = createExpenseReport();
-                const policy = createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '9876',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                });
-                const bankAccountList = createBankAccountList('9876');
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
-                    await Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+                await setupOnyxState({
+                    report: expenseReport,
+                    chatReport: createChatReport(),
+                    policy: createTestPolicy({
+                        achAccount: {
+                            bankAccountID: BANK_ACCOUNT_ID,
+                            accountNumber: '9876',
+                            routingNumber: '123456789',
+                            addressName: 'Test Business',
+                            bankName: 'Test Bank',
+                            reimburser: 'reimburser@test.com',
+                            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        },
+                    }),
+                    bankAccountList: createBankAccountList('9876'),
+                    lastPaymentMethod: {
                         [POLICY_ID]: {
                             lastUsed: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
                             iou: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
                             expense: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
                             invoice: CONST.IOU.PAYMENT_TYPE.VBBA,
                         },
-                    });
+                    },
                 });
 
                 render(
@@ -639,27 +632,25 @@ describe('SettlementButton', () => {
 
             it('shows bank account not wallet even with personal bank accounts', async () => {
                 const expenseReport = createExpenseReport();
-                const policy = createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '9876',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                });
-                const bankAccountList = {
-                    ...createBankAccountList('9876'),
-                    ...createPersonalBankAccount('5678'),
-                };
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+                await setupOnyxState({
+                    report: expenseReport,
+                    chatReport: createChatReport(),
+                    policy: createTestPolicy({
+                        achAccount: {
+                            bankAccountID: BANK_ACCOUNT_ID,
+                            accountNumber: '9876',
+                            routingNumber: '123456789',
+                            addressName: 'Test Business',
+                            bankName: 'Test Bank',
+                            reimburser: 'reimburser@test.com',
+                            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        },
+                    }),
+                    bankAccountList: {
+                        ...createBankAccountList('9876'),
+                        ...createPersonalBankAccount('5678'),
+                    },
                 });
 
                 render(
@@ -679,24 +670,22 @@ describe('SettlementButton', () => {
 
             it('shows bank account when hasIntentToPay is true with policy achAccount', async () => {
                 const expenseReport = createExpenseReport();
-                const policy = createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '4321',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                });
-                const bankAccountList = createBankAccountList('4321');
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+                await setupOnyxState({
+                    report: expenseReport,
+                    chatReport: createChatReport(),
+                    policy: createTestPolicy({
+                        achAccount: {
+                            bankAccountID: BANK_ACCOUNT_ID,
+                            accountNumber: '4321',
+                            routingNumber: '123456789',
+                            addressName: 'Test Business',
+                            bankName: 'Test Bank',
+                            reimburser: 'reimburser@test.com',
+                            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        },
+                    }),
+                    bankAccountList: createBankAccountList('4321'),
                 });
 
                 render(
@@ -716,24 +705,22 @@ describe('SettlementButton', () => {
 
             it('shows bank account even when hasIntentToPay but no personal bank accounts', async () => {
                 const expenseReport = createExpenseReport();
-                const policy = createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '1111',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                });
-                const bankAccountList = createBankAccountList('1111');
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+                await setupOnyxState({
+                    report: expenseReport,
+                    chatReport: createChatReport(),
+                    policy: createTestPolicy({
+                        achAccount: {
+                            bankAccountID: BANK_ACCOUNT_ID,
+                            accountNumber: '1111',
+                            routingNumber: '123456789',
+                            addressName: 'Test Business',
+                            bankName: 'Test Bank',
+                            reimburser: 'reimburser@test.com',
+                            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        },
+                    }),
+                    bankAccountList: createBankAccountList('1111'),
                 });
 
                 render(
@@ -753,29 +740,28 @@ describe('SettlementButton', () => {
 
             it('renders button when VBBA payment method but achAccount has no account number', async () => {
                 const expenseReport = createExpenseReport();
-                const policy = createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    } as Policy['achAccount'],
-                });
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                    await Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+                await setupOnyxState({
+                    report: expenseReport,
+                    chatReport: createChatReport(),
+                    policy: createTestPolicy({
+                        achAccount: {
+                            bankAccountID: BANK_ACCOUNT_ID,
+                            routingNumber: '123456789',
+                            addressName: 'Test Business',
+                            bankName: 'Test Bank',
+                            reimburser: 'reimburser@test.com',
+                            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        } as Policy['achAccount'],
+                    }),
+                    lastPaymentMethod: {
                         [POLICY_ID]: {
                             lastUsed: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
                             iou: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
                             expense: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
                             invoice: CONST.IOU.PAYMENT_TYPE.VBBA,
                         },
-                    });
+                    },
                 });
 
                 render(
@@ -794,23 +780,21 @@ describe('SettlementButton', () => {
 
             it('shows bank account from formattedPaymentMethods when achAccount has no account number but hasIntentToPay', async () => {
                 const expenseReport = createExpenseReport();
-                const policy = createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    } as Policy['achAccount'],
-                });
-                const bankAccountList = createBankAccountList('3333');
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+                await setupOnyxState({
+                    report: expenseReport,
+                    chatReport: createChatReport(),
+                    policy: createTestPolicy({
+                        achAccount: {
+                            bankAccountID: BANK_ACCOUNT_ID,
+                            routingNumber: '123456789',
+                            addressName: 'Test Business',
+                            bankName: 'Test Bank',
+                            reimburser: 'reimburser@test.com',
+                            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        } as Policy['achAccount'],
+                    }),
+                    bankAccountList: createBankAccountList('3333'),
                 });
 
                 render(
@@ -829,32 +813,30 @@ describe('SettlementButton', () => {
 
             it('shows bank account when business bank matches policy achAccount via lastBankAccountID', async () => {
                 const expenseReport = createExpenseReport();
-                const policy = createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '2222',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                });
-                const bankAccountList = createBankAccountList('2222');
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
-                    await Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+                await setupOnyxState({
+                    report: expenseReport,
+                    chatReport: createChatReport(),
+                    policy: createTestPolicy({
+                        achAccount: {
+                            bankAccountID: BANK_ACCOUNT_ID,
+                            accountNumber: '2222',
+                            routingNumber: '123456789',
+                            addressName: 'Test Business',
+                            bankName: 'Test Bank',
+                            reimburser: 'reimburser@test.com',
+                            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        },
+                    }),
+                    bankAccountList: createBankAccountList('2222'),
+                    lastPaymentMethod: {
                         [POLICY_ID]: {
                             lastUsed: {name: 'customPaymentMethod', bankAccountID: BANK_ACCOUNT_ID},
                             iou: {name: 'customPaymentMethod', bankAccountID: BANK_ACCOUNT_ID},
                             expense: {name: 'customPaymentMethod', bankAccountID: BANK_ACCOUNT_ID},
                             invoice: 'customPaymentMethod',
                         },
-                    });
+                    },
                 });
 
                 render(
@@ -875,19 +857,17 @@ describe('SettlementButton', () => {
         describe('invoice reports', () => {
             it('renders payment button for invoice report', async () => {
                 const invoiceReport = createInvoiceReport();
-                const chatReport = createChatReport({
-                    invoiceReceiver: {
-                        type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                        accountID: 2,
-                    },
-                });
-                const bankAccountList = createBankAccountList('8888');
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, invoiceReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createTestPolicy());
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+                await setupOnyxState({
+                    report: invoiceReport,
+                    chatReport: createChatReport({
+                        invoiceReceiver: {
+                            type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                            accountID: 2,
+                        },
+                    }),
+                    policy: createTestPolicy(),
+                    bankAccountList: createBankAccountList('8888'),
                 });
 
                 render(
@@ -906,30 +886,27 @@ describe('SettlementButton', () => {
 
             it('shows business bank label for invoice with business bank account and hasIntentToPay', async () => {
                 const invoiceReport = createInvoiceReport();
-                const chatReport = createChatReport({
-                    invoiceReceiver: {
-                        type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                        accountID: 2,
-                    },
-                });
-                const policy = createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '4444',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                });
-                const bankAccountList = createBankAccountList('4444');
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, invoiceReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+                await setupOnyxState({
+                    report: invoiceReport,
+                    chatReport: createChatReport({
+                        invoiceReceiver: {
+                            type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                            accountID: 2,
+                        },
+                    }),
+                    policy: createTestPolicy({
+                        achAccount: {
+                            bankAccountID: BANK_ACCOUNT_ID,
+                            accountNumber: '4444',
+                            routingNumber: '123456789',
+                            addressName: 'Test Business',
+                            bankName: 'Test Bank',
+                            reimburser: 'reimburser@test.com',
+                            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        },
+                    }),
+                    bankAccountList: createBankAccountList('4444'),
                 });
 
                 render(
@@ -948,30 +925,27 @@ describe('SettlementButton', () => {
 
             it('shows personal bank label for invoice with personal bank account and hasIntentToPay', async () => {
                 const invoiceReport = createInvoiceReport();
-                const chatReport = createChatReport({
-                    invoiceReceiver: {
-                        type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                        accountID: 2,
-                    },
-                });
-                const policy = createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '5555',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                });
-                const bankAccountList = createPersonalBankAccount('5555');
 
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, invoiceReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                    await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+                await setupOnyxState({
+                    report: invoiceReport,
+                    chatReport: createChatReport({
+                        invoiceReceiver: {
+                            type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                            accountID: 2,
+                        },
+                    }),
+                    policy: createTestPolicy({
+                        achAccount: {
+                            bankAccountID: BANK_ACCOUNT_ID,
+                            accountNumber: '5555',
+                            routingNumber: '123456789',
+                            addressName: 'Test Business',
+                            bankName: 'Test Bank',
+                            reimburser: 'reimburser@test.com',
+                            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        },
+                    }),
+                    bankAccountList: createPersonalBankAccount('5555'),
                 });
 
                 render(
@@ -994,10 +968,10 @@ describe('SettlementButton', () => {
         it('shows approve button when shouldHidePaymentOptions and shouldShowApproveButton are true', async () => {
             const expenseReport = createExpenseReport();
 
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createTestPolicy());
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy(),
             });
 
             render(
@@ -1019,10 +993,10 @@ describe('SettlementButton', () => {
         it('does not show approve button when shouldShowApproveButton is false', async () => {
             const expenseReport = createExpenseReport();
 
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createTestPolicy());
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy(),
             });
 
             render(
@@ -1043,10 +1017,10 @@ describe('SettlementButton', () => {
         it('does not show payment options when shouldHidePaymentOptions is true without approve button', async () => {
             const expenseReport = createExpenseReport();
 
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createTestPolicy());
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy(),
             });
 
             render(
@@ -1068,9 +1042,9 @@ describe('SettlementButton', () => {
         it('shows pay elsewhere button when onlyShowPayElsewhere is true', async () => {
             const iouReport = createIOUReport();
 
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
+            await setupOnyxState({
+                report: iouReport,
+                chatReport: createChatReport(),
             });
 
             render(
@@ -1090,20 +1064,19 @@ describe('SettlementButton', () => {
 
         it('shows no subtitle when shouldHidePaymentOptions and onlyShowPayElsewhere are true', async () => {
             const iouReport = createIOUReport();
-            const bankAccountList = createPersonalBankAccount();
 
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
-                await Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+            await setupOnyxState({
+                report: iouReport,
+                chatReport: createChatReport(),
+                bankAccountList: createPersonalBankAccount(),
+                lastPaymentMethod: {
                     [CONST.POLICY.ID_FAKE]: {
                         lastUsed: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                         iou: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                         expense: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
                         invoice: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                     },
-                });
+                },
             });
 
             render(
@@ -1126,9 +1099,9 @@ describe('SettlementButton', () => {
         it('shows short form pay button when onlyShowPayElsewhere and shouldUseShortForm are true', async () => {
             const iouReport = createIOUReport();
 
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, createChatReport());
+            await setupOnyxState({
+                report: iouReport,
+                chatReport: createChatReport(),
             });
 
             render(
