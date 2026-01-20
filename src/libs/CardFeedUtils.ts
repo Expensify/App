@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
-import type {CombinedCardFeed, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
@@ -522,7 +522,7 @@ function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | 
             return acc;
         }
 
-        for (const feedName of Object.keys(companyCards) as CompanyCardFeedWithNumber[]) {
+        for (const feedName of Object.keys(companyCards) as CompanyCardFeed[]) {
             const feedSettings = companyCards?.[feedName];
             const oAuthAccountDetails = workspaceFeedsSettings?.oAuthAccountDetails?.[feedName];
             const customFeedName = workspaceFeedsSettings?.companyCardNicknames?.[feedName];

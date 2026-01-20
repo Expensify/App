@@ -39,7 +39,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
-import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -200,7 +199,7 @@ function PaymentMethodList({
 
                 let shouldShowRBR = false;
                 if (card.fundID) {
-                    const feedNameWithDomainID = getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeedWithNumber, card.fundID);
+                    const feedNameWithDomainID = getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID);
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
                 } else {
                     shouldShowRBR = true;

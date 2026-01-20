@@ -638,9 +638,9 @@ function getAllCardsForWorkspace(
 ): CardList {
     const cards: CardList = {};
     const companyCardsDomainFeeds = Object.entries(cardFeeds ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
-    const expensifyCardFeedNames = Object.keys(expensifyCardSettings ?? {}) as CompanyCardFeedWithDomainID[];
-
-    const expensifyCardsDomainIDs = expensifyCardFeedNames.map((key) => splitCompanyCardFeedWithDomainID(key).domainID).filter((id) => !!id) as number[];
+    const expensifyCardsDomainIDs = Object.keys(expensifyCardSettings ?? {})
+        .map((key) => key.split('_').at(-1))
+        .filter((id): id is string => !!id);
 
     for (const [key, values] of Object.entries(allCardList ?? {})) {
         const isWorkspaceAccountCards = workspaceAccountID !== CONST.DEFAULT_NUMBER_ID && key.includes(workspaceAccountID.toString());
@@ -957,8 +957,8 @@ export {
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
     getFeedType,
-    flattenCompanyCards,
-    checkIfFeedConnectionIsBroken,
+    flatAllCardsList,
+    isCardConnectionBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,

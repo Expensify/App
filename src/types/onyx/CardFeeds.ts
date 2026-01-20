@@ -152,11 +152,7 @@ type DomainSettings = {
         /** Email to primary contact from the domain */
         technicalContactEmail?: string;
     };
-
-    /** Whether we are loading the data via the API */
-    isLoading?: boolean;
 };
-
 
 /** Card feeds model, including domain settings */
 type CardFeeds = {
@@ -256,7 +252,7 @@ type CombinedCardFeed = CustomCardFeedData &
     };
 
 /** Card feeds combined by domain ID into one object */
-type CombinedCardFeeds = Record<CardFeedWithDomainID, CombinedCardFeed>;
+type CombinedCardFeeds = Record<CompanyCardFeedWithDomainID, CombinedCardFeed>;
 
 export default CardFeeds;
 export type {
