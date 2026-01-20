@@ -259,7 +259,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Suchen …',
         next: 'Weiter',
         previous: 'Zurück',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Zurück',
         create: 'Erstellen',
         add: 'Hinzufügen',
@@ -627,7 +626,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In die Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet ...',
         domains: 'Domänen',
-        viewReport: 'Bericht anzeigen',
         actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
@@ -1957,13 +1955,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Chatte mit Concierge, um Sicherheitsbedenken zu klären und dein Konto wieder freizuschalten.',
         chatWithConcierge: 'Chat mit Concierge',
     },
-    passwordPage: {
-        changePassword: 'Passwort ändern',
-        changingYourPasswordPrompt: 'Wenn Sie Ihr Passwort ändern, wird es sowohl für Ihr Expensify.com-Konto als auch für Ihr New-Expensify-Konto aktualisiert.',
-        currentPassword: 'Aktuelles Passwort',
-        newPassword: 'Neues Passwort',
-        newPasswordPrompt: 'Ihr neues Passwort muss sich von Ihrem alten Passwort unterscheiden und mindestens 8 Zeichen, 1 Großbuchstaben, 1 Kleinbuchstaben und 1 Zahl enthalten.',
-    },
     twoFactorAuth: {
         headerTitle: 'Zwei-Faktor-Authentifizierung',
         twoFactorAuthEnabled: 'Zwei-Faktor-Authentifizierung aktiviert',
@@ -3002,15 +2993,6 @@ ${
         subtitle: 'Ihre Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es später noch einmal.',
         wrongTypeSubtitle: 'Diese Suche ist ungültig. Versuche, deine Suchkriterien anzupassen.',
     },
-    setPasswordPage: {
-        enterPassword: 'Passwort eingeben',
-        setPassword: 'Passwort festlegen',
-        newPasswordPrompt: 'Dein Passwort muss mindestens 8 Zeichen, 1 Großbuchstaben, 1 Kleinbuchstaben und 1 Zahl enthalten.',
-        passwordFormTitle: 'Willkommen zurück bei New Expensify! Bitte lege dein Passwort fest.',
-        passwordNotSet: 'Wir konnten Ihr neues Passwort nicht festlegen. Wir haben Ihnen einen neuen Passwort-Link gesendet, damit Sie es erneut versuchen können.',
-        setPasswordLinkInvalid: 'Dieser Link zum Festlegen des Passworts ist ungültig oder abgelaufen. Ein neuer wartet bereits in deinem E-Mail-Posteingang auf dich!',
-        validateAccount: 'Konto verifizieren',
-    },
     statusPage: {
         status: 'Status',
         statusExplanation: 'Füge ein Emoji hinzu, damit deine Kolleg:innen und Freund:innen leicht sehen können, was los ist. Du kannst optional auch eine Nachricht hinzufügen!',
@@ -3158,6 +3140,8 @@ ${
     onfidoStep: {
         acceptTerms: 'Indem Sie mit der Anfrage zur Aktivierung Ihres Expensify Wallets fortfahren, bestätigen Sie, dass Sie gelesen, verstanden und akzeptiert haben',
         facialScan: 'Onfidos Richtlinie und Einverständniserklärung zur Gesichtserfassung',
+        onfidoLinks: (onfidoTitle: string) =>
+            `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfidos Richtlinie und Einverständniserklärung zur Gesichtserfassung</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Datenschutz</a> und <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Nutzungsbedingungen</a>.</muted-text-micro>`,
         tryAgain: 'Erneut versuchen',
         verifyIdentity: 'Identität bestätigen',
         letsVerifyIdentity: 'Lass uns deine Identität bestätigen',
@@ -5106,6 +5090,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     `Wählen Sie das ${integration}-Konto, in das die Transaktionen exportiert werden sollen. Wählen Sie eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.`,
                 lastUpdated: 'Zuletzt aktualisiert',
                 transactionStartDate: 'Transaktionsanfangsdatum',
+                changeTransactionStartDateWarning:
+                    'Durch das Ändern des Startdatums werden alle nicht gemeldeten/entworfenen Berichtstransaktionen entfernt und alle Transaktionen ab dem neuen Startdatum erneut importiert. Dies kann zu doppelten Transaktionen führen.',
                 updateCard: 'Karte aktualisieren',
                 unassignCard: 'Karte zuweisen aufheben',
                 unassign: 'Zuweisung aufheben',
@@ -6632,20 +6618,40 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 }
             }
         },
-        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `Pflichtbelegbetrag auf „${newValue}“ festlegen`,
-        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `Betrag für erforderliche Belege auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
-        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `erforderlichen Belegbetrag entfernt (zuvor „${oldValue}“)`,
-        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale Ausgabenhöhe auf „${newValue}“ festlegen`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximalen Ausgabenbetrag auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximaler Ausgabenbetrag entfernt (zuvor „${oldValue}“)`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Spesenalter auf „${newValue}“ Tage festlegen`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `Maximales Ausgabenalter auf „${newValue}“ Tage geändert (zuvor „${oldValue}“)`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `Maximales Spesenalter entfernt (zuvor „${oldValue}“ Tage)`,
+        setDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `das Standardgeschäftsbankkonto auf „${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}“ festlegen`,
+        removedDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `das Standard-Geschäftsbankkonto „${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}“ entfernt`,
+        changedDefaultBankAccount: ({
+            bankAccountName,
+            maskedBankAccountNumber,
+            oldBankAccountName,
+            oldMaskedBankAccountNumber,
+        }: {
+            bankAccountName: string;
+            maskedBankAccountNumber: string;
+            oldBankAccountName: string;
+            oldMaskedBankAccountNumber: string;
+        }) =>
+            `Standard-Geschäftsbankkonto geändert zu „${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}“ (zuvor „${oldBankAccountName ? `${oldBankAccountName}: ` : ''}${oldMaskedBankAccountNumber}“)`,
+        changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `den Firmennamen der Rechnung in „${newValue}“ geändert (zuvor „${oldValue}“)` : `den Rechnungsfirmennamen auf „${newValue}“ festlegen`,
+        changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `die Firmenwebsite der Rechnung wurde in „${newValue}“ geändert (zuvor „${oldValue}“)` : `setzen Sie die Firmenwebsite der Rechnung auf „${newValue}“`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `benutzerdefinierte Berichtsnamensformel in „${newValue}“ geändert (zuvor „${oldValue}“)`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `hat den autorisierten Zahler in „${newReimburser}“ geändert (zuvor „${previousReimburser}“)` : `den autorisierten Zahler in „${newReimburser}“ geändert`,
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `erforderlichen Belegbetrag auf „${newValue}“ festlegen`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `Betrag für erforderlichen Beleg auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `Betrag für erforderlichen Beleg entfernt (zuvor „${oldValue}“)`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximalen Spesenbetrag auf „${newValue}“ festlegen`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximalen Ausgabenbetrag auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximalen Ausgabenbetrag entfernt (zuvor „${oldValue}“)`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage festlegen`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage geändert (zuvor „${oldValue}“)`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter entfernt (zuvor „${oldValue}“ Tage)`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -7349,6 +7355,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         hold: 'Diese Ausgabe wurde zurückgestellt',
         resolvedDuplicates: 'Duplikat behoben',
         companyCardRequired: 'Firmenkartenkäufe erforderlich',
+        noRoute: 'Bitte wählen Sie eine gültige Adresse aus',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} ist erforderlich`,
@@ -8027,6 +8034,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
             button: 'App herunterladen',
         },
+        notification: {title: 'GPS-Tracking läuft', body: 'Wechsel zur App, um abzuschließen'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
