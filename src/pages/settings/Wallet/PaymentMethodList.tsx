@@ -264,6 +264,7 @@ function PaymentMethodList({
                         disabled: isDisabled,
                         canDismissError: false,
                         shouldShowRightIcon,
+                        shouldShowThreeDotsMenu: !isPersonalOldDotCard,
                         errors: card.errors,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator:
