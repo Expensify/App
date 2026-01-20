@@ -1,6 +1,6 @@
 import {hasServicesEnabledAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 import React, {useState} from 'react';
-import {Linking, Platform, View} from 'react-native';
+import {Linking, View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -14,6 +14,7 @@ import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions
 import addressFromGpsPoint from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/addressFromGpsPoint';
 import coordinatesToString from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/coordinatesToString';
 import ONYXKEYS from '@src/ONYXKEYS';
+import openSettings from './openSettings';
 
 type ButtonsProps = {
     navigateToNextStep: () => void;
@@ -96,12 +97,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
 
     const openSettingsForLocationServices = () => {
         setShowDisabledServicesModal(false);
-        if (Platform.OS === 'android') {
-            Linking.sendIntent('android.settings.SETTINGS');
-        } else {
-            // cspell:disable-next-line
-            Linking.openURL('App-Prefs:General');
-        }
+        openSettings();
     };
 
     return (
