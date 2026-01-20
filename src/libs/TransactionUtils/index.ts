@@ -2053,7 +2053,7 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === (transaction?.taxCode || defaultTaxCode));
 
-    if (shouldFallbackToValue && taxRate?.value !== transaction?.taxValue) {
+    if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
         return transaction?.taxValue;
     }
 
