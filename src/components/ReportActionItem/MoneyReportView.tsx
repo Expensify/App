@@ -18,7 +18,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import * as Formula from '@libs/Formula';
+import {compute, FORMULA_PART_TYPES, parse} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     getAvailableReportFields,
@@ -149,12 +149,12 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     return null;
                                 }
 
-                                const parsedModel = Formula.parse(reportField.defaultValue);
-                                const hasFieldRefs = parsedModel.some((part) => part.type === Formula.FORMULA_PART_TYPES.FIELD);
+                                const parsedModel = parse(reportField.defaultValue);
+                                const hasFieldRefs = parsedModel.some((part) => part.type === FORMULA_PART_TYPES.FIELD);
 
                                 let fieldValue = reportField.value ?? reportField.defaultValue;
                                 if (hasFieldRefs && report) {
-                                    fieldValue = Formula.compute(reportField.defaultValue, {report, policy, fieldValues, fieldsByName});
+                                    fieldValue = compute(reportField.defaultValue, {report, policy, fieldValues, fieldsByName});
                                 }
                                 const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);

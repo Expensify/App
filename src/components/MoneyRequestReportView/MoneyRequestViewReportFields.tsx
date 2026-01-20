@@ -6,7 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
-import * as Formula from '@libs/Formula';
+import {compute, FORMULA_PART_TYPES, parse} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     getAvailableReportFields,
@@ -96,11 +96,11 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
                 let fieldValue = field.value ?? field.defaultValue;
-                const parsedModel = Formula.parse(field.defaultValue);
-                const hasFieldRefs = parsedModel.some((part) => part.type === Formula.FORMULA_PART_TYPES.FIELD);
+                const parsedModel = parse(field.defaultValue);
+                const hasFieldRefs = parsedModel.some((part) => part.type === FORMULA_PART_TYPES.FIELD);
 
                 if (hasFieldRefs && report) {
-                    fieldValue = Formula.compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
+                    fieldValue = compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
                 }
                 const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
