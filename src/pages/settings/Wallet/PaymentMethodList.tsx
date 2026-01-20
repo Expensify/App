@@ -295,7 +295,7 @@ function PaymentMethodList({
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
                     description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(String(card.cardID))),
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                         pressHandler({
                             event: e,

@@ -26,7 +26,7 @@ function ReportVirtualCardFraudConfirmationPage({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlassSpyMouthClosed']);
 
     const close = useCallback(() => {
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(cardID));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
     }, [cardID]);
 
     return (

@@ -61,14 +61,14 @@ function ExpensifyCardMissingDetailsMagicCodePage({
                         ...prevState,
                         [cardID]: '',
                     }));
-                    Navigation.goBack(ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(cardID));
+                    Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
                 })
                 .catch((error: string) => {
                     setCardsDetailsErrors((prevState) => ({
                         ...prevState,
                         [cardID]: error,
                     }));
-                    Navigation.goBack(ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(cardID));
+                    Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
                 })
                 .finally(() => {
                     setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [cardID]: false}));

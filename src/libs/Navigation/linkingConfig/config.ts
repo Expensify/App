@@ -217,7 +217,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
-                            path: ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.route,
+                            path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {

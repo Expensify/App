@@ -57,7 +57,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(cardID));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
     }, [cardID, cardList, inactiveCard?.isLoading, inactiveCard?.state]);
 
     useEffect(() => {
@@ -102,7 +102,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.goBack(navigateBackTo ?? ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(cardID))}
+            onBackButtonPress={() => Navigation.goBack(navigateBackTo ?? ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID))}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}

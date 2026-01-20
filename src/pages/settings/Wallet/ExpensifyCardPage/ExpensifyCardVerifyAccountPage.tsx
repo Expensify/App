@@ -33,7 +33,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
             Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID));
             return;
         }
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(cardID));
+        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
     };
 
     const handleRevealCardDetails = (validateCode: string) => {

@@ -114,7 +114,7 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_ASSIGNED_CARD.getRoute(cardID));
+        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
     };
 
     const isDamaged = reason?.key === OPTIONS_KEYS.DAMAGED;
