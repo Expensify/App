@@ -626,7 +626,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています…',
         domains: 'ドメイン',
-        viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '重複',
@@ -1950,13 +1949,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'セキュリティ上の懸念を解決し、アカウントのロックを解除するためにConciergeとチャットしましょう。',
         chatWithConcierge: 'Conciergeとチャット',
     },
-    passwordPage: {
-        changePassword: 'パスワードを変更',
-        changingYourPasswordPrompt: 'パスワードを変更すると、Expensify.com アカウントと New Expensify アカウントの両方のパスワードが更新されます。',
-        currentPassword: '現在のパスワード',
-        newPassword: '新しいパスワード',
-        newPasswordPrompt: '新しいパスワードは、以前のパスワードと異なるものであり、8文字以上で、少なくとも1つの大文字、1つの小文字、1つの数字を含める必要があります。',
-    },
     twoFactorAuth: {
         headerTitle: '二要素認証',
         twoFactorAuthEnabled: '2 要素認証が有効になりました',
@@ -2984,15 +2976,6 @@ ${
         title: ({isBreakLine}: {isBreakLine: boolean}) => `おっと… ${isBreakLine ? '\n' : ''}問題が発生しました`,
         subtitle: 'リクエストを完了できませんでした。時間をおいて、もう一度お試しください。',
         wrongTypeSubtitle: 'その検索条件は無効です。検索条件を調整してやり直してください。',
-    },
-    setPasswordPage: {
-        enterPassword: 'パスワードを入力してください',
-        setPassword: 'パスワードを設定',
-        newPasswordPrompt: 'パスワードは8文字以上で、大文字1文字、小文字1文字、数字1文字を含める必要があります。',
-        passwordFormTitle: '新しい Expensify へお帰りなさい！パスワードを設定してください。',
-        passwordNotSet: '新しいパスワードを設定できませんでした。再試行用の新しいパスワードリンクを送信しました。',
-        setPasswordLinkInvalid: 'このパスワード設定リンクは無効か、有効期限が切れています。新しいリンクをメール受信箱にお送りしました。',
-        validateAccount: 'アカウントを確認',
     },
     statusPage: {
         status: 'ステータス',
@@ -5060,6 +5043,8 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     `取引をエクスポートする${integration}アカウントを選択してください。利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。`,
                 lastUpdated: '最終更新',
                 transactionStartDate: '取引開始日',
+                changeTransactionStartDateWarning:
+                    '開始日を変更すると、未報告/下書きのレポート取引がすべて削除され、新しい開始日以降の取引がすべて再インポートされます。これにより取引の重複が発生する可能性があります。',
                 updateCard: 'カードを更新',
                 unassignCard: 'カードの割り当てを解除',
                 unassign: '割り当て解除',
@@ -7951,6 +7936,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         preciseLocationRequiredModal: {title: '正確な位置情報が必要です', prompt: 'GPS距離の追跡を開始するには、デバイスの設定で「正確な位置情報」を有効にしてください。'},
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
         notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
+        locationServicesRequiredModal: {
+            title: '位置情報へのアクセスが必要です',
+            confirm: '設定を開く',
+            prompt: 'GPS距離の追跡を開始するには、デバイスの設定で位置情報へのアクセスを許可してください。',
+        },
+        fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
