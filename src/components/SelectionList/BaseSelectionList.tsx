@@ -345,7 +345,6 @@ function BaseSelectionList<TItem extends ListItem>({
                 <ListItemRenderer
                     ListItem={ListItem}
                     selectRow={selectRow}
-                    keyForList={item.keyForList}
                     showTooltip={shouldShowTooltips}
                     item={{
                         shouldAnimateInHighlight: isItemHighlighted,
@@ -354,7 +353,6 @@ function BaseSelectionList<TItem extends ListItem>({
                     }}
                     setFocusedIndex={setFocusedIndex}
                     index={index}
-                    normalizedIndex={index}
                     isFocused={isItemFocused}
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}

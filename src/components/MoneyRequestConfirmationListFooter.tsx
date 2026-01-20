@@ -1,11 +1,11 @@
 import {emailSelector} from '@selectors/Session';
-import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,11 +37,10 @@ import {
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -103,6 +102,12 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The merchant of the IOU */
     iouMerchant: string | undefined;
 
+    /** The hours count of the time request */
+    iouTimeCount: number | undefined;
+
+    /** The hourly rate of the time request */
+    iouTimeRate: number | undefined;
+
     /** The type of the IOU */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
@@ -120,6 +125,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
+
+    /** Flag indicating if it is a time request */
+    isTimeRequest: boolean;
 
     /** Flag indicating if the merchant is empty */
     isMerchantEmpty: boolean;
@@ -232,11 +240,14 @@ function MoneyRequestConfirmationListFooter({
     iouIsBillable,
     iouMerchant,
     iouType,
+    iouTimeCount,
+    iouTimeRate,
     isCategoryRequired,
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
     isPerDiemRequest,
+    isTimeRequest,
     isMerchantEmpty,
     isMerchantRequired,
     isPolicyExpenseChat,
@@ -271,7 +282,7 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -283,8 +294,14 @@ function MoneyRequestConfirmationListFooter({
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+
+    const formattedCreatedDate = useMemo(() => {
+        const formatter = new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
+        return formatter.format(new Date(iouCreated ?? Date.now()));
+    }, [iouCreated, preferredLocale]);
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
 
@@ -351,12 +368,12 @@ function MoneyRequestConfirmationListFooter({
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
     const reportName = useMemo(() => {
-        const name = computeReportName(selectedReport, allReports, allPolicies);
+        const name = computeReportName(selectedReport, allReports, allPolicies, undefined, undefined, undefined, undefined, currentUserAccountID);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [isUnreported, selectedReport, allReports, allPolicies, translate]);
+    }, [isUnreported, selectedReport, allReports, allPolicies, translate, currentUserAccountID]);
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 
@@ -385,6 +402,7 @@ function MoneyRequestConfirmationListFooter({
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
+    const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
     // The per diem custom unit
@@ -435,12 +453,12 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
-                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest}
+                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !isTimeRequest}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    interactive={!isReadOnly}
+                    interactive={!isReadOnly && !isTimeRequest}
                     onPress={() => {
-                        if (isDistanceRequest || !transactionID) {
+                        if (isDistanceRequest || isTimeRequest || !transactionID) {
                             return;
                         }
 
@@ -510,7 +528,7 @@ function MoneyRequestConfirmationListFooter({
                         }
 
                         if (isOdometerDistanceRequest) {
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()) as Route);
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID));
                             return;
                         }
 
@@ -588,6 +606,48 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <MenuItemWithTopDescription
+                    key={translate('iou.timeTracking.hours')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={`${iouTimeCount}`}
+                    description={translate('iou.timeTracking.hours')}
+                    style={styles.moneyRequestMenuItem}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS.getRoute(action, iouType, transactionID, reportID, reportActionID));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isTimeRequest,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={`time_${translate('common.rate')}`}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={translate('iou.timeTracking.ratePreview', convertToDisplayString(iouTimeRate, iouCurrencyCode))}
+                    description={translate('common.rate')}
+                    style={styles.moneyRequestMenuItem}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isTimeRequest,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
                     key={translate('common.category')}
                     shouldShowRightIcon={!isReadOnly}
                     title={decodedCategoryName}
@@ -636,7 +696,7 @@ function MoneyRequestConfirmationListFooter({
                     key={translate('common.date')}
                     shouldShowRightIcon={!isReadOnly}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                    title={formattedCreatedDate}
                     description={translate('common.date')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -737,7 +797,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key="attendees"
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!isReadOnly}
                     title={iouAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
                     description={`${translate('iou.attendees')} ${
                         iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
@@ -751,8 +811,10 @@ function MoneyRequestConfirmationListFooter({
 
                         Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
-                    interactive
+                    interactive={!isReadOnly}
                     shouldRenderAsHTML
+                    brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayAttendeesError ? translate(formError) : ''}
                 />
             ),
             shouldShow: shouldShowAttendees,
@@ -1106,5 +1168,8 @@ export default memo(
         prevProps.shouldShowTax === nextProps.shouldShowTax &&
         prevProps.transaction === nextProps.transaction &&
         prevProps.transactionID === nextProps.transactionID &&
-        prevProps.unit === nextProps.unit,
+        prevProps.unit === nextProps.unit &&
+        prevProps.isTimeRequest === nextProps.isTimeRequest &&
+        prevProps.iouTimeCount === nextProps.iouTimeCount &&
+        prevProps.iouTimeRate === nextProps.iouTimeRate,
 );

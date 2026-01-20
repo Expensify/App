@@ -352,7 +352,6 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
                 <ListItemRenderer
                     ListItem={ListItem}
                     selectRow={selectRow}
-                    keyForList={item.keyForList}
                     showTooltip={shouldShowTooltips}
                     item={item as TItem}
                     index={index}
