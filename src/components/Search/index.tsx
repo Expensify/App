@@ -242,6 +242,7 @@ function Search({
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {accountID, email, login} = useCurrentUserPersonalDetails();
@@ -398,6 +399,7 @@ function Search({
             isActionLoadingSet,
             cardFeeds,
             allTransactionViolations: violations,
+            visibleReportActionsData,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -418,6 +420,7 @@ function Search({
         policies,
         bankAccountList,
         violations,
+        visibleReportActionsData,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
@@ -453,6 +456,7 @@ function Search({
                 translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
+                visibleReportActionsData: visibleReportActionsData ?? {},
             });
             return {...item, transactions: transactions1 as TransactionListItemType[]};
         });
