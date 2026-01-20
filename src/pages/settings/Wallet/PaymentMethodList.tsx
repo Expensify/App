@@ -227,6 +227,7 @@ function PaymentMethodList({
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const cardDisplayName = maskCardNumber(card.cardName, card.bank);
+                    const pressHandler = onPress as CardPressHandler;
 
                     let cardDescription;
                     if (isPersonalOldDotCard) {
@@ -236,6 +237,24 @@ function PaymentMethodList({
                     } else {
                         cardDescription = getDescriptionForPolicyDomainCard(card.domainName);
                     }
+
+                    // Personal cards from OldDot navigate to personal card details page
+                    // Company cards use the pressHandler callback (for 3-dot menu behavior)
+                    const cardOnPress = isPersonalOldDotCard
+                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
+                        : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                              pressHandler({
+                                  event: e,
+                                  cardData: card,
+                                  icon: {
+                                      icon,
+                                      iconStyles: [styles.cardIcon],
+                                      iconWidth: variables.cardIconWidth,
+                                      iconHeight: variables.cardIconHeight,
+                                  },
+                                  cardID: card.cardID,
+                              });
+
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl: isPersonalOldDotCard ? undefined : plaidUrl,
@@ -244,7 +263,7 @@ function PaymentMethodList({
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         canDismissError: false,
-                        shouldShowRightIcon: isPersonalOldDotCard ? shouldShowRightIcon : false,
+                        shouldShowRightIcon,
                         errors: card.errors,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator:
@@ -256,8 +275,7 @@ function PaymentMethodList({
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
                         isMethodActive: activePaymentMethodID === card.cardID,
-                        // Personal cards from OldDot navigate to personal card details, company cards don't have direct navigation
-                        onPress: isPersonalOldDotCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID))) : undefined,
+                        onPress: cardOnPress,
                     });
                     continue;
                 }
