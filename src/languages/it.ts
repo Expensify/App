@@ -4852,6 +4852,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             assign: 'Assegna',
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            deletedFeed: 'Feed eliminato',
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',

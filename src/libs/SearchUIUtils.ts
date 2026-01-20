@@ -67,7 +67,7 @@ import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {getCardDescription, getCustomOrFormattedFeedName} from './CardUtils';
+import {getCardDescription, getFeedNameForDisplay} from './CardUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
@@ -1963,7 +1963,8 @@ function getMemberSections(
 function getCardSections(
     data: OnyxTypes.SearchResults['data'],
     queryJSON: SearchQueryJSON | undefined,
-    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    translate: LocaleContextProps['translate'],
 ): [TransactionCardGroupListItemType[], number] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
 
@@ -1984,18 +1985,6 @@ function getCardSections(
                 continue;
             }
 
-            // Find the custom feed name from all card feeds
-            let customFeedName: string | undefined;
-            if (cardFeeds) {
-                for (const feedData of Object.values(cardFeeds)) {
-                    const nickname = feedData?.settings?.companyCardNicknames?.[cardGroup.bank as OnyxTypes.CompanyCardFeed];
-                    if (nickname) {
-                        customFeedName = nickname;
-                        break;
-                    }
-                }
-            }
-
             cardSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.CARD,
                 transactions: [],
@@ -2008,7 +1997,7 @@ function getCardSections(
                     cardName: cardGroup.cardName,
                     lastFourPAN: cardGroup.lastFourPAN,
                 } as OnyxTypes.Card),
-                formattedFeedName: getCustomOrFormattedFeedName(cardGroup.bank as OnyxTypes.CompanyCardFeed, customFeedName) ?? '',
+                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds) ?? '',
             };
         }
     }
@@ -2126,7 +2115,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, cardFeeds);
+                return getCardSections(data, queryJSON, cardFeeds, translate);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
         }
