@@ -13298,8 +13298,15 @@ function getDistanceMerchantForSplitExpense(distanceInUnits: number, unit: Unit 
 
     const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distanceInUnits, unit);
     const currencyForMerchant = currency ?? transactionCurrency ?? CONST.CURRENCY.USD;
-    return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, currencyForMerchant, Localize.translateLocal, (digit) =>
-        toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+    const currentLocale = IntlStore.getCurrentLocale();
+    return DistanceRequestUtils.getDistanceMerchant(
+        true,
+        distanceInMeters,
+        unit,
+        rate,
+        currencyForMerchant,
+        (phrase, ...parameters) => Localize.translate(currentLocale, phrase, ...parameters),
+        (digit) => toLocaleDigit(currentLocale, digit),
     );
 }
 
@@ -14159,7 +14166,7 @@ function updateSplitTransactions({
 
         // For existing transactions, ensure merchant from splitExpense is preserved in optimisticData
         if (splitTransaction && onyxData.optimisticData) {
-        const transactionIDFromOptimistic = optimisticTransactionFromGetMoneyRequest?.transactionID;
+            const transactionIDFromOptimistic = optimisticTransactionFromGetMoneyRequest?.transactionID;
             if (transactionIDFromOptimistic) {
                 const transactionUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromOptimistic}`);
                 if (transactionUpdate && 'value' in transactionUpdate && typeof transactionUpdate.value === 'object' && transactionUpdate.value !== null) {
