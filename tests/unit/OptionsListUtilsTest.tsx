@@ -3461,6 +3461,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
+            // eslint-disable-next-line rulesdir/no-negated-variables
             const participantNotSelected = {
                 reportID,
                 policyID: testPolicyID,
@@ -3469,6 +3470,8 @@ describe('OptionsListUtils', () => {
             };
 
             const optionSelected = getPolicyExpenseReportOption(participantSelected, {});
+            
+            // eslint-disable-next-line rulesdir/no-negated-variables
             const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, {});
 
             expect(optionSelected.isSelected).toBe(true);
