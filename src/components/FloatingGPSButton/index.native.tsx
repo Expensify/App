@@ -14,16 +14,19 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {GpsDraftDetails} from '@src/types/onyx';
+
+const isTrackingSelector = (gpsDraftDetails?: GpsDraftDetails) => gpsDraftDetails?.isTracking;
 
 function FloatingGpsButton() {
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [isTracking] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
     const {translate} = useLocalize();
 
     const icons = useMemoizedLazyExpensifyIcons(['Location'] as const);
     const {textMutedReversed} = useTheme();
     const styles = useThemeStyles();
 
-    if (!gpsDraftDetails?.isTracking) {
+    if (!isTracking) {
         return null;
     }
 
