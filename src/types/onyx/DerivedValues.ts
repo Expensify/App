@@ -108,10 +108,6 @@ type CardFeedErrorState = {
      */
     hasFailedCardAssignments: boolean;
     /**
-     * Whether some workspace errors.
-     */
-    hasWorkspaceErrors: boolean;
-    /**
      * Whether a specific feed within a workspace/domain has errors.
      */
     hasFeedErrors: boolean;
