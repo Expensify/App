@@ -86,7 +86,7 @@ function evaluateGuards(state: NavigationState, action: NavigationAction, contex
 /**
  * Gets all registered guards (useful for testing)
  */
-function getRegisteredGuards(): ReadonlyArray<NavigationGuard> {
+function getRegisteredGuards(): readonly NavigationGuard[] {
     return guards;
 }
 
