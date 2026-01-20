@@ -1181,8 +1181,7 @@ function MoneyRequestConfirmationList({
         reportID,
     ]);
 
-    const isScan = isScanRequestUtil(transaction);
-    const shouldRestrictHeight = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
+    const shouldRestrictHeight = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter
@@ -1261,7 +1260,7 @@ function MoneyRequestConfirmationList({
                 containerStyle={[styles.flexBasisAuto]}
                 removeClippedSubviews={false}
                 disableKeyboardShortcuts
-                contentContainerStyle={shouldRestrictHeight ? [StyleUtils.getReceiptContainerStyles()] : undefined}
+                contentContainerStyle={shouldRestrictHeight ? [styles.flexGrow1] : undefined}
                 ListFooterComponentStyle={shouldRestrictHeight ? [styles.flex1] : undefined}
             />
         </MouseProvider>

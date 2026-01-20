@@ -18,7 +18,6 @@ function Image({
     loadingIconSize,
     loadingIndicatorStyles,
     imageWidthToCalculateHeight,
-    shouldUseFullHeight,
     ...forwardedProps
 }: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
@@ -44,7 +43,7 @@ function Image({
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
-            if (!isObjectPositionTop || shouldUseFullHeight) {
+            if (!isObjectPositionTop) {
                 return;
             }
 
@@ -55,7 +54,7 @@ function Image({
 
             setAspectRatio(height ? width / height : 'auto');
         },
-        [isObjectPositionTop, shouldCalculateAspectRatioForWideImage, shouldUseFullHeight],
+        [isObjectPositionTop, shouldCalculateAspectRatioForWideImage],
     );
 
     const handleLoad = useCallback(
@@ -151,7 +150,7 @@ function Image({
     /**
      * If the image fails to load and the object position is top, we should hide the image by setting the opacity to 0.
      */
-    const shouldOpacityBeZero = isObjectPositionTop && !aspectRatio && !shouldUseFullHeight;
+    const shouldOpacityBeZero = isObjectPositionTop && !aspectRatio;
 
     if (source === undefined && !!forwardedProps?.waitForSession) {
         return undefined;
