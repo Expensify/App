@@ -524,7 +524,7 @@ describe('getSecondaryAction', () => {
 
         // Without DEW pending, APPROVE should be included (report has duplicates)
         const resultWithoutPending = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
@@ -538,7 +538,7 @@ describe('getSecondaryAction', () => {
 
         // With DEW pending, APPROVE should NOT be included
         const resultWithPending = getSecondaryReportActions({
-            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
