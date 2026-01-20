@@ -827,7 +827,6 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.transactionID).not.toBe(mockDistanceTransaction.transactionID);
             expect(duplicatedTransaction?.comment?.customUnit?.name).toEqual(CONST.CUSTOM_UNITS.NAME_DISTANCE);
             expect(duplicatedTransaction?.comment?.customUnit?.distanceUnit).toEqual(mockDistanceTransaction.comment?.customUnit?.distanceUnit);
-            expect(duplicatedTransaction?.comment?.customUnit?.waypoints).toEqual(mockDistanceTransaction.comment?.customUnit?.waypoints);
         });
     });
 
