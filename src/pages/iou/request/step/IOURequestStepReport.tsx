@@ -11,10 +11,11 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import {clearSubrates, setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit, getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
@@ -89,6 +90,14 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             },
         ];
 
+        const currentPolicyID = perDiemOriginalPolicy?.id;
+        const newPolicyID = reportOrDraftReportFromValue?.policyID;
+        const policyChanged = currentPolicyID && newPolicyID && currentPolicyID !== newPolicyID;
+
+        const newPolicy = newPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${newPolicyID}`] : undefined;
+        const newPerDiemCustomUnit = getPerDiemCustomUnit(newPolicy);
+        const newCustomUnitID = newPerDiemCustomUnit?.customUnitID;
+
         setTransactionReport(
             transaction.transactionID,
             {
@@ -97,6 +106,15 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             },
             true,
         );
+
+        // Clear subrates, and update customUnitID if policy changed for per diem transactions
+        if (policyChanged && isPerDiemTransaction) {
+            if (newCustomUnitID) {
+                setCustomUnitID(transaction.transactionID, newCustomUnitID);
+            }
+            setCustomUnitRateID(transaction.transactionID, undefined);
+            clearSubrates(transaction.transactionID);
+        }
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
         // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
