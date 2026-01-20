@@ -34,9 +34,6 @@ function UpdatePersonalBankAccountPage() {
         updatePersonalBankAccountInfo(accountData);
     };
 
-    // Skip steps where personal info already exists
-    // Step indices: 0 = LegalName, 1 = Address, 2 = PhoneNumber, 3 = Confirmation
-    // getSkippedStepsPersonalInfo returns indices 1, 2, 3 for original flow, but we have 0-indexed steps
     const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails);
 
     const {

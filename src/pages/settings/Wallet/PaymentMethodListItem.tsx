@@ -105,7 +105,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        // If account needs action (setup or missing info), navigate directly instead of showing menu
         if (isAccountNeedingAction(item) || !threeDotsMenuItems || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {

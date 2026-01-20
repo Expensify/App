@@ -49,12 +49,13 @@ function UpdatePersonalInfoConfirmation({onNext, onMove, isEditing}: SubStepProp
 
     const getSummaryItems = () => {
         const personalDetails = getPersonalDetails();
+        const legalNameLabel = translate('personalInfoStep.legalName');
+        const addressLabel = translate('personalInfoStep.address');
+        const phoneNumberLabel = translate('common.phoneNumber');
 
-        // Only show personal info items (no bank account details)
-        // Step indices: 0 = LegalName, 1 = Address, 2 = PhoneNumber
         return [
             {
-                description: translate('personalInfoStep.legalName'),
+                description: legalNameLabel,
                 title: `${personalDetails[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${personalDetails[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
                 shouldShowRightIcon: true,
                 onPress: () => {
@@ -62,7 +63,7 @@ function UpdatePersonalInfoConfirmation({onNext, onMove, isEditing}: SubStepProp
                 },
             },
             {
-                description: translate('personalInfoStep.address'),
+                description: addressLabel,
                 title: `${personalDetails.addressStreet}, ${personalDetails.addressCity}, ${personalDetails.addressState} ${personalDetails.addressZip}`,
                 shouldShowRightIcon: true,
                 onPress: () => {
@@ -70,7 +71,7 @@ function UpdatePersonalInfoConfirmation({onNext, onMove, isEditing}: SubStepProp
                 },
             },
             {
-                description: translate('common.phoneNumber'),
+                description: phoneNumberLabel,
                 title: personalDetails[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER],
                 shouldShowRightIcon: true,
                 onPress: () => {

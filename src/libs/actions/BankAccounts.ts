@@ -152,11 +152,13 @@ function clearPersonalBankAccountErrors() {
  * This is used when a US personal bank account in OPEN state is missing required info.
  */
 function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountForm>) {
+    const formattedStreet = getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2);
+
     const parameters = {
         phoneNumber: accountData?.phoneNumber,
         legalFirstName: accountData?.legalFirstName,
         legalLastName: accountData?.legalLastName,
-        addressStreet: getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2),
+        addressStreet: formattedStreet,
         addressCity: accountData?.addressCity,
         addressState: accountData?.addressState,
         addressZip: accountData?.addressZipCode,
@@ -194,7 +196,7 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                     addresses: accountData?.addressStreet
                         ? [
                               {
-                                  street: getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2),
+                                  street: formattedStreet,
                                   city: accountData?.addressCity,
                                   state: accountData?.addressState,
                                   zip: accountData?.addressZipCode,
@@ -219,11 +221,7 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
     };
 
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO, parameters, onyxData);
-
-    // Clear the form draft after submission
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
-
-    // Navigate back to wallet page
     Navigation.goBack(ROUTES.SETTINGS_WALLET);
 }
 

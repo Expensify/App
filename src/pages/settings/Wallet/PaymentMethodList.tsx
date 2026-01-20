@@ -353,8 +353,6 @@ function PaymentMethodList({
                 methodID: paymentMethod.methodID,
                 description: paymentMethod.description,
             };
-
-            // Check if this is a personal bank account missing required personal info
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData, privatePersonalDetails);
 
             return {

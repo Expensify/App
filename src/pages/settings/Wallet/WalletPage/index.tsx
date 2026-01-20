@@ -153,7 +153,6 @@ function WalletPage() {
     };
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
-        // Check if this is a personal bank account missing required personal info
         if (isPersonalBankAccountMissingInfo(accountData, privatePersonalDetails)) {
             Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT);
             return;
