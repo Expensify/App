@@ -758,7 +758,6 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayFieldError && isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayFieldError && isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
-                    rightLabel={shouldDisplayFieldError && isCreatedMissing(transaction) ? '' : translate('common.required')}
                 />
             ),
             shouldShow: shouldShowDate,
