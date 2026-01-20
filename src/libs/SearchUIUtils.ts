@@ -157,6 +157,7 @@ type GetReportSectionsParams = {
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
+    allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -367,6 +368,7 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
 /**
@@ -1257,6 +1259,7 @@ function getTransactionsSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
+    allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>,
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
@@ -1321,7 +1324,8 @@ function getTransactionsSections(
                 report,
             );
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions);
+            const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions, reportMetadata);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
@@ -1423,6 +1427,7 @@ function getActions(
     currentUserLogin: string,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportActions: OnyxTypes.ReportAction[] = [],
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
 ): SearchTransactionAction[] {
     const isTransaction = isTransactionEntry(key);
     const report = getReportFromKey(data, key);
@@ -1508,7 +1513,7 @@ function getActions(
 
     // We're not supporting approve partial amount on search page now
     if (
-        canApproveIOU(report, policy, allReportTransactions) &&
+        canApproveIOU(report, policy, reportMetadata, allReportTransactions) &&
         isAllowedToApproveExpenseReport &&
         !hasOnlyPendingCardOrScanningTransactions &&
         !hasHeldExpenses(report.reportID, allReportTransactions)
@@ -1717,6 +1722,7 @@ function getReportSections({
     allTransactionViolations,
     bankAccountList,
     reportActions = {},
+    allReportMetadata,
 }: GetReportSectionsParams): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -1786,7 +1792,8 @@ function getReportSections({
             if (shouldShow) {
                 const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
-                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions);
+                const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
+                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions, reportMetadata);
 
                 const fromDetails =
                     data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
@@ -1870,7 +1877,8 @@ function getReportSections({
                 report,
             );
 
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions);
+            const transactionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions, transactionReportMetadata);
             const transaction = {
                 ...transactionItem,
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -2095,6 +2103,7 @@ function getSections({
     isActionLoadingSet,
     cardFeeds,
     allTransactionViolations,
+    allReportMetadata,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -2116,6 +2125,7 @@ function getSections({
             allTransactionViolations,
             bankAccountList,
             reportActions,
+            allReportMetadata,
         });
     }
 
@@ -2132,7 +2142,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions);
+    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions, allReportMetadata);
 }
 
 /**

@@ -246,6 +246,7 @@ function Search({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
@@ -398,6 +399,7 @@ function Search({
             isActionLoadingSet,
             cardFeeds,
             allTransactionViolations: violations,
+            allReportMetadata,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -418,6 +420,7 @@ function Search({
         policies,
         bankAccountList,
         violations,
+        allReportMetadata,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
@@ -453,12 +456,13 @@ function Search({
                 translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
+                allReportMetadata,
             });
             return {...item, transactions: transactions1 as TransactionListItemType[]};
         });
 
         return enriched;
-    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet, bankAccountList]);
+    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet, bankAccountList, allReportMetadata]);
 
     const hasLoadedAllTransactions = useMemo(() => {
         if (!validGroupBy) {

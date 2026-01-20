@@ -47,10 +47,10 @@ export default function useTodos() {
             const reportTransactions = transactionsByReportID[report.reportID] ?? [];
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
 
-            if (isSubmitAction(report, reportTransactions, policy, reportNameValuePair, undefined, login, currentUserAccountID, reportMetadata)) {
+            if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID)) {
                 reportsToSubmit.push(report);
             }
-            if (isApproveAction(report, reportTransactions, currentUserAccountID, policy, reportMetadata)) {
+            if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
                 reportsToApprove.push(report);
             }
             if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {

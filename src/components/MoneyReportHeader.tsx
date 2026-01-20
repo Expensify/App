@@ -463,8 +463,8 @@ function MoneyReportHeader({
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const shouldShowApproveButton = useMemo(
-        () => (canApproveIOU(moneyRequestReport, policy, transactions, reportMetadata) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
-        [moneyRequestReport, policy, transactions, hasOnlyPendingTransactions, isApprovedAnimationRunning, reportMetadata],
+        () => (canApproveIOU(moneyRequestReport, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
+        [moneyRequestReport, policy, reportMetadata, transactions, hasOnlyPendingTransactions, isApprovedAnimationRunning],
     );
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);

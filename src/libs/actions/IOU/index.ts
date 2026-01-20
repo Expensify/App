@@ -10232,8 +10232,8 @@ function getPayMoneyRequestParams({
 function canApproveIOU(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
     iouTransactions?: OnyxTypes.Transaction[],
-    reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>,
 ) {
     // Only expense reports can be approved
     if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
@@ -10379,7 +10379,11 @@ function canSubmitReport(
     );
 }
 
-function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, updatedIouReport: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {
+function getIOUReportActionToApproveOrPay(
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    updatedIouReport: OnyxEntry<OnyxTypes.Report>,
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+): OnyxEntry<ReportAction> {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     return Object.values(chatReportActions).find((action) => {
@@ -10391,7 +10395,7 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policy = getPolicy(iouReport?.policyID);
         // Only show to the actual payer, exclude admins with bank account access
-        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy, undefined) || canApproveIOU(iouReport, policy);
+        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy, undefined) || canApproveIOU(iouReport, policy, reportMetadata);
         return action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton && !isDeletedAction(action);
     });
 }

@@ -323,7 +323,7 @@ describe('getPrimaryAction', () => {
 
         // When checking if approve action is available
         // Then it should return true because DEW approval is not in progress
-        expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, policy)).toBe(true);
+        expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, {}, policy)).toBe(true);
     });
 
     it('should return false from isApproveAction for DEW policy report with pending approval', async () => {
@@ -350,7 +350,7 @@ describe('getPrimaryAction', () => {
 
         // When checking if approve action is available while DEW approval is pending
         // Then it should return false because DEW is already processing an approval
-        expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, policy, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE})).toBe(false);
+        expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE}, policy)).toBe(false);
     });
 
     it('should return PAY for submitted invoice report  if paid as personal', async () => {

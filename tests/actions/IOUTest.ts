@@ -7471,11 +7471,11 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
-            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if we have only scanning transactions', async () => {
             const policyID = '2';
@@ -7527,11 +7527,11 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
-            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if all transactions are pending card or scanning transaction', async () => {
             const policyID = '2';
@@ -7574,11 +7574,11 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
-            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return true if at least one transaction is not pending card or scanning transaction', async () => {
             const policyID = '2';
@@ -7627,11 +7627,11 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
-            // Then should return true when passing transactions directly as the third parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeTruthy();
+            // Then should return true when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeTruthy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeTruthy();
         });
 
         it('should return false if the report is closed', async () => {
@@ -7660,9 +7660,9 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
             // Then, canApproveIOU should return false since the report is closed
-            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
-            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            expect(canApproveIOU(fakeReport, fakePolicy, [fakeTransaction])).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, [fakeTransaction])).toBeFalsy();
         });
     });
 
@@ -9981,7 +9981,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, MOCK_REPORT_ACTIONS);
 
-            expect(getIOUReportActionToApproveOrPay(fakeReport, undefined)).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
+            expect(getIOUReportActionToApproveOrPay(fakeReport, undefined, {})).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
         });
     });
 
