@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
@@ -22,8 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {transactionDraftValuesSelector} from '@src/selectors/TransactionDraft';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -66,14 +66,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const isPerDiemTransaction = isPerDiemRequest(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
-    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
-    const transactions = useMemo(() => {
-        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [transaction];
-        return allTransactions.filter((value): value is Transaction => !!value);
-    }, [transaction, optimisticTransactions]);
+    const [transactions] = useOptimisticDraftTransactions(transaction);
 
     const handleGoBack = () => {
         if (isEditing) {
