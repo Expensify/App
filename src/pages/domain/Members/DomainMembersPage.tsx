@@ -53,8 +53,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         />
     ) : null;
 
-    const getCustomRowProps = (_accountID: number, email?: string) => ({
-        errors: email ? getLatestError(domainErrors?.memberErrors?.[email]?.errors) : undefined,
+    const getCustomRowProps = (accountID: number, email?: string) => ({
+        errors: email ? getLatestError(domainErrors?.memberErrors?.[email]?.errors) : (getLatestError(domainErrors?.memberErrors?.[accountID]?.errors) ?? undefined),
         pendingAction: email ? domainPendingActions?.member?.[email]?.pendingAction : undefined,
     });
 
@@ -68,7 +68,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             headerIcon={illustrations.Profile}
             headerContent={renderHeaderButtons}
             getCustomRowProps={getCustomRowProps}
-            onDismissError={(item) => clearMemberError(domainAccountID, item.login)}
+            onDismissError={(item) => clearMemberError(domainAccountID, item.accountID, item.login)}
         />
     );
 }

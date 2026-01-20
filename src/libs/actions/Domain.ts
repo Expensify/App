@@ -919,9 +919,9 @@ function addMemberToDomain(domainAccountID: number, email: string) {
 }
 
 /**
- * Removes an error and pending actions after trying to add admin
+ * Removes an error and pending actions after trying to add admin. It clears errors for both email and accountID
  */
-function clearMemberError(domainAccountID: number, email: string) {
+function clearMemberError(domainAccountID: number, accountID: number, email: string) {
     /* eslint-disable rulesdir/no-default-id-values */
     const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
     const optimisticAccountID = generateAccountID(email);
@@ -929,6 +929,7 @@ function clearMemberError(domainAccountID: number, email: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         memberErrors: {
             [email]: null,
+            [accountID]: null,
         },
     });
 
@@ -939,12 +940,6 @@ function clearMemberError(domainAccountID: number, email: string) {
             },
         },
     } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>);
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        memberErrors: {
-            [email]: null,
-        },
-    });
 }
 
 export {

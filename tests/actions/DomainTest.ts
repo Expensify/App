@@ -201,13 +201,14 @@ describe('actions/Domain', () => {
             } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         );
 
-        clearMemberError(domainAccountID, email);
+        clearMemberError(domainAccountID, optimisticAccountID, email);
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             waitForCollectionCallback: false,
             callback: (errors) => {
                 expect(errors?.memberErrors?.[email]).toBeFalsy();
+                expect(errors?.memberErrors?.[optimisticAccountID]).toBeFalsy();
             },
         });
 
