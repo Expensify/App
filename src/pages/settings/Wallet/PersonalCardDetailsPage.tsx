@@ -66,11 +66,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const currentUserAccountID = (session as OnyxEntry<Session>)?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const isPersonalCard = !!(card && isPersonalCardFromOldDot(card, currentUserAccountID));
     const reimbursableSetting = card?.markTransactionsAsReimbursable ?? true;
-    const isCSVImportedPersonalCard = !!(
-        isPersonalCard &&
-        card &&
-        (card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV))
-    );
+    const isCSVImportedPersonalCard = !!(isPersonalCard && card && (card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
