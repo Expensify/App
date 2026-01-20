@@ -109,9 +109,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     };
 
     const updateCurrentApprover = (update: Partial<Approver>) => {
-        if (!approvalWorkflow || !currentApprover) {
+        const hasChanges = update.approvalLimit !== currentApprover?.approvalLimit || update.overLimitForwardsTo !== currentApprover?.overLimitForwardsTo;
+        if (!approvalWorkflow || !currentApprover || !hasChanges) {
             return;
         }
+
         setApprovalWorkflowApprover({
             approver: {
                 ...currentApprover,
@@ -172,10 +174,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     };
 
     const saveCurrentStateToOnyx = () => {
-        const limitInCents = approvalLimit ? convertToBackendAmount(Number.parseFloat(approvalLimit)) : null;
+        const limitInCents = approvalLimit ? convertToBackendAmount(Number.parseFloat(approvalLimit)) : currentApprover?.approvalLimit;
+        const overLimitApprover = selectedApproverEmail || currentApprover?.overLimitForwardsTo;
         updateCurrentApprover({
             approvalLimit: limitInCents,
-            overLimitForwardsTo: selectedApproverEmail,
+            overLimitForwardsTo: overLimitApprover,
         });
         setEditedApprovalLimit(null);
         setHasSubmitted(false);
