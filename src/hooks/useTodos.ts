@@ -32,15 +32,16 @@ function computeMetadata(reports: Report[], transactionsByReportID: Record<strin
         const reportTransactions = transactionsByReportID[report.reportID];
         if (reportTransactions) {
             count += reportTransactions.length;
-        }
 
-        // Expense reports have a negative total, so we need to subtract it from the total
-        if (report.total) {
-            total -= report.total;
-        }
+            for (const transaction of reportTransactions) {
+                if (transaction.groupAmount) {
+                    total -= transaction.groupAmount;
+                }
 
-        if (currency === undefined && report.currency) {
-            currency = report.currency;
+                if (currency === undefined && transaction.groupCurrency) {
+                    currency = transaction.groupCurrency;
+                }
+            }
         }
     }
 
