@@ -17,6 +17,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -61,17 +62,19 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const [editedApprovalLimit, setEditedApprovalLimit] = useState<string | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const amountFormRef = useRef<NumberWithSymbolFormRef>(null);
+    const previousApproverEmail = usePrevious(currentApprover?.email);
     const isFocused = useIsFocused();
 
     const approvalLimit = editedApprovalLimit ?? defaultApprovalLimit;
 
-    // Clear the amount input when the screen is focused and the over-limit approver was unselected
+    // Clear the amount input when the main approver changes
     useEffect(() => {
-        if (!isFocused || currentApprover?.approvalLimit != null || editedApprovalLimit !== null) {
+        if (!isFocused || previousApproverEmail === currentApprover?.email) {
             return;
         }
+        setEditedApprovalLimit(null);
         amountFormRef.current?.updateNumber('');
-    }, [isFocused, currentApprover?.approvalLimit, editedApprovalLimit]);
+    }, [isFocused, currentApprover?.email, previousApproverEmail]);
 
     const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
     const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
@@ -109,8 +112,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     };
 
     const updateCurrentApprover = (update: Partial<Approver>) => {
-        const shouldSkipUpdate = update.approvalLimit === currentApprover?.approvalLimit && update.overLimitForwardsTo === currentApprover?.overLimitForwardsTo;
-        if (!approvalWorkflow || !currentApprover || shouldSkipUpdate) {
+        if (!approvalWorkflow || !currentApprover) {
             return;
         }
 
@@ -173,24 +175,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         setHasSubmitted(false);
     };
 
-    const saveCurrentStateToOnyx = () => {
-        const limitInCents = approvalLimit ? convertToBackendAmount(Number.parseFloat(approvalLimit)) : currentApprover?.approvalLimit;
-        const overLimitApprover = selectedApproverEmail || currentApprover?.overLimitForwardsTo;
-        updateCurrentApprover({
-            approvalLimit: limitInCents,
-            overLimitForwardsTo: overLimitApprover,
-        });
-        setEditedApprovalLimit(null);
-        setHasSubmitted(false);
-    };
-
     const navigateToApproverSelector = () => {
-        saveCurrentStateToOnyx();
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex));
     };
 
     const navigateToApproverChange = () => {
-        saveCurrentStateToOnyx();
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, approverIndex));
     };
 
