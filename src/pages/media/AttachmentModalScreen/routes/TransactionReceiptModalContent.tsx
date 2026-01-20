@@ -1,14 +1,19 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+import ReceiptCropView from '@components/ReceiptCropView';
+import type {CropRect} from '@components/ReceiptCropView';
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
@@ -94,6 +99,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isRotating, setIsRotating] = useState(false);
+    const [isCropping, setIsCropping] = useState(false);
+    const [isCropSaving, setIsCropSaving] = useState(false);
+    const [cropRect, setCropRect] = useState<CropRect | null>(null);
+    const styles = useThemeStyles();
 
     useEffect(() => {
         if ((!!report && !!transaction) || isDraftTransaction) {
@@ -246,6 +255,106 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         [shouldShowReplaceReceiptButton, transaction, isEReceipt, receiptFilename],
     );
 
+    const shouldShowCropReceiptButton = useMemo(
+        () =>
+            shouldShowReplaceReceiptButton &&
+            transaction &&
+            hasReceiptSource(transaction) &&
+            !isEReceipt &&
+            !transaction?.receipt?.isTestDriveReceipt &&
+            (receiptFilename ? Str.isImage(receiptFilename) : false),
+        [shouldShowReplaceReceiptButton, transaction, isEReceipt, receiptFilename],
+    );
+
+    /**
+     * Enter crop mode
+     */
+    const enterCropMode = useCallback(() => {
+        setIsCropping(true);
+        setCropRect(null);
+    }, []);
+
+    /**
+     * Exit crop mode without saving
+     */
+    const exitCropMode = useCallback(() => {
+        setIsCropping(false);
+        setCropRect(null);
+    }, []);
+
+    /**
+     * Handle crop rectangle changes
+     */
+    const handleCropChange = useCallback((crop: CropRect) => {
+        setCropRect(crop);
+    }, []);
+
+    /**
+     * Save the cropped image
+     */
+    const saveCrop = useCallback(() => {
+        if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect) {
+            return;
+        }
+
+        const receiptType = transaction?.receipt?.type ?? CONST.IMAGE_FILE_FORMAT.JPEG;
+
+        setIsCropSaving(true);
+        cropOrRotateImage(
+            sourceUri as string,
+            [
+                {
+                    crop: {
+                        originX: cropRect.x,
+                        originY: cropRect.y,
+                        width: cropRect.width,
+                        height: cropRect.height,
+                    },
+                },
+            ],
+            {
+                compress: 1,
+                name: receiptFilename,
+                type: receiptType,
+            },
+        )
+            .then((croppedImage) => {
+                if (!croppedImage) {
+                    setIsCropSaving(false);
+                    return;
+                }
+
+                // Both web and native return objects with uri property
+                const imageUriResult = 'uri' in croppedImage && croppedImage.uri ? croppedImage.uri : undefined;
+                if (!imageUriResult) {
+                    setIsCropSaving(false);
+                    return;
+                }
+
+                const file = croppedImage as File;
+                const croppedFilename = file.name ?? receiptFilename;
+
+                if (isDraftTransaction) {
+                    // Update the transaction immediately so the modal displays the cropped image right away
+                    setMoneyRequestReceipt(transaction.transactionID, imageUriResult, croppedFilename, isDraftTransaction, receiptType);
+                } else {
+                    replaceReceipt({
+                        transactionID: transaction.transactionID,
+                        file,
+                        source: imageUriResult,
+                        transactionPolicyCategories: policyCategories,
+                        transactionPolicy: policy,
+                    });
+                }
+                setIsCropSaving(false);
+                setIsCropping(false);
+                setCropRect(null);
+            })
+            .catch(() => {
+                setIsCropSaving(false);
+            });
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, cropRect, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
+
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
             const menuItems = [];
@@ -332,6 +441,109 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         [deleteReceiptAndClose, isDeleteReceiptConfirmModalVisible, translate],
     );
 
+    // Footer action buttons
+    const footerActionButtons = useMemo(() => {
+        if (isCropping) {
+            // Show Cancel and Save buttons in crop mode
+            return (
+                <View style={[styles.flexRow, styles.gap4, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
+                    <Button
+                        onPress={exitCropMode}
+                        text={translate('common.cancel')}
+                    />
+                    <Button
+                        success
+                        onPress={saveCrop}
+                        text={translate('common.save')}
+                        isLoading={isCropSaving}
+                        isDisabled={!cropRect || isCropSaving}
+                    />
+                </View>
+            );
+        }
+
+        // Show Rotate, Crop, Replace buttons in normal mode
+        if (!shouldShowRotateReceiptButton && !shouldShowCropReceiptButton && !shouldShowReplaceReceiptButton) {
+            return null;
+        }
+
+        return (
+            <View style={[styles.flexRow, styles.gap4, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
+                {!!shouldShowRotateReceiptButton && (
+                    <Button
+                        icon={Expensicons.Rotate}
+                        onPress={rotateReceipt}
+                        text={translate('common.rotate')}
+                        isLoading={isRotating}
+                        isDisabled={isRotating}
+                    />
+                )}
+                {!!shouldShowCropReceiptButton && (
+                    <Button
+                        icon={Expensicons.ImageCropSquareMask}
+                        onPress={enterCropMode}
+                        text={translate('receipt.crop')}
+                    />
+                )}
+                {!!shouldShowReplaceReceiptButton && (
+                    <Button
+                        icon={expensifyIcons.Camera}
+                        onPress={() => {
+                            Navigation.dismissModal({
+                                callback: () =>
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                            action ?? CONST.IOU.ACTION.EDIT,
+                                            iouType,
+                                            draftTransactionID ?? transaction?.transactionID,
+                                            report?.reportID,
+                                            Navigation.getActiveRoute(),
+                                        ),
+                                    ),
+                            });
+                        }}
+                        text={translate('common.replace')}
+                    />
+                )}
+            </View>
+        );
+    }, [
+        isCropping,
+        exitCropMode,
+        saveCrop,
+        cropRect,
+        isCropSaving,
+        translate,
+        shouldShowRotateReceiptButton,
+        shouldShowCropReceiptButton,
+        shouldShowReplaceReceiptButton,
+        rotateReceipt,
+        isRotating,
+        enterCropMode,
+        expensifyIcons.Camera,
+        action,
+        iouType,
+        draftTransactionID,
+        transaction?.transactionID,
+        report?.reportID,
+        styles,
+    ]);
+
+    // Custom attachment content for crop mode
+    const customAttachmentContent = useMemo(() => {
+        if (!isCropping || !source) {
+            return null;
+        }
+
+        return (
+            <ReceiptCropView
+                imageUri={source as string}
+                onCropChange={handleCropChange}
+                isAuthTokenRequired={isAuthTokenRequired}
+            />
+        );
+    }, [isCropping, source, handleCropChange, isAuthTokenRequired]);
+
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             source,
@@ -344,12 +556,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
-            shouldShowRotateButton: shouldShowRotateReceiptButton,
-            onRotateButtonPress: rotateReceipt,
-            isRotating,
+            shouldShowRotateButton: false, // Remove rotate button from header
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,
             shouldMinimizeMenuButton: false,
+            footerActionButtons,
+            customAttachmentContent,
         }),
         [
             allowDownload,
@@ -361,12 +573,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             report,
             reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
-            shouldShowRotateReceiptButton,
-            rotateReceipt,
-            isRotating,
             source,
             threeDotsMenuItems,
             transaction,
+            footerActionButtons,
+            customAttachmentContent,
         ],
     );
 

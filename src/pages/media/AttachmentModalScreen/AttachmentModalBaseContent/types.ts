@@ -133,6 +133,12 @@ type AttachmentModalBaseContentProps = {
 
     /** Allows users to swipe down to close the modal */
     shouldCloseOnSwipeDown?: boolean;
+
+    /** Footer action buttons to display below the image */
+    footerActionButtons?: React.ReactNode;
+
+    /** Custom content to render instead of the default attachment view (e.g., crop view) */
+    customAttachmentContent?: React.ReactNode;
 };
 
 export type {

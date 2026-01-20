@@ -66,6 +66,8 @@ function AttachmentModalBaseContent({
     onCarouselAttachmentChange = () => {},
     transaction: transactionProp,
     shouldCloseOnSwipeDown = false,
+    footerActionButtons,
+    customAttachmentContent,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -329,8 +331,18 @@ function AttachmentModalBaseContent({
                         onLinkPress={onClose}
                     />
                 )}
-                {shouldDisplayContent && Content}
+                {shouldDisplayContent && (customAttachmentContent ?? Content)}
             </View>
+            {!!footerActionButtons && (
+                <LayoutAnimationConfig skipEntering>
+                    <Animated.View
+                        style={bottomSafeAreaPaddingStyle}
+                        entering={FadeIn}
+                    >
+                        {footerActionButtons}
+                    </Animated.View>
+                </LayoutAnimationConfig>
+            )}
             {/* If we have an onConfirm method show a confirmation button */}
             {!!onConfirm && !isConfirmButtonDisabled && (
                 <LayoutAnimationConfig skipEntering>
