@@ -184,8 +184,8 @@ function MoneyRequestReportActionsList({
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     useEffect(() => {
-        const transactionIDs = transactions.map((transaction) => transaction.transactionID);
-        const filteredSelectedTransactionIDs = selectedTransactionIDs.filter((id) => transactionIDs.includes(id));
+        const transactionIDs = new Set(transactions.map((transaction) => transaction.transactionID));
+        const filteredSelectedTransactionIDs = selectedTransactionIDs.filter((id) => transactionIDs.has(id));
         if (filteredSelectedTransactionIDs.length !== selectedTransactionIDs.length) {
             setSelectedTransactions(filteredSelectedTransactionIDs);
         }
