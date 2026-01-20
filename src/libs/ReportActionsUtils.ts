@@ -279,29 +279,25 @@ function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEn
 function getMostRecentActiveDEWSubmitFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction | undefined {
     const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
 
-    // Find the most recent DEW_SUBMIT_FAILED action
-    const mostRecentDewSubmitFailedAction = actionsArray
-        .filter((action): action is ReportAction => isDynamicExternalWorkflowSubmitFailedAction(action))
-        .reduce<ReportAction | undefined>((latest, current) => {
-            if (!latest || (current.created && latest.created && current.created > latest.created)) {
-                return current;
+    // Find the most recent DEW_SUBMIT_FAILED and SUBMITTED actions
+    let mostRecentDewSubmitFailedAction: ReportAction | undefined;
+    let mostRecentSubmittedAction: ReportAction | undefined;
+
+    for (const action of actionsArray) {
+        if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
+            if (!mostRecentDewSubmitFailedAction || (action.created && mostRecentDewSubmitFailedAction.created && action.created > mostRecentDewSubmitFailedAction.created)) {
+                mostRecentDewSubmitFailedAction = action;
             }
-            return latest;
-        }, undefined);
+        } else if (isSubmittedAction(action)) {
+            if (!mostRecentSubmittedAction || (action.created && mostRecentSubmittedAction.created && action.created > mostRecentSubmittedAction.created)) {
+                mostRecentSubmittedAction = action;
+            }
+        }
+    }
 
     if (!mostRecentDewSubmitFailedAction) {
         return undefined;
     }
-
-    // Find the most recent SUBMITTED action
-    const mostRecentSubmittedAction = actionsArray
-        .filter((action): action is ReportAction => isSubmittedAction(action))
-        .reduce<ReportAction | undefined>((latest, current) => {
-            if (!latest || (current.created && latest.created && current.created > latest.created)) {
-                return current;
-            }
-            return latest;
-        }, undefined);
 
     // Return the DEW action if there's no SUBMITTED action, or if DEW_SUBMIT_FAILED is more recent
     if (!mostRecentSubmittedAction || mostRecentDewSubmitFailedAction.created > mostRecentSubmittedAction.created) {
@@ -329,29 +325,25 @@ function isDynamicExternalWorkflowApproveFailedAction(reportAction: OnyxInputOrE
 function getMostRecentActiveDEWApproveFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction | undefined {
     const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
 
-    // Find the most recent DEW_APPROVE_FAILED action
-    const mostRecentDewApproveFailedAction = actionsArray
-        .filter((action): action is ReportAction => isDynamicExternalWorkflowApproveFailedAction(action))
-        .reduce<ReportAction | undefined>((latest, current) => {
-            if (!latest || (current.created && latest.created && current.created > latest.created)) {
-                return current;
+    // Find the most recent DEW_APPROVE_FAILED and APPROVED/FORWARDED actions
+    let mostRecentDewApproveFailedAction: ReportAction | undefined;
+    let mostRecentApprovalAction: ReportAction | undefined;
+
+    for (const action of actionsArray) {
+        if (isDynamicExternalWorkflowApproveFailedAction(action)) {
+            if (!mostRecentDewApproveFailedAction || (action.created && mostRecentDewApproveFailedAction.created && action.created > mostRecentDewApproveFailedAction.created)) {
+                mostRecentDewApproveFailedAction = action;
             }
-            return latest;
-        }, undefined);
+        } else if (isApprovedAction(action) || isForwardedAction(action)) {
+            if (!mostRecentApprovalAction || (action.created && mostRecentApprovalAction.created && action.created > mostRecentApprovalAction.created)) {
+                mostRecentApprovalAction = action;
+            }
+        }
+    }
 
     if (!mostRecentDewApproveFailedAction) {
         return undefined;
     }
-
-    // Find the most recent APPROVED or FORWARDED action
-    const mostRecentApprovalAction = actionsArray
-        .filter((action): action is ReportAction => isApprovedAction(action) || isForwardedAction(action))
-        .reduce<ReportAction | undefined>((latest, current) => {
-            if (!latest || (current.created && latest.created && current.created > latest.created)) {
-                return current;
-            }
-            return latest;
-        }, undefined);
 
     // Return the DEW action if there's no approval action, or if DEW_APPROVE_FAILED is more recent
     if (!mostRecentApprovalAction || mostRecentDewApproveFailedAction.created > mostRecentApprovalAction.created) {

@@ -462,7 +462,19 @@ function Search({
         });
 
         return enriched;
-    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet, bankAccountList, allReportMetadata]);
+    }, [
+        validGroupBy,
+        isExpenseReportType,
+        baseFilteredData,
+        groupByTransactionSnapshots,
+        accountID,
+        email,
+        translate,
+        formatPhoneNumber,
+        isActionLoadingSet,
+        bankAccountList,
+        allReportMetadata,
+    ]);
 
     const hasLoadedAllTransactions = useMemo(() => {
         if (!validGroupBy) {
