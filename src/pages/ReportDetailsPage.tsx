@@ -71,6 +71,7 @@ import {
     getParticipantsList,
     getReportDescription,
     getReportFieldKey,
+    getReportForHeader,
     isAdminOwnerApproverOrReportOwner,
     isArchivedNonExpenseReport,
     isCanceledTaskReport as isCanceledTaskReportUtil,
@@ -186,6 +187,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
@@ -351,8 +353,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
-
-    const reportName = isGroupChat ? getReportNameFromReportNameUtils(report, reportAttributes) : Parser.htmlToText(getReportNameFromReportNameUtils(report, reportAttributes));
+    const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
+    const reportName = isGroupChat
+        ? getReportNameFromReportNameUtils(reportForHeader, reportAttributes)
+        : Parser.htmlToText(getReportNameFromReportNameUtils(reportForHeader, reportAttributes));
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
@@ -453,6 +457,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         CONST.IOU.ACTION.SUBMIT,
                         actionableWhisperReportActionID,
                         introSelected,
+                        allTransactionDrafts,
                         activePolicy,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
@@ -473,6 +478,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             CONST.IOU.ACTION.CATEGORIZE,
                             actionableWhisperReportActionID,
                             introSelected,
+                            allTransactionDrafts,
                             activePolicy,
                         );
                     },
@@ -490,6 +496,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             CONST.IOU.ACTION.SHARE,
                             actionableWhisperReportActionID,
                             introSelected,
+                            allTransactionDrafts,
                             activePolicy,
                         );
                     },
@@ -613,6 +620,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         introSelected,
+        allTransactionDrafts,
         activePolicy,
         parentReport,
     ]);
