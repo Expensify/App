@@ -244,7 +244,7 @@ function PaymentMethodList({
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         canDismissError: false,
-                        shouldShowRightIcon,
+                        shouldShowRightIcon: isPersonalOldDotCard ? shouldShowRightIcon : false,
                         errors: card.errors,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator:
@@ -256,10 +256,8 @@ function PaymentMethodList({
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
                         isMethodActive: activePaymentMethodID === card.cardID,
-                        onPress: () =>
-                            Navigation.navigate(
-                                ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(CONST.POLICY.EMPTY_POLICY_ID, (card.bank || 'unknown') as never, String(card.cardID), ROUTES.SETTINGS_WALLET),
-                            ),
+                        // Personal cards from OldDot navigate to personal card details, company cards don't have direct navigation
+                        onPress: isPersonalOldDotCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID))) : undefined,
                     });
                     continue;
                 }

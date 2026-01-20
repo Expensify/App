@@ -10,42 +10,30 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
-import useCardFeeds from '@hooks/useCardFeeds';
-import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {updateCardTransactionStartDate} from '@userActions/CompanyCards';
+import {updateAssignedCardTransactionStartDate} from '@userActions/Card';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS>;
-type WorkspaceCompanyCardEditTransactionStartDatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE>;
+type PersonalCardEditTransactionStartDatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE>;
 
-function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceCompanyCardEditTransactionStartDatePageProps) {
-    const {policyID, cardID, backTo} = route.params;
-    const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
-    const bank = getCompanyCardFeed(feedName);
+function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTransactionStartDatePageProps) {
+    const {cardID} = route.params;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const [cardFeeds] = useCardFeeds(policyID);
-    const companyFeeds = getCompanyFeeds(cardFeeds);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
-
-    const [allBankCards] = useCardsList(feedName);
-    const card = allBankCards?.[cardID];
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const card = cardList?.[cardID];
     const currentStartDate = card?.scrapeMinDate;
 
     const [dateOptionSelected, setDateOptionSelected] = useState<DateOption>(CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
@@ -86,7 +74,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
         const newStartDate = getNewStartDate();
 
         if (currentStartDate === newStartDate) {
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID, backTo), {compareParams: false});
+            Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
             return;
         }
 
@@ -95,9 +83,9 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
 
     const confirmSubmit = () => {
         const newStartDate = getNewStartDate();
-        updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
+        updateAssignedCardTransactionStartDate(cardID, newStartDate, currentStartDate);
         setIsWarningModalVisible(false);
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID, backTo), {compareParams: false});
+        Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
     };
 
     const dateOptions = [
@@ -115,14 +103,14 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
         },
     ];
 
-    const content = (
+    return (
         <ScreenWrapper
-            testID="WorkspaceCompanyCardEditTransactionStartDatePage"
+            testID="PersonalCardEditTransactionStartDatePage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID, backTo), {compareParams: false})}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID))}
             />
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
             <View style={styles.flex1}>
@@ -181,15 +169,8 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
             />
         </ScreenWrapper>
     );
-
-    return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
-        >
-            {content}
-        </AccessOrNotFoundWrapper>
-    );
 }
 
-export default WorkspaceCompanyCardEditTransactionStartDatePage;
+PersonalCardEditTransactionStartDatePage.displayName = 'PersonalCardEditTransactionStartDatePage';
+
+export default PersonalCardEditTransactionStartDatePage;

@@ -1,97 +1,76 @@
 import {format, parseISO} from 'date-fns';
-import {Str} from 'expensify-common';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import getBankIcon from '@components/Icon/BankIcons';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useCardFeeds from '@hooks/useCardFeeds';
-import useCardsList from '@hooks/useCardsList';
+import Switch from '@components/Switch';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getDefaultCardName, isPersonalCardFromOldDot, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
+import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable, syncCompanyCard, unassignCompanyCard} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {Session} from '@src/types/onyx';
+import type {BankName} from '@src/types/onyx/Bank';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {getExportMenuItem} from './utils';
 
-type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
+type PersonalCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS>;
 
-function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
-    const {policyID, cardID, backTo} = route.params;
-    const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
-    const bank = getCompanyCardFeed(feedName);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
+function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
+    const {cardID} = route.params;
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
-    const isUnassigningRef = useRef(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MoneySearch', 'RemoveMembers', 'Sync']);
 
     const {isOffline} = useNetwork();
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
-    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {
-        canBeMissing: true,
-    });
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
-    // Prefer feed-scoped card from WORKSPACE_CARDS_LIST to maintain proper access control
-    // Only use CARD_LIST as fallback if card is being unassigned (has pendingAction: DELETE)
-    // This prevents showing cards from other feeds/workspaces via deep links while still
-    // preventing NotHerePage flash during the unassignment flow
-    const feedScopedCard = allBankCards?.[cardID];
-    const globalCard = cardList?.[cardID];
-    const isCardBeingUnassigned = globalCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const card = feedScopedCard ?? (isCardBeingUnassigned ? globalCard : undefined);
-
+    const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = getDisplayNameOrDefault(cardholder);
-    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
-    const [cardFeeds] = useCardFeeds(policyID);
-    const companyFeeds = getCompanyFeeds(cardFeeds);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
-    const plaidUrl = getPlaidInstitutionIconUrl(feedName);
+    const currentUserAccountID = (session as OnyxEntry<Session>)?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isPersonalCard = !!(card && isPersonalCardFromOldDot(card, currentUserAccountID));
+    const reimbursableSetting = card?.markTransactionsAsReimbursable ?? true;
+    const isCSVImportedPersonalCard = !!(
+        isPersonalCard &&
+        card &&
+        (card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV))
+    );
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
@@ -99,13 +78,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
             Navigation.goBack();
             return;
         }
-        isUnassigningRef.current = true;
-        unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
+        unassignCompanyCard(card);
         Navigation.goBack();
     };
 
     const updateCard = () => {
-        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult);
+        if (card) {
+            syncCompanyCard(card.cardID, card.lastScrapeResult);
+        }
     };
 
     const lastScrape = useMemo(() => {
@@ -115,42 +95,46 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         return format(getLocalDateFromDatetime(card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
 
-    // Don't show NotFoundPage if card is being unassigned or data is still loading
-    if ((!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigningRef.current)) {
+    const getCardIconSource = () => {
+        if (isCSVImportedPersonalCard) {
+            return getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
+        }
+        return getBankIcon({styles, bankName: cardBank as BankName, isCard: true}).icon;
+    };
+
+    // Don't show NotFoundPage if data is still loading
+    if (!card && !isLoadingOnyxValue(cardListMetadata)) {
         return <NotFoundPage />;
     }
 
-    const content = (
+    // If somehow a non-personal card is accessed via this route, show not found
+    if (card && !isPersonalCard) {
+        return <NotFoundPage />;
+    }
+
+    return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID="WorkspaceCompanyCardDetailsPage"
+            testID="PersonalCardDetailsPage"
         >
             <HeaderWithBackButton
                 title={translate('workspace.moreFeatures.companyCards.cardDetails')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
             <ScrollView addBottomSafeAreaPadding>
                 <View style={[styles.walletCard, styles.mb3]}>
-                    {plaidUrl ? (
-                        <PlaidCardFeedIcon
-                            plaidUrl={plaidUrl}
-                            isLarge
-                        />
-                    ) : (
-                        <ImageSVG
-                            contentFit="contain"
-                            src={getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
-                            pointerEvents="none"
-                            height={variables.cardPreviewHeight}
-                            width={variables.cardPreviewWidth}
-                        />
-                    )}
+                    <ImageSVG
+                        contentFit="contain"
+                        src={getCardIconSource()}
+                        pointerEvents="none"
+                        height={variables.cardPreviewHeight}
+                        width={variables.cardPreviewWidth}
+                    />
                 </View>
                 {!cardholder?.validated && (
                     <MenuItem
                         icon={Expensicons.Hourglass}
                         iconStyles={styles.mln2}
-                        descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
                         description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
                         numberOfLinesDescription={0}
                         interactive={false}
@@ -164,13 +148,13 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     iconStyles={styles.mt1}
                     icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
-                    description={Str.removeSMSDomain(cardholder?.login ?? '')}
+                    description={cardholder?.login ?? ''}
                     interactive={false}
                 />
                 <MenuItemWithTopDescription
                     numberOfLinesTitle={3}
                     description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                    title={maskCardNumber(card?.cardName ?? '', bank, true)}
+                    title={maskCardNumber(card?.cardName ?? '', cardBank, true)}
                     interactive={false}
                     titleStyle={styles.walletCardNumber}
                 />
@@ -182,7 +166,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         if (!card) {
                             return;
                         }
-                        clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'cardTitle');
+                        clearCardNameValuePairsErrorField(card.cardID, 'cardTitle');
                     }}
                 >
                     <MenuItemWithTopDescription
@@ -190,29 +174,31 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
                         shouldShowRightIcon
                         brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName, backTo))}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.getRoute(cardID))}
                     />
                 </OfflineWithFeedback>
-                {exportMenuItem?.shouldShowMenuItem ? (
-                    <OfflineWithFeedback
-                        pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
-                        errorRowStyles={[styles.ph5, styles.mb3]}
-                        errors={exportMenuItem.exportType ? getLatestErrorField(card?.nameValuePairs ?? {}, exportMenuItem.exportType) : undefined}
-                        onClose={() => {
-                            if (!exportMenuItem.exportType) {
-                                return;
-                            }
-                            clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, exportMenuItem.exportType);
-                        }}
-                    >
-                        <MenuItemWithTopDescription
-                            description={exportMenuItem.description}
-                            title={exportMenuItem.title}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
-                        />
-                    </OfflineWithFeedback>
-                ) : null}
+
+                <OfflineWithFeedback
+                    pendingAction={card?.pendingFields?.markTransactionsAsReimbursable}
+                    errors={card?.errorFields?.markTransactionsAsReimbursable}
+                    errorRowStyles={[styles.ph5, styles.mb3]}
+                    onClose={() => card && clearCardErrorField(card.cardID, 'markTransactionsAsReimbursable')}
+                >
+                    <MenuItem
+                        title={translate('cardPage.markTransactionsAsReimbursable')}
+                        description={translate('cardPage.markTransactionsDescription')}
+                        interactive={false}
+                        shouldShowRightComponent
+                        rightComponent={
+                            <Switch
+                                isOn={reimbursableSetting}
+                                onToggle={(isOn) => card && setPersonalCardReimbursable(card.cardID, isOn, reimbursableSetting)}
+                                accessibilityLabel={translate('cardPage.markTransactionsAsReimbursable')}
+                                disabled={isOffline || !!card?.pendingFields?.markTransactionsAsReimbursable}
+                            />
+                        }
+                    />
+                </OfflineWithFeedback>
 
                 <MenuItemWithTopDescription
                     shouldShowRightComponent={card?.isLoadingLastUpdated}
@@ -229,7 +215,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         if (!card) {
                             return;
                         }
-                        clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'scrapeMinDate', true);
+                        clearCardErrorField(card.cardID, 'scrapeMinDate');
                     }}
                 >
                     <MenuItemWithTopDescription
@@ -237,7 +223,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
                         shouldShowRightIcon
                         brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName, backTo))}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.getRoute(cardID))}
                     />
                 </OfflineWithFeedback>
                 <MenuItem
@@ -252,25 +238,27 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         );
                     }}
                 />
-                <OfflineWithFeedback
-                    pendingAction={card?.pendingFields?.lastScrape}
-                    errorRowStyles={[styles.ph5, styles.mb3]}
-                    errors={getLatestErrorField(card ?? {}, 'lastScrape')}
-                    onClose={() => {
-                        if (!card) {
-                            return;
-                        }
-                        clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true);
-                    }}
-                >
-                    <MenuItem
-                        icon={expensifyIcons.Sync}
-                        disabled={isOffline || card?.isLoadingLastUpdated}
-                        title={translate('workspace.moreFeatures.companyCards.updateCard')}
-                        brickRoadIndicator={card?.errorFields?.lastScrape ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={updateCard}
-                    />
-                </OfflineWithFeedback>
+                {!isCSVImportedPersonalCard && (
+                    <OfflineWithFeedback
+                        pendingAction={card?.pendingFields?.lastScrape}
+                        errorRowStyles={[styles.ph5, styles.mb3]}
+                        errors={getLatestErrorField(card ?? {}, 'lastScrape')}
+                        onClose={() => {
+                            if (!card) {
+                                return;
+                            }
+                            clearCardErrorField(card.cardID, 'lastScrape');
+                        }}
+                    >
+                        <MenuItem
+                            icon={expensifyIcons.Sync}
+                            disabled={isOffline || card?.isLoadingLastUpdated}
+                            title={translate('workspace.moreFeatures.companyCards.updateCard')}
+                            brickRoadIndicator={card?.errorFields?.lastScrape ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            onPress={updateCard}
+                        />
+                    </OfflineWithFeedback>
+                )}
                 <MenuItem
                     icon={expensifyIcons.RemoveMembers}
                     title={translate('workspace.moreFeatures.companyCards.unassignCard')}
@@ -291,15 +279,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
             </ScrollView>
         </ScreenWrapper>
     );
-
-    return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
-        >
-            {content}
-        </AccessOrNotFoundWrapper>
-    );
 }
 
-export default WorkspaceCompanyCardDetailsPage;
+PersonalCardDetailsPage.displayName = 'PersonalCardDetailsPage';
+
+export default PersonalCardDetailsPage;
