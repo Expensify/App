@@ -19,6 +19,7 @@ import {
     cancelPayment,
     canIOUBePaid,
     canUnapproveIOU,
+    clearBulkEditDraftTransaction,
     completeSplitBill,
     createDistanceRequest,
     deleteMoneyRequest,
@@ -27,6 +28,7 @@ import {
     getPerDiemExpenseInformation,
     getReportOriginalCreationTimestamp,
     getReportPreviewAction,
+    initBulkEditDraftTransaction,
     initMoneyRequest,
     initSplitExpense,
     markRejectViolationAsResolved,
@@ -43,13 +45,11 @@ import {
     submitPerDiemExpense,
     submitReport,
     trackExpense,
-    clearBulkEditDraftTransaction,
-    initBulkEditDraftTransaction,
+    updateBulkEditDraftTransaction,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestAttendees,
     updateMoneyRequestCategory,
     updateMoneyRequestTag,
-    updateBulkEditDraftTransaction,
     updateMultipleMoneyRequests,
     updateSplitExpenseAmountField,
     updateSplitTransactionsFromSplitExpensesFlow,
@@ -8204,14 +8204,7 @@ describe('actions/IOU', () => {
             const updates = JSON.parse(params.updates) as {amount: number};
             expect(Math.abs(updates.amount)).toBe(1000);
             expect(updates.amount).toBeLessThan(0);
-            expect(buildOptimisticSpy).toHaveBeenCalledWith(
-                transactionThread,
-                transaction,
-                expect.objectContaining({amount: 1000}),
-                true,
-                policy,
-                expect.anything(),
-            );
+            expect(buildOptimisticSpy).toHaveBeenCalledWith(transactionThread, transaction, expect.objectContaining({amount: 1000}), true, policy, expect.anything());
 
             writeSpy.mockRestore();
             buildOptimisticSpy.mockRestore();
@@ -8263,14 +8256,7 @@ describe('actions/IOU', () => {
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
             const updates = JSON.parse(params.updates) as {amount: number};
             expect(updates.amount).toBe(1000);
-            expect(buildOptimisticSpy).toHaveBeenCalledWith(
-                transactionThread,
-                transaction,
-                expect.objectContaining({amount: 1000}),
-                false,
-                policy,
-                expect.anything(),
-            );
+            expect(buildOptimisticSpy).toHaveBeenCalledWith(transactionThread, transaction, expect.objectContaining({amount: 1000}), false, policy, expect.anything());
 
             writeSpy.mockRestore();
             buildOptimisticSpy.mockRestore();
