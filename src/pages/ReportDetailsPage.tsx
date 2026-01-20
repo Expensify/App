@@ -1,7 +1,7 @@
 import {StackActions} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -989,21 +989,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
     }, [requestParentReportAction, route.params.reportID, moneyRequestReport, iouTransactionID, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView]);
 
-    // A flag to indicate whether the user chose to delete the transaction or not
-    const isTransactionDeleted = useRef<boolean>(false);
-
-    useEffect(() => {
-        return () => {
-            // Perform the actual deletion after the details page is unmounted. This prevents the [Deleted ...] text from briefly appearing when dismissing the modal.
-            if (!isTransactionDeleted.current) {
-                return;
-            }
-            isTransactionDeleted.current = false;
-            navigateToTargetUrl();
-            deleteTransaction();
-        };
-    }, [deleteTransaction, navigateToTargetUrl]);
-
     const showDeleteModal = useCallback(async () => {
         const {action} = await showConfirmModal({
             title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1}),
@@ -1016,9 +1001,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        isTransactionDeleted.current = true;
-        Navigation.dismissModal();
-    }, [showConfirmModal, translate, caseID]);
+        navigateToTargetUrl();
+        deleteTransaction();
+    }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
