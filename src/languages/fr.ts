@@ -628,7 +628,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copier dans le presse-papiers',
         thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
-        viewReport: 'Voir le rapport',
         actionRequired: 'Action requise',
         duplicate: 'Dupliquer',
         duplicated: 'Dupliqué',
@@ -5115,6 +5114,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées. Sélectionnez une autre <a href="${exportPageLink}">option d’exportation</a> pour modifier les comptes disponibles.`,
                 lastUpdated: 'Dernière mise à jour',
                 transactionStartDate: 'Date de début de la transaction',
+                changeTransactionStartDateWarning:
+                    'La modification de la date de début supprimera toutes les transactions non déclarées/provisoires et réimportera toutes les transactions à partir de la nouvelle date de début. Cela peut entraîner des transactions en double.',
                 updateCard: 'Mettre à jour la carte',
                 unassignCard: 'Désattribuer la carte',
                 unassign: 'Désassigner',
