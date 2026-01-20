@@ -1,9 +1,11 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
+import type Transaction from '@src/types/onyx/Transaction';
 import type {IOURequestType} from './IOU';
 import {startDistanceRequest, startMoneyRequest} from './IOU';
 import {startOutCreateTaskQuickAction} from './Task';
@@ -15,6 +17,7 @@ type NavigateToQuickActionParams = {
     lastDistanceExpenseType?: DistanceExpenseType;
     targetAccountPersonalDetails: PersonalDetails;
     currentUserAccountID: number;
+    draftTransactions: OnyxCollection<Transaction>;
 };
 
 function getQuickActionRequestType(action: QuickActionName | undefined, lastDistanceExpenseType?: DistanceExpenseType): IOURequestType | undefined {
@@ -37,7 +40,7 @@ function getQuickActionRequestType(action: QuickActionName | undefined, lastDist
 }
 
 function navigateToQuickAction(params: NavigateToQuickActionParams) {
-    const {isValidReport, quickAction, selectOption, lastDistanceExpenseType, targetAccountPersonalDetails, currentUserAccountID} = params;
+    const {isValidReport, quickAction, selectOption, lastDistanceExpenseType, targetAccountPersonalDetails, currentUserAccountID, draftTransactions} = params;
     const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action, lastDistanceExpenseType);
 
@@ -63,10 +66,10 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
             break;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), false);
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true, undefined, draftTransactions), false);
             break;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true, undefined, draftTransactions), false);
             break;
         default:
     }
