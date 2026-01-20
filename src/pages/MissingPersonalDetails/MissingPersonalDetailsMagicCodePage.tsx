@@ -63,6 +63,14 @@ function MissingPersonalDetailsMagicCodePage() {
         [countryCode, values],
     );
 
+    useEffect(() => {
+        if (!privatePersonalDetails?.hasConfirmedShippingDetails) {
+            return;
+        }
+
+        Navigation.dismissModal();
+    }, [privatePersonalDetails?.hasConfirmedShippingDetails]);
+
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}

@@ -1190,7 +1190,7 @@ describe('ReportActionsUtils', () => {
             const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(true);
         });
-        it('should return false if personal detail is completed', () => {
+        it('should still return true when personal detail is completed but has not been confirmed yet', () => {
             const mockPersonalDetail = {
                 addresses: [
                     {
@@ -1204,6 +1204,25 @@ describe('ReportActionsUtils', () => {
                 legalLastName: 'David',
                 phoneNumber: '+162992973',
                 dob: '9-9-2000',
+            };
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
+            expect(res).toEqual(true);
+        });
+        it('should return false if personal detail is completed and has been confirmed by the user', () => {
+            const mockPersonalDetail = {
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'New York',
+                        state: 'NY',
+                        postalCode: '10001',
+                    },
+                ],
+                legalFirstName: 'John',
+                legalLastName: 'David',
+                phoneNumber: '+162992973',
+                dob: '9-9-2000',
+                hasConfirmedShippingDetails: true,
             };
             const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(false);
