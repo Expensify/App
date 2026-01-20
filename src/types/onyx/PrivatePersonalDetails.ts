@@ -74,6 +74,9 @@ type PrivatePersonalDetails = {
 
     /** Whether the request is being processed */
     isLoading?: boolean;
+
+    /** Whether the shipping details have been confirmed */
+    hasConfirmedShippingDetails?: boolean;
 };
 
 export default PrivatePersonalDetails;
