@@ -11921,6 +11921,7 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
 
 /**
  * Sets transaction's participant and reportID to the policy's expense chat.
+ * Returns the policy expense chat reportID.
  */
 function setMoneyRequestParticipantAsPolicyExpenseChat({
     transactionID,
@@ -11935,24 +11936,22 @@ function setMoneyRequestParticipantAsPolicyExpenseChat({
     isDraft: boolean;
     participantsAutoAssigned?: boolean;
 }) {
-    const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, policyID)?.reportID;
-    if (!policyExpenseReportID) {
-        return;
-    }
-
+    const policyExpenseChatReportID = getPolicyExpenseChat(currentUserAccountID, policyID)?.reportID;
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        reportID: policyExpenseReportID,
+        reportID: policyExpenseChatReportID,
         participants: [
             {
                 selected: true,
                 accountID: 0,
                 isPolicyExpenseChat: true,
-                reportID: policyExpenseReportID,
+                reportID: policyExpenseChatReportID,
                 policyID,
             },
         ],
         participantsAutoAssigned,
     });
+
+    return policyExpenseChatReportID;
 }
 
 function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null) {

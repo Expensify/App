@@ -114,16 +114,16 @@ function IOURequestStepHours({
 
         if (isEmbeddedInStartPage) {
             if (explicitPolicyID) {
-                setMoneyRequestParticipantAsPolicyExpenseChat({
+                const policyExpenseChatReportID = setMoneyRequestParticipantAsPolicyExpenseChat({
                     transactionID,
                     policyID: explicitPolicyID,
                     currentUserAccountID: accountID,
                     isDraft: isTransactionDraft,
                     participantsAutoAssigned: true,
                 });
-            } else {
-                setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
+                return Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, policyExpenseChatReportID));
             }
+            setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
