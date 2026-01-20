@@ -58,34 +58,15 @@ describe('BankAccountUtils', () => {
             expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, details)).toBe(true);
         });
 
-        it('returns true when address street is missing', () => {
+        it.each([
+            {field: 'street', address: {street: '', city: 'New York', state: 'NY', zip: '10001', country: 'US', current: true}},
+            {field: 'city', address: {street: '123 Main St', city: '', state: 'NY', zip: '10001', country: 'US', current: true}},
+            {field: 'state', address: {street: '123 Main St', city: 'New York', state: '', zip: '10001', country: 'US', current: true}},
+            {field: 'zip', address: {street: '123 Main St', city: 'New York', state: 'NY', zip: '', country: 'US', current: true}},
+        ])('returns true when address $field is missing', ({address}) => {
             const details: PrivatePersonalDetails = {
                 ...completePersonalDetails,
-                addresses: [{street: '', city: 'New York', state: 'NY', zip: '10001', country: 'US', current: true}],
-            };
-            expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, details)).toBe(true);
-        });
-
-        it('returns true when address city is missing', () => {
-            const details: PrivatePersonalDetails = {
-                ...completePersonalDetails,
-                addresses: [{street: '123 Main St', city: '', state: 'NY', zip: '10001', country: 'US', current: true}],
-            };
-            expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, details)).toBe(true);
-        });
-
-        it('returns true when address state is missing', () => {
-            const details: PrivatePersonalDetails = {
-                ...completePersonalDetails,
-                addresses: [{street: '123 Main St', city: 'New York', state: '', zip: '10001', country: 'US', current: true}],
-            };
-            expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, details)).toBe(true);
-        });
-
-        it('returns true when address zip is missing', () => {
-            const details: PrivatePersonalDetails = {
-                ...completePersonalDetails,
-                addresses: [{street: '123 Main St', city: 'New York', state: 'NY', zip: '', country: 'US', current: true}],
+                addresses: [address],
             };
             expect(isPersonalBankAccountMissingInfo(usPersonalBankAccount, details)).toBe(true);
         });
@@ -120,46 +101,31 @@ describe('BankAccountUtils', () => {
     });
 
     describe('getLastFourDigits', () => {
-        it('returns last 4 digits of bank account number', () => {
-            expect(getLastFourDigits('123456789012')).toBe('9012');
-        });
-
-        it('returns entire string if less than 4 characters', () => {
-            expect(getLastFourDigits('123')).toBe('123');
-        });
-
-        it('returns empty string for empty input', () => {
-            expect(getLastFourDigits('')).toBe('');
-        });
-
-        it('returns exactly 4 characters for 4-digit input', () => {
-            expect(getLastFourDigits('1234')).toBe('1234');
+        it.each([
+            {input: '123456789012', expected: '9012', description: 'long account number'},
+            {input: '123', expected: '123', description: 'less than 4 characters'},
+            {input: '', expected: '', description: 'empty string'},
+            {input: '1234', expected: '1234', description: 'exactly 4 characters'},
+        ])('returns $expected for $description', ({input, expected}) => {
+            expect(getLastFourDigits(input)).toBe(expected);
         });
     });
 
     describe('isBankAccountPartiallySetup', () => {
-        it('returns true for SETUP state', () => {
-            expect(isBankAccountPartiallySetup(CONST.BANK_ACCOUNT.STATE.SETUP)).toBe(true);
+        it.each([
+            {state: CONST.BANK_ACCOUNT.STATE.SETUP, name: 'SETUP'},
+            {state: CONST.BANK_ACCOUNT.STATE.VERIFYING, name: 'VERIFYING'},
+            {state: CONST.BANK_ACCOUNT.STATE.PENDING, name: 'PENDING'},
+        ])('returns true for $name state', ({state}) => {
+            expect(isBankAccountPartiallySetup(state)).toBe(true);
         });
 
-        it('returns true for VERIFYING state', () => {
-            expect(isBankAccountPartiallySetup(CONST.BANK_ACCOUNT.STATE.VERIFYING)).toBe(true);
-        });
-
-        it('returns true for PENDING state', () => {
-            expect(isBankAccountPartiallySetup(CONST.BANK_ACCOUNT.STATE.PENDING)).toBe(true);
-        });
-
-        it('returns false for OPEN state', () => {
-            expect(isBankAccountPartiallySetup(CONST.BANK_ACCOUNT.STATE.OPEN)).toBe(false);
-        });
-
-        it('returns false for undefined state', () => {
-            expect(isBankAccountPartiallySetup(undefined)).toBe(false);
-        });
-
-        it('returns false for empty string state', () => {
-            expect(isBankAccountPartiallySetup('')).toBe(false);
+        it.each([
+            {state: CONST.BANK_ACCOUNT.STATE.OPEN, name: 'OPEN'},
+            {state: undefined, name: 'undefined'},
+            {state: '', name: 'empty string'},
+        ])('returns false for $name state', ({state}) => {
+            expect(isBankAccountPartiallySetup(state)).toBe(false);
         });
     });
 
