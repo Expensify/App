@@ -1,8 +1,9 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
-import ErrorMessageRow from '@components/ErrorMessageRow';
 import ScrollView from '@components/ScrollView';
 import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Table from '@components/Table';
@@ -34,14 +35,20 @@ type WorkspaceCompanyCardsTableProps = {
     /** Current policy */
     policy: Policy | undefined;
 
+    /** Whether to disable assign card button */
+    isAssigningCardDisabled: boolean;
+
     /** On assign card callback */
     onAssignCard: (cardID: string) => void;
 
-    /** Whether to disable assign card button */
-    isAssigningCardDisabled: boolean;
+    /** On reload page callback */
+    onReloadPage: () => void;
+
+    /** On reload feed callback */
+    onReloadFeed: () => void;
 };
 
-function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabled}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabled, onReloadPage, onReloadFeed}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
@@ -71,14 +78,16 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
     const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
     const workspaceCardFeedsErrors = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
+    const firstWorkspaceFeedError = workspaceCardFeedsErrors ? Object.entries(workspaceCardFeedsErrors).at(0) : undefined;
     const hasWorkspaceFeedsError = !isEmptyObject(workspaceCardFeedsErrors);
 
     const selectedFeedStatus = selectedFeed?.status;
     const selectedFeedErrors = selectedFeedStatus?.errors;
+    const firstSelectedFeedError = selectedFeedErrors ? Object.entries(selectedFeedErrors).at(0) : undefined;
     const hasSelectedFeedError = !isEmptyObject(selectedFeedErrors);
 
     const hasFeedErrors = hasWorkspaceFeedsError || hasSelectedFeedError;
-    const feedErrors = {...workspaceCardFeedsErrors, ...selectedFeedErrors};
+    const feedErrorToShow = firstWorkspaceFeedError ?? firstSelectedFeedError;
 
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
@@ -322,10 +331,22 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             )}
 
             {hasFeedErrors && !isShowingLoadingState && (
-                <ErrorMessageRow
-                    errors={feedErrors}
-                    errorRowStyles={[styles.mh5]}
-                />
+                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <View style={styles.alignItemsCenter}>
+                        <FullPageErrorView
+                            shouldShow
+                            title={feedErrorToShow?.at(0) ?? undefined}
+                            containerStyle={[styles.companyCardsBlockingErrorViewContainer, styles.pb4]}
+                            subtitle={feedErrorToShow?.at(1) ?? undefined}
+                            titleStyle={[styles.mb2, styles.mt4]}
+                            subtitleStyle={styles.textSupporting}
+                        />
+                        <Button
+                            text={translate('workspace.companyCards.error.tryAgain')}
+                            onPress={hasWorkspaceFeedsError ? onReloadFeed : onReloadPage}
+                        />
+                    </View>
+                </View>
             )}
 
             {showCards && (

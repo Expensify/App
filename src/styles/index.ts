@@ -2529,8 +2529,13 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        blockingErrorViewContainer: {
+        searchBlockingErrorViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 475,
+            alignSelf: 'center',
+        },
+
+        companyCardsBlockingErrorViewContainer: {
             maxWidth: 475,
             alignSelf: 'center',
         },

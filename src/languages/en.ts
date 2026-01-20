@@ -4695,6 +4695,7 @@ const translations = {
             error: {
                 workspaceFeedsCouldNotBeLoaded: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
                 feedCouldNotBeLoaded: 'An error occurred while loading this feed. Please try again or contact your administrator.',
+                tryAgain: 'Try again',
             },
             addNewCard: {
                 other: 'Other',

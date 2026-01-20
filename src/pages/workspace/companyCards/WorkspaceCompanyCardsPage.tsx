@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import DecisionModal from '@components/DecisionModal';
 import useAssignCard from '@hooks/useAssignCard';
 import useCardsList from '@hooks/useCardsList';
@@ -51,12 +51,17 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID),
     });
 
-    useEffect(() => {
+    const loadPolicyCompanyCardsPage = useCallback(() => {
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
     }, [policyID, domainOrWorkspaceAccountID]);
 
-    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardsListMetadata)));
     useEffect(() => {
+        loadPolicyCompanyCardsPage();
+    }, [loadPolicyCompanyCardsPage]);
+
+    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardsListMetadata)));
+
+    const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending) {
             return;
         }
@@ -64,7 +69,11 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
         openWorkspaceMembersPage(policyID, clientMemberEmails);
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName);
-    }, [bankName, isLoading, policyID, isFeedPending, domainOrWorkspaceAccountID, policy?.employeeList]);
+    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policy?.employeeList, policyID]);
+
+    useEffect(() => {
+        loadPolicyCompanyCardsPage();
+    }, [loadPolicyCompanyCardsPage]);
 
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
 
@@ -85,6 +94,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     policy={policy}
                     onAssignCard={assignCard}
                     isAssigningCardDisabled={isAssigningCardDisabled}
+                    onReloadPage={loadPolicyCompanyCardsPage}
+                    onReloadFeed={loadPolicyCompanyCardsFeed}
                 />
             </WorkspacePageWithSections>
 
