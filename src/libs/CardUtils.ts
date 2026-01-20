@@ -23,7 +23,7 @@ import type {
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
-import type {CardFeedData, CardFeedWithDomainID, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {CardFeedData, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -344,11 +344,7 @@ function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalD
     );
 }
 
-function getCardFeedIcon(
-    cardFeed: CompanyCardFeedWithNumber | typeof CONST.EXPENSIFY_CARD.BANK,
-    illustrations: IllustrationsType,
-    companyCardIllustrations: CompanyCardFeedIcons,
-): IconAsset {
+function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
     const feedIcons = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: companyCardIllustrations.VisaCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: companyCardIllustrations.AmexCardCompanyCardDetailLarge,
@@ -372,9 +368,8 @@ function getCardFeedIcon(
         return Illustrations.ExpensifyCardImage;
     }
 
-    const feedIcon = feedIcons[cardFeed as CompanyCardFeed];
-    if (feedIcon) {
-        return feedIcon;
+    if (feedIcons[cardFeed]) {
+        return feedIcons[cardFeed];
     }
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, cdfbmo
@@ -394,7 +389,7 @@ function getCardFeedIcon(
 /**
  * Verify if the feed is a custom feed. Those are also referred to as commercial feeds.
  */
-function isCustomFeed(feed: CompanyCardFeedWithNumber | CompanyCardFeedWithDomainID | undefined): boolean {
+function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
     if (!feed) {
         return false;
     }
@@ -405,7 +400,7 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber | CompanyCardFeedWithDomai
 function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
-            if (value?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || value?.pending) {
+            if (value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || value.pending) {
                 return false;
             }
             return key !== CONST.EXPENSIFY_CARD.BANK;
@@ -427,7 +422,7 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
     );
 }
 
-function getBankName(feedType: CompanyCardFeedWithNumber): string {
+function getBankName(feedType: CompanyCardFeed): string {
     const feedNamesMapping = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Mastercard',
@@ -475,7 +470,7 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
-function getCustomOrFormattedFeedName(feed?: CompanyCardFeedWithNumber, customFeedName?: string, shouldAddCardsSuffix = true): string | undefined {
+function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, customFeedName?: string, shouldAddCardsSuffix = true): string | undefined {
     if (!feed) {
         return;
     }
@@ -557,22 +552,8 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID
     return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
-function getCompanyCardFeedWithDomainID(feedName: CompanyCardFeedWithNumber, domainID: number | string): CompanyCardFeedWithDomainID {
+function getCompanyCardFeedWithDomainID(feedName: CompanyCardFeed, domainID: number | string): CompanyCardFeedWithDomainID {
     return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
-}
-
-function splitCompanyCardFeedWithDomainID(feedName: CardFeedWithDomainID | undefined): {feedName: CompanyCardFeed | undefined; domainID: number | undefined} {
-    if (!feedName) {
-        return {feedName: undefined, domainID: undefined};
-    }
-
-    const feedNameParts = feedName.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
-
-    if (feedNameParts.length !== 2) {
-        return {feedName: feedName as CompanyCardFeed, domainID: undefined};
-    }
-
-    return {feedName: feedNameParts.at(0) as CompanyCardFeed, domainID: Number(feedNameParts.at(1))};
 }
 
 function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean {
@@ -725,14 +706,15 @@ function filterCardsByNonExpensify(cards: CardList | undefined): CardList {
  * @param workspaceAccountID the workspace account id we want to get cards for
  * @param domainIDs the domain ids we want to get cards for
  */
-function flattenCompanyCards(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
+function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number, domainIDs?: number[]): Record<string, Card> | undefined {
     if (!allCardsList) {
         return;
     }
 
     return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
-        const isWorkspaceAccountCard = key.includes(workspaceAccountID.toString());
-        if (!isWorkspaceAccountCard || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+        const isWorkspaceAccountCards = key.includes(workspaceAccountID.toString());
+        const isDomainCards = domainIDs?.some((domainID) => key.includes(domainID.toString()));
+        if ((!isWorkspaceAccountCards && !isDomainCards) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
             return acc;
         }
         const {cardList, ...feedCards} = cards ?? {};
@@ -834,8 +816,8 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
     if (!feedWithDomainID) {
         return '' as CompanyCardFeed;
     }
-
-    return splitCompanyCardFeedWithDomainID(feedWithDomainID as CompanyCardFeedWithDomainID).feedName ?? ('' as CompanyCardFeed);
+    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
+    return feed as CompanyCardFeed;
 }
 
 /**
@@ -976,12 +958,11 @@ export {
     isCardHiddenFromSearch,
     getFeedType,
     flattenCompanyCards,
-    isCardConnectionBroken,
+    checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
-    filterAllInactiveCards,
     filterInactiveCards,
     isCardPendingIssue,
     isCardPendingActivate,
@@ -999,7 +980,6 @@ export {
     getOriginalCompanyFeeds,
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
-    splitCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
     filterPersonalCards,
     isPersonalCard,

@@ -8,7 +8,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
     filterInactiveCards,
-    flattenCompanyCards,
+    flatAllCardsList,
     formatCardExpiration,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
@@ -38,7 +38,6 @@ import {
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
-    splitCompanyCardFeedWithDomainID,
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
@@ -868,10 +867,10 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('flattenCompanyCards', () => {
+    describe('flatAllCardsList', () => {
         it('should return the flattened list of non-Expensify cards related to the provided workspaceAccountID', () => {
             const workspaceAccountID = 11111111;
-            const flattenedCardsList = flattenCompanyCards(allCardsList, workspaceAccountID);
+            const flattenedCardsList = flatAllCardsList(allCardsList, workspaceAccountID);
             const {cardList, ...customCards} = customFeedCardsList;
             expect(flattenedCardsList).toStrictEqual({
                 ...directFeedCardsMultipleList,
@@ -881,7 +880,7 @@ describe('CardUtils', () => {
 
         it('should return undefined if not defined cards list was provided', () => {
             const workspaceAccountID = 11111111;
-            const flattenedCardsList = flattenCompanyCards(undefined, workspaceAccountID);
+            const flattenedCardsList = flatAllCardsList(undefined, workspaceAccountID);
             expect(flattenedCardsList).toBeUndefined();
         });
     });

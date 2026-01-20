@@ -88,10 +88,6 @@ function init() {
                 setDerivedValue(key, derivedValue);
             };
 
-            function logDependencyChange(dependencyOnyxKey: string) {
-                Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
-            }
-
             for (let i = 0; i < dependencies.length; i++) {
                 const dependencyIndex = i;
                 const dependencyOnyxKey = dependencies[dependencyIndex];
@@ -100,8 +96,8 @@ function init() {
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
-                        callback: (value, _collectionKey, sourceValue) => {
-                            logDependencyChange(dependencyOnyxKey);
+                        callback: (value, collectionKey, sourceValue) => {
+                            Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
                             recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
                         },
@@ -122,7 +118,7 @@ function init() {
                                 Log.info(`[OnyxDerived] No locale found for derived key ${key}, skipping recompute`);
                                 return;
                             }
-                            logDependencyChange(dependencyOnyxKey);
+                            Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(dependencyIndex, localeValue as Parameters<typeof compute>[0][typeof dependencyIndex]);
                             recomputeDerivedValue(dependencyOnyxKey, localeValue, dependencyIndex);
                         },
@@ -131,7 +127,7 @@ function init() {
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         callback: (value) => {
-                            logDependencyChange(dependencyOnyxKey);
+                            Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
                             // if the dependency is not a collection, pass the entire value as the source value
                             recomputeDerivedValue(dependencyOnyxKey, value, dependencyIndex);

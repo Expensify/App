@@ -21,7 +21,7 @@ type UseCompanyCardsProps = {
 
 type UseCompanyCardsResult = Partial<{
     cardFeedType: CardFeedType;
-    bankName: CompanyCardFeedWithNumber;
+    bankName: CompanyCardFeed;
     feedName: CompanyCardFeedWithDomainID;
     cardList: AssignableCardsList;
     assignedCards: CardList;
