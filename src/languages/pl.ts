@@ -627,7 +627,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej, niż się spodziewaliśmy…',
         domains: 'Domeny',
-        viewReport: 'Wyświetl raport',
         actionRequired: 'Wymagane działanie',
         duplicate: 'Duplikat',
         duplicated: 'Zduplikowano',
@@ -1949,13 +1948,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Porozmawiaj z Concierge, aby rozwiązać problemy z bezpieczeństwem i odblokować swoje konto.',
         chatWithConcierge: 'Czat z Concierge',
     },
-    passwordPage: {
-        changePassword: 'Zmień hasło',
-        changingYourPasswordPrompt: 'Zmiana hasła zaktualizuje je zarówno dla Twojego konta na Expensify.com, jak i konta w New Expensify.',
-        currentPassword: 'Aktualne hasło',
-        newPassword: 'Nowe hasło',
-        newPasswordPrompt: 'Twoje nowe hasło musi się różnić od starego hasła i zawierać co najmniej 8 znaków, 1 wielką literę, 1 małą literę i 1 cyfrę.',
-    },
     twoFactorAuth: {
         headerTitle: 'Uwierzytelnianie dwuskładnikowe',
         twoFactorAuthEnabled: 'Uwierzytelnianie dwuskładnikowe włączone',
@@ -2985,15 +2977,6 @@ ${
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ups... ${isBreakLine ? '\n' : ''}Coś poszło nie tak`,
         subtitle: 'Twoje żądanie nie mogło zostać zrealizowane. Spróbuj ponownie później.',
         wrongTypeSubtitle: 'To wyszukiwanie jest nieprawidłowe. Spróbuj dostosować kryteria wyszukiwania.',
-    },
-    setPasswordPage: {
-        enterPassword: 'Wprowadź hasło',
-        setPassword: 'Ustaw hasło',
-        newPasswordPrompt: 'Twoje hasło musi mieć co najmniej 8 znaków, 1 wielką literę, 1 małą literę i 1 cyfrę.',
-        passwordFormTitle: 'Witamy ponownie w Nowym Expensify! Ustaw swoje hasło.',
-        passwordNotSet: 'Nie udało się ustawić nowego hasła. Wysłaliśmy nowy link do ustawienia hasła, aby spróbować ponownie.',
-        setPasswordLinkInvalid: 'Ten link do ustawienia hasła jest nieprawidłowy lub wygasł. Nowy czeka już w Twojej skrzynce e-mail!',
-        validateAccount: 'Zweryfikuj konto',
     },
     statusPage: {
         status: 'Status',
@@ -5076,6 +5059,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     `Wybierz konto ${integration}, do którego mają być eksportowane transakcje. Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.`,
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data początkowa transakcji',
+                changeTransactionStartDateWarning:
+                    'Zmiana daty rozpoczęcia spowoduje usunięcie wszystkich nieraportowanych lub transakcji w wersji roboczej i ponowne zaimportowanie wszystkich transakcji od nowej daty rozpoczęcia. Może to spowodować duplikaty transakcji.',
                 updateCard: 'Zaktualizuj kartę',
                 unassignCard: 'Cofnij przypisanie karty',
                 unassign: 'Cofnij przypisanie',
