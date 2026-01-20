@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -37,13 +36,7 @@ function FloatingGpsButton() {
 
     return (
         <PressableWithoutFeedback
-            style={[
-                styles.navigationTabBarFABItem,
-                styles.ph0,
-                // Prevent text selection on touch devices (e.g. on long press)
-                canUseTouchScreen() && styles.userSelectNone,
-                styles.floatingGpsButton,
-            ]}
+            style={[styles.navigationTabBarFABItem, styles.ph0, styles.userSelectNone, styles.floatingGpsButton]}
             accessibilityLabel={translate('gps.fabGpsTripExplained')}
             onPress={navigateToGpsScreen}
             role={CONST.ROLE.BUTTON}
