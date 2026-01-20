@@ -145,7 +145,7 @@ function IOURequestStepScan({
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [transactions] = useOptimisticDraftTransactions(initialTransaction);
+    const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
 

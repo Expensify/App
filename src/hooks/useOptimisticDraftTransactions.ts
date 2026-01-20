@@ -13,7 +13,7 @@ import useOnyx from './useOnyx';
  * or contains only a single transaction, it will fallback to the provided transaction.
  * Otherwise, it will use the draft transactions from Onyx data.
  */
-const useOptimisticDraftTransactions = (transaction: OnyxEntry<Transaction>): [Transaction[], Array<OnyxEntry<Transaction>>] => {
+const useOptimisticDraftTransactions = (transaction: OnyxEntry<Transaction>): [Transaction[], Array<OnyxEntry<Transaction>> | undefined] => {
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
