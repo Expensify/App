@@ -113,9 +113,17 @@ function IOURequestStepHours({
         setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
 
         if (isEmbeddedInStartPage) {
-            await (explicitPolicyID
-                ? setMoneyRequestParticipantAsPolicyExpenseChat(transactionID, explicitPolicyID, accountID, isTransactionDraft)
-                : setMoneyRequestParticipantsFromReport(transactionID, report, accountID));
+            if (explicitPolicyID) {
+                setMoneyRequestParticipantAsPolicyExpenseChat({
+                    transactionID,
+                    policyID: explicitPolicyID,
+                    currentUserAccountID: accountID,
+                    isDraft: isTransactionDraft,
+                    participantsAutoAssigned: true,
+                });
+            } else {
+                setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
+            }
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));

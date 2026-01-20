@@ -27,7 +27,13 @@ function IOURequestStepTimeWorkspace({route, navigation}: IOURequestStepTimeWork
             navigation={navigation}
             getPolicies={getActivePoliciesWithExpenseChatAndTimeEnabled}
             onSelectWorkspace={(item, allPolicies) => {
-                setMoneyRequestParticipantAsPolicyExpenseChat(transactionID, item.value, accountID, isTransactionDraft);
+                setMoneyRequestParticipantAsPolicyExpenseChat({
+                    transactionID,
+                    policyID: item.value,
+                    currentUserAccountID: accountID,
+                    isDraft: isTransactionDraft,
+                    participantsAutoAssigned: true,
+                });
 
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.value}`];
                 const defaultRate = policy ? getDefaultTimeTrackingRate(policy) : undefined;

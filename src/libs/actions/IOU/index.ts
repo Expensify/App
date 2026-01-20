@@ -11922,13 +11922,25 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
 /**
  * Sets transaction's participant and reportID to the policy's expense chat.
  */
-function setMoneyRequestParticipantAsPolicyExpenseChat(transactionID: string, policyID: string, currentUserAccountID: number, isDraft: boolean) {
+function setMoneyRequestParticipantAsPolicyExpenseChat({
+    transactionID,
+    policyID,
+    currentUserAccountID,
+    isDraft,
+    participantsAutoAssigned,
+}: {
+    transactionID: string;
+    policyID: string;
+    currentUserAccountID: number;
+    isDraft: boolean;
+    participantsAutoAssigned?: boolean;
+}) {
     const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, policyID)?.reportID;
     if (!policyExpenseReportID) {
         return;
     }
 
-    return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         reportID: policyExpenseReportID,
         participants: [
             {
@@ -11939,7 +11951,7 @@ function setMoneyRequestParticipantAsPolicyExpenseChat(transactionID: string, po
                 policyID,
             },
         ],
-        participantsAutoAssigned: true,
+        participantsAutoAssigned,
     });
 }
 
