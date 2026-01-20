@@ -600,7 +600,7 @@ describe('useSelectedTransactionsActions', () => {
         const reportActions: ReportAction[] = [];
         const transaction = {
             ...createRandomTransaction(1),
-            transactionID: transactionID,
+            transactionID,
             amount: 1000,
             status: CONST.TRANSACTION.STATUS.POSTED,
         };
