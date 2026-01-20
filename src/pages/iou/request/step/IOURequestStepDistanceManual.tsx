@@ -79,9 +79,12 @@ function IOURequestStepDistanceManual({
     const [formError, setFormError] = useState<string>('');
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const isArchived = isArchivedReport(reportNameValuePairs);
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const policy = usePolicy(report?.policyID);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -132,8 +135,8 @@ function IOURequestStepDistanceManual({
             return false;
         }
 
-        return !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
-    }, [report, skipConfirmation, reportNameValuePairs]);
+        return !(isArchived || isPolicyExpenseChatUtils(report));
+    }, [report, skipConfirmation, isArchived]);
 
     useFocusEffect(
         useCallback(() => {
@@ -184,6 +187,8 @@ function IOURequestStepDistanceManual({
                         // Not required for manual distance request
                         transactionBackup: undefined,
                         policy,
+                        policyTagList: policyTags,
+                        policyCategories,
                         currentUserAccountIDParam,
                         currentUserEmailParam,
                         isASAPSubmitBetaEnabled,
@@ -199,13 +204,13 @@ function IOURequestStepDistanceManual({
                 return;
             }
 
-            if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+            if (report?.reportID && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountIDParam);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     return participantAccountID
                         ? getParticipantsOption(participant, personalDetails)
-                        : getReportOption(participant, policy, receiverPolicy, chatReceiverPolicy, reportAttributesDerived);
+                        : getReportOption(participant, reportNameValuePairs?.private_isArchived, policy, receiverPolicy, chatReceiverPolicy, reportAttributesDerived);
                 });
                 if (shouldSkipConfirmation) {
                     setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -313,13 +318,15 @@ function IOURequestStepDistanceManual({
             action,
             backTo,
             report,
-            reportNameValuePairs,
+            isArchived,
             iouType,
             shouldUseDefaultExpensePolicy,
             distance,
             transaction,
             parentReport,
             policy,
+            policyTags,
+            policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
