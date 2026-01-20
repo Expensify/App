@@ -608,10 +608,9 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
     return null;
 }
 
-/**
- * Get the report ID from the topmost Super Wide RHP modal in the navigation stack.
- */
-function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.getRootState()): string | undefined {
+function getTopmostSuperWideRHPReportParams(
+    state: NavigationState = navigationRef.getRootState(),
+): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT] | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT] | undefined {
     if (!state) {
         return;
     }
@@ -627,11 +626,17 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
         return;
     }
 
-    const topmostReportParams = topmostSuperWideRHP?.params as
+    return topmostSuperWideRHP?.params as
         | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]
         | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT]
         | undefined;
+}
 
+/**
+ * Get the report ID from the topmost Super Wide RHP modal in the navigation stack.
+ */
+function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.getRootState()): string | undefined {
+    const topmostReportParams = getTopmostSuperWideRHPReportParams(state);
     return topmostReportParams?.reportID;
 }
 
@@ -831,7 +836,7 @@ function dismissToSuperWideRHP() {
     navigateBackToLastSuperWideRHPScreen();
 }
 
-function getTopmostReportIDInSearchRHP(state = navigationRef.getRootState()): string | undefined {
+function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
     if (!state) {
         return undefined;
     }
@@ -844,10 +849,12 @@ function getTopmostReportIDInSearchRHP(state = navigationRef.getRootState()): st
     const nestedRoutes = lastRoute.state?.routes ?? [];
     const lastSearchReport = [...nestedRoutes].reverse().find((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
 
-    const params = lastSearchReport?.params;
-    const reportID = params && 'reportID' in params ? params.reportID : undefined;
+    return lastSearchReport?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
+}
 
-    return typeof reportID === 'string' ? reportID : undefined;
+function getTopmostSearchReportID(state = navigationRef.getRootState()): string | undefined {
+    const params = getTopmostSearchReportRouteParams(state);
+    return params?.reportID;
 }
 
 export default {
@@ -887,8 +894,10 @@ export default {
     isValidateLoginFlow,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
-    getTopmostReportIDInSearchRHP,
+    getTopmostSearchReportID,
+    getTopmostSuperWideRHPReportParams,
     getTopmostSuperWideRHPReportID,
+    getTopmostSearchReportRouteParams,
     navigateBackToLastSuperWideRHPScreen,
 };
 
