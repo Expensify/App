@@ -1,6 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -23,6 +24,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
@@ -49,6 +51,7 @@ import {
     getConnectionExporters,
     getUserFriendlyWorkspaceType,
     goBackFromInvalidPolicy,
+    hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils,
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
@@ -57,13 +60,14 @@ import {
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
-import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
+import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
-import type {CurrencyList} from '@src/types/onyx';
+import type {CurrencyList, Policy} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
@@ -169,6 +173,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
+    const privateSubscription = usePrivateSubscription();
+    const selector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            return ownerPoliciesSelector(policies, currentUserPersonalDetails?.accountID);
+        },
+        [currentUserPersonalDetails?.accountID],
+    );
+    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
 
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -296,6 +308,19 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
 
     const onDeleteWorkspace = useCallback(() => {
+        if (isSubscriptionTypeOfInvoicing(privateSubscription?.type) && policy?.id) {
+            const ownerPoliciesWithoutCreateOrDeletePendingAction = (ownerPolicies ?? []).filter(
+                (policy) => policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
+
+            const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(ownerPoliciesWithoutCreateOrDeletePendingAction, policy.id);
+
+            if (!hasOtherControlWorkspaces) {
+                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+                return;
+            }
+        }
+
         if (shouldCalculateBillNewDot(account?.canDowngrade)) {
             setIsDeletingPaidWorkspace(true);
             calculateBillNewDot();
@@ -303,7 +328,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         continueDeleteWorkspace();
-    }, [continueDeleteWorkspace, setIsDeletingPaidWorkspace, account?.canDowngrade]);
+    }, [continueDeleteWorkspace, setIsDeletingPaidWorkspace, account?.canDowngrade, policy?.id, privateSubscription?.type, ownerPolicies]);
 
     const handleBackButtonPress = () => {
         if (isComingFromGlobalReimbursementsFlow) {

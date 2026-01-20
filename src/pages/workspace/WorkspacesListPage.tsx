@@ -34,6 +34,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
@@ -54,6 +55,7 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
@@ -62,13 +64,14 @@ import {
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
+import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -132,6 +135,7 @@ function WorkspacesListPage() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -420,6 +424,27 @@ function WorkspacesListPage() {
                             return;
                         }
 
+                        if (isSubscriptionTypeOfInvoicing(privateSubscription?.type) && item?.policyID) {
+                            const ownerPolicies = (() => {
+                                if (!policies || !currentUserPersonalDetails?.accountID) {
+                                    return undefined;
+                                }
+
+                                return ownerPoliciesSelector(policies, currentUserPersonalDetails?.accountID);
+                            })();
+
+                            const ownerPoliciesWithoutCreateOrDeletePendingAction = (ownerPolicies ?? []).filter(
+                                (policy) => policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            );
+
+                            const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(ownerPoliciesWithoutCreateOrDeletePendingAction, item.policyID);
+
+                            if (!hasOtherControlWorkspaces) {
+                                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+                                return;
+                            }
+                        }
+
                         setPolicyIDToDelete(item.policyID);
                         setPolicyNameToDelete(item.title);
 
@@ -511,6 +536,7 @@ function WorkspacesListPage() {
             icons,
             expensifyIcons.Building,
             expensifyIcons.Exit,
+            privateSubscription?.type,
         ],
     );
 
