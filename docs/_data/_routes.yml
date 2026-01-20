@@ -113,6 +113,11 @@ platforms:
         title: Workspaces
         icon: /assets/images/shield.svg
         description: Configure rules, settings, and limits for your company’s spending.
+
+      - href: domains
+        title: Domains
+        icon: /assets/images/domains.svg
+        description: Claim and verify your company’s domain to manage users and enable enhanced security.
       
       - href: reports-and-expenses
         title: Reports & Expenses
