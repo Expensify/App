@@ -8014,7 +8014,17 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             enterDomainName: 'Saisissez votre nom de domaine ici',
             resetDomainInfo: `Cette action est <strong>définitive</strong> et les données suivantes seront supprimées : <br/> <ul><li>Connexions aux cartes d'entreprise et toutes les dépenses non déclarées de ces cartes</li> <li>Paramètres SAML et de groupe</li> </ul> Tous les comptes, espaces de travail, rapports, dépenses et autres données seront conservés. <br/><br/>Remarque : Vous pouvez supprimer ce domaine de votre liste de domaines en retirant l'adresse e-mail associée de vos <a href="#">méthodes de contact</a>.`,
         },
-        members: {title: 'Membres', findMember: 'Rechercher un membre'},
+        members: {
+            title: 'Membres',
+            findMember: 'Rechercher un membre',
+            closeAccount: 'Fermer le compte',
+            closeAccountPrompt: 'Êtes-vous sûr(e) ? Cette action est définitive.',
+            forceCloseAccount: 'Forcer la fermeture du compte',
+            safeCloseAccount: 'Fermer le compte en toute sécurité',
+            closeAccountInfo:
+                'Nous recommandons de fermer le compte en toute sécurité afin d’éviter de le fermer dans le cas où il y aurait : <ul><li>Des validations en attente</li><li>Des remboursements actifs</li><li>Aucune autre méthode de connexion</li></ul> Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture du compte sélectionné.',
+            error: {removeMember: 'Impossible de supprimer cet utilisateur. Veuillez réessayer.'},
+        },
     },
     gps: {
         tooltip: 'Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.',

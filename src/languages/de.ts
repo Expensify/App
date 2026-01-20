@@ -8007,7 +8007,17 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             enterDomainName: 'Geben Sie hier Ihren Domänennamen ein',
             resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <ul><li>Firmenkarten-Verbindungen und alle nicht eingereichten Ausgaben von diesen Karten</li> <li>SAML- und Gruppeneinstellungen</li> </ul> Alle Konten, Workspaces, Berichte, Ausgaben und anderen Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="#">Kontaktmethoden</a> löschen.`,
         },
-        members: {title: 'Mitglieder', findMember: 'Mitglied suchen'},
+        members: {
+            title: 'Mitglieder',
+            findMember: 'Mitglied suchen',
+            closeAccount: 'Konto schließen',
+            closeAccountPrompt: 'Bist du sicher? Diese Aktion ist dauerhaft.',
+            forceCloseAccount: 'Konto zwangsweise schließen',
+            safeCloseAccount: 'Konto sicher schließen',
+            closeAccountInfo:
+                'Wir empfehlen, das Konto sicher zu schließen, um das Schließen zu überspringen, falls Folgendes vorliegt: <ul><li>Ausstehende Genehmigungen</li><li>Aktive Erstattungen</li><li>Keine alternativen Anmeldemethoden</li></ul> Andernfalls können Sie die oben genannten Sicherheitsvorkehrungen ignorieren und das ausgewählte Konto zwangsweise schließen.',
+            error: {removeMember: 'Dieser Benutzer kann nicht entfernt werden. Bitte versuche es erneut.'},
+        },
     },
     gps: {
         tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',

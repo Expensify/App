@@ -7966,7 +7966,17 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             enterDomainName: 'Insira seu nome de domínio aqui',
             resetDomainInfo: `Esta ação é <strong>permanente</strong> e os seguintes dados serão excluídos: <br/> <ul><li>Conexões de cartão corporativo e quaisquer despesas não reportadas desses cartões</li> <li>Configurações de SAML e de grupo</li> </ul> Todas as contas, workspaces, relatórios, despesas e outros dados permanecerão. <br/><br/>Observação: Você pode remover este domínio da sua lista de domínios excluindo o e-mail associado dos seus <a href="#">métodos de contato</a>.`,
         },
-        members: {title: 'Membros', findMember: 'Encontrar membro'},
+        members: {
+            title: 'Membros',
+            findMember: 'Encontrar membro',
+            closeAccount: 'Encerrar conta',
+            closeAccountPrompt: 'Tem certeza? Esta ação é permanente.',
+            forceCloseAccount: 'Forçar encerramento da conta',
+            safeCloseAccount: 'Fechar conta com segurança',
+            closeAccountInfo:
+                'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul> Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
+            error: {removeMember: 'Não foi possível remover este usuário. Tente novamente.'},
+        },
     },
     gps: {
         tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',

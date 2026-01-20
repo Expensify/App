@@ -7961,7 +7961,17 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             enterDomainName: 'Wpisz tutaj swoją nazwę domeny',
             resetDomainInfo: `Ta akcja jest <strong>trwała</strong> i następujące dane zostaną usunięte: <br/> <ul><li>Połączenia kart firmowych i wszystkie nierozliczone wydatki z tych kart</li> <li>Ustawienia SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
-        members: {title: 'Członkowie', findMember: 'Znajdź członka'},
+        members: {
+            title: 'Członkowie',
+            findMember: 'Znajdź członka',
+            closeAccount: 'Zamknij konto',
+            closeAccountPrompt: 'Czy na pewno? Ta czynność jest nieodwracalna.',
+            forceCloseAccount: 'Wymuś zamknięcie konta',
+            safeCloseAccount: 'Zamknij konto bezpiecznie',
+            closeAccountInfo:
+                'Zalecamy bezpieczne zamknięcie konta, aby pominąć jego zamykanie w przypadku, gdy występują: <ul><li>Oczekujące zatwierdzenia</li><li>Aktywne zwroty kosztów</li><li>Brak alternatywnych metod logowania</li></ul> W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranego konta.',
+            error: {removeMember: 'Nie można usunąć tego użytkownika. Spróbuj ponownie.'},
+        },
     },
     gps: {
         tooltip: 'Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.',

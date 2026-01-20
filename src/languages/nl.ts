@@ -7980,7 +7980,17 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             enterDomainName: 'Voer hier uw domeinnaam in',
             resetDomainInfo: `Deze actie is <strong>definitief</strong> en de volgende gegevens worden verwijderd: <br/> <ul><li>Bedrijfskaartverbindingen en niet-ingediende uitgaven van die kaarten</li> <li>SAML- en groepsinstellingen</li> </ul> Alle accounts, werkruimten, rapporten, uitgaven en andere gegevens blijven behouden. <br/><br/>Opmerking: je kunt dit domein uit je domeinenlijst verwijderen door het gekoppelde e-mailadres uit je <a href="#">contactmethoden</a> te verwijderen.`,
         },
-        members: {title: 'Leden', findMember: 'Lid zoeken'},
+        members: {
+            title: 'Leden',
+            findMember: 'Lid zoeken',
+            closeAccount: 'Account sluiten',
+            closeAccountPrompt: 'Weet je het zeker? Deze actie is permanent.',
+            forceCloseAccount: 'Account geforceerd sluiten',
+            safeCloseAccount: 'Account veilig sluiten',
+            closeAccountInfo:
+                'We raden aan om de account veilig te sluiten om te vermijden dat je deze moet sluiten als er zijn: <ul><li>Openstaande goedkeuringen</li><li>Actieve terugbetalingen</li><li>Geen alternatieve inlogmethoden</li></ul> Anders kun je de bovenstaande veiligheidsmaatregelen negeren en de geselecteerde account geforceerd sluiten.',
+            error: {removeMember: 'Kan deze gebruiker niet verwijderen. Probeer het opnieuw.'},
+        },
     },
     gps: {
         tooltip: 'GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.',
