@@ -216,6 +216,7 @@ function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, compa
                 additionalStyles: styles.cardIcon,
             }}
             selectedFeed={feedName}
+            useSkeletonLoader
         />
     );
 
