@@ -36,6 +36,8 @@ import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
     getIntegrationSyncFailedMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getJoinRequestMessage,
     getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
@@ -51,6 +53,7 @@ import {
     getReportActionMessage as getReportActionMessageFromActionsUtils,
     getReportActionText,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
@@ -453,6 +456,17 @@ function computeReportNameBasedOnReportAction(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
         return getPolicyChangeLogDefaultTitleMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT)) {
+        return getUpdateACHAccountMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getInvoiceCompanyNameUpdateMessage(translateLocal, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getInvoiceCompanyWebsiteUpdateMessage(translateLocal, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(parentReportAction)?.resolution) {

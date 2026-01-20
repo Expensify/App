@@ -326,6 +326,7 @@ function MoneyRequestView({
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
@@ -511,7 +512,7 @@ function MoneyRequestView({
         rateToDisplay = getRateFromMerchant(updatedMerchantTitle);
     }
 
-    const hasErrors = hasMissingSmartscanFields(transaction);
+    const hasErrors = hasMissingSmartscanFields(transaction, transactionReport);
     const isMissingAttendeesViolation = getIsMissingAttendeesViolation(
         policyCategories,
         updatedTransaction?.category ?? categoryForDisplay,
