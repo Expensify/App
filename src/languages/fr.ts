@@ -8040,6 +8040,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             button: 'Télécharger l’application',
         },
         notification: {title: 'Suivi GPS en cours', body: 'Allez dans l’application pour terminer'},
+        fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
