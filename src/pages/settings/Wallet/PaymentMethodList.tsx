@@ -36,7 +36,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, Card, CardList} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -204,7 +204,7 @@ function PaymentMethodList({
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+                const icon = getCardFeedIcon(card.bank, illustrations, companyCardFeedIcons);
 
                 if (!isExpensifyCard(card)) {
                     const pressHandler = onPress as CardPressHandler;

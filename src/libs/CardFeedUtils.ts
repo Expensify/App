@@ -5,6 +5,7 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
@@ -32,7 +33,7 @@ type GetCardFeedData = {
 };
 type CardFeedForDisplay = {
     id: string;
-    feed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    feed: CardFeed;
     fundID: string;
     name: string;
 };
@@ -130,7 +131,7 @@ function buildCardsData(
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
-            return Object.values(cardFeed as Record<string, Card>)
+            return Object.values(cardFeed as CardList)
                 .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
                 .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
         });

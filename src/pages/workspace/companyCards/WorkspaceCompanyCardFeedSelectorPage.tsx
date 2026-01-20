@@ -30,7 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import useCompanyCardFeedErrors from './hooks/useCardFeedErrors';
 
 type CardFeedListItem = ListItem & {
@@ -38,7 +38,7 @@ type CardFeedListItem = ListItem & {
     value: CompanyCardFeedWithDomainID;
 
     /** Card feed value */
-    feed: CompanyCardFeed;
+    feed: CompanyCardFeedWithNumber;
 };
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;

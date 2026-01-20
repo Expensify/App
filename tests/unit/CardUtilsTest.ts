@@ -7,9 +7,8 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
-    checkIfFeedConnectionIsBroken,
     filterInactiveCards,
-    flatAllCardsList,
+    flattenCompanyCards,
     formatCardExpiration,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
@@ -39,6 +38,7 @@ import {
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
+    splitCompanyCardFeedWithDomainID,
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
@@ -156,23 +156,6 @@ const directFeedCardsSingleList: WorkspaceCardsList = {
     },
 };
 
-const commercialFeedCardsSingleList: WorkspaceCardsList = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    '21570652': {
-        accountID: 18439984,
-        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-        cardID: 21570652,
-        cardName: 'CREDIT CARD...5501',
-        domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
-        fraud: 'none',
-        lastFourPAN: '5501',
-        lastScrape: '',
-        lastUpdated: '',
-        lastScrapeResult: 531,
-        scrapeMinDate: '2024-08-27',
-        state: 3,
-    },
-};
 const directFeedCardsMultipleList: WorkspaceCardsList = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     '21570655': {
@@ -885,10 +868,10 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('flatAllCardsList', () => {
+    describe('flattenCompanyCards', () => {
         it('should return the flattened list of non-Expensify cards related to the provided workspaceAccountID', () => {
             const workspaceAccountID = 11111111;
-            const flattenedCardsList = flatAllCardsList(allCardsList, workspaceAccountID);
+            const flattenedCardsList = flattenCompanyCards(allCardsList, workspaceAccountID);
             const {cardList, ...customCards} = customFeedCardsList;
             expect(flattenedCardsList).toStrictEqual({
                 ...directFeedCardsMultipleList,
@@ -898,52 +881,8 @@ describe('CardUtils', () => {
 
         it('should return undefined if not defined cards list was provided', () => {
             const workspaceAccountID = 11111111;
-            const flattenedCardsList = flatAllCardsList(undefined, workspaceAccountID);
+            const flattenedCardsList = flattenCompanyCards(undefined, workspaceAccountID);
             expect(flattenedCardsList).toBeUndefined();
-        });
-    });
-
-    describe('checkIfFeedConnectionIsBroken', () => {
-        it('should return true if at least one of the feed(s) cards has the lastScrapeResult not equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsMultipleList)).toBeTruthy();
-        });
-
-        it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsSingleList)).toBeFalsy();
-        });
-
-        it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 531', () => {
-            expect(checkIfFeedConnectionIsBroken(commercialFeedCardsSingleList)).toBeFalsy();
-        });
-
-        it('should return false if no feed(s) cards are provided', () => {
-            expect(checkIfFeedConnectionIsBroken({})).toBeFalsy();
-        });
-
-        it('should not take into consideration cards related to feed which is provided as feedToExclude', () => {
-            const cards = {...directFeedCardsMultipleList, ...directFeedCardsSingleList};
-            const feedToExclude = CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE;
-            expect(checkIfFeedConnectionIsBroken(cards, feedToExclude)).toBeFalsy();
-        });
-    });
-
-    describe('checkIfFeedConnectionIsBroken', () => {
-        it('should return true if at least one of the feed(s) cards has the lastScrapeResult not equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsMultipleList)).toBeTruthy();
-        });
-
-        it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsSingleList)).toBeFalsy();
-        });
-
-        it('should return false if no feed(s) cards are provided', () => {
-            expect(checkIfFeedConnectionIsBroken({})).toBeFalsy();
-        });
-
-        it('should not take into consideration cards related to feed which is provided as feedToExclude', () => {
-            const cards = {...directFeedCardsMultipleList, ...directFeedCardsSingleList};
-            const feedToExclude = CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE;
-            expect(checkIfFeedConnectionIsBroken(cards, feedToExclude)).toBeFalsy();
         });
     });
 
@@ -1099,7 +1038,7 @@ describe('CardUtils', () => {
                 cardID: 1,
                 accountID: 1,
                 cardName: 'Card 1',
-                bank: 'expensify',
+                bank: 'Expensify Card',
                 domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
                 lastFourPAN: '',
@@ -1110,7 +1049,7 @@ describe('CardUtils', () => {
             '2': {
                 cardID: 2,
                 accountID: 2,
-                bank: 'expensify',
+                bank: 'Expensify Card',
                 cardName: 'Card 2',
                 domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
@@ -1122,7 +1061,7 @@ describe('CardUtils', () => {
             '3': {
                 cardID: 3,
                 accountID: 3,
-                bank: 'expensify',
+                bank: 'Expensify Card',
                 cardName: 'Card 3',
                 domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
@@ -1180,7 +1119,7 @@ describe('CardUtils', () => {
                     cardID: 1,
                     accountID: 1,
                     cardName: 'Card 1',
-                    bank: 'expensify',
+                    bank: 'Expensify Card',
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                     fraud: 'none',
                     lastFourPAN: '',
@@ -1191,7 +1130,7 @@ describe('CardUtils', () => {
                 '2': {
                     cardID: 2,
                     cardName: 'Card 2',
-                    bank: 'expensify',
+                    bank: 'Expensify Card',
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                     fraud: 'none',
                     lastFourPAN: '',
@@ -1358,6 +1297,15 @@ describe('CardUtils', () => {
             const domainID = 11111111;
             const combinedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
             expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
+        });
+    });
+
+    describe('splitCompanyCardFeedWithDomainID', () => {
+        it('should split the feed name and domain ID', () => {
+            const feedName = 'vcf#11111111';
+            const {feedName: splitFeedName, domainID} = splitCompanyCardFeedWithDomainID(feedName);
+            expect(splitFeedName).toBe('vcf');
+            expect(domainID).toBe(11111111);
         });
     });
 

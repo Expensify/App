@@ -16,10 +16,20 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, FailedCompanyCardAssignment, FailedCompanyCardAssignments, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type {CardList, FailedCardAssignment, FailedCardAssignments, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings, FundID} from './CardFeeds';
+import type {
+    AddNewCompanyCardFeed,
+    CardFeed,
+    CardFeedWithDomainID,
+    CombinedCardFeed,
+    CombinedCardFeeds,
+    CompanyCardFeed,
+    CompanyCardFeedWithDomainID,
+    DomainSettings,
+    FundID,
+} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
@@ -169,8 +179,8 @@ export type {
     Download,
     DuplicateWorkspace,
     WorkspaceCardsList,
-    FailedCompanyCardAssignment,
-    FailedCompanyCardAssignments,
+    FailedCardAssignment,
+    FailedCardAssignments,
     ExpenseRule,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
@@ -184,8 +194,12 @@ export type {
     AssignCardData,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
+    CombinedCardFeed,
+    CombinedCardFeeds,
     CardContinuousReconciliation,
     CompanyCardFeedWithDomainID,
+    CardFeed,
+    CardFeedWithDomainID,
     LastExportMethod,
     Locale,
     LockAccountDetails,

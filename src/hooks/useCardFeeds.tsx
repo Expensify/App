@@ -3,7 +3,7 @@ import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
 import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import type {CustomCardFeedData, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CardFeed, CardFeedWithDomainID, CustomCardFeedData, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
@@ -13,10 +13,10 @@ type CombinedCardFeed = CustomCardFeedData &
         customFeedName?: string;
 
         /** Feed name */
-        feed: CompanyCardFeed;
+        feed: CardFeed;
     };
 
-type CombinedCardFeeds = Record<CompanyCardFeedWithDomainID, CombinedCardFeed>;
+type CombinedCardFeeds = Record<CardFeedWithDomainID, CombinedCardFeed>;
 
 /**
  * This is a custom hook that combines workspace and domain card feeds for a given policy.
@@ -54,7 +54,7 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                 const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
                 const feedCompanyCardNickname = feed.settings.companyCardNicknames?.[feedName];
                 const domainID = onyxKey.split('_').at(-1);
-                const shouldAddFeed = domainID && (feedSettings.preferredPolicy ? feedSettings.preferredPolicy === policyID : domainID === workspaceAccountID.toString());
+                const shouldAddFeed = domainID && (feedSettings?.preferredPolicy ? feedSettings.preferredPolicy === policyID : domainID === workspaceAccountID.toString());
 
                 if (!shouldAddFeed) {
                     continue;
