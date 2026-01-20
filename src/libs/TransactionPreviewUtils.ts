@@ -1,9 +1,10 @@
 import truncate from 'lodash/truncate';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
@@ -190,6 +191,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     currentUserEmail,
     currentUserAccountID,
     originalTransaction,
+    locale,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -203,6 +205,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     currentUserEmail: string;
     currentUserAccountID: number;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    locale?: Locale;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -215,7 +218,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
     const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const isTransactionScanning = isScanning(transaction);
-    const hasFieldErrors = hasMissingSmartscanFields(transaction);
+    const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -302,7 +305,11 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
-        const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        const date = DateUtils.formatWithUTCTimeZone(
+            created,
+            DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            locale,
+        );
         previewHeaderText.unshift({text: date}, dotSeparator);
     }
 
@@ -363,7 +370,7 @@ function createTransactionPreviewConditionals({
     currentUserAccountID,
     reportActions,
 }: {
-    iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
     action: OnyxEntry<OnyxTypes.ReportAction>;
     violations: OnyxTypes.TransactionViolations;
@@ -389,7 +396,7 @@ function createTransactionPreviewConditionals({
     const policy = getPolicy(iouReport?.policyID);
     const hasViolationsOfTypeNotice =
         hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isPaidGroupPolicyUtil(iouReport);
-    const hasFieldErrors = hasMissingSmartscanFields(transaction);
+    const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
 

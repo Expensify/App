@@ -167,7 +167,7 @@ function MoneyRequestView({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {environmentURL} = useEnvironment();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, preferredLocale} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
@@ -275,7 +275,7 @@ function MoneyRequestView({
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
-    } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {};
+    } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails, preferredLocale) ?? {};
     const isZeroTransactionAmount = transactionAmount === 0;
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transactionMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
@@ -312,7 +312,7 @@ function MoneyRequestView({
     const taxRateTitle = transactionWithTax?.taxCode ? getTaxName(policy, transactionWithTax) : '';
     const isTaxValueChanged = transactionWithTax?.taxCode ? getTaxValue(policy, transactionWithTax, transactionWithTax.taxCode) !== transactionWithTax.taxValue : false;
 
-    const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
+    const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction, preferredLocale) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
 
     const isSettled = isSettledReportUtils(moneyRequestReport);
@@ -329,6 +329,7 @@ function MoneyRequestView({
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
@@ -380,7 +381,7 @@ function MoneyRequestView({
         (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && hasEnabledTags(policyTagLists)));
     const shouldShowBillable =
         (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
@@ -514,7 +515,7 @@ function MoneyRequestView({
         rateToDisplay = getRateFromMerchant(updatedMerchantTitle);
     }
 
-    const hasErrors = hasMissingSmartscanFields(transaction);
+    const hasErrors = hasMissingSmartscanFields(transaction, transactionReport);
     const isMissingAttendeesViolation = getIsMissingAttendeesViolation(
         policyCategories,
         updatedTransaction?.category ?? categoryForDisplay,
@@ -634,6 +635,8 @@ function MoneyRequestView({
                             ),
                         );
                     }}
+                    brickRoadIndicator={getErrorForField('waypoints') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={getErrorForField('waypoints')}
                     copyValue={distanceCopyValue}
                     copyable={!!distanceCopyValue}
                 />
@@ -724,7 +727,7 @@ function MoneyRequestView({
                 }
             }
         } else {
-            shouldShow = !!tagForDisplay || hasEnabledOptions(tags);
+            shouldShow = !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
         }
 
         if (!shouldShow) {
