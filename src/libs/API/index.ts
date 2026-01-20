@@ -1,5 +1,5 @@
-import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
 import type {EnablePolicyFeatureCommand, RequestMatcher} from '@libs/actions/RequestConflictUtils';
@@ -13,7 +13,7 @@ import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
+import type {OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 import {READ_COMMANDS} from './types';
@@ -51,14 +51,6 @@ addMiddleware(FraudMonitoring);
 
 let requestIndex = 0;
 
-type OnyxData = {
-    optimisticData?: OnyxUpdate[];
-    successData?: OnyxUpdate[];
-    failureData?: OnyxUpdate[];
-    finallyData?: OnyxUpdate[];
-    queueFlushedData?: OnyxUpdate[];
-};
-
 /**
  * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
  */
@@ -66,7 +58,7 @@ function prepareRequest<TCommand extends ApiCommand>(
     command: TCommand,
     type: ApiRequestType,
     params: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
+    onyxData: OnyxData<OnyxKey> = {},
     conflictResolver: RequestConflictResolver = {},
 ): OnyxRequest {
     Log.info('[API] Preparing request', false, {command, type});
@@ -155,7 +147,7 @@ function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<voi
 function write<TCommand extends WriteCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
+    onyxData: OnyxData<OnyxKey> = {},
     conflictResolver: RequestConflictResolver = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
@@ -170,7 +162,7 @@ function write<TCommand extends WriteCommand>(
 function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
+    onyxData: OnyxData<OnyxKey> = {},
     requestMatcher: RequestMatcher = (request) => request.command === command,
 ): Promise<void | Response> {
     const conflictResolver = {
@@ -187,7 +179,7 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand>(
 function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePolicyFeatureCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
+    onyxData: OnyxData<OnyxKey> = {},
 ): Promise<void | Response> {
     const conflictResolver = {
         checkAndFixConflictingRequest: (persistedRequests: OnyxRequest[]) => resolveEnableFeatureConflicts(command, persistedRequests, apiCommandParameters),
@@ -207,7 +199,7 @@ function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePoli
 function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
+    onyxData: OnyxData<OnyxKey> = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
@@ -217,11 +209,10 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
 }
 
 /**
- * Ensure all write requests on the sequential queue have finished responding before running read requests.
- * Responses from read requests can overwrite the optimistic data inserted by
- * write requests that use the same Onyx keys and haven't responded yet.
+ * Ensure all write requests on the sequential queue have finished responding before running a command.
+ * Responses from requests can overwrite the optimistic data inserted by write requests that use the same Onyx keys and haven't responded yet.
  */
-function waitForWrites<TCommand extends ReadCommand>(command: TCommand) {
+function waitForWrites<TCommand extends ReadCommand | WriteCommand | SideEffectRequestCommand>(command: TCommand) {
     if (getPersistedRequestsLength() > 0) {
         Log.info(`[API] '${command}' is waiting on ${getPersistedRequestsLength()} write commands`);
     }
@@ -231,7 +222,7 @@ function waitForWrites<TCommand extends ReadCommand>(command: TCommand) {
 /**
  * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
  */
-function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
+function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData<OnyxKey> = {}): void {
     Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
 
     // Apply optimistic updates of read requests immediately
@@ -250,21 +241,21 @@ function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUES
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData,
+    onyxData: OnyxData<OnyxKey>,
     config: PaginationConfig,
 ): Promise<Response | void>;
 function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.READ, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData,
+    onyxData: OnyxData<OnyxKey>,
     config: PaginationConfig,
 ): void;
 function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData,
+    onyxData: OnyxData<OnyxKey>,
     config: PaginationConfig,
     conflictResolver?: RequestConflictResolver,
 ): void;
@@ -272,7 +263,7 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData,
+    onyxData: OnyxData<OnyxKey>,
     config: PaginationConfig,
     conflictResolver: RequestConflictResolver = {},
 ): Promise<Response | void> | void {
