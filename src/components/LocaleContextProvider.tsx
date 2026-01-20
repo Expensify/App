@@ -114,12 +114,10 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         // For locales without emoji support, fallback on English
         const normalizedLocale = isFullySupportedLocale(localeToApply) ? localeToApply : CONST.LOCALES.DEFAULT;
 
-        const localeSpan = getSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT);
-
         startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT, {
             name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
             op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
-            parentSpan: localeSpan,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT),
         });
 
         importEmojiLocale(normalizedLocale).then(() => {

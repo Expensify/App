@@ -273,11 +273,10 @@ function openReportFromDeepLink(
 
     if (reportID && !isAuthenticated) {
         // Start span for public room API call
-        const publicRoomCheckSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK);
         startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API, {
             name: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
             op: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
-            parentSpan: publicRoomCheckSpan,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
         });
 
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user

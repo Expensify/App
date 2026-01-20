@@ -220,11 +220,10 @@ function AuthScreens() {
         NetworkConnection.onReconnect(() => handleNetworkReconnect());
 
         // Pusher initialization span
-        const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT, {
             name: CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT,
             op: CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT,
-            parentSpan: bootsplashSpan,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
         });
         PusherConnectionManager.init();
         initializePusher().finally(() => {

@@ -10,12 +10,10 @@ export default function () {
     Log.info('[Migrate Onyx] start');
 
     return new Promise<void>((resolve) => {
-        const parentSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
-
         startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX_MIGRATIONS, {
             name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX_MIGRATIONS,
             op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX_MIGRATIONS,
-            parentSpan,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX),
         });
 
         // Add all migrations to an array so they are executed in order

@@ -125,7 +125,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         }
 
         if (!account || account.isFromPublicDomain) {
-            return undefined;
+            return;
         }
 
         const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
@@ -197,11 +197,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
 
     useEffect(() => {
-        const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         startSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY, {
             name: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
             op: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
-            parentSpan: bootsplashSpan,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
         });
     }, []);
 
