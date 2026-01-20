@@ -364,6 +364,22 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const {closeSidePanel} = useSidePanel();
 
     useEffect(() => {
+        if (
+            !isFocused ||
+            !reportIDFromRoute ||
+            report?.reportID ||
+            reportMetadata?.isLoadingInitialReportActions ||
+            reportMetadata?.isOptimisticReport ||
+            isLoadingApp ||
+            userLeavingStatus
+        ) {
+            return;
+        }
+
+        Navigation.goBack();
+    }, [isFocused, reportIDFromRoute, report?.reportID, reportMetadata?.isLoadingInitialReportActions, reportMetadata?.isOptimisticReport, isLoadingApp, userLeavingStatus]);
+
+    useEffect(() => {
         if (!prevIsFocused || isFocused) {
             return;
         }
@@ -731,7 +747,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             (prevDeletedParentAction && !deletedParentAction)
         ) {
             const currentRoute = navigationRef.getCurrentRoute();
-            const topmostReportIDInSearchRHP = Navigation.getTopmostReportIDInSearchRHP();
+            const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
             const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
             const isHoldScreenOpenInRHP =
                 currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
