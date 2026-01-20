@@ -2227,8 +2227,10 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
 
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
-        const shouldKeep = !isChatThread(report) || !isHiddenForCurrentUser(report);
-        return shouldKeep && !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
+        if (isHiddenForCurrentUser(report)) {
+            return false;
+        }
+        return !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
     });
     return lodashMaxBy(filteredReports, (a) => [reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? '', a?.lastReadTime ?? '']);
 }
@@ -2294,7 +2296,8 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     // Return the most recently visited report. Get the last read report from the report metadata.
     // If allReportMetadata is empty we'll return most recent report owned by user
     if (isEmptyObject(allReportMetadata)) {
-        const ownedReports = reportsValues.filter((report) => report?.ownerAccountID === currentUserAccountID);
+        const visibleReports = reportsValues.filter((report) => !isHiddenForCurrentUser(report));
+        const ownedReports = visibleReports.filter((report) => report?.ownerAccountID === currentUserAccountID);
         if (ownedReports.length > 0) {
             return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
         }
@@ -9585,7 +9588,8 @@ function reasonForReportToBeInOptionList({
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isPolicyExpenseChat(report) && !isTripRoom(report) && !isSystemChat(report) && canHideReport) {
+    const isSelfDMWithVisiblePreference = isSelfDM(report) && !isHiddenForCurrentUser(report);
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isPolicyExpenseChat(report) && !isTripRoom(report) && !isSystemChat(report) && !isSelfDMWithVisiblePreference && canHideReport) {
         return null;
     }
 
