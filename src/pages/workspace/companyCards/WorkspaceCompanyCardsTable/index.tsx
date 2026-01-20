@@ -23,7 +23,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
@@ -78,16 +77,24 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
     const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
     const workspaceCardFeedsErrors = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
-    const firstWorkspaceFeedError = workspaceCardFeedsErrors ? Object.entries(workspaceCardFeedsErrors).at(0) : undefined;
-    const hasWorkspaceFeedsError = !isEmptyObject(workspaceCardFeedsErrors);
 
     const selectedFeedStatus = selectedFeed?.status;
     const selectedFeedErrors = selectedFeedStatus?.errors;
-    const firstSelectedFeedError = selectedFeedErrors ? Object.entries(selectedFeedErrors).at(0) : undefined;
-    const hasSelectedFeedError = !isEmptyObject(selectedFeedErrors);
 
-    const hasFeedErrors = hasWorkspaceFeedsError || hasSelectedFeedError;
-    const feedErrorToShow = firstWorkspaceFeedError ?? firstSelectedFeedError;
+    const [feedErrorKey, feedErrorMessage] = Object.entries(workspaceCardFeedsErrors ?? selectedFeedErrors ?? {}).at(0) ?? [];
+    const hasFeedErrors = !!feedErrorKey;
+
+    console.log('feedErrorKey', feedErrorKey);
+
+    let feedErrorTitle: string | undefined;
+    let feedErrorReloadAction: (() => void) | undefined;
+    if (feedErrorKey === CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR) {
+        feedErrorTitle = translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle');
+        feedErrorReloadAction = onReloadPage;
+    } else if (feedErrorKey === CONST.COMPANY_CARDS.FEED_LOAD_ERROR) {
+        feedErrorTitle = translate('workspace.companyCards.error.feedCouldNotBeLoadedTitle');
+        feedErrorReloadAction = onReloadFeed;
+    }
 
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
@@ -297,7 +304,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             filters={filterConfig}
             ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
-            {(showCards || isLoadingPage || isFeedPending || (hasSelectedFeedError && !hasWorkspaceFeedsError)) && (
+            {(showCards || isLoadingPage || isFeedPending || feedErrorKey === CONST.COMPANY_CARDS.FEED_LOAD_ERROR) && (
                 <View style={shouldUseNarrowTableLayout && styles.mb5}>
                     <WorkspaceCompanyCardsTableHeaderButtons
                         isLoading={isLoadingPage}
@@ -309,7 +316,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 </View>
             )}
 
-            {(isLoadingPage || isFeedPending || isNoFeed) && !hasWorkspaceFeedsError && (
+            {(isLoadingPage || isFeedPending || isNoFeed) && !feedErrorKey && (
                 <ScrollView>
                     {isLoadingPage && <TableRowSkeleton fixedNumItems={5} />}
 
@@ -330,20 +337,20 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 </ScrollView>
             )}
 
-            {hasFeedErrors && !isShowingLoadingState && (
+            {!!feedErrorKey && !isShowingLoadingState && (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <View style={styles.alignItemsCenter}>
                         <FullPageErrorView
                             shouldShow
-                            title={feedErrorToShow?.at(0) ?? undefined}
+                            title={feedErrorTitle}
                             containerStyle={[styles.companyCardsBlockingErrorViewContainer, styles.pb4]}
-                            subtitle={feedErrorToShow?.at(1) ?? undefined}
+                            subtitle={feedErrorMessage ?? undefined}
                             titleStyle={[styles.mb2, styles.mt4]}
                             subtitleStyle={styles.textSupporting}
                         />
                         <Button
                             text={translate('workspace.companyCards.error.tryAgain')}
-                            onPress={hasWorkspaceFeedsError ? onReloadFeed : onReloadPage}
+                            onPress={feedErrorReloadAction}
                         />
                     </View>
                 </View>

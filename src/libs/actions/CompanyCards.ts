@@ -807,13 +807,14 @@ function clearCompanyCardErrorField(domainOrWorkspaceAccountID: number, cardID: 
     });
 }
 
-function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID: number) {
+function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID: number, translate: LocaleContextProps['translate']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
             value: {
                 isLoading: true,
+                errors: null,
             },
         },
     ];
@@ -824,7 +825,6 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
             value: {
                 isLoading: false,
-                errors: null,
             },
         },
     ];
@@ -835,7 +835,9 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
             value: {
                 isLoading: false,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.error.workspaceFeedsCouldNotBeLoaded'),
+                errors: {
+                    [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
+                },
             },
         },
     ];
@@ -847,7 +849,7 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, successData, failureData});
 }
 
-function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, feed: CompanyCardFeedWithNumber) {
+function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, feed: CompanyCardFeedWithNumber, translate: LocaleContextProps['translate']) {
     const parameters: OpenPolicyCompanyCardsFeedParams = {
         domainAccountID,
         policyID,
@@ -863,6 +865,7 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
                     cardFeedsStatus: {
                         [feed]: {
                             isLoading: true,
+                            errors: null,
                         },
                     },
                 },
@@ -879,7 +882,6 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
                     cardFeedsStatus: {
                         [feed]: {
                             isLoading: false,
-                            errors: null,
                         },
                     },
                 },
@@ -896,7 +898,9 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
                     cardFeedsStatus: {
                         [feed]: {
                             isLoading: false,
-                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.error.feedCouldNotBeLoaded'),
+                            errors: {
+                                [CONST.COMPANY_CARDS.FEED_LOAD_ERROR]: translate('workspace.companyCards.error.feedCouldNotBeLoadedMessage'),
+                            },
                         },
                     },
                 },
