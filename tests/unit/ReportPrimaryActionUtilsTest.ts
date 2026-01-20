@@ -73,7 +73,7 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -104,7 +104,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -139,7 +139,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -174,7 +174,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -210,7 +210,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -249,7 +249,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -286,7 +286,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -356,7 +356,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -399,7 +399,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -431,7 +431,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -471,7 +471,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -509,7 +509,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -547,7 +547,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -613,7 +613,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -672,7 +672,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -732,7 +732,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -773,7 +773,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -811,7 +811,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -850,7 +850,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -889,7 +889,7 @@ describe('getPrimaryAction', () => {
         // Then the getReportPrimaryAction should return the empty string
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport: invoiceChatReport,
@@ -1149,7 +1149,7 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -1189,7 +1189,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as Transaction;
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
@@ -1230,7 +1230,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as Transaction;
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,

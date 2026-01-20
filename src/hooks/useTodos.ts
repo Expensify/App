@@ -14,7 +14,7 @@ export default function useTodos() {
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: false});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const {email = '', accountID} = useCurrentUserPersonalDetails();
+    const {login = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     return useMemo(() => {
         const reportsToSubmit: Report[] = [];
@@ -47,20 +47,20 @@ export default function useTodos() {
             const reportTransactions = transactionsByReportID[report.reportID] ?? [];
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
 
-            if (isSubmitAction(report, reportTransactions, policy, reportNameValuePair, undefined, email, accountID, reportMetadata)) {
+            if (isSubmitAction(report, reportTransactions, policy, reportNameValuePair, undefined, login, currentUserAccountID, reportMetadata)) {
                 reportsToSubmit.push(report);
             }
-            if (isApproveAction(report, reportTransactions, policy, reportMetadata)) {
+            if (isApproveAction(report, reportTransactions, currentUserAccountID, policy, reportMetadata)) {
                 reportsToApprove.push(report);
             }
-            if (isPrimaryPayAction(report, accountID, email, bankAccountList, policy, reportNameValuePair)) {
+            if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
                 reportsToPay.push(report);
             }
-            if (isExportAction(report, policy, reportActions)) {
+            if (isExportAction(report, login, policy, reportActions)) {
                 reportsToExport.push(report);
             }
         }
 
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
-    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, accountID, email, bankAccountList, allReportMetadata]);
+    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, currentUserAccountID, login, bankAccountList, allReportMetadata]);
 }
