@@ -161,6 +161,26 @@ class OpenAIUtils {
         return false;
     }
 
+    /**
+     * Get embeddings for a text string.
+     */
+    public async getEmbeddings(text: string): Promise<number[]> {
+        const response = await retryWithBackoff(
+            () =>
+                this.client.embeddings.create({
+                    model: 'text-embedding-3-small',
+                    input: text,
+                }),
+            {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
+        );
+
+        const embedding = response.data.at(0)?.embedding;
+        if (!embedding) {
+            throw new Error('Error getting embeddings from OpenAI');
+        }
+        return embedding;
+    }
+
     public parseAssistantResponse<T extends AssistantResponse>(response: string): T | null {
         const sanitized = sanitizeJSONStringValues(response);
         let parsed: T;

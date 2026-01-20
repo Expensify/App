@@ -450,6 +450,19 @@ class GithubUtils {
             .catch((err) => console.error('Failed to get PR list', err));
     }
 
+    /**
+     * Fetch a single pull request given a PR number.
+     */
+    static fetchSinglePullRequest(pullRequestNumber: number): Promise<OctokitPR> {
+        return this.octokit.pulls
+            .get({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                pull_number: pullRequestNumber,
+            })
+            .then(({data}) => data as OctokitPR);
+    }
+
     static getPullRequestMergerLogin(pullRequestNumber: number): Promise<string | undefined> {
         return this.octokit.pulls
             .get({
@@ -772,6 +785,53 @@ class GithubUtils {
             },
         });
         return response.data as unknown as string;
+    }
+
+    /**
+     * Get the files changed in a commit.
+     */
+    static async getCommitFiles(commitSha: string): Promise<Array<{filename: string}>> {
+        const response = await this.octokit.repos.getCommit({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            ref: commitSha,
+        });
+        return response.data.files?.map((file) => ({filename: file.filename})) ?? [];
+    }
+
+    /**
+     * Get the diff for a commit.
+     */
+    static async getCommitDiff(commitSha: string): Promise<string> {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const response = await (this.internalOctokit as InternalOctokit).request('GET /repos/{owner}/{repo}/commits/{ref}', {
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            ref: commitSha,
+            mediaType: {
+                format: 'diff',
+            },
+        });
+        return response.data as unknown as string;
+    }
+
+    /**
+     * Get the PR associated with a commit SHA.
+     */
+    static async getPRForCommit(commitSha: string): Promise<{number: number; title: string} | undefined> {
+        const response = await this.octokit.repos.listPullRequestsAssociatedWithCommit({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            commit_sha: commitSha,
+        });
+        const pr = response.data.at(0);
+        if (!pr) {
+            return undefined;
+        }
+        return {number: pr.number, title: pr.title};
     }
 }
 
