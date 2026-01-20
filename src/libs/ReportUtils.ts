@@ -172,6 +172,7 @@ import {
     isSubmitAndClose,
     shouldShowPolicy,
 } from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
 import {
     formatLastMessageText,
     getActionableCardFraudAlertResolutionMessage,

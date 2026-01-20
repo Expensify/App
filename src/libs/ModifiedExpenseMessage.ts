@@ -17,6 +17,7 @@ import Log from './Log';
 import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.

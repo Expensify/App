@@ -30,6 +30,7 @@ import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getPolicy, isPolicyAdmin} from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
 import {
     getActionableCardFraudAlertResolutionMessage,
     getCardIssuedMessage,
