@@ -154,13 +154,27 @@ function buildRoomMembersOnyxData(
             },
         },
     );
-    roomMembers.successData?.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
-        value: {
-            pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
+    roomMembers.successData?.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                participants: accountIDs.reduce((acc, curr) => {
+                    if (ReportUtils.isOptimisticPersonalDetail(curr)) {
+                        Object.assign(acc, {[curr]: null});
+                    }
+                    return acc;
+                }, {}),
+            },
         },
-    });
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
+            value: {
+                pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
+            },
+        },
+    );
     return roomMembers;
 }
 /**
