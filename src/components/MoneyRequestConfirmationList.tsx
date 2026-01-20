@@ -308,7 +308,6 @@ function MoneyRequestConfirmationList({
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
