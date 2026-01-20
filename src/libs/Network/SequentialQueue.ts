@@ -322,7 +322,7 @@ onReconnection(flush);
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
 
-function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
+function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>) {
     if (conflictAction.type === 'push') {
         savePersistedRequest(newRequest);
     } else if (conflictAction.type === 'replace') {
@@ -340,7 +340,7 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
     }
 }
 
-function push(newRequest: OnyxRequest) {
+function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
     const {checkAndFixConflictingRequest} = newRequest;
 
     if (checkAndFixConflictingRequest) {

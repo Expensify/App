@@ -1,4 +1,5 @@
 import {deepEqual} from 'fast-equals';
+import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,17 +76,17 @@ function getLength(): number {
     return persistedRequests.length + (ongoingRequest ? 1 : 0);
 }
 
-function save(requestToPersist: Request) {
+function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>) {
     Log.info('[PersistedRequests] Saving request to queue started', false, {command: requestToPersist.command});
     // If not initialized yet, queue the request for later processing
     if (!isInitialized) {
         Log.info('[PersistedRequests] Queueing request until initialization completes', false);
-        pendingSaveOperations.push(requestToPersist);
+        pendingSaveOperations.push(requestToPersist as Request);
         return;
     }
 
     // If the command is not in the keepLastInstance array, add the new request as usual
-    const requests = [...persistedRequests, requestToPersist];
+    const requests: Request[] = [...persistedRequests, requestToPersist as Request];
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)
         .then(() => {
@@ -96,7 +97,7 @@ function save(requestToPersist: Request) {
         });
 }
 
-function endRequestAndRemoveFromQueue(requestToRemove: Request) {
+function endRequestAndRemoveFromQueue<TKey extends OnyxKey>(requestToRemove: Request<TKey>) {
     ongoingRequest = null;
     /**
      * We only remove the first matching request because the order of requests matters.
@@ -132,21 +133,21 @@ function deleteRequestsByIndices(indices: number[]) {
     });
 }
 
-function update(oldRequestIndex: number, newRequest: Request) {
-    const requests = [...persistedRequests];
+function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>) {
+    const requests: Request[] = [...persistedRequests];
     const oldRequest = requests.at(oldRequestIndex);
     Log.info('[PersistedRequests] Updating a request', false, {oldRequest, newRequest, oldRequestIndex});
-    requests.splice(oldRequestIndex, 1, newRequest);
+    requests.splice(oldRequestIndex, 1, newRequest as Request);
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
-function updateOngoingRequest(newRequest: Request) {
+function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
-    ongoingRequest = newRequest;
+    ongoingRequest = newRequest as Request;
 
     if (newRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest);
+        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as Request);
     }
 }
 

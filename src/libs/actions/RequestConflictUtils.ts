@@ -1,4 +1,4 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {ConflictActionData} from '@src/types/onyx/Request';
 
-type RequestMatcher = (request: OnyxRequest) => boolean;
+type RequestMatcher<TKey extends OnyxKey> = (request: OnyxRequest<TKey>) => boolean;
 
 const addNewMessage = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 

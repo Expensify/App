@@ -23,7 +23,7 @@ type OnyxData<TKey extends OnyxKey> = {
 type RequestType = 'get' | 'post';
 
 /** Model of overall requests sent to the API */
-type RequestData<TKey extends OnyxKey = OnyxKey> = {
+type RequestData<TKey extends OnyxKey> = {
     /** Name of the API command */
     command: string;
 
@@ -74,12 +74,12 @@ type RequestData<TKey extends OnyxKey = OnyxKey> = {
 /**
  * Represents the possible actions to take in case of a conflict in the request queue.
  */
-type ConflictData = ConflictRequestReplace | ConflictRequestDelete | ConflictRequestPush | ConflictRequestNoAction;
+type ConflictData<TKey extends OnyxKey> = ConflictRequestReplace<TKey> | ConflictRequestDelete | ConflictRequestPush | ConflictRequestNoAction;
 
 /**
  * Model of a conflict request that has to be replaced in the request queue.
  */
-type ConflictRequestReplace = {
+type ConflictRequestReplace<TKey extends OnyxKey> = {
     /**
      * The action to take in case of a conflict.
      */
@@ -93,7 +93,7 @@ type ConflictRequestReplace = {
     /**
      * The new request to replace the existing request in the queue.
      */
-    request?: Request<OnyxKey>;
+    request?: Request<TKey>;
 };
 
 /**
@@ -155,11 +155,11 @@ type ConflictActionData = {
  * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
  */
-type RequestConflictResolver = {
+type RequestConflictResolver<TKey extends OnyxKey> = {
     /**
      * A function that checks if a new request conflicts with any existing requests in the queue.
      */
-    checkAndFixConflictingRequest?: (persistedRequest: Array<Request<OnyxKey>>) => ConflictActionData;
+    checkAndFixConflictingRequest?: (persistedRequest: Request<TKey>[]) => ConflictActionData;
 
     /**
      * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads
@@ -174,7 +174,7 @@ type RequestConflictResolver = {
 };
 
 /** Model of requests sent to the API */
-type Request<TKey extends OnyxKey = OnyxKey> = RequestData<TKey> & OnyxData<TKey> & RequestConflictResolver;
+type Request<TKey extends OnyxKey> = RequestData<TKey> & OnyxData<TKey> & RequestConflictResolver<TKey>;
 
 /**
  * An object used to describe how a request can be paginated.
@@ -194,7 +194,7 @@ type PaginationConfig = {
 /**
  * A paginated request object.
  */
-type PaginatedRequest = Request<OnyxKey> &
+type PaginatedRequest<TKey extends OnyxKey> = Request<TKey> &
     PaginationConfig & {
         /**
          * A boolean flag to mark a request as Paginated.
