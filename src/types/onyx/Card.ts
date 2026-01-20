@@ -348,9 +348,7 @@ type FailedCompanyCardAssignment = {
     /** Assigned card */
     assignedCard: Card | undefined;
 
-    /**
-     * The type of action that's pending
-     */
+    /** The type of action that's pending */
     pendingAction?: OnyxCommon.PendingAction;
 };
 
