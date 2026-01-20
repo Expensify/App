@@ -1,7 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -310,7 +310,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const onDeleteWorkspace = useCallback(() => {
         if (isSubscriptionTypeOfInvoicing(privateSubscription?.type) && policy?.id) {
             const ownerPoliciesWithoutCreateOrDeletePendingAction = (ownerPolicies ?? []).filter(
-                (policy) => policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                (ownerPolicy) => ownerPolicy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && ownerPolicy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
 
             const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(ownerPoliciesWithoutCreateOrDeletePendingAction, policy.id);
