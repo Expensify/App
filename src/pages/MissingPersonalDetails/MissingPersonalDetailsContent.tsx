@@ -65,7 +65,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         onComplete();
     }, [onComplete, values]);
 
-    const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, goToLastPage} = useSubPage<CustomSubPageProps>({
+    const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo} = useSubPage<CustomSubPageProps>({
         pages: formPages,
         startFrom,
         onFinished: handleFinishStep,
@@ -74,7 +74,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToLastPage();
+            Navigation.goBack();
             return;
         }
 
@@ -108,7 +108,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 isEditing={isEditing}
                 onNext={nextPage}
                 onMove={moveTo}
-                prevPage={prevPage}
                 currentPageName={currentPageName}
                 personalDetailsValues={values}
             />

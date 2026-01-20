@@ -428,13 +428,15 @@ You can use `useSubPage` hook for any multi-step flow where:
 - Users progress through a series of screens to complete a task
 - Each step collects or displays different information
 - The flow has a final confirmation or summary step
+- You need proper browser back/forward button support
+- Page refresh should preserve the user's current position
 
 Common examples include:
 - Account setup wizards
 - Form flows with multiple sections
 - Settings configuration flows
 
-**Usage of the hook is not an explicit requirement. Plain static routes with basic navigation between them is also an acceptable approach**
+**Usage of the hook is not an explicit requirement. Plain static routes with basic navigation between them is also an acceptable approach.**
 
 ### Implementation pattern
 
@@ -444,8 +446,13 @@ Add routes with a `subPage` parameter to `ROUTES.ts`. The `action` parameter is 
 
 ```ts
 MY_FLOW: {
-    route: 'my-flow/:subPage/:action?',
-    getRoute: (subPage: string, action?: 'edit') => `my-flow/${subPage}${action ? `/${action}` : ''}` as const,
+    route: 'my-flow/:subPage?/:action?',
+    getRoute: (subPage?: string, action?: 'edit') => {
+        if (!subPage) {
+            return 'my-flow' as const;
+        }
+        return `my-flow/${subPage}${action ? `/${action}` : ''}` as const;
+    },
 },
 ```
 
@@ -466,6 +473,7 @@ Add page name constants to `CONST.ts`:
 
 ```ts
 MY_FLOW: {
+    STEP_INDEX_LIST: ['1', '2', '3'],
     PAGE_NAME: {
         STEP_ONE: 'step-one',
         STEP_TWO: 'step-two',
@@ -505,6 +513,7 @@ function StepOne({isEditing, onNext, onMove, formValues}: CustomSubPageProps) {
 ```ts
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 
 type CustomSubPageProps = SubPageProps & {
     formValues: MyFormType;
@@ -520,16 +529,15 @@ function MyFlowContent() {
     const {
         CurrentPage,
         isEditing,
-        currentPageName,
         pageIndex,
         prevPage,
         nextPage,
         lastPageIndex,
         moveTo,
-        goToLastPage,
+        resetToPage,
     } = useSubPage<CustomSubPageProps>({
         pages,
-        initialPageName: CONST.MY_FLOW.PAGE_NAME.STEP_ONE,
+        startFrom: 0,
         onFinished: () => {
             // Handle flow completion
             Navigation.goBack();
@@ -539,12 +547,12 @@ function MyFlowContent() {
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToLastPage();
+            Navigation.goBack();
             return;
         }
 
-        if (currentPageName === CONST.MY_FLOW.PAGE_NAME.STEP_ONE) {
-            Navigation.goBack();
+        if (pageIndex === 0) {
+            Navigation.closeRHPFlow();
             return;
         }
 
@@ -557,12 +565,17 @@ function MyFlowContent() {
                 title={translate('myFlow.title')}
                 onBackButtonPress={handleBackButtonPress}
             />
+            <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
+                <InteractiveStepSubPageHeader
+                    stepNames={CONST.MY_FLOW.STEP_INDEX_LIST}
+                    currentStepIndex={pageIndex}
+                    onStepSelected={moveTo}
+                />
+            </View>
             <CurrentPage
                 isEditing={isEditing}
                 onNext={nextPage}
                 onMove={moveTo}
-                prevPage={prevPage}
-                currentPageName={currentPageName}
                 formValues={formValues}
             />
         </ScreenWrapper>
@@ -570,9 +583,30 @@ function MyFlowContent() {
 }
 ```
 
+### Using InteractiveStepSubPageHeader
+
+The `InteractiveStepSubPageHeader` component is designed to work with the `useSubPage` hook for URL-based multi-step flows.
+
+Key features:
+- Displays numbered step indicators with connecting lines
+- Shows completed steps with a checkmark icon
+- Allows users to tap on completed steps to navigate back (entering edit mode)
+- Locked (future) steps are visually disabled and not tappable
+- Automatically syncs with the current page index from the URL
+
+```ts
+<InteractiveStepSubPageHeader
+    stepNames={CONST.MY_FLOW.STEP_INDEX_LIST}
+    currentStepIndex={pageIndex}
+    onStepSelected={moveTo}
+/>
+```
+
+> **Note**: The `stepNames` array determines the number of steps displayed. The `currentStepIndex` is 0-based. When a user taps a completed step, `onStepSelected` is called with that step's index, which triggers edit mode navigation.
+
 #### 6. Handle edit mode
 
-The hook automatically manages edit mode via the `action=edit` URL parameter. When users navigate to a previous step using `moveTo()`, they enter edit mode. In edit mode, calling `nextPage()` returns them to the confirmation/last page instead of advancing sequentially:
+The hook automatically manages edit mode via the `action=edit` URL parameter. When users navigate to a previous step using `moveTo()`, they enter edit mode. In edit mode, calling `nextPage()` returns them to the last page (typically confirmation) instead of advancing sequentially:
 
 ```ts
 // In Confirmation component - allow editing previous steps
@@ -582,7 +616,7 @@ function Confirmation({onMove, formValues}: CustomSubPageProps) {
             <MenuItem
                 title={formValues.name}
                 description={translate('myFlow.name')}
-                onPress={() => onMove(CONST.MY_FLOW.PAGE_NAME.STEP_ONE)}
+                onPress={() => onMove(0)}
             />
             {/* More review items */}
         </View>

@@ -9,6 +9,7 @@ import type {Route} from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    goBack: jest.fn(),
 }));
 
 type AnyRoute = RouteProp<Record<string, Record<string, unknown> | undefined>, string>;
@@ -63,7 +64,7 @@ describe('useSubPage hook', () => {
     });
 
     describe('initialization', () => {
-        it('returns CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, lastPageIndex, moveTo, resetToPage, goToLastPage', () => {
+        it('returns CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, lastPageIndex, moveTo, resetToPage', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
 
@@ -75,7 +76,7 @@ describe('useSubPage hook', () => {
                 }),
             );
 
-            const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, lastPageIndex, moveTo, resetToPage, goToLastPage} = result.current;
+            const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, lastPageIndex, moveTo, resetToPage} = result.current;
 
             expect(CurrentPage).toBe(mockSubPageOne);
             expect(isEditing).toBe(false);
@@ -86,7 +87,6 @@ describe('useSubPage hook', () => {
             expect(typeof nextPage).toBe('function');
             expect(typeof moveTo).toBe('function');
             expect(typeof resetToPage).toBe('function');
-            expect(typeof goToLastPage).toBe('function');
         });
 
         it('starts at the first page when no subPage param is present and no startFrom is provided', () => {
@@ -288,7 +288,7 @@ describe('useSubPage hook', () => {
 
             result.current.prevPage();
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page1'));
+            expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('page1'));
         });
 
         it('does not navigate when calling prevPage on the first page', () => {
@@ -408,23 +408,6 @@ describe('useSubPage hook', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page1'));
         });
 
-        it('navigates to the last page when calling goToLastPage', () => {
-            const pages = createMockPages();
-            const buildRoute = createBuildRoute();
-
-            const {result} = renderHook(() =>
-                useSubPage({
-                    pages,
-                    onFinished: mockOnFinished,
-                    buildRoute,
-                }),
-            );
-
-            result.current.goToLastPage();
-
-            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page4'));
-        });
-
         it('navigates to last page when isEditing is true and nextPage is called', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
@@ -506,7 +489,7 @@ describe('useSubPage hook', () => {
 
             result.current.prevPage();
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page2'));
+            expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('page2'));
         });
 
         it('skips multiple consecutive pages in skipPages array when navigating previous', () => {
@@ -529,7 +512,7 @@ describe('useSubPage hook', () => {
 
             result.current.prevPage();
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page1'));
+            expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('page1'));
         });
 
         it('returns the correct lastPageIndex when some pages are skipped at the end', () => {
@@ -546,24 +529,6 @@ describe('useSubPage hook', () => {
             );
 
             expect(result.current.lastPageIndex).toBe(1);
-        });
-
-        it('navigates to the last non-skipped page when calling goToLastPage', () => {
-            const pages = createMockPages();
-            const buildRoute = createBuildRoute();
-
-            const {result} = renderHook(() =>
-                useSubPage({
-                    pages,
-                    onFinished: mockOnFinished,
-                    skipPages: ['page4'],
-                    buildRoute,
-                }),
-            );
-
-            result.current.goToLastPage();
-
-            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page3'));
         });
 
         it('calls onFinished when navigating past the last non-skipped page', () => {

@@ -116,13 +116,6 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         }
     };
 
-    const goToLastPage = () => {
-        if (!lastPageName) {
-            return;
-        }
-        navigateToPage(lastPageName);
-    };
-
     const currentPage = pages.at(pageIndex);
 
     return {
@@ -136,6 +129,5 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         lastPageIndex,
         moveTo,
         resetToPage,
-        goToLastPage,
     };
 }
