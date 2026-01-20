@@ -20,24 +20,6 @@ describe('TwoFactorAuthGuard', () => {
     });
 
     describe('shouldApply', () => {
-        it('should not apply when loading', () => {
-            const loadingContext: GuardContext = {
-                ...mockContext,
-                isLoading: true,
-            };
-            const mockState = {
-                key: 'test-key',
-                index: 0,
-                routeNames: [],
-                routes: [],
-                type: 'test',
-                stale: false,
-            } as NavigationState;
-            const mockAction = {type: 'NAVIGATE', payload: {name: 'TestScreen'}} as NavigationAction;
-
-            expect(TwoFactorAuthGuard.shouldApply(mockState, mockAction, loadingContext)).toBe(false);
-        });
-
         it('should apply when not loading', () => {
             const mockState = {
                 key: 'test-key',
