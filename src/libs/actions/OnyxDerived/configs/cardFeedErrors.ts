@@ -60,6 +60,7 @@ export default createOnyxDerivedValueConfig({
                 ...previousFeedErrors.feedErrors,
                 ...feed?.errors,
             } as Errors;
+            const hasFeedErrors = feedNameWithDomainID ? !isEmptyObject(feedErrors) : false;
 
             const hasFailedCardAssignments = !isEmptyObject(
                 failedCompanyCardAssignmentsPerFeed?.[`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${workspaceAccountID}_${feedNameWithDomainID}`],
@@ -81,8 +82,6 @@ export default createOnyxDerivedValueConfig({
             } as Record<string, CardErrors>;
 
             const isFeedConnectionBroken = isCardConnectionBroken(card);
-            const hasFeedErrors = feedNameWithDomainID ? !!feedErrors : false;
-            const hasWorkspaceErrors = !!workspaceCardFeedsStatus?.[workspaceAccountID]?.errors;
 
             const newFeedState: Omit<CardFeedErrorState, 'shouldShowRBR'> = {
                 isFeedConnectionBroken: isFeedConnectionBroken || previousFeedErrors.isFeedConnectionBroken,
