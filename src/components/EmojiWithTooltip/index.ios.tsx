@@ -6,14 +6,11 @@ import type EmojiWithTooltipProps from './types';
 function EmojiWithTooltip({emojiCode, style = {}, isMedium = false, isOnSeparateLine = false}: EmojiWithTooltipProps) {
     const styles = useThemeStyles();
     const isCustomEmoji = emojiCode === '\uE100';
-    if (isOnSeparateLine) {
-        return <Text style={[styles.emojisWithTextFontSizeAligned, isCustomEmoji && styles.customEmojiFontAlignment]}>{emojiCode}</Text>;
-    }
 
     return isMedium ? (
         <Text style={style}>
             <View>
-                <Text style={[styles.emojisWithTextFontSizeAligned, isCustomEmoji && styles.customEmojiFontAlignment]}>{emojiCode}</Text>
+                <Text style={!isOnSeparateLine && [styles.emojisWithTextFontSizeAligned, isCustomEmoji && styles.customEmojiFontAlignment]}>{emojiCode}</Text>
             </View>
         </Text>
     ) : (

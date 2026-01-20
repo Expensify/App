@@ -91,11 +91,15 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                 htmlContent = Parser.replace(htmlContent, {filterRules: ['emoji'], shouldEscapeText: false});
             }
             htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji ismedium>');
-            const BLOCK_BOUNDARY = '(?:^|$|<br\\s*\\/?>|<\\/(?:div|p|blockquote|comment|h[1-6]|li|ul|ol|section|article)>)';
-
-            htmlContent = htmlContent.replace(new RegExp(`${BLOCK_BOUNDARY}\\s*<emoji\\b[^>]*>.*?<\\/emoji>\\s*(?=${BLOCK_BOUNDARY})`, 'gis'), (match) =>
-                match.replace(/<emoji\b(?![^>]*\bisoneline\b)/i, '<emoji isoneline'),
-            );
+            const BLOCK_BOUNDARY_BEFORE = '(?:^|<br\\s*\\/?>|<\\/(?:div|p|blockquote|comment|h[1-6]|li|ul|ol|section|article)>)';
+            const BLOCK_BOUNDARY_AFTER = '(?:$|<br\\s*\\/?>|<(?:div|p|blockquote|comment|h[1-6]|li|ul|ol|section|article)\\b)';
+            const emojiOnSeparateLinePattern = new RegExp(`(${BLOCK_BOUNDARY_BEFORE})(\\s*)(<emoji\\b)([^>]*>[^<]*</emoji>)(\\s*)(?=${BLOCK_BOUNDARY_AFTER})`, 'gi');
+            htmlContent = htmlContent.replace(emojiOnSeparateLinePattern, (match, boundaryBefore, wsBefore, emojiStart, emojiRest, wsAfter) => {
+                if (!emojiStart.includes('oneline')) {
+                    return `${boundaryBefore}${wsBefore}<emoji oneline${emojiRest}${wsAfter}`;
+                }
+                return match;
+            });
         }
 
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
