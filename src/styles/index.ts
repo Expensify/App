@@ -1661,6 +1661,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         floatingGpsButton: {
             position: 'absolute',
+            // floatingCameraButton top property value (componentSizeLarge + 16) +
+            // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
             top: 2 * -variables.componentSizeLarge - 28,
             right: 16,
             zIndex: 10,
