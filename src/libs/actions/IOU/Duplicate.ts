@@ -36,7 +36,7 @@ import {
     trackExpense,
 } from '.';
 
-// TODO: remove `allPolicyTags` from this file
+// TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80049
 // `allPolicyTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
