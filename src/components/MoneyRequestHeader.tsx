@@ -180,7 +180,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const duplicateTransaction = useCallback(
         (transactions: Transaction[]) => {
-            if (!transactions.length || !policy?.id) {
+            if (!transactions.length) {
                 return;
             }
 
@@ -199,7 +199,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     activePolicyID,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    customUnitPolicyID: policy.id,
+                    customUnitPolicyID: policy?.id,
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,

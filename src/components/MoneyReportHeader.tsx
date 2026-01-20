@@ -635,7 +635,7 @@ function MoneyReportHeader({
 
     const duplicateExpenseTransaction = useCallback(
         (transactionList: OnyxTypes.Transaction[]) => {
-            if (!transactionList.length || !policy?.id) {
+            if (!transactionList.length) {
                 return;
             }
 
@@ -653,7 +653,7 @@ function MoneyReportHeader({
                     activePolicyID,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    customUnitPolicyID: policy.id,
+                    customUnitPolicyID: policy?.id,
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
