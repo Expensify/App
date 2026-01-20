@@ -148,6 +148,86 @@ function clearPersonalBankAccountErrors() {
 }
 
 /**
+ * Updates personal information (name, address, phone) for a personal bank account.
+ * This is used when a US personal bank account in OPEN state is missing required info.
+ */
+function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountForm>) {
+    const parameters = {
+        phoneNumber: accountData?.phoneNumber,
+        legalFirstName: accountData?.legalFirstName,
+        legalLastName: accountData?.legalLastName,
+        addressStreet: getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2),
+        addressCity: accountData?.addressCity,
+        addressState: accountData?.addressState,
+        addressZip: accountData?.addressZipCode,
+        addressCountry: accountData?.country,
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                    shouldShowSuccess: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    legalFirstName: accountData?.legalFirstName,
+                    legalLastName: accountData?.legalLastName,
+                    phoneNumber: accountData?.phoneNumber,
+                    addresses: accountData?.addressStreet
+                        ? [
+                              {
+                                  street: getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2),
+                                  city: accountData?.addressCity,
+                                  state: accountData?.addressState,
+                                  zip: accountData?.addressZipCode,
+                                  country: accountData?.country as Country,
+                                  current: true,
+                              },
+                          ]
+                        : undefined,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO, parameters, onyxData);
+
+    // Clear the form draft after submission
+    Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
+
+    // Navigate back to wallet page
+    Navigation.goBack(ROUTES.SETTINGS_WALLET);
+}
+
+/**
  * Whether after adding a bank account we should continue with the KYC flow. If so, we must specify the fallback route.
  */
 function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Route) {
@@ -1504,4 +1584,5 @@ export {
     getBankAccountFromID,
     openBankAccountSharePage,
     clearShareBankAccountErrors,
+    updatePersonalBankAccountInfo,
 };

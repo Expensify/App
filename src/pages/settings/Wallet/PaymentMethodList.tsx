@@ -19,6 +19,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {
     filterPersonalCards,
     getAssignedCardSortKey,
@@ -352,6 +353,10 @@ function PaymentMethodList({
                 methodID: paymentMethod.methodID,
                 description: paymentMethod.description,
             };
+
+            // Check if this is a personal bank account missing required personal info
+            const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData, privatePersonalDetails);
+
             return {
                 ...paymentMethod,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
@@ -372,6 +377,8 @@ function PaymentMethodList({
                 iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                 shouldShowRightIcon,
                 canDismissError: true,
+                isMissingPersonalInfo,
+                brickRoadIndicator: isMissingPersonalInfo ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             };
         });
         return combinedPaymentMethods;
@@ -396,6 +403,7 @@ function PaymentMethodList({
         activePaymentMethodID,
         actionPaymentMethodType,
         onThreeDotsMenuPress,
+        privatePersonalDetails,
     ]);
 
     const onPressItem = useCallback(() => {
