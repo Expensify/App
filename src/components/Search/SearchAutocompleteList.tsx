@@ -632,7 +632,6 @@ function SearchAutocompleteList({
         betas,
         countryCode,
         loginList,
-        visibleReportActionsData,
         currentUserLogin,
         groupByAutocompleteList,
         statusAutocompleteList,
