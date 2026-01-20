@@ -68,7 +68,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
                 cardToAssign,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams), {forceReplace: true});
         } else if (hasOnlyOneCardToAssign(filteredCardList)) {
             cardToAssign.cardNumber = Object.keys(filteredCardList).at(0);
             cardToAssign.encryptedCardNumber = Object.values(filteredCardList).at(0);
@@ -79,14 +79,14 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
                 cardToAssign,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams), {forceReplace: true});
         } else {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CARD,
                 cardToAssign,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams), {forceReplace: true});
         }
     };
 
