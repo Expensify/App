@@ -127,7 +127,6 @@ function IOURequestStepDistance({
         action,
         shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT,
     );
-    const waypointsList = Object.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
     const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
@@ -492,19 +491,21 @@ function IOURequestStepDistance({
 
     const {allItems, waypointByKeyForList} = useMemo(() => {
         const length = Object.keys(waypoints).length;
-        const allItems: string[] = [];
-        const waypointByKeyForList: Record<string, {key: string; waypoint: Waypoint}> = {};
+        const items: string[] = [];
+        const waypointsByKey: Record<string, {key: string; waypoint: Waypoint}> = {};
 
         for (let i = 0; i < length; i++) {
             const key = `waypoint${i}`;
             const waypoint = waypoints[key];
-            if (!waypoint?.keyForList) continue;
+            if (!waypoint?.keyForList) {
+                continue;
+            }
 
-            allItems.push(waypoint.keyForList);
-            waypointByKeyForList[waypoint.keyForList] = {key, waypoint};
+            items.push(waypoint.keyForList);
+            waypointsByKey[waypoint.keyForList] = {key, waypoint};
         }
 
-        return {allItems, waypointByKeyForList};
+        return {allItems: items, waypointByKeyForList: waypointsByKey};
     }, [waypoints]);
 
     const getWaypointKey = useCallback((keyForList: string) => waypointByKeyForList[keyForList]?.key, [waypointByKeyForList]);
@@ -534,7 +535,7 @@ function IOURequestStepDistance({
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, transaction, waypoints, waypointsList, action, getWaypoint],
+        [transactionID, transaction, waypoints, action, allItems, getWaypoint],
     );
 
     const submitWaypoints = useCallback(() => {
