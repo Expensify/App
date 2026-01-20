@@ -163,7 +163,13 @@ function write<TCommand extends WriteCommand>(
 function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<OnyxKey> = {},
+    onyxData: OnyxData<
+        | typeof ONYXKEYS.COLLECTION.REPORT
+        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
+        | typeof ONYXKEYS.HAS_LOADED_APP
+        | typeof ONYXKEYS.IS_LOADING_APP
+        | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
+    > = {},
     requestMatcher: RequestMatcher = (request) => request.command === command,
 ): Promise<void | Response> {
     const conflictResolver = {
@@ -180,7 +186,7 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand>(
 function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePolicyFeatureCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<OnyxKey> = {},
+    onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {},
 ): Promise<void | Response> {
     const conflictResolver = {
         checkAndFixConflictingRequest: (persistedRequests: OnyxRequest[]) => resolveEnableFeatureConflicts(command, persistedRequests, apiCommandParameters),
@@ -200,7 +206,29 @@ function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePoli
 function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<OnyxKey> = {},
+    onyxData: OnyxData<
+        | typeof ONYXKEYS.COLLECTION.POLICY
+        | typeof ONYXKEYS.COLLECTION.REPORT
+        | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+        | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
+        | typeof ONYXKEYS.HAS_LOADED_APP
+        | typeof ONYXKEYS.IS_LOADING_APP
+        | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
+        | typeof ONYXKEYS.CARD_LIST
+        | typeof ONYXKEYS.ACCOUNT
+        | typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS
+        | typeof ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE
+        | typeof ONYXKEYS.NVP_INTRO_SELECTED
+        | typeof ONYXKEYS.NVP_ONBOARDING
+        | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY
+        | typeof ONYXKEYS.NVP_TRAVEL_SETTINGS
+        | typeof ONYXKEYS.TRAVEL_PROVISIONING
+        | typeof ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE
+        | typeof ONYXKEYS.NVP_TRY_NEW_DOT
+        | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+    > = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
