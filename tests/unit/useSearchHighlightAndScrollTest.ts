@@ -317,7 +317,7 @@ describe('useSearchHighlightAndScroll', () => {
 
         rerender(updatedProps2);
         expect(result.current.newSearchResultKeys?.size).toBe(1);
-        expect([...(result.current.newSearchResultKeys ?? new Set())]).not.toContain('transactions_3');
+        expect([...(result.current.newSearchResultKeys ?? new Set())]).toContain('transactions_3');
 
         // Wait 1s for the timer in useSearchHighlightAndScroll to complete.
         await new Promise((resolve) => {
