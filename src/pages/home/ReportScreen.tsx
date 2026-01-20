@@ -109,6 +109,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
+import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
@@ -315,6 +316,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+
+    const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
+
     const indexOfLinkedMessage = useMemo(
         (): number => reportActions.findIndex((obj) => reportActionIDFromRoute && String(obj.reportActionID) === String(reportActionIDFromRoute)),
         [reportActions, reportActionIDFromRoute],
@@ -805,6 +809,30 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         deletedParentAction,
         prevDeletedParentAction,
     ]);
+
+    useEffect(() => {
+        if (!reportWasDeleted) {
+            return;
+        }
+
+        // Only redirect if focused
+        if (!isFocused) {
+            return;
+        }
+
+        // Try to navigate to parent report if available
+        if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
+            });
+            return;
+        }
+
+        // Fallback to Concierge
+        Navigation.isNavigationReady().then(() => {
+            navigateToConciergeChat();
+        });
+    }, [reportWasDeleted, isFocused, deletedReportParentID]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {
