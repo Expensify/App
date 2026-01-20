@@ -48,7 +48,6 @@ type PopoverReportActionContextMenuProps = {
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();
-    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -363,7 +362,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isSingleTransactionView: undefined,
                     isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
-                    allSnapshots,
                     allTransactionViolationsParam: allTransactionViolations,
                 });
             } else if (originalMessage?.IOUTransactionID) {
@@ -391,7 +389,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         deleteTransactions,
         currentSearchHash,
         email,
-        allSnapshots,
         reportTransactions,
         isOriginalReportArchived,
         allTransactionViolations,

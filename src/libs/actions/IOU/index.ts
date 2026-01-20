@@ -192,7 +192,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSnapshotKeys, getSuggestedSearches} from '@libs/SearchUIUtils';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -254,7 +254,6 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type SearchResults from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -840,7 +839,6 @@ type DeleteTrackExpenseParams = {
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
-    allSnapshots?: OnyxCollection<SearchResults>;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
 };
 
@@ -855,8 +853,6 @@ type DeleteMoneyRequestFunctionParams = {
     isSingleTransactionView?: boolean;
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
-    hash?: number;
-    allSnapshots?: OnyxCollection<SearchResults>;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
 };
 
@@ -9026,12 +9022,10 @@ function deleteMoneyRequest({
     iouReport,
     chatReport,
     isChatIOUReportArchived,
-    allSnapshots,
     isSingleTransactionView = false,
     transactionIDsPendingDeletion,
     selectedTransactionIDs,
     allTransactionViolationsParam,
-    hash,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -9057,13 +9051,7 @@ function deleteMoneyRequest({
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-        >
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
     > = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -9079,13 +9067,7 @@ function deleteMoneyRequest({
     });
 
     const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-        >
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
     > = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -9208,35 +9190,6 @@ function deleteMoneyRequest({
                   },
               },
     ];
-
-    const allSnapshotKeys = getSnapshotKeys(allSnapshots);
-
-    if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
-        for (const key of allSnapshotKeys) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key,
-                value: {
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                        },
-                    } as Partial<OnyxTypes.Transaction>,
-                },
-            });
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key,
-                value: {
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                            pendingAction: null,
-                        },
-                    } as Partial<OnyxTypes.Transaction>,
-                },
-            });
-        }
-    }
 
     if (reportPreviewAction?.reportActionID) {
         successData.push({
@@ -9362,23 +9315,6 @@ function deleteMoneyRequest({
         });
     }
 
-    if (hash && shouldDeleteIOUReport) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`]: {
-                        pendingFields: {
-                            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                            preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                        },
-                    },
-                },
-            },
-        });
-    }
-
     const parameters: DeleteMoneyRequestParams = {
         transactionID,
         reportActionID: reportAction.reportActionID,
@@ -9403,7 +9339,6 @@ function deleteTrackExpense({
     isSingleTransactionView = false,
     isChatReportArchived,
     isChatIOUReportArchived,
-    allSnapshots,
     allTransactionViolationsParam,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
@@ -9432,7 +9367,6 @@ function deleteTrackExpense({
             chatReport: chatIOUReport,
             isChatIOUReportArchived,
             isSingleTransactionView,
-            allSnapshots,
             allTransactionViolationsParam,
         });
         return urlToNavigateBack;

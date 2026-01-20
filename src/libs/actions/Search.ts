@@ -38,7 +38,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
-import {getSnapshotKeys, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -48,7 +48,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -728,135 +728,89 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], allSnapshots: OnyxCollection<SearchResults>, transactions: OnyxCollection<Transaction>) {
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], transactions: OnyxCollection<Transaction>) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
 
-    const allSnapshotKeys = getSnapshotKeys(allSnapshots);
-    const optimisticData: OnyxUpdate[] = [...loadingOptimisticData];
-
+    const optimisticData: OnyxUpdate[] = [...(loadingOptimisticData ?? [])];
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
-    if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
-        let pendingDeleteTransactionsCount = transactionIDList.length;
+    let pendingDeleteTransactionsCount = transactionIDList.length;
 
-        for (const transactionID of transactionIDList) {
-            for (const key of allSnapshotKeys) {
+    for (const transactionID of transactionIDList) {
+        if (transactions) {
+            const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+            if (transaction) {
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key,
-                    value: {
-                        data: {
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                            },
-                        } as Partial<Transaction>,
-                    },
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
                 });
 
                 failureData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key,
-                    value: {
-                        data: {
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                                pendingAction: null,
-                            },
-                        } as Partial<Transaction>,
-                    },
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {pendingAction: null},
                 });
-            }
 
-            if (transactions) {
-                const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                const shouldDeleteIOUReport = getReportTransactions(transaction?.reportID).length === transactionIDList.length && pendingDeleteTransactionsCount === 1;
+                pendingDeleteTransactionsCount -= 1;
 
-                if (transaction) {
-                    optimisticData.push({
-                        onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                        value: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                    });
+                if (shouldDeleteIOUReport) {
+                    const iouReport = getReportOrDraftReport(transaction.reportID);
+                    const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID);
 
-                    failureData.push({
-                        onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                        value: {...transaction, pendingAction: null},
-                    });
-
-                    const shouldDeleteIOUReport = getReportTransactions(transaction?.reportID).length === transactionIDList.length && pendingDeleteTransactionsCount === 1;
-                    pendingDeleteTransactionsCount -= 1;
-
-                    if (shouldDeleteIOUReport) {
-                        const iouReport = getReportOrDraftReport(transaction.reportID);
-                        const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID);
-
-                        if (reportPreviewAction?.reportActionID) {
-                            const updatedReportPreviewAction: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = cloneDeep(reportPreviewAction ?? {});
-                            updatedReportPreviewAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-                            optimisticData.push({
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
-                                value: {[reportPreviewAction.reportActionID]: updatedReportPreviewAction},
-                            });
-
-                            successData.push({
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
-                                value: {
-                                    [reportPreviewAction.reportActionID]: {
-                                        pendingAction: null,
-                                        errors: null,
-                                    },
-                                },
-                            });
-
-                            failureData.push({
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
-                                value: {
-                                    [reportPreviewAction.reportActionID]: {
-                                        ...reportPreviewAction,
-                                        pendingAction: null,
-                                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage'),
-                                    },
-                                },
-                            });
-                        }
+                    if (reportPreviewAction?.reportActionID) {
+                        const updatedReportPreviewAction: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = cloneDeep(reportPreviewAction ?? {});
+                        updatedReportPreviewAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
                         optimisticData.push({
                             onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
+                            value: {[reportPreviewAction.reportActionID]: updatedReportPreviewAction},
+                        });
+
+                        successData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
                             value: {
-                                reportID: null,
-                                pendingFields: {
-                                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                [reportPreviewAction.reportActionID]: {
+                                    pendingAction: null,
+                                    errors: null,
                                 },
                             },
                         });
 
-                        successData.push({
-                            onyxMethod: Onyx.METHOD.SET,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
-                            value: null,
-                        });
-
-                        for (const key of allSnapshotKeys) {
-                            optimisticData.push({
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key,
-                                value: {
-                                    data: {
-                                        [`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`]: {
-                                            pendingFields: {
-                                                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                                            },
-                                        },
-                                    } as Partial<Report>,
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`,
+                            value: {
+                                [reportPreviewAction.reportActionID]: {
+                                    ...reportPreviewAction,
+                                    pendingAction: null,
+                                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage'),
                                 },
-                            });
-                        }
+                            },
+                        });
                     }
+
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
+                        value: {
+                            reportID: null,
+                            pendingFields: {
+                                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            },
+                        },
+                    });
+
+                    successData.push({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
+                        value: null,
+                    });
                 }
             }
         }

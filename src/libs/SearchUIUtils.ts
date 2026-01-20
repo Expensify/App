@@ -3464,16 +3464,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-type OnyxSnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
-
-function getSnapshotKeys(allSnapshots: OnyxCollection<OnyxTypes.SearchResults>) {
-    if (!allSnapshots) {
-        return [];
-    }
-
-    return Object.keys(allSnapshots || {}) as OnyxSnapshotKey[];
-}
-
 function getTableMinWidth(columns: SearchColumnType[]) {
     // Starts at 24px to account for the checkbox width
     let minWidth = 24;
@@ -3545,7 +3535,6 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
-    getSnapshotKeys,
     getSearchColumnTranslationKey,
     getTableMinWidth,
     getCustomColumns,

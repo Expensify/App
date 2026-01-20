@@ -127,7 +127,6 @@ function SearchPage({route}: SearchPageProps) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -449,11 +448,11 @@ function SearchPage({route}: SearchPageProps) {
             // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys, allSnapshots, transactions);
+                deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys, transactions);
                 clearSelectedTransactions();
             });
         });
-    }, [showConfirmModal, translate, selectedTransactionsKeys, hash, clearSelectedTransactions, allSnapshots, transactions]);
+    }, [showConfirmModal, translate, selectedTransactionsKeys, hash, clearSelectedTransactions, transactions]);
 
     const onBulkPaySelected = useCallback(
         (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
