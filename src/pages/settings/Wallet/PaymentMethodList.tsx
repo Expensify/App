@@ -204,8 +204,7 @@ function PaymentMethodList({
                 // Include active Expensify cards, company cards (domain), and personal cards from OldDot (no domain + owned by current user)
                 .filter(
                     (card) =>
-                        CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
-                        (isExpensifyCard(card) || !!card.domainName || isPersonalCardFromOldDot(card, currentUserAccountID)),
+                        CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) && (isExpensifyCard(card) || !!card.domainName || isPersonalCardFromOldDot(card, currentUserAccountID)),
                 );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
@@ -258,7 +257,9 @@ function PaymentMethodList({
                         iconHeight: variables.cardIconHeight,
                         isMethodActive: activePaymentMethodID === card.cardID,
                         onPress: () =>
-                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(CONST.POLICY.EMPTY_POLICY_ID, (card.bank || 'unknown') as never, String(card.cardID), ROUTES.SETTINGS_WALLET)),
+                            Navigation.navigate(
+                                ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(CONST.POLICY.EMPTY_POLICY_ID, (card.bank || 'unknown') as never, String(card.cardID), ROUTES.SETTINGS_WALLET),
+                            ),
                     });
                     continue;
                 }
