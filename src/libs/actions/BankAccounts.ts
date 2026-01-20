@@ -222,7 +222,6 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
 
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO, parameters, onyxData);
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
-    Navigation.goBack(ROUTES.SETTINGS_WALLET);
 }
 
 /**

@@ -1,14 +1,20 @@
 import React from 'react';
+import ConfirmationPage from '@components/ConfirmationPage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import Navigation from '@navigation/Navigation';
-import {updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
+import {clearPersonalBankAccount, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Address from './InternationalDepositAccount/PersonalInfo/substeps/AddressStep';
 import LegalName from './InternationalDepositAccount/PersonalInfo/substeps/LegalNameStep';
 import PhoneNumber from './InternationalDepositAccount/PersonalInfo/substeps/PhoneNumberStep';
@@ -19,10 +25,19 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [LegalName, Addres
 
 function UpdatePersonalBankAccountPage() {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+
+    const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
+
+    const exitFlow = () => {
+        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        clearPersonalBankAccount();
+    };
 
     const submitPersonalInfo = () => {
         const finalPhoneNumber = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
@@ -64,6 +79,32 @@ function UpdatePersonalBankAccountPage() {
         }
         prevScreen();
     };
+
+    if (shouldShowSuccess) {
+        return (
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom
+                shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicator={false}
+                testID={UpdatePersonalBankAccountPage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('addPersonalBankAccount.updateSuccessHeader')}
+                    onBackButtonPress={exitFlow}
+                />
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <ConfirmationPage
+                        heading={translate('addPersonalBankAccount.updateSuccessTitle')}
+                        description={translate('addPersonalBankAccount.updateSuccessMessage')}
+                        shouldShowButton
+                        buttonText={translate('common.continue')}
+                        onButtonPress={exitFlow}
+                        containerStyle={styles.h100}
+                    />
+                </ScrollView>
+            </ScreenWrapper>
+        );
+    }
 
     return (
         <InteractiveStepWrapper
