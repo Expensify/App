@@ -384,6 +384,8 @@ function MoneyRequestReportPreviewContent({
         [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
     );
 
+    const shouldShowReportStatus = !!reportStatus && !!expenseCount;
+
     const reportStatusColorStyle = useMemo(
         () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
         [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, theme],
@@ -643,7 +645,7 @@ function MoneyRequestReportPreviewContent({
         ) : null,
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button
-                text={shouldShowAccessPlaceHolder ? translate('common.viewReport') : translate('common.view')}
+                text={translate('common.view')}
                 onPress={() => {
                     openReportFromPreview();
                 }}
@@ -744,9 +746,10 @@ function MoneyRequestReportPreviewContent({
                                                 {showStatusAndSkeleton && shouldShowSkeleton ? (
                                                     <MoneyReportHeaderStatusBarSkeleton />
                                                 ) : (
-                                                    (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) && (
+                                                    (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) &&
+                                                    (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                            {!!reportStatus && !!expenseCount && (
+                                                            {shouldShowReportStatus && (
                                                                 <View
                                                                     style={[
                                                                         styles.reportStatusContainer,
