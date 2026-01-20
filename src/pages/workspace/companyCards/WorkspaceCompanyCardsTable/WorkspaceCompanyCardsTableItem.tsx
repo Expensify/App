@@ -20,13 +20,23 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, PersonalDetails} from '@src/types/onyx';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceCompanyCardTableItemData = {
-    /** Card number */
+    /**
+     * The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234").
+     */
     cardName: string;
 
-    /** Card name */
+    /**
+     * The card identifier sent to backend.
+     * For direct feeds (Plaid/OAuth): equals cardName
+     * For commercial feeds (Visa/Mastercard/Amex): encrypted value
+     */
+    encryptedCardNumber: string;
+
+    /** User-defined name for the card (e.g., "John's card") */
     customCardName?: string;
 
     /** Cardholder personal details */
@@ -35,8 +45,14 @@ type WorkspaceCompanyCardTableItemData = {
     /** Assigned card */
     assignedCard: Card | undefined;
 
-    /** Pending company card assignment */
-    failedCompanyCardAssignment: FailedCompanyCardAssignment | undefined;
+    /** Failed company card assignment */
+    hasFailedCardAssignment: boolean;
+
+    /** Errors */
+    errors?: Errors;
+
+    /** Pending action */
+    pendingAction?: PendingAction;
 
     /** Whether the card is deleted */
     isCardDeleted: boolean;
@@ -73,8 +89,12 @@ type WorkspaceCompanyCardTableItemProps = {
     /** Number of columns in the table */
     columnCount: number;
 
-    /** On assign card callback */
-    onAssignCard: (cardID: string) => void;
+    /**
+     * Callback when assigning a card.
+     * @param cardName - The masked card number displayed to users
+     * @param cardID - The identifier sent to backend (equals cardName for direct feeds)
+     */
+    onAssignCard: (cardName: string, cardID: string) => void;
 };
 
 function WorkspaceCompanyCardTableItem({
@@ -95,21 +115,7 @@ function WorkspaceCompanyCardTableItem({
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {isOffline} = useNetwork();
 
-    const {failedCompanyCardAssignment} = item;
-    let {cardName, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted} = item;
-    let errors = assignedCard?.errors;
-    let pendingAction = assignedCard?.pendingAction;
-
-    if (failedCompanyCardAssignment) {
-        cardName = failedCompanyCardAssignment.cardNumber;
-        customCardName = failedCompanyCardAssignment.cardName;
-        cardholder = failedCompanyCardAssignment.cardholder;
-        assignedCard = undefined;
-        isAssigned = true;
-        isCardDeleted = false;
-        errors = failedCompanyCardAssignment?.errors;
-        pendingAction = failedCompanyCardAssignment?.pendingAction;
-    }
+    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted, hasFailedCardAssignment, errors, pendingAction} = item;
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
     const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
@@ -119,14 +125,14 @@ function WorkspaceCompanyCardTableItem({
     const leftColumnSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const resetFailedCompanyCardAssignment = () => {
-        if (!failedCompanyCardAssignment) {
+        if (!hasFailedCardAssignment) {
             return;
         }
 
-        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feed, cardName);
+        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feed, encryptedCardNumber);
     };
 
-    const assignCard = () => onAssignCard(cardName);
+    const assignCard = () => onAssignCard(cardName, encryptedCardNumber);
     const isDeleting = !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     return (
