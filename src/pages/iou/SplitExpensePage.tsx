@@ -48,8 +48,9 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getChildTransactions, getTransactionType, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -236,15 +237,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
     const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
-    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
-    const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const splitExpensesArray = draftTransaction?.comment?.splitExpenses ?? [];
 
     const splitAmounts = splitExpensesArray.map((item) => Number(item.amount ?? 0));
     const adjustedPercentages = calculateSplitPercentagesFromAmounts(splitAmounts, transactionDetailsAmount);
 
     const options: SplitListItemType[] = splitExpensesArray.map((item, index): SplitListItemType => {
-        const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
+        const previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
         const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
         const currentItemReport = getReportOrDraftReport(currentTransaction?.reportID);
         const isApproved = isReportApproved({report: currentItemReport});
