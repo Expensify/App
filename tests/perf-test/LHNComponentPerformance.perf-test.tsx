@@ -14,9 +14,37 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
+jest.mock('@src/languages/IntlStore');
+jest.mock('@src/libs/Localize', () => ({
+    translate: (_locale: string | undefined, key: string | string[], ..._params: unknown[]) => {
+        return Array.isArray(key) ? key.join('.') : key;
+    },
+    translateLocal: (key: string | string[], ..._params: unknown[]) => {
+        return Array.isArray(key) ? key.join('.') : key;
+    },
+    formatList: (components: string[]) => components.join(', '),
+    formatMessageElementList: (elements: unknown[]) => elements,
+    getDevicePreferredLocale: () => 'en',
+}));
+jest.mock('@libs/Localize', () => ({
+    translate: (_locale: string | undefined, key: string | string[], ..._params: unknown[]) => {
+        return Array.isArray(key) ? key.join('.') : key;
+    },
+    translateLocal: (key: string | string[], ..._params: unknown[]) => {
+        return Array.isArray(key) ? key.join('.') : key;
+    },
+    formatList: (components: string[]) => components.join(', '),
+    formatMessageElementList: (elements: unknown[]) => elements,
+    getDevicePreferredLocale: () => 'en',
+}));
+jest.mock('@src/libs/actions/Session', () => ({
+    beginSignIn: jest.fn(),
+    signIn: jest.fn(),
+}));
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isActiveRoute: jest.fn(),
@@ -109,11 +137,12 @@ describe('LHN Component Performance Baseline', () => {
         });
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-        TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(waitForBatchedUpdates);
+        await TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One');
+        await waitForBatchedUpdatesWithAct();
     });
 
     afterEach(() => {
@@ -139,7 +168,7 @@ describe('LHN Component Performance Baseline', () => {
             ...reportMetadata,
         } as any);
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
@@ -172,7 +201,7 @@ describe('LHN Component Performance Baseline', () => {
                     [`${firstReportID}_999`]: newAction,
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstReportID}`, updatedActions);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
             }
         };
 
@@ -211,7 +240,7 @@ describe('LHN Component Performance Baseline', () => {
                 }
             }
             await Onyx.multiSet(updates);
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
         };
 
         await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
@@ -240,7 +269,7 @@ describe('LHN Component Performance Baseline', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${firstReportID}`, {
                 lastVisitTime: new Date().toISOString(),
             });
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
         };
 
         await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
@@ -265,7 +294,7 @@ describe('LHN Component Performance Baseline', () => {
             ...reportMetadata,
         } as any);
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });

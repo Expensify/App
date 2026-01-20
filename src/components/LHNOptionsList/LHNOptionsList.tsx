@@ -251,9 +251,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const renderItem = useCallback(
         ({item, index}: RenderItemProps): ReactElement => {
-            const renderStartTime = performance.now();
+            // const renderStartTime = performance.now();
             const reportID = item.reportID;
-            renderItemCountByReportID.current[reportID] = (renderItemCountByReportID.current[reportID] || 0) + 1;
+            // renderItemCountByReportID.current[reportID] = (renderItemCountByReportID.current[reportID] || 0) + 1;
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.chatReportID}`];
@@ -286,13 +286,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
 
-            const getSortedStartTime = performance.now();
+            // const getSortedStartTime = performance.now();
             const sortedReportActionsForDisplay = getCachedReportActionsForDisplay(reportID);
-            const getSortedEndTime = performance.now();
-            const getSortedDuration = getSortedEndTime - getSortedStartTime;
+            // const getSortedEndTime = performance.now();
+            // const getSortedDuration = getSortedEndTime - getSortedStartTime;
 
-            renderStatsRef.current.getSortedReportActionsForDisplayTime += getSortedDuration;
-            renderStatsRef.current.renderItemCallCount += 1;
+            // renderStatsRef.current.getSortedReportActionsForDisplayTime += getSortedDuration;
+            // renderStatsRef.current.renderItemCallCount += 1;
 
             const lastReportAction = sortedReportActionsForDisplay.at(0);
 
@@ -315,7 +315,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
-            const getLastMessageStartTime = performance.now();
+            // const getLastMessageStartTime = performance.now();
             const cachedLastMessageText = getCachedLastMessageText(reportID);
             const lastMessageTextFromReport =
                 cachedLastMessageText ??
@@ -331,15 +331,15 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportMetadata: itemReportMetadata,
                     currentUserAccountID,
                 });
-            const getLastMessageEndTime = performance.now();
-            const getLastMessageDuration = getLastMessageEndTime - getLastMessageStartTime;
+            // const getLastMessageEndTime = performance.now();
+            // const getLastMessageDuration = getLastMessageEndTime - getLastMessageStartTime;
 
-            renderStatsRef.current.getLastMessageTextForReportTime += getLastMessageDuration;
+            // renderStatsRef.current.getLastMessageTextForReportTime += getLastMessageDuration;
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
             let lastAction: ReportAction | undefined;
-            const getSortedActionsDuration = 0;
+            // const getSortedActionsDuration = 0;
             if (!itemReportActions || !item) {
                 lastAction = undefined;
             } else {
@@ -352,25 +352,25 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
             }
 
-            const renderEndTime = performance.now();
-            const renderDuration = renderEndTime - renderStartTime;
-            renderStatsRef.current.totalRenderItemTime += renderDuration;
+            // const renderEndTime = performance.now();
+            // const renderDuration = renderEndTime - renderStartTime;
+            // renderStatsRef.current.totalRenderItemTime += renderDuration;
 
-            const renderCount = renderItemCountByReportID.current[reportID];
-            if (renderDuration > 5 || renderStatsRef.current.renderItemCallCount <= 5 || renderCount > 1) {
-                const actionCount = Object.keys(itemReportActions ?? {}).length;
-                Log.info('[LHN DEBUG] renderItem Performance', false, {
-                    reportID,
-                    index,
-                    renderCount,
-                    renderDuration: `${renderDuration.toFixed(2)}ms`,
-                    getSortedReportActionsForDisplay: `${getSortedDuration.toFixed(2)}ms`,
-                    getLastMessageTextForReport: `${getLastMessageDuration.toFixed(2)}ms`,
-                    getSortedReportActions: `${getSortedActionsDuration.toFixed(2)}ms`,
-                    actionCount,
-                    isArchived: isReportArchived,
-                });
-            }
+            // const renderCount = renderItemCountByReportID.current[reportID];
+            // if (renderDuration > 5 || renderStatsRef.current.renderItemCallCount <= 5 || renderCount > 1) {
+            //     const actionCount = Object.keys(itemReportActions ?? {}).length;
+            //     Log.info('[LHN DEBUG] renderItem Performance', false, {
+            //         reportID,
+            //         index,
+            //         renderCount,
+            //         renderDuration: `${renderDuration.toFixed(2)}ms`,
+            //         getSortedReportActionsForDisplay: `${getSortedDuration.toFixed(2)}ms`,
+            //         getLastMessageTextForReport: `${getLastMessageDuration.toFixed(2)}ms`,
+            //         getSortedReportActions: `${getSortedActionsDuration.toFixed(2)}ms`,
+            //         actionCount,
+            //         isArchived: isReportArchived,
+            //     });
+            // }
 
             return (
                 <OptionRowLHNData

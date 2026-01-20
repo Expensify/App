@@ -113,7 +113,12 @@ function OptionRowLHNData({
         isReportArchived,
         movedFromReport,
         movedToReport,
+<<<<<<< HEAD
         currentUserAccountID,
+=======
+        lastAction,
+        lastActionReport,
+>>>>>>> 794617d409f (perf: optimize LHN with content-based cache and automatic invalidation)
     ]);
 
     return (
