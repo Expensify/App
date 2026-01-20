@@ -214,6 +214,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyAuthorizedPayer}
+                        initiallyFocusedOptionKey={formattedAuthorizedPayer.at(0)?.keyForList}
                         shouldSingleExecuteRowSelect
                         showScrollIndicator
                         addBottomSafeAreaPadding
