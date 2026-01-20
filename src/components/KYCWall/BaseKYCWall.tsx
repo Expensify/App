@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
@@ -10,13 +9,16 @@ import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
+import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
+import {getEligibleExistingBusinessBankAccounts, getOpenConnectedToPolicyBusinessBankAccounts} from '@libs/WorkflowUtils';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -51,15 +53,17 @@ function KYCWall({
     source,
     shouldShowPersonalBankAccountOption = false,
     ref,
+    currency,
 }: KYCWallProps) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+
     const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -115,6 +119,8 @@ function KYCWall({
         setPositionAddPaymentMenu(position);
     }, [getAnchorPosition]);
 
+    const canLinkExistingBusinessBankAccount = getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true).length > 0;
+
     const selectPaymentMethod = useCallback(
         (paymentMethod?: PaymentMethod, policy?: Policy) => {
             if (paymentMethod) {
@@ -169,6 +175,22 @@ function KYCWall({
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID));
                     return;
                 }
+
+                // If user has a setup in progress for we redirect to the flow where setup can be finished
+                // Setup is in progress in 2 cases:
+                // - account already present on policy is partially setup
+                // - account is being connected 'on the spot' while trying to pay for an expense (it won't be linked to policy yet but will appear as reimbursementAccount)
+                if (policy !== undefined && (isBankAccountPartiallySetup(policy?.achAccount?.state) || isBankAccountPartiallySetup(reimbursementAccount?.achData?.state))) {
+                    navigateToBankAccountRoute(policy.id);
+                    return;
+                }
+
+                // If user has existing bank accounts that he can connect we show the list of these accounts
+                if (policy !== undefined && canLinkExistingBusinessBankAccount) {
+                    Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy?.id));
+                    return;
+                }
+
                 const bankAccountRoute = addBankAccountRoute ?? getBankAccountRoute(chatReport);
                 Navigation.navigate(bankAccountRoute);
             }
@@ -177,6 +199,8 @@ function KYCWall({
             onSelectPaymentMethod,
             iouReport,
             addDebitCardRoute,
+            reimbursementAccount?.achData?.state,
+            canLinkExistingBusinessBankAccount,
             addBankAccountRoute,
             chatReport,
             policies,
@@ -218,11 +242,14 @@ function KYCWall({
 
             const isExpenseReport = isExpenseReportReportUtils(iouReport);
             const paymentCardList = fundList ?? {};
+            const hasOpenConnectedBusinessBankAccount = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policy).length > 0;
             const hasValidPaymentMethod = hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard);
             const isFromWalletPage = source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET || source === CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE;
 
-            // Check to see if user has a valid payment method on file and display the add payment popover if they don't
-            if ((isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) || (!isExpenseReport && bankAccountList !== null && !hasValidPaymentMethod)) {
+            // Check if the user needs to add or select a payment method before continuing.
+            // - For expense reports: Proceeds if no accounts that are connected are valid and usable (`OPEN`)
+            // - For other expenses: Proceeds if the user lacks a valid personal bank account or debit card
+            if ((isExpenseReport && !hasOpenConnectedBusinessBankAccount) || (!isExpenseReport && bankAccountList !== null && !hasValidPaymentMethod)) {
                 Log.info('[KYC Wallet] User does not have valid payment method');
 
                 if (!shouldIncludeDebitCard || (isFromWalletPage && !hasValidPaymentMethod)) {
@@ -286,7 +313,6 @@ function KYCWall({
             getAnchorPosition,
             iouReport,
             onSuccessfulKYC,
-            reimbursementAccount?.achData?.state,
             selectPaymentMethod,
             shouldIncludeDebitCard,
             shouldShowAddPaymentMenu,

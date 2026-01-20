@@ -90,7 +90,8 @@ function IOURequestStepDestination({
             if (openedFromStartPage) {
                 // If we are not coming from the global create menu then this is always reported
                 const shouldAutoReport = !!policy?.autoReporting || !!personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE || !transaction?.isFromGlobalCreate;
-                const transactionReportID = shouldAutoReport ? policyExpenseReport?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+                const autoReportID = report && !transaction?.isFromGlobalCreate ? report.reportID : policyExpenseReport?.reportID;
+                const transactionReportID = shouldAutoReport ? autoReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, accountID);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
@@ -127,7 +128,7 @@ function IOURequestStepDestination({
             return;
         }
         fetchPerDiemRates(policy?.id);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
     useEffect(() => {
@@ -139,7 +140,7 @@ function IOURequestStepDestination({
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
         setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits]);
 
     const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
