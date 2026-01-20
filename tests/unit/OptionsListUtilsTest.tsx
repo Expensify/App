@@ -3030,7 +3030,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, personalDetails);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails);
 
             // Then it should return the display name from lastActorDetails
             expect(result).toBe('Spider-Man');
@@ -3070,7 +3070,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, personalDetails);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails);
 
             // Then it should return the display name from personalDetails for the actor
             expect(result).toBe('Spider-Man');
@@ -3111,7 +3111,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, personalDetails);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails);
 
             // Then it should return the display name from reportAction.person
             // Note: formatPhoneNumberPhoneUtils replaces spaces with non-breaking spaces
@@ -3151,7 +3151,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, personalDetails);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails);
 
             // Then it should return "You" for the current user
             expect(result).toBe('You');
@@ -3190,7 +3190,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, personalDetails);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails);
 
             // Then it should fall back to lastActorDetails
             // getLastActorDisplayName returns firstName if available, otherwise formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(...))
@@ -3217,7 +3217,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails);
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined);
 
             // Then it should return an option with isSelfDM and alternateText set
             expect(result.isSelfDM).toBe(true);
@@ -3237,7 +3237,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails);
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined);
 
             // Then it should return an option with invoice room text and alternateText
             expect(result.isInvoiceRoom).toBe(true);
@@ -3259,7 +3259,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, unknownUserDetails, personalDetails);
+            const result = getReportDisplayOption(report, unknownUserDetails, personalDetails, undefined);
 
             // Then it should return an option with unknownUserDetails data
             expect(result.text).toBe('Unknown User');
@@ -3280,7 +3280,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails);
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined);
 
             // Then it should return an option with workspace name
             expect(result.text).toBe(POLICY.name);
@@ -3307,7 +3307,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getReportDisplayOption with custom personalDetails
-            const result = getReportDisplayOption(report, undefined, customPersonalDetails);
+            const result = getReportDisplayOption(report, undefined, customPersonalDetails, undefined);
 
             // Then it should use the custom personalDetails parameter
             expect(result).toBeDefined();
@@ -3324,7 +3324,7 @@ describe('OptionsListUtils', () => {
             const emptyPersonalDetails: PersonalDetailsList = {};
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, emptyPersonalDetails);
+            const result = getReportDisplayOption(report, undefined, emptyPersonalDetails, undefined);
 
             // Then it should not throw and return a valid option
             expect(result).toBeDefined();
@@ -3336,7 +3336,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption with undefined report
-            const result = getReportDisplayOption(undefined, undefined, personalDetails);
+            const result = getReportDisplayOption(undefined, undefined, personalDetails, undefined);
 
             // Then it should return a valid option (createOption handles undefined)
             expect(result).toBeDefined();
@@ -3703,7 +3703,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3726,7 +3726,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3746,7 +3746,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, undefined);
+            const option = getReportDisplayOption(report, undefined, {}, undefined);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3770,7 +3770,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3794,7 +3794,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
