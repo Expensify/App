@@ -169,6 +169,8 @@ function IOURequestStepDistanceManual({
         }
     }, [iouType, transactionID, reportID, backToReport]);
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     const navigateToNextPage = useCallback(
         (amount: string) => {
             const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
@@ -190,6 +192,7 @@ function IOURequestStepDistanceManual({
                         currentUserEmailParam,
                         isASAPSubmitBetaEnabled,
                         parentReportNextStep,
+                        recentWaypointsCollection: recentWaypoints,
                     });
                 }
                 Navigation.goBack(backTo);
