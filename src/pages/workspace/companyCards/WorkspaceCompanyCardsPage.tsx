@@ -80,6 +80,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             >
                 <WorkspaceCompanyCardsTable
                     policyID={policyID}
+                    isPolicyLoaded={!!policy}
                     domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                     companyCards={companyCards}
                     onAssignCard={assignCard}

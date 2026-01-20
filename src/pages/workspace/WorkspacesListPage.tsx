@@ -781,7 +781,7 @@ function WorkspacesListPage() {
                 shouldUseNarrowLayout && (
                     <NavigationTabBar
                         selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingCameraButton={false}
+                        shouldShowFloatingButtons={false}
                     />
                 )
             }
