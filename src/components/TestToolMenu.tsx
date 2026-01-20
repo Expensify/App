@@ -1,14 +1,20 @@
 import React from 'react';
+import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -23,9 +29,21 @@ function TestToolMenu() {
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {clearLHNCache} = useSidebarOrderedReports();
+
+    const {singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
+    const navigateToBiometricsTestPage = singleExecution(
+        waitForNavigate(() => {
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
+        }),
+    );
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+
+    // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
+    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: false});
 
     return (
         <>
@@ -71,6 +89,26 @@ function TestToolMenu() {
                             text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
                             onPress={() => expireSessionWithDelay()}
                         />
+                    </TestToolRow>
+
+                    {/* Clears the useSidebarOrderedReports cache to re-compute from latest onyx values */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.leftHandNavCache')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}
+                            onPress={clearLHNCache}
+                        />
+                    </TestToolRow>
+
+                    {/* Allows you to test the Biometrics flow */}
+                    <TestToolRow title={biometricsTitle}>
+                        <View style={[styles.flexRow, styles.gap2]}>
+                            <Button
+                                small
+                                text={translate('multifactorAuthentication.biometricsTest.test')}
+                                onPress={() => navigateToBiometricsTestPage()}
+                            />
+                        </View>
                     </TestToolRow>
                 </>
             )}

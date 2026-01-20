@@ -48,7 +48,7 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
             }
             navigateAfterJoinRequest();
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want to run this once after the policy loads
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this once after the policy loads
     }, [isPolicyLoading]);
 
     useEffect(
