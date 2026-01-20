@@ -62,11 +62,17 @@ type SettlementButtonProps = {
     /** The size of button size */
     buttonSize?: ButtonSizeValue;
 
+    /** Render button in extra-small size */
+    extraSmall?: boolean;
+
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
 
     /** Whether the button should be disabled */
     isDisabled?: boolean;
+
+    /** Whether the button should stay visually normal even when disabled. */
+    shouldStayNormalOnDisable?: boolean;
 
     /** Whether we should show a loading state for the main button */
     isLoading?: boolean;
@@ -97,6 +103,9 @@ type SettlementButtonProps = {
 
     /** Whether we the report has only held expenses */
     hasOnlyHeldExpenses?: boolean;
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 export default SettlementButtonProps;

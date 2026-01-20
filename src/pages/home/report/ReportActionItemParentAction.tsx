@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -7,6 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isTripPreview} from '@libs/ReportActionsUtils';
 import {
     canCurrentUserOpenReport,
@@ -117,21 +118,27 @@ function ReportActionItemParentAction({
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+
+    const ancestorReportNameValuePairsSelector = useCallback(
+        (allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>) => {
+            if (!allReportNameValuePairs) {
+                return {};
+            }
+            const ancestorReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
+            for (const ancestor of ancestors) {
+                ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`] =
+                    allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`];
+            }
+            return ancestorReportNameValuePairs;
+        },
+        [ancestors],
+    );
+
     const [ancestorsReportNameValuePairs] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         {
             canBeMissing: true,
-            selector: (allReportNameValuePairs) => {
-                if (!allReportNameValuePairs) {
-                    return {};
-                }
-                const ancestorReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
-                ancestors.forEach((ancestor) => {
-                    ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`] =
-                        allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`];
-                });
-                return ancestorReportNameValuePairs;
-            },
+            selector: ancestorReportNameValuePairsSelector,
         },
         [ancestors],
     );
@@ -141,11 +148,12 @@ function ReportActionItemParentAction({
             <AnimatedEmptyStateBackground />
             <OfflineWithFeedback
                 shouldDisableOpacity
-                errors={report?.errorFields?.createChatThread}
+                errors={
+                    report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
+                }
                 errorRowStyles={[styles.ml10, styles.mr2]}
                 onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true)}
             >
-                {/* eslint-disable-next-line react-compiler/react-compiler */}
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
                     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
@@ -155,7 +163,7 @@ function ReportActionItemParentAction({
                     const originalReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction);
                     const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
                     const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
-                    const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+                    const matchingDraftMessageString = matchingDraftMessage?.message;
                     const actionEmojiReactions = allEmojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestorReportAction.reportActionID}`];
 
                     return (
@@ -210,7 +218,5 @@ function ReportActionItemParentAction({
         </View>
     );
 }
-
-ReportActionItemParentAction.displayName = 'ReportActionItemParentAction';
 
 export default ReportActionItemParentAction;

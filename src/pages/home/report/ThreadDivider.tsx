@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -24,6 +24,7 @@ type ThreadDividerProps = {
 };
 
 function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Thread']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -39,7 +40,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
             {isLinkDisabled ? (
                 <>
                     <Icon
-                        src={Expensicons.Thread}
+                        src={icons.Thread}
                         fill={theme.icon}
                         width={variables.iconSizeExtraSmall}
                         height={variables.iconSizeExtraSmall}
@@ -52,9 +53,10 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
                     accessibilityLabel={translate('threads.thread')}
                     role={CONST.ROLE.BUTTON}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.THREAD_DIVIDER}
                 >
                     <Icon
-                        src={Expensicons.Thread}
+                        src={icons.Thread}
                         fill={theme.link}
                         width={variables.iconSizeExtraSmall}
                         height={variables.iconSizeExtraSmall}
@@ -67,5 +69,4 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     );
 }
 
-ThreadDivider.displayName = 'ThreadDivider';
 export default ThreadDivider;

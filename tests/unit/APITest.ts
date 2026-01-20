@@ -810,8 +810,8 @@ describe('APITests', () => {
         const failureData = [
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-                value: 'failed',
+                key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+                value: 'onboarding.errorSelection',
             },
         ];
 
@@ -820,6 +820,7 @@ describe('APITests', () => {
             [ONYXKEYS.NETWORK]: {isOffline: false},
         })
             .then(() => {
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 API.write<WriteCommand>('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData});
                 return waitForNetworkPromises();
             })
@@ -836,7 +837,7 @@ describe('APITests', () => {
                     if (!Array.isArray(updates)) {
                         return false;
                     }
-                    return updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE && u?.value === 'failed');
+                    return updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY && u?.value === 'onboarding.errorSelection');
                 });
                 expect(failureApplied).toBe(true);
 

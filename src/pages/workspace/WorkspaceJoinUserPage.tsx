@@ -48,7 +48,7 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
             }
             navigateAfterJoinRequest();
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want to run this once after the policy loads
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this once after the policy loads
     }, [isPolicyLoading]);
 
     useEffect(
@@ -59,11 +59,10 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
     );
 
     return (
-        <ScreenWrapper testID={WorkspaceJoinUserPage.displayName}>
+        <ScreenWrapper testID="WorkspaceJoinUserPage">
             <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
         </ScreenWrapper>
     );
 }
 
-WorkspaceJoinUserPage.displayName = 'WorkspaceJoinUserPage';
 export default WorkspaceJoinUserPage;

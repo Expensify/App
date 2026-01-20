@@ -130,6 +130,26 @@ const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
         },
         [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: status === CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO,
         [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: status === CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS,
+        [ONYXKEYS.CARD_LIST]: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            '123456': {
+                cardID: 123456,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                accountID: 123,
+                state: status === CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO ? CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED : CONST.EXPENSIFY_CARD.STATE.OPEN,
+            },
+        },
+        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
+            legalFirstName: 'John',
+            legalLastName: 'Doe',
+            dob: '2000-08-08',
+            phoneNumber: '0123456789',
+            addresses: [
+                {
+                    street: '123 Main St',
+                },
+            ],
+        },
     }) as OnyxMultiSetInput;
 
 type TestCase = {
@@ -210,6 +230,12 @@ const TEST_CASES: TestCase[] = [
         name: 'has subscription info',
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO,
+        policyIDWithErrors: undefined,
+    },
+    {
+        name: 'has pending card info',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO,
         policyIDWithErrors: undefined,
     },
 ];

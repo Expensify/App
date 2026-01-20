@@ -1,7 +1,8 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,8 +25,10 @@ function AddBankAccount() {
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const kycWallRef = useContext(KYCWallContext);
 
     const submit = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -38,9 +41,9 @@ function AddBankAccount() {
                       ...selectedPlaidBankAccount,
                       plaidAccessToken: plaidData?.plaidAccessToken ?? '',
                   };
-            addPersonalBankAccount(bankAccountWithToken);
+            addPersonalBankAccount(bankAccountWithToken, personalPolicyID);
         }
-    }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts, plaidData?.plaidAccessToken]);
+    }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts, plaidData?.plaidAccessToken, personalPolicyID]);
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
@@ -55,7 +58,7 @@ function AddBankAccount() {
             return;
         }
         if (shouldContinue && onSuccessFallbackRoute) {
-            continueSetup(onSuccessFallbackRoute);
+            continueSetup(kycWallRef, onSuccessFallbackRoute);
             return;
         }
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
@@ -77,7 +80,7 @@ function AddBankAccount() {
 
     return (
         <ScreenWrapper
-            testID={AddBankAccount.displayName}
+            testID="AddBankAccount"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator
@@ -110,7 +113,5 @@ function AddBankAccount() {
         </ScreenWrapper>
     );
 }
-
-AddBankAccount.displayName = 'AddBankAccountPage';
 
 export default AddBankAccount;

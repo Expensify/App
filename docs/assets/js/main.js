@@ -121,7 +121,7 @@ function openSidebar() {
 // Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
 function changeSVGViewBoxGoogle() {
     // Get all inline Google SVG elements on the page
-    const svgsGoogle = document.querySelectorAll('svg[data-source]:not(.logo)');
+    const svgsGoogle = document.querySelectorAll('svg[data-source]:not(.logo), .gsc-search-button.gsc-search-button-v2 svg');
 
     Array.from(svgsGoogle).forEach((svg) => {
         // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view

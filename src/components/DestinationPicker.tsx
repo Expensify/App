@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {ForwardedRef} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -9,17 +10,20 @@ import type {Destination} from '@libs/PerDiemRequestUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import RadioListItem from './SelectionListWithSections/RadioListItem';
-import type {ListItem} from './SelectionListWithSections/types';
+import type {ListItem, SelectionListHandle} from './SelectionListWithSections/types';
 
 type DestinationPickerProps = {
     policyID: string;
     selectedDestination?: string;
     onSubmit: (item: ListItem & {currency: string}) => void;
+    ref?: ForwardedRef<SelectionListHandle>;
+    textInputAutoFocus?: boolean;
 };
 
-function DestinationPicker({selectedDestination, policyID, onSubmit}: DestinationPickerProps) {
+function DestinationPicker({selectedDestination, policyID, onSubmit, ref, textInputAutoFocus = false}: DestinationPickerProps) {
     const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
     const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
@@ -54,6 +58,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             selectedOptions,
             destinations: Object.values(customUnit?.rates ?? {}),
             recentlyUsedDestinations: policyRecentlyUsedDestinations,
+            translate,
         });
 
         const destinationData = destinationOptions?.at(0)?.data ?? [];
@@ -63,15 +68,14 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
         const showInput = !isDestinationsCountBelowThreshold;
 
         return [destinationOptions, header, showInput];
-    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations]);
+    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations, translate]);
 
-    const selectedOptionKey = useMemo(
-        () => (sections?.at(0)?.data ?? []).filter((destination) => destination.keyForList === selectedDestination).at(0)?.keyForList,
-        [sections, selectedDestination],
-    );
+    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).find((destination) => destination.keyForList === selectedDestination)?.keyForList, [sections, selectedDestination]);
 
     return (
         <SelectionList
+            ref={ref}
+            key={selectedDestination}
             sections={sections}
             headerMessage={headerMessage}
             textInputValue={searchValue}
@@ -80,12 +84,11 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
             shouldHideKeyboardOnScroll={false}
+            textInputAutoFocus={textInputAutoFocus}
+            shouldUpdateFocusedIndex
         />
     );
 }
-
-DestinationPicker.displayName = 'DestinationPicker';
 
 export default DestinationPicker;

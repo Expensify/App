@@ -7,12 +7,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type AgentZeroProcessingRequestIndicatorProps = {
     reportID: string;
+    label?: string;
 };
 
-function AgentZeroProcessingRequestIndicator({reportID}: AgentZeroProcessingRequestIndicatorProps) {
+function AgentZeroProcessingRequestIndicator({reportID, label}: AgentZeroProcessingRequestIndicatorProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
     const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {canBeMissing: true});
 
     // Check if anyone is currently typing
@@ -20,7 +20,7 @@ function AgentZeroProcessingRequestIndicator({reportID}: AgentZeroProcessingRequ
     const isAnyoneTyping = usersTyping.length > 0;
 
     // Don't show if offline, if anyone is typing (typing indicator takes precedence), or if the indicator doesn't exist
-    if (isOffline || isAnyoneTyping || !reportNameValuePairs?.agentZeroProcessingRequestIndicator) {
+    if (isOffline || isAnyoneTyping || !label) {
         return null;
     }
 
@@ -29,11 +29,9 @@ function AgentZeroProcessingRequestIndicator({reportID}: AgentZeroProcessingRequ
             style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
             numberOfLines={1}
         >
-            {reportNameValuePairs.agentZeroProcessingRequestIndicator}
+            {label}
         </Text>
     );
 }
-
-AgentZeroProcessingRequestIndicator.displayName = 'AgentZeroProcessingRequestIndicator';
 
 export default memo(AgentZeroProcessingRequestIndicator);

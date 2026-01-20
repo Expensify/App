@@ -13,7 +13,7 @@ const request = jest.fn(() => RESULTS.GRANTED as string);
 const checkLocationAccuracy: jest.Mock<string> = jest.fn(() => 'full');
 const requestLocationAccuracy: jest.Mock<string> = jest.fn(() => 'full');
 
-const notificationOptions: string[] = ['alert', 'badge', 'sound', 'carPlay', 'criticalAlert', 'provisional'];
+const notificationOptions = new Set<string>(['alert', 'badge', 'sound', 'carPlay', 'criticalAlert', 'provisional']);
 
 const notificationSettings: NotificationSettings = {
     alert: true,
@@ -34,7 +34,7 @@ const checkNotifications: jest.Mock<Notification> = jest.fn(() => ({
 const requestNotifications: jest.Mock<Notification> = jest.fn((options: Record<string, string>) => ({
     status: RESULTS.GRANTED,
     settings: Object.keys(options)
-        .filter((option: string) => notificationOptions.includes(option))
+        .filter((option: string) => notificationOptions.has(option))
         .reduce(
             (acc: NotificationSettings, option: string) => {
                 acc[option] = true;

@@ -1,6 +1,17 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {CompanyCardFeedWithDomainID} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalDetails from './PersonalDetails';
+
+/** Model of Expensify card status changes */
+type CardStatusChanges = {
+    /** Card status change date */
+    date: string;
+
+    /** Card status change value */
+    status: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
+};
 
 /** Model of Expensify card */
 type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -102,6 +113,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Card product under which the card is provisioned */
         feedCountry?: string;
 
+        /** Issued card country */
+        country?: string;
+
         /** Is a virtual card */
         isVirtual?: boolean;
 
@@ -113,6 +127,12 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Card expiration date */
         expirationDate?: string;
+
+        /** Card status changes */
+        statusChanges?: CardStatusChanges[];
+
+        /** Card terminated reason */
+        terminationReason?: ValueOf<typeof CONST.EXPENSIFY_CARD.TERMINATION_REASON>;
 
         /** Card's primary account identifier */
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -128,10 +148,10 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     }> &
-        OnyxCommon.OnyxValueWithOfflineFeedback<{
+        OnyxCommon.OnyxValueWithOfflineFeedback<
             /** Type of export card */
-            [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
-        }>;
+            Record<ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>, string>
+        >;
 }>;
 
 /** Model of card just added to a wallet */
@@ -201,7 +221,10 @@ type ExpensifyCardDetails = {
     cvv: string;
 };
 
-/** Record of Expensify cards, indexed by cardID */
+/** List of assignable cards */
+type AssignableCardsList = Record<string, string>;
+
+/** Record of Company or Expensify cards, indexed by cardID */
 type CardList = Record<string, Card>;
 
 /** Issue new card flow steps */
@@ -214,6 +237,12 @@ type CardLimitType = ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 type IssueNewCardData = {
     /** The email address of the cardholder */
     assigneeEmail: string;
+
+    /** The email address of the inviting member */
+    invitingMemberEmail: string;
+
+    /** The accountID of the inviting member */
+    invitingMemberAccountID: number;
 
     /** Card type */
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
@@ -256,13 +285,60 @@ type IssueNewCard = {
 };
 
 /** List of Expensify cards */
-type WorkspaceCardsList = Record<string, Card> & {
+type WorkspaceCardsList = CardList & {
     /** List of cards to assign */
     cardList?: Record<string, string>;
 };
+
+/**
+ * Pending action for a company card assignment
+ */
+type FailedCompanyCardAssignment = {
+    /** The domain or workspace account ID */
+    domainOrWorkspaceAccountID: number;
+
+    /** The name of the feed */
+    feed: CompanyCardFeedWithDomainID;
+
+    /** Cardholder personal details */
+    cardholder?: PersonalDetails;
+
+    /** The name of the card */
+    cardName: string;
+
+    /** The card number */
+    cardNumber: string;
+
+    /** Card related error messages */
+    errors?: OnyxCommon.Errors;
+
+    /** Collection of form field errors  */
+    errorFields?: OnyxCommon.ErrorFields;
+
+    /**
+     * The type of action that's pending
+     */
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
+/** Pending action for a company card assignment */
+type FailedCompanyCardAssignments = Record<string, FailedCompanyCardAssignment>;
 
 /** Card list with only available card */
 type FilteredCardList = Record<string, string>;
 
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, FilteredCardList, ProvisioningCardData};
+export type {
+    ExpensifyCardDetails,
+    CardList,
+    IssueNewCard,
+    IssueNewCardStep,
+    IssueNewCardData,
+    WorkspaceCardsList,
+    CardLimitType,
+    FilteredCardList,
+    ProvisioningCardData,
+    AssignableCardsList,
+    FailedCompanyCardAssignment,
+    FailedCompanyCardAssignments,
+};

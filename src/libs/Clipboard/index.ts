@@ -75,6 +75,7 @@ function setHTMLSync(html: string, text: string) {
     selection.addRange(range);
 
     try {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         document.execCommand('copy');
     } catch (e) {
         // The 'copy' command can throw a SecurityError exception, we ignore this exception on purpose.
@@ -116,8 +117,8 @@ const setHtml: SetHtml = (html: string, text: string) => {
         setHTMLSync(html, text);
     } else {
         const htmlNonClosingTags = html
-            .replace(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
-            .replace(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
+            .replaceAll(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
+            .replaceAll(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
 
         navigator.clipboard.write([
             new ClipboardItem({

@@ -13,6 +13,7 @@ import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/util
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import SafeString from '@src/utils/SafeString';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
@@ -27,7 +28,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const items = useMemo(
         () =>
             corpayFields?.formFields?.map((field) => {
-                let title = values[field.id as keyof typeof values] ? String(values[field.id as keyof typeof values]) : '';
+                let title = SafeString(values[field.id as keyof typeof values]);
 
                 if (field.id === ACCOUNT_HOLDER_COUNTRY) {
                     title = CONST.ALL_COUNTRIES[title as keyof typeof CONST.ALL_COUNTRIES];
@@ -46,6 +47,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
                             }
                         }}
                         key={field.id}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 );
             }),
@@ -75,7 +77,5 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
         </FormProvider>
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

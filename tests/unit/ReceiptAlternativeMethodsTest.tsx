@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {cleanup, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
@@ -12,7 +12,7 @@ jest.mock('@components/RenderHTML', () => {
     const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
 
     return ({html}: {html: string}) => {
-        const plainText = html.replace(/<[^>]*>/g, '');
+        const plainText = html.replaceAll(/<[^>]*>/g, '');
         return ReactMock.createElement(Text, null, plainText);
     };
 });
@@ -64,7 +64,8 @@ const mockUseHasLoggedIntoMobileApp = useHasLoggedIntoMobileApp as jest.MockedFu
 const mockUseHasPhoneNumberLogin = useHasPhoneNumberLogin as jest.MockedFunction<typeof useHasPhoneNumberLogin>;
 
 describe('ReceiptAlternativeMethods', () => {
-    beforeEach(() => {
+    afterEach(() => {
+        cleanup();
         jest.clearAllMocks();
     });
 

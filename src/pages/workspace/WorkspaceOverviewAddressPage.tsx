@@ -29,7 +29,7 @@ function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressP
             country: tempAddress?.country ?? '',
         };
         return result;
-    }, [policy]);
+    }, [policy?.address]);
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {
@@ -55,7 +55,5 @@ function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressP
         />
     );
 }
-
-WorkspaceOverviewAddressPage.displayName = 'WorkspaceOverviewAddressPage';
 
 export default withPolicy(WorkspaceOverviewAddressPage);

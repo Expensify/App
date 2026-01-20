@@ -1,6 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -16,6 +17,7 @@ type UserTypingEventListenerProps = {
 };
 function UserTypingEventListener({report}: UserTypingEventListenerProps) {
     const [lastVisitedPath = ''] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();
@@ -29,12 +31,12 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
 
             // unsubscribe from report typing events when the component unmounts
             didSubscribeToReportTypingEvents.current = false;
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 unsubscribeFromReportChannel(reportID);
             });
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
@@ -43,7 +45,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
         if (route?.params?.reportID !== reportID) {
             return;
         }
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
         if (isFocused) {
             // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -53,9 +55,9 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
 
             if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 interactionTask = InteractionManager.runAfterInteractions(() => {
-                    subscribeToReportTypingEvents(reportID);
+                    subscribeToReportTypingEvents(reportID, currentUserAccountID);
                     didSubscribeToReportTypingEvents.current = true;
                 });
             }
@@ -64,7 +66,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
 
             if (topmostReportId !== reportID && didSubscribeToReportTypingEvents.current) {
                 didSubscribeToReportTypingEvents.current = false;
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     unsubscribeFromReportChannel(reportID);
                 });
@@ -76,11 +78,9 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             }
             interactionTask.cancel();
         };
-    }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route]);
+    }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, currentUserAccountID, route?.params?.reportID]);
 
     return null;
 }
-
-UserTypingEventListener.displayName = 'UserTypingEventListener';
 
 export default UserTypingEventListener;

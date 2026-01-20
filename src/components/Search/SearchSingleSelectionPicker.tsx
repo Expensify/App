@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -70,7 +71,7 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
                   ],
             noResultsFound: isEmpty,
         };
-    }, [initiallySelectedItem, selectedItem, items, pickerTitle, debouncedSearchTerm]);
+    }, [initiallySelectedItem, selectedItem?.value, items, pickerTitle, debouncedSearchTerm]);
 
     const onSelectItem = useCallback((item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
         if (!item.text || !item.keyForList || !item.value) {
@@ -88,7 +89,7 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
     const applyChanges = useCallback(() => {
         onSaveSelection(selectedItem?.value);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [onSaveSelection, selectedItem]);
+    }, [onSaveSelection, selectedItem?.value]);
 
     const footerContent = useMemo(
         () => (
@@ -117,8 +118,6 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
         />
     );
 }
-
-SearchSingleSelectionPicker.displayName = 'SearchSingleSelectionPicker';
 
 export default SearchSingleSelectionPicker;
 export type {SearchSingleSelectionPickerItem};

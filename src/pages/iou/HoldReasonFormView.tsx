@@ -24,9 +24,12 @@ type HoldReasonFormViewProps = {
 
     /** Link to previous page */
     backTo: Route;
+
+    /** Number of expenses being held (defaults to 1) */
+    expenseCount?: number;
 };
 
-function HoldReasonFormView({backTo, validate, onSubmit}: HoldReasonFormViewProps) {
+function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1}: HoldReasonFormViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -35,22 +38,22 @@ function HoldReasonFormView({backTo, validate, onSubmit}: HoldReasonFormViewProp
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={HoldReasonFormView.displayName}
+            testID="HoldReasonFormView"
         >
             <HeaderWithBackButton
-                title={translate('iou.holdExpense')}
+                title={translate('iou.holdExpense', {count: expenseCount})}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
                 formID="moneyHoldReasonForm"
-                submitButtonText={translate('iou.holdExpense')}
+                submitButtonText={translate('iou.holdExpense', {count: expenseCount})}
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <Text style={styles.mb6}>{translate('iou.explainHold')}</Text>
+                <Text style={styles.mb6}>{translate('iou.explainHold', {count: expenseCount})}</Text>
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
@@ -67,7 +70,5 @@ function HoldReasonFormView({backTo, validate, onSubmit}: HoldReasonFormViewProp
         </ScreenWrapper>
     );
 }
-
-HoldReasonFormView.displayName = 'HoldReasonFormViewProps';
 
 export default HoldReasonFormView;

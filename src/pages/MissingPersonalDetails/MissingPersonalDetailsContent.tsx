@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,18 +7,15 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
-import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -31,6 +28,12 @@ import {getInitialSubstep, getSubstepValues} from './utils';
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     draftValues: OnyxEntry<PersonalDetailsForm>;
+
+    /** Optional custom header title */
+    headerTitle?: string;
+
+    /** Completion handler */
+    onComplete: () => void;
 };
 
 type PinCodeContextType = {
@@ -45,11 +48,9 @@ const PinCodeContext = createContext<PinCodeContextType>({
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Pin, Confirmation];
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const [finalPinCode, setFinalPinCode] = useState('');
 
@@ -63,8 +64,8 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         if (!values) {
             return;
         }
-        setIsValidateCodeActionModalVisible(true);
-    }, [values]);
+        onComplete();
+    }, [onComplete, values]);
 
     const {
         componentToRender: SubStep,
@@ -94,13 +95,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         ref.current?.movePrevious();
         prevScreen();
     };
-
-    const handleSubmitForm = useCallback(
-        (validateCode: string) => {
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
-        },
-        [countryCode, values],
-    );
 
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
@@ -132,10 +126,10 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={MissingPersonalDetailsContent.displayName}
+            testID="MissingPersonalDetailsContent"
         >
             <HeaderWithBackButton
-                title={translate('workspace.expensifyCard.addShippingDetails')}
+                title={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
@@ -145,25 +139,16 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
                     stepNames={CONST.MISSING_PERSONAL_DETAILS_INDEXES.INDEX_LIST}
                 />
             </View>
-            <PinCodeContext.Provider value={contextValue}>
-                <SubStep
-                    isEditing={isEditing}
-                    onNext={handleNextScreen}
-                    onMove={handleMoveTo}
-                    screenIndex={screenIndex}
-                    personalDetailsValues={values}
-                />
-            </PinCodeContext.Provider>
-            <MissingPersonalDetailsMagicCodeModal
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
-                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-                handleSubmitForm={handleSubmitForm}
+            <SubStep
+                isEditing={isEditing}
+                onNext={handleNextScreen}
+                onMove={handleMoveTo}
+                screenIndex={screenIndex}
+                personalDetailsValues={values}
             />
         </ScreenWrapper>
     );
 }
-
-MissingPersonalDetailsContent.displayName = 'MissingPersonalDetailsContent';
 
 export default MissingPersonalDetailsContent;
 

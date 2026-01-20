@@ -133,6 +133,10 @@ export default {
         flexGrow: 4,
     },
 
+    flexGrow100: {
+        flexGrow: 100,
+    },
+
     flexShrink2: {
         flexShrink: 2,
     },

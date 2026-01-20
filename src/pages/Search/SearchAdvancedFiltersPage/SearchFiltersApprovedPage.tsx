@@ -11,6 +11,4 @@ function SearchFiltersApprovedPage() {
     );
 }
 
-SearchFiltersApprovedPage.displayName = 'SearchFiltersApprovedPage';
-
 export default SearchFiltersApprovedPage;

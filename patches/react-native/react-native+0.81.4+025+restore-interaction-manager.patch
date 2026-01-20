@@ -1,0 +1,17 @@
+diff --git a/node_modules/react-native/Libraries/Interaction/InteractionManager.js b/node_modules/react-native/Libraries/Interaction/InteractionManager.js
+index 70fc3d7..016ba4e 100644
+--- a/node_modules/react-native/Libraries/Interaction/InteractionManager.js
++++ b/node_modules/react-native/Libraries/Interaction/InteractionManager.js
+@@ -227,11 +227,6 @@ function _processUpdate() {
+  *
+  * @deprecated
+  */
+-const InteractionManager = (
+-  ReactNativeFeatureFlags.disableInteractionManager()
+-    ? // $FlowFixMe[incompatible-variance]
+-      require('./InteractionManagerStub').default
+-    : InteractionManagerImpl
+-) as typeof InteractionManagerImpl;
++const InteractionManager = InteractionManagerImpl;
+ 
+ export default InteractionManager;

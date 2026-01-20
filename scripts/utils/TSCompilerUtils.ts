@@ -35,6 +35,43 @@ function findAncestor<T extends ts.Node>(node: ts.Node, predicate: (n: ts.Node) 
 }
 
 /**
+ * Get the number of leading spaces on the line where a node starts.
+ *
+ * @param node The node to check.
+ * @param sourceFile The source file containing the node.
+ * @returns The number of leading spaces (or tabs, each counted as one character).
+ */
+function getIndentationOfNode(node: ts.Node, sourceFile: ts.SourceFile): number {
+    const lineStarts = sourceFile.getLineStarts();
+    const lineAndChar = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+    const lineNumber = lineAndChar.line;
+
+    if (lineNumber < 0 || lineNumber >= lineStarts.length) {
+        throw new Error(`Invalid line number ${lineNumber} for node in source file with ${lineStarts.length} lines`);
+    }
+
+    const lineStart = lineStarts.at(lineNumber);
+    if (lineStart === undefined) {
+        throw new Error(`Could not get line start for line ${lineNumber}`);
+    }
+
+    let leadingSpaces = 0;
+    let currentPos = lineStart;
+
+    while (currentPos < sourceFile.text.length) {
+        const char = sourceFile.text[currentPos];
+        if (char === ' ' || char === '\t') {
+            leadingSpaces++;
+            currentPos++;
+        } else {
+            break;
+        }
+    }
+
+    return leadingSpaces;
+}
+
+/**
  * Adds a default import statement to the provided SourceFile.
  */
 function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath: string, isTypeOnly = false): ts.SourceFile {
@@ -302,13 +339,11 @@ function createPathAwareTransformer(visitor: (node: ts.Node, path: string) => Tr
     return (context: ts.TransformationContext) => {
         const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
             const result = visitor(node, currentPath);
-
             if (result.action === TransformerAction.Remove) {
                 return undefined;
             }
 
             const transformedNode = ts.visitEachChild(node, createPathAwareVisitor(visitWithPath, currentPath), context);
-
             if (result.action === TransformerAction.Replace) {
                 return result.newNode(transformedNode);
             }
@@ -489,6 +524,7 @@ function isStringConcatenationChain(node: ts.BinaryExpression): boolean {
 
 export default {
     findAncestor,
+    getIndentationOfNode,
     addImport,
     findDefaultExport,
     resolveDeclaration,

@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Report, UserMetadata} from '@src/types/onyx';
 
 type FSClass = ValueOf<typeof CONST.FULLSTORY.CLASS>;
 
@@ -24,7 +24,9 @@ interface FSPageLikeConstructor {
     new (name: string, properties: PropertiesWithoutPageName): FSPageLike;
 }
 
-type GetChatFSClass = (context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>) => FSClass;
+type GetChatFSClass = (report: OnyxInputOrEntry<Report>) => FSClass;
+
+type ShouldInitialize = (userMetadata: UserMetadata, envName: string) => boolean;
 
 type Fullstory = {
     /**
@@ -48,6 +50,11 @@ type Fullstory = {
     onReady: () => Promise<unknown>;
 
     /**
+     * Whether Fullstory should be initialized.
+     */
+    shouldInitialize: ShouldInitialize;
+
+    /**
      * Sets the identity consent status using the Fullstory library.
      */
     consent: (shouldConsent: boolean) => void;
@@ -66,6 +73,16 @@ type Fullstory = {
      * Sets the identity as anonymous using the Fullstory library.
      */
     anonymize: () => void;
+
+    /**
+     * Returns the current FullStory session ID.
+     */
+    getSessionId: () => Promise<string | undefined>;
+
+    /**
+     * Returns the current FullStory session URL.
+     */
+    getSessionURL: () => Promise<string | undefined>;
 };
 
 /**
@@ -153,11 +170,10 @@ type ForwardedFSClassProps = {
  * }
  * ```
  */
-type MultipleFSClassProps<T extends `${string}FSClass`> = {
+type MultipleFSClassProps<T extends `${string}FSClass`> =
     /**
      * Used to pass down multiple `fsClass` props to inner components that will need them for Fullstory masking.
      */
-    [key in T]?: FSClass;
-};
+    Partial<Record<T, FSClass>>;
 
-export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, MultipleFSClassProps};
+export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, MultipleFSClassProps, ShouldInitialize};

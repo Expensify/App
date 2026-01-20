@@ -1,44 +1,43 @@
 import {format, setYear} from 'date-fns';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import mergeRefs from '@libs/mergeRefs';
 import {setDraftValues} from '@userActions/FormActions';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
 import type {DateInputWithPickerProps} from './types';
 
 const PADDING_MODAL_DATE_PICKER = 8;
 
-function DatePicker(
-    {
-        defaultValue,
-        disabled,
-        errorText,
-        inputID,
-        label,
-        minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-        maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
-        onInputChange,
-        onTouched = () => {},
-        placeholder,
-        value,
-        shouldSaveDraft = false,
-        formID,
-        autoFocus = false,
-        shouldHideClearButton = false,
-    }: DateInputWithPickerProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function DatePicker({
+    defaultValue,
+    disabled,
+    errorText,
+    inputID,
+    label,
+    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
+    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    onInputChange,
+    onTouched = () => {},
+    placeholder,
+    value,
+    shouldSaveDraft = false,
+    formID,
+    autoFocus = false,
+    shouldHideClearButton = false,
+    forwardedFSClass,
+    ref,
+}: DateInputWithPickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const {translate} = useLocalize();
+    const {preferredLocale} = useLocalize();
     const [isModalVisible, setIsModalVisible] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
@@ -47,6 +46,38 @@ function DatePicker(
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
     const isAutoFocused = useRef(false);
+
+    const formattedValue = useMemo(() => {
+        if (!selectedDate) {
+            return '';
+        }
+        const date = new Date(selectedDate);
+        if (Number.isNaN(date.getTime())) {
+            return '';
+        }
+        return Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]).format(date);
+    }, [selectedDate, preferredLocale]);
+
+    const computedPlaceholder = useMemo(() => {
+        if (placeholder) {
+            return placeholder;
+        }
+        return Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING])
+            .formatToParts()
+            .map((part) => {
+                switch (part.type) {
+                    case 'day':
+                        return 'DD';
+                    case 'month':
+                        return 'MM';
+                    case 'year':
+                        return 'YYYY';
+                    default:
+                        return part.value;
+                }
+            })
+            .join('');
+    }, [placeholder, preferredLocale]);
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
@@ -95,7 +126,7 @@ function DatePicker(
     };
 
     useEffect(() => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             calculatePopoverPosition();
         });
@@ -106,7 +137,7 @@ function DatePicker(
             return;
         }
         isAutoFocused.current = true;
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             handlePress();
         });
@@ -130,13 +161,13 @@ function DatePicker(
                     ref={mergeRefs(ref, textInputRef)}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate ? null : Expensicons.Calendar}
+                    icon={selectedDate ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ROLE.PRESENTATION}
-                    value={selectedDate}
-                    placeholder={placeholder ?? translate('common.dateFormat')}
+                    value={formattedValue}
+                    placeholder={computedPlaceholder}
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
@@ -145,6 +176,7 @@ function DatePicker(
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    forwardedFSClass={forwardedFSClass}
                 />
             </View>
 
@@ -158,11 +190,10 @@ function DatePicker(
                 onClose={closeDatePicker}
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
+                forwardedFSClass={forwardedFSClass}
             />
         </>
     );
 }
 
-DatePicker.displayName = 'DatePicker';
-
-export default forwardRef(DatePicker);
+export default DatePicker;

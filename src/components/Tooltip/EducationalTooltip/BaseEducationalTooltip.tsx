@@ -16,7 +16,7 @@ type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, uniqueID, ...props}: EducationalTooltipProps) {
     const genericTooltipStateRef = useRef<GenericTooltipState | undefined>(undefined);
     const tooltipElementRef = useRef<Readonly<NativeMethods> | undefined>(undefined);
 
@@ -65,7 +65,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 showTooltip();
             }
         });
-    }, [insets, shouldSuppressTooltip]);
+    }, [insets.top, insets.bottom, insets.left, insets.right, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
@@ -82,7 +82,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
             // This is necessary to ensure the tooltip is positioned correctly after resizing
             renderTooltip();
         }
-    }, [isResizing, renderTooltip, shouldRender]);
+    }, [isResizing, renderTooltip, shouldRender, uniqueID]);
 
     const setTooltipPosition = useCallback(
         (isScrolling: boolean) => {
@@ -159,7 +159,6 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         >
             {(genericTooltipState) => {
                 const {updateTargetBounds, showTooltip} = genericTooltipState;
-                // eslint-disable-next-line react-compiler/react-compiler
                 genericTooltipStateRef.current = genericTooltipState;
                 return React.cloneElement(children as React.ReactElement<{onLayout?: (e: LayoutChangeEventWithTarget) => void}>, {
                     onLayout: (e: LayoutChangeEventWithTarget) => {
@@ -176,7 +175,5 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         </GenericTooltip>
     );
 }
-
-BaseEducationalTooltip.displayName = 'BaseEducationalTooltip';
 
 export default memo(BaseEducationalTooltip);

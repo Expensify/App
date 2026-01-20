@@ -12,6 +12,4 @@ function SectionList<ItemT, SectionT>({ref, ...props}: SectionListProps<ItemT, S
     );
 }
 
-SectionList.displayName = 'SectionList';
-
 export default SectionList;

@@ -6,6 +6,7 @@ import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
 
@@ -21,7 +22,7 @@ type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
 type OnboardingHelpType = DeepValueOf<typeof CONST.ONBOARDING_HELP>;
 
-type DropdownOption<TValueType> = {
+type DropdownOption<TValueType> = WithSentryLabel & {
     value: TValueType;
     text: string;
     icon?: IconAsset;
@@ -30,12 +31,12 @@ type DropdownOption<TValueType> = {
     iconHeight?: number;
     iconDescription?: string;
     additionalIconStyles?: StyleProp<ViewStyle>;
-    onSelected?: () => void;
+    onSelected?: () => void | Promise<void>;
     disabled?: boolean;
     iconFill?: string;
     interactive?: boolean;
     numberOfLinesTitle?: number;
-    titleStyle?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
     shouldCloseModalOnSelect?: boolean;
     description?: string;
     descriptionTextStyle?: StyleProp<TextStyle>;
@@ -51,7 +52,7 @@ type DropdownOption<TValueType> = {
     shouldShowLoadingSpinnerIcon?: boolean;
 };
 
-type ButtonWithDropdownMenuProps<TValueType> = {
+type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** The custom text to display on the main button instead of selected option */
     customText?: string;
 
@@ -79,8 +80,14 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** The size of button size */
     buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
+    /** Render button in extra-small size */
+    extraSmall?: boolean;
+
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
+
+    /** Whether the button should stay visually normal even when disabled. */
+    shouldStayNormalOnDisable?: boolean;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;

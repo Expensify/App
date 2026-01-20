@@ -1,6 +1,5 @@
 import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import {Str} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -8,12 +7,13 @@ import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
-import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +25,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {
@@ -75,6 +74,9 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
+
+    /** Whether the report screen is being displayed in the side panel */
+    isInSidePanel?: boolean;
 };
 
 function ReportFooter({
@@ -88,13 +90,16 @@ function ReportFooter({
     onComposerFocus,
     reportTransactions,
     transactionThreadReportID,
+    isInSidePanel,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
@@ -106,6 +111,7 @@ function ReportFooter({
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const ancestors = useAncestors(report);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
 
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint;
@@ -121,7 +127,7 @@ function ReportFooter({
 
     const allPersonalDetails = usePersonalDetails();
     const {availableLoginsList} = useShortMentionsList();
-    const currentUserEmail = getCurrentUserEmail();
+    const currentUserEmail = personalDetail.email ?? '';
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
@@ -129,7 +135,7 @@ function ReportFooter({
             if (!match) {
                 return false;
             }
-            let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
+            let title = match[3] ? match[3].trim().replaceAll('\n', ' ') : undefined;
             if (!title) {
                 return false;
             }
@@ -145,8 +151,10 @@ function ReportFooter({
                 if (isValidMention) {
                     assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
                     if (!Object.keys(assignee ?? {}).length) {
-                        const assigneeAccountID = generateAccountID(mentionWithDomain);
-                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(personalDetail.accountID, {
+                            accountID: generateAccountID(mentionWithDomain),
+                            login: mentionWithDomain,
+                        });
                         assignee = optimisticDataForNewAssignee.assignee;
                         assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                     }
@@ -156,11 +164,27 @@ function ReportFooter({
                     title = `@${mentionWithDomain} ${title}`;
                 }
             }
-            createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true, quickAction);
+            createTaskAndNavigate({
+                parentReport: report,
+                title,
+                description: '',
+                assigneeEmail: assignee?.login ?? '',
+                currentUserAccountID: personalDetail.accountID,
+                currentUserEmail,
+                assigneeAccountID: assignee?.accountID,
+                assigneeChatReport,
+                policyID: report.policyID,
+                isCreatedUsingMarkdown: true,
+                quickAction,
+                ancestors,
+            });
             return true;
         },
-        [allPersonalDetails, availableLoginsList, currentUserEmail, quickAction, report.policyID, report.reportID],
+        [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report],
     );
+
+    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`, {canBeMissing: true});
+    const targetReportAncestors = useAncestors(targetReport);
 
     const onSubmitComment = useCallback(
         (text: string) => {
@@ -170,11 +194,10 @@ function ReportFooter({
             }
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
-            const targetReportID = transactionThreadReportID ?? report.reportID;
-            addComment(targetReportID, report.reportID, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
+            addComment(targetReport, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true, isInSidePanel);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask, transactionThreadReportID],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [report.reportID, handleCreateTask, targetReport, targetReportAncestors, isInSidePanel],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
@@ -199,17 +222,22 @@ function ReportFooter({
                     {isAnonymousUser && !isArchivedRoom && (
                         <AnonymousReportFooter
                             report={report}
-                            isSmallSizeLayout={isSmallSizeLayout}
+                            isSmallSizeLayout={isSmallSizeLayout || isInSidePanel}
                         />
                     )}
-                    {isArchivedRoom && <ArchivedReportFooter report={report} />}
+                    {isArchivedRoom && (
+                        <ArchivedReportFooter
+                            report={report}
+                            currentUserAccountID={personalDetail.accountID}
+                        />
+                    )}
                     {!isArchivedRoom && !!isBlockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !isBlockedFromChat && (
                         <Banner
                             containerStyles={[styles.chatFooterBanner]}
                             text={translate('adminOnlyCanPost')}
-                            icon={Expensicons.Lightbulb}
+                            icon={expensifyIcons.Lightbulb}
                             shouldShowIcon
                         />
                     )}
@@ -218,7 +246,7 @@ function ReportFooter({
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
+            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
@@ -233,6 +261,7 @@ function ReportFooter({
                             didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
                             transactionThreadReportID={transactionThreadReportID}
+                            isInSidePanel={isInSidePanel}
                         />
                     </SwipeableView>
                 </View>
@@ -241,17 +270,19 @@ function ReportFooter({
     );
 }
 
-ReportFooter.displayName = 'ReportFooter';
-
 export default memo(
     ReportFooter,
     (prevProps, nextProps) =>
-        deepEqual(prevProps.report, nextProps.report) &&
+        // Report comes from useOnyx - reference is stable
+        prevProps.report === nextProps.report &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
-        deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
-        deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
-        deepEqual(prevProps.policy?.role, nextProps.policy?.role) &&
-        deepEqual(prevProps.reportTransactions, nextProps.reportTransactions),
+        // reportMetadata comes from useOnyx - reference is stable
+        prevProps.reportMetadata === nextProps.reportMetadata &&
+        // policy comes from useOnyx - comparing nested properties which may be stable
+        prevProps.policy?.employeeList === nextProps.policy?.employeeList &&
+        prevProps.policy?.role === nextProps.policy?.role &&
+        // reportTransactions comes from useOnyx - reference is stable
+        prevProps.reportTransactions === nextProps.reportTransactions,
 );

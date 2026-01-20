@@ -1,6 +1,6 @@
 {
   "name": "group-ib-fp",
-  "version": "2.3.0",
+  "version": "2.6.0",
   "description": "React Native module with Fraud Protection",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -49,8 +49,8 @@
     "@types/react": "17.0.21"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": ">=18",
+    "react-native": ">=0.70.6"
   },
   "jest": {
     "preset": "react-native",

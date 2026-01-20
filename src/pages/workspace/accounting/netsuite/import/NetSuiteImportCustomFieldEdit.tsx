@@ -91,7 +91,7 @@ function NetSuiteImportCustomFieldEdit({
                 }
             }
 
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, valueIndex));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, valueIndex));
         },
         [allRecords, customField, fieldName, importCustomField, policyID, valueIndex],
     );
@@ -167,7 +167,7 @@ function NetSuiteImportCustomFieldEdit({
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportCustomFieldEdit.displayName}
+            displayName="NetSuiteImportCustomFieldEdit"
             headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -183,5 +183,4 @@ function NetSuiteImportCustomFieldEdit({
     );
 }
 
-NetSuiteImportCustomFieldEdit.displayName = 'NetSuiteImportCustomFieldEdit';
 export default withPolicyConnections(NetSuiteImportCustomFieldEdit);

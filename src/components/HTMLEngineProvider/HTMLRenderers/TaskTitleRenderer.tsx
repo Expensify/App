@@ -24,6 +24,4 @@ function TaskTitleRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     );
 }
 
-TaskTitleRenderer.displayName = 'TaskTitleRenderer';
-
 export default TaskTitleRenderer;

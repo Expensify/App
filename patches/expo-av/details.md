@@ -1,6 +1,6 @@
 # `expo-av` patches
 
-### [expo-av+15.1.5+001+fix-blank-screen-android.patch](expo-av+15.1.5+001+fix-blank-screen-android.patch)
+### [expo-av+15.1.7+001+fix-blank-screen-android.patch](expo-av+15.1.7+001+fix-blank-screen-android.patch)
 
 - Reason:
   
@@ -13,7 +13,7 @@
 - PR introducing patch: https://github.com/Expensify/App/pull/56302
 
 
-### [expo-av+15.1.5+002+handle-unsupported-videos-ios.patch](expo-av+15.1.5+002+handle-unsupported-videos-ios.patch)
+### [expo-av+15.1.7+002+handle-unsupported-videos-ios.patch](expo-av+15.1.7+002+handle-unsupported-videos-ios.patch)
 
 - Reason:
   

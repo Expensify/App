@@ -1,7 +1,7 @@
 import type {ReactElement, RefObject} from 'react';
 import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {KeyboardEvents, useKeyboardHandler} from 'react-native-keyboard-controller';
-import {runOnJS} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import getKeyboardHeight from '@libs/getKeyboardHeight';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -73,12 +73,12 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
             onStart: () => {
                 'worklet';
 
-                runOnJS(setIsKeyboardAnimating)(true);
+                scheduleOnRN(setIsKeyboardAnimating, true);
             },
             onEnd: () => {
                 'worklet';
 
-                runOnJS(setIsKeyboardAnimating)(false);
+                scheduleOnRN(setIsKeyboardAnimating, false);
             },
         },
         [],

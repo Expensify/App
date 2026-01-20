@@ -3,31 +3,39 @@ package com.group_ib.react;
 import android.app.Activity;
 import android.os.Handler;
 import android.util.Log;
-import android.webkit.WebView;
-
 import androidx.annotation.NonNull;
-
+import main.java.com.group_ib.react.session.SessionEvents;
+import main.java.com.group_ib.react.session.SessionListenerImpl;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.ReadableArray;
 import com.group_ib.sdk.MobileSdk;
 import com.group_ib.sdk.PackageCollectionModule;
 import java.util.HashSet;
 import java.util.Map;
-
+import com.group_ib.sdk.SessionListener;
 
 @ReactModule(name = FhpModule.NAME)
 public class FhpModule extends ReactContextBaseJavaModule {
+  
+  private static final String TAG = "GIBSDK";
   public static final String NAME = "ModuleFhpIos";
   private static final String HEADER_USER_AGENT = "User-Agent";
-  private static MobileSdk sdk = null;
-  private static WebView webView = null;
-  private Handler mMainHandler = null;
+  
+  private final ReactApplicationContext context;
+  private final Handler mMainHandler;
+
+  private final SessionEvents sessionEvents;
+  private final SessionListener sessionListener;
+
+  private MobileSdk sdk = null;
 
   enum Capabilities {
     CELLS_COLLECTION_CAPABILITY(MobileSdk.Capability.CellsCollectionCapability),
@@ -45,32 +53,47 @@ public class FhpModule extends ReactContextBaseJavaModule {
     }
   }
 
-  public static synchronized void initAppWebView(WebView wv) {
-    if (sdk != null) {
-      sdk.initAppWebView(wv);
-      webView = null;
-    } else {
-      webView = wv;
-    }
-  }
-
   public FhpModule(ReactApplicationContext reactContext) {
     super(reactContext);
+    this.context = reactContext;
+    mMainHandler = new Handler(context.getMainLooper());
+    this.sessionEvents = new SessionEvents(context);
+    this.sessionListener = new SessionListenerImpl(sessionEvents);
   }
 
   @Override
   public void initialize() {
     super.initialize();
-    mMainHandler = new Handler(getReactApplicationContext().getMainLooper());
+    final Activity activity = getCurrentActivity();
     try {
       MobileSdk.enableDebugLogs();
       PackageCollectionModule.init();
-      Activity activity = getCurrentActivity();
-      sdk = MobileSdk.init(activity != null ? activity : getReactApplicationContext());
-      if (webView != null) initAppWebView(webView);
+      sdk = MobileSdk.init(activity != null ? activity : context);
+      sdk.setSessionListener(sessionListener);
     } catch (Exception e) {
-      Log.e("GIBSDK", "failed to initialize SDK", e);
+      Log.e(TAG, "failed to initialize SDK", e);
     }
+  }
+
+  @Override
+  public void invalidate() {
+    try {
+      sdk.setSessionListener(null);
+    } catch (final Exception e) {
+      Log.e(TAG, "failed to remove sessionListener", e);
+      sessionEvents.reset();
+      super.invalidate();
+    }
+  }
+
+  @ReactMethod
+  public void addListener(final String eventName) {
+    sessionEvents.addListener(eventName);
+  }
+
+  @ReactMethod
+  public void removeListeners(final int count) {
+    sessionEvents.removeListeners(count);
   }
 
   @Override
@@ -171,9 +194,9 @@ public class FhpModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void setAttributeTitle(String title, String value, int format, Callback errorCallback) {
+  public void setAttributeTitle(String title, String value, int format, boolean isSendOnce, Callback errorCallback) {
     try {
-      sdk.setAttribute(title, value, format);
+      sdk.setAttribute(title, value, format, isSendOnce);
     } catch (Exception e) {
       errorCallback.invoke(e.getMessage());
     }
@@ -278,11 +301,13 @@ public class FhpModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void getCookies(Callback cookiesCallback) {
-      Map<String, String> cookies = sdk.getCookies();
-      WritableMap cookiesMap = Arguments.createMap();
+    Map<String, String> cookies = sdk.getCookies();
+    WritableMap cookiesMap = Arguments.createMap();
+    if (cookies != null && !cookies.isEmpty()) {
       for (Map.Entry<String, String> entry : cookies.entrySet()) {
-          cookiesMap.putString(entry.getKey(), entry.getValue());
+        cookiesMap.putString(entry.getKey(), entry.getValue());
       }
-      cookiesCallback.invoke(cookiesMap);
+    }
+    cookiesCallback.invoke(cookiesMap);
   }
 }

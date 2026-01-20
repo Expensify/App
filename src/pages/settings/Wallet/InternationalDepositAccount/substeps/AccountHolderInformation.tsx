@@ -117,6 +117,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                     lat: '',
                                     lng: '',
                                 }}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                             />
                         </View>
                     ))}
@@ -124,7 +125,5 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
         </FormProvider>
     );
 }
-
-AccountHolderInformation.displayName = 'AccountHolderInformation';
 
 export default AccountHolderInformation;

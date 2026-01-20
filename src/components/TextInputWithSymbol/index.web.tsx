@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {TextInputSelectionChangeEvent} from 'react-native';
 import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
 import type {TextInputWithSymbolProps} from './types';
 
@@ -25,7 +25,7 @@ function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: Text
                 // eslint-disable-next-line no-param-reassign
                 ref.current = element as HTMLFormElement;
             }}
-            onSelectionChange={(event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+            onSelectionChange={(event: TextInputSelectionChangeEvent) => {
                 onSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end);
             }}
             onPress={() => {
@@ -36,7 +36,5 @@ function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: Text
         />
     );
 }
-
-TextInputWithSymbol.displayName = 'TextInputWithSymbol';
 
 export default TextInputWithSymbol;

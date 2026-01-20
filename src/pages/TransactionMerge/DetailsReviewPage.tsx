@@ -1,7 +1,5 @@
-import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -12,130 +10,58 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
     getMergeFieldErrorText,
+    getMergeFieldUpdatedValues,
     getMergeFieldValue,
-    getSourceTransactionFromMergeTransaction,
-    getTargetTransactionFromMergeTransaction,
-    getTransactionThreadReportID,
     isEmptyMergeValue,
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getCurrency} from '@libs/TransactionUtils';
-import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReportMetadata, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeFieldReview from './MergeFieldReview';
 
 type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DETAILS_PAGE>;
 
-const hasOnceLoadedTransactionThreadReportActionsSelector = (value?: OnyxEntry<ReportMetadata>) => value?.hasOnceLoadedReportActions;
-
 function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const {transactionID, backTo} = route.params;
+    const {transactionID, isOnSearch, backTo} = route.params;
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
-        canBeMissing: true,
-    });
-
-    const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`, {
-        selector: hasOnceLoadedTransactionThreadReportActionsSelector,
-        canBeMissing: true,
-    });
-    const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
-    const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
-    const [iouActionForTargetTransaction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`,
-        {
-            selector: (value) => {
-                if (!hasOnceLoadedTransactionThreadReportActions || !!targetTransactionThreadReportID || !targetTransaction?.transactionID) {
-                    return undefined;
-                }
-                return getIOUActionForTransactionID(Object.values(value ?? {}), targetTransaction?.transactionID);
-            },
-            canBeMissing: true,
-        },
-        [hasOnceLoadedTransactionThreadReportActions, targetTransactionThreadReportID, targetTransaction?.transactionID],
-    );
-    const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
-        canBeMissing: true,
-    });
-    const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
-    const [isCheckingDataBeforeGoNext, setIsCheckingDataBeforeGoNext] = useState<boolean>(false);
 
     useEffect(() => {
         if (!transactionID || !targetTransaction || !sourceTransaction) {
             return;
         }
 
-        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, [
+            targetTransactionReport,
+            sourceTransactionReport,
+        ]);
 
         setMergeTransactionKey(transactionID, mergeableData);
         setConflictFields(detectedConflictFields as MergeFieldKey[]);
-    }, [targetTransaction, sourceTransaction, transactionID, localeCompare]);
-
-    useEffect(() => {
-        if (!isCheckingDataBeforeGoNext) {
-            return;
-        }
-
-        // When user selects a card transaction to merge, that card transaction becomes the target transaction.
-        // The App may not have the transaction thread report loaded for card transactions, so we need to trigger
-        // OpenReport to ensure the transaction thread report is available for confirmation page
-        if (!targetTransactionThreadReportID && targetTransaction?.reportID) {
-            // If the report was already loaded before, but there are still no transaction thread report info, it means it hasn't been created yet.
-            // So we should create it.
-            if (hasOnceLoadedTransactionThreadReportActions) {
-                createTransactionThreadReport(iouReportForTargetTransaction, iouActionForTargetTransaction);
-                setIsCheckingDataBeforeGoNext(false);
-                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
-                return;
-            }
-            return openReport(targetTransaction.reportID);
-        }
-        if (targetTransactionThreadReportID && !targetTransactionThreadReport) {
-            return openReport(targetTransactionThreadReportID);
-        }
-        // We need to wait for report to be loaded completely, avoid still optimistic loading
-        if (!targetTransactionThreadReport?.reportID) {
-            return;
-        }
-
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
-        setIsCheckingDataBeforeGoNext(false);
-    }, [
-        isCheckingDataBeforeGoNext,
-        targetTransactionThreadReportID,
-        targetTransaction?.reportID,
-        targetTransactionThreadReport,
-        transactionID,
-        hasOnceLoadedTransactionThreadReportActions,
-        iouActionForTargetTransaction,
-        iouReportForTargetTransaction,
-        currentUserEmail,
-        targetTransaction?.transactionID,
-    ]);
+    }, [targetTransaction, sourceTransaction, transactionID, localeCompare, sourceTransactionReport, targetTransactionReport]);
 
     // Handle selection
     const handleSelect = useCallback(
@@ -151,16 +77,17 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
+            const updatedValues = getMergeFieldUpdatedValues(transaction, field, fieldValue, [targetTransactionReport, sourceTransactionReport]);
+
             setMergeTransactionKey(transactionID, {
-                [field]: fieldValue,
-                ...(field === 'amount' && {currency: getCurrency(transaction)}),
+                ...updatedValues,
                 selectedTransactionByField: {
                     ...currentSelections,
                     [field]: transaction.transactionID,
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction, transactionID],
+        [mergeTransaction?.selectedTransactionByField, transactionID, targetTransactionReport, sourceTransactionReport],
     );
 
     // Handle continue
@@ -170,24 +97,24 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         }
 
         const newHasErrors: Partial<Record<MergeFieldKey, boolean>> = {};
-        conflictFields.forEach((field) => {
+        for (const field of conflictFields) {
             if (!isEmptyMergeValue(mergeTransaction[field])) {
-                return;
+                continue;
             }
 
             newHasErrors[field] = true;
-        });
+        }
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            setIsCheckingDataBeforeGoNext(true);
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute(), isOnSearch));
         }
-    }, [mergeTransaction, conflictFields]);
+    }, [mergeTransaction, conflictFields, transactionID, isOnSearch]);
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
-        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate),
-        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate],
+        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate, [targetTransactionReport, sourceTransactionReport]),
+        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionReport, sourceTransactionReport, translate],
     );
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
@@ -199,7 +126,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     return (
         <ScreenWrapper
-            testID={DetailsReviewPage.displayName}
+            testID="DetailsReviewPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -236,7 +163,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                         text={translate('common.continue')}
                         onPress={handleContinue}
                         isDisabled={!isEmptyObject(hasErrors)}
-                        isLoading={isCheckingDataBeforeGoNext}
                         pressOnEnter
                     />
                 </FixedFooter>
@@ -244,7 +170,5 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         </ScreenWrapper>
     );
 }
-
-DetailsReviewPage.displayName = 'DetailsReviewPage';
 
 export default DetailsReviewPage;

@@ -1,7 +1,7 @@
 ---
 title: Create-and-Submit-Reports.md
 description: Learn how to use New Expensify’s report-first flow to create, edit, submit, and retract expense reports.
-keywords: [New Expensify, create report, submit report, retract report, undo submit, undo close, add expenses, fix report]
+keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report]
 ---
 
 Easily manage your business expenses in New Expensify with our streamlined report-first workflow. This guide walks you through creating, editing, submitting, and even retracting expense reports when needed.
@@ -45,8 +45,10 @@ Once the report includes at least one expense, the Add Expense option will be un
 ## Step 3: Submit the report
 
 1. Once the report includes at least one expense, the **Submit** button will appear.
-2. Tap **Submit**.
+2. Tap **Submit**, or, if automatic submission is enabled, tap **More > Submit** to submit early.
 3. A confirmation message will appear after submission.
+
+**Note:** If your workspace uses an automatic submission frequency, you’ll see **“Waiting for your expenses to automatically submit”** at the top of the report instead of a Submit button.
 
 **Note:** If your workspace uses **instant submit**, your report may auto-submit once a valid expense is added.
 
@@ -54,14 +56,11 @@ Once the report includes at least one expense, the Add Expense option will be un
 
 # How to retract or edit submitted reports in New Expensify
 
-Submitted a report too early? Need to add or remove an expense? You can **retract** submitted reports using the **More** > **Undo Submit** or **Undo Close** actions.
+Submitted a report too early? Need to add or remove an expense? You can **retract** submitted reports using the **More** > **Retract** actions.
 
-**Retract** means returning a report from **closed** or **processing** back to the **open** state so you can edit it.
+**Retract** means returning a report from **done** or **outstanding** back to the **draft** state so you can edit it.
 
-- **Undo submit**: The retract button for **processing reports**
-- **Undo close**: The retract button for **closed reports**
-
-**Note:** Only the person who submitted the report can undo or retract it.
+**Note:** Only the person who submitted the report can retract it.
 
 ---
 
@@ -133,4 +132,4 @@ The Submit button only appears once your report includes at least one valid expe
 
 ## Can I remove an expense after submitting?
 
-Yes. You’ll need to retract the report using More > Undo Submit or Undo Close, depending on the report's state. Then you can remove or edit expenses before resubmitting.
+Yes. You’ll need to retract the report using More > Retract, depending on the report's state. Then you can remove or edit expenses before resubmitting.

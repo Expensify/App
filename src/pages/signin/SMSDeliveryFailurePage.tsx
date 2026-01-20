@@ -1,5 +1,4 @@
-import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -9,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {normalizeLogin} from '@libs/LoginUtils';
 import {beginSignIn, clearSignInData, resetSMSDeliveryFailureStatus} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
@@ -21,12 +21,7 @@ function SMSDeliveryFailurePage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
-    const login = useMemo(() => {
-        if (!credentials?.login) {
-            return '';
-        }
-        return Str.isSMSLogin(credentials.login) ? Str.removeSMSDomain(credentials.login) : credentials.login;
-    }, [credentials?.login]);
+    const login = normalizeLogin(credentials?.login);
 
     const SMSDeliveryFailureMessage = account?.smsDeliveryFailureStatus?.message;
     const isResettingSMSDeliveryFailureStatus = account?.smsDeliveryFailureStatus?.isLoading;
@@ -37,26 +32,21 @@ function SMSDeliveryFailurePage() {
         minutes?: number;
     };
 
-    const timeData = useMemo<TimeData | null>(() => {
-        if (!SMSDeliveryFailureMessage) {
-            return null;
-        }
-
+    let timeData: TimeData | null = null;
+    if (SMSDeliveryFailureMessage) {
         const parsedData = JSON.parse(SMSDeliveryFailureMessage) as TimeData | [];
 
-        if (Array.isArray(parsedData) && !parsedData.length) {
-            return null;
+        if (!Array.isArray(parsedData) || parsedData.length > 0) {
+            timeData = parsedData as TimeData;
         }
-
-        return parsedData as TimeData;
-    }, [SMSDeliveryFailureMessage]);
+    }
 
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
     // We need to show two different messages after clicking validate button, based on API response for hasSMSDeliveryFailure.
     const [hasClickedValidate, setHasClickedValidate] = useState(false);
 
-    const errorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
+    const errorText = account ? getLatestErrorMessage(account) : '';
     const shouldShowError = !!errorText;
 
     useEffect(() => {
@@ -151,7 +141,5 @@ function SMSDeliveryFailurePage() {
         </>
     );
 }
-
-SMSDeliveryFailurePage.displayName = 'SMSDeliveryFailurePage';
 
 export default SMSDeliveryFailurePage;

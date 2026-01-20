@@ -1,20 +1,20 @@
-import React, {useMemo, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isUsingStagingApi} from '@libs/ApiUtils';
-import getPlatform from '@libs/getPlatform';
+import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldBlockTransactionThreadReportCreation, setShouldUseStagingServer} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account as AccountOnyx} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
 import Button from './Button';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import EnableBiometricsModal from './EnableBiometricsModal';
@@ -24,26 +24,22 @@ import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-const ACCOUNT_DEFAULT: AccountOnyx = {
-    isSubscribedToNewsletter: false,
-    validated: false,
-    isFromPublicDomain: false,
-    isUsingExpensifyCard: false,
-};
-
 function TestToolMenu() {
-    const {isBetaEnabled} = usePermissions();
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
-    const [account = ACCOUNT_DEFAULT] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
-    const shouldBlockTransactionThreadReportCreation = !!account?.shouldBlockTransactionThreadReportCreation;
-    const shouldShowTransactionThreadReportToggle = isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const platform = getPlatform();
-    const isNative = platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.MOBILE_WEB;
+    const {clearLHNCache} = useSidebarOrderedReports();
+
+    const {singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
+    const navigateToBiometricsTestPage = singleExecution(
+        waitForNavigate(() => {
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
+        }),
+    );
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -53,6 +49,9 @@ function TestToolMenu() {
     const [showBiometricsModal, setShowBiometricsModal] = useState(false);
 
     const biometricsTitle = useMemo(() => `initialSettingsPage.troubleshoot.biometrics.biometrics${isRegistered ? '' : 'Not'}Registered`, [isRegistered]);
+
+    // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
+    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: false});
 
     return (
         <>
@@ -64,17 +63,6 @@ function TestToolMenu() {
             </Text>
             {isAuthenticated && (
                 <>
-                    {/* When toggled, the app won't create the transaction thread report. It should be removed together with CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS beta */}
-                    {shouldShowTransactionThreadReportToggle && (
-                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.shouldBlockTransactionThreadReportCreation')}>
-                            <Switch
-                                accessibilityLabel={translate('initialSettingsPage.troubleshoot.shouldBlockTransactionThreadReportCreation')}
-                                isOn={shouldBlockTransactionThreadReportCreation}
-                                onToggle={() => setShouldBlockTransactionThreadReportCreation(!shouldBlockTransactionThreadReportCreation)}
-                            />
-                        </TestToolRow>
-                    )}
-
                     {/* When toggled the app will be put into debug mode. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
                         <Switch
@@ -111,23 +99,25 @@ function TestToolMenu() {
                         />
                     </TestToolRow>
 
-                    {/* Starts Biometrics test flow -> possible only on native */}
-                    {isNative && (
-                        <TestToolRow title={translate(biometricsTitle as TranslationPaths)}>
-                            <View style={[styles.flexRow, styles.gap2]}>
-                                <Button
-                                    small
-                                    text={translate('initialSettingsPage.troubleshoot.biometrics.test')}
-                                    onPress={() => setShowBiometricsModal(true)}
-                                />
-                            </View>
-                        </TestToolRow>
-                    )}
-                    <EnableBiometricsModal
-                        isVisible={showBiometricsModal}
-                        onCancel={() => setShowBiometricsModal(false)}
-                        updateLabelToRegistered={() => setRegistered(true)}
-                    />
+                    {/* Clears the useSidebarOrderedReports cache to re-compute from latest onyx values */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.leftHandNavCache')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}
+                            onPress={clearLHNCache}
+                        />
+                    </TestToolRow>
+
+                    {/* Allows you to test the Biometrics flow */}
+                    <TestToolRow title={biometricsTitle}>
+                        <View style={[styles.flexRow, styles.gap2]}>
+                            <Button
+                                small
+                                text={translate('multifactorAuthentication.biometricsTest.test')}
+                                onPress={() => navigateToBiometricsTestPage()}
+                            />
+                        </View>
+                    </TestToolRow>
                 </>
             )}
 
@@ -178,7 +168,5 @@ function TestToolMenu() {
         </>
     );
 }
-
-TestToolMenu.displayName = 'TestToolMenu';
 
 export default TestToolMenu;

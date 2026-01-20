@@ -9,7 +9,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
@@ -30,10 +29,6 @@ jest.mock('@rnmapbox/maps', () => {
         setAccessToken: jest.fn(),
     };
 });
-
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
 
 TestHelper.setupGlobalFetchMock();
 
@@ -92,7 +87,7 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('onboarding.employees.1-10'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.employees.1-10'))).toBeOnTheScreen();
         });
 
         unmount();
@@ -115,7 +110,7 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.queryByText(translateLocal('onboarding.employees.1-10'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('onboarding.employees.1-10'))).not.toBeOnTheScreen();
         });
 
         unmount();

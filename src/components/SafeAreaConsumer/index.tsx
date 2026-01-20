@@ -28,6 +28,4 @@ function SafeAreaConsumer({children}: SafeAreaConsumerProps) {
     );
 }
 
-SafeAreaConsumer.displayName = 'SafeAreaConsumer';
-
 export default SafeAreaConsumer;

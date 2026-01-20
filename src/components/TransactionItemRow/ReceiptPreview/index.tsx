@@ -8,18 +8,19 @@ import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
+import {hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import Image from '@src/components/Image';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
 type ReceiptPreviewProps = {
     /** Path to the image to be opened in the preview */
-    source: string;
+    source: ReceiptSource;
 
     /** Whether the preview should be shown (e.g. if we are hovered over certain ReceiptCell) */
     hovered: boolean;
@@ -33,12 +34,13 @@ type ReceiptPreviewProps = {
 
 function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: ReceiptPreviewProps) {
     const isDistanceEReceipt = isDistanceRequest(transactionItem) && !isManualDistanceRequest(transactionItem);
+    const isPerDiemEReceipt = isPerDiemRequest(transactionItem) && !hasReceiptSource(transactionItem) && !!transactionItem.transactionID;
     const styles = useThemeStyles();
     const [eReceiptScaleFactor, setEReceiptScaleFactor] = useState(0);
     const [imageAspectRatio, setImageAspectRatio] = useState<string | number | undefined>(undefined);
     const [distanceEReceiptAspectRatio, setDistanceEReceiptAspectRatio] = useState<string | number | undefined>(undefined);
     const [shouldShow, debounceShouldShow, setShouldShow] = useDebouncedState(false, CONST.TIMING.SHOW_HOVER_PREVIEW_DELAY);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const hasMeasured = useRef(false);
     const {windowHeight} = useWindowDimensions();
     const [isLoading, setIsLoading] = useState(true);
@@ -91,12 +93,12 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
         setShouldShow(hovered);
     }, [hovered, setShouldShow]);
 
-    if (shouldUseNarrowLayout || !debounceShouldShow || !shouldShow || (!source && !isEReceipt && !isDistanceEReceipt)) {
+    if (shouldUseNarrowLayout || !debounceShouldShow || !shouldShow || (!source && !isEReceipt && !isDistanceEReceipt && !isPerDiemEReceipt)) {
         return null;
     }
 
-    const shouldShowImage = source && !(isEReceipt || isDistanceEReceipt);
-    const shouldShowDistanceEReceipt = isDistanceEReceipt && !isEReceipt;
+    const shouldShowImage = source && !(isEReceipt || isDistanceEReceipt || isPerDiemEReceipt);
+    const shouldShowDistanceEReceipt = isDistanceEReceipt && !isEReceipt && !isPerDiemEReceipt;
 
     return ReactDOM.createPortal(
         <Animated.View
@@ -113,7 +115,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                     )}
 
                     <Image
-                        source={{uri: source}}
+                        source={typeof source === 'string' ? {uri: source} : source}
                         style={[
                             styles.w100,
                             {aspectRatio: imageAspectRatio ?? 1},
@@ -132,7 +134,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                 </View>
             ) : (
                 <View style={styles.receiptPreviewEReceiptsContainer}>
-                    {shouldShowDistanceEReceipt ? (
+                    {shouldShowDistanceEReceipt && (
                         <View
                             onLayout={handleDistanceEReceiptLayout}
                             style={[
@@ -148,7 +150,15 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                                 hoverPreview
                             />
                         </View>
-                    ) : (
+                    )}
+                    {!shouldShowDistanceEReceipt && isPerDiemEReceipt && (
+                        <EReceiptWithSizeCalculation
+                            transactionID={transactionItem.transactionID}
+                            shouldUseAspectRatio
+                            receiptType="perDiem"
+                        />
+                    )}
+                    {!shouldShowDistanceEReceipt && !isPerDiemEReceipt && (
                         <EReceiptWithSizeCalculation
                             transactionID={transactionItem.transactionID}
                             transactionItem={transactionItem}
@@ -162,5 +172,4 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     );
 }
 
-ReceiptPreview.displayName = 'HoverReceiptPreview';
 export default ReceiptPreview;

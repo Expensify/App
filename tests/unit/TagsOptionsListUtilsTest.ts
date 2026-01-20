@@ -6,7 +6,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {PolicyTagLists} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
-import {localeCompare} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('TagsOptionsListUtils', () => {
@@ -199,6 +199,26 @@ describe('TagsOptionsListUtils', () => {
                 name: 'Benefits',
                 accountID: undefined,
             },
+            Communications: {
+                enabled: true,
+                name: 'Communications',
+                accountID: undefined,
+            },
+            Legal: {
+                enabled: true,
+                name: 'Legal',
+                accountID: undefined,
+            },
+            Marketing: {
+                enabled: true,
+                name: 'Marketing',
+                accountID: undefined,
+            },
+            Operations: {
+                enabled: true,
+                name: 'Operations',
+                accountID: undefined,
+            },
         };
         const largeResultList: Section[] = [
             {
@@ -264,6 +284,15 @@ describe('TagsOptionsListUtils', () => {
                         pendingAction: undefined,
                     },
                     {
+                        text: 'Communications',
+                        keyForList: 'Communications',
+                        searchText: 'Communications',
+                        tooltipText: 'Communications',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
                         text: 'Food',
                         keyForList: 'Food',
                         searchText: 'Food',
@@ -277,6 +306,33 @@ describe('TagsOptionsListUtils', () => {
                         keyForList: 'HR',
                         searchText: 'HR',
                         tooltipText: 'HR',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Legal',
+                        keyForList: 'Legal',
+                        searchText: 'Legal',
+                        tooltipText: 'Legal',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Marketing',
+                        keyForList: 'Marketing',
+                        searchText: 'Marketing',
+                        tooltipText: 'Marketing',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Operations',
+                        keyForList: 'Operations',
+                        searchText: 'Operations',
+                        tooltipText: 'Operations',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -325,6 +381,15 @@ describe('TagsOptionsListUtils', () => {
                         isSelected: false,
                         pendingAction: undefined,
                     },
+                    {
+                        text: 'Marketing',
+                        keyForList: 'Marketing',
+                        searchText: 'Marketing',
+                        tooltipText: 'Marketing',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
                 ],
             },
         ];
@@ -336,22 +401,22 @@ describe('TagsOptionsListUtils', () => {
             },
         ];
 
-        const smallResult = getTagListSections({searchValue: emptySearch, tags: smallTagsList, localeCompare});
+        const smallResult = getTagListSections({searchValue: emptySearch, tags: smallTagsList, localeCompare, translate: translateLocal});
         expect(smallResult).toStrictEqual(smallResultList);
 
-        const smallSearchResult = getTagListSections({searchValue: search, tags: smallTagsList, localeCompare});
+        const smallSearchResult = getTagListSections({searchValue: search, tags: smallTagsList, localeCompare, translate: translateLocal});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
 
-        const employeeSearchResult = getTagListSections({searchValue: employeeSearch, tags: smallTagsList, localeCompare});
+        const employeeSearchResult = getTagListSections({searchValue: employeeSearch, tags: smallTagsList, localeCompare, translate: translateLocal});
         expect(employeeSearchResult).toStrictEqual(employeeSearchResultList);
 
-        const smallWrongSearchResult = getTagListSections({searchValue: wrongSearch, tags: smallTagsList, localeCompare});
+        const smallWrongSearchResult = getTagListSections({searchValue: wrongSearch, tags: smallTagsList, localeCompare, translate: translateLocal});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
 
-        const largeResult = getTagListSections({searchValue: emptySearch, selectedOptions, tags: largeTagsList, recentlyUsedTags, localeCompare});
+        const largeResult = getTagListSections({searchValue: emptySearch, selectedOptions, tags: largeTagsList, recentlyUsedTags, localeCompare, translate: translateLocal});
         expect(largeResult).toStrictEqual(largeResultList);
 
-        const largeSearchResult = getTagListSections({searchValue: search, selectedOptions, tags: largeTagsList, recentlyUsedTags, localeCompare});
+        const largeSearchResult = getTagListSections({searchValue: search, selectedOptions, tags: largeTagsList, recentlyUsedTags, localeCompare, translate: translateLocal});
         expect(largeSearchResult).toStrictEqual(largeSearchResultList);
 
         const largeWrongSearchResult = getTagListSections({
@@ -360,6 +425,7 @@ describe('TagsOptionsListUtils', () => {
             tags: largeTagsList,
             recentlyUsedTags,
             localeCompare,
+            translate: translateLocal,
         });
         expect(largeWrongSearchResult).toStrictEqual(largeWrongSearchResultList);
     });

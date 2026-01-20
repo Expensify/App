@@ -1,7 +1,7 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 6.0.3 effective-5.10 (swiftlang-6.0.3.1.10 clang-1600.0.30.1)
-// swift-module-flags: -target arm64-apple-ios15.6 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -Osize -enable-bare-slash-regex -module-name GIBMobileSdk
-// swift-module-flags-ignorable: -no-verify-emitted-module-interface
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target arm64-apple-ios15.6 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -Osize -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name GIBMobileSdk
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
 import AVFoundation
 import AdSupport
 import AppTrackingTransparency
@@ -55,10 +55,14 @@ final public class GIBPacket {
   public enum Versions : Swift.String {
     case v1_0_0
     case v1_1_0
+    case v1_1_1
     case v2_0_0
     case v2_1_0
+    case v2_2_0
     case v3_0_0
     case v3_1_0
+    case v3_2_0
+    case v3_3_0
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
@@ -97,8 +101,23 @@ public protocol GIBModelProtocol : Swift.Hashable {
   @objc public static var isExtendedData: Swift.Bool
   @objc deinit
 }
+@_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc final public class FPLocationSettings : ObjectiveC.NSObject {
+  @objc public static var timeoutInterval: Swift.Double
+  @objc public static var distanceFilterBest: Swift.Double
+  @objc public static var distanceFilterReduced: Swift.Double
+  @objc public static var maxPerPacket: Swift.Int
+  @objc public static func sendCurrentLocation()
+  @objc public static func setIsBestAccuracy(_ isBestAccuracy: Swift.Bool)
+  @objc deinit
+}
 @_hasMissingDesignatedInitializers final public class GIBApplication {
   public static var shared: UIKit.UIApplication? {
+    get
+  }
+  public static var allScreens: [UIKit.UIScreen] {
+    get
+  }
+  public static var mainScreen: UIKit.UIScreen? {
     get
   }
   @objc deinit

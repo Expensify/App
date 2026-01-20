@@ -7,11 +7,12 @@ import AttachmentStateContextProvider from '@pages/media/AttachmentModalScreen/A
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
+import SafeString from '@src/utils/SafeString';
 import type AttachmentModalContainerProps from './types';
 
 function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, navigation, onShow, onClose, ExtraContent}: AttachmentModalContainerProps<Screen>) {
     const attachmentsContext = useContext(AttachmentModalContext);
-    const testID = typeof contentProps.source === 'string' ? contentProps.source : (contentProps.source?.toString() ?? '');
+    const testID = typeof contentProps.source === 'string' ? contentProps.source : SafeString(contentProps.source);
 
     const resetAttachmentModalAndClose = useCallback(() => {
         attachmentsContext.setCurrentAttachment(undefined);
@@ -68,7 +69,5 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
         </>
     );
 }
-
-AttachmentModalContainer.displayName = 'AttachmentModalContainer';
 
 export default memo(AttachmentModalContainer);

@@ -3,6 +3,7 @@ import * as API from '@libs/API';
 import type {ImportPlaidAccountsParams, OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
 import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getCompanyCardFeed} from '@libs/CardUtils';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,7 +57,7 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: stri
         androidPackage,
         country,
         domain,
-        feed,
+        feed: feed ? getCompanyCardFeed(feed) : undefined,
     };
 
     const optimisticData = [
@@ -126,16 +127,18 @@ function importPlaidAccounts(
     plaidAccounts: string,
     statementPeriodEnd: StatementPeriodEnd | undefined,
     statementPeriodEndDay: StatementPeriodEndDay | undefined,
+    plaidAccessToken: string | undefined,
 ) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
-        feed,
+        feed: getCompanyCardFeed(feed),
         feedName,
         country,
         domainName,
         plaidAccounts,
         statementPeriodEnd,
         statementPeriodEndDay,
+        plaidAccessToken,
     };
 
     API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters);

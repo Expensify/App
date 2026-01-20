@@ -35,7 +35,7 @@ const promiseMap = new Map<ModalId, PromiseMapValue>();
  * react-native-web doesn't support `currentlyFocusedInput`, so we need to make it compatible by using `currentlyFocusedField` instead.
  */
 function getActiveInput() {
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return (TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField()) as InputElement;
 }
 
@@ -72,12 +72,12 @@ function releaseInput(input: InputElement) {
     if (input === focusedInput) {
         focusedInput = null;
     }
-    focusMap.forEach((value, key) => {
+    for (const [key, value] of focusMap.entries()) {
         if (value.input !== input) {
-            return;
+            continue;
         }
         focusMap.delete(key);
-    });
+    }
 }
 
 function getId() {
@@ -99,12 +99,12 @@ function saveFocusState(id: ModalId, isInUploadingContext = false, shouldClearFo
     activeModals.push(id);
 
     if (shouldClearFocusWithType) {
-        focusMap.forEach((value, key) => {
+        for (const [key, value] of focusMap.entries()) {
             if (value.isInUploadingContext !== isInUploadingContext) {
-                return;
+                continue;
             }
             focusMap.delete(key);
-        });
+        }
     }
 
     focusMap.set(id, {input, isInUploadingContext});
@@ -124,7 +124,7 @@ function focus(input: InputElement, shouldIgnoreFocused = false) {
 }
 
 function tryRestoreTopmostFocus(shouldIgnoreFocused: boolean, isInUploadingContext = false) {
-    const topmost = [...focusMap].filter(([, v]) => v.input && v.isInUploadingContext === isInUploadingContext).at(-1);
+    const topmost = [...focusMap].findLast(([, v]) => v.input && v.isInUploadingContext === isInUploadingContext);
     if (topmost === undefined) {
         return;
     }

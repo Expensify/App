@@ -1,4 +1,4 @@
-import type {RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text, View} from 'react-native';
 import type BaseModalProps from '@components/Modal/types';
@@ -25,6 +25,12 @@ type PopoverWithoutOverlayProps = ChildrenProps &
 
         /** The ref of the popover */
         withoutOverlayRef: RefObject<View | HTMLDivElement | null>;
+
+        /** Reference to the outer element */
+        ref?: ForwardedRef<View>;
+
+        /** Whether we should display the popover below other modals (e.g. SidePanel, RHP) */
+        shouldDisplayBelowModals?: boolean;
     };
 
 export default PopoverWithoutOverlayProps;

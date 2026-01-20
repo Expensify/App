@@ -11,13 +11,10 @@ const {
     setLocale,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
-    redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,
     confirmReadyToOpenApp,
     handleRestrictedEvent,
-    beginDeepLinkRedirect,
-    beginDeepLinkRedirectAfterTransition,
     finalReconnectAppAfterActivatingReliableUpdates,
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
@@ -51,7 +48,7 @@ const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number)
     }
 
     let chain = Promise.resolve();
-    updates.forEach((update) => {
+    for (const update of updates) {
         chain = chain.then(() => {
             if (!OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(update.previousUpdateID)})) {
                 return OnyxUpdates.apply(update).then(() => undefined);
@@ -60,7 +57,7 @@ const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number)
             OnyxUpdates.saveUpdateInformation(update);
             return Promise.resolve();
         });
-    });
+    }
 
     return chain;
 });
@@ -74,13 +71,10 @@ export {
     setLocale,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
-    redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,
     confirmReadyToOpenApp,
     handleRestrictedEvent,
-    beginDeepLinkRedirect,
-    beginDeepLinkRedirectAfterTransition,
     finalReconnectAppAfterActivatingReliableUpdates,
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,

@@ -7,7 +7,7 @@ type LayoutChangeEvent = {
     target: HTMLElement;
 };
 
-function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1, forwardedFSClass}: TextWithTooltipProps) {
+function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines = 1, forwardedFSClass}: TextWithTooltipProps) {
     const [showTooltip, setShowTooltip] = useState(false);
 
     return (
@@ -16,6 +16,7 @@ function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1, for
             text={text}
         >
             <Text
+                testID={testID}
                 style={style}
                 numberOfLines={numberOfLines}
                 onLayout={(e) => {
@@ -36,7 +37,5 @@ function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1, for
         </Tooltip>
     );
 }
-
-TextWithTooltip.displayName = 'TextWithTooltip';
 
 export default TextWithTooltip;

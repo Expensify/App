@@ -23,6 +23,4 @@ function NamePage({report}: NamePageProps) {
     return <RoomNamePage report={report} />;
 }
 
-NamePage.displayName = 'NamePage';
-
 export default withReportOrNotFound()(NamePage);
