@@ -7,6 +7,7 @@ import {
     getCompanyCardFeed,
     getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
+    getFilteredCardList,
     getPlaidCountry,
     getPlaidInstitutionId,
     isCustomFeed,
@@ -24,6 +25,7 @@ import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
+import useCardsList from './useCardsList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -148,6 +150,17 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const isFeedExpired = isSelectedFeedExpired(feedData);
     const plaidAccessToken = feedData?.plaidAccessToken;
     const hasImportedPlaidAccounts = useRef(false);
+    const [feed, domainOrWorkspaceAccountID] = selectedFeed?.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR) ?? [];
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${feed}`, {
+        selector: filterInactiveCards,
+        canBeMissing: true,
+    });
+    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
+    console.log('workspaceCardFeeds:', workspaceCardFeeds);
+
+    const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.[selectedFeed]?.accountList : undefined, workspaceCardFeeds);
+
+    console.log(cardFeeds, companyCards, cardsList, filteredCardList);
 
     const getInitialAssignCardStep = (cardID: string | undefined): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
         if (!selectedFeed) {

@@ -563,6 +563,7 @@ function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean 
 /** Returns list of cards which can be assigned */
 function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: string[] | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
+    console.log(customFeedCardsToAssign, cards, list);
     const assignedCards = new Set(Object.values(cards).map((card) => card.cardName));
 
     // Get cards assigned across all workspaces
@@ -580,6 +581,7 @@ function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: 
         }
     }
 
+    console.log(workspaceCardFeeds, allWorkspaceAssignedCards, assignedCards);
     if (accountList) {
         const unassignedDirectFeedCards = accountList.filter((cardNumber) => !assignedCards.has(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
         return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
