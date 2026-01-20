@@ -3,7 +3,6 @@ import React, {useEffect, useState} from 'react';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import {setEndAddress, setIsTracking} from '@libs/actions/GPSDraftDetails';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
@@ -18,8 +17,6 @@ function GPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
 
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
-
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
             const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
@@ -32,6 +29,16 @@ function GPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
+
+        return () => {
+            hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
+                if (!isRunning) {
+                    return;
+                }
+
+                stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
+            });
+        };
     }, []);
 
     const navigateToGpsScreen = () => {
@@ -57,13 +64,9 @@ function GPSTripStateChecker() {
     const stopGpsTrip = async () => {
         setIsTracking(false);
 
-        const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
+        const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
-        if (isBackgroundTaskRunning) {
-            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
-        }
-
-        const lastPoint = gpsDraftDetails?.gpsPoints?.at(-1);
+        const lastPoint = gpsTrip?.gpsPoints?.at(-1);
 
         if (!lastPoint) {
             return;
