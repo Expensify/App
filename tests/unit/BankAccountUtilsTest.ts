@@ -1,7 +1,7 @@
 import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import CONST from '@src/CONST';
-import type AccountData from '@src/types/onyx/AccountData';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import type AccountData from '@src/types/onyx/AccountData';
 
 describe('isPersonalBankAccountMissingInfo', () => {
     const completePersonalDetails: PrivatePersonalDetails = {
