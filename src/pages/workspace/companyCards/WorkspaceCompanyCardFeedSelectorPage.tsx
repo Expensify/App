@@ -67,9 +67,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
         return {
             value: feedName,
-            feed: feedSettings.feed,
+            feed: feedSettings.feed as CompanyCardFeed,
             alternateText: domainName ?? policy?.name,
-            text: getCustomOrFormattedFeedName(feedSettings.feed, feedSettings.customFeedName),
+            text: getCustomOrFormattedFeedName(feedSettings.feed as CompanyCardFeed, feedSettings.customFeedName),
             keyForList: feedName,
             isSelected: feedName === selectedFeedName,
             isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -83,7 +83,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 />
             ) : (
                 <Icon
-                    src={getCardFeedIcon(feedSettings.feed, illustrations, companyCardFeedIcons)}
+                    src={getCardFeedIcon(feedSettings.feed as CompanyCardFeed, illustrations, companyCardFeedIcons)}
                     height={variables.cardIconHeight}
                     width={variables.cardIconWidth}
                     additionalStyles={[styles.mr3, styles.cardIcon]}
