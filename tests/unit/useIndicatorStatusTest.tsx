@@ -5,7 +5,6 @@ import useIndicatorStatus from '@hooks/useIndicatorStatus';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
-import initWithOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {IndicatorTestCase} from '../utils/IndicatorTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -236,6 +235,11 @@ const getMockForTestCase = ({status}: IndicatorTestCase, isAdmin: boolean) =>
                 fundID: String(brokenCardFeed.workspaceAccountID),
                 state: status === CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO ? CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED : CONST.EXPENSIFY_CARD.STATE.OPEN,
             },
+            card1: {
+                bank: 'OTHER_BANK',
+                lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 403 : 200,
+                fundID: String(brokenCardFeed.workspaceAccountID),
+            },
         },
         [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
             legalFirstName: 'John',
@@ -278,7 +282,6 @@ describe('useIndicatorStatusTest', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
-        initWithOnyxDerivedValues();
     });
 
     describe.each(Object.values(TEST_CASES))('$name', (testCase) => {

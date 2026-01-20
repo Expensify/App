@@ -6,7 +6,6 @@ import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
-import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -158,7 +157,6 @@ describe('useAccountTabIndicatorStatus', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
-        initOnyxDerivedValues();
     });
 
     describe.each(Object.values(TEST_CASES))('$name', (testCase) => {

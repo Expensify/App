@@ -75,6 +75,7 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         [CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
         [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersonalDetails?.errorFields?.phoneNumber,
+        [CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR]: hasBrokenFeedConnection,
     };
 
     const infoChecks: Partial<Record<IndicatorStatus, boolean>> = {
@@ -89,7 +90,6 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
             billingStatus,
         ),
         [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList),
-        [CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR]: hasBrokenFeedConnection,
     };
 
     const [accountStatus] = Object.entries(accountChecks).find(([, value]) => value) ?? [];

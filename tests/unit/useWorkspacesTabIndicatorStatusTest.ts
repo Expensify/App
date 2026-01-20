@@ -6,7 +6,6 @@ import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorSta
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
-import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -55,13 +54,13 @@ const TEST_CASES = {
 const getMockForTestCase = ({name}: IndicatorTestCase) =>
     ({
         [ONYXKEYS.SESSION]: {
-            email: name === userID,
+            email: userID,
         },
         [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
             id: WORKSPACE.policyID,
             name: WORKSPACE.policyName,
-            owner: name === userID,
-            role: name === 'admin',
+            owner: userID,
+            role: 'admin',
             workspaceAccountID: WORKSPACE.workspaceAccountID,
             // Policy errors
             errors: name === TEST_CASES.hasPolicyErrors.name ? {policyError: 'Something went wrong'} : undefined,
@@ -128,7 +127,6 @@ describe('useWorkspacesTabIndicatorStatus', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
-        initOnyxDerivedValues();
     });
 
     describe.each(Object.values(TEST_CASES))('$name', (testCase) => {
