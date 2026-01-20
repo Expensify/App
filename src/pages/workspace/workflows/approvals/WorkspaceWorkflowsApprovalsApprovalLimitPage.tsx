@@ -17,7 +17,6 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -72,6 +71,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         if (!isFocused || previousApproverEmail === currentApprover?.email) {
             return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setEditedApprovalLimit(null);
         amountFormRef.current?.updateNumber('');
     }, [isFocused, currentApprover?.email, previousApproverEmail]);
