@@ -1,7 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/routers';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import type useRootNavigationState from '@hooks/useRootNavigationState';
 import {getPolicyNameWithFallback, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -28,7 +28,7 @@ type ContextualReportData = {
  * @param state - The root navigation state from useRootNavigationState hook
  * @returns Object containing contextualReportID (the report ID if on a report screen) and isSearchRouterScreen (whether SearchRouter is focused)
  */
-function getContextualReportData(state: Parameters<Parameters<typeof useRootNavigationState>[0]>[0]): ContextualReportData {
+function getContextualReportData(state: NavigationState | undefined): ContextualReportData {
     // Safe handling when navigation is not yet initialized
     if (!state) {
         return {contextualReportID: undefined, isSearchRouterScreen: false};
