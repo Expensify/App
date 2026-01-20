@@ -80,7 +80,7 @@ function flushOnyxUpdatesQueue() {
     return flushQueue();
 }
 
-let queueFlushedDataToStore: OnyxUpdate[] = [];
+let queueFlushedDataToStore: Array<OnyxUpdate<OnyxKey>> = [];
 
 // Use connectWithoutView since this is for network queue and don't affect to any UI
 Onyx.connectWithoutView({
@@ -93,7 +93,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
+function saveQueueFlushedData(...onyxUpdates: Array<OnyxUpdate<OnyxKey>>) {
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const newValue = [...queueFlushedDataToStore, ...onyxUpdates];
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
