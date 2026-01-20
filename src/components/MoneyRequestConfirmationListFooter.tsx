@@ -515,8 +515,6 @@ function MoneyRequestConfirmationListFooter({
                     disabled={didConfirm}
                     brickRoadIndicator={shouldDisplayFieldError && isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayFieldError && isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
-                    rightLabel={getRightLabel('amount')}
-                    rightLabelIcon={getRightLabelIcon('amount')}
                 />
             ),
             shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
@@ -647,8 +645,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
-                    rightLabel={getRightLabel('merchant', !!isMerchantRequired && !shouldDisplayMerchantError)}
-                    rightLabelIcon={getRightLabelIcon('merchant')}
+                    rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
                     numberOfLinesTitle={2}
                 />
             ),
@@ -764,8 +761,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayFieldError && isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayFieldError && isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
-                    rightLabel={getRightLabel('date', true)}
-                    rightLabelIcon={getRightLabelIcon('date')}
+                    rightLabel={shouldDisplayFieldError && isCreatedMissing(transaction) ? '' : translate('common.required')}
                 />
             ),
             shouldShow: shouldShowDate,
@@ -1211,7 +1207,7 @@ function MoneyRequestConfirmationListFooter({
             )}
 
             <View style={[styles.mb5, styles.mt2]}>
-                {isScan && (
+                {shouldRestrictHeight && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.mr8]}>
                         <Icon
                             src={icons.Sparkles}
