@@ -90,7 +90,7 @@ function IOURequestStepHours({
 
     const navigateBack = () => Navigation.goBack(isEditingConfirmation ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID) : undefined);
 
-    const saveTime = async () => {
+    const saveTime = () => {
         if (rate === undefined) {
             return;
         }
