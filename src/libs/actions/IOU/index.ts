@@ -150,7 +150,6 @@ import {
     getOutstandingChildRequest,
     getParsedComment,
     getPersonalDetailsForAccountID,
-    getPolicyExpenseChat,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
@@ -11919,45 +11918,6 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     });
 }
 
-/**
- * Sets transaction's participant and reportID to the policy's expense chat.
- * Returns the policy expense chat reportID.
- */
-function setMoneyRequestParticipantAsPolicyExpenseChat({
-    transactionID,
-    policyID,
-    currentUserAccountID,
-    isDraft,
-    participantsAutoAssigned,
-}: {
-    transactionID: string;
-    policyID: string;
-    currentUserAccountID: number;
-    isDraft: boolean;
-    participantsAutoAssigned?: boolean;
-}) {
-    const policyExpenseChatReportID = getPolicyExpenseChat(currentUserAccountID, policyID)?.reportID;
-    if (!policyExpenseChatReportID) {
-        return;
-    }
-
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        reportID: policyExpenseChatReportID,
-        participants: [
-            {
-                selected: true,
-                accountID: 0,
-                isPolicyExpenseChat: true,
-                reportID: policyExpenseChatReportID,
-                policyID,
-            },
-        ],
-        participantsAutoAssigned,
-    });
-
-    return policyExpenseChatReportID;
-}
-
 function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxCode});
 }
@@ -14450,7 +14410,6 @@ export {
     getSearchOnyxUpdate,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
-    setMoneyRequestParticipantAsPolicyExpenseChat,
 };
 export type {
     GPSPoint as GpsPoint,

@@ -7,7 +7,6 @@ import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit}
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
@@ -25,20 +24,19 @@ function IOURequestStepPerDiemWorkspace({route, navigation}: IOURequestStepPerDi
             route={route}
             navigation={navigation}
             getPolicies={getActivePoliciesWithExpenseChatAndPerDiemEnabled}
-            onSelectWorkspace={(item, allPolicies) => {
-                const policyExpenseReportID = getPolicyExpenseChat(accountID, item.value)?.reportID;
+            onSelectWorkspace={(policy) => {
+                const policyExpenseReportID = getPolicyExpenseChat(accountID, policy?.id)?.reportID;
                 if (!policyExpenseReportID) {
                     return;
                 }
-                const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.value}`];
-                const perDiemUnit = getPerDiemCustomUnit(selectedPolicy);
+                const perDiemUnit = getPerDiemCustomUnit(policy);
                 setMoneyRequestParticipants(transactionID, [
                     {
                         selected: true,
                         accountID: 0,
                         isPolicyExpenseChat: true,
                         reportID: policyExpenseReportID,
-                        policyID: item.value,
+                        policyID: policy?.id,
                     },
                 ]);
                 setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);

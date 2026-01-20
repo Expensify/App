@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
@@ -31,7 +31,7 @@ type BaseRequestStepWorkspaceProps = WithFullTransactionOrNotFoundProps<typeof S
     getPolicies: (allPolicies: OnyxCollection<Policy>, currentUserLogin: string | undefined) => Policy[];
 
     /** Function to run after selecting a workspace. */
-    onSelectWorkspace: (item: WorkspaceListItem, allPolicies: OnyxCollection<Policy>) => void;
+    onSelectWorkspace: (policy: OnyxEntry<Policy>) => void;
 };
 
 function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}: BaseRequestStepWorkspaceProps) {
@@ -75,9 +75,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
     const sortWorkspaces = (data: WorkspaceListItem[]) => data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
     const [inputValue, setInputValue, filteredWorkspaceOptions] = useSearchResults(workspaceOptions, filterWorkspace, sortWorkspaces);
 
-    const selectWorkspace = (item: WorkspaceListItem) => {
-        onSelectWorkspace(item, allPolicies);
-    };
+    const selectWorkspace = (item: WorkspaceListItem) => onSelectWorkspace(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.value}`]);
 
     return (
         <>

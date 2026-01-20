@@ -10,20 +10,15 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
 import variables from '@styles/variables';
-import {
-    setMoneyRequestAmount,
-    setMoneyRequestMerchant,
-    setMoneyRequestParticipantAsPolicyExpenseChat,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestTimeCount,
-    setMoneyRequestTimeRate,
-} from '@userActions/IOU';
+import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -114,15 +109,17 @@ function IOURequestStepHours({
 
         if (isEmbeddedInStartPage) {
             if (explicitPolicyID) {
-                const policyExpenseChatReportID = setMoneyRequestParticipantAsPolicyExpenseChat({
-                    transactionID,
-                    policyID: explicitPolicyID,
-                    currentUserAccountID: accountID,
-                    isDraft: isTransactionDraft,
-                    participantsAutoAssigned: true,
-                });
+                const policyExpenseChat = getPolicyExpenseChat(accountID, policyID);
+                if (!policyExpenseChat) {
+                    console.error(`Couldn't find policy expense chat for policyID: ${policyID}`);
+                    return;
+                }
+
+                setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
+
                 return Navigation.setNavigationActionToMicrotaskQueue(() =>
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, policyExpenseChatReportID ?? reportID)),
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, policyExpenseChat.reportID)),
                 );
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
