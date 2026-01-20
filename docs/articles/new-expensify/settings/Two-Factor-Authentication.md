@@ -23,17 +23,12 @@ Anyone can enable Two-Factor Authentication on their own account. Domain Admins 
 4. Save a copy of your backup codes:
    - Click **Download** to save them to your computer.
    - Click **Copy** to store them in a secure location.
-**Important:** If you lose access to your authenticator app and didn’t save your recovery codes, you may permanently lose access to your account. Consider adding 2FA on multiple devices (e.g., phone and tablet) for backup.  
 5. Click **Continue**.
 6. Open your authenticator app and either:
    - Scan the QR code displayed on your screen.
    - Enter the 6-digit code from your authenticator app into Expensify and then click **Verify**.
 
-**Once set up, when logging into Expensify, you will:**
-- Receive a Magic Code email to initiate login.
-- Be prompted to enter a 6-digit code from your authenticator app.
-
-If you receive a message that the code is expired, open your authenticator app to get the most recent code.
+**Important:** If you lose access to your authenticator app and didn’t save your recovery codes, you may permanently lose access to your account. Consider adding 2FA on multiple devices (e.g., phone and tablet) for backup.  
 
 ---
 
@@ -47,7 +42,7 @@ After setup, login requires both:
 
 ## For Domain Admins: Reset Two-Factor Authentication for a member
 
-If a member loses access to their authenticator app or recovery codes, you can reset their 2FA — *but only if*:
+If a member loses access to their authenticator app or recovery codes, you can reset their 2FA if: 
 - They use a company email on your verified domain, **and**
 - You (the Domain Admin) also have 2FA enabled
 
