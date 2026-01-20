@@ -289,7 +289,7 @@ const translations: TranslationDeepObject<typeof en> = {
         wallet: 'Portafoglio',
         preferences: 'Preferenze',
         view: 'Visualizza',
-        review: (reviewParams?: ReviewParams) => `Verifica${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
+        review: (amount?: string) => `Verifica${amount ? ` ${amount}` : ''}`,
         not: 'Non',
         signIn: 'Accedi',
         signInWithGoogle: 'Accedi con Google',
@@ -822,7 +822,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase2: 'I soldi parlano. E ora che chat e pagamenti sono in un unico posto, è anche facile.',
         phrase3: 'I tuoi pagamenti arrivano da te veloci quanto riesci a far passare il tuo messaggio.',
         enterPassword: 'Per favore, inserisci la tua password',
-        welcomeNewFace: ({login}: SignUpNewFaceCodeParams) => `${login}, è sempre bello vedere una nuova faccia da queste parti!`,
+        welcomeNewFace: (login: string) => `${login}, è sempre bello vedere una nuova faccia da queste parti!`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Inserisci il codice magico inviato a ${login}. Dovrebbe arrivare entro uno o due minuti.`,
     },
     login: {
@@ -1202,20 +1202,15 @@ const translations: TranslationDeepObject<typeof en> = {
         settledElsewhere: 'Pagato altrove',
         individual: 'Individuale',
         business: 'Business',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} con Expensify` : `Paga con Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} come individuo` : `Paga con conto personale`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} con il portafoglio` : `Paga con portafoglio`),
-        settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Paga ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} come azienda` : `Paga con conto aziendale`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Segna ${formattedAmount} come pagato` : `Segna come pagato`),
+        settleExpensify: (formattedAmount: string) => (formattedAmount ? `Paga ${formattedAmount} con Expensify` : `Paga con Expensify`),
+        settlePersonal: (formattedAmount: string) => (formattedAmount ? `Paga ${formattedAmount} come individuo` : `Paga con conto personale`),
+        settleWallet: (formattedAmount: string) => (formattedAmount ? `Paga ${formattedAmount} con il portafoglio` : `Paga con portafoglio`),
+        settlePayment: (formattedAmount: string) => `Paga ${formattedAmount}`,
+        settleBusiness: (formattedAmount: string) => (formattedAmount ? `Paga ${formattedAmount} come azienda` : `Paga con conto aziendale`),
+        payElsewhere: (formattedAmount: string) => (formattedAmount ? `Segna ${formattedAmount} come pagato` : `Segna come pagato`),
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `pagato ${amount} con conto personale ${last4Digits}` : `Pagato con conto personale`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `pagato ${amount} con conto business ${last4Digits}` : `Pagato con conto aziendale`),
-        payWithPolicy: ({
-            formattedAmount,
-            policyName,
-        }: SettleExpensifyCardParams & {
-            policyName: string;
-        }) => (formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`),
+        payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`),
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `pagato ${amount} con il conto bancario ${last4Digits}` : `pagato con conto bancario ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `pagato ${amount ? `${amount} ` : ''} con conto bancario ${last4Digits} tramite <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
@@ -1224,7 +1219,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextStep: 'Prossimi passi',
         finished: 'Completato',
         flip: 'Capovolgi',
-        sendInvoice: ({amount}: RequestAmountParams) => `Invia fattura di ${amount}`,
+        sendInvoice: (amount: string) => `Invia fattura di ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `per ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `inviato${memo ? `, dicendo ${memo}` : ''}`,
         automaticallySubmitted: `inviato tramite <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">invio ritardato</a>`,
@@ -1254,7 +1249,7 @@ const translations: TranslationDeepObject<typeof en> = {
         adminCanceledRequest: 'ha annullato il pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ha annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha abilitato il proprio Expensify Wallet entro 30 giorni`,
-        settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
+        settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) =>
             `${submitterDisplayName} ha aggiunto un conto bancario. Il pagamento di ${amount} è stato effettuato.`,
         paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}segnato come pagato${comment ? `, dicendo "${comment}"` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pagato con portafoglio`,
@@ -1263,8 +1258,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'Questo resoconto ha un importo non valido',
         pendingConversionMessage: 'Il totale verrà aggiornato quando torni online',
         changedTheExpense: 'ha modificato la spesa',
-        setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `il/la ${valueName} a ${newValueToDisplay}`,
-        setTheDistanceMerchant: ({translatedChangedField, newMerchant, newAmountToDisplay}: SetTheDistanceMerchantParams) =>
+        setTheRequest: (valueName: string, newValueToDisplay: string) => `il/la ${valueName} a ${newValueToDisplay}`,
+        setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `imposta ${translatedChangedField} su ${newMerchant}, che ha impostato l’importo su ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `il ${valueName} (precedentemente ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `il ${valueName} a ${newValueToDisplay} (precedentemente ${oldValueToDisplay})`,
@@ -1284,7 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidAmount: 'Inserisci un importo valido prima di continuare',
             invalidDistance: 'Per favore, inserisci una distanza valida prima di continuare',
             invalidIntegerAmount: 'Inserisci un importo intero in dollari prima di continuare',
-            invalidTaxAmount: ({amount}: RequestAmountParams) => `L'importo massimo delle imposte è ${amount}`,
+            invalidTaxAmount: (amount: string) => `L'importo massimo delle imposte è ${amount}`,
             invalidSplit: 'La somma delle suddivisioni deve essere uguale all’importo totale',
             invalidSplitParticipants: 'Inserisci un importo maggiore di zero per almeno due partecipanti',
             invalidSplitYourself: 'Inserisci un importo diverso da zero per la tua suddivisione',
@@ -1466,7 +1461,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: 'Dividi date',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} giorni)`,
         splitByDate: 'Dividi per data',
-        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapporto inoltrato a ${to} a causa del flusso di lavoro di approvazione personalizzato`,
+        routedDueToDEW: (to: string) => `rapporto inoltrato a ${to} a causa del flusso di lavoro di approvazione personalizzato`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'ora' : 'ore'} @ ${rate} / ora`,
             hrs: 'ore',
@@ -2424,7 +2419,7 @@ ${amount} per ${merchant} - ${date}`,
         },
     },
     reportDetailsPage: {
-        inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
+        inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'Generazione del PDF in corso...',
         waitForPDF: 'Attendi mentre generiamo il PDF.',
         errorPDF: 'Si è verificato un errore durante il tentativo di generare il tuo PDF.',
@@ -3571,7 +3566,7 @@ ${
         pleaseUpload: 'Carica ulteriori documenti qui sotto per aiutarci a verificare la tua identità come amministratore dell’azienda.',
         enterSignerInfo: 'Inserisci le informazioni del firmatario',
         thisStep: 'Questo passaggio è stato completato',
-        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+        isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
             `sta collegando un conto bancario aziendale in ${currency} che termina con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passo richiede le informazioni del firmatario da un direttore.`,
         error: {
             emailsMustBeDifferent: 'Le email devono essere diverse',
@@ -3864,7 +3859,7 @@ ${
             memberAlternateText: 'Invia e approva i report.',
             adminAlternateText: 'Gestisci i report e le impostazioni dello spazio di lavoro.',
             auditorAlternateText: 'Visualizza e commenta i report.',
-            roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
+            roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Amministratore';
@@ -4565,7 +4560,7 @@ ${
                 importCustomFields: {
                     chooseOptionBelow: "Scegli un'opzione qui sotto:",
                     label: (importedTypes: string[]) => `Importato come ${importedTypes.join('e')}`,
-                    requiredFieldError: ({fieldName}: RequiredFieldParams) => `Inserisci il/la ${fieldName}`,
+                    requiredFieldError: (fieldName: string) => `Inserisci il/la ${fieldName}`,
                     customSegments: {
                         title: 'Segmenti/record personalizzati',
                         addText: 'Aggiungi segmento/record personalizzato',
@@ -4639,7 +4634,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             customRecordMappingTitle: 'Come deve essere visualizzato questo record personalizzato in Expensify?',
                         },
                         errors: {
-                            uniqueFieldError: ({fieldName}: RequiredFieldParams) => `Un segmento/record personalizzato con questo ${fieldName?.toLowerCase()} esiste già`,
+                            uniqueFieldError: (fieldName: string) => `Un segmento/record personalizzato con questo ${fieldName?.toLowerCase()} esiste già`,
                         },
                     },
                     customLists: {
@@ -4886,7 +4881,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             limit: 'Limite',
             currentBalance: 'Saldo attuale',
             currentBalanceDescription: 'Il saldo attuale è la somma di tutte le transazioni registrate con Expensify Card che si sono verificate dalla data dell’ultima liquidazione.',
-            balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `Il saldo sarà regolato il ${settlementDate}`,
+            balanceWillBeSettledOn: (settlementDate: string) => `Il saldo sarà regolato il ${settlementDate}`,
             settleBalance: 'Saldo da regolare',
             cardLimit: 'Limite carta',
             remainingLimit: 'Limite rimanente',
@@ -4903,7 +4898,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             addNewBankAccount: 'Aggiungi un nuovo conto bancario',
             settlementAccount: 'Conto di regolamento',
             settlementAccountDescription: 'Scegli un conto con cui pagare il saldo della tua Expensify Card.',
-            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
                 `Assicurati che questo conto corrisponda al tuo <a href="${reconciliationAccountSettingsLink}">Conto di riconciliazione</a> (${accountNumber}) in modo che la Riconciliazione continua funzioni correttamente.`,
             settlementFrequency: 'Frequenza del pagamento',
             settlementFrequencyDescription: 'Scegli con quale frequenza pagherai il saldo della tua carta Expensify.',
@@ -5461,7 +5456,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 genericRemove: 'Si è verificato un problema durante la rimozione di quel membro dello spazio di lavoro',
             },
             addedWithPrimary: 'Alcuni membri sono stati aggiunti con i loro accessi principali.',
-            invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Aggiunto dall'accesso secondario ${secondaryLogin}.`,
+            invitedBySecondaryLogin: (secondaryLogin: string) => `Aggiunto dall'accesso secondario ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Membri totali dello spazio di lavoro: ${count}`,
             importMembers: 'Importa membri',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
@@ -5773,7 +5768,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 `<muted-text-label>Per abilitare la Riconciliazione continua, abilita la <a href="${accountingAdvancedSettingsLink}">sincronizzazione automatica</a> per ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Scegli il conto bancario con cui verranno riconciliati i pagamenti della tua Expensify Card.',
-                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Assicurati che questo conto corrisponda al tuo <a href="${settlementAccountUrl}">conto di regolamento Expensify Card</a> (che termina con ${lastFourPAN}) affinché il Riconoscimento Continuo funzioni correttamente.`,
             },
         },
@@ -6255,7 +6250,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     always: 'Richiedi sempre le ricevute',
                 },
                 defaultTaxRate: 'Aliquota fiscale predefinita',
-                enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
+                enableWorkflows: (moreFeaturesLink: string) =>
                     `Vai su [Altre funzionalità](${moreFeaturesLink}) e abilita i flussi di lavoro, quindi aggiungi le approvazioni per sbloccare questa funzionalità.`,
             },
             customRules: {
@@ -6322,7 +6317,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         public_announceDescription: 'Chiunque può trovare questa stanza',
         createRoom: 'Crea stanza',
         roomAlreadyExistsError: 'Esiste già una stanza con questo nome',
-        roomNameReservedError: ({reservedName}: RoomNameReservedErrorParams) => `${reservedName} è una stanza predefinita in tutti gli spazi di lavoro. Scegli un altro nome.`,
+        roomNameReservedError: (reservedName: string) => `${reservedName} è una stanza predefinita in tutti gli spazi di lavoro. Scegli un altro nome.`,
         roomNameInvalidError: 'I nomi delle stanze possono includere solo lettere minuscole, numeri e trattini',
         pleaseEnterRoomName: 'Per favore inserisci un nome per la stanza',
         pleaseSelectWorkspace: 'Seleziona un workspace',
@@ -6332,7 +6327,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 ? `${actor}rinominato in "${newName}" (precedentemente "${oldName}")`
                 : `${actor}ha rinominato questa stanza in "${newName}" (precedentemente "${oldName}")`;
         },
-        roomRenamedTo: ({newName}: RoomRenamedToParams) => `Stanza rinominata in ${newName}`,
+        roomRenamedTo: (newName: string) => `Stanza rinominata in ${newName}`,
         social: 'Social',
         selectAWorkspace: 'Seleziona uno spazio di lavoro',
         growlMessageOnRenameError: 'Impossibile rinominare la stanza dello spazio di lavoro. Controlla la connessione e riprova.',
@@ -6823,10 +6818,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             currency: 'Valuta',
             completed: 'Completato',
             amount: {
-                lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Meno di ${amount ?? ''}`,
-                greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Maggiore di ${amount ?? ''}`,
+                lessThan: (amount?: string) => `Meno di ${amount ?? ''}`,
+                greaterThan: (amount?: string) => `Maggiore di ${amount ?? ''}`,
                 between: (greaterThan: string, lessThan: string) => `Tra ${greaterThan} e ${lessThan}`,
-                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Uguale a ${amount ?? ''}`,
+                equalTo: (amount?: string) => `Uguale a ${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',
@@ -6837,7 +6832,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     `Tutti gli ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Tutte le carte CSV importate${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
             },
-            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} è ${value}`,
+            reportField: (name: string, value: string) => `${name} è ${value}`,
             current: 'Attuale',
             past: 'Passato',
             submitted: 'Inviato',
@@ -7366,7 +7361,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         noRoute: 'Seleziona un indirizzo valido',
     },
     reportViolations: {
-        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} è obbligatorio`,
         reportContainsExpensesWithViolations: 'Il report contiene spese con violazioni.',
     },
     violationDismissal: {

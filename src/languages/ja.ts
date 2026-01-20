@@ -289,7 +289,7 @@ const translations: TranslationDeepObject<typeof en> = {
         wallet: 'ウォレット',
         preferences: '設定',
         view: '表示',
-        review: (reviewParams?: ReviewParams) => `レビュー${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
+        review: (amount?: string) => `レビュー${amount ? ` ${amount}` : ''}`,
         not: 'いいえ',
         signIn: 'サインイン',
         signInWithGoogle: 'Google でサインイン',
@@ -820,7 +820,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase2: 'お金がものを言う。そして今、チャットと支払いがひとつの場所にまとまったことで、それも簡単になりました。',
         phrase3: 'あなたの主張を伝える速さと同じくらい、支払いもすぐに届きます。',
         enterPassword: 'パスワードを入力してください',
-        welcomeNewFace: ({login}: SignUpNewFaceCodeParams) => `${login} さん、ここで新しいお顔を拝見できてとてもうれしいです！`,
+        welcomeNewFace: (login: string) => `${login} さん、ここで新しいお顔を拝見できてとてもうれしいです！`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `${login} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
     },
     login: {
@@ -1202,20 +1202,15 @@ const translations: TranslationDeepObject<typeof en> = {
         settledElsewhere: '他で支払済み',
         individual: '個人',
         business: 'ビジネス',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Expensify で ${formattedAmount} を支払う` : `Expensify で支払う`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `個人として ${formattedAmount} を支払う` : `個人アカウントで支払う`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `ウォレットで${formattedAmount}を支払う` : `ウォレットで支払う`),
-        settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `${formattedAmount} を支払う`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} をビジネスとして支払う` : `ビジネスアカウントで支払う`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} を支払済みにする` : `支払い済みにする`),
+        settleExpensify: (formattedAmount: string) => (formattedAmount ? `Expensify で ${formattedAmount} を支払う` : `Expensify で支払う`),
+        settlePersonal: (formattedAmount: string) => (formattedAmount ? `個人として ${formattedAmount} を支払う` : `個人アカウントで支払う`),
+        settleWallet: (formattedAmount: string) => (formattedAmount ? `ウォレットで${formattedAmount}を支払う` : `ウォレットで支払う`),
+        settlePayment: (formattedAmount: string) => `${formattedAmount} を支払う`,
+        settleBusiness: (formattedAmount: string) => (formattedAmount ? `${formattedAmount} をビジネスとして支払う` : `ビジネスアカウントで支払う`),
+        payElsewhere: (formattedAmount: string) => (formattedAmount ? `${formattedAmount} を支払済みにする` : `支払い済みにする`),
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `個人アカウント ${last4Digits} で ${amount} を支払いました` : `個人アカウントで支払い済み`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `ビジネスアカウント ${last4Digits} で ${amount} を支払いました` : `ビジネスアカウントで支払い済み`),
-        payWithPolicy: ({
-            formattedAmount,
-            policyName,
-        }: SettleExpensifyCardParams & {
-            policyName: string;
-        }) => (formattedAmount ? `${policyName} で ${formattedAmount} を支払う` : `${policyName}で支払う`),
+        payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `${policyName} で ${formattedAmount} を支払う` : `${policyName}で支払う`),
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `銀行口座 ${last4Digits} で ${amount} を支払いました` : `銀行口座（下4桁 ${last4Digits}）で支払い済み`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `銀行口座 ${last4Digits} から <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a> により ${amount ? `${amount} ` : ''} を支払いました`,
@@ -1224,7 +1219,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextStep: '次のステップ',
         finished: '完了',
         flip: '反転',
-        sendInvoice: ({amount}: RequestAmountParams) => `${amount} の請求書を送信`,
+        sendInvoice: (amount: string) => `${amount} の請求書を送信`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `${comment} 用` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `送信済み${memo ? `、メモ「${memo}」と述べています` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を通じて送信されました`,
@@ -1254,8 +1249,7 @@ const translations: TranslationDeepObject<typeof en> = {
         adminCanceledRequest: '支払いをキャンセルしました',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いはキャンセルされました`,
-        settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
-            `${submitterDisplayName} が銀行口座を追加しました。${amount} の支払いが行われました。`,
+        settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) => `${submitterDisplayName} が銀行口座を追加しました。${amount} の支払いが行われました。`,
         paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}は支払済みにマークされました${comment ? `、「${comment}」と言っています` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}はウォレットで支払い済み`,
         automaticallyPaidWithExpensify: (payer?: string) =>
@@ -1263,8 +1257,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'このレポートには無効な金額が含まれています',
         pendingConversionMessage: 'オンラインに戻ると合計が更新されます',
         changedTheExpense: '経費を変更しました',
-        setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `${valueName} を ${newValueToDisplay} に`,
-        setTheDistanceMerchant: ({translatedChangedField, newMerchant, newAmountToDisplay}: SetTheDistanceMerchantParams) =>
+        setTheRequest: (valueName: string, newValueToDisplay: string) => `${valueName} を ${newValueToDisplay} に`,
+        setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `${translatedChangedField} を ${newMerchant} に設定したため、金額が ${newAmountToDisplay} に設定されました`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `${valueName}（以前は ${oldValueToDisplay}）`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `${valueName} を ${newValueToDisplay} に（以前は ${oldValueToDisplay}）`,
@@ -1283,7 +1277,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidAmount: '続行する前に有効な金額を入力してください',
             invalidDistance: '続行する前に有効な距離を入力してください',
             invalidIntegerAmount: '続行する前に、ドルの整数金額を入力してください',
-            invalidTaxAmount: ({amount}: RequestAmountParams) => `最大税額は${amount}です`,
+            invalidTaxAmount: (amount: string) => `最大税額は${amount}です`,
             invalidSplit: '分割の合計は合計金額と一致している必要があります',
             invalidSplitParticipants: '少なくとも 2 人の参加者に対して、0 より大きい金額を入力してください',
             invalidSplitYourself: 'スプリットには 0 以外の金額を入力してください',
@@ -1464,7 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: '日付を分割',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
-        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
+        routedDueToDEW: (to: string) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours}  ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`,
             hrs: '時間',
@@ -2413,7 +2407,7 @@ ${merchant} への ${amount}（${date}）`,
         },
     },
     reportDetailsPage: {
-        inWorkspace: ({policyName}: ReportPolicyNameParams) => `${policyName} 内`,
+        inWorkspace: (policyName: string) => `${policyName} 内`,
         generatingPDF: 'PDFを生成',
         waitForPDF: 'PDFを生成しています。しばらくお待ちください。',
         errorPDF: 'PDFの生成中にエラーが発生しました。',
@@ -3559,7 +3553,7 @@ ${
         pleaseUpload: 'ビジネスの取締役であることを確認するため、以下に追加の書類をアップロードしてください。',
         enterSignerInfo: '署名者情報を入力',
         thisStep: 'このステップは完了しました',
-        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+        isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
             `は、末尾が${bankAccountLastFour}の${currency}建てビジネス銀行口座をExpensifyに接続し、従業員への${currency}での支払いに利用しようとしています。次のステップでは、取締役の署名者情報が必要です。`,
         error: {
             emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
@@ -3852,7 +3846,7 @@ ${
             memberAlternateText: 'レポートを提出して承認する。',
             adminAlternateText: 'レポートとワークスペース設定を管理します。',
             auditorAlternateText: 'レポートを表示してコメントする。',
-            roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
+            roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
                         return '管理者';
@@ -4538,7 +4532,7 @@ ${
                 importCustomFields: {
                     chooseOptionBelow: '以下からオプションを選択してください：',
                     label: (importedTypes: string[]) => `${importedTypes.join('と')} としてインポートされました`,
-                    requiredFieldError: ({fieldName}: RequiredFieldParams) => `${fieldName}を入力してください`,
+                    requiredFieldError: (fieldName: string) => `${fieldName}を入力してください`,
                     customSegments: {
                         title: 'カスタムセグメント／レコード',
                         addText: 'カスタムセグメント／レコードを追加',
@@ -4612,7 +4606,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                             customRecordMappingTitle: 'このカスタムレコードは Expensify でどのように表示されるべきですか？',
                         },
                         errors: {
-                            uniqueFieldError: ({fieldName}: RequiredFieldParams) => `この${fieldName?.toLowerCase()}を持つカスタムセグメント / レコードは既に存在します`,
+                            uniqueFieldError: (fieldName: string) => `この${fieldName?.toLowerCase()}を持つカスタムセグメント / レコードは既に存在します`,
                         },
                     },
                     customLists: {
@@ -4859,7 +4853,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             limit: '制限',
             currentBalance: '現在の残高',
             currentBalanceDescription: '現在の残高は、前回の決済日以降に発生した、すべての計上済み Expensify Card 取引の合計です。',
-            balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `残高は${settlementDate}に清算されます`,
+            balanceWillBeSettledOn: (settlementDate: string) => `残高は${settlementDate}に清算されます`,
             settleBalance: '残高を精算',
             cardLimit: 'カード上限',
             remainingLimit: '残りの上限',
@@ -4876,7 +4870,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             addNewBankAccount: '新しい銀行口座を追加',
             settlementAccount: '決済口座',
             settlementAccountDescription: 'Expensify Card の残高を支払う口座を選択してください。',
-            settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
                 `このアカウントが、連続照合が正しく機能するように、<a href="${reconciliationAccountSettingsLink}">照合アカウント</a>（${accountNumber}）と一致していることを確認してください。`,
             settlementFrequency: '清算頻度',
             settlementFrequencyDescription: 'Expensify Card の残高を支払う頻度を選択してください。',
@@ -5427,7 +5421,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 genericRemove: 'そのワークスペースメンバーの削除中に問題が発生しました',
             },
             addedWithPrimary: '一部のメンバーはプライマリログインで追加されました。',
-            invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `セカンダリログイン ${secondaryLogin} によって追加されました。`,
+            invitedBySecondaryLogin: (secondaryLogin: string) => `セカンダリログイン ${secondaryLogin} によって追加されました。`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `ワークスペースのメンバー合計: ${count}`,
             importMembers: 'メンバーをインポート',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
@@ -5737,7 +5731,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 `<muted-text-label>継続的な照合を有効にするには、${connectionName} の<a href="${accountingAdvancedSettingsLink}">自動同期</a>を有効にしてください。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Expensify Card の支払いを照合する銀行口座を選択してください。',
-                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Continuous Reconciliation が正しく機能するように、このアカウントが <a href="${settlementAccountUrl}">Expensify Card 決済用口座</a>（末尾 ${lastFourPAN}）と一致していることを確認してください。`,
             },
         },
@@ -6212,8 +6206,7 @@ ${reportName}
                     always: '常に領収書を必須にする',
                 },
                 defaultTaxRate: '既定の税率',
-                enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
-                    `[その他の機能](${moreFeaturesLink})に移動してワークフローを有効にし、承認を追加してこの機能を有効化してください。`,
+                enableWorkflows: (moreFeaturesLink: string) => `[その他の機能](${moreFeaturesLink})に移動してワークフローを有効にし、承認を追加してこの機能を有効化してください。`,
             },
             customRules: {
                 title: '経費ポリシー',
@@ -6279,7 +6272,7 @@ ${reportName}
         public_announceDescription: '誰でもこのルームを見つけることができます',
         createRoom: 'ルームを作成',
         roomAlreadyExistsError: 'この名前のルームは既に存在します',
-        roomNameReservedError: ({reservedName}: RoomNameReservedErrorParams) => `${reservedName} はすべてのワークスペースで使用されるデフォルトのルーム名です。別の名前を選択してください。`,
+        roomNameReservedError: (reservedName: string) => `${reservedName} はすべてのワークスペースで使用されるデフォルトのルーム名です。別の名前を選択してください。`,
         roomNameInvalidError: 'ルーム名には、小文字の英字、数字、およびハイフンのみを使用できます',
         pleaseEnterRoomName: 'ルーム名を入力してください',
         pleaseSelectWorkspace: 'ワークスペースを選択してください',
@@ -6287,7 +6280,7 @@ ${reportName}
             const actor = actorName ? `${actorName} ` : '';
             return isExpenseReport ? `${actor}は"${newName}"に名前を変更しました（以前は"${oldName}"）` : `${actor}がこのルーム名を「${newName}」（以前は「${oldName}」）に変更しました`;
         },
-        roomRenamedTo: ({newName}: RoomRenamedToParams) => `ルーム名が${newName}に変更されました`,
+        roomRenamedTo: (newName: string) => `ルーム名が${newName}に変更されました`,
         social: 'ソーシャル',
         selectAWorkspace: 'ワークスペースを選択',
         growlMessageOnRenameError: 'ワークスペースルームの名前を変更できません。接続を確認して、もう一度お試しください。',
@@ -6764,10 +6757,10 @@ ${reportName}
             currency: '通貨',
             completed: '完了',
             amount: {
-                lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} 未満`,
-                greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''}より大きい`,
+                lessThan: (amount?: string) => `${amount ?? ''} 未満`,
+                greaterThan: (amount?: string) => `${amount ?? ''}より大きい`,
                 between: (greaterThan: string, lessThan: string) => `${greaterThan} から ${lessThan} まで`,
-                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} と等しい`,
+                equalTo: (amount?: string) => `${amount ?? ''} と等しい`,
             },
             card: {
                 expensify: 'Expensify',
@@ -6778,7 +6771,7 @@ ${reportName}
                     `すべての${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `すべてのCSVインポート済みカード${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
             },
-            reportField: ({name, value}: OptionalParam<ReportFieldParams>) => `${name} は ${value} です`,
+            reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
             past: '過去',
             submitted: '提出済み',
@@ -7305,7 +7298,7 @@ ${reportName}
         noRoute: '有効な住所を選択してください',
     },
     reportViolations: {
-        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} は必須です`,
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} は必須です`,
         reportContainsExpensesWithViolations: 'レポートに違反のある経費が含まれています。',
     },
     violationDismissal: {
