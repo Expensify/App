@@ -6,7 +6,7 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import {Checkmark} from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
 
@@ -69,7 +69,7 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, onStepSelect
                         >
                             {isCompletedStep ? (
                                 <Icon
-                                    src={Expensicons.Checkmark}
+                                    src={Checkmark}
                                     width={variables.iconSizeNormal}
                                     height={variables.iconSizeNormal}
                                     fill={colors.white}
