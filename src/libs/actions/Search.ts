@@ -386,11 +386,15 @@ function handlePreventSearchAPI(hash: number | undefined) {
     return {
         enableSearchAPIPrevention: () => {
             shouldPreventSearchAPI = true;
-            Onyx.update(optimisticData);
+            if (optimisticData) {
+                Onyx.update(optimisticData);
+            }
         },
         disableSearchAPIPrevention: () => {
             shouldPreventSearchAPI = false;
-            Onyx.update(finallyData);
+            if (finallyData) {
+                Onyx.update(finallyData);
+            }
         },
     };
 }
