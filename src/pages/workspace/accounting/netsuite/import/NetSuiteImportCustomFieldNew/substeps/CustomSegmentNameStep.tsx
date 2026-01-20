@@ -38,11 +38,12 @@ function CustomSegmentNameStep({customSegmentType, onNext, isEditing, customSegm
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
 
             if (!isRequiredFulfilled(values[INPUT_IDS.SEGMENT_NAME])) {
-                errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {
-                    fieldName: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}Name`),
-                });
+                errors[INPUT_IDS.SEGMENT_NAME] = translate(
+                    'workspace.netsuite.import.importCustomFields.requiredFieldError',
+                    translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}Name`),
+                );
             } else if (customSegments?.find((customSegment) => customSegment.segmentName.toLowerCase() === values[INPUT_IDS.SEGMENT_NAME].toLowerCase())) {
-                errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
+                errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);
             }
             return errors;
         },
