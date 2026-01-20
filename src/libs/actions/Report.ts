@@ -3632,7 +3632,7 @@ function getCurrentUserAccountID(): number {
 }
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
+    const lastAccessedReportID = findLastAccessedReport(false, conciergeReportID ?? '', false, undefined, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
         // Check if route exists for super wide RHP vs regular full screen report
@@ -3657,7 +3657,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
 }
 
 function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
+    const lastAccessedReportID = findLastAccessedReport(false, conciergeReportID ?? '', false, undefined, currentReport?.reportID)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
 }
 

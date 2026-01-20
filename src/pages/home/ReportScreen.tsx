@@ -185,6 +185,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -209,7 +210,11 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             return;
         }
 
-        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom)?.reportID;
+        const lastAccessedReportID = findLastAccessedReport(
+            !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            conciergeReportID,
+            'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
+        )?.reportID;
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
@@ -220,7 +225,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
             navigation.setParams({reportID: lastAccessedReportID});
         });
-    }, [isBetaEnabled, navigation, route.params]);
+    }, [isBetaEnabled, navigation, route.params, conciergeReportID]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
