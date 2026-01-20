@@ -408,7 +408,7 @@ function SearchPage({route}: SearchPageProps) {
         approveMoneyRequestOnSearch(
             hash,
             reportIDList.filter((reportID) => reportID !== undefined),
-            dewPolicy,
+            !!dewPolicy,
         );
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {

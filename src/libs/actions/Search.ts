@@ -130,7 +130,7 @@ function handleActionButtonPress({
                 onDEWModalOpen?.();
                 return;
             }
-            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], snapshotPolicy, currentSearchKey);
+            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], hasDynamicExternalWorkflow(snapshotPolicy), currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
@@ -533,9 +533,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], policy?: Policy, currentSearchKey?: SearchKey) {
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
-
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], isDEWPolicy?: boolean, currentSearchKey?: SearchKey) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,

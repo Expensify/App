@@ -299,7 +299,8 @@ describe('getPrimaryAction', () => {
         ).toBe('');
     });
 
-    it('should return false from isApproveAction when DEW approval is pending', async () => {
+    it('should return true from isApproveAction for DEW policy report without pending approval', async () => {
+        // Given a submitted expense report on a DEW policy without any pending approval action
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -320,10 +321,35 @@ describe('getPrimaryAction', () => {
             date: '2025-01-01',
         } as unknown as Transaction;
 
-        // Without DEW pending, isApproveAction should return true
+        // When checking if approve action is available
+        // Then it should return true because DEW approval is not in progress
         expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, policy)).toBe(true);
+    });
 
-        // With DEW pending, isApproveAction should return false
+    it('should return false from isApproveAction for DEW policy report with pending approval', async () => {
+        // Given a submitted expense report on a DEW policy with a pending approval action
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        // When checking if approve action is available while DEW approval is pending
+        // Then it should return false because DEW is already processing an approval
         expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, policy, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE})).toBe(false);
     });
 
