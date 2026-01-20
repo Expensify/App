@@ -109,8 +109,8 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     };
 
     const updateCurrentApprover = (update: Partial<Approver>) => {
-        const hasChanges = update.approvalLimit !== currentApprover?.approvalLimit || update.overLimitForwardsTo !== currentApprover?.overLimitForwardsTo;
-        if (!approvalWorkflow || !currentApprover || !hasChanges) {
+        const shouldSkipUpdate = update.approvalLimit === currentApprover?.approvalLimit && update.overLimitForwardsTo === currentApprover?.overLimitForwardsTo;
+        if (!approvalWorkflow || !currentApprover || shouldSkipUpdate) {
             return;
         }
 
