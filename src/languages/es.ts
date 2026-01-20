@@ -4438,8 +4438,10 @@ ${amount} para ${merchant} - ${date}`,
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
             error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Error al cargar las fuentes de tarjetas del espacio de trabajo',
                 workspaceFeedsCouldNotBeLoadedMessage:
                     'Ocurrió un error al cargar las fuentes de tarjetas del espacio de trabajo. Por favor, inténtelo de nuevo o contacte a su administrador.',
+                feedCouldNotBeLoadedTitle: 'Error al cargar esta fuente de tarjetas',
                 feedCouldNotBeLoadedMessage: 'Ocurrió un error al cargar esta fuente de tarjetas. Por favor, inténtelo de nuevo o contacte a su administrador.',
                 tryAgain: 'Inténtalo de nuevo',
             },
