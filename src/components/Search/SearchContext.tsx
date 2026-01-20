@@ -87,7 +87,7 @@ function SearchContextProvider({children}: ChildrenProps) {
                 total: liveData.metadata.total,
                 currency: liveData.metadata.currency,
             };
-            const hasResults = Object.keys(liveData).length > 0;
+            const hasResults = Object.keys(liveData.data).length > 0;
             // For to-do searches, always return a valid SearchResults object (even with empty data)
             // This ensures we show the empty state instead of loading/blocking views
             return {
