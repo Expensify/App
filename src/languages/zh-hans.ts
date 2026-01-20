@@ -3076,6 +3076,7 @@ ${
         errorMessageInvalidPhone: `请输入不带括号或短横线的有效电话号码。如果您在美国以外，请包含您的国家区号（例如：${CONST.EXAMPLE_PHONE_NUMBER}）。`,
         errorMessageInvalidEmail: '无效的邮箱',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} 已经是 ${name} 的成员`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} 已经是 ${name} 的管理员`,
     },
     onfidoStep: {
         acceptTerms: '通过继续申请激活您的 Expensify Wallet，即表示您确认已阅读、理解并接受',

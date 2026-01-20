@@ -3143,6 +3143,7 @@ ${
         errorMessageInvalidPhone: `Veuillez saisir un numéro de téléphone valide sans parenthèses ni tirets. Si vous êtes en dehors des États-Unis, veuillez inclure votre indicatif de pays (p. ex. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Adresse e-mail invalide',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} est déjà membre de ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} est déjà administrateur de ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'En poursuivant la demande d’activation de votre Expensify Wallet, vous confirmez que vous avez lu, compris et accepté',

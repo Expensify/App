@@ -3127,6 +3127,7 @@ ${
         errorMessageInvalidPhone: `Per favore inserisci un numero di telefono valido senza parentesi o trattini. Se ti trovi fuori dagli Stati Uniti, includi il prefisso del tuo paese (ad es. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email non valido',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} è già un membro di ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} è già un amministratore di ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Continuando con la richiesta di attivare il tuo Expensify Wallet, confermi di aver letto, compreso e accettato',

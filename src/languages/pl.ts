@@ -3119,6 +3119,7 @@ ${
         errorMessageInvalidPhone: `Wprowadź prawidłowy numer telefonu bez nawiasów i myślników. Jeśli jesteś poza USA, dołącz kod kraju (np. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Nieprawidłowy adres e-mail',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} jest już członkiem ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} jest już administratorem ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Kontynuując żądanie aktywacji portfela Expensify, potwierdzasz, że przeczytałeś, rozumiesz i akceptujesz',

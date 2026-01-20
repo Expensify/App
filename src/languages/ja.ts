@@ -3117,6 +3117,7 @@ ${
         errorMessageInvalidPhone: `かっこやハイフンを使わずに有効な電話番号を入力してください。米国外にいる場合は、国コードを含めて入力してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）。`,
         errorMessageInvalidEmail: '無効なメールアドレス',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} はすでに ${name} のメンバーです`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} はすでに ${name} の管理者です`,
     },
     onfidoStep: {
         acceptTerms: 'Expensifyウォレットの有効化リクエストを続行することにより、あなたは次の内容を読み、理解し、承諾したことを確認します',

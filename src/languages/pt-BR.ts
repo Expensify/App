@@ -3119,6 +3119,7 @@ ${
         errorMessageInvalidPhone: `Insira um número de telefone válido sem parênteses ou traços. Se você estiver fora dos EUA, inclua o código do seu país (por exemplo, ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'E-mail inválido',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} já é membro de ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} já é um administrador de ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Ao prosseguir com o pedido para ativar sua Carteira Expensify, você confirma que leu, compreende e aceita',
