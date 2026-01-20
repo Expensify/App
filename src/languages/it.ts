@@ -6432,8 +6432,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         addedReportField: (fieldType: string, fieldName?: string) => `aggiunto campo report ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `imposta il valore predefinito del campo report "${fieldName}" su "${defaultValue}"`,
-        addedReportFieldOption: (optionName: string, fieldName?: string) => `ha aggiunto l’opzione "${optionName}" al campo di report "${fieldName}"`,
-        removedReportFieldOption: (optionName: string, fieldName?: string) => `ha rimosso l'opzione "${optionName}" dal campo report "${fieldName}"`,
+        addedReportFieldOption: (fieldName: string, optionName: string) => `ha aggiunto l’opzione "${optionName}" al campo di report "${fieldName}"`,
+        removedReportFieldOption: (fieldName: string, optionName: string) => `ha rimosso l'opzione "${optionName}" dal campo report "${fieldName}"`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
             `${optionEnabled ? 'abilitato' : 'disabilitato'} l'opzione "${optionName}" per il campo di report "${fieldName}"`,
         updateReportFieldAllOptionsDisabled: (fieldName: string, optionName: string, allEnabled: boolean, toggledOptionsCount?: number) => {

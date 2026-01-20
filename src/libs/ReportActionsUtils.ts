@@ -2827,7 +2827,7 @@ function getWorkspaceReportFieldUpdateMessage(translate: LocalizedTranslate, act
     }
 
     if (updateType === 'addedOption' && fieldName && optionName) {
-        return translate('workspaceActions.addedReportFieldOption', optionName, fieldName);
+        return translate('workspaceActions.addedReportFieldOption', fieldName, optionName);
     }
 
     if (updateType === 'changedOptionDisabled' && fieldName && optionName) {
@@ -2839,7 +2839,7 @@ function getWorkspaceReportFieldUpdateMessage(translate: LocalizedTranslate, act
     }
 
     if (updateType === 'removedOption' && fieldName && optionName) {
-        return translate('workspaceActions.removedReportFieldOption', optionName, fieldName);
+        return translate('workspaceActions.removedReportFieldOption', fieldName, optionName);
     }
 
     return getReportActionText(action);

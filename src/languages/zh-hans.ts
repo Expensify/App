@@ -6278,8 +6278,8 @@ ${reportName}
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `已移除“${customUnitName}”费率“${rateName}”`,
         addedReportField: (fieldType: string, fieldName?: string) => `已添加 ${fieldType} 报告字段 “${fieldName}”`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
-        addedReportFieldOption: (optionName: string, fieldName?: string) => `已将选项“${optionName}”添加到报表字段“${fieldName}”中`,
-        removedReportFieldOption: (optionName: string, fieldName?: string) => `已从报表字段“${fieldName}”中移除选项“${optionName}”`,
+        addedReportFieldOption: (fieldName: string, optionName: string) => `已将选项“${optionName}”添加到报表字段“${fieldName}”中`,
+        removedReportFieldOption: (fieldName: string, optionName: string) => `已从报表字段“${fieldName}”中移除选项“${optionName}”`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
             `${optionEnabled ? '已启用' : '已禁用'} 报告字段 “${fieldName}” 的选项 “${optionName}”`,
         updateReportFieldAllOptionsDisabled: (fieldName: string, optionName: string, allEnabled: boolean, toggledOptionsCount?: number) => {

@@ -6383,8 +6383,8 @@ ${reportName}
         addedReportField: (fieldType: string, fieldName?: string) => `${fieldType} レポートフィールド「${fieldName}」を追加しました`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `レポートフィールド「${fieldName}」のデフォルト値を「${defaultValue}」に設定する`,
-        addedReportFieldOption: (optionName: string, fieldName?: string) => `レポートフィールド「${fieldName}」にオプション「${optionName}」を追加しました`,
-        removedReportFieldOption: (optionName: string, fieldName?: string) => `レポートフィールド「${fieldName}」からオプション「${optionName}」を削除しました`,
+        addedReportFieldOption: (fieldName: string, optionName: string) => `レポートフィールド「${fieldName}」にオプション「${optionName}」を追加しました`,
+        removedReportFieldOption: (fieldName: string, optionName: string) => `レポートフィールド「${fieldName}」からオプション「${optionName}」を削除しました`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
             `レポートフィールド「${fieldName}」のオプション「${optionName}」を${optionEnabled ? '有効' : '無効'}`,
         updateReportFieldAllOptionsDisabled: (fieldName: string, optionName: string, allEnabled: boolean, toggledOptionsCount?: number) => {

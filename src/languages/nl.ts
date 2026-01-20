@@ -6416,8 +6416,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         addedReportField: (fieldType: string, fieldName?: string) => `rapportveld ${fieldType} "${fieldName}" toegevoegd`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `stel de standaardwaarde van het rapportveld "${fieldName}" in op "${defaultValue}"`,
-        addedReportFieldOption: (optionName: string, fieldName?: string) => `heeft de optie "${optionName}" toegevoegd aan het rapportveld "${fieldName}"`,
-        removedReportFieldOption: (optionName: string, fieldName?: string) => `heeft de optie "${optionName}" verwijderd uit het rapportveld "${fieldName}"`,
+        addedReportFieldOption: (fieldName: string, optionName: string) => `heeft de optie "${optionName}" toegevoegd aan het rapportveld "${fieldName}"`,
+        removedReportFieldOption: (fieldName: string, optionName: string) => `heeft de optie "${optionName}" verwijderd uit het rapportveld "${fieldName}"`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
             `${optionEnabled ? 'ingeschakeld' : 'Uitgeschakeld'} de optie "${optionName}" voor het rapportveld "${fieldName}"`,
         updateReportFieldAllOptionsDisabled: (fieldName: string, optionName: string, allEnabled: boolean, toggledOptionsCount?: number) => {

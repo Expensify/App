@@ -6457,8 +6457,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         addedReportField: (fieldType: string, fieldName?: string) => `a ajouté le champ de rapport ${fieldType} « ${fieldName} »`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `définir la valeur par défaut du champ de rapport « ${fieldName} » sur « ${defaultValue} »`,
-        addedReportFieldOption: (optionName: string, fieldName?: string) => `a ajouté l’option « ${optionName} » au champ de rapport « ${fieldName} »`,
-        removedReportFieldOption: (optionName: string, fieldName?: string) => `a supprimé l’option « ${optionName} » du champ de rapport « ${fieldName} »`,
+        addedReportFieldOption: (fieldName: string, optionName: string) => `a ajouté l’option « ${optionName} » au champ de rapport « ${fieldName} »`,
+        removedReportFieldOption: (fieldName: string, optionName: string) => `a supprimé l’option « ${optionName} » du champ de rapport « ${fieldName} »`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
             `${optionEnabled ? 'activé' : 'Désactivé'} l’option « ${optionName} » pour le champ de rapport « ${fieldName} »`,
         updateReportFieldAllOptionsDisabled: (fieldName: string, optionName: string, allEnabled: boolean, toggledOptionsCount?: number) => {

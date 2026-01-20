@@ -6446,8 +6446,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         addedReportField: (fieldType: string, fieldName?: string) => `${fieldType}-Berichtsfield „${fieldName}“ hinzugefügt`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `Standardwert des Berichtsfelds „${fieldName}“ auf „${defaultValue}“ festlegen`,
-        addedReportFieldOption: (optionName: string, fieldName?: string) => `die Option „${optionName}“ zum Berichts­feld „${fieldName}“ hinzugefügt`,
-        removedReportFieldOption: (optionName: string, fieldName?: string) => `hat die Option „${optionName}“ aus dem Berichtsfeld „${fieldName}“ entfernt`,
+        addedReportFieldOption: (fieldName: string, optionName: string) => `die Option „${optionName}“ zum Berichts­feld „${fieldName}“ hinzugefügt`,
+        removedReportFieldOption: (fieldName: string, optionName: string) => `hat die Option „${optionName}“ aus dem Berichtsfeld „${fieldName}“ entfernt`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
             `${optionEnabled ? 'aktiviert' : 'deaktiviert'} die Option „${optionName}“ für das Berichtsfeld „${fieldName}“`,
         updateReportFieldAllOptionsDisabled: (fieldName: string, optionName: string, allEnabled: boolean, toggledOptionsCount?: number) => {
