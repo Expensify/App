@@ -84,8 +84,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const [feedErrorKey, feedErrorMessage] = Object.entries(workspaceCardFeedsErrors ?? selectedFeedErrors ?? {}).at(0) ?? [];
     const hasFeedErrors = !!feedErrorKey;
 
-    console.log('feedErrorKey', feedErrorKey);
-
     let feedErrorTitle: string | undefined;
     let feedErrorReloadAction: (() => void) | undefined;
     if (feedErrorKey === CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR) {
