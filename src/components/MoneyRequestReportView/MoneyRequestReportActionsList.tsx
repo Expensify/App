@@ -183,6 +183,13 @@ function MoneyRequestReportActionsList({
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    useEffect(() => {
+        const transactionIDs = transactions.map((transaction) => transaction.transactionID);
+        const filteredSelectedTransactionIDs = selectedTransactionIDs.filter((id) => transactionIDs.includes(id));
+        if (filteredSelectedTransactionIDs.length !== selectedTransactionIDs.length) {
+            setSelectedTransactions(filteredSelectedTransactionIDs);
+        }
+    }, [transactions]);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
