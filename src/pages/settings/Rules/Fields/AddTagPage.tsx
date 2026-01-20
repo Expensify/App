@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
@@ -42,33 +43,36 @@ function AddTagPage({route}: AddTagPageProps) {
         return Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName}));
     }, [allPolicyTagLists]);
 
-    const backToRoute = route.params?.hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(route.params.hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
+    const hash = route.params?.hash;
+    const backToRoute = hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
 
     const onSave = (value?: string) => {
         updateDraftRule({tag: value});
     };
 
     return (
-        <ScreenWrapper
-            testID="AddTagPage"
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate('common.tag')}
-                onBackButtonPress={() => Navigation.goBack(backToRoute)}
-            />
-            <View style={[styles.flex1]}>
-                <SearchSingleSelectionPicker
-                    backToRoute={backToRoute}
-                    initiallySelectedItem={selectedTagItem}
-                    items={tagItems}
-                    onSaveSelection={onSave}
-                    shouldAutoSave
+        <RuleNotFoundPageWrapper hash={hash}>
+            <ScreenWrapper
+                testID="AddTagPage"
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate('common.tag')}
+                    onBackButtonPress={() => Navigation.goBack(backToRoute)}
                 />
-            </View>
-        </ScreenWrapper>
+                <View style={[styles.flex1]}>
+                    <SearchSingleSelectionPicker
+                        backToRoute={backToRoute}
+                        initiallySelectedItem={selectedTagItem}
+                        items={tagItems}
+                        onSaveSelection={onSave}
+                        shouldAutoSave
+                    />
+                </View>
+            </ScreenWrapper>
+        </RuleNotFoundPageWrapper>
     );
 }
 

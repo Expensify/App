@@ -11,6 +11,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {InputID} from '@src/types/form/ExpenseRuleForm';
+import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
 import TextBase from './TextBase';
 
 // Text-based field IDs that accept string input
@@ -54,27 +55,29 @@ function RuleTextBase({fieldID, hintKey, isRequired, titleKey, labelKey, testID,
     };
 
     return (
-        <ScreenWrapper
-            testID={testID}
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate(titleKey)}
-                onBackButtonPress={goBack}
-            />
-            <TextBase
-                fieldID={fieldID}
-                hint={hintKey ? translate(hintKey) : undefined}
-                isRequired={isRequired}
-                label={translate(labelKey ?? titleKey)}
-                onSubmit={onSave}
-                title={translate(titleKey)}
-                characterLimit={characterLimit}
-            />
-        </ScreenWrapper>
+        <RuleNotFoundPageWrapper hash={hash}>
+            <ScreenWrapper
+                testID={testID}
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate(titleKey)}
+                    onBackButtonPress={goBack}
+                />
+                <TextBase
+                    fieldID={fieldID}
+                    hint={hintKey ? translate(hintKey) : undefined}
+                    isRequired={isRequired}
+                    label={translate(labelKey ?? titleKey)}
+                    onSubmit={onSave}
+                    title={translate(titleKey)}
+                    characterLimit={characterLimit}
+                />
+            </ScreenWrapper>
+        </RuleNotFoundPageWrapper>
     );
 }
 

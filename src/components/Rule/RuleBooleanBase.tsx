@@ -16,6 +16,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {InputID} from '@src/types/form/ExpenseRuleForm';
+import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
 
 type BooleanFilterItem = ListItem & {
     value: ValueOf<typeof CONST.SEARCH.BOOLEAN>;
@@ -72,26 +73,28 @@ function RuleBooleanBasePage({fieldID, titleKey, hash}: RuleBooleanBasePageProps
     };
 
     return (
-        <ScreenWrapper
-            testID="RuleBooleanBasePage"
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate(titleKey)}
-                onBackButtonPress={goBack}
-            />
-            <View style={[styles.flex1]}>
-                <SelectionList
-                    shouldSingleExecuteRowSelect
-                    data={items}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={onSelectItem}
+        <RuleNotFoundPageWrapper hash={hash}>
+            <ScreenWrapper
+                testID="RuleBooleanBasePage"
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate(titleKey)}
+                    onBackButtonPress={goBack}
                 />
-            </View>
-        </ScreenWrapper>
+                <View style={[styles.flex1]}>
+                    <SelectionList
+                        shouldSingleExecuteRowSelect
+                        data={items}
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={onSelectItem}
+                    />
+                </View>
+            </ScreenWrapper>
+        </RuleNotFoundPageWrapper>
     );
 }
 

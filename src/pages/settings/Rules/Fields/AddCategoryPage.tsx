@@ -2,6 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
@@ -53,33 +54,36 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
             });
     }, [allPolicyCategories]);
 
-    const backToRoute = route.params?.hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(route.params.hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
+    const hash = route.params?.hash;
+    const backToRoute = hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
 
     const onSave = (value?: string) => {
         updateDraftRule({category: value});
     };
 
     return (
-        <ScreenWrapper
-            testID="AddCategoryPage"
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate('expenseRulesPage.addRule.updateCategory')}
-                onBackButtonPress={() => Navigation.goBack(backToRoute)}
-            />
-            <View style={[styles.flex1]}>
-                <SearchSingleSelectionPicker
-                    backToRoute={backToRoute}
-                    initiallySelectedItem={selectedCategoryItem}
-                    items={categoryItems}
-                    onSaveSelection={onSave}
-                    shouldAutoSave
+        <RuleNotFoundPageWrapper hash={hash}>
+            <ScreenWrapper
+                testID="AddCategoryPage"
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate('expenseRulesPage.addRule.updateCategory')}
+                    onBackButtonPress={() => Navigation.goBack(backToRoute)}
                 />
-            </View>
-        </ScreenWrapper>
+                <View style={[styles.flex1]}>
+                    <SearchSingleSelectionPicker
+                        backToRoute={backToRoute}
+                        initiallySelectedItem={selectedCategoryItem}
+                        items={categoryItems}
+                        onSaveSelection={onSave}
+                        shouldAutoSave
+                    />
+                </View>
+            </ScreenWrapper>
+        </RuleNotFoundPageWrapper>
     );
 }
 

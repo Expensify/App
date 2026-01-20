@@ -1,20 +1,23 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setNameValuePair, updateDraftRule} from '@libs/actions/User';
+import {clearDraftRule, setNameValuePair, updateDraftRule} from '@libs/actions/User';
 import {getAvailableNonPersonalPolicyCategories} from '@libs/CategoryUtils';
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRatesNamesAndValues, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -24,7 +27,9 @@ import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-type AddRuleProps = {
+type RulePageBaseProps = {
+    titleKey: TranslationPaths;
+    testID: string;
     hash?: string;
 };
 
@@ -69,12 +74,16 @@ const tagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => {
     return tagListsUnpacked.map(getTagNamesFromTagsLists).flat().length > 0;
 };
 
-function AddRule({hash}: AddRuleProps) {
+function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     const {translate} = useLocalize();
     const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
+    // Cannot use useRef because react compiler fails
+    const [isSaving, setIsSaving] = useState(false);
     const [shouldShowError, setShouldShowError] = useState(false);
     const styles = useThemeStyles();
+
+    useEffect(() => () => clearDraftRule(), []);
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const categoriesSelector = useCallback(
@@ -111,6 +120,8 @@ function AddRule({hash}: AddRuleProps) {
             return;
         }
 
+        setIsSaving(true);
+
         const newRule = extractRuleFromForm(form, selectedTaxRate);
         let newRules;
         if (hash) {
@@ -122,6 +133,11 @@ function AddRule({hash}: AddRuleProps) {
 
         Navigation.goBack();
     };
+
+    const doesRuleExist = !!hash && expenseRules.some((rule) => getKeyForRule(rule) === hash);
+    if (!isSaving && !!hash && !doesRuleExist) {
+        return <NotFoundPage />;
+    }
 
     const sections: SectionType[] = [
         {
@@ -189,7 +205,13 @@ function AddRule({hash}: AddRuleProps) {
     ];
 
     return (
-        <>
+        <ScreenWrapper
+            testID={testID}
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom
+        >
+            <HeaderWithBackButton title={translate(titleKey)} />
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                 {sections.map((section) => (
                     <View key={section.titleTranslationKey}>
@@ -232,8 +254,8 @@ function AddRule({hash}: AddRuleProps) {
                 onSubmit={handleSubmit}
                 enabledWhenOffline
             />
-        </>
+        </ScreenWrapper>
     );
 }
 
-export default AddRule;
+export default RulePageBase;
