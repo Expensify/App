@@ -5,7 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 type TodoSearchResultsData = SearchResults['data'];
@@ -18,11 +18,11 @@ function buildSearchResultsData(
     reports: Report[],
     transactionsByReportID: Record<string, Transaction[]>,
     allReports: Record<string, Report> | undefined,
-    allPolicies: Record<string, unknown> | undefined,
-    allReportActions: Record<string, Record<string, unknown>> | undefined,
-    allReportNameValuePairs: Record<string, unknown> | undefined,
-    personalDetails: Record<string, unknown> | undefined,
-    transactionViolations: Record<string, unknown[]> | undefined,
+    allPolicies: Record<string, Policy> | undefined,
+    allReportActions: Record<string, ReportActions> | undefined,
+    allReportNameValuePairs: Record<string, ReportNameValuePairs> | undefined,
+    personalDetails: PersonalDetailsList | undefined,
+    transactionViolations: Record<string, TransactionViolations> | undefined,
 ): TodoSearchResultsData {
     const data: Record<string, unknown> = {};
 
@@ -159,11 +159,11 @@ export default function useTodos() {
                 reports,
                 transactionsByReportID,
                 allReports as Record<string, Report> | undefined,
-                allPolicies as Record<string, unknown> | undefined,
-                allReportActions as Record<string, Record<string, unknown>> | undefined,
-                allReportNameValuePairs as Record<string, unknown> | undefined,
-                personalDetailsList as Record<string, unknown> | undefined,
-                allTransactionViolations as Record<string, unknown[]> | undefined,
+                allPolicies as Record<string, Policy> | undefined,
+                allReportActions as Record<string, ReportActions> | undefined,
+                allReportNameValuePairs as Record<string, ReportNameValuePairs> | undefined,
+                personalDetailsList,
+                allTransactionViolations as Record<string, TransactionViolations> | undefined,
             );
         };
 
