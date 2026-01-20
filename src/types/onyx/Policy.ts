@@ -2102,4 +2102,5 @@ export type {
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    NetSuiteConnectionData,
 };

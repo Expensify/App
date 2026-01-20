@@ -16,6 +16,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import type { Connections, NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData } from '@src/types/onyx/Policy';
 
 OnyxUpdateManager();
 describe('actions/PolicyMember', () => {
@@ -431,7 +432,7 @@ describe('actions/PolicyMember', () => {
                 [auditorAccountID]: {login: auditorEmail},
                 [userAccountID]: {login: userEmail},
             });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 approver: defaultApprover,
                 employeeList: {
@@ -440,7 +441,7 @@ describe('actions/PolicyMember', () => {
                     [auditorEmail]: {role: CONST.POLICY.ROLE.AUDITOR},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
                 },
-            });
+            };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
                 ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 policyID,
@@ -459,7 +460,7 @@ describe('actions/PolicyMember', () => {
                 [auditorEmail]: auditorAccountID,
                 [userEmail]: userAccountID,
             };
-            Member.removeMembers(policyID, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
+            Member.removeMembers(policy, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
 
             await waitForBatchedUpdates();
 
@@ -512,7 +513,7 @@ describe('actions/PolicyMember', () => {
                 [auditorAccountID]: {login: auditorEmail},
                 [userAccountID]: {login: userEmail},
             });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy: PolicyType = {
                 ...createRandomPolicy(Number(policyID)),
                 approver: defaultApprover,
                 owner: ownerEmail,
@@ -526,10 +527,12 @@ describe('actions/PolicyMember', () => {
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                         verified: true,
+                        accountID: '123456',
                         options: {
+                            data: {} as NetSuiteConnectionData,
                             config: {
                                 exporter: adminEmail,
-                            },
+                            } as NetSuiteConnectionConfig,
                         },
                         lastSync: {
                             errorDate: '',
@@ -540,9 +543,10 @@ describe('actions/PolicyMember', () => {
                             source: 'NEWEXPENSIFY',
                             successfulDate: '',
                         },
-                    },
-                },
-            });
+                    } as NetSuiteConnection,
+                } as Connections,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             // When removing an admin, auditor, and user members
             mockFetch?.pause?.();
@@ -551,7 +555,7 @@ describe('actions/PolicyMember', () => {
                 [auditorEmail]: auditorAccountID,
                 [userEmail]: userAccountID,
             };
-            Member.removeMembers(policyID, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
+            Member.removeMembers(policy, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
 
             await waitForBatchedUpdates();
 
@@ -578,6 +582,14 @@ describe('actions/PolicyMember', () => {
             const expenseReportID = '2';
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
+            const ownerEmail = 'owner@gmail.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
                 ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -595,7 +607,7 @@ describe('actions/PolicyMember', () => {
 
             // When removing a member from the workspace
             mockFetch?.pause?.();
-            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+            Member.removeMembers(policy, [userEmail], {[userEmail]: userAccountID});
 
             await waitForBatchedUpdates();
 
@@ -624,7 +636,7 @@ describe('actions/PolicyMember', () => {
 
         it('should preserve pendingAction DELETE when member removal fails', async () => {
             // Given a workspace with a member
-            const policyID = 'ABCD12345';
+            const policyID = '123';
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
             const ownerEmail = 'owner@gmail.com';
@@ -632,23 +644,25 @@ describe('actions/PolicyMember', () => {
             await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [userAccountID]: {login: userEmail},
             });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 owner: ownerEmail,
                 employeeList: {
                     [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
                 },
-            });
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             // When removing a member and the request fails
             mockFetch?.fail?.();
-            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+            Member.removeMembers(policy, [userEmail], {[userEmail]: userAccountID});
 
             await waitForBatchedUpdates();
 
             // Then the member should have pendingAction DELETE and errors
-            const policy = await new Promise<OnyxEntry<PolicyType>>((resolve, reject) => {
+            const policyResult = await new Promise<OnyxEntry<PolicyType>>((resolve, reject) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policyData) => {
@@ -662,7 +676,7 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
-            const failedMember = policy?.employeeList?.[userEmail];
+            const failedMember = policyResult?.employeeList?.[userEmail];
             expect(failedMember?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             expect(failedMember?.errors).toBeTruthy();
             expect(Object.keys(failedMember?.errors ?? {}).length).toBeGreaterThan(0);
@@ -670,7 +684,7 @@ describe('actions/PolicyMember', () => {
 
         // For more details on what a detached member is, see https://github.com/Expensify/App/issues/75514#issuecomment-3568453686
         it('should remove "detached" members', async () => {
-            const policyID = 'ABCD123456';
+            const policyID = '23456';
             const ownerEmail = 'owner@gmail.com';
             const userEmail = 'user@gmail.com';
             const detachedUserEmail = 'detacheduser@gmail.com';
@@ -682,16 +696,18 @@ describe('actions/PolicyMember', () => {
                 [userAccountID]: {login: userEmail},
             });
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
                     [detachedUserEmail]: {role: CONST.POLICY.ROLE.USER},
                 },
-            });
+            };
 
-            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            Member.removeMembers(policy, [userEmail], {[userEmail]: userAccountID});
 
             await waitForBatchedUpdates();
 
