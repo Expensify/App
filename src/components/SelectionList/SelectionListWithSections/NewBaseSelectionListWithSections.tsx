@@ -23,14 +23,14 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {FlattenedItem, ListItem, SectionHeader, SelectionListWithSectionsProps} from './types';
+import type {FlattenedItem, ListItem, SectionHeader, SectionListItem, SelectionListWithSectionsProps} from './types';
 
-function getItemType<TItem extends ListItem>(item: TItem): 'header' | 'row' {
-    return item.type ?? 'row';
+function getItemType<TItem extends ListItem>(item: FlattenedItem<TItem>): 'header' | 'row' {
+    return item?.type ?? 'row';
 }
 
-function isItemSelected(item: ListItem): boolean {
-    return (item.type === 'row' && item.isSelected) ?? false;
+function isItemSelected<TItem extends ListItem>(item: TItem): boolean {
+    return item?.isSelected ?? false;
 }
 
 function NewBaseSelectionListWithSections<TItem extends ListItem>({
@@ -86,7 +86,7 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
         const selectedOptions: TItem[] = [];
         const disabledArrowKeyIndexes: number[] = [];
         const headers: number[] = [];
-        const items: TItem[] = [];
+        const items: Array<FlattenedItem<TItem>> = [];
         let itemIndex = 0;
 
         for (const section of sections) {
@@ -105,7 +105,7 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
                     ...item,
                     type: 'row',
                     flatIndex: itemIndex,
-                } as TItem;
+                } as SectionListItem<TItem>;
                 data.push(itemWithIndex);
                 items.push(itemWithIndex);
 
@@ -333,6 +333,9 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<FlattenedItem<TItem>>) => {
+            if (!item) {
+                return null;
+            }
             if (getItemType(item) === 'header') {
                 return (
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
@@ -341,10 +344,9 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
                 );
             }
 
-            const listItem = item as TItem & {flatIndex?: number};
-            const flatIndex = listItem.flatIndex ?? index;
+            const flatIndex = (item as SectionListItem<TItem>).flatIndex ?? index;
             const isItemFocused = flatIndex === focusedIndex;
-            const isDisabled = !!listItem.isDisabled;
+            const isDisabled = !!item.isDisabled;
 
             return (
                 <ListItemRenderer
@@ -352,7 +354,7 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
                     selectRow={selectRow}
                     keyForList={item.keyForList}
                     showTooltip={shouldShowTooltips}
-                    item={listItem}
+                    item={item as TItem}
                     index={index}
                     normalizedIndex={flatIndex}
                     isFocused={isItemFocused}
@@ -367,6 +369,8 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     shouldHighlightSelectedItem
                     shouldIgnoreFocus={shouldIgnoreFocus}
+                    wrapperStyle={style?.listItemWrapperStyle}
+                    titleStyles={style?.listItemTitleStyles}
                 />
             );
         },
@@ -383,6 +387,8 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
             setFocusedIndex,
             singleExecution,
             shouldIgnoreFocus,
+            style?.listItemWrapperStyle,
+            style?.listItemTitleStyles,
             styles.optionsListSectionHeader,
             styles.justifyContentCenter,
             styles.ph5,
@@ -402,6 +408,7 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
                         data={flattenedData}
                         renderItem={renderItem}
                         ref={listRef}
+                        extraData={itemsOnly.length}
                         getItemType={getItemType}
                         initialScrollIndex={initialFocusedIndex}
                         keyExtractor={(item) => item.keyForList}

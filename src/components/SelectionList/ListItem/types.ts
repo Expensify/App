@@ -129,9 +129,6 @@ type ListItem<K extends string | number = string> = {
 
     /** Used to initiate payment from search page */
     hash?: number;
-
-    /** Type of the item - 'header' for section headers, 'row' for data items */
-    type?: 'header' | 'row';
 };
 
 type CommonListItemProps<TItem extends ListItem> = {

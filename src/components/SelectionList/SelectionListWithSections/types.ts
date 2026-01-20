@@ -148,6 +148,8 @@ type SectionHeader = {
     isDisabled: boolean;
 };
 
-type FlattenedItem<TItem extends ListItem> = TItem | SectionHeader;
+type SectionListItem<TItem extends ListItem> = TItem & {flatIndex: number, type: 'row'};
 
-export type {Section, ListItem, SelectionListWithSectionsProps, SelectionWithSectionsListHandle, SelectionListWithSectionsStyle, SectionHeader, FlattenedItem};
+type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
+
+export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionWithSectionsListHandle, SelectionListWithSectionsStyle, SectionHeader, FlattenedItem};
