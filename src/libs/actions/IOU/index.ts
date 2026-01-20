@@ -208,7 +208,6 @@ import {
     getDistanceInMeters,
     getMerchant,
     getOriginalTransactionWithSplitInfo,
-    getTransactionType,
     getUpdatedTransaction,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
