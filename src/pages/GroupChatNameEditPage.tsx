@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
-import type {NewGroupChatDraft, Report as ReportOnyxType} from '@src/types/onyx';
+import type {Report as ReportOnyxType} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -28,16 +28,12 @@ type GroupChatNameEditPageProps = Partial<PlatformStackScreenProps<NewChatNaviga
     report?: ReportOnyxType;
 };
 
-type GroupChatNameEditInternalProps = {
-    report?: ReportOnyxType;
-    groupChatDraft?: NewGroupChatDraft;
-};
-
-function GroupChatNameInternal({report, groupChatDraft}: GroupChatNameEditInternalProps) {
+function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     // If we have a report this means we are using this page to update an existing Group Chat name
     // In this case its better to use empty string as the reportID if there is no reportID
     const reportID = report?.reportID;
     const isUpdatingExistingReport = !!reportID;
+    const [groupChatDraft, groupChatDraftMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -81,6 +77,10 @@ function GroupChatNameInternal({report, groupChatDraft}: GroupChatNameEditIntern
         [isUpdatingExistingReport, currentChatName, reportID, report?.reportName],
     );
 
+    if (isLoadingOnyxValue(groupChatDraftMetadata)) {
+        return null;
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -112,22 +112,6 @@ function GroupChatNameInternal({report, groupChatDraft}: GroupChatNameEditIntern
                 />
             </FormProvider>
         </ScreenWrapper>
-    );
-}
-
-function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
-    const [groupChatDraft, groupChatDraftMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
-    const isLoading = isLoadingOnyxValue(groupChatDraftMetadata);
-
-    if (isLoading) {
-        return null;
-    }
-
-    return (
-        <GroupChatNameInternal
-            report={report}
-            groupChatDraft={groupChatDraft}
-        />
     );
 }
 
