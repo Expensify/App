@@ -58,6 +58,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {GpsDraftDetails} from '@src/types/onyx';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -87,6 +88,8 @@ type MenuData = {
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
+
+const isTrackingSelector = (gpsDraftDetails?: GpsDraftDetails) => gpsDraftDetails?.isTracking;
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons([
@@ -134,7 +137,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [isTrackingGPS] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
@@ -187,7 +190,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     };
 
     const signOut = (shouldForceSignout = false) => {
-        if ((!network.isOffline && !gpsDraftDetails?.isTracking) || shouldForceSignout) {
+        if ((!network.isOffline && isTrackingGPS) || shouldForceSignout) {
             return signOutAndRedirectToSignIn();
         }
 
@@ -472,9 +475,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
-    const confirmModalTitle = gpsDraftDetails?.isTracking ? translate('gps.signOutWarningTripInProgress.title') : translate('common.areYouSure');
-    const confirmModalPrompt = gpsDraftDetails?.isTracking ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
-    const confirmModalConfirmText = gpsDraftDetails?.isTracking ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
+    const confirmModalTitle = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.title') : translate('common.areYouSure');
+    const confirmModalPrompt = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
+    const confirmModalConfirmText = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
 
     return (
         <ScreenWrapper
@@ -502,11 +505,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     cancelText={translate('common.cancel')}
                     isVisible={shouldShowSignoutConfirmModal}
                     onConfirm={() => {
-                        if (gpsDraftDetails?.isTracking) {
-                            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
-                                console.error('[GPS distance request] Failed to stop location tracking', error),
-                            );
-                            resetGPSDraftDetails();
+                        if (isTrackingGPS) {
+                            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME)
+                                .catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error))
+                                .then(resetGPSDraftDetails);
                         }
                         toggleSignoutConfirmModal(false);
                         shouldLogout.current = true;
