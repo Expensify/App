@@ -1459,7 +1459,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Scegli un approvatore aggiuntivo per questo resoconto prima che lo instradiamo attraverso il resto del flusso di approvazione.',
+                bulkSubtitle: 'Scegli un approvatore aggiuntivo per questi report prima che li instradiamo attraverso il resto del flusso di approvazione.',
             },
+            bulkSubtitle: "Scegli un'opzione per cambiare l'approvatore di questi report.",
         },
         chooseWorkspace: 'Scegli uno spazio di lavoro',
         date: 'Data',
@@ -2253,6 +2255,7 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Nessun membro da visualizzare',
             expensesFromSubtitle: 'Tutti i membri dello spazio di lavoro appartengono già a un flusso di approvazione esistente.',
             approverSubtitle: 'Tutti gli approvatori appartengono a un workflow esistente.',
+            bulkApproverSubtitle: 'Nessun approvatore corrisponde ai criteri per i report selezionati.',
         },
     },
     workflowsDelayedSubmissionPage: {
