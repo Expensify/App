@@ -187,7 +187,7 @@ function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
     }
 
-    // todo(@GCyganek): currently there is no way to tell server map transaction object from
+    // todo: currently there is no way to tell server map transaction object from
     // server gps transaction object, this will be discussed and updated later
     // This is the case for transaction objects once they have been saved to the server
     return hasDistanceCustomUnit(transaction);
