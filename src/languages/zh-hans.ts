@@ -4923,7 +4923,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     centralInvoicingSection: {
                         title: '集中开票',
                         subtitle: '将所有差旅支出集中到月度发票中，而不是在购买时逐笔付款。',
-                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">了解如何操作。</a></muted-text>`,
+                        learnHow: '了解如何操作。',
                         subsections: {
                             currentTravelSpendLabel: '当前差旅行支出',
                             currentTravelSpendCta: '支付余额',

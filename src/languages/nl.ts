@@ -5026,7 +5026,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     centralInvoicingSection: {
                         title: 'Centrale facturatie',
                         subtitle: 'Centraliseer alle reiskosten in één maandelijkse factuur in plaats van bij aankoop te betalen.',
-                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Meer informatie.</a></muted-text>`,
+                        learnHow: 'Meer informatie.',
                         subsections: {
                             currentTravelSpendLabel: 'Huidige reiskosten',
                             currentTravelSpendCta: 'Saldo betalen',

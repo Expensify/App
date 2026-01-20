@@ -5018,7 +5018,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     centralInvoicingSection: {
                         title: 'Faturamento centralizado',
                         subtitle: 'Centralize todos os gastos de viagem em uma fatura mensal em vez de pagar no momento da compra.',
-                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Saiba como.</a></muted-text>`,
+                        learnHow: 'Saiba como.',
                         subsections: {
                             currentTravelSpendLabel: 'Gasto atual com viagens',
                             currentTravelSpendCta: 'Pagar saldo',

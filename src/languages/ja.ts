@@ -5005,7 +5005,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     centralInvoicingSection: {
                         title: '中央請求書管理',
                         subtitle: 'すべての出張費を購入時に都度支払うのではなく、月次請求書にまとめて管理しましょう。',
-                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">詳しく見る。</a></muted-text>`,
+                        learnHow: '詳しく見る。',
                         subsections: {
                             currentTravelSpendLabel: '現在の出張費用',
                             currentTravelSpendCta: '残高を支払う',

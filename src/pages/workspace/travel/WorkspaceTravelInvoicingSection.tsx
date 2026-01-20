@@ -7,7 +7,6 @@ import Section from '@components/Section';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -20,7 +19,6 @@ import {
     getTravelSettlementFrequency,
     getTravelSpend,
     hasTravelInvoicingSettlementAccount,
-    PROGRAM_TRAVEL_US,
 } from '@libs/TravelInvoicingUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -45,16 +43,13 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {isExecuting, singleExecution} = useSingleExecution();
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isCentralInvoicingEnabled, setIsCentralInvoicingEnabled] = useState(true);
 
     // For Travel Invoicing, we use a travel-specific card settings key
     // The format is: private_expensifyCardSettings_{workspaceAccountID}_{feedType}
     // where feedType is PROGRAM_TRAVEL_US for Travel Invoicing
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     // Use pure selectors to derive state
@@ -153,9 +148,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
         <Section
-            containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
             key={`toggleSettingOptionItem-${index}`}
-            renderTitle={() => <View />}
+            isCentralPane
         >
             <ToggleSettingOptionRow
                 title={item.title}
@@ -184,16 +178,14 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             <Section
                 title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.title')}
                 subtitle={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.subtitle')}
-                containerStyles={[styles.ph0, isSmallScreenWidth ? styles.pv5 : styles.pv8]}
-                titleStyles={[styles.textStrong, isSmallScreenWidth ? styles.ph5 : styles.ph8]}
-                subtitleStyles={[styles.mb6, isSmallScreenWidth ? styles.ph5 : styles.ph8]}
+                isCentralPane
                 subtitleMuted
             >
                 <MenuItem
                     title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.manageTravelLabel')}
                     onPress={singleExecution(() => openExternalLink(CONST.FOOTER.TRAVEL_URL))}
                     disabled={isExecuting}
-                    wrapperStyle={styles.ph8}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
                     iconRight={icons.NewWindow}
                     icon={icons.LuggageWithLines}
                     shouldShowRightIcon
@@ -203,7 +195,5 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         </>
     );
 }
-
-WorkspaceTravelInvoicingSection.displayName = 'WorkspaceTravelInvoicingSection';
 
 export default WorkspaceTravelInvoicingSection;

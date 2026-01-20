@@ -4954,7 +4954,7 @@ const translations = {
                     centralInvoicingSection: {
                         title: 'Central invoicing',
                         subtitle: 'Centralize all travel spend in a monthly invoice instead of paying at time of purchase.',
-                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Learn how.</a></muted-text>`,
+                        learnHow: 'Learn how.',
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendCta: 'Pay balance',

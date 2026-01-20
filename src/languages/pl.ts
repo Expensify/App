@@ -5018,7 +5018,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     centralInvoicingSection: {
                         title: 'Centralne fakturowanie',
                         subtitle: 'Scentralizuj wszystkie wydatki na podróże w miesięcznej fakturze zamiast płacić w momencie zakupu.',
-                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Dowiedz się jak.</a></muted-text>`,
+                        learnHow: 'Dowiedz się jak.',
                         subsections: {
                             currentTravelSpendLabel: 'Aktualne wydatki na podróże',
                             currentTravelSpendCta: 'Zapłać saldo',
