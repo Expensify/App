@@ -7,8 +7,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
-import {getReportOrDraftReport, isExpenseReport, isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
-import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -44,6 +42,10 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
+import {getReportOrDraftReport, isExpenseReport, isHarvestCreatedExpenseReport, isPolicyExpenseChat} from './ReportUtils';
+// eslint-disable-next-line import/no-cycle
+import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 
