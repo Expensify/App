@@ -19,7 +19,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import {setWorkspaceInviteApproverDraft} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -123,8 +122,8 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
     ]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
-    }, [policyID]);
+        Navigation.goBack();
+    }, []);
 
     const handleOnSelectRow = useCallback(
         (approver: SelectionListApprover) => {
@@ -133,7 +132,7 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
             }
             setWorkspaceInviteApproverDraft(policyID, approver.login);
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.goBack(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
+                Navigation.goBack();
             });
         },
         [policyID],
