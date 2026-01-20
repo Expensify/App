@@ -16,6 +16,7 @@ import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -187,6 +188,7 @@ function TransactionItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -198,6 +200,16 @@ function TransactionItemRow({
     const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+
+    const filteredViolations = useMemo(() => {
+        if (!violations) {
+            return undefined;
+        }
+        if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
+            return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
+        }
+        return violations;
+    }, [violations]);
 
     const bgActiveStyles = useMemo(() => {
         if (!isSelected || !shouldHighlightItemWhenSelected) {
@@ -541,7 +553,11 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                     <TextCell
-                        text={computeReportName(transactionItem.report) ?? transactionItem.report?.reportName ?? ''}
+                        text={
+                            computeReportName(transactionItem.report, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID) ??
+                            transactionItem.report?.reportName ??
+                            ''
+                        }
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
@@ -588,6 +604,7 @@ function TransactionItemRow({
             isAmountColumnWide,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
+            currentUserAccountID,
             reportActions,
         ],
     );
@@ -700,7 +717,7 @@ function TransactionItemRow({
                             {shouldShowErrors && (
                                 <TransactionItemRowRBR
                                     transaction={transactionItem}
-                                    violations={violations}
+                                    violations={filteredViolations}
                                     report={report}
                                     containerStyles={[styles.mt2, styles.minHeight4]}
                                     missingFieldError={missingFieldError}
@@ -774,7 +791,7 @@ function TransactionItemRow({
                 {shouldShowErrors && (
                     <TransactionItemRowRBR
                         transaction={transactionItem}
-                        violations={violations}
+                        violations={filteredViolations}
                         report={report}
                         missingFieldError={missingFieldError}
                     />
