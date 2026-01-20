@@ -836,7 +836,7 @@ function MoneyRequestReportPreviewContent({
                                                 nestedScrollEnabled
                                                 bounces={false}
                                                 keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewCarouselStyle.width}`}
-                                                contentContainerStyle={[styles.gap2]}
+                                                ItemSeparatorComponent={() => <View style={{width: 8}} />}
                                                 style={reportPreviewStyles.flatListStyle}
                                                 showsHorizontalScrollIndicator={false}
                                                 renderItem={renderFlatlistItem}
