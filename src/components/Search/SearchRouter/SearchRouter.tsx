@@ -131,7 +131,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         }
 
         const focusedRoute = findFocusedRoute(state);
-        if (focusedRoute?.name === SCREENS.REPORT) {
+        if (focusedRoute?.name === SCREENS.REPORT || focusedRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
             // We're guaranteed that the type of params is of SCREENS.REPORT
             return (focusedRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID;
         }
@@ -193,9 +193,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     data: [
                         {
                             text: StringUtils.lineBreaksToSpaces(
-                                shouldParserToHTML
-                                    ? Parser.htmlToText(reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
-                                    : (reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? ''),
+                                `${translate('search.searchIn')} ${
+                                    shouldParserToHTML
+                                        ? Parser.htmlToText(reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
+                                        : (reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
+                                }`,
                             ),
                             singleIcon: expensifyIcons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
@@ -210,7 +212,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, isSearchRouterDisplayed, reports, personalDetails, expensifyIcons.MagnifyingGlass],
+        [contextualReportID, textInputValue, isSearchRouterDisplayed, translate, expensifyIcons.MagnifyingGlass, styles.activeComponentBG, reports, personalDetails],
     );
 
     const searchQueryItem = textInputValue
