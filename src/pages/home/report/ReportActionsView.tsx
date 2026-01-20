@@ -108,7 +108,6 @@ function ReportActionsView({
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -222,10 +221,10 @@ function ReportActionsView({
             reportActions.filter(
                 (reportAction) =>
                     (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction, policy) &&
+                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
                     isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
             ),
-        [reportActions, isOffline, canPerformWriteAction, policy, reportTransactionIDs],
+        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
