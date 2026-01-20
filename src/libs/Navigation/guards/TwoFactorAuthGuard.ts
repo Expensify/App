@@ -72,6 +72,16 @@ function isCurrentlyOn2FAPage(state: NavigationState): boolean {
     });
 }
 
+// Check if screen name is 2FA-related
+const is2FAScreen = (screenName: unknown): boolean => {
+    if (typeof screenName !== 'string') {
+        return false;
+    }
+    const result = ALLOWED_2FA_SCREENS.has(screenName as never);
+    Log.info(`[TwoFactorAuthGuard] Checking screen: ${screenName}, is2FA: ${result}`);
+    return result;
+};
+
 /**
  * Checks if the action is navigating to any 2FA-related page
  * This includes both the landing page and the setup/verification flows
@@ -82,16 +92,6 @@ function isNavigatingTo2FAPage(action: NavigationAction): boolean {
     }
 
     const payload = action.payload as Record<string, unknown>;
-
-    // Check if screen name is 2FA-related
-    const is2FAScreen = (screenName: unknown): boolean => {
-        if (typeof screenName !== 'string') {
-            return false;
-        }
-        const result = ALLOWED_2FA_SCREENS.has(screenName as never);
-        Log.info(`[TwoFactorAuthGuard] Checking screen: ${screenName}, is2FA: ${result}`);
-        return result;
-    };
 
     // Direct navigation: Navigation.navigate(...)
     if (is2FAScreen(payload.name)) {
