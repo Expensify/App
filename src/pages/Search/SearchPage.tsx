@@ -61,6 +61,7 @@ import {
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {setNameValuePair} from '@libs/actions/User';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -453,18 +454,17 @@ function SearchPage({route}: SearchPageProps) {
             }
             // Translations copy for delete modal depends on amount of selected items,
             // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+            const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (isExpenseReportType) {
                     // For expense reports, call deleteAppReport which properly un-reports the expenses
                     for (const reportID of selectedReportIDs) {
-                        deleteAppReport(
-                            reportID,
-                            currentUserPersonalDetails?.login ?? '',
-                            Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined)),
-                            allTransactionViolations,
-                            bankAccountList,
-                        );
+                        try {
+                            deleteAppReport(reportID, currentUserPersonalDetails?.login ?? '', validTransactions, allTransactionViolations, bankAccountList);
+                        } catch (error) {
+                            Log.warn('[SearchPage] Failed to delete expense report', {error});
+                        }
                     }
                 } else {
                     // For individual expenses, delete the transactions
