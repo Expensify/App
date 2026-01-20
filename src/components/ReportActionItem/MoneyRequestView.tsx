@@ -312,7 +312,6 @@ function MoneyRequestView({
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction, preferredLocale) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
 
-
     const isSettled = isSettledReportUtils(moneyRequestReport);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);

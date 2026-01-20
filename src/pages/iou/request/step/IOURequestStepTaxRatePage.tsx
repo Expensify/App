@@ -75,6 +75,7 @@ function IOURequestStepTaxRatePage({
         }
 
         const taxAmount = getTaxAmount(policy, currentTransaction, taxes.code, getAmount(currentTransaction, false, true));
+        const taxValue = getTaxValue(policy, currentTransaction, taxes.code) ?? '';
 
         if (isEditingSplitBill) {
             setDraftSplitTransaction(currentTransaction.transactionID, splitDraftTransaction, {
@@ -92,6 +93,7 @@ function IOURequestStepTaxRatePage({
                 transactionThreadReport: report,
                 parentReport,
                 taxCode: newTaxCode,
+                taxValue,
                 taxAmount: convertToBackendAmount(taxAmount ?? 0),
                 policy,
                 policyTagList: policyTags,

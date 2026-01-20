@@ -11,8 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
@@ -383,6 +383,7 @@ function IOURequestStepAmount({
             taxAmount,
             policy,
             taxCode,
+            taxValue: taxPercentage,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,

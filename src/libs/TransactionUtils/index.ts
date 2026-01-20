@@ -729,6 +729,10 @@ function getUpdatedTransaction({
         updatedTransaction.taxCode = transactionChanges.taxCode;
     }
 
+    if (Object.hasOwn(transactionChanges, 'taxValue') && typeof transactionChanges.taxCode === 'string') {
+        updatedTransaction.taxValue = transactionChanges.taxValue;
+    }
+
     if (Object.hasOwn(transactionChanges, 'reimbursable') && typeof transactionChanges.reimbursable === 'boolean') {
         updatedTransaction.reimbursable = transactionChanges.reimbursable;
     }

@@ -5198,6 +5198,7 @@ type UpdateMoneyRequestTaxRateParams = {
     parentReport: OnyxEntry<OnyxTypes.Report>;
     taxCode: string;
     taxAmount: number;
+    taxValue: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -5214,6 +5215,7 @@ function updateMoneyRequestTaxRate({
     parentReport,
     taxCode,
     taxAmount,
+    taxValue,
     policy,
     policyTagList,
     policyCategories,
@@ -5225,6 +5227,7 @@ function updateMoneyRequestTaxRate({
     const transactionChanges = {
         taxCode,
         taxAmount,
+        taxValue,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
@@ -8535,6 +8538,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     taxCode: string;
+    taxValue: string;
     allowNegative?: boolean;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
@@ -8557,6 +8561,7 @@ function updateMoneyRequestAmountAndCurrency({
     policyTagList,
     policyCategories,
     taxCode,
+    taxValue,
     allowNegative = false,
     transactions,
     transactionViolations,
@@ -8571,6 +8576,7 @@ function updateMoneyRequestAmountAndCurrency({
         currency,
         taxCode,
         taxAmount,
+        taxValue,
     };
 
     let data: UpdateMoneyRequestData;
