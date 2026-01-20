@@ -525,7 +525,16 @@ function validateSecondaryLogin(
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.LOGIN_LIST
+            | typeof ONYXKEYS.ACCOUNT
+            | typeof ONYXKEYS.SESSION
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.VALIDATE_ACTION_CODE
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -615,7 +624,7 @@ function validateSecondaryLogin(
         }
     }
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -1388,7 +1397,7 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
         value: typeof value === 'object' && value != null ? JSON.stringify(value) : value,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof name>> = [
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1398,7 +1407,7 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
     ];
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureData: OnyxUpdate[] | undefined = shouldRevertValue
+    const failureData: Array<OnyxUpdate<typeof name>> | undefined = shouldRevertValue
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -1587,7 +1596,7 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
  */
 function verifyAddSecondaryLoginCode(validateCode: string) {
     resetValidateActionCodeSent();
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
@@ -1601,7 +1610,7 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
@@ -1612,7 +1621,7 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,

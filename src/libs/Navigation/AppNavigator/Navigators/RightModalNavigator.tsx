@@ -400,6 +400,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             name={SCREENS.RIGHT_MODAL.SEARCH_COLUMNS}
                             component={ModalStackNavigators.SearchColumnsModalStackNavigator}
                         />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION}
+                            component={ModalStackNavigators.MultifactorAuthenticationStackNavigator}
+                        />
                     </Stack.Navigator>
                 </Animated.View>
                 {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -49,10 +49,11 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
         Navigation.goBack();
     };
 
-    const goToNextStep = useCallback(() => {
+    const goToNextStep = () => {
+        const defaultCardName = getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail);
         const cardToAssign: Partial<AssignCardData> = {
             email: assignCard?.cardToAssign?.invitingMemberEmail,
-            cardName: getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail),
+            customCardName: defaultCardName,
             invitingMemberEmail: '',
         };
 
@@ -60,7 +61,8 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
 
         if (assignCard?.cardToAssign?.encryptedCardNumber) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
-            cardToAssign.cardNumber = assignCard.cardToAssign.cardNumber;
+            cardToAssign.cardName = assignCard.cardToAssign.cardName;
+            cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
             cardToAssign.startDate = assignCard?.cardToAssign?.startDate ?? new Date().toISOString().split('T').at(0);
             cardToAssign.dateOption = assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
             setAssignCardStepAndData({
@@ -70,8 +72,9 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
         } else if (hasOnlyOneCardToAssign(filteredCardList)) {
-            cardToAssign.cardNumber = Object.keys(filteredCardList).at(0);
-            cardToAssign.encryptedCardNumber = Object.values(filteredCardList).at(0);
+            const onlyCard = filteredCardList.at(0);
+            cardToAssign.cardName = onlyCard?.cardName;
+            cardToAssign.encryptedCardNumber = onlyCard?.cardID;
             cardToAssign.startDate = assignCard?.cardToAssign?.startDate ?? new Date().toISOString().split('T').at(0);
             cardToAssign.dateOption = assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
             setAssignCardStepAndData({
@@ -88,7 +91,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
         }
-    }, [assignCard?.cardToAssign, filteredCardList, policyID, feed, cardID]);
+    };
 
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details
