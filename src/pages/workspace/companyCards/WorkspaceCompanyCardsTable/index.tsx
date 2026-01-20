@@ -71,9 +71,11 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || policy?.id === undefined || isLoadingOnyxValue(lastSelectedFeedMetadata);
 
     const isDomainLevelFeed = selectedFeed?.preferredPolicy === policy?.id;
-    const isLoadingCards = isDomainLevelFeed ? isLoadingOnyxValue(cardListMetadata) : (
-        cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined
-    );
+    const isLoadingCards = isDomainLevelFeed
+        ? isLoadingOnyxValue(cardListMetadata)
+        : cardFeedType === 'directFeed'
+          ? selectedFeed?.accountList === undefined
+          : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata));
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed;
