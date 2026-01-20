@@ -3766,8 +3766,8 @@ describe('actions/IOU', () => {
 
             expect(splitTransactions.length).toBe(2);
 
-            for (const splitTx of splitTransactions) {
-                expect(splitTx.convertedAmount).toBe(expectedProportionalConvertedAmount);
+            for (const splitTransaction of splitTransactions) {
+                expect(splitTransaction.convertedAmount).toBe(expectedProportionalConvertedAmount);
             }
         });
     });
