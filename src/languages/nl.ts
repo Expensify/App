@@ -627,7 +627,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
-        viewReport: 'Rapport bekijken',
         actionRequired: 'Actie vereist',
         duplicate: 'Dupliceren',
         duplicated: 'Gedupliceerd',
@@ -1951,13 +1950,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Chat met Concierge om beveiligingsproblemen op te lossen en je account te ontgrendelen.',
         chatWithConcierge: 'Chatten met Concierge',
     },
-    passwordPage: {
-        changePassword: 'Wachtwoord wijzigen',
-        changingYourPasswordPrompt: 'Je wachtwoord wijzigen zal je wachtwoord bijwerken voor zowel je Expensify.com- als je New Expensify-account.',
-        currentPassword: 'Huidig wachtwoord',
-        newPassword: 'Nieuw wachtwoord',
-        newPasswordPrompt: 'Je nieuwe wachtwoord moet verschillen van je oude wachtwoord en minstens 8 tekens, 1 hoofdletter, 1 kleine letter en 1 cijfer bevatten.',
-    },
     twoFactorAuth: {
         headerTitle: 'Twee-factor-authenticatie',
         twoFactorAuthEnabled: 'Authenticatie in twee stappen ingeschakeld',
@@ -2991,15 +2983,6 @@ ${
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oeps... ${isBreakLine ? '\n' : ''}Er is iets misgegaan`,
         subtitle: 'Je verzoek kon niet worden voltooid. Probeer het later opnieuw.',
         wrongTypeSubtitle: 'Die zoekopdracht is ongeldig. Probeer je zoekcriteria aan te passen.',
-    },
-    setPasswordPage: {
-        enterPassword: 'Voer een wachtwoord in',
-        setPassword: 'Wachtwoord instellen',
-        newPasswordPrompt: 'Je wachtwoord moet minimaal 8 tekens bevatten, waarvan 1 hoofdletter, 1 kleine letter en 1 cijfer.',
-        passwordFormTitle: 'Welkom terug bij de nieuwe Expensify! Stel je wachtwoord in.',
-        passwordNotSet: 'We konden je nieuwe wachtwoord niet instellen. We hebben je een nieuwe wachtwoordlink gestuurd om het opnieuw te proberen.',
-        setPasswordLinkInvalid: 'Deze link om een wachtwoord in te stellen is ongeldig of verlopen. Er wacht een nieuwe op je in je e‑mailinbox!',
-        validateAccount: 'Account verifiëren',
     },
     statusPage: {
         status: 'Status',
@@ -5088,6 +5071,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd. Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.`,
                 lastUpdated: 'Laatst bijgewerkt',
                 transactionStartDate: 'Startdatum transactie',
+                changeTransactionStartDateWarning:
+                    'Als u de startdatum wijzigt, worden alle niet-gerapporteerde/conceptrapporttransacties verwijderd en worden alle transacties vanaf de nieuwe startdatum opnieuw geïmporteerd. Dit kan dubbele transacties veroorzaken.',
                 updateCard: 'Kaart bijwerken',
                 unassignCard: 'Kaart ontkoppelen',
                 unassign: 'Toewijzen verwijderen',
