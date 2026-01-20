@@ -148,7 +148,7 @@ type SectionHeader = {
     isDisabled: boolean;
 };
 
-type SectionListItem<TItem extends ListItem> = TItem & {flatIndex: number, type: 'row'};
+type SectionListItem<TItem extends ListItem> = TItem & {flatIndex: number; type: 'row'};
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 

@@ -10,7 +10,7 @@ import type {BaseListItemProps, ExtendedTargetedEvent, ListItem} from './types';
 type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow' | 'keyForList'> &
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
-        normalizedIndex: number;
+        normalizedIndex?: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
@@ -23,6 +23,7 @@ function ListItemRenderer<TItem extends ListItem>({
     ListItem,
     item,
     index,
+    normalizedIndex,
     isFocused,
     isDisabled,
     showTooltip,
@@ -92,7 +93,7 @@ function ListItemRenderer<TItem extends ListItem>({
                     if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
                         return;
                     }
-                    setFocusedIndex(index);
+                    setFocusedIndex(normalizedIndex ?? index);
                 }}
                 shouldSyncFocus={shouldSyncFocus}
                 wrapperStyle={wrapperStyle}
