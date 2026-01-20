@@ -49,7 +49,7 @@ type ReportAttributesDerivedValue = {
 };
 
 /**
- *
+ * The transactions and violations of a report.
  */
 type ReportTransactionsAndViolations = {
     /**
@@ -77,15 +77,15 @@ type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Re
  */
 type CardErrors = {
     /**
-     *
+     * The errors of the card.
      */
     errors?: Card['errors'];
     /**
-     *
+     * The form field errors of the card.
      */
     errorFields?: Card['errorFields'];
     /**
-     *
+     * Whether the card has a pending action.
      */
     pendingAction?: Card['pendingAction'];
 };
@@ -103,18 +103,22 @@ type CardFeedErrorState = {
      * - The feed connection is broken.
      */
     shouldShowRBR: boolean;
+
     /**
      * Whether some failed card assignments.
      */
     hasFailedCardAssignments: boolean;
+
     /**
      * Whether a specific feed within a workspace/domain has errors.
      */
     hasFeedErrors: boolean;
+
     /**
      * Whether some workspace has errors.
      */
     // hasWorkspaceErrors: boolean;
+
     /**
      * Whether some feed connection is broken.
      */
@@ -141,7 +145,7 @@ type FeedErrors = CardFeedErrorState & {
 type CardFeedId = CompanyCardFeedWithNumber;
 
 /**
- *
+ * The errors of all card feeds by workspace account ID and feed name with domain ID.
  */
 type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
 
@@ -158,14 +162,17 @@ type CardFeedErrors = {
      * The errors of all card feeds by feed name with domain ID.
      */
     cardFeedErrors: CardFeedErrorsObject;
+
     /**
      * The cards with a broken feed connection.
      */
     cardsWithBrokenFeedConnection: Record<string, Card>;
+
     /**
      * Whether to show the RBR for each workspace account ID.
      */
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
+
     /**
      * Whether to show the RBR for each feed name with domain ID.
      */
@@ -175,10 +182,12 @@ type CardFeedErrors = {
      * The errors of all card feeds.
      */
     all: CardFeedErrorState;
+
     /**
      * The errors of company cards.
      */
     companyCards: CardFeedErrorState;
+
     /**
      * The errors of expensify card.
      */
