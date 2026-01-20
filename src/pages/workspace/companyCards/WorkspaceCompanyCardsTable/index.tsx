@@ -221,6 +221,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 additionalStyles: styles.cardIcon,
             }}
             selectedFeed={feedName}
+            useSkeletonLoader
         />
     );
 
