@@ -141,7 +141,7 @@ function IOURequestStepWaypoint({
             waypoint,
             isDraft: shouldUseTransactionDraft(action),
             recentWaypointsList: allRecentWaypoints,
-            splitDraftTransaction: shouldPassSplitDraft ? splitDraftTransaction : undefined,
+            isSplitDraftTransaction: shouldPassSplitDraft,
         });
     };
 
@@ -204,7 +204,7 @@ function IOURequestStepWaypoint({
             waypoint,
             isDraft: shouldUseTransactionDraft(action),
             recentWaypointsList: allRecentWaypoints,
-            splitDraftTransaction: shouldPassSplitDraft ? splitDraftTransaction : undefined,
+            isSplitDraftTransaction: shouldPassSplitDraft,
         });
         goBack();
     };

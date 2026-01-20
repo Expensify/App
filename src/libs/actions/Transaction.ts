@@ -2,7 +2,7 @@ import {getUnixTime} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -108,27 +108,20 @@ type SaveWaypointProps = {
     waypoint: RecentWaypoint | null;
     isDraft?: boolean;
     recentWaypointsList?: RecentWaypoint[];
-    splitDraftTransaction?: OnyxEntry<Transaction>;
+    isSplitDraftTransaction?: boolean;
 };
 
-function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWaypointsList = [], splitDraftTransaction}: SaveWaypointProps) {
-    // Check if there's a split draft transaction for editing split expenses
-    const shouldUseSplitDraft = !isDraft && !!splitDraftTransaction;
-
-    // Get existing waypoints to preserve them when updating
-    let existingTransaction: OnyxEntry<Transaction> = allTransactions?.[transactionID];
+function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWaypointsList = [], isSplitDraftTransaction = false}: SaveWaypointProps) {
+    let key: OnyxKey =  `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
     if (isDraft) {
-        existingTransaction = allTransactionDrafts?.[transactionID];
+        key = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+    } else if (isSplitDraftTransaction) {
+        key = `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
     }
-    if (shouldUseSplitDraft) {
-        existingTransaction = splitDraftTransaction;
-    }
-    const existingWaypoints = existingTransaction?.comment?.waypoints ?? {};
 
-    const waypointUpdate = {
+    Onyx.merge(key, {
         comment: {
             waypoints: {
-                ...existingWaypoints,
                 [`waypoint${index}`]: waypoint,
             },
             customUnit: {
@@ -153,15 +146,7 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
                 },
             },
         },
-    };
-
-    if (shouldUseSplitDraft) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, waypointUpdate);
-    } else if (isDraft) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, waypointUpdate);
-    } else {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, waypointUpdate);
-    }
+    });
 
     // You can save offline waypoints without verifying the address (we will geocode it on the backend)
     // We're going to prevent saving those addresses in the recent waypoints though since they could be invalid addresses
@@ -269,7 +254,7 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
 function getOnyxDataForRouteRequest(
     transactionID: string,
     transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
-): OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.TRANSACTION_BACKUP | typeof ONYXKEYS.COLLECTION.TRANSACTION> {
+): OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.TRANSACTION_BACKUP | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT> {
     let keyPrefix;
     switch (transactionState) {
         case CONST.TRANSACTION.STATE.DRAFT:
