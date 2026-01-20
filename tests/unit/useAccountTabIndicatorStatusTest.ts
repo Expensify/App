@@ -17,20 +17,50 @@ const brokenCardFeed = {
     workspaceAccountID: 12345,
 };
 
-const accountCardFeedTestCases = {
-    admin: {
-        name: 'has no account card feed error if admin',
-        indicatorColor: defaultTheme.success,
-        status: undefined,
-    },
-    employee: {
-        name: 'has account card feed error if employee (non-admin)',
+const TEST_CASES = {
+    hasUserWalletErrors: {
+        name: 'has user wallet errors',
         indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS,
+        status: CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS,
     },
-} as const satisfies Record<'admin' | 'employee', IndicatorTestCase>;
+    hasPaymentMethodError: {
+        name: 'has payment method error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
+    },
+    hasReimbursementAccountErrors: {
+        name: 'has reimbursement account errors',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS,
+    },
+    hasLoginListError: {
+        name: 'has login list error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR,
+    },
+    hasWalletTermsErrors: {
+        name: 'has wallet terms errors',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS,
+    },
+    hasCardConnectionError: {
+        name: 'has card connection error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR,
+    },
+    hasPhoneNumberError: {
+        name: 'has phone number error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR,
+    },
+    hasLoginListInfo: {
+        name: 'has login list info',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO,
+    },
+} as const satisfies Record<string, IndicatorTestCase>;
 
-const getMockForStatus = ({status, name}: IndicatorTestCase) =>
+const getMockForTestCase = ({status}: IndicatorTestCase) =>
     ({
         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -110,58 +140,18 @@ const getMockForStatus = ({status, name}: IndicatorTestCase) =>
         [ONYXKEYS.CARD_LIST]: {
             card1: {
                 bank: 'OTHER_BANK',
-                lastScrapeResult: name === accountCardFeedTestCases.admin.name || name === accountCardFeedTestCases.employee.name ? 403 : 200,
+                lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 403 : 200,
                 fundID: String(brokenCardFeed.workspaceAccountID),
             },
         },
         [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
             id: '1',
             name: 'Workspace 1',
-            owner: name === accountCardFeedTestCases.admin.name ? userID : 'otheruser@expensify.com',
-            role: name === accountCardFeedTestCases.admin.name ? 'admin' : 'user',
+            owner: userID,
+            role: 'admin',
             workspaceAccountID: brokenCardFeed.workspaceAccountID,
         },
     }) as unknown as OnyxMultiSetInput;
-
-const TEST_CASES: IndicatorTestCase[] = [
-    {
-        name: 'has user wallet errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS,
-    },
-    {
-        name: 'has payment method error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
-    },
-    {
-        name: 'has reimbursement account errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS,
-    },
-    {
-        name: 'has login list error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR,
-    },
-    {
-        name: 'has wallet terms errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS,
-    },
-    {
-        name: 'has phone number error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR,
-    },
-    {
-        name: 'has login list info',
-        indicatorColor: defaultTheme.success,
-        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO,
-    },
-    accountCardFeedTestCases.employee,
-    accountCardFeedTestCases.admin,
-];
 
 describe('useAccountTabIndicatorStatus', () => {
     beforeAll(() => {
@@ -171,10 +161,10 @@ describe('useAccountTabIndicatorStatus', () => {
         initOnyxDerivedValues();
     });
 
-    describe.each(TEST_CASES)('$name', (testCase) => {
+    describe.each(Object.values(TEST_CASES))('$name', (testCase) => {
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet(getMockForStatus(testCase));
+                await Onyx.multiSet(getMockForTestCase(testCase));
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -404,7 +394,7 @@ describe('useAccountTabIndicatorStatus', () => {
             await waitForBatchedUpdatesWithAct();
             const {status, indicatorColor} = result.current;
 
-            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS);
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR);
             expect(indicatorColor).toBe(defaultTheme.danger);
         });
 

@@ -18,21 +18,94 @@ const brokenCardFeed = {
     workspaceAccountID: 12345,
 };
 
-const cardFeedErrorTestCases = {
-    admin: {
-        name: 'has policy card feed error if admin',
+const TEST_CASES = {
+    hasPolicyErrors: {
+        name: 'has policy errors',
         indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS,
+        status: CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS,
+        policyIDWithErrors: '2',
+    },
+    hasCustomUnitsError: {
+        name: 'has custom units error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR,
         policyIDWithErrors: '1',
     },
-    employee: {
-        name: 'has account card feed error if employee (non-admin)',
+    hasEmployeeListError: {
+        name: 'has employee list error',
         indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS,
+        status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR,
+        policyIDWithErrors: '3',
     },
-} as const satisfies Record<'admin' | 'employee', IndicatorTestCase>;
+    hasSyncErrors: {
+        name: 'has sync errors',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
+        policyIDWithErrors: '4',
+    },
+    hasUserWalletErrors: {
+        name: 'has user wallet errors',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS,
+        policyIDWithErrors: undefined,
+    },
+    hasPaymentMethodError: {
+        name: 'has payment method error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
+        policyIDWithErrors: undefined,
+    },
+    hasSubscriptionErrors: {
+        name: 'has subscription errors',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS,
+        policyIDWithErrors: undefined,
+    },
+    hasReimbursementAccountErrors: {
+        name: 'has reimbursement account errors',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS,
+        policyIDWithErrors: undefined,
+    },
+    hasLoginListError: {
+        name: 'has login list error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR,
+        policyIDWithErrors: undefined,
+    },
+    hasWalletTermsErrors: {
+        name: 'has wallet terms errors',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS,
+        policyIDWithErrors: undefined,
+    },
+    hasCardConnectionError: {
+        name: 'has card connection error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR,
+        policyIDWithErrors: undefined,
+    },
+    hasLoginListInfo: {
+        name: 'has login list info',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO,
+        policyIDWithErrors: undefined,
+    },
+    hasSubscriptionInfo: {
+        name: 'has subscription info',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO,
+        policyIDWithErrors: undefined,
+    },
+    hasPendingCardInfo: {
+        name: 'has pending card info',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO,
+        policyIDWithErrors: undefined,
+    },
+} as const satisfies Record<string, IndicatorTestCase>;
 
-const getMockForStatus = ({status, name}: IndicatorTestCase, isAdmin: boolean) =>
+const getMockForTestCase = ({status}: IndicatorTestCase, isAdmin: boolean) =>
     ({
         [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
             id: '1',
@@ -163,11 +236,6 @@ const getMockForStatus = ({status, name}: IndicatorTestCase, isAdmin: boolean) =
                 fundID: String(brokenCardFeed.workspaceAccountID),
                 state: status === CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO ? CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED : CONST.EXPENSIFY_CARD.STATE.OPEN,
             },
-            card1: {
-                bank: 'OTHER_BANK',
-                lastScrapeResult: name === cardFeedErrorTestCases.admin.name || name === cardFeedErrorTestCases.employee.name ? 403 : 200,
-                fundID: String(brokenCardFeed.workspaceAccountID),
-            },
         },
         [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
             legalFirstName: 'John',
@@ -182,111 +250,28 @@ const getMockForStatus = ({status, name}: IndicatorTestCase, isAdmin: boolean) =
         },
     }) as OnyxMultiSetInput;
 
-const TEST_CASES: IndicatorTestCase[] = [
-    {
-        name: 'has policy errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS,
-        policyIDWithErrors: '2',
-    },
-    {
-        name: 'has custom units error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR,
-        policyIDWithErrors: '1',
-    },
-    {
-        name: 'has employee list error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR,
-        policyIDWithErrors: '3',
-    },
-    {
-        name: 'has sync errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
-        policyIDWithErrors: '4',
-    },
-    {
-        name: 'has user wallet errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS,
-        policyIDWithErrors: undefined,
-    },
-    {
-        name: 'has payment method error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
-        policyIDWithErrors: undefined,
-    },
-    {
-        name: 'has subscription errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS,
-        policyIDWithErrors: undefined,
-    },
-    {
-        name: 'has reimbursement account errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS,
-        policyIDWithErrors: undefined,
-    },
-    {
-        name: 'has login list error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR,
-        policyIDWithErrors: undefined,
-    },
-    {
-        name: 'has wallet terms errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS,
-        policyIDWithErrors: undefined,
-    },
-    {
-        name: 'has login list info',
-        indicatorColor: defaultTheme.success,
-        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO,
-        policyIDWithErrors: undefined,
-    },
-    {
-        name: 'has subscription info',
-        indicatorColor: defaultTheme.success,
-        status: CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO,
-        policyIDWithErrors: undefined,
-    },
-    {
-        name: 'has pending card info',
-        indicatorColor: defaultTheme.success,
-        status: CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO,
-        policyIDWithErrors: undefined,
-    },
-    cardFeedErrorTestCases.admin,
-];
-
-const TEST_CASES_NON_ADMIN: IndicatorTestCase[] = [
-    {
+const TEST_CASES_NON_ADMIN = {
+    hasCustomUnitsError: {
         name: 'has custom units error but not an admin so no RBR',
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR,
     },
-    {
+    hasPolicyErrors: {
         name: 'has policy errors but not an admin so no RBR',
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS,
     },
-    {
+    hasEmployeeListError: {
         name: 'has employee list error but not an admin so no RBR',
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR,
     },
-    {
+    hasSyncErrors: {
         name: 'has sync errors but not an admin so no RBR',
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
     },
-    cardFeedErrorTestCases.employee,
-];
+} as const satisfies Record<string, IndicatorTestCase>;
 
 describe('useIndicatorStatusTest', () => {
     beforeAll(() => {
@@ -296,9 +281,9 @@ describe('useIndicatorStatusTest', () => {
         initWithOnyxDerivedValues();
     });
 
-    describe.each(TEST_CASES)('$name', (testCase) => {
+    describe.each(Object.values(TEST_CASES))('$name', (testCase) => {
         beforeAll(async () => {
-            await Onyx.multiSet(getMockForStatus(testCase, true));
+            await Onyx.multiSet(getMockForTestCase(testCase, true));
             await waitForBatchedUpdates();
         });
         it('returns correct indicatorColor', async () => {
@@ -326,9 +311,9 @@ describe('useIndicatorStatusTest', () => {
             expect(policyIDWithErrors).toBe(testCase.policyIDWithErrors);
         });
     });
-    describe.each(TEST_CASES_NON_ADMIN)('$name', (testCase) => {
+    describe.each(Object.values(TEST_CASES_NON_ADMIN))('$name', (testCase) => {
         beforeAll(async () => {
-            await Onyx.multiSet(getMockForStatus(testCase, false));
+            await Onyx.multiSet(getMockForTestCase(testCase, false));
             await waitForBatchedUpdates();
         });
         it('returns correct indicatorColor', async () => {
