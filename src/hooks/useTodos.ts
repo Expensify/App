@@ -10,43 +10,6 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 type TodoSearchResultsData = SearchResults['data'];
 
-type TodoMetadata = {
-    /** Total number of transactions across all reports */
-    count: number;
-    /** Sum of all report totals (in cents) */
-    total: number;
-    /** Currency of the first report, used as reference currency */
-    currency: string | undefined;
-};
-
-function computeMetadata(reports: Report[], transactionsByReportID: Record<string, Transaction[]>): TodoMetadata {
-    let count = 0;
-    let total = 0;
-    let currency: string | undefined;
-
-    for (const report of reports) {
-        if (!report?.reportID) {
-            continue;
-        }
-
-        const reportTransactions = transactionsByReportID[report.reportID];
-        if (reportTransactions) {
-            count += reportTransactions.length;
-        }
-
-        // Expense reports have a negative total, so we need to subtract it from the total
-        if (report.total) {
-            total -= report.total;
-        }
-
-        if (currency === undefined && report.currency) {
-            currency = report.currency;
-        }
-    }
-
-    return {count, total, currency};
-}
-
 /**
  * Builds a SearchResults-compatible data object from the given reports and related data.
  * This allows the search UI to use live Onyx data instead of snapshot data when viewing to-do results.
@@ -187,16 +150,12 @@ export default function useTodos() {
 
     // Build SearchResults-formatted data for each to-do category
     const todoSearchResultsData = useMemo(() => {
-        const buildData = (reports: Report[]): {data: TodoSearchResultsData; metadata: TodoMetadata} => {
+        const buildData = (reports: Report[]): TodoSearchResultsData => {
             if (reports.length === 0) {
                 // Return empty object like the Search API would when there's no data
-                return {
-                    data: {} as TodoSearchResultsData,
-                    metadata: {count: 0, total: 0, currency: undefined},
-                };
+                return {} as TodoSearchResultsData;
             }
 
-            const metadata = computeMetadata(reports, transactionsByReportID);
             const data = buildSearchResultsData(
                 reports,
                 transactionsByReportID,
@@ -208,7 +167,7 @@ export default function useTodos() {
                 allTransactionViolations as Record<string, TransactionViolations> | undefined,
             );
 
-            return {data, metadata};
+            return data;
         };
 
         return {
