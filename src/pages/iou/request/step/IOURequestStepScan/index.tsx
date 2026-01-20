@@ -137,6 +137,7 @@ function IOURequestStepScan({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [firstCreatedGpsExpenseDateNewDot] = useOnyx(ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT, {canBeMissing: true});
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -401,6 +402,7 @@ function IOURequestStepScan({
                         introSelected,
                         activePolicyID,
                         quickAction,
+                        firstCreatedGpsExpenseDateNewDot,
                     });
                 } else {
                     requestMoney({
@@ -450,6 +452,7 @@ function IOURequestStepScan({
             activePolicyID,
             quickAction,
             policyRecentlyUsedCurrencies,
+            firstCreatedGpsExpenseDateNewDot,
         ],
     );
 

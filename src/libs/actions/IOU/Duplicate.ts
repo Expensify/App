@@ -546,6 +546,7 @@ function duplicateExpenseTransaction({
             introSelected,
             activePolicyID,
             quickAction,
+            firstCreatedGpsExpenseDateNewDot: undefined,
         };
         return trackExpense(trackExpenseParams);
     }

@@ -519,6 +519,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -619,6 +620,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -702,6 +704,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -754,6 +757,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -832,6 +836,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -884,6 +889,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2180,6 +2186,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
 
             mockFetch?.resume?.();
@@ -2245,6 +2252,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2499,6 +2507,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2520,6 +2529,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
@@ -2543,6 +2553,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
@@ -2563,6 +2574,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
                 policyRecentlyUsedCurrencies: [],
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
@@ -2594,6 +2606,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: initialCurrencies,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2644,6 +2657,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             waitForBatchedUpdates();
 
@@ -2703,6 +2717,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             waitForBatchedUpdates();
 
@@ -7417,6 +7432,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -9067,6 +9083,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                firstCreatedGpsExpenseDateNewDot: undefined,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,

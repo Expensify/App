@@ -96,6 +96,7 @@ function IOURequestStepDistanceManual({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [firstCreatedGpsExpenseDateNewDot] = useOnyx(ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
@@ -242,6 +243,7 @@ function IOURequestStepDistanceManual({
                             introSelected,
                             activePolicyID,
                             quickAction,
+                            firstCreatedGpsExpenseDateNewDot,
                         });
                         return;
                     }
@@ -272,6 +274,7 @@ function IOURequestStepDistanceManual({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        firstCreatedGpsExpenseDateNewDot,
                     });
                     return;
                 }
@@ -343,6 +346,7 @@ function IOURequestStepDistanceManual({
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
             reportID,
+            firstCreatedGpsExpenseDateNewDot,
         ],
     );
 

@@ -720,6 +720,7 @@ describe('Unread Indicators', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
+            firstCreatedGpsExpenseDateNewDot: undefined,
         });
         await waitForBatchedUpdates();
 

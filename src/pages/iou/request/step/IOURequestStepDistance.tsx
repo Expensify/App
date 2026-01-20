@@ -104,6 +104,7 @@ function IOURequestStepDistance({
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [firstCreatedGpsExpenseDateNewDot] = useOnyx(ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const waypoints = useMemo(
         () =>
@@ -365,6 +366,7 @@ function IOURequestStepDistance({
                         introSelected,
                         activePolicyID,
                         quickAction,
+                        firstCreatedGpsExpenseDateNewDot,
                     });
                     return;
                 }
@@ -396,6 +398,7 @@ function IOURequestStepDistance({
                     transactionViolations,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    firstCreatedGpsExpenseDateNewDot,
                 });
                 return;
             }
@@ -467,6 +470,7 @@ function IOURequestStepDistance({
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
+        firstCreatedGpsExpenseDateNewDot,
     ]);
 
     const getError = () => {

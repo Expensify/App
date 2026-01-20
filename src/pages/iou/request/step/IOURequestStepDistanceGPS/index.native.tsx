@@ -66,6 +66,7 @@ function IOURequestStepDistanceGPS({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [firstCreatedGpsExpenseDateNewDot] = useOnyx(ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
@@ -163,6 +164,7 @@ function IOURequestStepDistanceGPS({
                         introSelected,
                         activePolicyID,
                         quickAction,
+                        firstCreatedGpsExpenseDateNewDot,
                     });
 
                     return;
@@ -195,6 +197,7 @@ function IOURequestStepDistanceGPS({
                     transactionViolations,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    firstCreatedGpsExpenseDateNewDot,
                 });
 
                 return;
