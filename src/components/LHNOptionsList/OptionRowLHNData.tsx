@@ -79,7 +79,7 @@ function OptionRowLHNData({
             movedFromReport,
             movedToReport,
             currentUserAccountID,
-            visibleReportActionsData: visibleReportActionsData ?? {},
+            visibleReportActionsData,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;

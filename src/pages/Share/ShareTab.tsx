@@ -80,7 +80,7 @@ function ShareTab({ref}: ShareTabProps) {
             includeUserToInvite: true,
             countryCode,
             loginList,
-            visibleReportActionsData: visibleReportActionsData ?? {},
+            visibleReportActionsData,
         });
     }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList]);
 

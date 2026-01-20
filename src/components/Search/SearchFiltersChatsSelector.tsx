@@ -64,9 +64,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
-            const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportAttributesDerived, undefined, visibleReportActionsData ?? {}));
+            const report = getSelectedOptionData(
+                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportAttributesDerived, undefined, visibleReportActionsData),
+            );
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, isReportArchived, {}, visibleReportActionsData ?? {});
+            const alternateText = getAlternateText(report, {}, isReportArchived, {}, visibleReportActionsData);
             return {...report, alternateText};
         });
     }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs, visibleReportActionsData]);
@@ -75,7 +77,16 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, isUsedInChatFinder: false, countryCode, loginList, visibleReportActionsData: visibleReportActionsData ?? {}});
+        return getSearchOptions({
+            options,
+            draftComments,
+            nvpDismissedProductTraining,
+            betas: undefined,
+            isUsedInChatFinder: false,
+            countryCode,
+            loginList,
+            visibleReportActionsData,
+        });
     }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, visibleReportActionsData]);
 
     const chatOptions = useMemo(() => {

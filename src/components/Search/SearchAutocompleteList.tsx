@@ -219,7 +219,7 @@ function SearchAutocompleteList({
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
             loginList,
-            visibleReportActionsData: visibleReportActionsData ?? {},
+            visibleReportActionsData,
         });
     }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, visibleReportActionsData]);
 
@@ -430,7 +430,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                    visibleReportActionsData: visibleReportActionsData ?? {},
+                    visibleReportActionsData,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
@@ -462,7 +462,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                    visibleReportActionsData: visibleReportActionsData ?? {},
+                    visibleReportActionsData,
                 }).recentReports.filter((chat) => {
                     if (!chat.text) {
                         return false;

@@ -197,7 +197,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     countryCode,
                     loginList,
-                    visibleReportActionsData: visibleReportActionsData ?? {},
+                    visibleReportActionsData,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
