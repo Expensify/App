@@ -2,13 +2,12 @@ import React, {useEffect, useState} from 'react';
 import {isMobileChrome} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import BaseSelectionList from './BaseSelectionList';
-import type {ListItem, SelectionListProps} from './types';
+import BaseSelectionList from './NewBaseSelectionListWithSections';
+import type {ListItem, SelectionListWithSectionsProps} from './types';
 
-function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListProps<TItem>) {
+function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListWithSectionsProps<TItem>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
     const [shouldDebounceScrolling, setShouldDebounceScrolling] = useState(false);
-    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
     const touchEnd = () => setIsScreenTouched(false);
@@ -52,35 +51,6 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
         };
     }, []);
 
-    useEffect(() => {
-        if (canUseTouchScreen()) {
-            return;
-        }
-
-        let lastClientX = 0;
-        let lastClientY = 0;
-        const mouseMoveHandler = (event: MouseEvent) => {
-            // On Safari, scrolling can also trigger a mousemove event,
-            // so this comparison is needed to filter out cases where the mouse hasn't actually moved.
-            if (event.clientX === lastClientX && event.clientY === lastClientY) {
-                return;
-            }
-
-            lastClientX = event.clientX;
-            lastClientY = event.clientY;
-
-            setShouldDisableHoverStyle(false);
-        };
-        const wheelHandler = () => setShouldDisableHoverStyle(false);
-
-        document.addEventListener('mousemove', mouseMoveHandler, {passive: true});
-        document.addEventListener('wheel', wheelHandler, {passive: true});
-        return () => {
-            document.removeEventListener('mousemove', mouseMoveHandler);
-            document.removeEventListener('wheel', wheelHandler);
-        };
-    }, []);
-
     return (
         <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -90,8 +60,6 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
             // For example, a long press will trigger a focus event on mobile chrome.
             shouldIgnoreFocus={isMobileChrome() && isScreenTouched}
             shouldDebounceScrolling={shouldDebounceScrolling}
-            shouldDisableHoverStyle={shouldDisableHoverStyle}
-            setShouldDisableHoverStyle={setShouldDisableHoverStyle}
         />
     );
 }

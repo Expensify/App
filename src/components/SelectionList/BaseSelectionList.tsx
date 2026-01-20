@@ -19,6 +19,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
 import TextInput from './components/TextInput';
@@ -57,7 +58,7 @@ function BaseSelectionList<TItem extends ListItem>({
     listFooterContent,
     rightHandSideComponent,
     alternateNumberOfSupportedLines,
-    selectedItems = CONST.EMPTY_ARRAY as unknown as string[],
+    selectedItems = getEmptyArray<string>(),
     style,
     isSelected,
     isDisabled = false,

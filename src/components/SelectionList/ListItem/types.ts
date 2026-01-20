@@ -17,6 +17,7 @@ import type SingleSelectListItem from './SingleSelectListItem';
 import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 import type SplitListItem from './SplitListItem';
 import type TravelDomainListItem from './TravelDomainListItem';
+import type TableListItem from './TableListItem';
 
 type ListItem<K extends string | number = string> = {
     /** Text to display */
@@ -128,6 +129,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Used to initiate payment from search page */
     hash?: number;
+
+    /** Type of the item - 'header' for section headers, 'row' for data items */
+    type?: 'header' | 'row';
 };
 
 type CommonListItemProps<TItem extends ListItem> = {
@@ -270,7 +274,8 @@ type ValidListItem =
     | typeof SingleSelectListItem
     | typeof SpendCategorySelectorListItem
     | typeof TravelDomainListItem
-    | typeof SplitListItem;
+    | typeof SplitListItem
+    | typeof TableListItem;
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;

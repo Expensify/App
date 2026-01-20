@@ -74,25 +74,8 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Array of selected item keys */
     selectedItems?: readonly string[];
 
-    style?: {
-        /** Styles for the list */
-        listStyle?: StyleProp<ViewStyle>;
-
-        /** Styles for the list container */
-        containerStyle?: StyleProp<ViewStyle>;
-
-        /** Styles for the title of the list item */
-        listItemTitleStyles?: StyleProp<TextStyle>;
-
-        /** Styles for the list item wrapper */
-        listItemWrapperStyle?: StyleProp<ViewStyle>;
-
-        /** Styles for the list header wrapper */
-        listHeaderWrapperStyle?: StyleProp<ViewStyle>;
-
-        /** Styles for the title container of the list item */
-        listItemTitleContainerStyles?: StyleProp<ViewStyle>;
-    };
+    /** Styles for the list */
+    style?: SelectionListStyle;
 
     /** Function that determines if an item is selected */
     isSelected?: (item: TItem) => boolean;
@@ -177,7 +160,29 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
+
+    /** Whether to set the hover style */
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+type SelectionListStyle = {
+    /** Styles for the list */
+    listStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the list container */
+    containerStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the title of the list item */
+    listItemTitleStyles?: StyleProp<TextStyle>;
+
+    /** Styles for the list item wrapper */
+    listItemWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the list header wrapper */
+    listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the title container of the list item */
+    listItemTitleContainerStyles?: StyleProp<ViewStyle>;
 };
 
 type TextInputOptions = {
@@ -213,6 +218,15 @@ type TextInputOptions = {
 
     /** Whether the text input autofocus should be disabled */
     disableAutoFocus?: boolean;
+
+    /** Styles for the text input */
+    style?: {
+        /** Styles for the text input container */
+        containerStyle?: StyleProp<ViewStyle>;
+
+        /** Styles for the header message container */
+        headerMessageStyle?: StyleProp<ViewStyle>;
+    };
 
     /** Reference to the text input component */
     ref?: RefObject<BaseTextInputRef | null>;
@@ -274,4 +288,4 @@ type DataDetailsType<TItem extends ListItem> = {
     disabledArrowKeyIndexes: number[];
 };
 
-export type {DataDetailsType, SelectionListHandle, SelectionListProps, TextInputOptions, ConfirmButtonOptions, ListItem, ButtonOrCheckBoxRoles};
+export type {DataDetailsType, SelectionListHandle, SelectionListProps, TextInputOptions, ConfirmButtonOptions, ListItem, ButtonOrCheckBoxRoles, SelectionListStyle};
