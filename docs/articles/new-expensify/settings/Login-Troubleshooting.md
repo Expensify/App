@@ -4,15 +4,15 @@ description: Troubleshoot common login issues — like missing Magic Codes, 2FA 
 keywords: [New Expensify, Expensify login, can't log in, login help, Magic Code missing, Two-Factor Authentication, SSO login, email domain blocked, login error, Concierge login support, account access issue, locked out]
 ---
 
-# Login troubleshooting guide
+# Login troubleshooting
 
-If you're stuck on the login screen, this guide will help you figure out what’s going wrong — and who can help. Select the situation that best matches your experience.
+If you're not able to log into your Expensify account, find your situation below to see what's causing it and how to fix it.
 
 ---
 
 ## Can't receive Magic Code login email
 
-A Magic Code is a one-time login code that Expensify emails you when you try to sign in — instead of asking for a password. If you’re not getting the email, your email provider might be blocking or filtering it.
+A Magic Code is a one-time login code that Expensify emails you when you try to sign in instead of asking for a password. If you’re not getting the email, your email provider might be blocking or filtering it.
 
 **Common Cause**
 Your email provider is blocking or filtering messages from Expensify. 
@@ -61,12 +61,12 @@ Two-Factor Authentication (2FA) is enabled on your account, but you no longer ha
 
 ---
 
-## SSO login error after company login
+## Can't log in with SAML SSO
 
-If your company uses SAML SSO, when you log into Expensify you will be redirected to your company's Identity Provider (e.g., Okta, Azure) to authenticate your account. 
+If your company uses SAML SSO, you'll be redirected to your company's Identity Provider (e.g., Okta, Azure) to authenticate.
 
 **Common Cause**
-There is some setup issue with your company's SAML SSO configuration which may be affecting your account or your domain. 
+Your company's SAML SSO configuration may have an issue affecting your account or domain
 
 **What you can try**
 - If you see the option "Would you like to sign in with a magic code or Single Sign-On?", choose **Magic Code** to log in with a code instead. 
@@ -80,7 +80,7 @@ There is some setup issue with your company's SAML SSO configuration which may b
 
 ---
 
-## Lost access to your Expensify login email
+## Can't access your Expensify login email
 
 **Common Cause**
 You’ve changed jobs or lost access to the email inbox tied to your Expensify login. 
@@ -96,7 +96,7 @@ You’ve changed jobs or lost access to the email inbox tied to your Expensify l
 
 ## Unblock your email address
 
-If you see a banner that says **“We’re having trouble emailing you”**, it means Expensify emails are temporarily suspended for your email address. 
+If you see a banner that says "We're having trouble emailing you", it means Expensify emails are temporarily suspended for your email address.
 
 **Common Cause**
 Expensify tried to email you but it bounced, either because it was not a real email address or the incoming mail server rejected it. 
@@ -104,9 +104,9 @@ Expensify tried to email you but it bounced, either because it was not a real em
 **What to do**
 1. Confirm the primary email address on your Expensify account is a real email account that can accept incoming emails.
 2. Confirm with your IT team or email server that Expensify emails are not being blocked. 
-3. Click the **"here"** link in the banner to unblock your email. 
+3. Click the link in the banner to unblock your email. 
 
-If you see errors like **“mimecast”**, **“blacklist”**, or **SMTP errors**:
+If you see errors like "mimecast", "blacklist", or "SMTP errors": 
 - Share the error message with your IT team.
 - Ask them to allowlist `expensify.com`.
 
@@ -114,7 +114,7 @@ If you see errors like **“mimecast”**, **“blacklist”**, or **SMTP errors
 
 ---
 
-## Still can’t log in to Expensify? 
+## General login troubleshooting steps
 
 Try these general troubleshooting steps:
 - [Force a clean sign out](https://www.expensify.com/signout.php?clean=true).
@@ -131,8 +131,9 @@ Try these general troubleshooting steps:
 
 # FAQ
 
-## How can I find out who my Domain Admin is? 
-Ask the person who approves your reports, or your Workspace Owner. To check who owns your workspace, go to **Workspaces** and look in the **Owner** column.
+## Who is my Domain Admin?
+Ask your Workspace Owner or the person who approves your reports. To find your Workspace Owner, go to **Workspaces** and check the **Owner**
+column.
 
 ## How can I keep access to my Expensify account after leaving my company?
 [Add a secondary contact method](https://help.expensify.com/articles/new-expensify/settings/Update-Email-Address) (like a personal email) so you can still log in if you lose access to your work email.
