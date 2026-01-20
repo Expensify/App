@@ -105,7 +105,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, feed, {...cardToAssign, cardholder, bankName});
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName});
     };
 
     const editStep = (step: string) => {

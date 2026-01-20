@@ -67,7 +67,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
         return {
             value: feedName,
-            feed: feedSettings.feed,
+            feed: feedSettings.feed as CompanyCardFeedWithNumber,
             alternateText: domainName ?? policy?.name,
             text: getCustomOrFormattedFeedName(feedSettings.feed, feedSettings.customFeedName),
             keyForList: feedName,

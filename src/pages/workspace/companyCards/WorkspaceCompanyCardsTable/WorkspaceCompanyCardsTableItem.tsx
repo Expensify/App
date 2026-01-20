@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, FailedCardAssignment, PersonalDetails} from '@src/types/onyx';
 
 type WorkspaceCompanyCardTableItemData = {
     /** Card number */
@@ -36,7 +36,7 @@ type WorkspaceCompanyCardTableItemData = {
     assignedCard: Card | undefined;
 
     /** Pending company card assignment */
-    failedCompanyCardAssignment: FailedCompanyCardAssignment | undefined;
+    failedCompanyCardAssignment: FailedCardAssignment | undefined;
 
     /** Whether the card is deleted */
     isCardDeleted: boolean;
@@ -165,7 +165,7 @@ function WorkspaceCompanyCardTableItem({
 
                         const feedName = getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
 
-                        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, assignedCard.cardID.toString()));
+                        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName as CompanyCardFeedWithDomainID, assignedCard.cardID.toString()));
                     }}
                 >
                     {({hovered}) => (

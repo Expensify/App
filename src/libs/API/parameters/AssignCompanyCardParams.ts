@@ -1,6 +1,8 @@
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+
 type AssignCompanyCardParams = {
     policyID: string;
-    bankName: string;
+    bankName: CardFeedWithNumber | undefined;
     cardName: string;
     encryptedCardNumber: string;
     email: string;

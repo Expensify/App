@@ -298,7 +298,7 @@ type FailedCardAssignment = {
     domainOrWorkspaceAccountID: number;
 
     /** The name of the feed */
-    feed: CardFeedWithNumber;
+    feed: CardFeedWithNumber | undefined;
 
     /** Cardholder personal details */
     cardholder?: PersonalDetails;

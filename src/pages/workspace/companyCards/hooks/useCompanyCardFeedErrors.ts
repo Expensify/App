@@ -4,7 +4,6 @@ import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {checkIfFeedConnectionIsBroken, flattenWorkspaceCardsList, getCompanyCardFeed, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type UseCompanyCardFeedErrorsProps = {
@@ -32,7 +31,7 @@ function useCompanyCardFeedErrors({policyID, feedName}: UseCompanyCardFeedErrors
 
     const getCardFeedErrors = (feedNameFn: CompanyCardFeedWithDomainID | undefined): CompanyCardFeedErrors => {
         const bankName = getCompanyCardFeed(feedNameFn);
-        const selectedFeed = bankName && companyCardFeeds?.[bankName as CompanyCardFeedWithNumber];
+        const selectedFeed = bankName && companyCardFeeds?.[bankName];
         const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
 
         const hasFailedCardAssignments = !isEmptyObject(

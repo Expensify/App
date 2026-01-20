@@ -5,7 +5,7 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeed} from '@src/types/onyx/CardFeeds';
+import type {CardFeed, CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
@@ -23,10 +23,10 @@ import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string};
-type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]; fundID?: string};
+type DomainFeedData = {bank: CardFeedWithNumber; domainName: string; correspondingCardIDs: string[]; fundID?: string};
 type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
 type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'workspace'}>;
-type CardFeedData = {cardName: string; bank: string; label?: string; type: 'domain' | 'workspace'};
+type CardFeedData = {cardName: string; bank: CardFeedWithNumber; label?: string; type: 'domain' | 'workspace'};
 type GetCardFeedData = {
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined;
     translate: LocaleContextProps['translate'];
@@ -293,7 +293,7 @@ function createCardFeedItem({
     companyCardIcons,
 }: {
     cardName: string;
-    bank: string;
+    bank: CardFeedWithNumber;
     keyForList: string;
     cardFeedKey: string;
     correspondingCardIDs: string[];
@@ -493,7 +493,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
         }
 
         for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds))) {
-            const preferredPolicy = 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
+            const preferredPolicy = feedData && 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
             const feed = key as CompanyCardFeed;
             const id = `${fundID}_${feed}`;
 
