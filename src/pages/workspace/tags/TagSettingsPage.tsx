@@ -225,9 +225,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 disabled={approverDisabled}
                                 helperText={
                                     approverDisabled
-                                        ? translate('workspace.rules.categoryRules.enableWorkflows', {
-                                              moreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`,
-                                          })
+                                        ? translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`)
                                         : undefined
                                 }
                                 shouldParseHelperText

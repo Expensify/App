@@ -124,7 +124,7 @@ describe('useSettlementButtonPaymentMethods', () => {
     it('should return payment method with wallet for PERSONAL_BANK_ACCOUNT when hasActivatedWallet is true', () => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
         expect(result.current[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).toEqual({
-            text: translate('iou.settleWallet', {formattedAmount: ''}),
+            text: translate('iou.settleWallet', ''),
             icon: icons.current.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
@@ -134,7 +134,7 @@ describe('useSettlementButtonPaymentMethods', () => {
     it('should return payment method with personal bank account for PERSONAL_BANK_ACCOUNT when hasActivatedWallet is false', () => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(false, translate));
         expect(result.current[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).toEqual({
-            text: translate('iou.settlePersonal', {formattedAmount: ''}),
+            text: translate('iou.settlePersonal', ''),
             icon: icons.current.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
@@ -144,7 +144,7 @@ describe('useSettlementButtonPaymentMethods', () => {
     it('should return payment method with business bank account for BUSINESS_BANK_ACCOUNT', () => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
         expect(result.current[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]).toEqual({
-            text: translate('iou.settleBusiness', {formattedAmount: ''}),
+            text: translate('iou.settleBusiness', ''),
             icon: icons.current.Building,
             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
@@ -154,7 +154,7 @@ describe('useSettlementButtonPaymentMethods', () => {
     it('should return payment method elsewhere for ELSEWHERE', () => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
         expect(result.current[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]).toEqual({
-            text: translate('iou.payElsewhere', {formattedAmount: ''}),
+            text: translate('iou.payElsewhere', ''),
             icon: icons.current.CheckCircle,
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             shouldUpdateSelectedIndex: false,
@@ -176,9 +176,9 @@ describe('useSettlementButtonPaymentMethods', () => {
     ])('should use correct texts for each payment method when hasActivatedWallet is $hasActivatedWallet', ({hasActivatedWallet, expectedPersonalKey}) => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(hasActivatedWallet, translate));
         expect(translate).toHaveBeenCalledTimes(3);
-        expect(translate).toHaveBeenCalledWith(expectedPersonalKey, {formattedAmount: ''});
-        expect(translate).toHaveBeenCalledWith('iou.settleBusiness', {formattedAmount: ''});
-        expect(translate).toHaveBeenCalledWith('iou.payElsewhere', {formattedAmount: ''});
+        expect(translate).toHaveBeenCalledWith(expectedPersonalKey, '');
+        expect(translate).toHaveBeenCalledWith('iou.settleBusiness', '');
+        expect(translate).toHaveBeenCalledWith('iou.payElsewhere', '');
         expect(result.current[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT].text).toBe(expectedPersonalKey);
         expect(result.current[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT].text).toBe('iou.settleBusiness');
         expect(result.current[CONST.IOU.PAYMENT_TYPE.ELSEWHERE].text).toBe('iou.payElsewhere');

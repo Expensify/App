@@ -7,7 +7,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
-import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -43,6 +42,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from './ReportUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -1842,7 +1842,7 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
             return translate(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
-            return translate('report.actions.type.share', {to: originalMessage.to});
+            return translate('report.actions.type.share', originalMessage.to);
         case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
             return translate('report.actions.type.unshare', {to: originalMessage.to});
         case CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL:
@@ -2400,7 +2400,7 @@ function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, rep
 
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const role = translate('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
+    const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     const formattedEmail = formatPhoneNumber(email);
     return translate('report.actions.type.addEmployee', formattedEmail, role);
 }
@@ -2427,8 +2427,8 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
         });
     }
 
-    const newRole = translate('workspace.common.roleName', {role: stringNewValue}).toLowerCase();
-    const oldRole = translate('workspace.common.roleName', {role: stringOldValue}).toLowerCase();
+    const newRole = translate('workspace.common.roleName', stringNewValue).toLowerCase();
+    const oldRole = translate('workspace.common.roleName', stringOldValue).toLowerCase();
     return translate('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
@@ -3309,7 +3309,7 @@ function getPolicyChangeLogDeleteMemberMessage(translate: LocalizedTranslate, re
     }
     const originalMessage = getOriginalMessage(reportAction);
     const email = formatPhoneNumber(originalMessage?.email ?? '');
-    const role = translate('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
+    const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     return translate('report.actions.type.removeMember', email, role);
 }
 
@@ -3427,7 +3427,7 @@ function getActionableCardFraudAlertMessage(
 function getDemotedFromWorkspaceMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE>>) {
     const originalMessage = getOriginalMessage(reportAction);
     const policyName = originalMessage?.policyName ?? translate('workspace.common.workspace');
-    const oldRole = translate('workspace.common.roleName', {role: originalMessage?.oldRole}).toLowerCase();
+    const oldRole = translate('workspace.common.roleName', originalMessage?.oldRole).toLowerCase();
     return translate('workspaceActions.demotedFromWorkspace', policyName, oldRole);
 }
 
@@ -3487,7 +3487,7 @@ function getDynamicExternalWorkflowRoutedMessage(
     action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
     translate: LocaleContextProps['translate'],
 ) {
-    return translate('iou.routedDueToDEW', {to: getOriginalMessage(action)?.to ?? ''});
+    return translate('iou.routedDueToDEW', getOriginalMessage(action)?.to ?? '');
 }
 
 function isCardIssuedAction(
