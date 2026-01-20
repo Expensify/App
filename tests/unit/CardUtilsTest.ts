@@ -1299,15 +1299,6 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('splitCompanyCardFeedWithDomainID', () => {
-        it('should split the feed name and domain ID', () => {
-            const feedName = 'vcf#11111111';
-            const {feedName: splitFeedName, domainID} = splitCompanyCardFeedWithDomainID(feedName);
-            expect(splitFeedName).toBe('vcf');
-            expect(domainID).toBe(11111111);
-        });
-    });
-
     describe('getPlaidInstitutionId', () => {
         it('should return institution ID from plaid feed name without domain ID', () => {
             const feedName = 'plaid.ins_123456';

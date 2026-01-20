@@ -1,8 +1,8 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {Card, CardFeed} from '.';
-import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
+import type {Card} from '.';
+import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -112,6 +112,10 @@ type CardFeedErrorState = {
      */
     hasFeedErrors: boolean;
     /**
+     * Whether some workspace has errors.
+     */
+    // hasWorkspaceErrors: boolean;
+    /**
      * Whether some feed connection is broken.
      */
     isFeedConnectionBroken: boolean;
@@ -134,7 +138,7 @@ type FeedErrors = CardFeedErrorState & {
 /**
  * The ID of a card feed in the errors map/object.
  */
-type CardFeedId = CardFeed | CompanyCardFeedWithNumber;
+type CardFeedId = CompanyCardFeedWithNumber;
 
 /**
  *
@@ -144,7 +148,7 @@ type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
 /**
  * The errors of all card feeds.
  */
-type CardFeedErrorsObject = Record<CardFeedWithDomainID, FeedErrors>;
+type CardFeedErrorsObject = Record<CompanyCardFeedWithDomainID, FeedErrors>;
 
 /**
  * The errors of card feeds.
