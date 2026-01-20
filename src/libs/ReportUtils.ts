@@ -4457,26 +4457,24 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     return fields.filter(Boolean) as PolicyReportField[];
 }
 
-/**
- * Gets transaction created, amount, currency, comment, and waypoints (for distance expense)
+/** Gets transaction created, amount, currency, comment, and waypoints (for distance expense)
  * into a flat object. Used for displaying transactions and sending them in API commands
  */
 
 function getTransactionDetails(
-    transaction: OnyxInputOrEntry<Transaction> | TransactionWithOptionalSearchFields,
+    transaction: OnyxInputOrEntry<Transaction & {report?: Report}> | TransactionWithOptionalSearchFields,
     createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
     policy: OnyxEntry<Policy> = undefined,
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     currentUserDetails = currentUserPersonalDetails,
     locale?: Locale,
-    //reportParam: OnyxInputOrEntry<Report> = undefined,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
     }
 
-    const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined); //?? reportParam;
+    const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 

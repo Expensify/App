@@ -54,6 +54,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SplitList from './SplitList';
@@ -100,14 +101,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentPolicy);
 
-//<<<<<<< HEAD
-    //const transactionDetails = useMemo<Partial<TransactionDetails>>(
-    //    () => getTransactionDetails(transaction, undefined, undefined, undefined, undefined, undefined, currentReport ?? transactionReport) ?? {},
-    //    [transaction, currentReport, transactionReport],
-    //);
-//=======
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction) ?? {};
-//>>>>>>> main
+    const transactionWithReport = {...transaction, report: expenseReport} as OnyxInputOrEntry<Transaction & {report: Report}>;
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transactionWithReport) ?? {};
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
