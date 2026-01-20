@@ -562,9 +562,9 @@ describe('actions/PolicyMember', () => {
             const policyConnectionPreferredExporter = await new Promise<string | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (policy) => {
+                    callback: (policyResult) => {
                         Onyx.disconnect(connection);
-                        resolve(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.options?.config?.exporter);
+                        resolve(policyResult?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.options?.config?.exporter);
                     },
                 });
             });
@@ -714,9 +714,9 @@ describe('actions/PolicyMember', () => {
             const employeeList = await new Promise<PolicyEmployeeList | undefined>((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (policy) => {
+                    callback: (policyResult) => {
                         Onyx.disconnect(connection);
-                        resolve(policy?.employeeList);
+                        resolve(policyResult?.employeeList);
                     },
                 });
             });
