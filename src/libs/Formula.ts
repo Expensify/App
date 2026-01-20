@@ -37,6 +37,7 @@ type FormulaContext = {
     allTransactions?: Record<string, Transaction>;
     fieldValues?: Record<string, string>;
     fieldsByName?: Record<string, PolicyReportField>;
+    visitedFields?: Set<string>;
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
@@ -439,14 +440,22 @@ function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
         return part.definition;
     }
 
+    // Prevent circular references by tracking visited fields
+    const visited = context?.visitedFields ?? new Set<string>();
+    if (visited.has(fieldName)) {
+        return part.definition;
+    }
+
     // If we have the full field definitions, we can recursively resolve dependencies
     if (context?.fieldsByName?.[fieldName]) {
         const field = context.fieldsByName[fieldName];
-        // Recursively compute if the default value contains field references, ignoring the stale 'value'
-        const parsedModel = parse(field.defaultValue);
-        const hasFieldRefs = parsedModel.some((p) => p.type === FORMULA_PART_TYPES.FIELD);
-        if (hasFieldRefs) {
-            return compute(field.defaultValue, context);
+        if (field.defaultValue?.includes('{field:')) {
+            const parsedModel = parse(field.defaultValue);
+            const hasFieldRefs = parsedModel.some((p) => p.type === FORMULA_PART_TYPES.FIELD);
+            if (hasFieldRefs) {
+                visited.add(fieldName);
+                return compute(field.defaultValue, {...context, visitedFields: visited});
+            }
         }
         return field.value ?? field.defaultValue ?? '';
     }
@@ -934,6 +943,33 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
     }
 }
 
-export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences};
+/**
+ * Resolve the display value for a report field, handling {field:X} references
+ */
+function resolveReportFieldValue(
+    field: PolicyReportField,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    fieldValues: Record<string, string>,
+    fieldsByName: Record<string, PolicyReportField>,
+): string {
+    const fieldValue = field.value ?? field.defaultValue ?? '';
+
+    // Quick string check before expensive parsing
+    if (!field.defaultValue?.includes('{field:') || !report) {
+        return fieldValue;
+    }
+
+    const parsedModel = parse(field.defaultValue);
+    const hasFieldRefs = parsedModel.some((part) => part.type === FORMULA_PART_TYPES.FIELD);
+
+    if (hasFieldRefs) {
+        return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
+    }
+
+    return fieldValue;
+}
+
+export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, resolveReportFieldValue};
 
 export type {FormulaContext, FieldList, MinimalTransaction};

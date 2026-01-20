@@ -12971,31 +12971,22 @@ function shouldHideSingleReportField(reportField: PolicyReportField) {
 }
 
 /**
- * Get map of report field names to their values (or default values)
+ * Get both field values map and fields-by-name map in a single pass
  */
-function getReportFieldValues(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): Record<string, string> {
+function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
     const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
-    const values: Record<string, string> = {};
-    for (const field of fields) {
-        if (field.name) {
-            values[field.name.toLowerCase()] = field.value ?? field.defaultValue ?? '';
-        }
-    }
-    return values;
-}
-
-/**
- * Get map of report field names to their definitions (PolicyReportField objects)
- */
-function getReportFieldsByName(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): Record<string, PolicyReportField> {
-    const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const fieldValues: Record<string, string> = {};
     const fieldsByName: Record<string, PolicyReportField> = {};
+
     for (const field of fields) {
         if (field.name) {
-            fieldsByName[field.name.toLowerCase()] = field;
+            const key = field.name.toLowerCase();
+            fieldValues[key] = field.value ?? field.defaultValue ?? '';
+            fieldsByName[key] = field;
         }
     }
-    return fieldsByName;
+
+    return {fieldValues, fieldsByName};
 }
 
 export {
@@ -13134,8 +13125,7 @@ export {
     getReimbursementQueuedActionMessage,
     getReportDescription,
     getReportFieldKey,
-    getReportFieldValues,
-    getReportFieldsByName,
+    getReportFieldMaps,
     getReportIDFromLink,
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
