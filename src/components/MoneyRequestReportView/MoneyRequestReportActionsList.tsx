@@ -189,6 +189,7 @@ function MoneyRequestReportActionsList({
         if (filteredSelectedTransactionIDs.length !== selectedTransactionIDs.length) {
             setSelectedTransactions(filteredSelectedTransactionIDs);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactions]);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
