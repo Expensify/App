@@ -8,7 +8,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Account, Onboarding} from '@src/types/onyx';
-import type {GuardContext, GuardResult, NavigationGuard} from './types';
+import type {GuardResult, NavigationGuard} from './types';
 
 // Screens that are part of the 2FA setup flow
 const ALLOWED_2FA_SCREENS = new Set([
@@ -117,12 +117,7 @@ function isNavigatingTo2FAPage(action: NavigationAction): boolean {
 const TwoFactorAuthGuard: NavigationGuard = {
     name: 'TwoFactorAuthGuard',
 
-    shouldApply(state: NavigationState, action: NavigationAction, context: GuardContext): boolean {
-        // Don't apply if still loading
-        if (context.isLoading) {
-            return false;
-        }
-
+    shouldApply(): boolean {
         return true;
     },
 
