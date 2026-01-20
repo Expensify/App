@@ -1238,7 +1238,7 @@ function getToFieldValueForTransaction(
                     report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     personalDetailsList,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    transactionItem.modifiedAmount || transactionItem.amount,
+                    Number(transactionItem.modifiedAmount) || transactionItem.amount,
                 )?.to ?? emptyPersonalDetails
             );
         }
