@@ -35,6 +35,12 @@ jest.mock('react-native-onyx/dist/storage', () => mockStorage);
 // Mock NativeEventEmitter as it is needed to provide mocks of libraries which include it
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
+// Mock expo-task-manager
+jest.mock('expo-task-manager', () => ({
+    defineTask: jest.fn(),
+    // Add other methods here if you use them
+}));
+
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
