@@ -831,7 +831,7 @@ function MoneyRequestView({
                             }
 
                             if (isExpenseSplit && isSplitAvailable) {
-                                initSplitExpense(allTransactions, allReports, transaction);
+                                initSplitExpense(allTransactions, allReports, transaction, policy);
                                 return;
                             }
 
