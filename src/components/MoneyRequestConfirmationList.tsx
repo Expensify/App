@@ -31,6 +31,7 @@ import {
     setMoneyRequestTaxRate,
     setSplitShares,
 } from '@libs/actions/IOU';
+import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -43,6 +44,7 @@ import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
+import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -116,6 +118,12 @@ type MoneyRequestConfirmationListProps = {
 
     /** IOU isBillable */
     iouIsBillable?: boolean;
+
+    /** Time expense's hour count */
+    iouTimeCount?: number;
+
+    /** Time expense's hourly rate */
+    iouTimeRate?: number;
 
     /** Callback to toggle the billable state */
     onToggleBillable?: (isOn: boolean) => void;
@@ -254,10 +262,13 @@ function MoneyRequestConfirmationList({
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
     isTimeRequest = false,
+    iouTimeCount,
+    iouTimeRate,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
     const [defaultMileageRateDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
         selector: mileageRateSelector,
@@ -348,7 +359,7 @@ function MoneyRequestConfirmationList({
         ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && !isTimeRequest;
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
@@ -412,8 +423,8 @@ function MoneyRequestConfirmationList({
             return false;
         }
 
-        return (!!hasSmartScanFailed && hasMissingSmartscanFields(transaction)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction));
-    }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
+        return (!!hasSmartScanFailed && hasMissingSmartscanFields(transaction, transactionReport)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction, transactionReport));
+    }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit, transactionReport]);
 
     const isMerchantEmpty = useMemo(() => !iouMerchant || isMerchantMissing(transaction), [transaction, iouMerchant]);
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
@@ -434,11 +445,20 @@ function MoneyRequestConfirmationList({
             setFormError('iou.receiptScanningFailed');
             return;
         }
-        // reset the form error whenever the screen gains or loses focus
-        setFormError('');
-
+        // Reset the form error whenever the screen gains or loses focus
+        // but preserve violation-related errors since those represent real validation issues
+        // that can only be fixed by changing the underlying data
+        if (!formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
+            setFormError('');
+            return;
+        }
+        // Clear missingAttendees violation if user fixed it by changing category or attendees
+        const isMissingAttendeesViolation = getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
+        if (formError === 'violations.missingAttendees' && !isMissingAttendeesViolation) {
+            setFormError('');
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
-    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, iouCategory, iouAttendees, policyCategories, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled]);
 
     useEffect(() => {
         // We want this effect to run only when the transaction is moving from Self DM to a expense chat
@@ -553,9 +573,12 @@ function MoneyRequestConfirmationList({
             if (iouAmount !== 0) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
+        } else if (isTypeSplit) {
+            text = translate('iou.splitAmount', {amount: formattedAmount});
+        } else if (iouAmount === 0) {
+            text = translate('iou.createExpense');
         } else {
-            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
-            text = translate(translationKey, {amount: formattedAmount});
+            text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
         }
         return [
             {
@@ -930,6 +953,15 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
+            // Since invoices are not expense reports that need attendee tracking, this validation should not apply to invoices
+            const isMissingAttendeesViolation =
+                iouType !== CONST.IOU.TYPE.INVOICE &&
+                getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
+            if (isMissingAttendeesViolation) {
+                setFormError('violations.missingAttendees');
+                return;
+            }
+
             if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
                 setFormError('iou.error.invalidSubrateLength');
                 return;
@@ -943,6 +975,11 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
+                if (isTimeRequest && !isValidTimeExpenseAmount(iouAmount, iouCurrencyCode)) {
+                    setFormError('iou.timeTracking.amountTooLargeError');
+                    return;
+                }
+
                 if (isPerDiemRequest) {
                     if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, iouCurrencyCode)) {
                         setFormError('iou.error.invalidQuantity');
@@ -950,9 +987,14 @@ function MoneyRequestConfirmationList({
                     }
                 }
 
-                if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {
+                if (isEditingSplitBill && areRequiredFieldsEmpty(transaction, transactionReport)) {
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
+                    return;
+                }
+
+                if (isEditingSplitBill && iouAmount === 0) {
+                    setFormError('iou.error.invalidAmount');
                     return;
                 }
 
@@ -1003,6 +1045,10 @@ function MoneyRequestConfirmationList({
             showDelegateNoAccessModal,
             iouCategory,
             policyCategories,
+            transactionReport,
+            iouAttendees,
+            currentUserPersonalDetails,
+            isTimeRequest,
         ],
     );
 
@@ -1025,6 +1071,10 @@ function MoneyRequestConfirmationList({
         }
         if (isTypeSplit && !shouldShowReadOnlySplits) {
             return debouncedFormError && translate(debouncedFormError);
+        }
+        // Don't show error at the bottom of the form for missing attendees
+        if (formError === 'violations.missingAttendees') {
+            return;
         }
         return formError && translate(formError);
     }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);
@@ -1148,11 +1198,14 @@ function MoneyRequestConfirmationList({
             iouIsBillable={iouIsBillable}
             iouMerchant={iouMerchant}
             iouType={iouType}
+            iouTimeCount={iouTimeCount}
+            iouTimeRate={iouTimeRate}
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
             isManualDistanceRequest={isManualDistanceRequest}
             isOdometerDistanceRequest={isOdometerDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
+            isTimeRequest={isTimeRequest}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
             isPolicyExpenseChat={isPolicyExpenseChat}
@@ -1240,5 +1293,7 @@ export default memo(
         prevProps.reportActionID === nextProps.reportActionID &&
         prevProps.action === nextProps.action &&
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
-        prevProps.isTimeRequest === nextProps.isTimeRequest,
+        prevProps.isTimeRequest === nextProps.isTimeRequest &&
+        prevProps.iouTimeCount === nextProps.iouTimeCount &&
+        prevProps.iouTimeRate === nextProps.iouTimeRate,
 );
