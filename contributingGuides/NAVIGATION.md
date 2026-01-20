@@ -591,7 +591,7 @@ Key features:
 - Displays numbered step indicators with connecting lines
 - Shows completed steps with a checkmark icon
 - Allows users to tap on completed steps to navigate back (entering edit mode)
-- Locked (future) steps are visually disabled and not tappable
+- Locked (future) steps are disabled
 - Automatically syncs with the current page index from the URL
 
 ```ts
