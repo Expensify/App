@@ -1,8 +1,8 @@
-import {format, parseISO} from 'date-fns';
-import {Str} from 'expensify-common';
-import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import { format, parseISO } from 'date-fns';
+import { Str } from 'expensify-common';
+import React, { useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,8 +19,8 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
-import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useCompanyCardFeedIcons } from '@hooks/useCompanyCardIcons';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -28,58 +28,58 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, isPersonalCardFromOldDot, maskCardNumber} from '@libs/CardUtils';
-import {getLatestErrorField} from '@libs/ErrorUtils';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import { getCardFeedIcon, getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, isPersonalCardFromOldDot, maskCardNumber } from '@libs/CardUtils';
+import { getLatestErrorField } from '@libs/ErrorUtils';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { SettingsNavigatorParamList } from '@libs/Navigation/types';
+import { getDisplayNameOrDefault } from '@libs/PersonalDetailsUtils';
+import { getConnectedIntegration } from '@libs/PolicyUtils';
+import { buildCannedSearchQuery } from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
-import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable, syncCompanyCard, unassignCompanyCard} from '@userActions/Card';
+import { clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard } from '@userActions/CompanyCards';
+import { clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable, syncCompanyCard, unassignCompanyCard } from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, Session} from '@src/types/onyx';
-import type {BankName} from '@src/types/onyx/Bank';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type { Card, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, Session } from '@src/types/onyx';
+import type { BankName } from '@src/types/onyx/Bank';
+import { getEmptyObject } from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {getExportMenuItem} from './utils';
+import { getExportMenuItem } from './utils';
 
 type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
 
-function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
-    const {policyID, cardID, backTo} = route.params;
+function WorkspaceCompanyCardDetailsPage({ route }: WorkspaceCompanyCardDetailsPageProps) {
+    const { policyID, cardID, backTo } = route.params;
     const isFromWallet = policyID === '0';
     const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, { canBeMissing: true });
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, { canBeMissing: true });
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const isUnassigningRef = useRef(false);
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const { translate, getLocalDateFromDatetime } = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MoneySearch', 'RemoveMembers', 'Sync']);
 
-    const {isOffline} = useNetwork();
+    const { isOffline } = useNetwork();
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [walletCardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, { canBeMissing: false });
+    const [walletCardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, { canBeMissing: true });
+    const [session] = useOnyx(ONYXKEYS.SESSION, { canBeMissing: true });
     const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, { canBeMissing: true });
 
     // Prefer feed-scoped card from WORKSPACE_CARDS_LIST to maintain proper access control
     // Only use CARD_LIST as fallback if card is being unassigned (has pendingAction: DELETE)
@@ -165,8 +165,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 isCSVImportedPersonalCard
                                     ? getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons)
                                     : isFromWallet
-                                      ? getBankIcon({styles, bankName: cardBank as BankName, isCard: true}).icon
-                                      : getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons)
+                                        ? getBankIcon({ styles, bankName: cardBank as BankName, isCard: true }).icon
+                                        : getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons)
                             }
                             pointerEvents="none"
                             height={variables.cardPreviewHeight}
@@ -179,7 +179,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         icon={Expensicons.Hourglass}
                         iconStyles={styles.mln2}
                         descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
-                        description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
+                        description={translate('workspace.expensifyCard.cardPending', { name: displayName })}
                         numberOfLinesDescription={0}
                         interactive={false}
                     />
@@ -307,7 +307,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     onPress={() => {
                         Navigation.navigate(
                             ROUTES.SEARCH_ROOT.getRoute({
-                                query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+                                query: buildCannedSearchQuery({ type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID }),
                             }),
                         );
                     }}
