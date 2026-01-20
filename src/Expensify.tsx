@@ -174,7 +174,6 @@ function Expensify() {
         });
     }, [isCheckingPublicRoom]);
 
-
     useEffect(() => {
         if (!preferredLocale) {
             return;

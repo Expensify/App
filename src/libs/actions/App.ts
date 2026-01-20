@@ -378,14 +378,21 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         });
     }
 
-    return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
-        const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-        return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments));
-    }).finally(() => {
-        if (bootsplashSpan) {
+    return getPolicyParamsForOpenOrReconnect()
+        .then((policyParams: PolicyParamsForOpenOrReconnect) => {
+            const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
+            return API.writeWithNoDuplicatesConflictAction(
+                WRITE_COMMANDS.OPEN_APP,
+                params,
+                getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
+            );
+        })
+        .finally(() => {
+            if (!bootsplashSpan) {
+                return;
+            }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
-        }
-    });
+        });
 }
 
 /**
@@ -423,12 +430,12 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
 
             const isFullReconnect = !updateIDFrom;
-            API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded))
-                .finally(() => {
-                    if (bootsplashSpan) {
-                        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
-                    }
-                });
+            API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded)).finally(() => {
+                if (!bootsplashSpan) {
+                    return;
+                }
+                endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+            });
         });
     });
 }
