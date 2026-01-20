@@ -240,12 +240,14 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             {...restProps}
             maintainVisibleContentPosition={{
                 animateAutoScrollToBottom: false,
-                ...(shouldStartRenderingFromBottom ? {startRenderingFromBottom: true, autoscrollToBottomThreshold: 0.2} : {}),
+                autoscrollToTopThreshold: 0.2,
+                autoscrollToBottomThreshold: 0.2,
+                ...(shouldStartRenderingFromBottom ? {startRenderingFromBottom: true} : {}),
             }}
             horizontal={horizontal}
             onScroll={handleScroll}
             scrollEventThrottle={1}
-            // drawDistance={1000}
+            drawDistance={1000}
             // ref={onRef}
             // CellRendererComponent={CellRendererComponent}
             // onLayout={(e) => {

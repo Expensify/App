@@ -844,12 +844,15 @@ function ReportActionsList({
                     contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
-                    onEndReached={onEndReached}
+                    // Cause now inverting works in another way
+                    onEndReached={onStartReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
+                    // Cause now inverting works in another way
+                    onStartReached={onEndReached}
                     onStartReachedThreshold={0.75}
-                    ListHeaderComponent={listHeaderComponent}
-                    ListFooterComponent={listFooterComponent}
+                    // Cause now inverting works in another way
+                    ListHeaderComponent={listFooterComponent}
+                    ListFooterComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
