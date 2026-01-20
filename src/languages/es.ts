@@ -6003,6 +6003,22 @@ ${amount} para ${merchant} - ${date}`,
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        setDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `estableció la cuenta bancaria de empresa predeterminada a "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}"`,
+        removedDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `eliminó la cuenta bancaria de empresa predeterminada "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}"`,
+        changedDefaultBankAccount: ({
+            bankAccountName,
+            maskedBankAccountNumber,
+            oldBankAccountName,
+            oldMaskedBankAccountNumber,
+        }: {
+            bankAccountName: string;
+            maskedBankAccountNumber: string;
+            oldBankAccountName: string;
+            oldMaskedBankAccountNumber: string;
+        }) =>
+            `cambió la cuenta bancaria de empresa predeterminada a "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}" (previamente "${oldBankAccountName ? `${oldBankAccountName}: ` : ''}${oldMaskedBankAccountNumber}")`,
         changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
             previousAddress ? `cambió la dirección de la empresa a "${newAddress}" (anteriormente "${previousAddress}")` : `estableció la dirección de la empresa en "${newAddress}"`,
         addApprovalRule: (approverEmail, approverName, field, name) => `añadió a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
@@ -6255,6 +6271,12 @@ ${amount} para ${merchant} - ${date}`,
             previousForwardsTo
                 ? `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados (anteriormente reenviados a ${previousForwardsTo})`
                 : `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados`,
+        changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `cambió el nombre de la empresa de la factura a "${newValue}" (previamente "${oldValue}")` : `estableció el nombre de la empresa de la factura como "${newValue}"`,
+        changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue
+                ? `cambió el sitio web de la empresa de la factura a "${newValue}" (previamente "${oldValue}")`
+                : `estableció el sitio web de la empresa de la factura como "${newValue}"`,
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}) => {
@@ -7449,6 +7471,7 @@ ${amount} para ${merchant} - ${date}`,
         hold: 'Este gasto está retenido',
         resolvedDuplicates: 'resolvió el duplicado',
         companyCardRequired: 'Se requieren compras con la tarjeta de la empresa.',
+        noRoute: 'Por favor, selecciona una dirección válida',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}) => `${fieldName} es obligatorio`,
@@ -8130,6 +8153,10 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Registra la distancia en tu teléfono',
             subtitle: 'Registra millas o kilómetros automáticamente con GPS y convierte los viajes en gastos al instante.',
             button: 'Descarga la app',
+        },
+        notification: {
+            title: 'Seguimiento GPS en curso',
+            body: 'Ve a la app para finalizar',
         },
     },
 };

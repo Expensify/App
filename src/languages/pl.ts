@@ -259,7 +259,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Szukaj...',
         next: 'Dalej',
         previous: 'Wstecz',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Wróć',
         create: 'Utwórz',
         add: 'Dodaj',
@@ -6597,19 +6596,39 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             previousForwardsTo
                 ? `zmieniono proces zatwierdzania dla ${approver}, aby przestać przekazywać zatwierdzone raporty (wcześniej przekazywane do ${previousForwardsTo})`
                 : `zmieniono przepływ zatwierdzania dla ${approver}, aby nie przekazywać dalej zatwierdzonych raportów`,
-        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
-        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
-        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
-        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense amount to "${newValue}"`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense amount (previously "${oldValue}")`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense age to "${newValue}" days`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense age (previously "${oldValue}" days)`,
+        setDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `ustaw domyślne firmowe konto bankowe na „${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}”`,
+        removedDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `usunął domyślne firmowe konto bankowe „${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}”`,
+        changedDefaultBankAccount: ({
+            bankAccountName,
+            maskedBankAccountNumber,
+            oldBankAccountName,
+            oldMaskedBankAccountNumber,
+        }: {
+            bankAccountName: string;
+            maskedBankAccountNumber: string;
+            oldBankAccountName: string;
+            oldMaskedBankAccountNumber: string;
+        }) =>
+            `zmieniono domyślne firmowe konto bankowe na „${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}” (wcześniej „${oldBankAccountName ? `${oldBankAccountName}: ` : ''}${oldMaskedBankAccountNumber}”)`,
+        changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `zmienił nazwę firmy na fakturze na „${newValue}” (wcześniej „${oldValue}”)` : `ustaw nazwę firmy na fakturze na „${newValue}”`,
+        changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `zmienił firmową stronę internetową faktury na „${newValue}” (wcześniej „${oldValue}”)` : `ustaw firmową stronę internetową faktury na „${newValue}”`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser
                 ? `zmieniono upoważnionego płatnika na „${newReimburser}” (wcześniej „${previousReimburser}”)`
                 : `zmienił(a) upoważnioną osobę dokonującą płatności na „${newReimburser}”`,
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `ustaw wymaganą kwotę paragonu na „${newValue}”`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `zmieniono wymaganą kwotę paragonu na „${newValue}” (wcześniej „${oldValue}”)`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `usunięto wymaganą kwotę paragonu (wcześniej „${oldValue}”)`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `ustaw maksymalną kwotę wydatku na „${newValue}”`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `zmieniono maksymalną kwotę wydatku na „${newValue}” (wcześniej „${oldValue}”)`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `usunięto maksymalną kwotę wydatku (wcześniej „${oldValue}”)`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `ustaw maksymalny wiek wydatku na „${newValue}” dni`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `zmieniono maksymalny wiek wydatku na „${newValue}” dni (wcześniej „${oldValue}”)`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `usunięto maksymalny wiek wydatku (wcześniej „${oldValue}” dni)`,
     },
     roomMembersPage: {
         memberNotFound: 'Użytkownik nie został znaleziony.',
@@ -7313,6 +7332,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         hold: 'Ten wydatek został wstrzymany',
         resolvedDuplicates: 'rozwiązano duplikat',
         companyCardRequired: 'Wymagane zakupy kartą firmową',
+        noRoute: 'Wybierz prawidłowy adres',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `Pole ${fieldName} jest wymagane`,
@@ -7959,7 +7979,6 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             confirm: 'Odrzuć śledzenie dystansu',
         },
         zeroDistanceTripModal: {title: 'Nie można utworzyć wydatku', prompt: 'Nie możesz utworzyć wydatku z tym samym miejscem początkowym i końcowym.'},
-
         locationRequiredModal: {
             title: 'Wymagany dostęp do lokalizacji',
             prompt: 'Aby rozpocząć śledzenie dystansu GPS, zezwól na dostęp do lokalizacji w ustawieniach swojego urządzenia.',
@@ -7978,6 +7997,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Automatycznie rejestruj mile lub kilometry za pomocą GPS i natychmiast zamieniaj podróże w wydatki.',
             button: 'Pobierz aplikację',
         },
+        notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby zakończyć'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
