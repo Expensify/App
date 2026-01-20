@@ -51,15 +51,15 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID),
     });
 
+    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardsListMetadata)));
+
     const loadPolicyCompanyCardsPage = useCallback(() => {
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
-    }, [policyID, domainOrWorkspaceAccountID]);
+    }, [domainOrWorkspaceAccountID, policyID]);
 
     useEffect(() => {
         loadPolicyCompanyCardsPage();
-    }, [loadPolicyCompanyCardsPage]);
-
-    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardsListMetadata)));
+    }, [policyID, domainOrWorkspaceAccountID, loadPolicyCompanyCardsPage]);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending) {
@@ -72,8 +72,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policy?.employeeList, policyID]);
 
     useEffect(() => {
-        loadPolicyCompanyCardsPage();
-    }, [loadPolicyCompanyCardsPage]);
+        loadPolicyCompanyCardsFeed();
+    }, [loadPolicyCompanyCardsFeed]);
 
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
 
