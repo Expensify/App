@@ -635,7 +635,7 @@ const getFileValidationErrorText = (
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE:
             return {
                 title: translate('attachmentPicker.someFilesCantBeUploaded'),
-                reason: translate('attachmentPicker.unsupportedFileType', {fileType: additionalData.fileType ?? ''}),
+                reason: translate('attachmentPicker.unsupportedFileType', additionalData.fileType ?? ''),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
