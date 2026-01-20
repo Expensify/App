@@ -1,7 +1,7 @@
-import { format, parseISO, subDays } from 'date-fns';
-import React, { useState } from 'react';
-import { View } from 'react-native';
-import type { ValueOf } from 'type-fest';
+import {format, parseISO, subDays} from 'date-fns';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DatePicker from '@components/DatePicker';
@@ -13,32 +13,33 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID } from '@libs/CardUtils';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { SettingsNavigatorParamList } from '@libs/Navigation/types';
-import { isRequiredFulfilled } from '@libs/ValidationUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import { updateCardTransactionStartDate } from '@userActions/CompanyCards';
-import { updateAssignedCardTransactionStartDate } from '@userActions/Card';
+import {updateAssignedCardTransactionStartDate} from '@userActions/Card';
+import {updateCardTransactionStartDate} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { CompanyCardFeedWithDomainID } from '@src/types/onyx';
-
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS>;
 type WorkspaceCompanyCardEditTransactionStartDatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE>;
 
-function WorkspaceCompanyCardEditTransactionStartDatePage({ route }: WorkspaceCompanyCardEditTransactionStartDatePageProps) {
-    const { policyID, cardID } = route.params;
+function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceCompanyCardEditTransactionStartDatePageProps) {
+    const {policyID, cardID, backTo} = route.params;
     const isFromWallet = policyID === CONST.POLICY.EMPTY_POLICY_ID;
     const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
 
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -48,7 +49,9 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({ route }: WorkspaceCo
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
 
     const [allBankCards] = useCardsList(feedName);
-    const card = allBankCards?.[cardID];
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    // Use CARD_LIST for personal cards from wallet, otherwise use feed-scoped cards
+    const card = isFromWallet ? cardList?.[cardID] : allBankCards?.[cardID];
     const currentStartDate = card?.scrapeMinDate;
 
     const [dateOptionSelected, setDateOptionSelected] = useState<DateOption>(CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
@@ -88,10 +91,14 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({ route }: WorkspaceCo
 
         const newStartDate = getNewStartDate();
 
-        updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
+        if (isFromWallet) {
+            updateAssignedCardTransactionStartDate(cardID, newStartDate, currentStartDate);
+        } else {
+            updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
+        }
 
         if (currentStartDate === newStartDate) {
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), { compareParams: false });
+            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID, backTo), {compareParams: false});
             return;
         }
 
@@ -100,9 +107,13 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({ route }: WorkspaceCo
 
     const confirmSubmit = () => {
         const newStartDate = getNewStartDate();
-        updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
+        if (isFromWallet) {
+            updateAssignedCardTransactionStartDate(cardID, newStartDate, currentStartDate);
+        } else {
+            updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
+        }
         setIsWarningModalVisible(false);
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), { compareParams: false });
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID, backTo), {compareParams: false});
     };
 
     const dateOptions = [
@@ -127,13 +138,13 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({ route }: WorkspaceCo
         >
             <HeaderWithBackButton
                 title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), { compareParams: false })}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID, backTo), {compareParams: false})}
             />
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
             <View style={styles.flex1}>
                 <SelectionList
                     ListItem={SingleSelectListItem}
-                    onSelectRow={({ value }) => handleSelectDateOption(value)}
+                    onSelectRow={({value}) => handleSelectDateOption(value)}
                     data={dateOptions}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={dateOptionSelected}

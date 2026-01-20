@@ -1176,11 +1176,15 @@ type SettingsNavigatorParamList = {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
         cardID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE]: {
         policyID: string;
         feed: string;
         cardID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
         policyID: string;

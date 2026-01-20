@@ -237,7 +237,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
                         shouldShowRightIcon
                         brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName, backTo))}
                     />
                 </OfflineWithFeedback>
                 {exportMenuItem?.shouldShowMenuItem && !isFromWallet ? (
@@ -312,7 +312,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
                         shouldShowRightIcon
                         brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName, backTo))}
                     />
                 </OfflineWithFeedback>
                 <MenuItem
