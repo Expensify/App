@@ -55,7 +55,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
     }
 
     /**
-     * Signs the challenge with the user's private key and validates against public keys from the server.
+     * Checks if the secure store contains a public key known to the server. If so, a challenge is signed using that key.
      */
     public async sign(
         accountID: number,
@@ -79,7 +79,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
 
         if (!publicKey || !this.publicKeys.includes(publicKey)) {
             await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
-            return this.createErrorReturnValue(VALUES.REASON.KEYSTORE.KEY_MISSING_ON_THE_BACKEND);
+            return this.createErrorReturnValue(VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED);
         }
 
         this.auth = {

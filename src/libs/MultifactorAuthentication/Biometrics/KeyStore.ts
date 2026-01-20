@@ -7,6 +7,8 @@ import type {SecureStoreOptions} from './SecureStore';
 import type {MultifactorAuthenticationKeyType, MultifactorAuthenticationPartialStatus, MultifactorKeyStoreOptions} from './types';
 import VALUES from './VALUES';
 
+const DEFAULT_AUTHENTICATION_PROMPT = 'Approve transaction' as const;
+
 /**
  * Static options for secure store operations.
  */
@@ -29,7 +31,7 @@ const secureStoreOptions = (key: string, KSOptions?: MultifactorKeyStoreOptions)
         requireAuthentication: isPrivateKey,
         forceAuthenticationOnSave: isPrivateKey,
         forceReadAuthenticationOnSimulators: isPrivateKey,
-        authenticationPrompt: KSOptions?.nativePromptTitle ?? 'Approve transaction',
+        authenticationPrompt: KSOptions?.nativePromptTitle ?? DEFAULT_AUTHENTICATION_PROMPT,
     };
 };
 

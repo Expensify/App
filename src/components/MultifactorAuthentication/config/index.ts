@@ -1,7 +1,7 @@
 /**
  * Configuration exports for multifactor authentication UI components and scenarios.
  */
-import {mapMultifactorAuthenticationNotification} from './helpers';
+import mapMultifactorAuthenticationNotification from './mapMultifactorAuthenticationNotifications';
 import MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG from './scenarios';
 
 const MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP = mapMultifactorAuthenticationNotification(MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG);

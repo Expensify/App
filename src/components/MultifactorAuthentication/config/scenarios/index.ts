@@ -7,7 +7,13 @@ import {customConfig} from './DefaultUserInterface';
 /**
  * Payload types for multifactor authentication scenarios.
  * Since the BiometricsTest does not require any payload, it is an empty object for now.
- * The AuthorizeTransaction Scenario will change it.
+ * The AuthorizeTransaction Scenario will change it, as it needs the transactionID to be provided as well.
+ *
+ * {
+ *     "AUTHORIZE-TRANSACTION": {
+ *         transactionID: string;
+ *     }
+ * }
  */
 type Payloads = EmptyObject;
 

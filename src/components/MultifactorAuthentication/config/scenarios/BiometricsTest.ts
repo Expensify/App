@@ -7,7 +7,7 @@ import SCREENS from '@src/SCREENS';
  * Configuration for the biometrics test multifactor authentication scenario.
  */
 export default {
-    allowedAuthentication: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS,
+    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS],
     action: troubleshootMultifactorAuthentication,
     screen: SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST,
     pure: true,

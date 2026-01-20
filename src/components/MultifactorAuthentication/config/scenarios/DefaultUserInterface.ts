@@ -1,5 +1,6 @@
 import type {MultifactorAuthenticationDefaultUIConfig, MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import NoEligibleMethodsDescription from '@components/MultifactorAuthentication/NoEligibleMethodsDescription';
+// Spacing utilities are needed for icon padding configuration in notification defaults
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';

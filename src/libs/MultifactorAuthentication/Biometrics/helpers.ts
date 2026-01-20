@@ -113,7 +113,7 @@ function areMultifactorAuthenticationFactorsSufficient(
 /**
  * Processes the authorization response and determines the next step in the authentication flow.
  */
-const authorizeMultifactorAuthenticationPostMethod = <T extends MultifactorAuthenticationScenario>(
+const transformMultifactorAuthenticationActionResponse = <T extends MultifactorAuthenticationScenario>(
     status: MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioResponseWithSuccess, true>,
     params: MultifactorAuthenticationScenarioParams<T>,
     failedFactor?: MultifactorAuthenticationFactor,
@@ -155,7 +155,7 @@ async function processMultifactorAuthenticationScenario<T extends MultifactorAut
     const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] as MultifactorAuthenticationScenarioConfig;
 
     if (factorsCheckResult.value !== true) {
-        return authorizeMultifactorAuthenticationPostMethod(
+        return transformMultifactorAuthenticationActionResponse(
             {
                 ...factorsCheckResult,
                 value: {httpCode: undefined, successful: false},
@@ -169,7 +169,7 @@ async function processMultifactorAuthenticationScenario<T extends MultifactorAut
     const {httpCode, reason} = await currentScenario.action(params);
     const successful = String(httpCode).startsWith('2');
 
-    return authorizeMultifactorAuthenticationPostMethod(
+    return transformMultifactorAuthenticationActionResponse(
         {
             value: {successful, httpCode},
             reason,

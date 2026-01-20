@@ -55,7 +55,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
 
         for (const scenarioConfig of Object.values(config)) {
             expect(scenarioConfig).toHaveProperty('action');
-            expect(scenarioConfig).toHaveProperty('allowedAuthentication');
+            expect(scenarioConfig).toHaveProperty('allowedAuthenticationMethods');
             expect(scenarioConfig).toHaveProperty('screen');
             expect(scenarioConfig).toHaveProperty('nativePromptTitle');
         }
@@ -69,7 +69,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         const biometricsTestScenario = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
         expect(biometricsTestScenario).toBeDefined();
-        expect(biometricsTestScenario.allowedAuthentication).toBe(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS);
+        expect(biometricsTestScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS]);
         expect(biometricsTestScenario.screen).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST);
         expect(biometricsTestScenario.pure).toBe(true);
         expect(biometricsTestScenario.action).toBeDefined();

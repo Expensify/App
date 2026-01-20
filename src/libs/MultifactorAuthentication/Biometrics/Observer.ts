@@ -14,6 +14,12 @@ const MultifactorAuthenticationObserver = {
     registerCallback: (id: string, callback: () => unknown) => {
         MultifactorAuthenticationCallbacks.onFulfill[id] = callback;
     },
+    unregisterCallback: (id: string) => {
+        delete MultifactorAuthenticationCallbacks.onFulfill[id];
+    },
+    clearAllCallbacks: () => {
+        MultifactorAuthenticationCallbacks.onFulfill = {};
+    },
 };
 
 export default MultifactorAuthenticationObserver;

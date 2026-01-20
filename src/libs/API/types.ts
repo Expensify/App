@@ -1328,9 +1328,9 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: Parameters.AcceptSpotnanaTermsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY]: Parameters.RegisterBiometricsParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION]: Parameters.BiometricsTestParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE]: Parameters.RequestBiometricChallengeParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY]: Parameters.RegisterAuthenticationKeyParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION]: Parameters.TroubleshootMultifactorAuthenticationParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE]: Parameters.RequestAuthenticationChallengeParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

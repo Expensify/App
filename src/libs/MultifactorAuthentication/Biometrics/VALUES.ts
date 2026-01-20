@@ -54,7 +54,7 @@ const REASON = {
     },
     KEYSTORE: {
         KEY_DELETED: 'Key successfully deleted from SecureStore',
-        KEY_MISSING_ON_THE_BACKEND: 'Key is stored locally but not found on server',
+        REGISTRATION_REQUIRED: 'Key is stored locally but not found on server',
         KEY_MISSING: 'Key is missing',
         KEY_SAVED: 'Key successfully saved in SecureStore',
         UNABLE_TO_SAVE_KEY: 'Failed to save key in SecureStore',
@@ -131,6 +131,7 @@ const MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS = {
         [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: REASON.BACKEND.VALIDATE_CODE_MISSING,
         [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE]: REASON.GENERIC.SIGNATURE_MISSING,
     },
+
     /** Maps authentication factors to their invalid error translation paths */
     FACTOR_INVALID_REASONS: {
         [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: REASON.BACKEND.VALIDATE_CODE_INVALID,
@@ -155,10 +156,12 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
      * Keychain service name for secure key storage.
      */
     KEYCHAIN_SERVICE: 'Expensify',
+
     /**
      * EdDSA key type identifier referred to as EdDSA in the Auth system.
      */
     ED25519_TYPE: 'biometric',
+
     /**
      * Key alias identifiers for secure storage.
      */
@@ -167,6 +170,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         PRIVATE_KEY: '3DS_SCA_KEY_PRIVATE',
     },
     EXPO_ERRORS,
+
     /**
      * Defines the requirements and configuration for each authentication factor.
      */
@@ -186,6 +190,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
             origin: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN.ADDITIONAL,
         },
     },
+
     /**
      * Valid authentication factor combinations for different scenarios.
      */
@@ -193,14 +198,17 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         REGISTRATION: [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE],
         BIOMETRICS_AUTHENTICATION: [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE],
     },
+
     /**
      * Factor origin classifications.
      */
     FACTORS_ORIGIN: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN,
+
     /**
      * Scenario name mappings.
      */
     SCENARIO,
+
     /**
      * Authentication type identifiers.
      */

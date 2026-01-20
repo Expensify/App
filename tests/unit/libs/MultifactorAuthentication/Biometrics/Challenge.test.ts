@@ -176,7 +176,7 @@ describe('MultifactorAuthenticationChallenge', () => {
             const result = await challenge.sign(mockAccountID);
 
             expect(result.value).toBe(false);
-            expect(result.reason).toBe(VALUES.REASON.KEYSTORE.KEY_MISSING_ON_THE_BACKEND);
+            expect(result.reason).toBe(VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED);
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(mockPrivateKeyStore.delete).toHaveBeenCalledWith(mockAccountID);
             // eslint-disable-next-line @typescript-eslint/unbound-method

@@ -157,8 +157,14 @@ type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknow
  */
 type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> = EmptyObject> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
-    allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
+    allowedAuthenticationMethods: Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>;
     screen: MultifactorAuthenticationScreen;
+
+    /**
+     * Whether the scenario does not require any additional parameters except for the native biometrics data.
+     * If it is the case, the scenario needs to be defined as such
+     * so the absence of payload will be tolerated at the run-time.
+     */
     pure?: true;
     nativePromptTitle: TranslationPaths;
 } & MultifactorAuthenticationUI;

@@ -1,4 +1,4 @@
-import type {KebabCase} from 'type-fest';
+import StringUtils from '@libs/StringUtils';
 import type {
     MultifactorAuthenticationNotificationMap,
     MultifactorAuthenticationNotificationOptions,
@@ -8,21 +8,54 @@ import type {
 } from './types';
 
 /**
- * Converts a string to lowercase.
+ * This utility module provides functions to map multifactor authentication scenario configurations
+ * to a notification map with kebab-case keys.
+ *
+ * This allows notification pages to reference the config based on its NotificationType in url.
+ *
+ * e.g.
+ *
+ * {
+ *     "BIOMETRICS-TEST": {
+ *         // ...
+ *         NOTIFICATIONS: {
+ *             success: {
+ *                 title: "...",
+ *                 // ...
+ *             },
+ *             failure: {
+ *                title: "...",
+ *                 // ...
+ *             },
+ *             // ...
+ *         }
+ *     },
+ *     "AUTHORIZE-TRANSACTION": {
+ *       // ...
+ *     }
+ * }
+ *
+ * is mapped to:
+ *
+ * {
+ *     "biometrics-test-success": {
+ *         title: "...",
+ *         // ...
+ *     },
+ *     "biometrics-test-failure": {
+ *         title: "...",
+ *         // ...
+ *     },
+ *     "authorize-transaction-success": {
+ *         // ...
+ *     }
+ *     // ...
+ * }
  */
-function toLowerCase<T extends string>(str: T) {
-    return str.toLowerCase() as Lowercase<T>;
-}
-
-/**
- * Converts camelCase string to kebab-case format.
- */
-function camelToKebabCase<T extends string>(str: T) {
-    return str.replaceAll(/([a-z])([A-Z])/g, '$1-$2').toLowerCase() as KebabCase<T>;
-}
 
 /**
  * Creates a notification record from multifactor authentication scenario configuration.
+ * For details refer to the example above.
  */
 const createNotificationRecord = (mfaConfig: MultifactorAuthenticationScenarioConfigRecord): MultifactorAuthenticationNotificationRecord => {
     const entries = Object.entries({...mfaConfig});
@@ -35,10 +68,11 @@ const createNotificationRecord = (mfaConfig: MultifactorAuthenticationScenarioCo
 
 /**
  * Creates a notification key by combining scenario and notification name in kebab-case format.
+ * e.g. a scenario key of "BIOMETRICS-TEST" and notification name of "success" will produce "biometrics-test-success".
  */
 const createNotificationKey = (key: string, name: string) => {
-    const scenarioKebabCase = toLowerCase(key as MultifactorAuthenticationScenario);
-    const notificationName = camelToKebabCase(name as MultifactorAuthenticationNotificationOptions);
+    const scenarioKebabCase = StringUtils.toLowerCase(key as MultifactorAuthenticationScenario);
+    const notificationName = StringUtils.camelToKebabCase(name as MultifactorAuthenticationNotificationOptions);
 
     return `${scenarioKebabCase}-${notificationName}` as const;
 };
@@ -59,4 +93,5 @@ const mapMultifactorAuthenticationNotification = (mfaConfig: MultifactorAuthenti
 
     return notifications as MultifactorAuthenticationNotificationMap;
 };
-export {mapMultifactorAuthenticationNotification, toLowerCase};
+
+export default mapMultifactorAuthenticationNotification;
