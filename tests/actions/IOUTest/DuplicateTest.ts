@@ -704,6 +704,7 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                allTransactionDrafts: {},
             });
 
             await waitForBatchedUpdates();
@@ -759,6 +760,7 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                allTransactionDrafts: {},
             });
 
             await waitForBatchedUpdates();
@@ -781,6 +783,178 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
             expect(duplicatedTransaction?.comment?.type).toBe('time');
             expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
+        });
+
+        it('should create a duplicate expense with allTransactionDrafts containing existing drafts', async () => {
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockCashExpenseTransaction = {
+                ...mockTransaction,
+                amount: mockTransaction.amount * -1,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            // Create some mock transaction drafts
+            const draftTransaction1 = createRandomTransaction(100);
+            const draftTransaction2 = createRandomTransaction(200);
+            const allTransactionDrafts = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`]: draftTransaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`]: draftTransaction2,
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockCashExpenseTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                allTransactionDrafts,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            // Verify that a duplicated transaction was created
+            expect(duplicatedTransaction).toBeDefined();
+            expect(duplicatedTransaction?.transactionID).toBeDefined();
+            // The duplicated transaction should have a different transactionID than the original
+            expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpenseTransaction.transactionID);
+            // The duplicated transaction should not be one of the draft transactions
+            expect(duplicatedTransaction?.transactionID).not.toBe(draftTransaction1.transactionID);
+            expect(duplicatedTransaction?.transactionID).not.toBe(draftTransaction2.transactionID);
+        });
+
+        it('should create a duplicate expense with allTransactionDrafts as undefined', async () => {
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockCashExpenseTransaction = {
+                ...mockTransaction,
+                amount: mockTransaction.amount * -1,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockCashExpenseTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                allTransactionDrafts: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            // Verify that a duplicated transaction was created even with undefined allTransactionDrafts
+            expect(duplicatedTransaction).toBeDefined();
+            expect(duplicatedTransaction?.transactionID).toBeDefined();
+            expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpenseTransaction.transactionID);
+        });
+
+        it('should create a duplicate time expense with allTransactionDrafts containing existing drafts', async () => {
+            const transactionID = 'time-2';
+            const HOURLY_RATE = 12.5;
+            const HOURS_WORKED = 8;
+            const AMOUNT_CENTS = Math.round(HOURS_WORKED * HOURLY_RATE * 100);
+
+            const mockTimeExpenseTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: AMOUNT_CENTS,
+                comment: {
+                    type: 'time' as const,
+                    units: {
+                        unit: 'h' as const,
+                        count: HOURS_WORKED,
+                        rate: HOURLY_RATE,
+                    },
+                },
+            };
+
+            // Create some mock transaction drafts
+            const draftTransaction1 = createRandomTransaction(300);
+            const draftTransaction2 = createRandomTransaction(400);
+            const allTransactionDrafts = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`]: draftTransaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`]: draftTransaction2,
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockTimeExpenseTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                allTransactionDrafts,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
+                    expect(transactions).toHaveLength(1);
+                    duplicatedTransaction = transactions.at(0);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.comment?.units?.count).toEqual(HOURS_WORKED);
+            expect(duplicatedTransaction?.comment?.units?.rate).toEqual(HOURLY_RATE);
+            expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
+            expect(duplicatedTransaction?.comment?.type).toBe('time');
+            expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
+            // The duplicated transaction should not be one of the draft transactions
+            expect(duplicatedTransaction?.transactionID).not.toBe(draftTransaction1.transactionID);
+            expect(duplicatedTransaction?.transactionID).not.toBe(draftTransaction2.transactionID);
         });
     });
 

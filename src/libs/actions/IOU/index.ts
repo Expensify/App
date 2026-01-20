@@ -542,6 +542,7 @@ type RequestMoneyInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    allTransactionDrafts?: OnyxCollection<OnyxTypes.Transaction>;
 };
 
 type MoneyRequestInformationParams = {
@@ -6104,6 +6105,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        // TODO: Remove the usages of allTransactionDrafts in the follow-up PR
+        allTransactionDrafts: allTransactionDraftsParam = allTransactionDrafts,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6151,7 +6154,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             : undefined;
     const existingTransaction =
         action === CONST.IOU.ACTION.SUBMIT
-            ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`]
+            ? allTransactionDraftsParam[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`]
             : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
 
     const retryParams = {
