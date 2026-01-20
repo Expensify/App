@@ -19,9 +19,10 @@ type ButtonsProps = {
     navigateToNextStep: () => void;
     setShouldShowStartError: React.Dispatch<React.SetStateAction<boolean>>;
     setShouldShowPermissionsError: React.Dispatch<React.SetStateAction<boolean>>;
+    reportID: string;
 };
 
-function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError}: ButtonsProps) {
+function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID}: ButtonsProps) {
     const [startPermissionsFlow, setStartPermissionsFlow] = useState(false);
     const [showLocationRequiredModal, setShowLocationRequiredModal] = useState(false);
     const [showDiscardConfirmation, setShowDiscardConfirmation] = useState(false);
@@ -77,7 +78,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
             return;
         }
 
-        initGpsDraft();
+        initGpsDraft(reportID);
     };
 
     const onNext = () => {

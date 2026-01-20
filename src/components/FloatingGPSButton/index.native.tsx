@@ -13,25 +13,22 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {GpsDraftDetails} from '@src/types/onyx';
-
-const isTrackingSelector = (gpsDraftDetails?: GpsDraftDetails) => gpsDraftDetails?.isTracking;
 
 function FloatingGpsButton() {
-    const [isTracking] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
     const {translate} = useLocalize();
 
     const icons = useMemoizedLazyExpensifyIcons(['Location'] as const);
     const {textMutedReversed} = useTheme();
     const styles = useThemeStyles();
 
-    if (!isTracking) {
+    if (!gpsDraftDetails?.isTracking) {
         return null;
     }
 
     const navigateToGpsScreen = () => {
-        const optimisticReportID = generateReportID();
-        Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
+        const reportID = gpsDraftDetails?.reportID ?? generateReportID();
+        Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
     };
 
     return (
