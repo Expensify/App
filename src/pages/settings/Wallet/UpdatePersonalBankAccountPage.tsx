@@ -34,7 +34,10 @@ function UpdatePersonalBankAccountPage() {
         updatePersonalBankAccountInfo(accountData);
     };
 
-    const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails);
+    // getSkippedStepsPersonalInfo returns indices 1, 2, 3 (for a flow with an extra leading step)
+    // Our flow is 0-indexed: 0=LegalName, 1=Address, 2=PhoneNumber, 3=Confirmation
+    // Adjust by subtracting 1 from each returned index
+    const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails).map((step) => step - 1);
 
     const {
         componentToRender: SubStep,
