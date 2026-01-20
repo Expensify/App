@@ -13765,10 +13765,10 @@ function updateSplitExpenseField(
                         distanceInUnits = splitExpenseDraftTransaction.comment.customUnit.quantity;
                     }
 
-                    if (distanceInUnits !== undefined && distanceInUnits > 0) {
+                    if (distanceInUnits !== undefined) {
                         // Calculate amount from distance and rate: amount = distance * rate
                         // Both amount and rate are in cents, distance is in units
-                        const calculatedAmount = Math.round(distanceInUnits * rate);
+                        const calculatedAmount = distanceInUnits > 0 ? Math.round(distanceInUnits * rate) : 0;
                         updatedItem.amount = calculatedAmount;
 
                         // Update merchant for distance transactions
@@ -14158,21 +14158,35 @@ function updateSplitTransactions({
         }
 
         // For existing transactions, ensure merchant from splitExpense is preserved in optimisticData
-        if (splitTransaction && onyxData.optimisticData) {
-            const transactionIDFromOptimistic = optimisticTransactionFromGetMoneyRequest?.transactionID;
-            if (transactionIDFromOptimistic) {
-                const transactionUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromOptimistic}`);
+        // This needs to happen after both onyxData and updateMoneyRequestParamsOnyxData are merged
+        const transactionIDFromOptimistic = optimisticTransactionFromGetMoneyRequest?.transactionID;
+        const expectedMerchant = optimisticTransactionFromGetMoneyRequest?.merchant;
+
+        optimisticData.push(...(onyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));
+
+        // After merging all optimistic data, ensure merchant is correctly set for existing split transactions
+        // For distance transactions, we need to update both merchant and modifiedMerchant
+        if (splitTransaction && transactionIDFromOptimistic && expectedMerchant) {
+            const transactionUpdateIndex = optimisticData.findIndex((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromOptimistic}`);
+            if (transactionUpdateIndex >= 0) {
+                const transactionUpdate = optimisticData[transactionUpdateIndex];
                 if (transactionUpdate && 'value' in transactionUpdate && typeof transactionUpdate.value === 'object' && transactionUpdate.value !== null) {
                     const transactionUpdateValue = transactionUpdate.value as OnyxTypes.Transaction;
-                    const expectedMerchant = optimisticTransactionFromGetMoneyRequest?.merchant;
-                    if (expectedMerchant && transactionUpdateValue.merchant !== expectedMerchant) {
-                        transactionUpdateValue.merchant = expectedMerchant;
+                    const needsUpdate = transactionUpdateValue.merchant !== expectedMerchant || transactionUpdateValue.modifiedMerchant !== expectedMerchant;
+                    if (needsUpdate) {
+                        // Update both merchant and modifiedMerchant in the optimistic update
+                        optimisticData[transactionUpdateIndex] = {
+                            ...transactionUpdate,
+                            value: {
+                                ...transactionUpdateValue,
+                                merchant: expectedMerchant,
+                                modifiedMerchant: expectedMerchant,
+                            },
+                        };
                     }
                 }
             }
         }
-
-        optimisticData.push(...(onyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));
         successData.push(...(onyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []));
         failureData.push(...(onyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
     }
