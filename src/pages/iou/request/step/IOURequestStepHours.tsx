@@ -20,29 +20,33 @@ import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipa
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
+type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS>;
 
 function IOURequestStepHours({
     report,
     route: {
         params: {iouType, reportID, transactionID = '-1', action, reportActionID},
+        name: routeName,
     },
     transaction,
 }: IOURequestStepHoursProps) {
+    const isEditingConfirmation = routeName === SCREENS.MONEY_REQUEST.STEP_HOURS;
     const policyID = report?.policyID;
     const isTransactionDraft = shouldUseTransactionDraft(action);
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const rate = policy ? getDefaultTimeTrackingRate(policy) : undefined;
+    const defaultPolicyRate = policy ? getDefaultTimeTrackingRate(policy) : undefined;
+    const rate = transaction?.comment?.units?.rate ?? defaultPolicyRate;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -58,8 +62,8 @@ function IOURequestStepHours({
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setFormError('');
-        moneyRequestTimeInputRef.current?.updateNumber('');
-    }, [selectedTab]);
+        moneyRequestTimeInputRef.current?.updateNumber(`${transaction?.comment?.units?.count ?? ''}`);
+    }, [selectedTab, transaction?.comment?.units?.count]);
 
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -70,6 +74,8 @@ function IOURequestStepHours({
             clearTimeout(focusTimeoutRef.current);
         };
     });
+
+    const navigateBack = () => Navigation.goBack(isEditingConfirmation ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID) : undefined);
 
     const saveTime = () => {
         if (rate === undefined) {
@@ -84,9 +90,13 @@ function IOURequestStepHours({
 
         setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
         setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate), isTransactionDraft);
-        setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
         setMoneyRequestTimeCount(transactionID, count, isTransactionDraft);
 
+        if (isEditingConfirmation) {
+            navigateBack();
+            return;
+        }
+        setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
         setMoneyRequestParticipantsFromReport(transactionID, report, accountID).then(() =>
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)),
         );
@@ -95,9 +105,9 @@ function IOURequestStepHours({
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.time')}
-            onBackButtonPress={Navigation.goBack}
+            onBackButtonPress={navigateBack}
             testID="IOURequestStepHours"
-            shouldShowWrapper={false}
+            shouldShowWrapper={isEditingConfirmation}
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
@@ -113,6 +123,7 @@ function IOURequestStepHours({
                 style={styles.iouAmountTextInput}
                 containerStyle={styles.iouAmountTextInputContainer}
                 errorText={formError}
+                touchableInputWrapperStyle={styles.heightUndefined}
                 onInputChange={() => {
                     if (!formError) {
                         return;
@@ -127,7 +138,7 @@ function IOURequestStepHours({
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={saveTime}
-                        text={translate('common.next')}
+                        text={translate(isEditingConfirmation ? 'common.save' : 'common.next')}
                     />
                 }
             />
