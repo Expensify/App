@@ -138,15 +138,6 @@ Onyx.connectWithoutView({
     callback: (value) => (allBetas = value),
 });
 
-let deprecatedAllReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        deprecatedAllReports = value;
-    },
-});
-
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
@@ -580,17 +571,12 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
-function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, reportTransaction?: OnyxEntry<Report>): boolean {
-    const parentReport = reportTransaction ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some(
-        (participant) => deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat,
-    );
-    const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
+function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
+    const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
     if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
-        return (isMerchantRequired && isMerchantMissing(transaction)) || isCreatedMissing(transaction);
+        return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction);
     }
-    return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -1410,8 +1396,8 @@ function didReceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Check if the transaction has a non-smart-scanning receipt and is missing required fields
  */
-function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>, reportTransaction?: OnyxEntry<Report>): boolean {
-    return !!(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction, reportTransaction));
+function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
+    return !!(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction, transactionReport));
 }
 
 /**
@@ -1678,6 +1664,10 @@ function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
 
+function isWaypointNullIsland(waypoint: RecentWaypoint | Waypoint): boolean {
+    return waypoint.lat === 0 && waypoint.lng === 0;
+}
+
 /**
  * Converts the key of a waypoint to its index
  */
@@ -1713,6 +1703,11 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
 
         // Check if the waypoint has a valid address
         if (!waypointHasValidAddress(currentWaypoint)) {
+            return acc;
+        }
+
+        // Exclude null island
+        if (isWaypointNullIsland(currentWaypoint)) {
             return acc;
         }
 
@@ -2513,16 +2508,21 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 }
 
 /**
- * Retrieves all “child” transactions associated with a given original transaction
+ * Retrieves all "child" transactions associated with a given original transaction.
+ * By default excludes orphaned transactions (reportID '0'). Use includeOrphaned=true for counting.
  */
-function getChildTransactions(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined) {
+function getChildTransactions(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined, includeOrphaned = false) {
     return Object.values(transactions ?? {}).filter((currentTransaction) => {
+        const isSplitChild = currentTransaction?.comment?.originalTransactionID === originalTransactionID;
+        if (!isSplitChild || currentTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return false;
+        }
+        const isOrphaned = currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        if (isOrphaned) {
+            return includeOrphaned;
+        }
         const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-        return (
-            currentTransaction?.comment?.originalTransactionID === originalTransactionID &&
-            !!currentReport &&
-            currentTransaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-        );
+        return !!currentReport || currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
     });
 }
 
@@ -2560,9 +2560,9 @@ function isExpenseUnreported(transaction?: Transaction): transaction is Unreport
 }
 
 /**
- * Check if there is a smartscan failed violation for the transaction.
+ * Check if there is a smartscan failed or no route violation for the transaction.
  */
-function hasSmartScanFailedViolation(
+function hasSmartScanFailedOrNoRouteViolation(
     transaction: Transaction,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
@@ -2571,7 +2571,7 @@ function hasSmartScanFailedViolation(
     policy: OnyxEntry<Policy>,
 ): boolean {
     const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
-    return !!violations?.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+    return !!violations?.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED || violation.name === CONST.VIOLATIONS.NO_ROUTE);
 }
 
 /**
@@ -2671,12 +2671,13 @@ export {
     hasPendingUI,
     getWaypointIndex,
     waypointHasValidAddress,
+    isWaypointNullIsland,
     getRecentTransactions,
     hasReservationList,
     hasViolation,
     hasDuplicateTransactions,
     hasBrokenConnectionViolation,
-    hasSmartScanFailedViolation,
+    hasSmartScanFailedOrNoRouteViolation,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,

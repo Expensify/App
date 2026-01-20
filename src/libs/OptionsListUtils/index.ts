@@ -39,6 +39,8 @@ import {
     getCombinedReportActions,
     getDynamicExternalWorkflowRoutedMessage,
     getExportIntegrationLastMessageText,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getLastVisibleMessage,
@@ -57,6 +59,7 @@ import {
     getRoomChangeLogMessage,
     getSortedReportActions,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getUpdateRoomDescriptionMessage,
     hasPendingDEWSubmit,
     isActionableAddPaymentCard,
@@ -236,12 +239,12 @@ Onyx.connect({
     },
 });
 
-let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+let allReportNameValuePairsOnyxConnect: OnyxCollection<ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
-        allReportNameValuePairs = value;
+        allReportNameValuePairsOnyxConnect = value;
     },
 });
 
@@ -303,7 +306,7 @@ Onyx.connect({
                 lastReportActions[reportID] = firstReportAction;
             }
 
-            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const reportNameValuePairs = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const isReportArchived = !!reportNameValuePairs?.private_isArchived;
             const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
 
@@ -427,10 +430,7 @@ function uniqFast(items: string[]): string[] {
     return result;
 }
 
-/**
- * Get the last actor display name from last actor details.
- */
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null) {
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam: number) {
     if (!lastActorDetails) {
         return '';
     }
@@ -439,33 +439,38 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
         return CONST.CONCIERGE_DISPLAY_NAME;
     }
 
-    return lastActorDetails.accountID !== currentUserAccountID
+    return lastActorDetails.accountID !== currentUserAccountIDParam
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(lastActorDetails))
         : // eslint-disable-next-line @typescript-eslint/no-deprecated
           translateLocal('common.you');
 }
 
-/**
- * Should show the last actor display name from last actor details.
- */
-function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, lastAction: OnyxEntry<ReportAction>) {
+function shouldShowLastActorDisplayName(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    lastAction: OnyxEntry<ReportAction>,
+    currentUserAccountIDParam: number,
+) {
     const reportID = report?.reportID;
-    const lastReportAction = reportID ? lastVisibleReportActions[reportID] : lastAction;
+    const lastReportAction = (reportID ? lastVisibleReportActions[reportID] : undefined) ?? lastAction;
+
+    // Use report.lastActionType as fallback when report actions aren't loaded yet (e.g., on cold start)
+    const lastActionName = lastReportAction?.actionName ?? report?.lastActionType;
 
     if (
-        !lastReportAction ||
+        !lastActionName ||
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
-        (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
-        lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
-        (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+        (isDM(report) && lastActorDetails.accountID !== currentUserAccountIDParam) ||
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
+        (lastActionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
     ) {
         return false;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam);
 
     if (!lastActorDisplayName) {
         return false;
@@ -582,7 +587,7 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
-function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null): string {
+function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam: number): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
 
@@ -599,11 +604,11 @@ function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>
         }
 
         if (actorDetails) {
-            return getLastActorDisplayName(actorDetails);
+            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam);
         }
     }
 
-    return getLastActorDisplayName(lastActorDetails);
+    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam);
 }
 
 /**
@@ -843,6 +848,18 @@ function getLastMessageTextForReport({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, lastReportAction);
     }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = getUpdateACHAccountMessage(translateLocal, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = getInvoiceCompanyNameUpdateMessage(translateLocal, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, lastReportAction);
+    }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
     if (reportID && !isReportArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
@@ -891,6 +908,7 @@ function createOption(
     report: OnyxInputOrEntry<Report>,
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    privateIsArchived?: string,
 ): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
 
@@ -949,10 +967,10 @@ function createOption(
     result.participantsList = personalDetailList;
 
     if (report) {
-        const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+        const reportNameValuePairsForReport = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
 
         // Set properties that are used in SearchOption context
-        result.private_isArchived = reportNameValuePairs?.private_isArchived;
+        result.private_isArchived = privateIsArchived ?? reportNameValuePairsForReport?.private_isArchived;
         result.keyForList = String(report.reportID);
 
         // Type/category flags already set in initialization above, but update brickRoadIndicator
@@ -973,7 +991,17 @@ function createOption(
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
 
         const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
-        const computedReportName = computeReportName(report, allReports, allPolicies, undefined, allReportNameValuePairs, personalDetailsForCompute, allReportActions, currentUserAccountID);
+        const computedReportName = computeReportName(
+            report,
+            allReports,
+            allPolicies,
+            undefined,
+            undefined,
+            personalDetailsForCompute,
+            allReportActions,
+            currentUserAccountID,
+            result.private_isArchived,
+        );
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;
@@ -1017,6 +1045,7 @@ function createOption(
  */
 function getReportOption(
     participant: Participant,
+    privateIsArchived: string | undefined,
     policy: OnyxEntry<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     reportDrafts?: OnyxCollection<Report>,
@@ -1033,6 +1062,7 @@ function getReportOption(
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
+        privateIsArchived,
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1040,7 +1070,7 @@ function getReportOption(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, allPersonalDetails, undefined, currentUserAccountID);
+        option.text = computeReportName(report, undefined, undefined, undefined, undefined, allPersonalDetails, undefined, currentUserAccountID, privateIsArchived);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
@@ -1069,7 +1099,12 @@ function getReportOption(
 /**
  * Get the display option for a given report.
  */
-function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: OnyxEntry<Participant>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): OptionData {
+function getReportDisplayOption(
+    report: OnyxEntry<Report>,
+    unknownUserDetails: OnyxEntry<Participant>,
+    privateIsArchived: string | undefined,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption(
@@ -1081,6 +1116,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
+        privateIsArchived,
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1088,7 +1124,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, allPersonalDetails, undefined, currentUserAccountID);
+        option.text = computeReportName(report, undefined, undefined, undefined, undefined, allPersonalDetails, undefined, currentUserAccountID, privateIsArchived);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
@@ -1864,7 +1900,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfig, draftComment: string | undefined): boolean {
+function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, config: IsValidReportsConfig, draftComment: string | undefined): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1917,7 +1953,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     const isChatRoom = option.isChatRoom;
     const accountIDs = getParticipantsAccountIDsForDisplay(option.item);
 
-    if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
+    if (excludeNonAdminWorkspaces && !isPolicyAdmin(policy)) {
         return false;
     }
 
@@ -1969,8 +2005,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
         option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
 
-    const shouldShowInvoiceRoom =
-        includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
+    const shouldShowInvoiceRoom = includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(policy) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
 
     /*
     Exclude the report option if it doesn't meet any of the following conditions:
@@ -1989,8 +2024,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     }
 
     if (action === CONST.IOU.ACTION.CATEGORIZE) {
-        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`];
-        if (!reportPolicy?.areCategoriesEnabled) {
+        if (!policy?.areCategoriesEnabled) {
             return false;
         }
     }
@@ -2006,7 +2040,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
-function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
+function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, policiesCollection: OnyxCollection<Policy>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
@@ -2086,7 +2120,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
             newReportOption.alternateText = translateLocal('workspace.common.workspace');
 
             if (report?.policyID) {
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
                 const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
@@ -2148,6 +2182,7 @@ function getRestrictedLogins(
  */
 function getValidOptions(
     options: OptionList,
+    policiesCollection: OnyxCollection<Policy>,
     draftComments: OnyxCollection<string> | undefined,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     loginList: OnyxEntry<Login>,
@@ -2217,6 +2252,7 @@ function getValidOptions(
         };
 
         const filteringFunction = (report: SearchOption<Report>) => {
+            const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
             if (!isSearchTermsFound(report)) {
                 return false;
             }
@@ -2225,6 +2261,7 @@ function getValidOptions(
 
             return isValidReport(
                 report,
+                policy,
                 {
                     ...getValidReportsConfig,
                     includeP2P,
@@ -2239,7 +2276,7 @@ function getValidOptions(
         [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
 
         if (selfDMChats.length > 0) {
-            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, {
+            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, policiesCollection, {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
@@ -2252,7 +2289,7 @@ function getValidOptions(
         if (maxRecentReportElements) {
             recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
         }
-        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, {
+        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, policiesCollection, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
@@ -2261,7 +2298,7 @@ function getValidOptions(
             shouldShowGBR,
         });
 
-        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, {
+        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policiesCollection, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
@@ -2410,6 +2447,7 @@ function getSearchOptions({
 
     const optionList = getValidOptions(
         options,
+        allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         loginList,
@@ -2535,6 +2573,7 @@ function getMemberInviteOptions(
 ): Options {
     return getValidOptions(
         {personalDetails, reports: []},
+        allPolicies,
         undefined,
         nvpDismissedProductTraining,
         loginList,

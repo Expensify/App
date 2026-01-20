@@ -102,6 +102,12 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The merchant of the IOU */
     iouMerchant: string | undefined;
 
+    /** The hours count of the time request */
+    iouTimeCount: number | undefined;
+
+    /** The hourly rate of the time request */
+    iouTimeRate: number | undefined;
+
     /** The type of the IOU */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
@@ -119,6 +125,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
+
+    /** Flag indicating if it is a time request */
+    isTimeRequest: boolean;
 
     /** Flag indicating if the merchant is empty */
     isMerchantEmpty: boolean;
@@ -231,11 +240,14 @@ function MoneyRequestConfirmationListFooter({
     iouIsBillable,
     iouMerchant,
     iouType,
+    iouTimeCount,
+    iouTimeRate,
     isCategoryRequired,
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
     isPerDiemRequest,
+    isTimeRequest,
     isMerchantEmpty,
     isMerchantRequired,
     isPolicyExpenseChat,
@@ -441,12 +453,12 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
-                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest}
+                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !isTimeRequest}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    interactive={!isReadOnly}
+                    interactive={!isReadOnly && !isTimeRequest}
                     onPress={() => {
-                        if (isDistanceRequest || !transactionID) {
+                        if (isDistanceRequest || isTimeRequest || !transactionID) {
                             return;
                         }
 
@@ -590,6 +602,48 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowMerchant,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('iou.timeTracking.hours')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={`${iouTimeCount}`}
+                    description={translate('iou.timeTracking.hours')}
+                    style={styles.moneyRequestMenuItem}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS.getRoute(action, iouType, transactionID, reportID, reportActionID));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isTimeRequest,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={`time_${translate('common.rate')}`}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={translate('iou.timeTracking.ratePreview', convertToDisplayString(iouTimeRate, iouCurrencyCode))}
+                    description={translate('common.rate')}
+                    style={styles.moneyRequestMenuItem}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isTimeRequest,
         },
         {
             item: (
@@ -1114,5 +1168,8 @@ export default memo(
         prevProps.shouldShowTax === nextProps.shouldShowTax &&
         prevProps.transaction === nextProps.transaction &&
         prevProps.transactionID === nextProps.transactionID &&
-        prevProps.unit === nextProps.unit,
+        prevProps.unit === nextProps.unit &&
+        prevProps.isTimeRequest === nextProps.isTimeRequest &&
+        prevProps.iouTimeCount === nextProps.iouTimeCount &&
+        prevProps.iouTimeRate === nextProps.iouTimeRate,
 );
