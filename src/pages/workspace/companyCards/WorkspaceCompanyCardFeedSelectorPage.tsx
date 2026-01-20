@@ -31,7 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
-import useCompanyCardFeedErrors from './hooks/useCardFeedErrors';
+import useCompanyCardFeedErrors from './hooks/useCompanyCardFeedErrors';
 
 type CardFeedListItem = ListItem & {
     /** Combined feed key */

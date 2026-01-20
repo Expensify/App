@@ -8,7 +8,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
     filterInactiveCards,
-    flattenCompanyCards,
+    flattenWorkspaceCardsList,
     formatCardExpiration,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
@@ -42,7 +42,7 @@ import {
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -871,7 +871,7 @@ describe('CardUtils', () => {
     describe('flattenCompanyCards', () => {
         it('should return the flattened list of non-Expensify cards related to the provided workspaceAccountID', () => {
             const workspaceAccountID = 11111111;
-            const flattenedCardsList = flattenCompanyCards(allCardsList, workspaceAccountID);
+            const flattenedCardsList = flattenWorkspaceCardsList(allCardsList, workspaceAccountID);
             const {cardList, ...customCards} = customFeedCardsList;
             expect(flattenedCardsList).toStrictEqual({
                 ...directFeedCardsMultipleList,
@@ -881,7 +881,7 @@ describe('CardUtils', () => {
 
         it('should return undefined if not defined cards list was provided', () => {
             const workspaceAccountID = 11111111;
-            const flattenedCardsList = flattenCompanyCards(undefined, workspaceAccountID);
+            const flattenedCardsList = flattenWorkspaceCardsList(undefined, workspaceAccountID);
             expect(flattenedCardsList).toBeUndefined();
         });
     });
@@ -1311,13 +1311,13 @@ describe('CardUtils', () => {
 
     describe('getPlaidInstitutionId', () => {
         it('should return institution ID from plaid feed name without domain ID', () => {
-            const feedName = 'plaid.ins_123456';
+            const feedName = 'plaid.ins_123456' as CardFeedWithNumber;
             const institutionId = getPlaidInstitutionId(feedName);
             expect(institutionId).toBe('ins_123456');
         });
 
         it('should return institution ID from plaid feed name with domain ID', () => {
-            const feedName = 'plaid.ins_129663#12345';
+            const feedName = 'plaid.ins_129663#12345' as CardFeedWithDomainID;
             const institutionId = getPlaidInstitutionId(feedName);
             expect(institutionId).toBe('ins_129663');
         });
@@ -1331,13 +1331,13 @@ describe('CardUtils', () => {
 
     describe('getPlaidInstitutionIconUrl', () => {
         it('should return correct icon URL for plaid feed without domain ID', () => {
-            const feedName = 'plaid.ins_123456';
+            const feedName = 'plaid.ins_123456' as CardFeedWithNumber;
             const iconUrl = getPlaidInstitutionIconUrl(feedName);
             expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_123456.png`);
         });
 
         it('should return correct icon URL for plaid feed with domain ID', () => {
-            const feedName = 'plaid.ins_129663#12345';
+            const feedName = 'plaid.ins_129663#12345' as CardFeedWithDomainID;
             const iconUrl = getPlaidInstitutionIconUrl(feedName);
             expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_129663.png`);
         });

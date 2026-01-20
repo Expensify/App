@@ -18,7 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
-import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCardFeedErrors';
+import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCompanyCardFeedErrors';
 import useHasWorkspaceCompanyCardErrors from '@pages/workspace/companyCards/hooks/useHasWorkspaceCompanyCardErrors';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';

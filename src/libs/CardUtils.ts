@@ -390,7 +390,7 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber, illustrations: Illustrati
 /**
  * Verify if the feed is a custom feed. Those are also referred to as commercial feeds.
  */
-function isCustomFeed(feed: CompanyCardFeedWithNumber | CompanyCardFeedWithDomainID | undefined): boolean {
+function isCustomFeed(feed: CardFeedWithNumber | CardFeedWithDomainID | undefined): boolean {
     if (!feed) {
         return false;
     }
@@ -491,7 +491,7 @@ function getCustomOrFormattedFeedName(feed?: CardFeedWithNumber, customFeedName?
     return customFeedName || formattedFeedName || feed;
 }
 
-function getPlaidInstitutionIconUrl(feedName?: string) {
+function getPlaidInstitutionIconUrl(feedName?: CardFeedWithNumber | CardFeedWithDomainID) {
     const institutionId = getPlaidInstitutionId(feedName);
     if (!institutionId) {
         return '';
@@ -499,8 +499,8 @@ function getPlaidInstitutionIconUrl(feedName?: string) {
     return `${CONST.COMPANY_CARD_PLAID}${institutionId}.png`;
 }
 
-function getPlaidInstitutionId(feedName?: string) {
-    const feedNameWithoutDomainID = getCompanyCardFeed(feedName ?? '');
+function getPlaidInstitutionId(feedName?: CardFeedWithNumber | CardFeedWithDomainID) {
+    const feedNameWithoutDomainID = getCompanyCardFeed(feedName);
     const feed = feedNameWithoutDomainID?.split('.');
     if (!feed || feed?.at(0) !== CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
         return '';
@@ -554,11 +554,11 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID
     return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
-function getCompanyCardFeedWithDomainID(feedName: CompanyCardFeedWithNumber, domainID: number | string): CompanyCardFeedWithDomainID {
+function getCompanyCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: number | string): CardFeedWithDomainID {
     return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
 }
 
-function splitCompanyCardFeedWithDomainID(feedName: CardFeedWithDomainID | undefined): {feedName: CompanyCardFeed | undefined; domainID: number | undefined} {
+function splitCompanyCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined): {feedName: CardFeedWithNumber | undefined; domainID: number | undefined} {
     if (!feedName) {
         return {feedName: undefined, domainID: undefined};
     }
@@ -566,10 +566,10 @@ function splitCompanyCardFeedWithDomainID(feedName: CardFeedWithDomainID | undef
     const feedNameParts = feedName.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
 
     if (feedNameParts.length !== 2) {
-        return {feedName: feedName as CompanyCardFeed, domainID: undefined};
+        return {feedName: feedName as CardFeedWithNumber, domainID: undefined};
     }
 
-    return {feedName: feedNameParts.at(0) as CompanyCardFeed, domainID: Number(feedNameParts.at(1))};
+    return {feedName: feedNameParts.at(0) as CardFeedWithNumber, domainID: Number(feedNameParts.at(1))};
 }
 
 function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean {
@@ -722,7 +722,7 @@ function filterCardsByNonExpensify(cards: CardList | undefined): CardList {
  * @param workspaceAccountID the workspace account id we want to get cards for
  * @param domainIDs the domain ids we want to get cards for
  */
-function flattenCompanyCards(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
+function flattenWorkspaceCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
     if (!allCardsList) {
         return;
     }
@@ -739,14 +739,14 @@ function flattenCompanyCards(allCardsList: OnyxCollection<WorkspaceCardsList>, w
     }, {});
 }
 
-/**
- * Check if the card has a broken connection
- *
- * @param card the card to check
- * @returns true if the card has a broken connection, false otherwise
- */
-function isCardConnectionBroken(card: Card): boolean {
-    return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
+function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefined, feedToExclude?: string): boolean {
+    if (!feedCards || isEmptyObject(feedCards)) {
+        return false;
+    }
+
+    return Object.values(feedCards).some(
+        (card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult),
+    );
 }
 
 /**
@@ -827,12 +827,13 @@ function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExcl
 }
 
 /** Extract feed from feed with domainID */
-function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFeed {
+function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithDomainID | undefined): CardFeedWithNumber {
+    const fallbackFeed = '' as CompanyCardFeed;
     if (!feedWithDomainID) {
-        return '' as CompanyCardFeed;
+        return fallbackFeed;
     }
 
-    return splitCompanyCardFeedWithDomainID(feedWithDomainID as CompanyCardFeedWithDomainID).feedName ?? ('' as CompanyCardFeed);
+    return splitCompanyCardFeedWithDomainID(feedWithDomainID).feedName ?? fallbackFeed;
 }
 
 /**
@@ -972,8 +973,8 @@ export {
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
     getFeedType,
-    flattenCompanyCards,
-    isCardConnectionBroken,
+    flattenWorkspaceCardsList,
+    checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
