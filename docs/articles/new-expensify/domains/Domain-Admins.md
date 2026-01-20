@@ -17,7 +17,7 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 3. Open **Domain Admins**.
 4. Enter the admin’s email address or phone number, then click **Add**.
 
-**Note:** A Domain Admin does not need an email address on the company domain (for example, an external bookkeeper can be a Domain Admin).
+**Note:** A Domain Admin does not need an email address on the company domain. For example, an external bookkeeper can be a Domain Admin.
 
 ---
 
@@ -35,4 +35,4 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 
 ## Do I need to verify my domain to add Domain Admins?
 
-No. You can typically add Domain Admins after the domain is claimed. Verification is required to enable advanced features like SAML and (in many cases) to manage domain members.
+No. You can add Domain Admins after you claim the domain. Verification is required to enable advanced features like SAML and to manage domain members.

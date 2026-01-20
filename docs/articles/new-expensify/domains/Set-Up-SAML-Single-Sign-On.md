@@ -5,8 +5,6 @@ internalScope: Audience is Domain Admins and IT admins. Covers enabling and conf
 keywords: [New Expensify, SAML SSO, domain security, single sign-on, identity provider, verified domain, enable SAML]
 ---
 
-<div id="new-expensify" markdown="1">
-
 Expensify supports Single Sign-On (SSO) through the SAML protocol, allowing you to secure user authentication across your organization. This guide walks you through setting up and managing SAML SSO for your Expensify account.
 
 # Set Up SAML Single Sign-On
@@ -19,7 +17,7 @@ Once your domain is verified, you can configure SAML-based login for enhanced au
 2. Open the **SAML** section.
 3. Toggle **Enable SAML login**.
 4. Download Expensify’s Service Provider Metadata to provide to your Identity Provider.
-5. Enter the Identity Provider Metadata from your SSO provider. (Contact your provider if unsure how to obtain this).
+5. Enter the Identity Provider Metadata from your SSO provider. Contact your provider if you're unsure how to obtain this.
 6. Toggle on **Require SAML login**, ensuring users sign in via SSO only.
 
 # Identity Provider-Specific SAML Setup
@@ -81,5 +79,3 @@ Refer to the full setup in Okta’s documentation for attribute mapping and prov
 ---
 
 Still stuck? Reach out to Concierge from the bottom-left menu in New Expensify.
-
-</div>

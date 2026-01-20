@@ -7,8 +7,8 @@ keywords: [New Expensify, domain members, verify domain, domain admin, domain co
 
 Managing domain members helps your organization control who can use Expensify with your company email domain, and which domain-level settings apply to them.
 
-There are two types of users within Domain Settings:
-- **Domain Member**: Subject to domain rules. Members must have an email address under the domain (e.g., `@yourcompany.com`) as their primary or secondary contact method.
+There are two types of members within Domain Settings:
+- **Domain Member**: Subject to domain rules. Members must have an email address under the domain as their primary or secondary contact method, such as `@yourcompany.com`.
 - **Domain Admin**: Has full control over domain settings, including adding/removing members, managing rules, and configuring security settings. Admins do not need an email address associated with the domain.
 
 Your domain must be verified before you can invite and manage members. Learn how to [claim and verify a domain](https://help.expensify.com/articles/new-expensify/domains/Claim-and-Verify-a-Domain).
@@ -18,14 +18,14 @@ Your domain must be verified before you can invite and manage members. Learn how
 # Add a Domain Member
 
 There are two ways to add a domain member:
-1. **Automatic signup**: Users who create an account using a domain email (e.g., `name@yourcompany.com`) are added automatically.
+1. **Automatic signup**: Accounts created with a domain email, such as `name@yourcompany.com`, are added automatically.
 2. **Manual addition**: A Domain Admin can invite members.
 
 ## Automatically add members
 - **New Expensify users**: Accounts created with a domain email are automatically added as members.
-- **Existing Expensify users**: Users can add their domain email as a primary or secondary contact method. Once verified, they are added to the domain.
+- **Existing Expensify members**: Members can add their domain email as a primary or secondary contact method. Once verified, they are added to the domain.
 
-If a user has multiple contact methods, the primary contact method takes precedence.
+If a member has multiple contact methods, the primary contact method takes precedence.
 
 ## Manually invite a member
 1. Go to **Workspaces > Domains**.

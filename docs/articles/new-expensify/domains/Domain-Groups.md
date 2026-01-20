@@ -5,7 +5,7 @@ internalScope: Audience is Domain Admins. Covers creating and managing Domain Gr
 keywords: [New Expensify, domain groups, domain security groups, domain control, permissions, rules]
 ---
 
-Domain Groups (also called Domain Security Groups) let you apply different domain rules to different sets of domain members. This is useful when different teams or roles (for example, employees vs. managers) need different permissions.
+Domain Groups, also called Domain Security Groups, let you apply different domain rules to different sets of domain members. This is useful when different teams or roles need different permissions, such as employees versus managers.
 
 ---
 
