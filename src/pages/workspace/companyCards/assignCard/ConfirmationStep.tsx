@@ -99,8 +99,10 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        const cardNumberToCheck = cardToAssign?.cardNumber ?? cardToAssign?.encryptedCardNumber;
-        if (cardNumberToCheck && isCardAlreadyAssigned(cardNumberToCheck, workspaceCardFeeds)) {
+        // Check both encryptedCardNumber and cardName since isCardAlreadyAssigned matches on either
+        // This handles cases where workspace card entries only have cardName (masked display name) stored
+        const cardIdentifier = cardToAssign?.encryptedCardNumber ?? cardToAssign?.cardName;
+        if (cardIdentifier && isCardAlreadyAssigned(cardIdentifier, workspaceCardFeeds)) {
             setCardError(getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.cardAlreadyAssignedError'));
             return;
         }
@@ -152,7 +154,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={cardToAssign?.encryptedCardNumber ?? maskCardNumber(cardToAssign?.cardNumber ?? '', cardToAssign?.bankName)}
+                    title={maskCardNumber(cardToAssign?.cardName ?? '', cardToAssign?.bankName)}
                     interactive={false}
                 />
                 <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
@@ -178,7 +180,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.cardName')}
-                    title={cardToAssign?.cardName}
+                    title={cardToAssign?.customCardName}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                 />
