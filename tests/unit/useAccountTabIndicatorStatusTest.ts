@@ -2,13 +2,39 @@ import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
+import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
+import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const getMockForStatus = (status: string) =>
+type TestCase = {
+    name: string;
+    indicatorColor: string;
+    status: IndicatorStatus | undefined;
+};
+
+const cardFeed = {
+    feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+    workspaceAccountID: 12345,
+};
+
+const accountCardFeedTestCases = {
+    admin: {
+        name: 'has no account card feed error if admin',
+        indicatorColor: defaultTheme.success,
+        status: undefined,
+    },
+    employee: {
+        name: 'has account card feed error if employee (non-admin)',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS,
+    },
+} as const satisfies Record<'admin' | 'employee', TestCase>;
+
+const getMockForStatus = ({status, name}: TestCase) =>
     ({
         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -82,28 +108,24 @@ const getMockForStatus = (status: string) =>
                       }
                     : undefined,
         },
-        [`${ONYXKEYS.CARD_LIST}`]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            card123: {
-                bank: 'OTHER_BANK',
-                lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 403 : 200,
-            },
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            card456: {
-                bank: 'ANOTHER_BANK',
-                lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 403 : 200,
-            },
-        },
         [ONYXKEYS.SESSION]: {
             email: 'johndoe12@expensify.com',
         },
+        [`${ONYXKEYS.CARD_LIST}`]: {
+            card123: {
+                bank: 'OTHER_BANK',
+                lastScrapeResult: name === accountCardFeedTestCases.admin.name || name === accountCardFeedTestCases.employee.name ? 403 : 200,
+                fundID: String(cardFeed.workspaceAccountID),
+            },
+        },
+        [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
+            id: '1',
+            name: 'Workspace 1',
+            owner: name === accountCardFeedTestCases.admin.name ? 'johndoe12@expensify.com' : 'otheruser@expensify.com',
+            role: name === accountCardFeedTestCases.admin.name ? 'admin' : 'user',
+            workspaceAccountID: cardFeed.workspaceAccountID,
+        },
     }) as unknown as OnyxMultiSetInput;
-
-type TestCase = {
-    name: string;
-    indicatorColor: string;
-    status: string;
-};
 
 const TEST_CASES: TestCase[] = [
     {
@@ -132,11 +154,6 @@ const TEST_CASES: TestCase[] = [
         status: CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS,
     },
     {
-        name: 'has card connection error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR,
-    },
-    {
         name: 'has phone number error',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR,
@@ -146,6 +163,8 @@ const TEST_CASES: TestCase[] = [
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO,
     },
+    accountCardFeedTestCases.employee,
+    accountCardFeedTestCases.admin,
 ];
 
 describe('useAccountTabIndicatorStatus', () => {
@@ -153,12 +172,13 @@ describe('useAccountTabIndicatorStatus', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        initOnyxDerivedValues();
     });
 
     describe.each(TEST_CASES)('$name', (testCase) => {
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet(getMockForStatus(testCase.status));
+                await Onyx.multiSet(getMockForStatus(testCase));
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -375,7 +395,8 @@ describe('useAccountTabIndicatorStatus', () => {
                 await Onyx.multiSet({
                     [`${ONYXKEYS.CARD_LIST}`]: {
                         card1: {
-                            bank: 'Chase',
+                            bank: cardFeed.feedName,
+                            fundID: String(cardFeed.workspaceAccountID),
                             lastScrapeResult: 403,
                         },
                     },
@@ -387,7 +408,7 @@ describe('useAccountTabIndicatorStatus', () => {
             await waitForBatchedUpdatesWithAct();
             const {status, indicatorColor} = result.current;
 
-            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR);
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS);
             expect(indicatorColor).toBe(defaultTheme.danger);
         });
 
@@ -397,6 +418,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [`${ONYXKEYS.CARD_LIST}`]: {
                         card1: {
                             bank: CONST.EXPENSIFY_CARD.BANK,
+                            fundID: String(cardFeed.workspaceAccountID),
                             lastScrapeResult: 403,
                         },
                     },
@@ -416,7 +438,8 @@ describe('useAccountTabIndicatorStatus', () => {
                 await Onyx.multiSet({
                     [`${ONYXKEYS.CARD_LIST}`]: {
                         card1: {
-                            bank: 'Chase',
+                            bank: cardFeed.feedName,
+                            fundID: String(cardFeed.workspaceAccountID),
                             lastScrapeResult: 200,
                         },
                     },
