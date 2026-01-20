@@ -41,7 +41,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
     const [allCardFeeds, allCardFeedsMetadata] = useCardFeeds(policyID);
 
     const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);
-    const bankName = (feedName ? getCompanyCardFeed(feedName) : undefined) as CompanyCardFeedWithNumber | undefined;
+    const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
 
     const [cardsList, cardListMetadata] = useCardsList(feedName);
 

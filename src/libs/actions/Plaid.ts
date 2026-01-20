@@ -7,7 +7,7 @@ import {getCompanyCardFeed} from '@libs/CardUtils';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedWithDomainID, CardFeedWithNumber, StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithDomainID, StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -49,7 +49,7 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK for Company card
  */
-function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber) {
+function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber | CompanyCardFeedWithDomainID) {
     const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
 
     const params: OpenPlaidCompanyCardLoginParams = {

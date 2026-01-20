@@ -23,6 +23,7 @@ import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWithDomainID; policyID?: string; onExit?: () => void}) {
@@ -116,8 +117,8 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
                         // on success we need to move to bank connection screen with token, bank name = plaid
                         Log.info('[PlaidLink] Success!');
 
-                        const plaidConnectedFeed =
-                            (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
+                        const plaidConnectedFeed = ((metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ??
+                            (metadata?.institution as LinkSuccessMetadata['institution'])?.id) as CardFeedWithNumber;
                         const plaidConnectedFeedName =
                             (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
 
