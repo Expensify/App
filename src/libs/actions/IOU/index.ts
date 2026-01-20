@@ -11940,7 +11940,7 @@ function setMoneyRequestParticipantAsPolicyExpenseChat({
     if (!policyExpenseChatReportID) {
         return;
     }
-    
+
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         reportID: policyExpenseChatReportID,
         participants: [
