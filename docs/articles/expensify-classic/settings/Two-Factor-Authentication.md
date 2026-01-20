@@ -20,6 +20,7 @@ Anyone can enable Two-Factor Authentication on their own account. Domain Admins 
 4. Save a copy of your backup codes:
    - Click **Download** to save them to your computer.
    - Click **Copy** to store them in a secure location.
+   
 **Important:** If you lose access to your authenticator app and didn’t save your recovery codes, you may permanently lose access to your account. Consider adding 2FA on multiple devices (e.g., phone and tablet) for backup.  
 5. Click **Continue**.
 6. Open your authenticator app and either:
