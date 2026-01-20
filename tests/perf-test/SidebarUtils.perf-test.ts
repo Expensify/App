@@ -90,6 +90,7 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 1,
             }),
         );
     });
