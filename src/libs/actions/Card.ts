@@ -264,10 +264,6 @@ function clearCardNameValuePairsErrorField(cardID: number, fieldName: string) {
 }
 
 function setPersonalCardReimbursable(cardID: number, markTransactionsAsReimbursable: boolean, previousValue?: boolean) {
-    const authToken = NetworkStore.getAuthToken();
-    if (!authToken) {
-        return;
-    }
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
@@ -320,7 +316,6 @@ function setPersonalCardReimbursable(cardID: number, markTransactionsAsReimbursa
     ];
 
     const parameters: SetPersonalCardReimbursableParams = {
-        authToken,
         cardID,
         reimbursable: markTransactionsAsReimbursable,
     };
@@ -329,11 +324,6 @@ function setPersonalCardReimbursable(cardID: number, markTransactionsAsReimbursa
 }
 
 function syncCompanyCard(cardID: number, lastScrapeResult?: number) {
-    const authToken = NetworkStore.getAuthToken();
-    if (!authToken) {
-        return;
-    }
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -388,7 +378,6 @@ function syncCompanyCard(cardID: number, lastScrapeResult?: number) {
     ];
 
     const parameters = {
-        authToken,
         cardID,
     };
 
@@ -396,11 +385,6 @@ function syncCompanyCard(cardID: number, lastScrapeResult?: number) {
 }
 
 function unassignCompanyCard(card: Card) {
-    const authToken = NetworkStore.getAuthToken();
-    if (!authToken) {
-        return;
-    }
-
     const cardID = card.cardID;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
@@ -438,7 +422,6 @@ function unassignCompanyCard(card: Card) {
     ];
 
     const parameters: UnassignCompanyCard = {
-        authToken,
         cardID,
     };
 
@@ -446,11 +429,6 @@ function unassignCompanyCard(card: Card) {
 }
 
 function updateAssignedCardName(cardID: string, newCardTitle: string, oldCardTitle?: string) {
-    const authToken = NetworkStore.getAuthToken();
-    if (!authToken) {
-        return;
-    }
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -522,7 +500,6 @@ function updateAssignedCardName(cardID: string, newCardTitle: string, oldCardTit
     ];
 
     const parameters: UpdateCompanyCardNameParams = {
-        authToken,
         cardID: Number(cardID),
         cardName: newCardTitle,
     };
@@ -531,11 +508,6 @@ function updateAssignedCardName(cardID: string, newCardTitle: string, oldCardTit
 }
 
 function updateAssignedCardTransactionStartDate(cardID: string, newStartDate: string, oldStartDate?: string) {
-    const authToken = NetworkStore.getAuthToken();
-    if (!authToken) {
-        return;
-    }
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -587,7 +559,6 @@ function updateAssignedCardTransactionStartDate(cardID: string, newStartDate: st
     ];
 
     const parameters: UpdateCardTransactionStartDateParams = {
-        authToken,
         cardID: Number(cardID),
         startDate: newStartDate,
     };
