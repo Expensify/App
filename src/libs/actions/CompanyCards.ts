@@ -22,7 +22,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, FailedCompanyCardAssignment, Policy} from '@src/types/onyx';
+import type {Card, FailedCardAssignment, Policy} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
 import type {
     AddNewCardFeedData,
@@ -31,6 +31,7 @@ import type {
     CardFeedDetails,
     CompanyCardFeed,
     CompanyCardFeedWithDomainID,
+    CompanyCardFeedWithNumber,
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
@@ -85,7 +86,7 @@ function addNewCompanyCardsFeed(
     }
 
     const feedType = CardUtils.getFeedType(cardFeed, cardFeeds);
-    const newSelectedFeed = getCompanyCardFeedWithDomainID(feedType as CompanyCardFeed, workspaceAccountID);
+    const newSelectedFeed = getCompanyCardFeedWithDomainID(feedType as CompanyCardFeed, workspaceAccountID) as CompanyCardFeedWithDomainID;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
@@ -310,7 +311,7 @@ function assignWorkspaceCompanyCard(
     policy: OnyxEntry<Policy>,
     domainOrWorkspaceAccountID: number,
     translate: LocaleContextProps['translate'],
-    feed: CompanyCardFeedWithDomainID,
+    feed: CompanyCardFeedWithNumber,
     data?: Partial<AssignCardData>,
 ) {
     if (!data || !policy?.id) {
@@ -320,7 +321,7 @@ function assignWorkspaceCompanyCard(
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
     const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID);
 
-    const failedCardAssignment: FailedCompanyCardAssignment = {
+    const failedCardAssignment: FailedCardAssignment = {
         domainOrWorkspaceAccountID,
         feed,
         cardholder,

@@ -18,7 +18,7 @@ import Parser from '@libs/Parser';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
+import type {CardFeedProvider, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
 type CardInstructionsStepProps = {
     policyID?: string;
@@ -54,7 +54,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     const submit = () => {
         if (isStripeFeedProvider && policyID) {
-            updateSelectedFeed(getCompanyCardFeedWithDomainID(feedProvider, workspaceAccountID), policyID);
+            updateSelectedFeed(getCompanyCardFeedWithDomainID(feedProvider, workspaceAccountID) as CompanyCardFeedWithDomainID, policyID);
             Navigation.goBack();
             return;
         }

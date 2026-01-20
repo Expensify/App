@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {CardFeedWithDomainID, CardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithNumber} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -298,7 +298,7 @@ type FailedCardAssignment = {
     domainOrWorkspaceAccountID: number;
 
     /** The name of the feed */
-    feed: CardFeedWithDomainID;
+    feed: CardFeedWithNumber;
 
     /** Cardholder personal details */
     cardholder?: PersonalDetails;

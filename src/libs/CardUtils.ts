@@ -827,13 +827,13 @@ function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExcl
 }
 
 /** Extract feed from feed with domainID */
-function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithDomainID | undefined): CardFeedWithNumber {
-    const fallbackFeed = '' as CompanyCardFeed;
+function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithDomainID | undefined): CompanyCardFeedWithNumber {
+    const fallbackFeed = '' as CompanyCardFeedWithNumber;
     if (!feedWithDomainID) {
         return fallbackFeed;
     }
 
-    return splitCompanyCardFeedWithDomainID(feedWithDomainID).feedName ?? fallbackFeed;
+    return (splitCompanyCardFeedWithDomainID(feedWithDomainID).feedName ?? fallbackFeed) as CompanyCardFeedWithNumber;
 }
 
 /**
