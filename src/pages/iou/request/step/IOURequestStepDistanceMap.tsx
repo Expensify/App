@@ -489,16 +489,36 @@ function IOURequestStepDistanceMap({
         data: string[];
     };
 
+    const {allItems, waypointByKeyForList} = useMemo(() => {
+        const length = Object.keys(waypoints).length;
+        const allItems: string[] = [];
+        const waypointByKeyForList: Record<string, {key: string; waypoint: Waypoint}> = {};
+
+        for (let i = 0; i < length; i++) {
+            const key = `waypoint${i}`;
+            const waypoint = waypoints[key];
+            if (!waypoint?.keyForList) continue;
+
+            allItems.push(waypoint.keyForList);
+            waypointByKeyForList[waypoint.keyForList] = {key, waypoint};
+        }
+
+        return {allItems, waypointByKeyForList};
+    }, [waypoints]);
+
+    const getWaypointKey = useCallback((keyForList: string) => waypointByKeyForList[keyForList]?.key, [waypointByKeyForList]);
+    const getWaypoint = useCallback((keyForList: string) => waypointByKeyForList[keyForList]?.waypoint, [waypointByKeyForList]);
+
     const updateWaypoints = useCallback(
         ({data}: DataParams) => {
-            if (deepEqual(waypointsList, data)) {
+            if (deepEqual(allItems, data)) {
                 return;
             }
 
             const newWaypoints: WaypointCollection = {};
             let emptyWaypointIndex = -1;
-            for (const [index, waypoint] of data.entries()) {
-                newWaypoints[`waypoint${index}`] = waypoints[waypoint] ?? {};
+            for (const [index, item] of data.entries()) {
+                newWaypoints[`waypoint${index}`] = getWaypoint(item) ?? {};
                 // Find waypoint that BECOMES empty after dragging
                 if (isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
                     emptyWaypointIndex = index;
@@ -513,7 +533,7 @@ function IOURequestStepDistanceMap({
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, transaction, waypoints, waypointsList, action],
+        [transactionID, transaction, waypoints, allItems, action, getWaypoint],
     );
 
     const submitWaypoints = useCallback(() => {
@@ -587,7 +607,7 @@ function IOURequestStepDistanceMap({
         ({item, drag, isActive, getIndex}: RenderItemParams<string>) => (
             <DistanceRequestRenderItem
                 waypoints={waypoints}
-                item={item}
+                item={getWaypointKey(item)}
                 onSecondaryInteraction={drag}
                 isActive={isActive}
                 getIndex={getIndex}
@@ -595,8 +615,10 @@ function IOURequestStepDistanceMap({
                 disabled={isLoadingRoute}
             />
         ),
-        [isLoadingRoute, navigateToWaypointEditPage, waypoints],
+        [isLoadingRoute, navigateToWaypointEditPage, waypoints, getWaypointKey],
     );
+
+    const extractKey = useCallback((item: string) => (item ?? getWaypoint(item)?.address ?? '') + getWaypointKey(item), [getWaypoint, getWaypointKey]);
 
     return (
         <StepScreenWrapper
@@ -609,8 +631,8 @@ function IOURequestStepDistanceMap({
             <>
                 <View style={styles.flex1}>
                     <DraggableList
-                        data={waypointsList}
-                        keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}
+                        data={allItems}
+                        keyExtractor={extractKey}
                         onDragEnd={updateWaypoints}
                         ref={scrollViewRef}
                         renderItem={renderItem}
