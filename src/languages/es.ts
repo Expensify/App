@@ -61,7 +61,6 @@ const translations: TranslationDeepObject<typeof en> = {
         wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
-        viewReport: 'Ver informe',
         review: (reviewParams) => `Revisar${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'No',
         privacyPolicy: 'la Política de Privacidad de Expensify',

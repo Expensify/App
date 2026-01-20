@@ -627,7 +627,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
-        viewReport: 'Rapport bekijken',
         actionRequired: 'Actie vereist',
         duplicate: 'Dupliceren',
         duplicated: 'Gedupliceerd',
