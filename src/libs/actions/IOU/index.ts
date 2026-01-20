@@ -11937,6 +11937,10 @@ function setMoneyRequestParticipantAsPolicyExpenseChat({
     participantsAutoAssigned?: boolean;
 }) {
     const policyExpenseChatReportID = getPolicyExpenseChat(currentUserAccountID, policyID)?.reportID;
+    if (!policyExpenseChatReportID) {
+        return;
+    }
+    
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         reportID: policyExpenseChatReportID,
         participants: [

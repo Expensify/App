@@ -15,7 +15,7 @@ type IOURequestStepTimeWorkspaceProps = PlatformStackScreenProps<MoneyRequestNav
 
 function IOURequestStepTimeWorkspace({route, navigation}: IOURequestStepTimeWorkspaceProps) {
     const {
-        params: {action, iouType, transactionID},
+        params: {action, iouType, transactionID, reportID},
     } = route;
 
     const {accountID} = useCurrentUserPersonalDetails();
@@ -41,7 +41,7 @@ function IOURequestStepTimeWorkspace({route, navigation}: IOURequestStepTimeWork
                     setMoneyRequestTimeRate(transactionID, defaultRate, isTransactionDraft);
                 }
 
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS.getRoute(action, iouType, transactionID, policyExpenseChatReportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS.getRoute(action, iouType, transactionID, policyExpenseChatReportID ?? reportID));
             }}
         />
     );

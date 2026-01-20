@@ -122,7 +122,7 @@ function IOURequestStepHours({
                     participantsAutoAssigned: true,
                 });
                 return Navigation.setNavigationActionToMicrotaskQueue(() =>
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, policyExpenseChatReportID)),
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, policyExpenseChatReportID ?? reportID)),
                 );
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
