@@ -391,10 +391,6 @@ function MoneyRequestConfirmationListFooter({
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
-    const shouldHideAutoFillValues = isScan && !shouldShowSmartScanFields;
-    const amountDisplayValue = shouldHideAutoFillValues ? '' : formattedAmount;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const dateDisplayValue = shouldHideAutoFillValues ? '' : iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     // Determines whether the tax fields can be modified.
     // The tax fields can only be modified if the component is not in read-only mode
     // and it is not a distance request.
@@ -464,7 +460,7 @@ function MoneyRequestConfirmationListFooter({
         (fieldType: 'amount' | 'merchant' | 'date' | 'category') => {
             return willFieldBeAutomaticallyFilled(transaction, fieldType) ? icons.Sparkles : undefined;
         },
-        [transaction],
+        [transaction, icons.Sparkles],
     );
 
     const getRightLabel = useCallback(
@@ -486,7 +482,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
                     shouldShowRightIcon={!isReadOnly && !isDistanceRequest}
-                    title={amountDisplayValue}
+                    title={isScan && !shouldShowSmartScanFields ? '' : formattedAmount}
                     description={translate('iou.amount')}
                     interactive={!isReadOnly}
                     onPress={() => {
@@ -695,7 +691,12 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.date')}
                     shouldShowRightIcon={!isReadOnly}
-                    title={dateDisplayValue}
+                    title={
+                        isScan && !shouldShowSmartScanFields
+                            ? ''
+                            : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                              iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
+                    }
                     description={translate('common.date')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -1029,7 +1030,6 @@ function MoneyRequestConfirmationListFooter({
                                 fileExtension={fileExtension}
                                 shouldUseThumbnailImage
                                 shouldUseInitialObjectPosition={isDistanceRequest}
-                                shouldUseFullHeight
                             />
                         )}
                     </PressableWithoutFocus>

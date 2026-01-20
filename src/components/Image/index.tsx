@@ -32,12 +32,6 @@ function Image({
             return {};
         }
 
-        if (shouldUseFullHeight) {
-            return {
-                height: '100%',
-            };
-        }
-
         if (!!imageWidthToCalculateHeight && typeof aspectRatio === 'number') {
             return {
                 width: '100%',
@@ -46,7 +40,7 @@ function Image({
         }
 
         return {aspectRatio, height: 'auto'};
-    }, [shouldSetAspectRatioInStyle, aspectRatio, imageWidthToCalculateHeight, shouldUseFullHeight]);
+    }, [shouldSetAspectRatioInStyle, aspectRatio, imageWidthToCalculateHeight]);
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
