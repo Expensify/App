@@ -31,6 +31,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             searchPlaceholder={translate('domain.members.findMember')}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
             headerIcon={illustrations.Profile}
+            canSelectMultiple
         />
     );
 }
