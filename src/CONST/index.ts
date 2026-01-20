@@ -3581,7 +3581,7 @@ const CONST = {
             CITI_BANK: 'Citibank',
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
-            MOCK_BANK: 'Mock Bank (Local Testing)',
+            MOCK_BANK: 'Mock Bank',
             OTHER: 'Other',
         },
         BANK_CONNECTIONS: {
