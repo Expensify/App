@@ -1,29 +1,29 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import type Response from './Response';
 
 /** Model of onyx requests sent to the API */
-type OnyxData = {
+type OnyxData<TKey extends OnyxKey> = {
     /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
-    successData?: OnyxUpdate[];
+    successData?: Array<OnyxUpdate<TKey>>;
 
     /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
-    failureData?: OnyxUpdate[];
+    failureData?: Array<OnyxUpdate<TKey>>;
 
     /** Onyx instructions that are executed after getting any response from server */
-    finallyData?: OnyxUpdate[];
+    finallyData?: Array<OnyxUpdate<TKey>>;
 
     /** Onyx instructions that are executed before request is made to the server */
-    optimisticData?: OnyxUpdate[];
+    optimisticData?: Array<OnyxUpdate<TKey>>;
 
     /** Onyx instructions that are executed when Onyx queue is flushed */
-    queueFlushedData?: OnyxUpdate[];
+    queueFlushedData?: Array<OnyxUpdate<TKey>>;
 };
 
 /** HTTP request method names */
 type RequestType = 'get' | 'post';
 
 /** Model of overall requests sent to the API */
-type RequestData = {
+type RequestData<TKey extends OnyxKey = OnyxKey> = {
     /** Name of the API command */
     command: string;
 
@@ -40,13 +40,13 @@ type RequestData = {
     shouldUseSecure?: boolean;
 
     /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
-    successData?: OnyxUpdate[];
+    successData?: Array<OnyxUpdate<TKey>>;
 
     /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
-    failureData?: OnyxUpdate[];
+    failureData?: Array<OnyxUpdate<TKey>>;
 
     /** Onyx instructions that are executed after getting any response from server */
-    finallyData?: OnyxUpdate[];
+    finallyData?: Array<OnyxUpdate<TKey>>;
 
     /** Promise resolve handler */
     resolve?: (value: Response) => void;
@@ -93,7 +93,7 @@ type ConflictRequestReplace = {
     /**
      * The new request to replace the existing request in the queue.
      */
-    request?: Request;
+    request?: Request<OnyxKey>;
 };
 
 /**
@@ -159,7 +159,7 @@ type RequestConflictResolver = {
     /**
      * A function that checks if a new request conflicts with any existing requests in the queue.
      */
-    checkAndFixConflictingRequest?: (persistedRequest: Request[]) => ConflictActionData;
+    checkAndFixConflictingRequest?: (persistedRequest: Array<Request<OnyxKey>>) => ConflictActionData;
 
     /**
      * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads
@@ -174,7 +174,7 @@ type RequestConflictResolver = {
 };
 
 /** Model of requests sent to the API */
-type Request = RequestData & OnyxData & RequestConflictResolver;
+type Request<TKey extends OnyxKey = OnyxKey> = RequestData<TKey> & OnyxData<TKey> & RequestConflictResolver;
 
 /**
  * An object used to describe how a request can be paginated.
@@ -194,7 +194,7 @@ type PaginationConfig = {
 /**
  * A paginated request object.
  */
-type PaginatedRequest = Request &
+type PaginatedRequest = Request<OnyxKey> &
     PaginationConfig & {
         /**
          * A boolean flag to mark a request as Paginated.
