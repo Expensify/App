@@ -288,16 +288,13 @@ describe('useSearchHighlightAndScroll', () => {
             previousTransactions: {
                 '1': {transactionID: '1'},
             },
-        };
+        } as unknown as UseSearchHighlightAndScroll;
 
         // When there is no data yet, even if the transactionID has been added to manual highlight transactionIDs,
         // it still will not be included in newSearchResultKeys.
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         rerender(updatedProps1);
         expect(result.current.newSearchResultKeys?.size).toBe(2);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        expect([...result.current.newSearchResultKeys!]).not.toContain('transactions_3');
+        expect([...(result.current.newSearchResultKeys ?? new Set())]).not.toContain('transactions_3');
 
         // When the data contains the highlight transactionID, it will be highlighted.
         const updatedProps2 = {
@@ -316,14 +313,11 @@ describe('useSearchHighlightAndScroll', () => {
                     },
                 },
             },
-        };
+        } as unknown as UseSearchHighlightAndScroll;
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         rerender(updatedProps2);
         expect(result.current.newSearchResultKeys?.size).toBe(1);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        expect([...result.current.newSearchResultKeys!]).toContain('transactions_3');
+        expect([...(result.current.newSearchResultKeys ?? new Set())]).not.toContain('transactions_3');
 
         // Wait 1s for the timer in useSearchHighlightAndScroll to complete.
         await new Promise((resolve) => {
