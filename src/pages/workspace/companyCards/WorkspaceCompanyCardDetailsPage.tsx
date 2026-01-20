@@ -152,6 +152,16 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         return format(getLocalDateFromDatetime(card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
 
+    const getCardIconSource = () => {
+        if (isCSVImportedPersonalCard) {
+            return getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
+        }
+        if (isFromWallet) {
+            return getBankIcon({styles, bankName: cardBank as BankName, isCard: true}).icon;
+        }
+        return getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+    };
+
     // Don't show NotFoundPage if card is being unassigned or data is still loading
     if ((!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigningRef.current)) {
         return <NotFoundPage />;
@@ -176,13 +186,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     ) : (
                         <ImageSVG
                             contentFit="contain"
-                            src={
-                                isCSVImportedPersonalCard
-                                    ? getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons)
-                                    : isFromWallet
-                                      ? getBankIcon({styles, bankName: cardBank as BankName, isCard: true}).icon
-                                      : getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons)
-                            }
+                            src={getCardIconSource()}
                             pointerEvents="none"
                             height={variables.cardPreviewHeight}
                             width={variables.cardPreviewWidth}
