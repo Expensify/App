@@ -804,6 +804,7 @@ function getOptionData({
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
+            translate,
             report,
             lastActorDetails,
             movedFromReport,
