@@ -30,7 +30,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import {getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,7 +41,7 @@ function ProfilePage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
@@ -103,6 +103,10 @@ function ProfilePage() {
         },
     ];
 
+    const formatter = useMemo(() => {
+        return new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
+    }, [preferredLocale]);
+
     const privateOptions = [
         {
             description: translate('privatePersonalDetails.legalName'),
@@ -117,7 +121,7 @@ function ProfilePage() {
         },
         {
             description: translate('common.dob'),
-            title: privateDetails.dob ?? '',
+            title: privateDetails.dob ? formatter.format(new Date(privateDetails.dob)) : '',
             action: () => {
                 if (isActingAsDelegate) {
                     showDelegateNoAccessModal();

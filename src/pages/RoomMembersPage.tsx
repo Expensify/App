@@ -38,7 +38,15 @@ import Parser from '@libs/Parser';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isUserPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportName, getReportPersonalDetailsParticipants, isChatThread, isDefaultRoom, isPolicyExpenseChat as isPolicyExpenseChatUtils, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {
+    getReportForHeader,
+    getReportName,
+    getReportPersonalDetailsParticipants,
+    isChatThread,
+    isDefaultRoom,
+    isPolicyExpenseChat as isPolicyExpenseChatUtils,
+    isUserCreatedPolicyRoom,
+} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -71,6 +79,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
     const isReportArchived = useReportIsArchived(report.reportID);
+    const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
 
     const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
@@ -417,7 +426,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(getReportName(report)) : getReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(getReportName(reportForSubtitle)) : getReportName(reportForSubtitle))}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);
