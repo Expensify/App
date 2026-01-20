@@ -31,7 +31,7 @@ type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIO
 type WorkspaceCompanyCardEditTransactionStartDatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE>;
 
 function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceCompanyCardEditTransactionStartDatePageProps) {
-    const {policyID, cardID, backTo} = route.params;
+    const {policyID, cardID} = route.params;
     const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
 
@@ -86,7 +86,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
         const newStartDate = getNewStartDate();
 
         if (currentStartDate === newStartDate) {
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID, backTo), {compareParams: false});
+            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), {compareParams: false});
             return;
         }
 
@@ -97,7 +97,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
         const newStartDate = getNewStartDate();
         updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
         setIsWarningModalVisible(false);
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID, backTo), {compareParams: false});
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), {compareParams: false});
     };
 
     const dateOptions = [
@@ -115,79 +115,75 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
         },
     ];
 
-    const content = (
-        <ScreenWrapper
-            testID="WorkspaceCompanyCardEditTransactionStartDatePage"
-            enableEdgeToEdgeBottomSafeAreaPadding
-        >
-            <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID, backTo), {compareParams: false})}
-            />
-            <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
-            <View style={styles.flex1}>
-                <SelectionList
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={({value}) => handleSelectDateOption(value)}
-                    data={dateOptions}
-                    shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={dateOptionSelected}
-                    shouldUpdateFocusedIndex
-                    addBottomSafeAreaPadding
-                    shouldHighlightSelectedItem={false}
-                    footerContent={
-                        <Button
-                            success
-                            large
-                            pressOnEnter
-                            text={translate('common.save')}
-                            onPress={submit}
-                        />
-                    }
-                    listFooterContent={
-                        dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
-                            <View style={[styles.ph5]}>
-                                <DatePicker
-                                    inputID=""
-                                    value={startDate}
-                                    label={translate('iou.startDate')}
-                                    onInputChange={(value) => {
-                                        if (!isRequiredFulfilled(value)) {
-                                            setErrorText(translate('common.error.fieldRequired'));
-                                        } else {
-                                            setErrorText('');
-                                        }
-                                        setStartDate(value);
-                                    }}
-                                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                    maxDate={new Date()}
-                                    errorText={errorText}
-                                />
-                            </View>
-                        ) : null
-                    }
-                />
-            </View>
-            <ConfirmModal
-                title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                isVisible={isWarningModalVisible}
-                onConfirm={confirmSubmit}
-                onCancel={() => setIsWarningModalVisible(false)}
-                shouldSetModalVisibility={false}
-                prompt={translate('workspace.moreFeatures.companyCards.changeTransactionStartDateWarning')}
-                confirmText={translate('common.save')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-        </ScreenWrapper>
-    );
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
-            {content}
+            <ScreenWrapper
+                testID="WorkspaceCompanyCardEditTransactionStartDatePage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), {compareParams: false})}
+                />
+                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
+                <View style={styles.flex1}>
+                    <SelectionList
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={({value}) => handleSelectDateOption(value)}
+                        data={dateOptions}
+                        shouldSingleExecuteRowSelect
+                        initiallyFocusedItemKey={dateOptionSelected}
+                        shouldUpdateFocusedIndex
+                        addBottomSafeAreaPadding
+                        shouldHighlightSelectedItem={false}
+                        footerContent={
+                            <Button
+                                success
+                                large
+                                pressOnEnter
+                                text={translate('common.save')}
+                                onPress={submit}
+                            />
+                        }
+                        listFooterContent={
+                            dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
+                                <View style={[styles.ph5]}>
+                                    <DatePicker
+                                        inputID=""
+                                        value={startDate}
+                                        label={translate('iou.startDate')}
+                                        onInputChange={(value) => {
+                                            if (!isRequiredFulfilled(value)) {
+                                                setErrorText(translate('common.error.fieldRequired'));
+                                            } else {
+                                                setErrorText('');
+                                            }
+                                            setStartDate(value);
+                                        }}
+                                        minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                                        maxDate={new Date()}
+                                        errorText={errorText}
+                                    />
+                                </View>
+                            ) : null
+                        }
+                    />
+                </View>
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                    isVisible={isWarningModalVisible}
+                    onConfirm={confirmSubmit}
+                    onCancel={() => setIsWarningModalVisible(false)}
+                    shouldSetModalVisibility={false}
+                    prompt={translate('workspace.moreFeatures.companyCards.changeTransactionStartDateWarning')}
+                    confirmText={translate('common.save')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }

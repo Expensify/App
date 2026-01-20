@@ -70,9 +70,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {
-        canBeMissing: true,
-    });
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
     // Prefer feed-scoped card from WORKSPACE_CARDS_LIST to maintain proper access control
     // Only use CARD_LIST as fallback if card is being unassigned (has pendingAction: DELETE)
@@ -95,12 +93,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
-        if (!card) {
-            Navigation.goBack();
-            return;
+        if (card) {
+            isUnassigningRef.current = true;
+            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         }
-        isUnassigningRef.current = true;
-        unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         Navigation.goBack();
     };
 
@@ -120,184 +116,164 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         return <NotFoundPage />;
     }
 
-    const content = (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            testID="WorkspaceCompanyCardDetailsPage"
-        >
-            <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.companyCards.cardDetails')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
-            />
-            <ScrollView addBottomSafeAreaPadding>
-                <View style={[styles.walletCard, styles.mb3]}>
-                    {plaidUrl ? (
-                        <PlaidCardFeedIcon
-                            plaidUrl={plaidUrl}
-                            isLarge
-                        />
-                    ) : (
-                        <ImageSVG
-                            contentFit="contain"
-                            src={getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
-                            pointerEvents="none"
-                            height={variables.cardPreviewHeight}
-                            width={variables.cardPreviewWidth}
-                        />
-                    )}
-                </View>
-                {!cardholder?.validated && (
-                    <MenuItem
-                        icon={Expensicons.Hourglass}
-                        iconStyles={styles.mln2}
-                        descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
-                        description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
-                        numberOfLinesDescription={0}
-                        interactive={false}
-                    />
-                )}
-
-                <MenuItem
-                    label={translate('workspace.moreFeatures.companyCards.cardholder')}
-                    title={displayName}
-                    titleStyle={styles.mt1}
-                    iconStyles={styles.mt1}
-                    icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    description={Str.removeSMSDomain(cardholder?.login ?? '')}
-                    interactive={false}
-                />
-                <MenuItemWithTopDescription
-                    numberOfLinesTitle={3}
-                    description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                    title={maskCardNumber(card?.cardName ?? '', bank, true)}
-                    interactive={false}
-                    titleStyle={styles.walletCardNumber}
-                />
-                <OfflineWithFeedback
-                    pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
-                    errorRowStyles={[styles.ph5, styles.mb3]}
-                    errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
-                    onClose={() => {
-                        if (!card) {
-                            return;
-                        }
-                        clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'cardTitle');
-                    }}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.companyCards.cardName')}
-                        title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
-                        shouldShowRightIcon
-                        brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName, backTo))}
-                    />
-                </OfflineWithFeedback>
-                {exportMenuItem?.shouldShowMenuItem ? (
-                    <OfflineWithFeedback
-                        pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
-                        errorRowStyles={[styles.ph5, styles.mb3]}
-                        errors={exportMenuItem.exportType ? getLatestErrorField(card?.nameValuePairs ?? {}, exportMenuItem.exportType) : undefined}
-                        onClose={() => {
-                            if (!exportMenuItem.exportType) {
-                                return;
-                            }
-                            clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, exportMenuItem.exportType);
-                        }}
-                    >
-                        <MenuItemWithTopDescription
-                            description={exportMenuItem.description}
-                            title={exportMenuItem.title}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
-                        />
-                    </OfflineWithFeedback>
-                ) : null}
-
-                <MenuItemWithTopDescription
-                    shouldShowRightComponent={card?.isLoadingLastUpdated}
-                    rightComponent={<ActivityIndicator style={[styles.popoverMenuIcon]} />}
-                    description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
-                    title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
-                    interactive={false}
-                />
-                <OfflineWithFeedback
-                    pendingAction={card?.pendingFields?.scrapeMinDate}
-                    errorRowStyles={[styles.ph5, styles.mb3]}
-                    errors={getLatestErrorField(card ?? {}, 'scrapeMinDate')}
-                    onClose={() => {
-                        if (!card) {
-                            return;
-                        }
-                        clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'scrapeMinDate', true);
-                    }}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                        title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
-                        shouldShowRightIcon
-                        brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName, backTo))}
-                    />
-                </OfflineWithFeedback>
-                <MenuItem
-                    icon={expensifyIcons.MoneySearch}
-                    title={translate('workspace.common.viewTransactions')}
-                    style={styles.mt3}
-                    onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.SEARCH_ROOT.getRoute({
-                                query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
-                            }),
-                        );
-                    }}
-                />
-                <OfflineWithFeedback
-                    pendingAction={card?.pendingFields?.lastScrape}
-                    errorRowStyles={[styles.ph5, styles.mb3]}
-                    errors={getLatestErrorField(card ?? {}, 'lastScrape')}
-                    onClose={() => {
-                        if (!card) {
-                            return;
-                        }
-                        clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true);
-                    }}
-                >
-                    <MenuItem
-                        icon={expensifyIcons.Sync}
-                        disabled={isOffline || card?.isLoadingLastUpdated}
-                        title={translate('workspace.moreFeatures.companyCards.updateCard')}
-                        brickRoadIndicator={card?.errorFields?.lastScrape ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={updateCard}
-                    />
-                </OfflineWithFeedback>
-                <MenuItem
-                    icon={expensifyIcons.RemoveMembers}
-                    title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                    style={styles.mb1}
-                    onPress={() => setIsUnassignModalVisible(true)}
-                />
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                    isVisible={isUnassignModalVisible}
-                    onConfirm={unassignCard}
-                    onCancel={() => setIsUnassignModalVisible(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('workspace.moreFeatures.companyCards.unassignCardDescription')}
-                    confirmText={translate('workspace.moreFeatures.companyCards.unassign')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-            </ScrollView>
-        </ScreenWrapper>
-    );
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
-            {content}
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID="WorkspaceCompanyCardDetailsPage"
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.moreFeatures.companyCards.cardDetails')}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                />
+                <ScrollView addBottomSafeAreaPadding>
+                    <View style={[styles.walletCard, styles.mb3]}>
+                        {plaidUrl ? (
+                            <PlaidCardFeedIcon
+                                plaidUrl={plaidUrl}
+                                isLarge
+                            />
+                        ) : (
+                            <ImageSVG
+                                contentFit="contain"
+                                src={getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
+                                pointerEvents="none"
+                                height={variables.cardPreviewHeight}
+                                width={variables.cardPreviewWidth}
+                            />
+                        )}
+                    </View>
+                    {!cardholder?.validated && (
+                        <MenuItem
+                            icon={Expensicons.Hourglass}
+                            iconStyles={styles.mln2}
+                            descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
+                            description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
+                            numberOfLinesDescription={0}
+                            interactive={false}
+                        />
+                    )}
+
+                    <MenuItem
+                        label={translate('workspace.moreFeatures.companyCards.cardholder')}
+                        title={displayName}
+                        titleStyle={styles.mt1}
+                        iconStyles={styles.mt1}
+                        icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
+                        iconType={CONST.ICON_TYPE_AVATAR}
+                        description={Str.removeSMSDomain(cardholder?.login ?? '')}
+                        interactive={false}
+                    />
+                    <MenuItemWithTopDescription
+                        numberOfLinesTitle={3}
+                        description={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                        title={maskCardNumber(card?.cardName ?? '', bank, true)}
+                        interactive={false}
+                        titleStyle={styles.walletCardNumber}
+                    />
+                    <OfflineWithFeedback
+                        pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
+                        errorRowStyles={[styles.ph5, styles.mb3]}
+                        errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'cardTitle')}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.moreFeatures.companyCards.cardName')}
+                            title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
+                            shouldShowRightIcon
+                            brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName))}
+                        />
+                    </OfflineWithFeedback>
+                    {exportMenuItem?.shouldShowMenuItem ? (
+                        <OfflineWithFeedback
+                            pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
+                            errorRowStyles={[styles.ph5, styles.mb3]}
+                            errors={exportMenuItem.exportType ? getLatestErrorField(card?.nameValuePairs ?? {}, exportMenuItem.exportType) : undefined}
+                            onClose={() => {
+                                if (!exportMenuItem.exportType) {
+                                    return;
+                                }
+                                clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, exportMenuItem.exportType);
+                            }}
+                        >
+                            <MenuItemWithTopDescription
+                                description={exportMenuItem.description}
+                                title={exportMenuItem.title}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
+                            />
+                        </OfflineWithFeedback>
+                    ) : null}
+                    <MenuItemWithTopDescription
+                        shouldShowRightComponent={card?.isLoadingLastUpdated}
+                        rightComponent={<ActivityIndicator style={[styles.popoverMenuIcon]} />}
+                        description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
+                        title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
+                        interactive={false}
+                    />
+                    <OfflineWithFeedback
+                        pendingAction={card?.pendingFields?.scrapeMinDate}
+                        errorRowStyles={[styles.ph5, styles.mb3]}
+                        errors={getLatestErrorField(card ?? {}, 'scrapeMinDate')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'scrapeMinDate', true)}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                            title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
+                            shouldShowRightIcon
+                            brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
+                        />
+                    </OfflineWithFeedback>
+                    <MenuItem
+                        icon={expensifyIcons.MoneySearch}
+                        title={translate('workspace.common.viewTransactions')}
+                        style={styles.mt3}
+                        onPress={() => {
+                            Navigation.navigate(
+                                ROUTES.SEARCH_ROOT.getRoute({
+                                    query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+                                }),
+                            );
+                        }}
+                    />
+                    <OfflineWithFeedback
+                        pendingAction={card?.pendingFields?.lastScrape}
+                        errorRowStyles={[styles.ph5, styles.mb3]}
+                        errors={getLatestErrorField(card ?? {}, 'lastScrape')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true)}
+                    >
+                        <MenuItem
+                            icon={expensifyIcons.Sync}
+                            disabled={isOffline || card?.isLoadingLastUpdated}
+                            title={translate('workspace.moreFeatures.companyCards.updateCard')}
+                            brickRoadIndicator={card?.errorFields?.lastScrape ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            onPress={updateCard}
+                        />
+                    </OfflineWithFeedback>
+                    <MenuItem
+                        icon={expensifyIcons.RemoveMembers}
+                        title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                        style={styles.mb1}
+                        onPress={() => setIsUnassignModalVisible(true)}
+                    />
+                    <ConfirmModal
+                        title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                        isVisible={isUnassignModalVisible}
+                        onConfirm={unassignCard}
+                        onCancel={() => setIsUnassignModalVisible(false)}
+                        shouldSetModalVisibility={false}
+                        prompt={translate('workspace.moreFeatures.companyCards.unassignCardDescription')}
+                        confirmText={translate('workspace.moreFeatures.companyCards.unassign')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                    />
+                </ScrollView>
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
