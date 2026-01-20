@@ -260,12 +260,12 @@ describe('SequentialQueue', () => {
 
 describe('SequentialQueue - QueueFlushedData', () => {
     it('should add to queueFlushedData', async () => {
-        const updates: OnyxUpdate[] = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}];
+        const updates: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>> = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}];
         await SequentialQueue.saveQueueFlushedData(...updates);
         expect(SequentialQueue.getQueueFlushedData()).toEqual([{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}]);
     });
     it('should clear queueFlushedData', async () => {
-        const updates: OnyxUpdate[] = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}];
+        const updates: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>> = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}];
         await SequentialQueue.saveQueueFlushedData(...updates);
         await SequentialQueue.clearQueueFlushedData();
         expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
