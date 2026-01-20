@@ -3246,9 +3246,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
         // Calculate proportional convertedAmount for the split based on the original conversion rate
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
-        const originalAmount = existingTransaction.modifiedAmount || existingTransaction.amount;
+        const originalAmount = Number(existingTransaction.modifiedAmount) || existingTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
-        const splitAmount = optimisticTransaction.modifiedAmount || optimisticTransaction.amount;
+        const splitAmount = Number(optimisticTransaction.modifiedAmount) || optimisticTransaction.amount;
         if (originalConvertedAmount && originalAmount && splitAmount) {
             optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
         }
