@@ -191,6 +191,7 @@ import {
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
 } from '@userActions/Report';
+import {updateMoneyRequestCategory} from '@libs/actions/IOU';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -232,6 +233,18 @@ type PureReportActionItemProps = {
 
     /** Policy for this action */
     policy?: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Policy tags list for this report's policy */
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+
+    /** Policy categories for this report's policy */
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+
+    /** Recently used categories for this report's policy */
+    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+
+    /** Whether ASAP submit beta is enabled */
+    isASAPSubmitBetaEnabled?: boolean;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -437,6 +450,10 @@ function PureReportActionItem({
     action,
     report,
     policy,
+    policyTagList,
+    policyCategories,
+    policyRecentlyUsedCategories,
+    isASAPSubmitBetaEnabled = false,
     transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
@@ -801,6 +818,23 @@ function PureReportActionItem({
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     resolveConciergeCategoryOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                    const transactionID = getOriginalMessage(action)?.transactionID;
+                    if (!transactionID || !reportID || !policy) {
+                        return;
+                    }
+                    updateMoneyRequestCategory({
+                        transactionID,
+                        transactionThreadReportID: transactionThreadReport?.reportID ?? reportID,
+                        category: option,
+                        policy,
+                        policyTagList: policyTagList ?? {},
+                        policyCategories: policyCategories ?? {},
+                        policyRecentlyUsedCategories: policyRecentlyUsedCategories ?? {},
+                        currentUserAccountIDParam: personalDetail.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserEmailParam: personalDetail.login ?? '',
+                        isASAPSubmitBetaEnabled,
+                        hash: currentSearchHash,
+                    });
                 },
             }));
         }
