@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp
+index fd88d4d..dc5051e 100644
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp
+@@ -782,7 +782,7 @@ void LayoutAnimationsProxy_Legacy::transferConfigFromNativeID(const std::string
+     auto nativeId = stoi(nativeIdString);
+     layoutAnimationsManager_->transferConfigFromNativeID(nativeId, tag);
+   } catch (std::invalid_argument) {
+-  } catch (std::out_of_range) {}
++  } catch (...) {}
+ }
+ 
+ // When entering animations start, we temporarily set opacity to 0
