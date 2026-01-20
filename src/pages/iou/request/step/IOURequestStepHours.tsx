@@ -133,7 +133,7 @@ function IOURequestStepHours({
 
     return (
         <StepScreenWrapper
-            headerTitle={translate('iou.time')}
+            headerTitle={translate(isEditingConfirmation ? 'iou.timeTracking.hours' : 'iou.createExpense')}
             onBackButtonPress={navigateBack}
             testID="IOURequestStepHours"
             shouldShowWrapper={!isEmbeddedInStartPage}
