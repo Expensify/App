@@ -381,6 +381,8 @@ ___
 ___
 
 ```
+# [Performance Proposal] <Component_Name>
+
 ## 1. Component and Flow Description
 
 **Component/Flow:** Describe the specific UI component or user flow being optimized.
