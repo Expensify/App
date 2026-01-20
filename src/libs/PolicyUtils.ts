@@ -587,12 +587,10 @@ function filterGuideAndAccountManager<T extends {login?: string | null; alternat
         const itemLogin = item.login?.toLowerCase();
         const itemAltText = item.alternateText?.toLowerCase();
 
-        // Exclude Guide
         if (assignedGuideEmail && (itemLogin === assignedGuideEmail || itemAltText === assignedGuideEmail)) {
             return false;
         }
 
-        // Exclude Account Manager
         if (accountManagerLogin && (itemLogin === accountManagerLogin || itemAltText === accountManagerLogin)) {
             return false;
         }

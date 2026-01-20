@@ -2189,15 +2189,14 @@ function getValidOptions(
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
     // Gather shared configs:
-    // Hard exclusions: users who cannot be selected at all (business rules)
+    // Hard exclusions: cannot be selected at all
     const loginsToExclude: Record<string, boolean> = {
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
         ...restrictedLogins,
     };
 
-    // Soft + hard exclusions: users who shouldn't appear in auto-suggestions
-    // Soft exclusions (e.g., Guide/AM) are excluded from suggestions but can still be manually entered
+    // Soft exclusions: hidden from suggestions but can be manually entered (e.g., Guide/AM)
     const loginsToExcludeFromSuggestions: Record<string, boolean> = {
         ...loginsToExclude,
         ...excludeFromSuggestionsOnly,
@@ -2210,6 +2209,8 @@ function getValidOptions(
             if (!option.login) {
                 continue;
             }
+            // Prevent re-inviting already selected users
+            loginsToExclude[option.login] = true;
             loginsToExcludeFromSuggestions[option.login] = true;
         }
     }
