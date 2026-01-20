@@ -860,8 +860,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-<<<<<<< HEAD
-                    resolveConciergeCategoryOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                    resolveConciergeCategoryOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                     const transactionID = getOriginalMessage(action)?.transactionID;
                     if (!transactionID || !reportID || !policy) {
                         return;
@@ -879,9 +878,6 @@ function PureReportActionItem({
                         isASAPSubmitBetaEnabled,
                         hash: currentSearchHash,
                     });
-=======
-                    resolveConciergeCategoryOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
->>>>>>> f912da1f765599d095568a7dfe3955726697b5b8
                 },
             }));
         }
