@@ -82,7 +82,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         if (shouldUseLiveData) {
             const liveData = todoSearchResultsData[currentSearchKey];
             const searchInfo: SearchResultsInfo = {
-                ...snapshotSearchResults?.search ?? defaultSearchInfo,
+                ...(snapshotSearchResults?.search ?? defaultSearchInfo),
                 count: liveData.metadata.count,
                 total: liveData.metadata.total,
                 currency: liveData.metadata.currency,
