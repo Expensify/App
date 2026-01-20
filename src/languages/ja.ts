@@ -28,24 +28,6 @@ import type {
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
-    FileLimitParams,
-    FileTypeParams,
-    FiltersAmountBetweenParams,
-    FlightLayoverParams,
-    FlightParams,
-    FocusModeUpdateParams,
-    FormattedMaxLengthParams,
-    GoBackMessageParams,
-    HarvestCreatedExpenseReportParams,
-    ImportedTagsMessageParams,
-    ImportedTypesParams,
-    ImportFieldParams,
-    ImportMembersSuccessfulDescriptionParams,
-    ImportPerDiemRatesSuccessfulDescriptionParams,
-    ImportTagsSuccessfulDescriptionParams,
-    IncorrectZipFormatParams,
-    IndividualExpenseRulesSubtitleParams,
-    InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
     IntegrationSyncFailedParams,
@@ -133,9 +115,6 @@ import type {
     SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
-    SpreadCategoriesParams,
-    SpreadFieldNameParams,
-    SpreadSheetColumnParams,
     StatementTitleParams,
     StepCounterParams,
     StripePaidParams,
@@ -280,7 +259,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: '検索...',
         next: '次へ',
         previous: '前へ',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: '戻る',
         create: '作成',
         add: '追加',
@@ -648,7 +626,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています…',
         domains: 'ドメイン',
-        viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '重複',
@@ -709,12 +686,12 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'パスワードで保護されたPDFはサポートされていません',
         attachmentImageResized: 'この画像はプレビュー用にサイズが変更されています。フル解像度で表示するにはダウンロードしてください。',
         attachmentImageTooLarge: 'この画像はアップロード前にプレビューするには大きすぎます。',
-        tooManyFiles: ({fileLimit}: FileLimitParams) => `一度にアップロードできるファイルは${fileLimit}件までです。`,
+        tooManyFiles: (fileLimit: number) => `一度にアップロードできるファイルは${fileLimit}件までです。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
         someFilesCantBeUploaded: '一部のファイルはアップロードできません',
         sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルは${maxUploadSizeInMB}MB未満である必要があります。これより大きいファイルはアップロードされません。`,
         maxFileLimitExceeded: '一度にアップロードできる領収書は最大30枚です。それを超えた分はアップロードされません。',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} ファイルはサポートされていません。サポートされているファイル形式のみアップロードされます。`,
+        unsupportedFileType: (fileType: string) => `${fileType} ファイルはサポートされていません。サポートされているファイル形式のみアップロードされます。`,
         learnMoreAboutSupportedFiles: 'サポートされている形式の詳細はこちらをご覧ください。',
         passwordProtected: 'パスワード保護されたPDFはサポートされていません。サポートされているファイルのみがアップロードされます。',
     },
@@ -739,8 +716,8 @@ const translations: TranslationDeepObject<typeof en> = {
     composer: {
         noExtensionFoundForMimeType: 'この MIME タイプに対応する拡張子が見つかりません',
         problemGettingImageYouPasted: '貼り付けた画像の取得中に問題が発生しました',
-        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
-        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `タスクタイトルの最大長は${formattedMaxLength}文字です。`,
+        commentExceededMaxLength: (formattedMaxLength: string) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
+        taskTitleExceededMaxLength: (formattedMaxLength: string) => `タスクタイトルの最大長は${formattedMaxLength}文字です。`,
     },
     baseUpdateAppModal: {
         updateApp: 'アプリを更新',
@@ -948,7 +925,7 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'このルームでメッセージを送信できるのは管理者のみです。',
     reportAction: {
         asCopilot: 'のコパイロットとして',
-        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+        harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `選択した頻度では提出できなかった <a href="${reportUrl}">${reportName}</a> のすべての経費をまとめるためにこのレポートを作成しました`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
             `<a href="${reportUrl}">${reportName}</a> から保留中の経費のためにこのレポートを作成しました`,
@@ -1017,14 +994,13 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseSpreadsheet: '<muted-link>インポートするスプレッドシートファイルを選択してください。対応形式：.csv、.txt、.xls、.xlsx。</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>インポートするスプレッドシートファイルを選択してください。サポートされているファイル形式の詳細は、<a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">こちら</a>をご覧ください。</muted-link>`,
         fileContainsHeader: 'ファイルには列ヘッダーが含まれています',
-        column: ({name}: SpreadSheetColumnParams) => `列 ${name}`,
-        fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認して、もう一度お試しください。`,
-        singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) =>
-            `おっと！1 つのフィールド（「${fieldName}」）が複数の列に割り当てられています。内容を確認して、もう一度お試しください。`,
-        emptyMappedField: ({fieldName}: SpreadFieldNameParams) => `おっと！フィールド（「${fieldName}」）に 1 つ以上の空の値が含まれています。確認して、もう一度お試しください。`,
+        column: (name: string) => `列 ${name}`,
+        fieldNotMapped: (fieldName: string) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認して、もう一度お試しください。`,
+        singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）が複数の列に割り当てられています。内容を確認して、もう一度お試しください。`,
+        emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に 1 つ以上の空の値が含まれています。確認して、もう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
-        importCategoriesSuccessfulDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `${categories}件のカテゴリーが追加されました。` : 'カテゴリを1件追加しました。'),
-        importMembersSuccessfulDescription: ({added, updated}: ImportMembersSuccessfulDescriptionParams) => {
+        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories}件のカテゴリーが追加されました。` : 'カテゴリを1件追加しました。'),
+        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'メンバーは追加または更新されていません。';
             }
@@ -1036,10 +1012,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `${added} 名のメンバーが追加されました。` : '1名のメンバーが追加されました。';
         },
-        importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfulDescriptionParams) => (tags > 1 ? `${tags} 個のタグを追加しました。` : 'タグが 1 件追加されました。'),
+        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} 個のタグを追加しました。` : 'タグが 1 件追加されました。'),
         importMultiLevelTagsSuccessfulDescription: 'マルチレベルタグが追加されました。',
-        importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfulDescriptionParams) =>
-            rates > 1 ? `${rates}件の日当レートが追加されました。` : '1件の日当レートが追加されました。',
+        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates}件の日当レートが追加されました。` : '1件の日当レートが追加されました。'),
         importFailedTitle: 'インポートに失敗しました',
         importFailedDescription: 'すべての項目が正しく入力されていることを確認して、もう一度お試しください。問題が解決しない場合は、Concierge までお問い合わせください。',
         importDescription: '下のインポートされた各列の横にあるドロップダウンをクリックして、スプレッドシートからマッピングするフィールドを選択してください。',
@@ -1490,7 +1465,13 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
-        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`, hrs: '時間'},
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours}  ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`,
+            hrs: '時間',
+            hours: '時間',
+            ratePreview: (rate: string) => `${rate} / 時間`,
+            amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2365,7 +2346,7 @@ ${merchant} への ${amount}（${date}）`,
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `振替${amount ? ` ${amount}` : ''}`,
         instant: '即時（デビットカード）',
-        instantSummary: ({rate, minAmount}: InstantSummaryParams) => `${rate}% の手数料（最低 ${minAmount}）`,
+        instantSummary: (rate: string, minAmount: string) => `${rate}% の手数料（最低 ${minAmount}）`,
         ach: '1～3 営業日（銀行口座）',
         achSummary: '手数料なし',
         whichAccount: 'どのアカウントですか？',
@@ -2900,7 +2881,7 @@ ${
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前でなければなりません`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後である必要があります`,
             hasInvalidCharacter: '名前にはラテン文字のみ使用できます',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `郵便番号の形式が正しくありません${zipFormat ? `許容される形式：${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `郵便番号の形式が正しくありません${zipFormat ? `許容される形式：${zipFormat}` : ''}`,
             invalidPhoneNumber: `電話番号が有効であることを確認してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）`,
         },
     },
@@ -2983,7 +2964,7 @@ ${
     },
     focusModeUpdateModal: {
         title: '#focus モードへようこそ！',
-        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+        prompt: (priorityModePageUrl: string) =>
             `未読のチャットや、対応が必要なチャットだけを表示して、常に状況を把握しましょう。心配はいりません。これはいつでも<a href="${priorityModePageUrl}">設定</a>で変更できます。`,
     },
     notFound: {
@@ -3156,6 +3137,8 @@ ${
     onfidoStep: {
         acceptTerms: 'Expensifyウォレットの有効化リクエストを続行することにより、あなたは次の内容を読み、理解し、承諾したことを確認します',
         facialScan: 'Onfido 顔認証ポリシーおよび同意書',
+        onfidoLinks: (onfidoTitle: string) =>
+            `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfido 顔認証ポリシーおよび同意書</a>、<a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>プライバシー</a> と <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>利用規約</a>。</muted-text-micro>`,
         tryAgain: '再試行',
         verifyIdentity: '本人確認',
         letsVerifyIdentity: '本人確認を行いましょう',
@@ -3651,7 +3634,7 @@ ${
         flight: 'フライト',
         flightDetails: {
             passenger: '乗客',
-            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>このフライトの前に<strong>${layover} の乗り継ぎ時間</strong>があります</muted-text-label>`,
+            layover: (layover: string) => `<muted-text-label>このフライトの前に<strong>${layover} の乗り継ぎ時間</strong>があります</muted-text-label>`,
             takeOff: '離陸',
             landing: 'ランディング',
             seat: '席',
@@ -3741,17 +3724,18 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `ドメイン ${domain} の出張機能の有効化に失敗しました。このドメインの出張機能を確認して有効にしてください。`,
         },
         updates: {
-            bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）が予約されました。確認コード：${confirmationID}`,
-            ticketVoided: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）のチケットは無効になりました。`,
-            ticketRefunded: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketRefunded: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）の航空券は、払い戻しまたは変更されています。`,
-            flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            flightCancelled: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `${startDate}} のフライト ${airlineCode}（${origin} → ${destination}）は、航空会社によりキャンセルされました。`,
             flightScheduleChangePending: (airlineCode: string) => `航空会社が便名 ${airlineCode} のスケジュール変更を提案しており、現在確認待ちです。`,
             flightScheduleChangeClosed: (airlineCode: string, startDate?: string) => `スケジュール変更が確認されました：フライト ${airlineCode} の出発時刻は ${startDate} になりました。`,
-            flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）が更新されました。`,
+            flightUpdated: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+                `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）が更新されました。`,
             flightCabinChanged: (airlineCode: string, cabinClass?: string) => `ご搭乗クラスは、${airlineCode} 便で ${cabinClass} に更新されました。`,
             flightSeatConfirmed: (airlineCode: string) => `${airlineCode}便の座席指定が確定しました。`,
             flightSeatChanged: (airlineCode: string) => `ご搭乗便 ${airlineCode} の座席指定が変更されました。`,
@@ -4553,7 +4537,7 @@ ${
                 importTaxDescription: 'NetSuite から税グループをインポートします。',
                 importCustomFields: {
                     chooseOptionBelow: '以下からオプションを選択してください：',
-                    label: ({importedTypes}: ImportedTypesParams) => `${importedTypes.join('と')} としてインポートされました`,
+                    label: (importedTypes: string[]) => `${importedTypes.join('と')} としてインポートされました`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `${fieldName}を入力してください`,
                     customSegments: {
                         title: 'カスタムセグメント／レコード',
@@ -4668,18 +4652,18 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'NetSuite 従業員のデフォルト',
                         description: 'Expensify にインポートされず、エクスポート時に適用されます',
-                        footerContent: ({importField}: ImportFieldParams) =>
+                        footerContent: (importField: string) =>
                             `NetSuite で ${importField} を使用する場合、Expense Report または Journal Entry へエクスポートする際に、従業員レコードに設定されているデフォルトを適用します。`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'タグ',
                         description: '明細行レベル',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} は、従業員のレポート上の各経費ごとに個別に選択できるようになります。`,
+                        footerContent: (importField: string) => `${startCase(importField)} は、従業員のレポート上の各経費ごとに個別に選択できるようになります。`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'レポート項目',
                         description: 'レポートレベル',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} の選択は、従業員のレポート上のすべての経費に適用されます。`,
+                        footerContent: (importField: string) => `${startCase(importField)} の選択は、従業員のレポート上のすべての経費に適用されます。`,
                     },
                 },
             },
@@ -4756,7 +4740,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 commercialFeedPlaidDetails: `銀行での設定が必要ですが、設定手順はご案内します。通常は大企業に限られます。`,
                 directFeedDetails: '最も簡単な方法です。マスター認証情報を使用して、すぐに接続します。この方法が最も一般的です。',
                 enableFeed: {
-                    title: ({provider}: GoBackMessageParams) => `${provider} フィードを有効にする`,
+                    title: (provider: string) => `${provider} フィードを有効にする`,
                     heading: 'お使いのカード発行会社と直接連携しており、取引データを迅速かつ正確に Expensify に取り込むことができます。\n\n開始するには、次の手順に従ってください。',
                     visa: '私たちはVisaとグローバル連携していますが、対象となるかどうかは銀行やカードプログラムによって異なります。\n\nご利用を開始するには、次のステップに従ってください。',
                     mastercard:
@@ -5075,6 +5059,8 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     `取引をエクスポートする${integration}アカウントを選択してください。利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。`,
                 lastUpdated: '最終更新',
                 transactionStartDate: '取引開始日',
+                changeTransactionStartDateWarning:
+                    '開始日を変更すると、未報告/下書きのレポート取引がすべて削除され、新しい開始日以降の取引がすべて再インポートされます。これにより取引の重複が発生する可能性があります。',
                 updateCard: 'カードを更新',
                 unassignCard: 'カードの割り当てを解除',
                 unassign: '割り当て解除',
@@ -5312,7 +5298,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 prompt3: 'バックアップをダウンロード',
                 prompt4: '最初。',
             },
-            importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
+            importedTagsMessage: (columnCounts: number) =>
                 `スプレッドシート内に *${columnCounts} 列* 見つかりました。タグ名が含まれている列の横で *Name* を選択してください。タグのステータスを設定する列の横で *Enabled* を選択することもできます。`,
             cannotDeleteOrDisableAllTags: {
                 title: 'すべてのタグを削除または無効にすることはできません',
@@ -6130,7 +6116,7 @@ ${reportName}
         rules: {
             individualExpenseRules: {
                 title: '経費',
-                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>個々の経費に対して支出コントロールとデフォルトを設定します。<a href="${categoriesPageLink}">カテゴリ</a>や<a href="${tagsPageLink}">タグ</a>のルールを作成することもできます。</muted-text>`,
                 receiptRequiredAmount: '領収書が必要な金額',
                 receiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、支出がこの金額を超えた場合に領収書を必須にする。',
@@ -6435,10 +6421,6 @@ ${reportName}
         deleteReportField: (fieldType: string, fieldName?: string) => `${fieldType} レポートフィールド「${fieldName}」を削除しました`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `「自分自身での承認を防ぐ」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大領収書必須経費金額を${newValue}に変更しました（以前は${oldValue}）`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `違反となる経費の上限金額を${newValue}（以前は${oldValue}）に変更しました`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `「最大経費期間（日数）」を「${newValue}」（以前は「${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}」）に更新しました`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `月次レポートの提出日を「${newValue}」に設定してください`;
@@ -6586,10 +6568,39 @@ ${reportName}
                 }
             }
         },
+        setDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `デフォルトのビジネス銀行口座を「${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}」に設定`,
+        removedDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `デフォルトのビジネス銀行口座「${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}」を削除しました`,
+        changedDefaultBankAccount: ({
+            bankAccountName,
+            maskedBankAccountNumber,
+            oldBankAccountName,
+            oldMaskedBankAccountNumber,
+        }: {
+            bankAccountName: string;
+            maskedBankAccountNumber: string;
+            oldBankAccountName: string;
+            oldMaskedBankAccountNumber: string;
+        }) =>
+            `デフォルトのビジネス銀行口座を「${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}」（以前は「${oldBankAccountName ? `${oldBankAccountName}: ` : ''}${oldMaskedBankAccountNumber}」）に変更しました`,
+        changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `請求書の会社名を「${newValue}」（以前は「${oldValue}」）に変更しました` : `請求書の会社名を「${newValue}」に設定する`,
+        changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `請求書会社のウェブサイトを「${newValue}」（以前は「${oldValue}」）に変更しました` : `請求書の会社ウェブサイトを「${newValue}」に設定`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `カスタムレポート名の数式を「${newValue}」（以前は「${oldValue}」）に変更しました`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `認可された支払者を「${newReimburser}」（以前は「${previousReimburser}」）に変更しました` : `承認済み支払者を「${newReimburser}」に変更しました`,
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `領収書が必要な金額を「${newValue}」に設定`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `領収書の必須金額を「${newValue}」（以前は「${oldValue}」）に変更しました`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `必須領収書金額を削除しました（以前の値：「${oldValue}」）`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費金額を「${newValue}」に設定`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費額を「${newValue}」（以前は「${oldValue}」）に変更しました`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費額を削除しました（以前の値：「${oldValue}」）`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を「${newValue}」日に設定`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費期限を「${newValue}」日に変更しました（以前は「${oldValue}」日）`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を削除（以前は「${oldValue}」日）`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -6755,7 +6766,7 @@ ${reportName}
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} 未満`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''}より大きい`,
-                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `${greaterThan} から ${lessThan} まで`,
+                between: (greaterThan: string, lessThan: string) => `${greaterThan} から ${lessThan} まで`,
                 equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} と等しい`,
             },
             card: {
@@ -7291,6 +7302,7 @@ ${reportName}
         hold: 'この経費は保留になっています',
         resolvedDuplicates: '重複を解決しました',
         companyCardRequired: '法人カードでの購入が必須',
+        noRoute: '有効な住所を選択してください',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} は必須です`,
