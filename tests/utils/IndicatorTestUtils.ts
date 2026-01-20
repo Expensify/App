@@ -1,7 +1,9 @@
+import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
+
 type IndicatorTestCase = {
     name: string;
     indicatorColor: string;
-    status: string | undefined;
+    status: IndicatorStatus | undefined;
     policyIDWithErrors?: string;
 };
 
