@@ -25,13 +25,13 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
-import {getRouteForCurrentStep as getReimbursementAccountRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -81,6 +81,15 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
     const selectedPayerDetails = selectedPayer ? getPersonalDetailByEmail(selectedPayer) : undefined;
     const ownerDetails = policy?.owner ? getPersonalDetailByEmail(policy?.owner) : undefined;
+    const accountID = selectedPayer ? policyMemberEmailsToAccountIDs?.[selectedPayer] : '';
+    const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
+
+    useEffect(() => {
+        if (!shouldShowSuccess || !policy?.id || !accountID) {
+            return;
+        }
+        setWorkspacePayer(policy?.id, authorizedPayerEmail);
+    }, [accountID, authorizedPayerEmail, policy?.id, shouldShowSuccess]);
 
     useEffect(() => {
         return () => {
@@ -97,30 +106,24 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const getPayersAndAdmins = () => {
         const policyAdminDetails: MemberOption[] = [];
         const authorizedPayerDetails: MemberOption[] = [];
-
         for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
-            const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
-            const details = personalDetails?.[accountID];
+            const adminAccountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
+            const details = personalDetails?.[adminAccountID];
             if (!details) {
-                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
+                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${adminAccountID}`);
                 continue;
             }
-
             const isOwner = policy?.owner === details?.login;
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
             const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
-
             if (shouldSkipMember) {
                 continue;
             }
-
             const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
-
             const isAuthorizedPayer = selectedPayer === details?.login;
-
             const formattedMember = {
-                keyForList: String(accountID),
-                accountID,
+                keyForList: String(adminAccountID),
+                accountID: adminAccountID,
                 isSelected: isAuthorizedPayer,
                 isDisabled: policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors),
                 text: formatPhoneNumber(getDisplayNameOrDefault(details)),
@@ -131,13 +134,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         source: details.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
-                        id: accountID,
+                        id: adminAccountID,
                     },
                 ],
                 errors: policyEmployee.errors,
                 pendingAction: (policyEmployee.pendingAction ?? isAuthorizedPayer) ? policy?.pendingFields?.reimburser : null,
             };
-
             if (isAuthorizedPayer) {
                 authorizedPayerDetails.push(formattedMember);
             } else {
@@ -151,11 +153,9 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
     const getSections = () => {
         const sectionsArray: MembersSection[] = [];
-
         if (searchTerm !== '') {
             const searchValue = getSearchValueForPhoneOrEmail(searchTerm, countryCode);
             const filteredOptions = tokenizedSearch([...formattedPolicyAdmins, ...formattedAuthorizedPayer], searchValue, (option) => [option.text ?? '', option.login ?? '']);
-
             return [
                 {
                     title: undefined,
@@ -164,12 +164,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 },
             ];
         }
-
         sectionsArray.push({
             data: formattedAuthorizedPayer,
             shouldShow: true,
         });
-
         sectionsArray.push({
             title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
@@ -179,7 +177,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     };
 
     const sections: MembersSection[] = getSections();
-
     const headerMessage = searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : '';
 
     const handleConfirm = () => {
@@ -187,21 +184,14 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         if (!bankAccountID) {
             return;
         }
-
         if (!selectedPayer) {
             setIsAlertVisible(true);
             return;
         }
-
-        const accountID = policyMemberEmailsToAccountIDs?.[selectedPayer] ?? '';
-
-        const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
-
         if (policy?.achAccount?.reimburser === authorizedPayerEmail || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             Navigation.goBack();
             return;
         }
-
         shareBankAccount(Number(bankAccountID), [authorizedPayerEmail]);
     };
 
@@ -210,9 +200,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             Navigation.closeRHPFlow();
             return;
         }
-        const accountID = policyMemberEmailsToAccountIDs?.[selectedPayer] ?? '';
-        const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
-
         setWorkspacePayer(policy?.id, authorizedPayerEmail);
         Navigation.closeRHPFlow();
     };
@@ -221,19 +208,19 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         if (!selectedPayer) {
             return;
         }
+        const isOwner = policy?.owner === selectedPayer;
         const isAccountAlreadyShared = policy?.achAccount?.sharees ? policy.achAccount.sharees.includes(selectedPayer) : false;
-
-        if (isAccountAlreadyShared) {
+        if (isAccountAlreadyShared || isOwner) {
             onButtonPress();
             return;
         }
-
-        if (policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
+        if (isBankAccountPartiallySetup(policy?.achAccount?.state)) {
             setShowValidationModal(true);
             return;
         }
-
-        if (policy?.achAccount?.state !== CONST.BANK_ACCOUNT.STATE.PENDING && policy?.achAccount?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) {
+        const isAccountAlreadySharedWithCurrentUser =
+            policy?.achAccount?.sharees && currentUserPersonalDetails?.login ? policy.achAccount.sharees.includes(currentUserPersonalDetails?.login) : false;
+        if (!isOwner && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
             setShowErrorModal(true);
             return;
         }
@@ -357,7 +344,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         <RenderHTML
                             html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
-                                validationLink: `${environmentURL}/${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy?.id, getReimbursementAccountRouteForCurrentStep(CONST.BANK_ACCOUNT.STEP.VALIDATION))}`,
+                                validationLink: `${environmentURL}/${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy?.id, '', ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID))}`,
                             })}
                         />
                     </View>
