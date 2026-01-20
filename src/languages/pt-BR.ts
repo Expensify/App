@@ -626,7 +626,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está levando mais tempo do que o esperado...',
         domains: 'Domínios',
-        viewReport: 'Ver relatório',
         actionRequired: 'Ação necessária',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
@@ -1948,13 +1947,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Converse com o Concierge para resolver questões de segurança e desbloquear sua conta.',
         chatWithConcierge: 'Conversar com Concierge',
     },
-    passwordPage: {
-        changePassword: 'Alterar senha',
-        changingYourPasswordPrompt: 'Alterar sua senha atualizará a senha das suas contas do Expensify.com e do New Expensify.',
-        currentPassword: 'Senha atual',
-        newPassword: 'Nova senha',
-        newPasswordPrompt: 'Sua nova senha deve ser diferente da antiga e conter pelo menos 8 caracteres, 1 letra maiúscula, 1 letra minúscula e 1 número.',
-    },
     twoFactorAuth: {
         headerTitle: 'Autenticação em duas etapas',
         twoFactorAuthEnabled: 'Autenticação de dois fatores ativada',
@@ -2984,15 +2976,6 @@ ${
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ops... ${isBreakLine ? '\n' : ''}Algo deu errado`,
         subtitle: 'Não foi possível concluir sua solicitação. Tente novamente mais tarde.',
         wrongTypeSubtitle: 'Essa pesquisa não é válida. Tente ajustar seus critérios de pesquisa.',
-    },
-    setPasswordPage: {
-        enterPassword: 'Digite uma senha',
-        setPassword: 'Definir senha',
-        newPasswordPrompt: 'Sua senha deve ter pelo menos 8 caracteres, 1 letra maiúscula, 1 letra minúscula e 1 número.',
-        passwordFormTitle: 'Bem-vindo de volta ao New Expensify! Defina sua senha, por favor.',
-        passwordNotSet: 'Não foi possível definir sua nova senha. Enviamos um novo link de redefinição de senha para você tentar novamente.',
-        setPasswordLinkInvalid: 'Este link para definir senha é inválido ou expirou. Um novo está esperando por você na sua caixa de entrada!',
-        validateAccount: 'Verificar conta',
     },
     statusPage: {
         status: 'Status',
@@ -5077,6 +5060,8 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     `Escolha a conta do ${integration} para a qual as transações devem ser exportadas. Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.`,
                 lastUpdated: 'Última atualização',
                 transactionStartDate: 'Data de início da transação',
+                changeTransactionStartDateWarning:
+                    'Alterar a data de início removerá todas as transações não reportadas ou em rascunho e reimportará todas as transações a partir da nova data de início. Isso pode causar transações duplicadas.',
                 updateCard: 'Atualizar cartão',
                 unassignCard: 'Desatribuir cartão',
                 unassign: 'Desatribuir',

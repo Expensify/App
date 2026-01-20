@@ -626,7 +626,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In die Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet ...',
         domains: 'Domänen',
-        viewReport: 'Bericht anzeigen',
         actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
@@ -1956,13 +1955,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Chatte mit Concierge, um Sicherheitsbedenken zu klären und dein Konto wieder freizuschalten.',
         chatWithConcierge: 'Chat mit Concierge',
     },
-    passwordPage: {
-        changePassword: 'Passwort ändern',
-        changingYourPasswordPrompt: 'Wenn Sie Ihr Passwort ändern, wird es sowohl für Ihr Expensify.com-Konto als auch für Ihr New-Expensify-Konto aktualisiert.',
-        currentPassword: 'Aktuelles Passwort',
-        newPassword: 'Neues Passwort',
-        newPasswordPrompt: 'Ihr neues Passwort muss sich von Ihrem alten Passwort unterscheiden und mindestens 8 Zeichen, 1 Großbuchstaben, 1 Kleinbuchstaben und 1 Zahl enthalten.',
-    },
     twoFactorAuth: {
         headerTitle: 'Zwei-Faktor-Authentifizierung',
         twoFactorAuthEnabled: 'Zwei-Faktor-Authentifizierung aktiviert',
@@ -3000,15 +2992,6 @@ ${
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ups … ${isBreakLine ? '\n' : ''}Etwas ist schiefgelaufen`,
         subtitle: 'Ihre Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es später noch einmal.',
         wrongTypeSubtitle: 'Diese Suche ist ungültig. Versuche, deine Suchkriterien anzupassen.',
-    },
-    setPasswordPage: {
-        enterPassword: 'Passwort eingeben',
-        setPassword: 'Passwort festlegen',
-        newPasswordPrompt: 'Dein Passwort muss mindestens 8 Zeichen, 1 Großbuchstaben, 1 Kleinbuchstaben und 1 Zahl enthalten.',
-        passwordFormTitle: 'Willkommen zurück bei New Expensify! Bitte lege dein Passwort fest.',
-        passwordNotSet: 'Wir konnten Ihr neues Passwort nicht festlegen. Wir haben Ihnen einen neuen Passwort-Link gesendet, damit Sie es erneut versuchen können.',
-        setPasswordLinkInvalid: 'Dieser Link zum Festlegen des Passworts ist ungültig oder abgelaufen. Ein neuer wartet bereits in deinem E-Mail-Posteingang auf dich!',
-        validateAccount: 'Konto verifizieren',
     },
     statusPage: {
         status: 'Status',
@@ -5107,6 +5090,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     `Wählen Sie das ${integration}-Konto, in das die Transaktionen exportiert werden sollen. Wählen Sie eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.`,
                 lastUpdated: 'Zuletzt aktualisiert',
                 transactionStartDate: 'Transaktionsanfangsdatum',
+                changeTransactionStartDateWarning:
+                    'Durch das Ändern des Startdatums werden alle nicht gemeldeten/entworfenen Berichtstransaktionen entfernt und alle Transaktionen ab dem neuen Startdatum erneut importiert. Dies kann zu doppelten Transaktionen führen.',
                 updateCard: 'Karte aktualisieren',
                 unassignCard: 'Karte zuweisen aufheben',
                 unassign: 'Zuweisung aufheben',
