@@ -150,7 +150,7 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type CardFeedData = CustomCardFeedData | DirectCardFeedData;
 
 /** Both custom and direct company feeds */
-type CompanyFeeds = Partial<Record<CardFeed, CardFeedData>>;
+type CompanyFeeds = Partial<Record<CompanyCardFeedWithNumber, CardFeedData>>;
 
 /** Custom feed names */
 type CompanyCardNicknames = Partial<Record<CompanyCardFeedWithNumber, string>>;

@@ -3,7 +3,7 @@ import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
 import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import type {CardFeed, CardFeedWithDomainID, CustomCardFeedData, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithDomainID, CardFeedWithNumber, CustomCardFeedData, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
@@ -13,7 +13,7 @@ type CombinedCardFeed = CustomCardFeedData &
         customFeedName?: string;
 
         /** Feed name */
-        feed: CardFeed;
+        feed: CardFeedWithNumber;
     };
 
 type CombinedCardFeeds = Record<CardFeedWithDomainID, CombinedCardFeed>;
