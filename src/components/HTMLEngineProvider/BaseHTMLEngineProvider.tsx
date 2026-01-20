@@ -110,9 +110,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'email-comment',
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.islarge === undefined) {
-                        return {whiteSpace: 'normal'};
+                        return {whiteSpace: 'pre-wrap'};
                     }
-                    return {whiteSpace: 'normal', ...styles.onlyEmojisText};
+                    return {whiteSpace: 'pre-wrap', ...styles.onlyEmojisText};
                 },
                 contentModel: HTMLContentModel.block,
             }),
