@@ -7,8 +7,8 @@ import type {LineLayer} from 'react-map-gl';
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
-import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
+import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -3308,6 +3308,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 180,
         },
 
+        mfaBlockingViewAnimation: {
+            width: 180,
+            height: 180,
+        },
+
         locationErrorLinkText: {
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
@@ -5299,7 +5304,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
             padding: 16,
-            flexWrap: 'wrap',
         },
 
         accountSwitcherPopover: {
@@ -5645,6 +5649,9 @@ const staticStyles = (theme: ThemeColors) =>
         saveTheWorldStaticIllustration: {
             width: 179,
             height: 180,
+        },
+        paymentMethodErrorRow: {
+            paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
     }) satisfies StaticStyles;
 
