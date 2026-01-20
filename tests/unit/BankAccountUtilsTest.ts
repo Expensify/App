@@ -166,23 +166,23 @@ describe('BankAccountUtils', () => {
     describe('hasPartiallySetupBankAccount', () => {
         it('returns true when at least one account is in SETUP state', () => {
             const bankAccountList = {
-                '1': {accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}, bankCurrency: 'USD', bankCountry: 'US'},
-                '2': {accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP}, bankCurrency: 'USD', bankCountry: 'US'},
+                accountOne: {accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}, bankCurrency: 'USD', bankCountry: 'US'},
+                accountTwo: {accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP}, bankCurrency: 'USD', bankCountry: 'US'},
             } as unknown as BankAccountList;
             expect(hasPartiallySetupBankAccount(bankAccountList)).toBe(true);
         });
 
         it('returns true when at least one account is in VERIFYING state', () => {
             const bankAccountList = {
-                '1': {accountData: {state: CONST.BANK_ACCOUNT.STATE.VERIFYING}, bankCurrency: 'USD', bankCountry: 'US'},
+                accountOne: {accountData: {state: CONST.BANK_ACCOUNT.STATE.VERIFYING}, bankCurrency: 'USD', bankCountry: 'US'},
             } as unknown as BankAccountList;
             expect(hasPartiallySetupBankAccount(bankAccountList)).toBe(true);
         });
 
         it('returns false when all accounts are in OPEN state', () => {
             const bankAccountList = {
-                '1': {accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}, bankCurrency: 'USD', bankCountry: 'US'},
-                '2': {accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}, bankCurrency: 'USD', bankCountry: 'US'},
+                accountOne: {accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}, bankCurrency: 'USD', bankCountry: 'US'},
+                accountTwo: {accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}, bankCurrency: 'USD', bankCountry: 'US'},
             } as unknown as BankAccountList;
             expect(hasPartiallySetupBankAccount(bankAccountList)).toBe(false);
         });
