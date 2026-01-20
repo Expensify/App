@@ -6,6 +6,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import Timing from './libs/actions/Timing';
 import ConfirmModal from './components/ConfirmModal';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
@@ -24,12 +25,11 @@ import usePriorityMode from './hooks/usePriorityChange';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
-import {hasAuthToken} from './libs/actions/Session';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
+import './libs/DeepLinkHandler';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
 import Growl, {growlRef} from './libs/Growl';
@@ -42,7 +42,6 @@ import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribeToPushNotifications';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/registerPaginationConfig';
-import './libs/DeepLinkHandler';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 import {endSpan, startSpan} from './libs/telemetry/activeSpans';
@@ -58,7 +57,6 @@ import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
-import Timing from '@libs/actions/Timing';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -290,7 +288,6 @@ function Expensify() {
                 Report.doneCheckingPublicRoom();
             }
         });
-
 
         return () => {
             appStateChangeListener.current?.remove();

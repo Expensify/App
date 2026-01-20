@@ -1,12 +1,12 @@
 import * as Sentry from '@sentry/react-native';
 import {Platform} from 'react-native';
+import Timing from '@libs/actions/Timing';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {browserProfilingIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import Timing from '@libs/actions/Timing';
 import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
