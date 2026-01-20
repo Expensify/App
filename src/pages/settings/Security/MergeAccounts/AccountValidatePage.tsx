@@ -1,5 +1,5 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
