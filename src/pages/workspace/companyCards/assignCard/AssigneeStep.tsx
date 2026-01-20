@@ -21,7 +21,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {filterGuideAndAccountManager, getIneligibleInvitees, getSoftExclusionsForGuideAndAccountManager, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -56,10 +56,11 @@ function AssigneeStep({route}: AssigneeStepProps) {
         excludedUsers[login] = true;
     }
 
-    const softExclusions = useMemo(
-        () => getSoftExclusionsForGuideAndAccountManager(policy, account?.accountManagerAccountID, personalDetails),
-        [policy, account?.accountManagerAccountID, personalDetails],
-    );
+    const {
+        assignedGuideEmail,
+        accountManagerLogin,
+        exclusions: softExclusions,
+    } = useMemo(() => getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails), [policy, account?.accountManagerAccountID, personalDetails]);
 
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, selectedOptionsForDisplay, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
@@ -182,9 +183,6 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
         sortAlphabetically(membersDetails, 'text', localeCompare);
     }
-
-    const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
-    const accountManagerLogin = account?.accountManagerAccountID ? personalDetails?.[Number(account.accountManagerAccountID)]?.login?.toLowerCase() : undefined;
 
     let assignees = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
     if (debouncedSearchTerm && areOptionsInitialized) {

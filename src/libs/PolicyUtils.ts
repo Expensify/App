@@ -517,6 +517,42 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
 }
 
 /**
+ * Get Guide and Account Manager information including their emails/logins and exclusion record.
+ * Used for filtering Guide/AM from contact lists while allowing manual entry.
+ *
+ * @param policy - The policy to get the assigned guide from
+ * @param accountManagerAccountID - The account manager's account ID from the account object (string from ONYXKEYS.ACCOUNT)
+ * @param personalDetails - Personal details collection to look up account manager login
+ * @returns Object containing extracted emails/logins and exclusions record
+ */
+function getGuideAndAccountManagerInfo(
+    policy: OnyxEntry<Policy>,
+    accountManagerAccountID: string | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): {
+    assignedGuideEmail: string | undefined;
+    accountManagerLogin: string | undefined;
+    exclusions: Record<string, boolean>;
+} {
+    const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
+    const accountManagerLogin = accountManagerAccountID ? personalDetails?.[Number(accountManagerAccountID)]?.login?.toLowerCase() : undefined;
+
+    const exclusions: Record<string, boolean> = {};
+    if (assignedGuideEmail) {
+        exclusions[assignedGuideEmail] = true;
+    }
+    if (accountManagerLogin) {
+        exclusions[accountManagerLogin] = true;
+    }
+
+    return {
+        assignedGuideEmail,
+        accountManagerLogin,
+        exclusions,
+    };
+}
+
+/**
  * Get soft exclusions (Guide/Account Manager) that should be hidden from auto-suggestions
  * but can still be manually entered by the user.
  *
@@ -530,21 +566,7 @@ function getSoftExclusionsForGuideAndAccountManager(
     accountManagerAccountID: string | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ): Record<string, boolean> {
-    const result: Record<string, boolean> = {};
-
-    // Exclude Guide from auto-suggestions (but allow manual entry)
-    const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
-    if (assignedGuideEmail) {
-        result[assignedGuideEmail] = true;
-    }
-
-    // Exclude Account Manager from auto-suggestions (but allow manual entry)
-    const accountManagerLogin = accountManagerAccountID ? personalDetails?.[Number(accountManagerAccountID)]?.login?.toLowerCase() : undefined;
-    if (accountManagerLogin) {
-        result[accountManagerLogin] = true;
-    }
-
-    return result;
+    return getGuideAndAccountManagerInfo(policy, accountManagerAccountID, personalDetails).exclusions;
 }
 
 /**
@@ -1769,6 +1791,7 @@ export {
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
+    getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     filterGuideAndAccountManager,
     getNumericValue,
