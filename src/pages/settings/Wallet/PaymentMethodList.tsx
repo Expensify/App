@@ -258,7 +258,7 @@ function PaymentMethodList({
                         iconHeight: variables.cardIconHeight,
                         isMethodActive: activePaymentMethodID === card.cardID,
                         onPress: () =>
-                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute('0', (card.bank || 'unknown') as never, String(card.cardID), ROUTES.SETTINGS_WALLET)),
+                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(CONST.POLICY.EMPTY_POLICY_ID, (card.bank || 'unknown') as never, String(card.cardID), ROUTES.SETTINGS_WALLET)),
                     });
                     continue;
                 }

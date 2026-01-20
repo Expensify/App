@@ -32,7 +32,7 @@ type WorkspaceCompanyCardEditCardNamePageProps = PlatformStackScreenProps<Settin
 
 function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditCardNamePageProps) {
     const {policyID, cardID, feed} = route.params;
-    const isFromWallet = policyID === '0';
+    const isFromWallet = policyID === CONST.POLICY.EMPTY_POLICY_ID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const defaultValue = customCardNames?.[cardID];

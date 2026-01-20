@@ -45,9 +45,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { Card, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, Session } from '@src/types/onyx';
+import type { CompanyCardFeed, CompanyCardFeedWithDomainID, Session } from '@src/types/onyx';
 import type { BankName } from '@src/types/onyx/Bank';
-import { getEmptyObject } from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import { getExportMenuItem } from './utils';
 
@@ -55,7 +54,7 @@ type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNav
 
 function WorkspaceCompanyCardDetailsPage({ route }: WorkspaceCompanyCardDetailsPageProps) {
     const { policyID, cardID, backTo } = route.params;
-    const isFromWallet = policyID === '0';
+    const isFromWallet = policyID === CONST.POLICY.EMPTY_POLICY_ID;
     const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, { canBeMissing: true });
@@ -76,19 +75,20 @@ function WorkspaceCompanyCardDetailsPage({ route }: WorkspaceCompanyCardDetailsP
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, { canBeMissing: false });
-    const [walletCardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, { canBeMissing: true });
     const [session] = useOnyx(ONYXKEYS.SESSION, { canBeMissing: true });
     const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, { canBeMissing: true });
 
     // Prefer feed-scoped card from WORKSPACE_CARDS_LIST to maintain proper access control
-    // Only use CARD_LIST as fallback if card is being unassigned (has pendingAction: DELETE)
+    // Only use CARD_LIST as fallback if:
+    // 1. Card is being unassigned (has pendingAction: DELETE)
+    // 2. This is a personal card accessed from wallet (isFromWallet is true)
     // This prevents showing cards from other feeds/workspaces via deep links while still
-    // preventing NotHerePage flash during the unassignment flow
+    // preventing NotHerePage flash during the unassignment flow and allowing personal cards to work
     const feedScopedCard = allBankCards?.[cardID];
     const globalCard = cardList?.[cardID];
     const isCardBeingUnassigned = globalCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const card = feedScopedCard ?? (isCardBeingUnassigned ? globalCard : undefined);
+    const card = feedScopedCard ?? ((isFromWallet || isCardBeingUnassigned) ? globalCard : undefined);
 
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];

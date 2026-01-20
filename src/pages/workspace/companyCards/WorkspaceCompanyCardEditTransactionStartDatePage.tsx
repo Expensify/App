@@ -34,7 +34,7 @@ type WorkspaceCompanyCardEditTransactionStartDatePageProps = PlatformStackScreen
 
 function WorkspaceCompanyCardEditTransactionStartDatePage({ route }: WorkspaceCompanyCardEditTransactionStartDatePageProps) {
     const { policyID, cardID } = route.params;
-    const isFromWallet = policyID === '0';
+    const isFromWallet = policyID === CONST.POLICY.EMPTY_POLICY_ID;
     const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
 
