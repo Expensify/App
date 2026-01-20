@@ -98,7 +98,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                 !shouldDisplayLHB && (
                     <NavigationTabBar
                         selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingCameraButton={false}
+                        shouldShowFloatingButtons={false}
                     />
                 )
             }
