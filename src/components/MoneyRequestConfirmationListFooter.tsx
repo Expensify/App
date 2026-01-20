@@ -472,16 +472,13 @@ function MoneyRequestConfirmationListFooter({
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
 
-    const getRightLabelIcon = useCallback(
-        (fieldType: 'amount' | 'merchant' | 'date' | 'category') => {
-            return willFieldBeAutomaticallyFilled(transaction, fieldType) ? icons.Sparkles : undefined;
-        },
-        [transaction, icons.Sparkles],
-    );
+    const getRightLabelIcon = useCallback(() => {
+        return willFieldBeAutomaticallyFilled(transaction, 'category') ? icons.Sparkles : undefined;
+    }, [transaction, icons.Sparkles]);
 
     const getRightLabel = useCallback(
-        (fieldType: 'amount' | 'merchant' | 'date' | 'category', isRequiredField = false) => {
-            if (willFieldBeAutomaticallyFilled(transaction, fieldType)) {
+        (isRequiredField = false) => {
+            if (willFieldBeAutomaticallyFilled(transaction, 'category')) {
                 return translate('common.automatic');
             }
             if (isRequiredField) {
@@ -498,7 +495,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
                     shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !isTimeRequest}
-                    title={isScan && !shouldShowSmartScanFields ? '' : formattedAmount}
+                    title={formattedAmount}
                     description={translate('iou.amount')}
                     interactive={!isReadOnly && !isTimeRequest}
                     onPress={() => {
@@ -732,8 +729,8 @@ function MoneyRequestConfirmationListFooter({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={getRightLabel('category', isCategoryRequired)}
-                    rightLabelIcon={getRightLabelIcon('category')}
+                    rightLabel={getRightLabel(isCategoryRequired)}
+                    rightLabelIcon={getRightLabelIcon()}
                     brickRoadIndicator={shouldDisplayCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayCategoryError ? translate(formError) : ''}
                 />
