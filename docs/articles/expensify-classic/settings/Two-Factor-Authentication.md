@@ -44,7 +44,7 @@ If you receive a message that the code is expired, open your authenticator app t
 
 ## For Domain Admins: Reset Two-Factor Authentication for a member
 
-If a member loses access to their authenticator app or recovery codes, you can reset their 2FA — *but only if*:
+If a member loses access to their authenticator app or recovery codes, you can reset their 2FA if: 
 - They use a company email on your verified domain, **and**
 - You (the Domain Admin) also have 2FA enabled
 
