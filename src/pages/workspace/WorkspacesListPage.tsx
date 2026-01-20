@@ -537,6 +537,7 @@ function WorkspacesListPage() {
             expensifyIcons.Building,
             expensifyIcons.Exit,
             privateSubscription?.type,
+            currentUserPersonalDetails?.accountID,
         ],
     );
 
