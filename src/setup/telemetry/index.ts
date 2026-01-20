@@ -6,6 +6,7 @@ import {browserProfilingIntegration, navigationIntegration, tracingIntegration} 
 import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import Timing from '@libs/actions/Timing';
 import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
@@ -30,4 +31,6 @@ export default function (): void {
         name: CONST.TELEMETRY.SPAN_APP_STARTUP,
         op: CONST.TELEMETRY.SPAN_APP_STARTUP,
     });
+
+    Timing.start(CONST.TELEMETRY.SPAN_APP_STARTUP);
 }

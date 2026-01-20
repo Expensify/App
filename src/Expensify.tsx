@@ -42,6 +42,7 @@ import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribeToPushNotifications';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/registerPaginationConfig';
+import './libs/DeepLinkHandler';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 import {endSpan, startSpan} from './libs/telemetry/activeSpans';
@@ -57,6 +58,7 @@ import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
+import Timing from '@libs/actions/Timing';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -97,7 +99,6 @@ type ExpensifyProps = {
 };
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
-    const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
@@ -113,10 +114,6 @@ function Expensify() {
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
-    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
 
@@ -216,6 +213,7 @@ function Expensify() {
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+        Timing.end(CONST.TELEMETRY.SPAN_APP_STARTUP);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
     }, [setSplashScreenState]);
@@ -288,30 +286,14 @@ function Expensify() {
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
-            if (url) {
-                openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
-            } else {
+            if (!url || isAuthenticated) {
                 Report.doneCheckingPublicRoom();
             }
         });
 
-        // Open chat report from a deep link (only mobile native)
-        linkingChangeListener.current = Linking.addEventListener('url', (state) => {
-            const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
-        });
-        if (CONFIG.IS_HYBRID_APP) {
-            HybridAppModule.onURLListenerAdded();
-        }
 
         return () => {
-            if (appStateChangeListener.current) {
-                appStateChangeListener.current.remove();
-            }
-            if (!linkingChangeListener.current) {
-                return;
-            }
-            linkingChangeListener.current.remove();
+            appStateChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [sessionMetadata?.status]);
