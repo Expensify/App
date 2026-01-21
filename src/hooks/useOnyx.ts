@@ -5,7 +5,6 @@ import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions, UseOnyxResult} from 'react-native-onyx';
 import {SearchContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
-import {isTodoSearch} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
@@ -55,9 +54,9 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     let currentSearchHash: number | undefined;
     let shouldUseLiveData = false;
     if (isOnSearch && isSnapshotCompatibleKey) {
-        const {currentSearchHash: searchContextCurrentSearchHash, currentSearchKey} = use(SearchContext);
+        const {currentSearchHash: searchContextCurrentSearchHash, shouldUseLiveData: contextShouldUseLiveData} = use(SearchContext);
         currentSearchHash = searchContextCurrentSearchHash;
-        shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentSearchKey);
+        shouldUseLiveData = !!contextShouldUseLiveData;
     }
 
     const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
