@@ -369,12 +369,10 @@ function IOURequestStepDistance({
         for (let i = 0; i < length; i++) {
             const key = `waypoint${i}`;
             const waypoint = waypoints[key];
-            if (!waypoint?.keyForList) {
-                continue;
-            }
 
-            items.push(waypoint.keyForList);
-            waypointsByKey[waypoint.keyForList] = {key, waypoint};
+            const keyForList = waypoint?.keyForList ?? Math.random().toString(36).substring(2, 8);
+            items.push(keyForList);
+            waypointsByKey[keyForList] = {key, waypoint};
         }
 
         return {allItems: items, waypointByKeyForList: waypointsByKey};
