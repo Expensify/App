@@ -4,7 +4,6 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {adminAccountIDsSelector, domainNameSelector} from '@src/selectors/Domain';
+import {domainNameSelector} from '@src/selectors/Domain';
 
 type DomainAddMemberProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_MEMBER>;
 
@@ -28,18 +27,11 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
 
     const {domainAccountID} = route.params;
 
-    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
-        selector: adminAccountIDsSelector,
-    });
-
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
     const [email, setEmail] = useState<string | undefined>();
 
     const isEmailInvalid = !!domainName && !!email && !isValidEmail(`${email}@${domainName}`);
-    const isSubmitDisabled = !domainName || !email || !isAdmin;
+    const isSubmitDisabled = !domainName || !email || isEmailInvalid;
 
     const handleSubmit = () => {
         if (isSubmitDisabled) {
@@ -63,7 +55,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}
                 />
 
-                <View style={[styles.flex1, styles.p5]}>
+                <View style={[styles.flex1, styles.ph5, styles.pb3]}>
                     <TextInput
                         accessibilityLabel={`${translate('common.email')}`}
                         label={`${translate('common.email')}`}

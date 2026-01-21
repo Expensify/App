@@ -1,7 +1,6 @@
 import {adminAccountIDsSelector, memberAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
 import Button from '@components/Button';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,13 +25,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
-        selector: adminAccountIDsSelector,
-    });
-
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true});
@@ -42,7 +34,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         selector: memberAccountIDsSelector,
     });
 
-    const renderHeaderButtons = isAdmin ? (
+    const renderHeaderButtons = (
         <Button
             success
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
@@ -51,7 +43,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
             style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
         />
-    ) : null;
+    );
 
     const getCustomRowProps = (accountID: number, email?: string) => ({
         errors: email ? getLatestError(domainErrors?.memberErrors?.[email]?.errors) : (getLatestError(domainErrors?.memberErrors?.[accountID]?.errors) ?? undefined),
