@@ -4996,6 +4996,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     subtitle: 'Expensify Travelを使用して最高の旅行オファーを取得し、すべてのビジネス経費を一箇所で管理します。',
                     ctaText: '予約または管理',
                 },
+                settings: {title: '設定', autoAddTripName: {title: '出張名を自動追加', subtitle: '出張中に作成された経費の説明に、出張名を自動的に追加する'}},
             },
             expensifyCard: {
                 title: 'Expensify Card',

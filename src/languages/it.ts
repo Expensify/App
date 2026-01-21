@@ -5026,6 +5026,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestisci tutte le tue spese aziendali in un unico posto.',
                     ctaText: 'Prenota o gestisci',
                 },
+                settings: {
+                    title: 'Impostazioni',
+                    autoAddTripName: {
+                        title: 'Aggiungi automaticamente i nomi dei viaggi',
+                        subtitle: 'Aggiungi automaticamente i nomi dei viaggi alle descrizioni delle spese quando vengono create durante il viaggio',
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Carta Expensify',

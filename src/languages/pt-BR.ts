@@ -5009,6 +5009,13 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     subtitle: 'Use o Expensify Travel para obter as melhores ofertas de viagem e gerencie todas as suas despesas comerciais em um só lugar.',
                     ctaText: 'Reservar ou gerenciar',
                 },
+                settings: {
+                    title: 'Configurações',
+                    autoAddTripName: {
+                        title: 'Adicionar nomes de viagens automaticamente',
+                        subtitle: 'Adicionar automaticamente nomes de viagem às descrições de despesas criadas durante a viagem',
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Cartão Expensify',

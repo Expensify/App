@@ -5009,6 +5009,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     subtitle: 'Użyj Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzaj wszystkimi wydatkami służbowymi w jednym miejscu.',
                     ctaText: 'Rezerwuj lub zarządzaj',
                 },
+                settings: {
+                    title: 'Ustawienia',
+                    autoAddTripName: {title: 'Automatyczne dodawanie nazw podróży', subtitle: 'Automatycznie dodawaj nazwy podróży do opisów wydatków tworzonych w trakcie podróży'},
+                },
             },
             expensifyCard: {
                 title: 'Karta Expensify',

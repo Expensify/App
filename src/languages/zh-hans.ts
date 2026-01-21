@@ -4919,6 +4919,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理所有商务费用。',
                     ctaText: '预订或管理',
                 },
+                settings: {title: '设置', autoAddTripName: {title: '自动添加行程名称', subtitle: '在差旅期间创建报销时，自动将行程名称添加到报销描述'}},
             },
             expensifyCard: {
                 title: 'Expensify Card',

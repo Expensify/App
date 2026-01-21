@@ -5039,6 +5039,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     subtitle: 'Nutzen Sie Expensify Travel für die besten Reiseangebote und verwalten Sie alle Ihre Geschäftsausgaben an einem Ort.',
                     ctaText: 'Buchen oder verwalten',
                 },
+                settings: {
+                    title: 'Einstellungen',
+                    autoAddTripName: {
+                        title: 'Reisenamen automatisch hinzufügen',
+                        subtitle: 'Reisenamen automatisch zu Ausgabenbeschreibungen hinzufügen, wenn sie während der Reise erstellt werden',
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',

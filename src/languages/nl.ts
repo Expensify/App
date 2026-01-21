@@ -5021,6 +5021,13 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     subtitle: 'Gebruik Expensify Travel om de beste reisaanbiedingen te krijgen en beheer al uw zakelijke uitgaven op één plek.',
                     ctaText: 'Boeken of beheren',
                 },
+                settings: {
+                    title: 'Instellingen',
+                    autoAddTripName: {
+                        title: 'Reisnamen automatisch toevoegen',
+                        subtitle: 'Automatisch reispnamen toevoegen aan onkostbeschrijvingen wanneer ze tijdens een reis worden aangemaakt',
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',
