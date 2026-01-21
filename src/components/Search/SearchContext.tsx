@@ -2,9 +2,10 @@ import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useTodos from '@hooks/useTodos';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +49,7 @@ const defaultSearchContext: SearchContextProps = {
     showSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     currentSearchResults: undefined,
+    shouldUseLiveData: false,
     setLastSearchType: () => {},
     setCurrentSearchHashAndKey: () => {},
     setCurrentSearchQueryJSON: () => {},
@@ -74,13 +76,16 @@ function SearchContextProvider({children}: ChildrenProps) {
     const {todoSearchResultsData} = useTodos();
 
     const currentSearchKey = searchContextData.currentSearchKey;
-    const shouldUseLiveData = currentSearchKey && isTodoSearch(currentSearchKey);
+    const currentSearchHash = searchContextData.currentSearchHash;
+    const {accountID} = useCurrentUserPersonalDetails();
+    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID), [accountID]);
+    const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentSearchHash, suggestedSearches);
 
     // If viewing a to-do search, use live data from useTodos, otherwise return the snapshot data
     // We do this so that we can show the counters for the to-do search results without visiting the specific to-do page, e.g. show `Approve [3]` while viewing the `Submit` to-do search.
     const currentSearchResults = useMemo((): SearchResults | undefined => {
         if (shouldUseLiveData) {
-            const liveData = todoSearchResultsData[currentSearchKey];
+            const liveData = todoSearchResultsData[currentSearchKey as keyof typeof todoSearchResultsData];
             const searchInfo: SearchResultsInfo = {
                 ...(snapshotSearchResults?.search ?? defaultSearchInfo),
                 count: snapshotSearchResults?.search.count ?? liveData.metadata.count,
@@ -253,6 +258,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         () => ({
             ...searchContextData,
             currentSearchResults,
+            shouldUseLiveData,
             removeTransaction,
             setCurrentSearchHashAndKey,
             setCurrentSearchQueryJSON,
@@ -271,6 +277,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         [
             searchContextData,
             currentSearchResults,
+            shouldUseLiveData,
             removeTransaction,
             setCurrentSearchHashAndKey,
             setCurrentSearchQueryJSON,
