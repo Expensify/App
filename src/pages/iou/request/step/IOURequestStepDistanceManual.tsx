@@ -258,6 +258,11 @@ function IOURequestStepDistanceManual({
             return;
         }
 
+        if (iouType === CONST.IOU.TYPE.TRACK && parseFloat(value) === 0) {
+            setFormError(translate('iou.error.invalidDistance'));
+            return;
+        }
+
         navigateToNextPage(value);
     }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam, isBetaEnabled]);
 
