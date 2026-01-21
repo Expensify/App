@@ -6306,6 +6306,14 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     linkedTrackedExpenseReportID,
                     transactionThreadReportID,
                     isLinkedTrackedExpenseReportArchived,
+                    ...(transactionType === CONST.TRANSACTION.TYPE.TIME
+                        ? {
+                              type: transactionType,
+                              count,
+                              rate,
+                              unit,
+                          }
+                        : {}),
                 },
                 chatParams: {
                     reportID: chatReport.reportID,
