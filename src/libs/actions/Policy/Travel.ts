@@ -87,7 +87,6 @@ function setPolicyTravelSettings(policyID: string, settings: Partial<OnyxTypes.W
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    travelSettings: Object.keys(settings).reduce((acc, key) => ({...acc, [key]: undefined}), {}),
                     pendingFields: {
                         travelSettings: null,
                     },
