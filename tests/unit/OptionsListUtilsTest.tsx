@@ -2307,10 +2307,16 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, {}, nvpDismissedProductTraining, loginList, {
                 includeUserToInvite: true,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
             });
 
             // When we call filterAndOrderOptions with a plain text name (not email or phone) without shouldAcceptName
-            const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', COUNTRY_CODE, loginList, {shouldAcceptName: false});
+            const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', COUNTRY_CODE, loginList, {
+                shouldAcceptName: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+            });
 
             // Then userToInvite should be null since plain names are not accepted by default
             expect(filteredOptions?.userToInvite).toBe(null);
@@ -2320,10 +2326,16 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, {}, nvpDismissedProductTraining, loginList, {
                 includeUserToInvite: true,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
             });
 
             // When we call filterAndOrderOptions with a plain text name (not email or phone) with shouldAcceptName
-            const filteredOptions = filterAndOrderOptions(options, 'Jeff', COUNTRY_CODE, loginList, {shouldAcceptName: true});
+            const filteredOptions = filterAndOrderOptions(options, 'Jeff', COUNTRY_CODE, loginList, {
+                shouldAcceptName: true,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+            });
 
             // Then userToInvite should be returned for the plain name
             expect(filteredOptions?.userToInvite?.text).toBe('jeff');
@@ -4039,7 +4051,7 @@ describe('OptionsListUtils', () => {
                 {email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''},
             ];
 
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees);
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
 
             // Should deduplicate by email - user1@example.com should only appear once
             const logins = result.map((r) => r.login);
@@ -4056,7 +4068,7 @@ describe('OptionsListUtils', () => {
                 {email: '', displayName: 'Another Name', avatarUrl: ''},
             ];
 
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees);
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
 
             // Should deduplicate by displayName - Name Only should only appear once
             const logins = result.map((r) => r.login);
@@ -4069,7 +4081,7 @@ describe('OptionsListUtils', () => {
             const attendees: Array<{email: string; displayName: string; avatarUrl: string}> = [];
             const recentAttendees = [{email: '', displayName: 'John Smith', avatarUrl: ''}];
 
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees);
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
 
             // Name-only attendee should have displayName as login
             const johnSmith = result.find((r) => r.login === 'John Smith');
