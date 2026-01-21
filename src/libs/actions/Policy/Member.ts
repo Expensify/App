@@ -859,12 +859,36 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    policyID: string,
+    policy: OnyxEntry<Policy>,
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     policyExpenseChatNotificationPreference?: NotificationPreference,
 ) {
+    if (!policy?.id) {
+        return {
+            optimisticData: [],
+            successData: [],
+            failureData: [],
+            optimisticAnnounceChat: {
+                announceChatData: {
+                    onyxOptimisticData: [],
+                    onyxSuccessData: [],
+                    onyxFailureData: [],
+                },
+                announceChatReportID: '',
+                announceChatReportActionID: '',
+            },
+            membersChats: {
+                onyxOptimisticData: [],
+                onyxSuccessData: [],
+                onyxFailureData: [],
+                reportCreationData: {},
+            },
+            logins: [],
+        };
+    }
+    const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
@@ -893,7 +917,7 @@ function buildAddMembersToWorkspaceOnyxData(
             email,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             role,
-            submitsTo: getDefaultApprover(allPolicies?.[policyKey]),
+            submitsTo: getDefaultApprover(policy),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
@@ -962,14 +986,17 @@ function buildAddMembersToWorkspaceOnyxData(
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
     welcomeNote: string,
-    policyID: string,
+    policy: OnyxEntry<Policy>,
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
+    if (!policy?.id) {
+        return;
+    }
     const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
-        policyID,
+        policy,
         policyMemberAccountIDs,
         role,
         formatPhoneNumber,
@@ -982,7 +1009,7 @@ function addMembersToWorkspace(
         welcomeNote: Parser.replace(welcomeNote, {
             shouldEscapeText: false,
         }),
-        policyID,
+        policyID: policy.id,
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
