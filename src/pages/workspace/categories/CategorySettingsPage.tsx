@@ -299,19 +299,6 @@ function CategorySettingsPage({
                         />
                     </OfflineWithFeedback>
 
-                    {areCommentsRequired && (
-                        <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
-                            <MenuItemWithTopDescription
-                                title={policyCategory?.commentHint}
-                                description={translate('workspace.rules.categoryRules.descriptionHint')}
-                                onPress={() => {
-                                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
-                                }}
-                                shouldShowRightIcon
-                            />
-                        </OfflineWithFeedback>
-                    )}
-
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={Trashcan}
@@ -385,6 +372,16 @@ function CategorySettingsPage({
                                     description={translate('workspace.rules.categoryRules.requireFields')}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.getRoute(policyID, policyCategory.name));
+                                    }}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
+                                <MenuItemWithTopDescription
+                                    title={policyCategory?.commentHint}
+                                    description={translate('workspace.rules.categoryRules.descriptionHint')}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />
