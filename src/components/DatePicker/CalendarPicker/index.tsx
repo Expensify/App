@@ -61,7 +61,7 @@ function CalendarPicker({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const pressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
@@ -69,7 +69,7 @@ function CalendarPicker({
 
     const currentMonthView = currentDateView.getMonth();
     const currentYearView = currentDateView.getFullYear();
-    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView, preferredLocale);
+    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
     const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
     const heightValue = useSharedValue(initialHeight);
 
@@ -105,9 +105,7 @@ function CalendarPicker({
      */
     const onDayPressed = (day: number) => {
         setCurrentDateView((prev) => {
-            // convert to UTC to avoid timezone issues
-            const date = new Date(Date.UTC(prev.getFullYear(), prev.getMonth(), prev.getDate()));
-            const newCurrentDateView = setDate(date, day);
+            const newCurrentDateView = setDate(new Date(prev), day);
             onSelected?.(format(new Date(newCurrentDateView), CONST.DATE.FNS_FORMAT_STRING));
             return newCurrentDateView;
         });
@@ -152,8 +150,8 @@ function CalendarPicker({
         });
     };
 
-    const monthNames = DateUtils.getMonthNames(preferredLocale).map((month) => Str.UCFirst(month));
-    const daysOfWeek = DateUtils.getDaysOfWeek(preferredLocale).map((day) => day.toUpperCase());
+    const monthNames = DateUtils.getMonthNames().map((month) => Str.UCFirst(month));
+    const daysOfWeek = DateUtils.getDaysOfWeek().map((day) => day.toUpperCase());
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
