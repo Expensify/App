@@ -2106,7 +2106,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Voeg een bankrekening toe om betalingen te doen of te ontvangen.',
         addDebitOrCreditCard: 'Debit- of kredietkaart toevoegen',
         assignedCards: 'Toegewezen kaarten',
-        assignedCardsDescription: 'Toegewezen kaarten importeren transacties naar je account.',
+        assignedCardsDescription: 'Transacties van deze kaarten worden automatisch gesynchroniseerd.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: 'We beoordelen je gegevens. Kom over een paar minuten terug!',
         walletActivationFailed: 'Helaas kan je wallet op dit moment niet worden ingeschakeld. Chat alsjeblieft met Concierge voor verdere hulp.',

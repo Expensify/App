@@ -2076,7 +2076,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: '添加银行账户以进行或接收付款。',
         addDebitOrCreditCard: '添加借记卡或信用卡',
         assignedCards: '已分配的卡片',
-        assignedCardsDescription: '已分配的卡会将交易导入到你的账户。',
+        assignedCardsDescription: '这些卡的交易会自动同步。',
         expensifyCard: 'Expensify Card',
         walletActivationPending: '我们正在审核您的信息。请几分钟后再回来查看！',
         walletActivationFailed: '很遗憾，您的钱包目前无法启用。请与 Concierge 聊天以获得更多帮助。',

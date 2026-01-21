@@ -2104,7 +2104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: '支払いや入金を行うために銀行口座を追加してください。',
         addDebitOrCreditCard: 'デビットカードまたはクレジットカードを追加',
         assignedCards: '割り当てられたカード',
-        assignedCardsDescription: '割り当てられたカードは取引をあなたのアカウントに取り込みます。',
+        assignedCardsDescription: 'これらのカードの取引は自動的に同期されます。',
         expensifyCard: 'Expensify Card',
         walletActivationPending: 'お客様の情報を確認しています。数分後にもう一度ご確認ください。',
         walletActivationFailed: '残念ながら、現在はウォレットを有効にできません。詳しいサポートについては、Concierge にチャットでお問い合わせください。',

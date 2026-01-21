@@ -2103,7 +2103,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Adicione uma conta bancária para fazer ou receber pagamentos.',
         addDebitOrCreditCard: 'Adicionar cartão de débito ou crédito',
         assignedCards: 'Cartões atribuídos',
-        assignedCardsDescription: 'Cartões atribuídos importarão transações para sua conta.',
+        assignedCardsDescription: 'As transações desses cartões sincronizam automaticamente.',
         expensifyCard: 'Cartão Expensify',
         walletActivationPending: 'Estamos analisando suas informações. Volte daqui a alguns minutos!',
         walletActivationFailed: 'Infelizmente, sua carteira não pode ser ativada neste momento. Converse com o Concierge para obter mais assistência.',

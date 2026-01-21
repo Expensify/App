@@ -2103,7 +2103,7 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         assignedCards: 'Assigned cards',
-        assignedCardsDescription: 'Assigned cards will import transactions to your account.',
+        assignedCardsDescription: 'Transactions from these cards sync automatically.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",

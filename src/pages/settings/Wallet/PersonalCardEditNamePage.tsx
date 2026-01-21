@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDefaultCardName} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -28,7 +29,12 @@ type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorP
 function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const {cardID} = route.params;
     const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const defaultValue = customCardNames?.[cardID];
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+
+    const card = cardList?.[cardID];
+    const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+    const defaultValue = customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName);
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
