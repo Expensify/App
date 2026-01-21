@@ -138,6 +138,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     // Prevents creating duplicate transaction threads for legacy transactions
     const hasCreatedLegacyThreadRef = useRef(false);
 
+    // Prevents from multiple openReport calls
+    const lastReportIDRef = useRef<string | undefined>(undefined);
+
     // Get transaction from search snapshot if not available in main collections
     const {snapshotTransaction, snapshotViolations} = useMemo(() => {
         if (!snapshot?.data || Object.keys(allReportTransactions).length > 0) {
@@ -159,20 +162,26 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;
+    const isTransactionThreadFake = transactionThreadReportID === CONST.FAKE_REPORT_ID;
 
     useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
-
     useEffect(() => {
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
-            const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
-            createTransactionThreadReport(report, iouAction);
+        if (lastReportIDRef.current === reportIDFromRoute) {
             return;
         }
 
+        if (isTransactionThreadFake && !!oneTransactionID) {
+            const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
+            createTransactionThreadReport(report, iouAction);
+            lastReportIDRef.current = reportIDFromRoute;
+            return;
+        }
+
+        lastReportIDRef.current = reportIDFromRoute;
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportIDFromRoute, transactionThreadReportID]);
+    }, [reportIDFromRoute, isTransactionThreadFake]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
