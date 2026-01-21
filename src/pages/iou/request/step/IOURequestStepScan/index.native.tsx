@@ -295,7 +295,8 @@ function IOURequestStepScan({
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
-            });
+                allBetas,
+                });
         },
         [
             backTo,
@@ -327,6 +328,7 @@ function IOURequestStepScan({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
+            allBetas,
         ],
     );
 

@@ -348,6 +348,7 @@ function IOURequestStepScan({
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
+                        allBetas,
             });
         },
         [
@@ -380,6 +381,7 @@ function IOURequestStepScan({
             transactionViolations,
             introSelected,
             activePolicyID,
+            allBetas,
         ],
     );
 
