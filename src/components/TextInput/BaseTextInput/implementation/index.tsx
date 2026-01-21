@@ -448,7 +448,7 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
-                                accessibilityLabel={accessibilityLabel}
+                                accessibilityLabel={inputProps.accessibilityLabel}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
