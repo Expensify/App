@@ -7091,11 +7091,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         scrollToNewestMessages: 'Faire défiler jusqu’aux derniers messages',
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Voir la pièce jointe',
-        error: 'Erreur',
-        success: 'Succès',
         opensInNewTab: 'Ouvre dans un nouvel onglet',
-        hasItemsToReview: 'A des éléments à examiner',
-        hasActionToTake: 'A des actions à effectuer',
     },
     parentReportAction: {
         deletedReport: 'Note de frais supprimée',

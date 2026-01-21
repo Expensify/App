@@ -7041,11 +7041,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         scrollToNewestMessages: 'Przewiń do najnowszych wiadomości',
         preStyledText: 'Wstępnie sformatowany tekst',
         viewAttachment: 'Wyświetl załącznik',
-        error: 'Błąd',
-        success: 'Sukces',
         opensInNewTab: 'Otwiera w nowej karcie',
-        hasItemsToReview: 'Ma elementy do przejrzenia',
-        hasActionToTake: 'Ma działania do podjęcia',
     },
     parentReportAction: {
         deletedReport: 'Usunięty raport',

@@ -6893,11 +6893,7 @@ ${reportName}
         scrollToNewestMessages: '滚动到最新消息',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
-        error: '错误',
-        success: '成功',
         opensInNewTab: '在新标签页中打开',
-        hasItemsToReview: '有待审核的项目',
-        hasActionToTake: '有待处理的事项',
     },
     parentReportAction: {
         deletedReport: '已删除的报表',

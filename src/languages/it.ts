@@ -7070,11 +7070,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         scrollToNewestMessages: 'Scorri ai messaggi più recenti',
         preStyledText: 'Testo preformattato',
         viewAttachment: 'Visualizza allegato',
-        error: 'Errore',
-        success: 'Successo',
         opensInNewTab: 'Apre in una nuova scheda',
-        hasItemsToReview: 'Ha elementi da rivedere',
-        hasActionToTake: 'Ha azioni da intraprendere',
     },
     parentReportAction: {
         deletedReport: 'Report eliminato',

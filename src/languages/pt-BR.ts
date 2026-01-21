@@ -7043,11 +7043,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         scrollToNewestMessages: 'Rolar até as mensagens mais recentes',
         preStyledText: 'Texto pré-formatado',
         viewAttachment: 'Ver anexo',
-        error: 'Erro',
-        success: 'Sucesso',
         opensInNewTab: 'Abre em uma nova aba',
-        hasItemsToReview: 'Tem itens para revisar',
-        hasActionToTake: 'Tem ações a tomar',
     },
     parentReportAction: {
         deletedReport: 'Relatório excluído',

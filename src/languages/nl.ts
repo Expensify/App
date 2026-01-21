@@ -7055,11 +7055,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         scrollToNewestMessages: 'Scroll naar nieuwste berichten',
         preStyledText: 'Vooraf opgemaakte tekst',
         viewAttachment: 'Bijlage bekijken',
-        error: 'Fout',
-        success: 'Succes',
         opensInNewTab: 'Opent in een nieuw tabblad',
-        hasItemsToReview: 'Heeft items om te bekijken',
-        hasActionToTake: 'Heeft acties te ondernemen',
     },
     parentReportAction: {
         deletedReport: 'Verwijderd rapport',

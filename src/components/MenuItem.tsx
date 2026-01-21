@@ -567,14 +567,7 @@ function MenuItem({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
 
-    const accessibilityLabel = [
-        title ? title.toString() : '',
-        brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? translate('accessibilityHints.hasItemsToReview') : '',
-        brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? translate('accessibilityHints.hasActionToTake') : '',
-        shouldAnnounceOpensNewTab ? translate('accessibilityHints.opensInNewTab') : '',
-    ]
-        .filter(Boolean)
-        .join('. ');
+    const accessibilityLabel = [title ? title.toString() : '', shouldAnnounceOpensNewTab ? translate('accessibilityHints.opensInNewTab') : ''].filter(Boolean).join('. ');
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [

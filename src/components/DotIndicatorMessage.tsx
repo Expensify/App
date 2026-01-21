@@ -118,11 +118,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     return (
         <View style={[styles.dotIndicatorMessage, style]}>
-            <View
-                style={styles.offlineFeedbackErrorDot}
-                accessibilityLabel={isErrorMessage ? translate('accessibilityHints.error') : translate('accessibilityHints.success')}
-                role="img"
-            >
+            <View style={styles.offlineFeedbackErrorDot}>
                 <Icon
                     src={expensifyIcons.DotIndicator}
                     fill={isErrorMessage ? theme.danger : theme.success}

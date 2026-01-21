@@ -7079,11 +7079,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         scrollToNewestMessages: 'Zum neuesten Nachrichtenverlauf scrollen',
         preStyledText: 'Vorformatierter Text',
         viewAttachment: 'Anhang anzeigen',
-        error: 'Fehler',
-        success: 'Erfolg',
         opensInNewTab: 'Öffnet in einem neuen Tab',
-        hasItemsToReview: 'Hat zu überprüfende Elemente',
-        hasActionToTake: 'Hat ausstehende Aktionen',
     },
     parentReportAction: {
         deletedReport: 'Gelöschter Bericht',

@@ -6957,11 +6957,7 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
-        error: 'Error',
-        success: 'Success',
         opensInNewTab: 'Opens in a new tab',
-        hasItemsToReview: 'Has items to review',
-        hasActionToTake: 'Has action to take',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',

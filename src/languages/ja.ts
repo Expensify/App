@@ -7010,11 +7010,7 @@ ${reportName}
         scrollToNewestMessages: '最新のメッセージまでスクロール',
         preStyledText: '事前スタイル設定済みテキスト',
         viewAttachment: '添付ファイルを表示',
-        error: 'エラー',
-        success: '成功',
         opensInNewTab: '新しいタブで開く',
-        hasItemsToReview: '確認が必要な項目があります',
-        hasActionToTake: '対応が必要な項目があります',
     },
     parentReportAction: {
         deletedReport: '削除されたレポート',
