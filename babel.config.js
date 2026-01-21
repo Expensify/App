@@ -177,5 +177,13 @@ module.exports = (api) => {
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
 
+    const isJest = runningIn === 'babel-jest';
+    if (isJest) {
+        return {
+            ...metro,
+            presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: false}]],
+        };
+    }
+
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };
