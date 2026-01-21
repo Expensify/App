@@ -2674,9 +2674,13 @@ describe('OptionsListUtils', () => {
                     isOwnPolicyExpenseChat: false,
                     type: CONST.REPORT.TYPE.IOU,
                     isWaitingOnBankAccount: false,
+                    currency: CONST.CURRENCY.USD,
+                    total: 100,
+                    unheldTotal: 100,
                 };
                 const reportPreviewAction: ReportAction = {
                     ...createRandomReportAction(1),
+                    reportID: report.reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                     childMoneyRequestCount: 1,
                     message: [{type: 'COMMENT', text: ''}],
@@ -2697,6 +2701,7 @@ describe('OptionsListUtils', () => {
                 };
                 const iouAction: ReportAction = {
                     ...createRandomReportAction(2),
+                    reportID: iouReport.reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     message: [{type: 'COMMENT', text: ''}],
                     originalMessage: {
@@ -2705,15 +2710,27 @@ describe('OptionsListUtils', () => {
                     },
                     shouldShow: true,
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [reportPreviewAction.reportActionID]: reportPreviewAction,
                 });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {
                     [iouAction.reportActionID]: iouAction,
                 });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+                
+                const visibleReportActionsData = {
+                    [report.reportID]: {
+                        [reportPreviewAction.reportActionID]: true,
+                    },
+                    [iouReport.reportID]: {
+                        [iouAction.reportActionID]: true,
+                    },
+                };
+                
+                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: visibleReportActionsData, lastAction: reportPreviewAction});
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
                 const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(lastMessage).toBe(expected);

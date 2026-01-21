@@ -1250,7 +1250,9 @@ function getLastVisibleAction(
         }
         return action;
     });
-    const visibleReportActions = reportActionsWithReportID.filter((action): action is ReportAction => isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData));
+    const visibleReportActions = reportActionsWithReportID.filter((action): action is ReportAction =>
+        isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData),
+    );
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return undefined;

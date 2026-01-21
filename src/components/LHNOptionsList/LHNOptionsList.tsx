@@ -28,7 +28,14 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {getLastVisibleAction, getOneTransactionThreadReportID, getOriginalMessage, getReportActionActorAccountID, isInviteOrRemovedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getLastVisibleAction,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportActionActorAccountID,
+    isInviteOrRemovedAction,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -227,8 +234,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
+            // For archived reports, always call getLastMessageTextForReport to get the archive reason message
+            // instead of using lastMessageText from the report
             const lastMessageTextFromReport =
-                item.lastMessageText ??
+                (isReportArchived ? undefined : item.lastMessageText) ??
                 getLastMessageTextForReport({
                     translate,
                     report: item,
@@ -236,7 +245,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     movedFromReport,
                     movedToReport,
                     policy: itemPolicy,
-                    isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
+                    isReportArchived,
                     policyForMovingExpensesID,
                     reportMetadata: itemReportMetadata,
                     visibleReportActionsDataParam: visibleReportActionsData,
