@@ -156,6 +156,7 @@ import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import MultiTag from '@assets/images/multi-tag.svg';
+import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
@@ -225,6 +226,7 @@ import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
 import UserMinus from '@assets/images/user-minus.svg';
 import UserPlus from '@assets/images/user-plus.svg';
+import UserShield from '@assets/images/user-shield.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import VideoSlash from '@assets/images/video-slash.svg';
@@ -317,6 +319,7 @@ const Expensicons = {
     FlagLevelOne,
     FlagLevelTwo,
     FlagLevelThree,
+    Fingerprint,
     Fullscreen,
     Folder,
     Tag,
@@ -473,6 +476,7 @@ const Expensicons = {
     ArrowCircleClockwise,
     LuggageWithLines,
     TreasureChestGreenWithSparkle,
+    UserShield,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

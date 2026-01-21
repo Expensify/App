@@ -8,7 +8,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {putOnHold} from '@libs/actions/IOU';
+import {putOnHold} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -18,13 +18,14 @@ import {compute} from '@libs/Formula';
 import type {FormulaContext} from '@libs/Formula';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
+import Log from '@libs/Log';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/ReportActionsUtils';
-import {buildReportNameFromParticipantNames, computeReportName, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
+import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
@@ -52,6 +53,8 @@ import {
     canRejectReportAction,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
+    createDraftTransactionAndNavigateToParticipantSelector,
+    doesReportBelongToWorkspace,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
@@ -63,6 +66,7 @@ import {
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getHarvestOriginalReportID,
+    getHelpPaneReportType,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
@@ -180,6 +184,18 @@ jest.mock('@libs/Permissions');
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {
+        warn: jest.fn(),
+        info: jest.fn(),
+        alert: jest.fn(),
+        hmmm: jest.fn(),
+        clientLoggingCallback: jest.fn(),
+        serverLoggingCallback: jest.fn(),
+    },
+}));
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
     navigate: jest.fn(),
@@ -204,6 +220,16 @@ const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
 const currentUserAccountID = 5;
+const computeReportName = (
+    report?: Report,
+    reports?: OnyxCollection<Report>,
+    policies?: OnyxCollection<Policy>,
+    transactions?: OnyxCollection<Transaction>,
+    allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    personalDetailsList?: PersonalDetailsList,
+    reportActions?: OnyxCollection<ReportActions>,
+    currentUserID = currentUserAccountID,
+) => computeReportNameOriginal(report, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserID);
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
         accountID: 1,
@@ -2148,9 +2174,7 @@ describe('ReportUtils', () => {
                     };
                     const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
-                    expect(reportName).toBe(
-                        `there was a problem syncing with QuickBooks ("Sync failed"). Please fix the issue in <a href="https://dev.new.expensify.com:8082/workspaces/1/accounting">workspace settings</a>.`,
-                    );
+                    expect(reportName).toBe(`there was a problem syncing with QuickBooks ("Sync failed"). Please fix the issue in workspace settings.`);
                 });
 
                 test('should handle concierge company card connection broken action', () => {
@@ -5833,26 +5857,26 @@ describe('ReportUtils', () => {
 
         it('excludes the current user from the report title', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({count: currentUserAccountID + 2});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID});
             expect(result).not.toContain('CURRENT');
         });
 
         it('limits to a maximum of 5 participants in the title', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({count: 10});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID});
             expect(result.split(',').length).toBeLessThanOrEqual(5);
         });
 
         it('returns full name if only one participant is present (excluding current user)', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({count: 1});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID});
             const {displayName} = fakePersonalDetails[1] ?? {};
             expect(result).toEqual(displayName);
         });
 
         it('returns an empty string if there are no participants or all are excluded', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({start: currentUserAccountID - 1, count: 1});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID});
             expect(result).toEqual('');
         });
 
@@ -5863,7 +5887,7 @@ describe('ReportUtils', () => {
             const fourthUser = fakePersonalDetails[4];
 
             const incompleteDetails = {2: secondUser, 4: fourthUser};
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: incompleteDetails});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: incompleteDetails, currentUserAccountID});
             const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
             const resultNames = result.split(', ').sort();
             expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
@@ -8075,7 +8099,8 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(Number(transactionID)),
                 reportID: parentReport.reportID,
-                amount: 0,
+                created: '',
+                modifiedCreated: '',
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
@@ -8100,7 +8125,8 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(12345),
                 reportID: parentReport.reportID,
-                amount: 0,
+                created: '',
+                modifiedCreated: '',
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
@@ -11044,6 +11070,403 @@ describe('ReportUtils', () => {
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
             expect(reportAction).not.toEqual(dewSubmitFailedAction);
+        });
+    });
+
+    describe('doesReportBelongToWorkspace', () => {
+        const policyID = 'test-policy-123';
+        const conciergeReportID = 'concierge-report-456';
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should return true for concierge chat report when conciergeReportID matches', () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const result = doesReportBelongToWorkspace(conciergeReport, [], policyID, conciergeReportID);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for concierge chat report when conciergeReportID does not match', () => {
+            const conciergeReport: Report = {
+                reportID: 'different-report-id',
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: CONST.POLICY.ID_FAKE,
+            };
+
+            const result = doesReportBelongToWorkspace(conciergeReport, [], policyID, conciergeReportID);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for policy related report with matching policyID', () => {
+            const policyReport: Report = {
+                reportID: 'policy-report-123',
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID,
+            };
+
+            const result = doesReportBelongToWorkspace(policyReport, [], policyID, conciergeReportID);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for DM report with participant in workspace', () => {
+            const dmReport: Report = {
+                reportID: 'dm-report-123',
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: CONST.POLICY.ID_FAKE,
+                participants: {
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const policyMemberAccountIDs = [1, 2];
+
+            const result = doesReportBelongToWorkspace(dmReport, policyMemberAccountIDs, policyID, conciergeReportID);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for DM report with no participants in workspace', () => {
+            const dmReport: Report = {
+                reportID: 'dm-report-123',
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: CONST.POLICY.ID_FAKE,
+                participants: {
+                    3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const policyMemberAccountIDs = [1, 2];
+
+            const result = doesReportBelongToWorkspace(dmReport, policyMemberAccountIDs, policyID, conciergeReportID);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for report with no policyID and no matching participants', () => {
+            const report: Report = {
+                reportID: 'report-123',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const result = doesReportBelongToWorkspace(report, [1, 2], policyID, conciergeReportID);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for invoice report with different policyID in invoiceReceiver', () => {
+            const invoiceReport: Report = {
+                reportID: 'invoice-report-123',
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID: 'different-policy',
+                invoiceReceiver: {
+                    policyID: 'another-different-policy',
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                },
+            };
+
+            const result = doesReportBelongToWorkspace(invoiceReport, [], policyID, conciergeReportID);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for invoice report with matching policyID in invoiceReceiver', () => {
+            const invoiceReport: Report = {
+                reportID: 'invoice-report-123',
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID: 'different-policy',
+                invoiceReceiver: {
+                    policyID,
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                },
+            };
+
+            const result = doesReportBelongToWorkspace(invoiceReport, [], policyID, conciergeReportID);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('getHelpPaneReportType', () => {
+        const conciergeReportID = 'concierge-report-456';
+
+        it('should return undefined for undefined report', () => {
+            const result = getHelpPaneReportType(undefined, conciergeReportID);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return CHAT_CONCIERGE for concierge chat report', () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const result = getHelpPaneReportType(conciergeReport, conciergeReportID);
+            expect(result).toBe(CONST.REPORT.HELP_TYPE.CHAT_CONCIERGE);
+        });
+
+        it('should return chatType for report with chatType', () => {
+            const groupChatReport: Report = {
+                reportID: 'group-chat-123',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+
+            const result = getHelpPaneReportType(groupChatReport, conciergeReportID);
+            expect(result).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+        });
+
+        it('should return EXPENSE_REPORT for expense report type', () => {
+            const expenseReport: Report = {
+                reportID: 'expense-report-123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const result = getHelpPaneReportType(expenseReport, conciergeReportID);
+            expect(result).toBe(CONST.REPORT.HELP_TYPE.EXPENSE_REPORT);
+        });
+
+        it('should return CHAT for chat report type without chatType', () => {
+            const chatReport: Report = {
+                reportID: 'chat-report-123',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const result = getHelpPaneReportType(chatReport, conciergeReportID);
+            expect(result).toBe(CONST.REPORT.HELP_TYPE.CHAT);
+        });
+
+        it('should return IOU for IOU report type', () => {
+            const iouReport: Report = {
+                reportID: 'iou-report-123',
+                type: CONST.REPORT.TYPE.IOU,
+            };
+
+            const result = getHelpPaneReportType(iouReport, conciergeReportID);
+            expect(result).toBe(CONST.REPORT.HELP_TYPE.IOU);
+        });
+
+        it('should return INVOICE for invoice report type', () => {
+            const invoiceReport: Report = {
+                reportID: 'invoice-report-123',
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            const result = getHelpPaneReportType(invoiceReport, conciergeReportID);
+            expect(result).toBe(CONST.REPORT.HELP_TYPE.INVOICE);
+        });
+
+        it('should return TASK for task report type', () => {
+            const taskReport: Report = {
+                reportID: 'task-report-123',
+                type: CONST.REPORT.TYPE.TASK,
+            };
+
+            const result = getHelpPaneReportType(taskReport, conciergeReportID);
+            expect(result).toBe(CONST.REPORT.HELP_TYPE.TASK);
+        });
+
+        it('should return undefined for unknown report type', () => {
+            const unknownReport: Report = {
+                reportID: 'unknown-report-123',
+                type: 'unknown' as Report['type'],
+            };
+
+            const result = getHelpPaneReportType(unknownReport, conciergeReportID);
+            expect(result).toBeUndefined();
+        });
+
+        it('should not return CHAT_CONCIERGE when conciergeReportID does not match', () => {
+            const chatReport: Report = {
+                reportID: 'regular-chat-123',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const result = getHelpPaneReportType(chatReport, conciergeReportID);
+            // This report has type CHAT but is not the concierge report
+            expect(result).toBe(CONST.REPORT.HELP_TYPE.CHAT);
+        });
+    });
+
+    describe('createDraftTransactionAndNavigateToParticipantSelector', () => {
+        describe('when action is CATEGORIZE', () => {
+            beforeEach(async () => {
+                jest.clearAllMocks();
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            });
+
+            it("should navigate to the restricted action page if the active policy's billable actions are restricted", async () => {
+                // Given a transaction and an active policy where billable actions are restricted
+                const transaction = createRandomTransaction(1);
+                const activePolicy: Policy = {
+                    ...createRandomPolicy(100),
+                    ownerAccountID: currentUserAccountID,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 1);
+                // Grace period end is in the past (Unix timestamp in seconds)
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, Math.floor(Date.now() / 1000) - 3600);
+
+                // When we call createDraftTransactionAndNavigateToParticipantSelector with the restricted policy
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy);
+
+                // Then it should navigate to the restricted action page
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
+            });
+
+            it('should navigate to the category step if the active policy is valid and not restricted', async () => {
+                // Given a transaction and a valid, non-restricted active policy
+                const transaction = createRandomTransaction(2);
+                const activePolicy: Policy = {
+                    ...createRandomPolicy(101),
+                    ownerAccountID: currentUserAccountID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+                const policyExpenseReport = {
+                    ...createPolicyExpenseChat(1),
+                    policyID: activePolicy.id,
+                    ownerAccountID: currentUserAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
+
+                // When we call createDraftTransactionAndNavigateToParticipantSelector
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy);
+
+                // Then it should navigate to the category step
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                );
+            });
+
+            it('should navigate to the category step via filteredPolicies when activePolicy is null', async () => {
+                // Given a transaction and no active policy, but one valid policy is available in Onyx
+                const transaction = createRandomTransaction(3);
+                const ownPolicy = {
+                    ...createRandomPolicy(102),
+                    ownerAccountID: currentUserAccountID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+                const policyExpenseReport = {
+                    ...createPolicyExpenseChat(2),
+                    policyID: ownPolicy.id,
+                    ownerAccountID: currentUserAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${2}`, {});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${ownPolicy.id}`, ownPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
+
+                // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '2', CONST.IOU.ACTION.CATEGORIZE, '2', undefined, undefined, undefined);
+
+                // Then it should automatically pick the available policy and navigate to the category step
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                );
+            });
+
+            it('should navigate to the upgrade page when activePolicy is null and no policies are found', async () => {
+                // Given a transaction and no policies in Onyx
+                const transaction = createRandomTransaction(0);
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+                await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, {});
+
+                // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, undefined);
+
+                // Then it should navigate to the upgrade page because no policies were found to categorize with
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CATEGORIZE,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: transaction.transactionID,
+                        reportID: '1',
+                        backTo: '',
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        shouldSubmitExpense: true,
+                    }),
+                );
+            });
+
+            it('should navigate to the upgrade page when activePolicy is null and multiple policies are found', async () => {
+                // Given a transaction and multiple policies in Onyx
+                const transaction = createRandomTransaction(0);
+                const policy1 = {
+                    ...createRandomPolicy(103),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+                const policy2 = {
+                    ...createRandomPolicy(104),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy1.id}`, policy1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy2.id}`, policy2);
+
+                // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, undefined);
+
+                // Then it should navigate to the upgrade page because it's ambiguous which policy to use
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CATEGORIZE,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: transaction.transactionID,
+                        reportID: '1',
+                        backTo: '',
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        shouldSubmitExpense: true,
+                    }),
+                );
+            });
+
+            it('should log a warning when policyExpenseReportID is missing during categorization', async () => {
+                // Given a transaction and an active policy, but no corresponding policy expense report in Onyx
+                const logWarnSpy = jest.spyOn(Log, 'warn');
+                const transaction = createRandomTransaction(4);
+                const activePolicy: Policy = {
+                    ...createRandomPolicy(105),
+                    ownerAccountID: currentUserAccountID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    pendingAction: null,
+                };
+
+                // We don't merge any policy expense report for this policy
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
+
+                // When we call createDraftTransactionAndNavigateToParticipantSelector
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy);
+
+                // Then it should log a warning and not navigate
+                expect(logWarnSpy).toHaveBeenCalledWith('policyExpenseReportID is not valid during expense categorizing');
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
         });
     });
 });

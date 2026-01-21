@@ -489,7 +489,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         merchant: string;
 
         /** The edited transaction amount */
-        modifiedAmount?: number;
+        modifiedAmount?: number | string;
 
         /** The edited attendees list */
         modifiedAttendees?: Attendee[];
@@ -638,6 +638,12 @@ type AdditionalTransactionChanges = {
 
     /** Previous distance before changes */
     distance?: number;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
 };
 
 /** Model of transaction changes  */
