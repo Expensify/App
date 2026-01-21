@@ -40,7 +40,6 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark']);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
