@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
@@ -65,7 +65,6 @@ function AmountTextInput({
 }: AmountTextInputProps) {
     const navigation = useNavigation();
     const {translate} = useLocalize();
-    const accessibilityValue = useMemo(() => ({text: formattedAmount}), [formattedAmount]);
 
     return (
         <TextInput
@@ -88,7 +87,6 @@ function AmountTextInput({
             selection={selection}
             onSelectionChange={onSelectionChange}
             accessibilityLabel={accessibilityLabel ?? translate('iou.amount')}
-            accessibilityValue={accessibilityValue}
             onKeyPress={onKeyPress as (event: TextInputKeyPressEvent) => void}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.
