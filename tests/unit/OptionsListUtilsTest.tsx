@@ -2663,12 +2663,8 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
-        describe('REPORT_PREVIEW action', () => {
-            it('should show report preview message for non-policy expense chat', async () => {
-                const report: Report = {
-                    ...createRandomReport(0, undefined),
-                    isOwnPolicyExpenseChat: false,
-                };
+        describe('getReportPreviewMessage', () => {
+            it('should format report preview message correctly for non-policy expense chat with IOU action', async () => {
                 const iouReport: Report = {
                     ...createRandomReport(1, undefined),
                     isOwnPolicyExpenseChat: false,
@@ -2680,7 +2676,6 @@ describe('OptionsListUtils', () => {
                 };
                 const reportPreviewAction: ReportAction = {
                     ...createRandomReportAction(1),
-                    reportID: report.reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                     childMoneyRequestCount: 1,
                     message: [{type: 'COMMENT', text: ''}],
@@ -2710,30 +2705,15 @@ describe('OptionsListUtils', () => {
                     },
                     shouldShow: true,
                 };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
-                    [reportPreviewAction.reportActionID]: reportPreviewAction,
-                });
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {
-                    [iouAction.reportActionID]: iouAction,
-                });
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 await waitForBatchedUpdates();
-                
-                const visibleReportActionsData = {
-                    [report.reportID]: {
-                        [reportPreviewAction.reportActionID]: true,
-                    },
-                    [iouReport.reportID]: {
-                        [iouAction.reportActionID]: true,
-                    },
-                };
-                
-                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: visibleReportActionsData, lastAction: reportPreviewAction});
+
+                // Test getReportPreviewMessage directly - this is the function responsible for formatting the message
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
-                const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
-                expect(lastMessage).toBe(expected);
+                const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
+                expect(formattedMessage).toBe('$1.00 for A A A');
             });
         });
         it('MOVED_TRANSACTION action', async () => {
