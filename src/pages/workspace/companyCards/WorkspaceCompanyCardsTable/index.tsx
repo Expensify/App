@@ -267,17 +267,18 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
-    const headerButtonsComponent = (showCards || isLoadingPage || isFeedPending) ? (
-        <View style={shouldUseNarrowLayout && styles.mb5}>
-            <WorkspaceCompanyCardsTableHeaderButtons
-                isLoading={isLoadingPage}
-                policyID={policy?.id}
-                feedName={feedName}
-                showTableControls={showTableControls}
-                CardFeedIcon={cardFeedIcon}
-            />
-        </View>
-    ) : undefined;
+    const headerButtonsComponent =
+        showCards || isLoadingPage || isFeedPending ? (
+            <View style={shouldUseNarrowLayout && styles.mb5}>
+                <WorkspaceCompanyCardsTableHeaderButtons
+                    isLoading={isLoadingPage}
+                    policyID={policy?.id}
+                    feedName={feedName}
+                    showTableControls={showTableControls}
+                    CardFeedIcon={cardFeedIcon}
+                />
+            </View>
+        ) : undefined;
 
     return (
         <Table
@@ -291,8 +292,9 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             isItemInFilter={isItemInFilter}
             filters={filterConfig}
             ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
+            ListHeaderComponent={shouldUseNarrowLayout ? headerButtonsComponent : undefined}
         >
-             {!shouldUseNarrowLayout && headerButtonsComponent}
+            {!shouldUseNarrowLayout && headerButtonsComponent}
 
             {(isLoadingPage || isFeedPending || isNoFeed) && (
                 <ScrollView>
