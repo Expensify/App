@@ -3525,7 +3525,11 @@ function getParticipantIcon(accountID: number | undefined, personalDetails: Onyx
  * Gets the policyID of the invoice receiver from a report's invoiceReceiver field.
  */
 function getInvoiceReceiverPolicyID(report: OnyxEntry<Report>): string | undefined {
-    return (report?.invoiceReceiver as {policyID?: string} | undefined)?.policyID;
+    const invoiceReceiver = report?.invoiceReceiver;
+    if (invoiceReceiver && 'policyID' in invoiceReceiver) {
+        return invoiceReceiver.policyID;
+    }
+    return undefined;
 }
 
 /**
@@ -6708,6 +6712,11 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 
     const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
 
+    const totalAmount = report.total !== undefined && !Number.isNaN(report.total) ? Math.abs(report.total) : 0;
+    const nonReimbursableTotal =
+        'nonReimbursableTotal' in report && report.nonReimbursableTotal !== undefined && !Number.isNaN(report.nonReimbursableTotal) ? Math.abs(report.nonReimbursableTotal) : 0;
+    const reimbursableAmount = totalAmount - nonReimbursableTotal;
+
     const result = formula
         // We don't translate because the server response is always in English
         .replaceAll(/\{report:type\}/gi, 'Expense Report')
@@ -6715,6 +6724,7 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         .replaceAll(/\{report:enddate\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
         .replaceAll(/\{report:id\}/gi, getBase62ReportID(Number(report.reportID)))
         .replaceAll(/\{report:total\}/gi, report.total !== undefined && !Number.isNaN(report.total) ? convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
+        .replaceAll(/\{report:reimbursable\}/gi, report.total !== undefined && !Number.isNaN(report.total) ? convertToDisplayString(reimbursableAmount, report.currency).toString() : '')
         .replaceAll(/\{report:currency\}/gi, report.currency ?? '')
         .replaceAll(/\{report:policyname\}/gi, policy?.name ?? '')
         .replaceAll(/\{report:workspacename\}/gi, policy?.name ?? '')
@@ -12971,6 +12981,25 @@ function shouldHideSingleReportField(reportField: PolicyReportField) {
     return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
 }
 
+/**
+ * Get both field values map and fields-by-name map in a single pass
+ */
+function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
+    const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const fieldValues: Record<string, string> = {};
+    const fieldsByName: Record<string, PolicyReportField> = {};
+
+    for (const field of fields) {
+        if (field.name) {
+            const key = field.name.toLowerCase();
+            fieldValues[key] = field.value ?? field.defaultValue ?? '';
+            fieldsByName[key] = field;
+        }
+    }
+
+    return {fieldValues, fieldsByName};
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -13107,6 +13136,7 @@ export {
     getReimbursementQueuedActionMessage,
     getReportDescription,
     getReportFieldKey,
+    getReportFieldMaps,
     getReportIDFromLink,
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
