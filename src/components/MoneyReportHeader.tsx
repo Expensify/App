@@ -1723,7 +1723,13 @@ function MoneyReportHeader({
             {shouldShowMoreContent && (
                 <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
                     <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} nextStepNew={moneyRequestReport?.nextStep} currentUserAccountID={accountID} />}
+                        {showNextStepBar && (
+                            <MoneyReportHeaderStatusBar
+                                nextStep={optimisticNextStep}
+                                nextStepNew={moneyRequestReport?.nextStep}
+                                currentUserAccountID={accountID}
+                            />
+                        )}
                         {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton />}
                         {!!statusBarProps && (
                             <MoneyRequestHeaderStatusBar
