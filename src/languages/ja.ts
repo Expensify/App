@@ -1445,9 +1445,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: '日当経費は他のワークスペースのレポートに移動できません。ワークスペース間で日当レートが異なる可能性があるためです。',
         changeApprover: {
             title: '承認者を変更',
-            subtitle: 'このレポートの承認者を変更する方法を選択してください。',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `すべてのレポートの承認者を恒久的に変更するには、<a href="${workflowSettingLink}">ワークフロー設定</a>から行うこともできます。`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `このレポートの承認者を変更するには、オプションを選択してください。（すべてのレポートに対して恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             actions: {
                 addApprover: '承認者を追加',
@@ -3117,6 +3116,7 @@ ${
         errorMessageInvalidPhone: `かっこやハイフンを使わずに有効な電話番号を入力してください。米国外にいる場合は、国コードを含めて入力してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）。`,
         errorMessageInvalidEmail: '無効なメールアドレス',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} はすでに ${name} のメンバーです`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} はすでに ${name} の管理者です`,
     },
     onfidoStep: {
         acceptTerms: 'Expensifyウォレットの有効化リクエストを続行することにより、あなたは次の内容を読み、理解し、承諾したことを確認します',
@@ -7915,6 +7915,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             resetDomainInfo: `この操作は<strong>永久的</strong>であり、次のデータが削除されます：<br/> <ul><li>会社カードの接続およびそれらのカードからの未報告の経費</li> <li>SAML とグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：関連付けられているメールアドレスを<a href="#">連絡先方法</a>から削除することで、このドメインをドメイン一覧から消去できます。`,
         },
         members: {title: 'メンバー', findMember: 'メンバーを検索'},
+        domainAdmins: 'ドメイン管理者',
     },
     gps: {
         tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',
