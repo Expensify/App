@@ -8,7 +8,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Account, Onboarding} from '@src/types/onyx';
-import type {GuardResult, NavigationGuard} from './types';
+import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 // Screens that are part of the 2FA setup flow
 const ALLOWED_2FA_SCREENS = new Set([
@@ -24,6 +24,7 @@ const ALLOWED_2FA_SCREENS = new Set([
 
 /**
  * Module-level Onyx subscriptions for 2FA-related data
+ * Used as fallback when context data is not provided (e.g., runtime navigation guards)
  */
 let account: OnyxEntry<Account>;
 let onboarding: OnyxEntry<Onboarding>;
@@ -44,15 +45,17 @@ Onyx.connectWithoutView({
 
 /**
  * Checks if user needs to set up 2FA
+ * @param context - Optional guard context with account/onboarding data
  */
-function shouldShow2FASetup(): boolean {
-    // User needs 2FA setup but hasn't completed it yet
-    if (account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) {
+function shouldShow2FASetup(context?: GuardContext): boolean {
+    const accountData = context?.account ?? account;
+    const onboardingData = context?.onboarding ?? onboarding;
+
+    if (accountData?.needsTwoFactorAuthSetup && !accountData?.requiresTwoFactorAuth) {
         return true;
     }
 
-    // User is in the middle of 2FA setup and hasn't completed onboarding
-    if (account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlowSelector(onboarding)) {
+    if (accountData?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlowSelector(onboardingData)) {
         return true;
     }
 
@@ -121,8 +124,8 @@ const TwoFactorAuthGuard: NavigationGuard = {
         return true;
     },
 
-    evaluate(state: NavigationState, action: NavigationAction): GuardResult {
-        if (shouldShow2FASetup()) {
+    evaluate(state: NavigationState, action: NavigationAction, context: GuardContext): GuardResult {
+        if (shouldShow2FASetup(context)) {
             // Already on 2FA page - allow navigation
             if (isCurrentlyOn2FAPage(state)) {
                 Log.info('[TwoFactorAuthGuard] Already on 2FA page, allowing navigation');

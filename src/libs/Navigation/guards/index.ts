@@ -43,11 +43,12 @@ function registerGuard(guard: NavigationGuard): void {
 
 /**
  * Creates a guard context with common computed values
- * Guards access specific Onyx data directly via their own subscriptions
+ * Guards access specific Onyx data directly via their own subscriptions for runtime checks,
  *
- * @returns Guard context with common helper flags
+ * @param overrides - Optional context overrides (e.g., account, onboarding data from hooks)
+ * @returns Guard context with common helper flags and optional Onyx data
  */
-function createGuardContext(): GuardContext {
+function createGuardContext(overrides?: Partial<GuardContext>): GuardContext {
     const isAuthenticated = !!session?.authToken;
     const currentUrl = getCurrentUrl();
     const isLoading = isLoadingApp;
@@ -56,6 +57,7 @@ function createGuardContext(): GuardContext {
         isAuthenticated,
         isLoading,
         currentUrl,
+        ...overrides,
     };
 }
 

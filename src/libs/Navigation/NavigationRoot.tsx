@@ -5,6 +5,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react'
 import {useOnboardingValues} from '@components/OnyxListItemProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import useGuardedNavigationState from '@hooks/useGuardedNavigationState';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -112,6 +113,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const onboardingValues = useOnboardingValues();
     const previousAuthenticated = usePrevious(authenticated);
 
+    const guardedLastVisitedState = useGuardedNavigationState(lastVisitedPath, linkingConfig.config);
+
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
         if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
@@ -119,7 +122,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
             });
 
-            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+            return guardedLastVisitedState;
         }
 
         if (!account || account.isFromPublicDomain) {
@@ -158,7 +161,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
             if (!isSpecificDeepLink) {
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
-                return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+                return guardedLastVisitedState;
             }
         }
 
