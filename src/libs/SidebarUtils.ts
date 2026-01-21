@@ -1035,7 +1035,7 @@ function getOptionData({
                     translate('report.noActivityYet'),
             );
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, visibleReportActionsData) && !isReportArchived) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
             const displayName =
                 (lastMessageTextFromReport.length > 0 &&
                     getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, visibleReportActionsData, lastAction, personalDetails)) ||
