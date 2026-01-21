@@ -249,8 +249,6 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
             key={`${item.cardName}_${index}`}
             item={item}
             policyID={policyID ?? String(CONST.DEFAULT_NUMBER_ID)}
-            feed={feedName}
-            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
             CardFeedIcon={cardFeedIcon}
             isPlaidCardFeed={isDirectCardFeed}
             onAssignCard={onAssignCard}

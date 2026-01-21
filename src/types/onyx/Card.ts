@@ -333,6 +333,11 @@ type CardAssignmentData = {
     /** Errors */
     errors?: OnyxCommon.Errors;
 
+    /**
+     *
+     */
+    errorFields?: OnyxCommon.ErrorFields;
+
     /** Pending action */
     pendingAction?: OnyxCommon.PendingAction;
 };

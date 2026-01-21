@@ -259,10 +259,6 @@ describe('CardFeedErrors Derived Value', () => {
                             feed: cardFeed.feedNameWithDomainID,
                             cardName: card.cardName ?? '',
                             encryptedCardNumber: card.encryptedCardNumber ?? '',
-                            hasFailedCardAssignment: true,
-                            isCardDeleted: false,
-                            isAssigned: false,
-                            assignedCard: undefined,
                         },
                     },
                 };
@@ -590,10 +586,6 @@ describe('CardFeedErrors Derived Value', () => {
                             feed: cardFeed.feedNameWithDomainID,
                             cardName: card.cardName ?? '',
                             encryptedCardNumber: card.encryptedCardNumber ?? '',
-                            hasFailedCardAssignment: true,
-                            isCardDeleted: false,
-                            isAssigned: false,
-                            assignedCard: undefined,
                         },
                     },
                 };
