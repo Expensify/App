@@ -750,9 +750,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
 
-    /** Custom accessibility label for the "Select All" checkbox. Defaults to 'Select all' */
-    selectAllAccessibilityLabel?: string;
-
     /**
      * Callback that should return height of the specific item
      * Only use this if we're handling some non-standard items, most of the time the default value is correct
