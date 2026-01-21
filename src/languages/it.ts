@@ -1447,9 +1447,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Non puoi spostare le spese per diaria su report in altri workspace, perché le tariffe per diaria possono differire tra workspace.',
         changeApprover: {
             title: 'Cambia approvatore',
-            subtitle: "Scegli un'opzione per cambiare l'approvatore di questo report.",
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Puoi anche modificare in modo permanente l'approvatore per tutti i report nelle tue <a href="${workflowSettingLink}">impostazioni del flusso di lavoro</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Scegli un'opzione per modificare l'approvatore di questo report. (Aggiorna le <a href="${workflowSettingLink}">impostazioni dell'area di lavoro</a> per modificare questa impostazione in modo permanente per tutti i report.)`,
             changedApproverMessage: (managerID: number) => `ha cambiato l'approvatore in <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Aggiungi approvatore',
@@ -3127,6 +3126,7 @@ ${
         errorMessageInvalidPhone: `Per favore inserisci un numero di telefono valido senza parentesi o trattini. Se ti trovi fuori dagli Stati Uniti, includi il prefisso del tuo paese (ad es. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email non valido',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} è già un membro di ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} è già un amministratore di ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Continuando con la richiesta di attivare il tuo Expensify Wallet, confermi di aver letto, compreso e accettato',
@@ -7981,6 +7981,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             resetDomainInfo: `Questa azione è <strong>permanente</strong> e i seguenti dati verranno eliminati: <br/> <ul><li>Connessioni alle carte aziendali e tutte le spese non riportate da tali carte</li> <li>Impostazioni SAML e di gruppo</li> </ul> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/>Nota: puoi rimuovere questo dominio dall'elenco dei tuoi domini eliminando l'email associata dalle tue <a href="#">modalità di contatto</a>.`,
         },
         members: {title: 'Membri', findMember: 'Trova membro'},
+        domainAdmins: 'Amministratori di dominio',
     },
     gps: {
         tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
@@ -8021,7 +8022,13 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
             button: 'Scarica l’app',
         },
-        notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per completare"},
+        notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
+        locationServicesRequiredModal: {
+            title: 'È necessario l’accesso alla posizione',
+            confirm: 'Apri impostazioni',
+            prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per avviare il tracciamento della distanza tramite GPS.',
+        },
+        fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
