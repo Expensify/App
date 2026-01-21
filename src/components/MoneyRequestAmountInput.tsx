@@ -258,6 +258,7 @@ function MoneyRequestAmountInput({
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
             onFocus={props.onFocus}
+            accessibilityLabel={`${translate('iou.amount')} (${currency})`}
         />
     );
 }
