@@ -165,6 +165,10 @@ function Expensify() {
 
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK);
 
+        // End the PUBLIC_ROOM_API span if it was started (it's started conditionally in openReportFromDeepLink)
+        // endSpan handles non-existent spans gracefully, so it's safe to call unconditionally
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
+
         setAttemptedToOpenPublicRoom(true);
 
         startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION, {

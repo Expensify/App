@@ -3666,7 +3666,6 @@ function toggleEmojiReaction(
 }
 
 function doneCheckingPublicRoom() {
-    endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
 /** @deprecated This function is deprecated and will be removed soon after migration. Use the accountID from useCurrentUserPersonalDetails hook instead. */

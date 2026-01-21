@@ -181,10 +181,6 @@ class IntlStore {
 
         return loaderPromise()
             .then(() => {
-                if (localeSpan) {
-                    endSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD);
-                }
-
                 this.currentLocale = locale;
                 // Set the default date-fns locale
                 const dateUtilsLocale = this.dateUtilsCache.get(locale);
@@ -194,6 +190,12 @@ class IntlStore {
             })
             .then(() => {
                 setAreTranslationsLoading(false);
+            })
+            .finally(() => {
+                if (!localeSpan) {
+                    return;
+                }
+                endSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD);
             });
     }
 

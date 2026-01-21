@@ -138,7 +138,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         }
 
         setCurrentLocale(locale);
-        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
     }, [areTranslationsLoading]);
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails?.timezone?.selected]);
