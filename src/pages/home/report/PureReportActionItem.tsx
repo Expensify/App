@@ -134,6 +134,7 @@ import {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
+    isActionFromAISource,
     isActionOfType,
     isCardIssuedAction,
     isChronosOOOListAction,
@@ -175,6 +176,7 @@ import {
     getForcedCorporateUpgradeMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    getOriginalReportID,
     getPolicyChangeMessage,
     getRejectedReportMessage,
     getUnreportedTransactionMessage,
@@ -201,6 +203,7 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 import {
     createTransactionThreadReport,
     expandURLPreview,
+    explain,
     resolveActionableMentionConfirmWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
@@ -1262,9 +1265,23 @@ function PureReportActionItem({
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
+            const isAISource = isActionFromAISource(action);
+            const modifiedExpenseMessageText = isAISource ? `${modifiedExpenseMessage}${translate('iou.AskToExplain')}` : modifiedExpenseMessage;
+
             children = (
                 <ReportActionItemBasicMessage>
-                    <RenderHTML html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`} />
+                    <RenderHTML
+                        html={`<comment><muted-text>${modifiedExpenseMessageText}</muted-text></comment>`}
+                        isSelectable={false}
+                        onLinkPress={(_evt, href) => {
+                            if (!href.endsWith('/concierge/explain')) {
+                                return;
+                            }
+
+                            const actionOriginalReportID = getOriginalReportID(reportID, action);
+                            explain(action, actionOriginalReportID, translate, personalDetail?.timezone);
+                        }}
+                    />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
@@ -1272,11 +1289,24 @@ function PureReportActionItem({
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+            const isAISource = isActionFromAISource(action);
 
             if (wasSubmittedViaHarvesting) {
+                const automaticallySubmittedMessageText = isAISource ? `${translate('iou.automaticallySubmitted')}${translate('iou.AskToExplain')}` : translate('iou.automaticallySubmitted');
+
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
+                        <RenderHTML
+                            html={`<comment><muted-text>${automaticallySubmittedMessageText}</muted-text></comment>`}
+                            onLinkPress={(_evt, href) => {
+                                if (!href.endsWith('/concierge/explain')) {
+                                    return;
+                                }
+
+                                const actionOriginalReportID = getOriginalReportID(reportID, action);
+                                explain(action, actionOriginalReportID, translate, personalDetail?.timezone);
+                            }}
+                        />
                     </ReportActionItemBasicMessage>
                 );
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {

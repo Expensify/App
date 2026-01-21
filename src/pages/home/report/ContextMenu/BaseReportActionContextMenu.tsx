@@ -150,6 +150,7 @@ function BaseReportActionContextMenu({
         'Bug',
         'Trashcan',
         'Checkmark',
+        'Concierge',
     ] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -200,7 +201,7 @@ function BaseReportActionContextMenu({
     const [childChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.chatReportID}`, {canBeMissing: true});
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportID = useMemo(
         () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
         [paginatedReportActions, isOffline, childReport, childChatReport],
@@ -407,7 +408,8 @@ function BaseReportActionContextMenu({
                             policyTags,
                             translate,
                             harvestReport,
-                            currentUserAccountID,
+                            currentUserAccountID: currentUserPersonalDetails?.accountID,
+                            currentUserPersonalDetails,
                         };
 
                         if ('renderContent' in contextAction) {
