@@ -33,7 +33,6 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
-import {resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {checkIfFeedConnectionIsBroken, filterPersonalCards, hasPendingExpensifyCardAction} from '@libs/CardUtils';
@@ -190,7 +189,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     };
 
     const signOut = (shouldForceSignout = false) => {
-        if ((!network.isOffline && isTrackingGPS) || shouldForceSignout) {
+        if ((!network.isOffline && !isTrackingGPS) || shouldForceSignout) {
             return signOutAndRedirectToSignIn();
         }
 
@@ -506,9 +505,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     isVisible={shouldShowSignoutConfirmModal}
                     onConfirm={() => {
                         if (isTrackingGPS) {
-                            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME)
-                                .catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error))
-                                .then(resetGPSDraftDetails);
+                            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
+                                console.error('[GPS distance request] Failed to stop location tracking', error),
+                            );
                         }
                         toggleSignoutConfirmModal(false);
                         shouldLogout.current = true;
