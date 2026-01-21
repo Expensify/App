@@ -55,18 +55,17 @@ const navigateTo = (field: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, hash?: st
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) => {
-    let message;
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => key !== CONST.EXPENSE_RULES.FIELDS.MERCHANT && key !== CONST.EXPENSE_RULES.FIELDS.CREATE_REPORT && !!value);
     if (form?.merchantToMatch && hasAtLeastOneUpdate) {
-        message = '';
-    } else if (hasAtLeastOneUpdate) {
-        message = translate('expenseRulesPage.addRule.confirmErrorMerchant');
-    } else if (form?.merchantToMatch) {
-        message = translate('expenseRulesPage.addRule.confirmErrorUpdate');
-    } else {
-        message = translate('expenseRulesPage.addRule.confirmError');
+        return '';
     }
-    return message;
+    if (hasAtLeastOneUpdate) {
+        return translate('expenseRulesPage.addRule.confirmErrorMerchant');
+    }
+    if (form?.merchantToMatch) {
+        return translate('expenseRulesPage.addRule.confirmErrorUpdate');
+    }
+    return translate('expenseRulesPage.addRule.confirmError');
 };
 
 const tagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => {
