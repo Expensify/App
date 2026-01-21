@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {View} from 'react-native';
 
 type AnimatedSubmitButtonProps = {
     // Whether to show the success state
@@ -113,7 +114,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
         <Animated.View style={[containerStyles, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el) => {
+                    ref={(el: View | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
                     exiting={buttonAnimation}

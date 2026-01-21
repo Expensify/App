@@ -1,7 +1,10 @@
 import React from 'react';
+import {SectionList} from 'react-native';
+import Animated from 'react-native-reanimated';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import AnimatedSectionList from './AnimatedSectionList';
 import type {SectionListProps} from './types';
+
+const AnimatedSectionList = Animated.createAnimatedComponent(SectionList);
 
 function BaseSectionList<ItemT, SectionT>({
     addBottomSafeAreaPadding,
