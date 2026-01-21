@@ -45,7 +45,7 @@ import {
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
-import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -741,7 +741,8 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.date')}
                     shouldShowRightIcon={!isReadOnly}
-                    title={formattedCreatedDate}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                     description={translate('common.date')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
