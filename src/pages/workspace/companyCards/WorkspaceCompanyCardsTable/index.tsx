@@ -104,7 +104,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         },
     ];
 
-
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
         : (cardNames?.map((cardName) => {
