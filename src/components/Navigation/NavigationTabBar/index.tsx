@@ -271,7 +271,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         <PressableWithFeedback
                             onPress={navigateToChats}
                             role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={`${translate('common.inbox')}${chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? `. ${translate('accessibilityHints.hasItemsToReview')}` : ''}${chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? `. ${translate('accessibilityHints.hasActionToTake')}` : ''}`}
+                            accessibilityLabel={translate('common.inbox')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                         >
@@ -344,7 +344,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         <PressableWithFeedback
                             onPress={showWorkspaces}
                             role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? `. ${translate('accessibilityHints.hasItemsToReview')}` : ''}${workspacesTabIndicatorStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? `. ${translate('accessibilityHints.hasActionToTake')}` : ''}`}
+                            accessibilityLabel={translate('common.workspacesTabTitle')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                         >
@@ -410,9 +410,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             >
                 <PressableWithFeedback
                     onPress={navigateToChats}
-                    role={CONST.ROLE.TAB}
-                    accessibilityLabel={`${translate('common.inbox')}${chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? `. ${translate('accessibilityHints.hasItemsToReview')}` : ''}${chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? `. ${translate('accessibilityHints.hasActionToTake')}` : ''}`}
-                    accessibilityState={{selected: selectedTab === NAVIGATION_TABS.HOME}}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.inbox')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
@@ -448,9 +447,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     onPress={navigateToSearch}
-                    role={CONST.ROLE.TAB}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.reports')}
-                    accessibilityState={{selected: selectedTab === NAVIGATION_TABS.SEARCH}}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
@@ -481,9 +479,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 </View>
                 <PressableWithFeedback
                     onPress={showWorkspaces}
-                    role={CONST.ROLE.TAB}
-                    accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? `. ${translate('accessibilityHints.hasItemsToReview')}` : ''}${workspacesTabIndicatorStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? `. ${translate('accessibilityHints.hasActionToTake')}` : ''}`}
-                    accessibilityState={{selected: selectedTab === NAVIGATION_TABS.WORKSPACES}}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.workspacesTabTitle')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}

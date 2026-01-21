@@ -53,8 +53,7 @@ function Socials() {
                         e?.preventDefault();
                         openExternalLink(social.link);
                     }}
-                    accessibilityLabel={social.iconURL}
-                    accessibilityRole="link"
+                    accessible={false}
                     style={[styles.mr1, styles.mt1]}
                     shouldUseAutoHitSlop={false}
                 >
