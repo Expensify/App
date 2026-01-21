@@ -266,6 +266,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 success
                 text={translate('iou.unhold')}
                 onPress={() => {
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+
                     changeMoneyRequestHoldStatus(parentReportAction);
                 }}
             />
@@ -388,6 +393,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             onSelected: () => {
                 if (!parentReportAction) {
                     throw new Error('Parent action does not exist');
+                }
+
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
                 }
 
                 changeMoneyRequestHoldStatus(parentReportAction);
