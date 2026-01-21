@@ -19,6 +19,7 @@ import CONST from './CONST';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
+import useNetwork from './hooks/useNetwork';
 import useOnyx from './hooks/useOnyx';
 import usePriorityMode from './hooks/usePriorityChange';
 import {confirmReadyToOpenApp, openApp, updateLastRoute} from './libs/actions/App';
@@ -121,6 +122,7 @@ function Expensify() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const {isOffline} = useNetwork();
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
 
@@ -371,7 +373,7 @@ function Expensify() {
     }, [account?.delegatedAccess?.delegate, account?.delegatedAccess?.delegators, account?.primaryLogin, hasLoadedApp, isLoadingApp, session?.accountID, session?.email]);
 
     useEffect(() => {
-        if (hasHandledMissingIsLoadingAppRef.current || !isOnyxMigrated || !hasLoadedApp || isLoadingApp !== undefined) {
+        if (hasHandledMissingIsLoadingAppRef.current || !isOnyxMigrated || !hasLoadedApp || isLoadingApp !== undefined || isOffline) {
             return;
         }
         hasHandledMissingIsLoadingAppRef.current = true;
@@ -381,7 +383,7 @@ function Expensify() {
         });
         confirmReadyToOpenApp();
         openApp();
-    }, [hasLoadedApp, isLoadingApp, isOnyxMigrated, session?.accountID]);
+    }, [hasLoadedApp, isLoadingApp, isOffline, isOnyxMigrated, session?.accountID]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
