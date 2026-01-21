@@ -44,7 +44,6 @@ import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
-import EnableBiometricsErrorPage from '@pages/ErrorPage/EnableBiometricsErrorPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
@@ -614,11 +613,6 @@ function AuthScreens() {
                     name={SCREENS.NOT_FOUND}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={NotFoundPage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.ENABLE_BIOMETRICS_ERROR_PAGE}
-                    options={rootNavigatorScreenOptions.fullScreen}
-                    component={EnableBiometricsErrorPage}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}

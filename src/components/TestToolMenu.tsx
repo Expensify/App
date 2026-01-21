@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
@@ -16,8 +16,6 @@ import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import EnableBiometricsModal from './EnableBiometricsModal';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
@@ -43,10 +41,6 @@ function TestToolMenu() {
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
-    // This should be replaced with actual logic to check if biometrics are registered just like the authenticated status above
-    const [isRegistered, setRegistered] = useState(false);
-
-    const [showBiometricsModal, setShowBiometricsModal] = useState(false);
 
     // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
     const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: false});

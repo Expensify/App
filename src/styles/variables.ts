@@ -385,11 +385,6 @@ export default {
     searchChatReportPreviewHeight: 434,
     searchChatStandardItemHeight: 97,
 
-    // Biometrics related  variables
-    errorPageBiometricsImageHeight: 165,
-    errorPageBiometricsImageWidth: 254,
-    softPromptSmartscanSize: 204,
-
     // Uber employee invite button width
     uberEmployeeInviteButtonWidth: 62,
     uberEmptyListIconWidth: 190,
