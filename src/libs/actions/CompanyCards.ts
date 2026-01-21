@@ -478,6 +478,7 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
         ],
     };
 
+
     const parameters = {
         cardID: Number(cardID),
     };
