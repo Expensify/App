@@ -871,7 +871,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     listHeaderContent?: React.JSX.Element | null;
 
     /** By default, when `listHeaderContent` is passed, the section title will not be rendered. This flag allows the section title to still be rendered in certain cases. */
-    shouldShowSectionTitleEvenWithListHeaderContent?: boolean;
+    showSectionTitleWithListHeaderContent?: boolean;
 
     /** Custom content to display in the footer */
     footerContent?: ReactNode;

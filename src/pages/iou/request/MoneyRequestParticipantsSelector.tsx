@@ -580,7 +580,7 @@ function MoneyRequestParticipantsSelector({
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
                 listHeaderContent={importContactsButtonComponent}
-                shouldShowSectionTitleEvenWithListHeaderContent
+                showSectionTitleWithListHeaderContent
                 headerMessage={header}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
