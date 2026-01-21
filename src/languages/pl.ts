@@ -501,7 +501,7 @@ const translations: TranslationDeepObject<typeof en> = {
         role: 'Rola',
         currency: 'Waluta',
         groupCurrency: 'Waluta grupy',
-        rate: 'Oceń',
+        rate: 'Stawka',
         emptyLHN: {
             title: 'Juhu! Wszystko nadrobione.',
             subtitleText1: 'Znajdź czat za pomocą',
