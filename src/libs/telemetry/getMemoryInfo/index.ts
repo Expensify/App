@@ -29,7 +29,7 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
                     totalMemoryBytes = deviceMemoryGB * BYTES_PER_GB;
                 }
             } catch (error) {
-                Log.hmmm('[getMemoryInfo] Error accessing deviceMemory', {error});
+                // Gracefully degrade - deviceMemory requires HTTPS and is Chromium-only
             }
         }
 
@@ -72,8 +72,7 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
             platform: Platform.OS,
         };
 
-        const totalOrMax = memoryInfo.maxMemoryBytes ?? memoryInfo.totalMemoryBytes;
-        const freeMemoryMB = totalOrMax && memoryInfo.usedMemoryBytes ? Math.round((totalOrMax - memoryInfo.usedMemoryBytes) / BYTES_PER_MB) : null;
+        const freeMemoryMB = memoryInfo.totalMemoryBytes && memoryInfo.usedMemoryBytes ? Math.round((memoryInfo.totalMemoryBytes - memoryInfo.usedMemoryBytes) / BYTES_PER_MB) : null;
         const usedMemoryMB = memoryInfo.usedMemoryBytes ? Math.round(memoryInfo.usedMemoryBytes / BYTES_PER_MB) : null;
 
         Log.info(`[getMemoryInfo] Memory check: ${usedMemoryMB ?? '?'}MB used / ${freeMemoryMB ?? '?'}MB free`, true, {

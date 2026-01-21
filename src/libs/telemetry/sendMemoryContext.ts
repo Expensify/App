@@ -14,8 +14,7 @@ let memoryTrackingListenerCleanup: (() => void) | undefined;
 function sendMemoryContext() {
     getMemoryInfo()
         .then((memoryInfo) => {
-            const totalOrMax = memoryInfo.maxMemoryBytes ?? memoryInfo.totalMemoryBytes;
-            const freeMemoryMB = totalOrMax && memoryInfo.usedMemoryBytes ? Math.round((totalOrMax - memoryInfo.usedMemoryBytes) / (1024 * 1024)) : null;
+            const freeMemoryMB = memoryInfo.totalMemoryBytes && memoryInfo.usedMemoryBytes ? Math.round((memoryInfo.totalMemoryBytes - memoryInfo.usedMemoryBytes) / (1024 * 1024)) : null;
             const usedMemoryMB = memoryInfo.usedMemoryBytes ? Math.round(memoryInfo.usedMemoryBytes / (1024 * 1024)) : null;
 
             let logLevel: Sentry.SeverityLevel = 'info';
