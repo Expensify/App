@@ -3,6 +3,7 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
@@ -484,6 +485,7 @@ function AuthScreens() {
     return (
         <ComposeProviders
             components={[
+                CurrencyListContextProvider,
                 OptionsListContextProvider,
                 SidebarOrderedReportsContextProvider,
                 SearchContextProvider,
