@@ -704,7 +704,7 @@ function restoreDelegateSession(authenticateResponse: Response) {
         NetworkStore.setIsAuthenticating(false);
 
         confirmReadyToOpenApp();
-        openApp().then(() => {});
+        openApp();
     });
 }
 
