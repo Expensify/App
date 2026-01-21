@@ -85,7 +85,6 @@ function IOURequestStepParticipants({
         canBeMissing: true,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const transactions = useMemo(() => {

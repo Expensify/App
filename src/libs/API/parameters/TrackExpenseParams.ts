@@ -34,7 +34,6 @@ type TrackExpenseParams = {
     waypoints?: string;
     actionableWhisperReportActionID?: string;
     customUnitRateID?: string;
-    policyID?: string;
     description?: string;
     distance?: number;
     isDistance?: boolean;
