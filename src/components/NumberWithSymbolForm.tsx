@@ -248,7 +248,7 @@ function NumberWithSymbolForm({
             });
             onInputChange?.(strippedNumber);
         },
-        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative],
+        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative, allowNegativeInput],
     );
 
     /**
@@ -314,14 +314,14 @@ function NumberWithSymbolForm({
                 if (currentNumber.length > 0) {
                     const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
                     const newNumber = `${currentNumber.substring(0, selectionStart)}${currentNumber.substring(selection.end)}`;
-                    setNewNumber(addLeadingZero(newNumber));
+                    setNewNumber(addLeadingZero(newNumber, allowNegativeInput));
                 }
                 return;
             }
-            const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`);
+            const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`, allowNegativeInput);
             setNewNumber(newNumber);
         },
-        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber],
+        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber, allowNegativeInput],
     );
 
     /**
