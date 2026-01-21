@@ -1,39 +1,38 @@
 import {Platform} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import Log from '@libs/Log';
+import type {MemoryInfo} from './types';
 
 const BYTES_PER_MB = 1024 * 1024;
 
-type MemoryInfo = {
-    usedMemoryBytes: number | null;
-    totalMemoryBytes: number | null;
-    maxMemoryBytes: number | null;
-    usagePercentage: number | null;
-    platform: string;
+const normalizeMemoryValue = (value: number | null | undefined): number | null => {
+    if (value === null || value === undefined || value < 0) {
+        return null;
+    }
+    return value;
 };
 
-/**
- * Gets memory usage information for telemetry
- * Used by both Sentry tracking and troubleshooting tools
- * Returns raw byte values - use formatBytes() from NumberUtils for display formatting
- */
 const getMemoryInfo = async (): Promise<MemoryInfo> => {
     try {
-        // getTotalMemory has a sync version - use it for performance
-        const totalMemoryBytes = DeviceInfo.getTotalMemorySync?.() ?? null;
+        const totalMemoryBytesRaw = DeviceInfo.getTotalMemorySync?.() ?? null;
+        const totalMemoryBytes = normalizeMemoryValue(totalMemoryBytesRaw);
 
         const [usedMemory, maxMemory] = await Promise.allSettled([DeviceInfo.getUsedMemory(), Platform.OS === 'android' ? DeviceInfo.getMaxMemory() : Promise.resolve(null)]);
 
-        const usedMemoryBytes = usedMemory.status === 'fulfilled' ? usedMemory.value : null;
-        const maxMemoryBytes = maxMemory.status === 'fulfilled' ? maxMemory.value : null;
+        const usedMemoryBytesRaw = usedMemory.status === 'fulfilled' ? usedMemory.value : null;
+        const usedMemoryBytes = normalizeMemoryValue(usedMemoryBytesRaw);
 
-        const memoryInfo = {
+        const maxMemoryBytesRaw = maxMemory.status === 'fulfilled' ? maxMemory.value : null;
+        const maxMemoryBytes = normalizeMemoryValue(maxMemoryBytesRaw);
+
+        const memoryInfo: MemoryInfo = {
             usedMemoryBytes,
             totalMemoryBytes,
             maxMemoryBytes,
-            usagePercentage: usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0 
-            ? parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(2))
-            : null,
+            usagePercentage:
+              usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0 
+                ? parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(2))
+                : null,
             platform: Platform.OS,
         };
 
