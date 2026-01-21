@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {Gallery} from '@components/Icon/Expensicons';
+import {GalleryPlus} from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import Text from '@components/Text';
@@ -608,7 +608,7 @@ function IOURequestStepDistanceOdometer({
                                 }
                             }}
                             style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                                StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
                                 styles.overflowHidden,
                                 StyleUtils.getBackgroundColorStyle(theme.border),
@@ -619,7 +619,7 @@ function IOURequestStepDistanceOdometer({
                                 shouldUseThumbnailImage
                                 thumbnailContainerStyles={styles.bgTransparent}
                                 isAuthTokenRequired
-                                fallbackIcon={Gallery}
+                                fallbackIcon={GalleryPlus}
                                 fallbackIconSize={20}
                                 fallbackIconColor={theme.icon}
                                 iconSize="x-small"
@@ -653,7 +653,7 @@ function IOURequestStepDistanceOdometer({
                                 }
                             }}
                             style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                                StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
                                 styles.overflowHidden,
                                 StyleUtils.getBackgroundColorStyle(theme.border),
@@ -664,7 +664,7 @@ function IOURequestStepDistanceOdometer({
                                 shouldUseThumbnailImage
                                 thumbnailContainerStyles={styles.bgTransparent}
                                 isAuthTokenRequired
-                                fallbackIcon={Gallery}
+                                fallbackIcon={GalleryPlus}
                                 fallbackIconSize={20}
                                 fallbackIconColor={theme.icon}
                                 iconSize="x-small"

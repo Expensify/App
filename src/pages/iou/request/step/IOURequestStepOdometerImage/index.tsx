@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
@@ -37,9 +38,12 @@ function IOURequestStepOdometerImage({
     const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptUpload']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
     const isTransactionDraft = shouldUseTransactionDraft(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST);
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const title = readingType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
-    const message = readingType === 'start' ? translate('distance.odometer.startMessage') : translate('distance.odometer.endMessage');
+    const message = readingType === 'start' ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
 
     const navigateBack = useCallback(() => {
         Navigation.goBack();
@@ -104,6 +108,27 @@ function IOURequestStepOdometerImage({
         </View>
     );
 
+    const mobileUploadView = () => (
+        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <Text style={[styles.textFileUpload, styles.mb2]}>{message}</Text>
+            <AttachmentPicker>
+                {({openPicker}) => (
+                    <Button
+                        success
+                        text={translate('common.chooseFile')}
+                        accessibilityLabel={translate('common.chooseFile')}
+                        style={[styles.p5, styles.mt4]}
+                        onPress={() => {
+                            openPicker({
+                                onPicked: (data) => validateFiles(data),
+                            });
+                        }}
+                    />
+                )}
+            </AttachmentPicker>
+        </View>
+    );
+
     return (
         <StepScreenDragAndDropWrapper
             headerTitle={title}
@@ -112,41 +137,20 @@ function IOURequestStepOdometerImage({
             testID="IOURequestStepOdometerImage"
         >
             {(isDraggingOverWrapper) => (
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, !isMobile() && styles.chooseFilesView(isSmallScreenWidth)]}>
+                    <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileUploadView() : desktopUploadView())}
+                    </View>
+                    <DragAndDropConsumer onDrop={handleDrop}>
+                        <DropZoneUI
+                            icon={lazyIcons.ReceiptScan}
+                            dropStyles={styles.receiptDropOverlay(true)}
+                            dropTitle={title}
+                            dropTextStyles={styles.receiptDropText}
+                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
+                        />
+                    </DragAndDropConsumer>
                     {ErrorModal}
-                    {isMobile() ? (
-                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <Text style={[styles.textFileUpload, styles.mb2]}>{message}</Text>
-                            <AttachmentPicker>
-                                {({openPicker}) => (
-                                    <Button
-                                        success
-                                        text={translate('common.chooseFile')}
-                                        accessibilityLabel={translate('common.chooseFile')}
-                                        style={[styles.p5, styles.mt4]}
-                                        onPress={() => {
-                                            openPicker({
-                                                onPicked: (data) => validateFiles(data),
-                                            });
-                                        }}
-                                    />
-                                )}
-                            </AttachmentPicker>
-                        </View>
-                    ) : (
-                        <>
-                            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>{!(isDraggingOver ?? isDraggingOverWrapper) && desktopUploadView()}</View>
-                            <DragAndDropConsumer onDrop={handleDrop}>
-                                <DropZoneUI
-                                    icon={lazyIcons.ReceiptScan}
-                                    dropStyles={styles.receiptDropOverlay(true)}
-                                    dropTitle={translate('receipt.upload')}
-                                    dropTextStyles={styles.receiptDropText}
-                                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                                />
-                            </DragAndDropConsumer>
-                        </>
-                    )}
                 </View>
             )}
         </StepScreenDragAndDropWrapper>
