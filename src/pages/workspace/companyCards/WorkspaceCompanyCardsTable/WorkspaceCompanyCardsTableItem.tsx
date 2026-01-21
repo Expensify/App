@@ -20,45 +20,21 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, PersonalDetails} from '@src/types/onyx';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Card, CompanyCardFeed} from '@src/types/onyx';
+import type {CardAssignmentData} from '@src/types/onyx/Card';
 
-type WorkspaceCompanyCardTableItemData = {
-    /**
-     * The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234").
-     */
-    cardName: string;
-
-    /**
-     * The card identifier sent to backend.
-     * For direct feeds (Plaid/OAuth): equals cardName
-     * For commercial feeds (Visa/Mastercard/Amex): encrypted value
-     */
-    encryptedCardNumber: string;
-
-    /** User-defined name for the card (e.g., "John's card") */
-    customCardName?: string;
-
-    /** Cardholder personal details */
-    cardholder?: PersonalDetails | null;
-
-    /** Assigned card */
-    assignedCard: Card | undefined;
-
-    /** Failed company card assignment */
-    hasFailedCardAssignment: boolean;
-
-    /** Errors */
-    errors?: Errors;
-
-    /** Pending action */
-    pendingAction?: PendingAction;
-
+type WorkspaceCompanyCardTableItemData = CardAssignmentData & {
     /** Whether the card is deleted */
     isCardDeleted: boolean;
 
     /** Whether the card is assigned */
     isAssigned: boolean;
+
+    /** Assigned card */
+    assignedCard?: Card;
+
+    /** On dismiss error callback */
+    onDismissError?: () => void;
 };
 
 type WorkspaceCompanyCardTableItemProps = {
