@@ -7,6 +7,8 @@ import {View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import Footer from '@components/SelectionList/components/Footer';
 import TextInput from '@components/SelectionList/components/TextInput';
+import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
+import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
 import type {ButtonOrCheckBoxRoles} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -23,8 +25,6 @@ import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SectionHeader, SectionListItem, SelectionListWithSectionsProps} from './types';
-import useSelectedItemFocusSync from '../hooks/useSelectedItemFocusSync';
-import useSearchFocusSync from '../hooks/useSearchFocusSync';
 
 function getItemType<TItem extends ListItem>(item: FlattenedItem<TItem>): 'header' | 'row' {
     return item?.type ?? 'row';

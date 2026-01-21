@@ -177,7 +177,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
     };
 
-
 type SelectionListStyle = {
     /** Styles for the list */
     listStyle?: StyleProp<ViewStyle>;
@@ -197,8 +196,8 @@ type SelectionListStyle = {
     /** Styles for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
 
-        /** Styles for the section titles */
-        sectionTitleStyles?: StyleProp<TextStyle>;
+    /** Styles for the section titles */
+    sectionTitleStyles?: StyleProp<TextStyle>;
 };
 
 type TextInputOptions = {

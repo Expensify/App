@@ -1,5 +1,5 @@
 import {useEffect, useMemo} from 'react';
-import type {ListItem} from '../ListItem/types';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 
 type UseSelectedItemFocusSyncParams<TItem extends ListItem> = {
     /** Array of items to search in */
@@ -33,10 +33,7 @@ function useSelectedItemFocusSync<TItem extends ListItem>({
     searchValue,
     setFocusedIndex,
 }: UseSelectedItemFocusSyncParams<TItem>) {
-    const selectedItemIndex = useMemo(
-        () => (initiallyFocusedItemKey ? items.findIndex(isItemSelected) : -1),
-        [items, initiallyFocusedItemKey, isItemSelected],
-    );
+    const selectedItemIndex = useMemo(() => (initiallyFocusedItemKey ? items.findIndex(isItemSelected) : -1), [items, initiallyFocusedItemKey, isItemSelected]);
 
     useEffect(() => {
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || searchValue) {

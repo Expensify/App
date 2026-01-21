@@ -24,7 +24,8 @@ type Tax = {
 };
 
 type TaxSection = {
-    title?: string;
+    title: string | undefined;
+    shouldShow: boolean;
     data: TaxRatesOption[];
 };
 
@@ -92,6 +93,8 @@ function getTaxRatesSection({
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
         policyRatesSections.push({
             // "Selected" section
+            title: '',
+            shouldShow: false,
             data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
         });
 
@@ -106,6 +109,8 @@ function getTaxRatesSection({
 
         policyRatesSections.push({
             // "Search" section
+            title: '',
+            shouldShow: true,
             data: getTaxRatesOptions(taxesForSearch),
         });
 
@@ -116,6 +121,7 @@ function getTaxRatesSection({
         policyRatesSections.push({
             // "All" section when items amount less than the threshold
             title: '',
+            shouldShow: false,
             data: getTaxRatesOptions([...selectedTaxRateWithDisabledState, ...enabledTaxRatesWithoutSelectedOptions]),
         });
 
@@ -125,12 +131,16 @@ function getTaxRatesSection({
     if (selectedOptions.length > 0) {
         policyRatesSections.push({
             // "Selected" section
+            title: '',
+            shouldShow: true,
             data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
         });
     }
 
     policyRatesSections.push({
         // "All" section when number of items are more than the threshold
+        title: '',
+        shouldShow: true,
         data: getTaxRatesOptions(enabledTaxRatesWithoutSelectedOptions),
     });
 

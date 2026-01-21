@@ -22,10 +22,10 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
 import TextInput from './components/TextInput';
-import ListItemRenderer from './ListItem/ListItemRenderer';
-import type {ButtonOrCheckBoxRoles, DataDetailsType, ListItem, SelectionListProps} from './types';
 import useSearchFocusSync from './hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
+import ListItemRenderer from './ListItem/ListItemRenderer';
+import type {ButtonOrCheckBoxRoles, DataDetailsType, ListItem, SelectionListProps} from './types';
 
 const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
