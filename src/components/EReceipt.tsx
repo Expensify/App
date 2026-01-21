@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useEReceipt from '@hooks/useEReceipt';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -8,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {filterPersonalCards, getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
-import {convertToDisplayString, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -40,6 +41,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyList();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark']);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});

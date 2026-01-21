@@ -289,12 +289,12 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 }
 
 function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
-    const selectedPersonalDetails = accountIDs.map((id) => personalDetails?.[id]);
-
-    return selectedPersonalDetails
-        .map((personalDetail) => {
+    return accountIDs
+        .map((id) => {
+            const personalDetail = personalDetails?.[id];
             if (!personalDetail) {
-                return '';
+                // Name-only attendees are stored by displayName, not accountID
+                return id;
             }
 
             return createDisplayName(personalDetail.login ?? '', personalDetail, formatPhoneNumber);
@@ -350,10 +350,7 @@ function getFilterDisplayTitle(
             return translate('search.filters.amount.equalTo', {amount: convertToDisplayStringWithoutCurrency(Number(equalTo))});
         }
         if (lessThan && greaterThan) {
-            return translate('search.filters.amount.between', {
-                lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
-                greaterThan: convertToDisplayStringWithoutCurrency(Number(greaterThan)),
-            });
+            return translate('search.filters.amount.between', convertToDisplayStringWithoutCurrency(Number(greaterThan)), convertToDisplayStringWithoutCurrency(Number(lessThan)));
         }
         if (lessThan) {
             return translate('search.filters.amount.lessThan', {amount: convertToDisplayStringWithoutCurrency(Number(lessThan))});

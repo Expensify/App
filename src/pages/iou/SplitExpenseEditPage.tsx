@@ -102,7 +102,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentPolicy);
+    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy);
 
     const isCategoryRequired = !!currentPolicy?.requiresCategory;
     const reportName = computeReportName(currentReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);

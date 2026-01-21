@@ -71,56 +71,40 @@ function WorkspaceReportFieldsPage({
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const filteredPolicyFieldList = useMemo(() => {
-        if (!policy?.fieldList) {
-            return {};
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
-    }, [policy?.fieldList]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
 
-    const onDisabledOrganizeSwitchPress = useCallback(() => {
+    const onDisabledOrganizeSwitchPress = () => {
         if (!hasAccountingConnections) {
             return;
         }
         setIsOrganizeWarningModalOpen(true);
-    }, [hasAccountingConnections]);
+    };
 
-    const fetchReportFields = useCallback(() => {
+    const {isOffline} = useNetwork({onReconnect: () => openPolicyReportFieldsPage(policyID)});
+
+    useEffect(() => {
         openPolicyReportFieldsPage(policyID);
     }, [policyID]);
 
-    const {isOffline} = useNetwork({onReconnect: fetchReportFields});
+    const reportFieldsSections: ReportFieldForList[] = policy?.fieldList
+        ? Object.entries(policy.fieldList)
+              .filter(([, value]) => value.fieldID !== 'text_title')
+              .map(([, reportField]) => ({
+                  text: reportField.name,
+                  keyForList: String(reportField.fieldID),
+                  fieldID: reportField.fieldID,
+                  pendingAction: reportField.pendingAction,
+                  isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                  rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
+              }))
+              .sort((a, b) => localeCompare(a.text, b.text))
+        : [];
 
-    useEffect(() => {
-        fetchReportFields();
-    }, [fetchReportFields]);
-
-    const reportFieldsSections = useMemo(() => {
-        if (!policy) {
-            return [];
-        }
-        return Object.values(filteredPolicyFieldList)
-            .sort((a, b) => localeCompare(a.name, b.name))
-            .map((reportField) => ({
-                text: reportField.name,
-                keyForList: String(reportField.fieldID),
-                fieldID: reportField.fieldID,
-                pendingAction: reportField.pendingAction,
-                isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
-            }));
-    }, [filteredPolicyFieldList, policy, translate, localeCompare]);
-
-    const navigateToReportFieldsSettings = useCallback(
-        (reportField: ReportFieldForList) => {
-            Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
-        },
-        [policyID],
-    );
+    const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
+    };
 
     const getHeaderText = () =>
         !hasSyncError && isConnectionVerified && currentConnectionName ? (
@@ -138,23 +122,19 @@ function WorkspaceReportFieldsPage({
 
     const isLoading = !isOffline && policy === undefined;
 
-    const renderItem = useCallback(
-        ({item}: ListRenderItemInfo<ReportFieldForList>) => (
-            <OfflineWithFeedback pendingAction={item.pendingAction}>
-                <MenuItem
-                    style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                    onPress={() => navigateToReportFieldsSettings(item)}
-                    description={item.text}
-                    disabled={item.isDisabled}
-                    shouldShowRightIcon={!item.isDisabled}
-                    interactive={!item.isDisabled}
-                    rightLabel={item.rightLabel}
-                    descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
-                />
-            </OfflineWithFeedback>
-        ),
-
-        [shouldUseNarrowLayout, styles.ph5, styles.ph8, styles.popoverMenuText, styles.textStrong, navigateToReportFieldsSettings],
+    const renderItem = ({item}: ListRenderItemInfo<ReportFieldForList>) => (
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
+            <MenuItem
+                style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                onPress={() => navigateToReportFieldsSettings(item)}
+                description={item.text}
+                disabled={item.isDisabled}
+                shouldShowRightIcon={!item.isDisabled}
+                interactive={!item.isDisabled}
+                rightLabel={item.rightLabel}
+                descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
+            />
+        </OfflineWithFeedback>
     );
 
     const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
@@ -166,7 +146,7 @@ function WorkspaceReportFieldsPage({
         clearPolicyTitleFieldError(policyID);
     };
 
-    const toggleTitleStyle = useMemo(() => [styles.pv2, styles.pr3], [styles.pv2, styles.pr3]);
+    const toggleTitleStyle = [styles.pv2, styles.pr3];
 
     const reportFieldsAccessibilityLabel = useMemo(() => {
         if (!hasSyncError && isConnectionVerified && currentConnectionName) {
@@ -184,15 +164,12 @@ function WorkspaceReportFieldsPage({
         [policy?.pendingAction, styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1, translate],
     );
 
-    const renderReportSubtitle = useCallback(
-        () => (
-            <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-                <View style={[[styles.renderHTML, styles.mt1]]}>
-                    <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
-                </View>
-            </OfflineWithFeedback>
-        ),
-        [policy?.pendingAction, styles.renderHTML, styles.mt1, translate],
+    const renderReportSubtitle = () => (
+        <OfflineWithFeedback pendingAction={policy?.pendingAction}>
+            <View style={[[styles.renderHTML, styles.mt1]]}>
+                <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
+            </View>
+        </OfflineWithFeedback>
     );
 
     return (
