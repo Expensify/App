@@ -1443,9 +1443,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros espaços de trabalho, porque as taxas de diária podem diferir entre espaços de trabalho.',
         changeApprover: {
             title: 'Alterar aprovador',
-            subtitle: 'Escolha uma opção para alterar o aprovador deste relatório.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Você também pode alterar permanentemente o aprovador para todos os relatórios nas suas <a href="${workflowSettingLink}">configurações de fluxo de trabalho</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Escolha uma opção para alterar o aprovador deste relatório. (Atualize suas <a href="${workflowSettingLink}">configurações de espaço de trabalho</a> para alterar permanentemente o aprovador para todos os relatórios.)`,
             changedApproverMessage: (managerID: number) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Adicionar aprovador',
@@ -7993,6 +7992,11 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             button: 'Baixar o app',
         },
         notification: {title: 'Rastreamento por GPS em andamento', body: 'Ir para o app para finalizar'},
+        locationServicesRequiredModal: {
+            title: 'Acesso à localização obrigatório',
+            confirm: 'Abrir configurações',
+            prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+        },
         fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
     },
 };

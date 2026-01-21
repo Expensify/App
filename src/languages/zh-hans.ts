@@ -1422,8 +1422,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: '您无法将每日津贴费用移至其他工作区的报告，因为不同工作区之间的每日津贴费率可能有所不同。',
         changeApprover: {
             title: '更改审批人',
-            subtitle: '选择一个选项以更改此报表的审批人。',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) => `您也可以在<a href="${workflowSettingLink}">工作流设置</a>中永久更改所有报表的审批人。`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `选择一个选项来更改此报告的审批人。（更新您的<a href="${workflowSettingLink}">工作区设置</a>，可永久更改所有报告的审批人。）`,
             changedApproverMessage: (managerID: number) => `将审批人更改为 <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: '添加审批人',
@@ -7782,6 +7782,7 @@ ${reportName}
         preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},
         desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
         notification: {title: '正在进行 GPS 跟踪', body: '前往应用完成'},
+        locationServicesRequiredModal: {title: '需要访问位置信息', confirm: '打开设置', prompt: '请在设备设置中允许位置访问，以开始 GPS 距离跟踪。'},
         fabGpsTripExplained: '前往 GPS 屏幕（悬浮操作）',
     },
 };
