@@ -193,9 +193,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const allowDownload = !isEReceipt;
 
-    /**
-     * Rotate the receipt image 90 degrees and save it automatically.
-     */
     const rotateReceipt = useCallback(() => {
         if (!transaction?.transactionID || !sourceUri || !isImage) {
             return;
@@ -215,7 +212,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     return;
                 }
 
-                // Both web and native return objects with uri property
                 const imageUriResult = 'uri' in rotatedImage && rotatedImage.uri ? rotatedImage.uri : undefined;
                 if (!imageUriResult) {
                     setIsRotating(false);
@@ -226,7 +222,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const rotatedFilename = file.name ?? receiptFilename;
 
                 if (isDraftTransaction) {
-                    // Update the transaction immediately so the modal displays the rotated image right away
                     setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, receiptType);
                 } else {
                     replaceReceipt({
@@ -266,32 +261,20 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         [shouldShowReplaceReceiptButton, transaction, isEReceipt, receiptFilename],
     );
 
-    /**
-     * Enter crop mode
-     */
     const enterCropMode = useCallback(() => {
         setIsCropping(true);
         setCropRect(null);
     }, []);
 
-    /**
-     * Exit crop mode without saving
-     */
     const exitCropMode = useCallback(() => {
         setIsCropping(false);
         setCropRect(null);
     }, []);
 
-    /**
-     * Handle crop rectangle changes
-     */
     const handleCropChange = useCallback((crop: CropRect) => {
         setCropRect(crop);
     }, []);
 
-    /**
-     * Save the cropped image
-     */
     const saveCrop = useCallback(() => {
         if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect) {
             return;
@@ -324,7 +307,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     return;
                 }
 
-                // Both web and native return objects with uri property
                 const imageUriResult = 'uri' in croppedImage && croppedImage.uri ? croppedImage.uri : undefined;
                 if (!imageUriResult) {
                     setIsCropSaving(false);
@@ -527,7 +509,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         styles,
     ]);
 
-    // Custom attachment content for crop mode
     const customAttachmentContent = useMemo(() => {
         if (!isCropping || !source) {
             return null;
@@ -554,7 +535,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
-            shouldShowRotateButton: false, // Remove rotate button from header
+            shouldShowRotateButton: false,
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,
             shouldMinimizeMenuButton: false,
