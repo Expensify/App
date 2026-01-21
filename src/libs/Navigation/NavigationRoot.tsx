@@ -6,7 +6,6 @@ import {useOnboardingValues} from '@components/OnyxListItemProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useGuardedNavigationState from '@hooks/useGuardedNavigationState';
-import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -97,7 +96,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const currentReportIDValue = useCurrentReportID();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {shouldShowRequire2FAPage} = useOnboardingFlowRouter();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -131,17 +129,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
+        const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
+        if (shouldShowRequire2FAPage) {
+            return guardedLastVisitedState;
+        }
+
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
         // If we have a transition URL, don't restore last visited path - let React Navigation handle it
         // This prevents reusing deep links after logout regardless of authentication status
         if (isTransitioning) {
             return undefined;
-        }
-
-        // This is temporary solution until we have an onboarding flow migrated to navigation guards
-        if (shouldShowRequire2FAPage) {
-            return guardedLastVisitedState;
         }
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
