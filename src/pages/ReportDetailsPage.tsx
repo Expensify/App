@@ -910,6 +910,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isSingleTransactionView,
         moneyRequestReport,
         removeTransaction,
+        allTransactionViolations,
         isMoneyRequestReportArchived,
         iouReport,
         chatIOUReport,

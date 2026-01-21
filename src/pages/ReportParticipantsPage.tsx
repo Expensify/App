@@ -252,7 +252,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             setSelectedMembers([]);
             clearUserSearchPhrase();
         });
-    }, [selectedMembers, currentUserAccountID, report.reportID]);
+    }, [selectedMembers, currentUserAccountID, report.reportID, setSelectedMembers]);
 
     const showRemoveMembersModal = useCallback(async () => {
         const {action} = await showConfirmModal({
