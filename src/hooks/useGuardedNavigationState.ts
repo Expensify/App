@@ -15,9 +15,9 @@ function useGuardedNavigationState(
     options: Parameters<typeof getAdaptedStateFromPath>[1],
     shouldReplacePathInNestedState?: boolean,
 ): ReturnType<typeof getAdaptedStateFromPath> {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     return useMemo(() => {
         if (!path) {
