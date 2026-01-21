@@ -28,28 +28,28 @@ function InvertedFlatList<T>({
     keyExtractor = defaultKeyExtractor,
     ...restProps
 }: InvertedFlatListProps<T>) {
-    // const {displayedData, maintainVisibleContentPosition, handleStartReached, handleRenderItem, listRef} = useFlatListScrollKey<T>({
-    //     data,
-    //     keyExtractor,
-    //     initialScrollKey,
-    //     inverted: true,
-    //     onStartReached,
-    //     shouldEnableAutoScrollToTopThreshold,
-    //     renderItem,
-    //     ref,
-    // });
+    const {displayedData, maintainVisibleContentPosition, handleStartReached, handleRenderItem, listRef} = useFlatListScrollKey<T>({
+        data,
+        keyExtractor,
+        initialScrollKey,
+        inverted: true,
+        onStartReached,
+        shouldEnableAutoScrollToTopThreshold,
+        renderItem,
+        ref,
+    });
 
     return (
         <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
-            ref={ref}
-            // maintainVisibleContentPosition={maintainVisibleContentPosition}
+            ref={listRef}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
-            data={data}
-            renderItem={renderItem}
+            data={displayedData}
+            renderItem={handleRenderItem}
             keyExtractor={keyExtractor}
-            onStartReached={onStartReached}
+            onStartReached={handleStartReached}
             CellRendererComponent={CellRendererComponent}
             removeClippedSubviews={shouldRemoveClippedSubviews}
         />
