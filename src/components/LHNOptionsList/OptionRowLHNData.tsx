@@ -41,6 +41,7 @@ function OptionRowLHNData({
     isReportArchived = false,
     lastAction,
     lastActionReport,
+    currentUserAccountID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -79,6 +80,7 @@ function OptionRowLHNData({
             movedFromReport,
             movedToReport,
             policyTags,
+            currentUserAccountID,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -115,6 +117,7 @@ function OptionRowLHNData({
         movedFromReport,
         movedToReport,
         policyTags,
+        currentUserAccountID,
     ]);
 
     return (

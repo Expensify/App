@@ -67,6 +67,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -82,6 +83,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            allPolicies,
             draftComments,
             nvpDismissedProductTraining,
             policyTags,
@@ -106,6 +108,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         didScreenTransitionEnd,
         options.reports,
         options.personalDetails,
+        allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         policyTags,

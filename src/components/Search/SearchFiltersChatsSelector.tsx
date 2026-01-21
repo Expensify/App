@@ -69,7 +69,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                 createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportPolicyTags, translate, reportAttributesDerived),
             );
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, reportPolicyTags, translate, isReportArchived, {});
+            const alternateText = getAlternateText(report, {}, reportPolicyTags, isReportArchived, {});
             return {...report, alternateText};
         });
     }, [selectedReportIDs, reports, policyTags, personalDetails, reportAttributesDerived, archivedReportsIdSet, translate]);

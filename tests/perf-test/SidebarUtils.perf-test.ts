@@ -91,6 +91,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 policyTags: undefined,
+                currentUserAccountID: 1,
             }),
         );
     });
