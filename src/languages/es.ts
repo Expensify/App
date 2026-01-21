@@ -1183,9 +1183,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
         changeApprover: {
             title: 'Cambiar aprobador',
-            subtitle: 'Elige una opción para cambiar el aprobador de este informe.',
-            description: ({workflowSettingLink}) =>
-                `También puedes cambiar el aprobador de forma permanente para todos los informes en tu <a href="${workflowSettingLink}">configuración de flujo de trabajo</a>.`,
+            header: ({workflowSettingLink}) =>
+                `Elige una opción para cambiar el aprobador de este informe. (Actualiza la <a href="${workflowSettingLink}">configuración del espacio de trabajo</a> para cambiarlo de forma permanente en todos los informes.)`,
             changedApproverMessage: (managerID) => `cambió el aprobador a <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Añadir aprobador',
