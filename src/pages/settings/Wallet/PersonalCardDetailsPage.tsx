@@ -180,7 +180,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     isActive={reimbursableSetting}
                     onToggle={(isOn) => card && setPersonalCardReimbursable(card.cardID, isOn, reimbursableSetting)}
                     pendingAction={card?.pendingFields?.markTransactionsAsReimbursable}
-                    errors={card?.errorFields?.markTransactionsAsReimbursable}
+                    errors={card?.errorFields?.markTransactionsAsReimbursable ?? undefined}
                     onCloseError={() => card && clearCardErrorField(card.cardID, 'markTransactionsAsReimbursable')}
                     wrapperStyle={[styles.ph5, styles.mb3]}
                 />
