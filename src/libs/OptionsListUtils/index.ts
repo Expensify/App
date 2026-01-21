@@ -43,6 +43,7 @@ import {
     getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
+    getLastVisibleAction,
     getLastVisibleMessage,
     getMarkedReimbursedMessage,
     getMentionedAccountIDsFromAction,
@@ -251,7 +252,6 @@ Onyx.connect({
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 let allReportActions: OnyxCollection<ReportActions>;
-const lastVisibleReportActions: ReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -262,10 +262,7 @@ Onyx.connect({
 
         allReportActions = actions ?? {};
 
-        // Use empty object as fallback since visibleReportActionsData is now passed via parameters
-        const currentVisibleReportActionsData: VisibleReportActionsDerivedValue = {};
-
-        // Iterate over the report actions to build the sorted and lastVisible report actions objects
+        // Iterate over the report actions to build the sorted report actions objects
         for (const reportActions of Object.entries(allReportActions)) {
             const reportID = reportActions[0].split('_').at(1);
             if (!reportID) {
@@ -284,6 +281,7 @@ Onyx.connect({
             if (transactionThreadReportID) {
                 const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
                 sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
+                allSortedReportActions[reportID] = sortedReportActions;
             }
 
             const firstReportAction = sortedReportActions.at(0);
@@ -292,26 +290,6 @@ Onyx.connect({
             } else {
                 lastReportActions[reportID] = firstReportAction;
             }
-
-            const reportNameValuePairs = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-            const isReportArchived = !!reportNameValuePairs?.private_isArchived;
-            const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
-
-            // The report is only visible if it is the last action not deleted that
-            // does not match a closed or created state.
-            const reportActionsForDisplay = sortedReportActions.filter(
-                (reportAction) =>
-                    (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
-                    isReportActionVisible(reportAction, reportID, isWriteActionAllowed, currentVisibleReportActionsData) &&
-                    reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                    reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            );
-            const reportActionForDisplay = reportActionsForDisplay.at(0);
-            if (!reportActionForDisplay) {
-                delete lastVisibleReportActions[reportID];
-                continue;
-            }
-            lastVisibleReportActions[reportID] = reportActionForDisplay;
         }
     },
 });
@@ -439,8 +417,8 @@ function shouldShowLastActorDisplayName(
     lastAction: OnyxEntry<ReportAction>,
     currentUserAccountIDParam: number,
 ) {
-    const reportID = report?.reportID;
-    const lastReportAction = (reportID ? lastVisibleReportActions[reportID] : undefined) ?? lastAction;
+    // Use lastAction directly instead of getLastVisibleReportAction to avoid using stale cache data
+    const lastReportAction = lastAction;
 
     // Use report.lastActionType as fallback when report actions aren't loaded yet (e.g., on cold start)
     const lastActionName = lastReportAction?.actionName ?? report?.lastActionType;
@@ -566,29 +544,44 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
 /**
  * Get IOU report ID of report last action if the action is report action preview
  */
-function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefined {
+function getIOUReportIDOfLastAction(report: OnyxEntry<Report>, visibleReportActionsData?: VisibleReportActionsDerivedValue, lastAction?: OnyxEntry<ReportAction>): string | undefined {
     if (!report?.reportID) {
         return;
     }
-    const lastAction = lastVisibleReportActions[report.reportID];
-    if (!isReportPreviewAction(lastAction)) {
+    // Use lastAction if available (from useOnyx), otherwise fallback to getLastVisibleAction which uses isReportActionVisibleAsLastAction with proper filters
+    const reportNameValuePairs = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+    const isReportArchived = !!reportNameValuePairs?.private_isArchived;
+    const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+    const action = lastAction ?? getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
+    if (!isReportPreviewAction(action)) {
         return;
     }
-    return getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
+    return getReportOrDraftReport(getIOUReportIDFromReportActionPreview(action))?.reportID;
 }
 
 function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
-function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam: number): string {
+function getLastActorDisplayNameFromLastVisibleActions(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    currentUserAccountIDParam: number,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+    lastAction?: OnyxEntry<ReportAction>,
+    personalDetails?: PersonalDetailsList,
+): string {
     const reportID = report?.reportID;
-    const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
+    // Use lastAction if available (from useOnyx), otherwise fallback to getLastVisibleAction which uses isReportActionVisibleAsLastAction with proper filters
+    const reportNameValuePairs = reportID ? allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`] : undefined;
+    const isReportArchived = !!reportNameValuePairs?.private_isArchived;
+    const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+    const lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
 
     if (lastReportAction) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
-        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (allPersonalDetails?.[lastActorAccountID] ?? null) : null;
+        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? ((personalDetails ?? allPersonalDetails)?.[lastActorAccountID] ?? null) : null;
 
         if (!actorDetails && lastReportAction.person?.at(0)?.text) {
             actorDetails = {
@@ -619,6 +612,7 @@ function getLastMessageTextForReport({
     policyForMovingExpensesID,
     reportMetadata,
     visibleReportActionsDataParam,
+    lastAction,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -630,9 +624,12 @@ function getLastMessageTextForReport({
     policyForMovingExpensesID?: string;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue;
+    lastAction?: OnyxEntry<ReportAction>;
 }): string {
     const reportID = report?.reportID;
-    const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
+    // Use lastAction if available (from useOnyx), otherwise fallback to getLastVisibleAction which uses isReportActionVisibleAsLastAction with proper filters
+    const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+    const lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam);
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID, undefined, {}, undefined, visibleReportActionsDataParam);
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
