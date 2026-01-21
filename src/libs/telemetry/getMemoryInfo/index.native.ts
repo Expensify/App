@@ -29,10 +29,7 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
             usedMemoryBytes,
             totalMemoryBytes,
             maxMemoryBytes,
-            usagePercentage:
-              usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0 
-                ? parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(2))
-                : null,
+            usagePercentage: usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0 ? parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(2)) : null,
             platform: Platform.OS,
         };
 
@@ -40,15 +37,11 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
         const freeMemoryMB = totalOrMax && memoryInfo.usedMemoryBytes ? Math.round((totalOrMax - memoryInfo.usedMemoryBytes) / BYTES_PER_MB) : null;
         const usedMemoryMB = memoryInfo.usedMemoryBytes ? Math.round(memoryInfo.usedMemoryBytes / BYTES_PER_MB) : null;
 
-        Log.info(
-            `[getMemoryInfo] Memory check: ${usedMemoryMB ?? '?'}MB used / ${freeMemoryMB ?? '?'}MB free`,
-            true,
-            {
-                ...memoryInfo,
-                freeMemoryMB,
-                usedMemoryMB,
-            },
-        );
+        Log.info(`[getMemoryInfo] Memory check: ${usedMemoryMB ?? '?'}MB used / ${freeMemoryMB ?? '?'}MB free`, true, {
+            ...memoryInfo,
+            freeMemoryMB,
+            usedMemoryMB,
+        });
 
         return memoryInfo;
     } catch (error) {

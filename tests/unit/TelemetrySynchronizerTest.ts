@@ -1,12 +1,12 @@
-import Onyx from 'react-native-onyx';
 import * as Sentry from '@sentry/react-native';
+import Onyx from 'react-native-onyx';
 import {getActivePolicies} from '@libs/PolicyUtils';
+import '@libs/telemetry/TelemetrySynchronizer';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session, TryNewDot} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import '@libs/telemetry/TelemetrySynchronizer';
 
 jest.mock('@sentry/react-native', () => ({
     setTag: jest.fn(),
@@ -22,7 +22,6 @@ jest.mock('@libs/telemetry/sendMemoryContext', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
-
 
 Onyx.init({keys: ONYXKEYS});
 

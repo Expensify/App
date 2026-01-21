@@ -36,13 +36,15 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
         // performance.memory is deprecated but still works in Chromium, not enumerable so we use direct access
         if (window.performance) {
             try {
-                const perfMemory = (window.performance as Performance & {
-                    memory?: {
-                        usedJSHeapSize?: number;
-                        totalJSHeapSize?: number;
-                        jsHeapSizeLimit?: number;
-                    };
-                }).memory;
+                const perfMemory = (
+                    window.performance as Performance & {
+                        memory?: {
+                            usedJSHeapSize?: number;
+                            totalJSHeapSize?: number;
+                            jsHeapSizeLimit?: number;
+                        };
+                    }
+                ).memory;
 
                 if (perfMemory) {
                     if (perfMemory.usedJSHeapSize && perfMemory.usedJSHeapSize > 0) {
@@ -58,7 +60,7 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
                     }
                 }
             } catch (error) {
-              // Gracefully degrade - these APIs are not available in Firefox/Safari
+                // Gracefully degrade - these APIs are not available in Firefox/Safari
             }
         }
 
@@ -66,10 +68,7 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
             usedMemoryBytes,
             totalMemoryBytes,
             maxMemoryBytes,
-            usagePercentage:
-              usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0
-                ? parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(2))
-                : null,
+            usagePercentage: usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0 ? parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(2)) : null,
             platform: Platform.OS,
         };
 
@@ -77,15 +76,11 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
         const freeMemoryMB = totalOrMax && memoryInfo.usedMemoryBytes ? Math.round((totalOrMax - memoryInfo.usedMemoryBytes) / BYTES_PER_MB) : null;
         const usedMemoryMB = memoryInfo.usedMemoryBytes ? Math.round(memoryInfo.usedMemoryBytes / BYTES_PER_MB) : null;
 
-        Log.info(
-            `[getMemoryInfo] Memory check: ${usedMemoryMB ?? '?'}MB used / ${freeMemoryMB ?? '?'}MB free`,
-            true,
-            {
-                ...memoryInfo,
-                freeMemoryMB,
-                usedMemoryMB,
-            },
-        );
+        Log.info(`[getMemoryInfo] Memory check: ${usedMemoryMB ?? '?'}MB used / ${freeMemoryMB ?? '?'}MB free`, true, {
+            ...memoryInfo,
+            freeMemoryMB,
+            usedMemoryMB,
+        });
 
         return memoryInfo;
     } catch (error) {

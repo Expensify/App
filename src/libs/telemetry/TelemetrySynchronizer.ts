@@ -78,4 +78,3 @@ function sendTryNewDotCohortTag() {
     }
     Sentry.setTag(CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT, cohort);
 }
-
