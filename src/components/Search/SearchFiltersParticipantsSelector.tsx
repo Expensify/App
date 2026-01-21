@@ -50,11 +50,13 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
@@ -65,22 +67,24 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            allPolicies,
             draftComments,
             nvpDismissedProductTraining,
+            loginList,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
             },
             countryCode,
         );
-    }, [areOptionsInitialized, draftComments, options.personalDetails, options.reports, nvpDismissedProductTraining, countryCode]);
+    }, [areOptionsInitialized, options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
 
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));
     }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -95,7 +99,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, selectedOptions, countryCode]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -193,7 +197,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             });
 
         setSelectedOptions(preSelectedOptions);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this should react only to changes in form data
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails]);
 
     const handleParticipantSelection = useCallback(

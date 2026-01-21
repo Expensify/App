@@ -2,7 +2,7 @@ import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
@@ -20,7 +20,6 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
@@ -174,9 +173,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
 
-    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
-    const isDisplayedInWidePaneModal = wideRHPRouteKeys.includes(route.key) || superWideRHPRouteKeys.includes(route.key);
-    const isWideRHPOpened = wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0;
     const currentReportIDValue = useCurrentReportID();
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
@@ -252,6 +248,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const report = useMemo(
         () =>
             reportOnyx && {
+                created: reportOnyx.created,
                 hasParentAccess: reportOnyx.hasParentAccess,
                 lastReadTime: reportOnyx.lastReadTime,
                 reportID: reportOnyx.reportID,
@@ -360,11 +357,27 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = !isOffline && shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
     const {closeSidePanel} = useSidePanel();
+
+    useEffect(() => {
+        if (
+            !isFocused ||
+            !reportIDFromRoute ||
+            report?.reportID ||
+            reportMetadata?.isLoadingInitialReportActions ||
+            reportMetadata?.isOptimisticReport ||
+            isLoadingApp ||
+            userLeavingStatus
+        ) {
+            return;
+        }
+
+        Navigation.goBack();
+    }, [isFocused, reportIDFromRoute, report?.reportID, reportMetadata?.isLoadingInitialReportActions, reportMetadata?.isOptimisticReport, isLoadingApp, userLeavingStatus]);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -388,8 +401,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 closeSidePanel();
                 return;
             }
-
-            if (backTo === SCREENS.RIGHT_MODAL.SEARCH_REPORT || isDisplayedInWidePaneModal || isWideRHPOpened) {
+            if (backTo === SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
                 Navigation.goBack();
                 return;
             }
@@ -398,7 +410,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 return;
             }
             if (isInNarrowPaneModal) {
-                Navigation.dismissModal();
+                Navigation.goBack();
                 return;
             }
             if (backTo) {
@@ -411,7 +423,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
             Navigation.goBack();
         },
-        [isInSidePanel, backTo, isDisplayedInWidePaneModal, isWideRHPOpened, isInNarrowPaneModal, closeSidePanel],
+        [isInSidePanel, backTo, isInNarrowPaneModal, closeSidePanel],
     );
 
     let headerView = (
@@ -466,7 +478,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const lastReportActionIDFromRoute = usePrevious(!firstRenderRef.current ? reportActionIDFromRoute : undefined);
 
     const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
@@ -513,15 +524,13 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 return false;
             }
 
-            // eslint-disable-next-line react-compiler/react-compiler
             if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
-                // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
 
             return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
     );
 
@@ -598,7 +607,15 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
     useEffect(() => {
-        if (!!prevTransactionThreadReportID || !transactionThreadReportID) {
+        // If transactionThreadReportID is undefined or CONST.FAKE_REPORT_ID, we do not call fetchReport.
+        // Only when transactionThreadReportID changes to a valid value, the fetchReport will be called to fetch the data again for the current report.
+        // Since fetchReport is always called once when opening a report,
+        // if that initial call is used to create a transactionThreadReport,
+        // then fetchReport needs to be called again after the transactionThreadReport has been fully created.
+        const prevTransactionThreadReportIDWasValid = !!prevTransactionThreadReportID && prevTransactionThreadReportID !== CONST.FAKE_REPORT_ID;
+        const transactionThreadReportIDUpdatedFromValidToFake = transactionThreadReportID === CONST.FAKE_REPORT_ID && !!prevTransactionThreadReportID;
+
+        if (prevTransactionThreadReportIDWasValid || !transactionThreadReportID || transactionThreadReportIDUpdatedFromValidToFake) {
             return;
         }
 
@@ -664,7 +681,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         };
 
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -672,7 +689,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // There should be only one openReport execution per page start or navigating
         fetchReport();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
     const prevReportActions = usePrevious(reportActions);
@@ -695,7 +712,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID]);
 
     useEffect(() => {
@@ -730,6 +747,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             (prevDeletedParentAction && !deletedParentAction)
         ) {
             const currentRoute = navigationRef.getCurrentRoute();
+            const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
+            const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
+            const isHoldScreenOpenInRHP =
+                currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
             const isReportDetailOpenInRHP =
                 isTopMostReportId &&
                 reportDetailScreens.find((r) => r === currentRoute?.name) &&
@@ -739,7 +760,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 reportIDFromRoute === currentRoute.params.reportID;
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
             // Prevent auto navigation for report in RHP
-            if ((!isFocused && !isReportDetailOpenInRHP) || isInNarrowPaneModal) {
+            if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {
                 return;
             }
             Navigation.dismissModal();
@@ -774,9 +795,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         }
 
         setShouldShowComposeInput(true);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
-        route,
+        route.name,
         report,
         prevReport?.reportID,
         prevUserLeavingStatus,
@@ -810,7 +831,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             interactionTask = InteractionManager.runAfterInteractions(() => {
-                subscribeToReportLeavingEvents(reportIDFromRoute);
+                subscribeToReportLeavingEvents(reportIDFromRoute, currentUserAccountID);
                 didSubscribeToReportLeavingEvents.current = true;
             });
         }
@@ -820,7 +841,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
             interactionTask.cancel();
         };
-    }, [report?.reportID, didSubscribeToReportLeavingEvents, reportIDFromRoute, report?.pendingFields]);
+    }, [report?.reportID, didSubscribeToReportLeavingEvents, reportIDFromRoute, report?.pendingFields, currentUserAccountID]);
 
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
@@ -1052,6 +1073,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 reportTransactions={reportTransactions}
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
+                                                isInSidePanel={isInSidePanel}
                                             />
                                         ) : null}
                                     </View>

@@ -110,6 +110,7 @@ export default {
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
+    popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
     gutterWidth: 12,
@@ -223,10 +224,11 @@ export default {
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
+    popoverZIndex: 10000,
     modalBaseZIndex: 9999,
     sidePanelZIndex: 9998,
     modalRightDockedZIndex: 9997,
-    popoverZIndex: 10000,
+    modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
@@ -280,10 +282,6 @@ export default {
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
-
-    desktopAppRetiredIllustrationW: 264,
-    desktopAppRetiredIllustrationH: 230,
-    desktopAppRetiredViewContainerWidth: 310,
 
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
@@ -399,4 +397,12 @@ export default {
     splitExpenseAmountMobileWidth: 82,
     splitExpensePercentageWidth: 42,
     splitExpensePercentageMobileWidth: 62,
+
+    // Multifactor Authentication illustrations size
+    openPadlockWidth: 140,
+    openPadlockHeight: 140,
+    runOutOfTimeWidth: 218,
+    runOutOfTimeHeight: 200,
+    humptyDumptyWidth: 245,
+    humptyDumptyHeight: 165,
 } as const;

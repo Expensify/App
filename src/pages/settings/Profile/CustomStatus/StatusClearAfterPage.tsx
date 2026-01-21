@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -14,7 +15,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateDateTimeIsAtLeastOneMinuteInFuture} from '@libs/ValidationUtils';
 import {updateDraftCustomStatus, updateStatusDraftCustomClearAfterDate} from '@userActions/User';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -42,11 +43,11 @@ function getSelectedStatusType(data: string): CustomStatusTypes {
     }
 }
 
-const useValidateCustomDate = (data: string) => {
+const useValidateCustomDate = (translate: LocalizedTranslate, data: string) => {
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
     const validate = () => {
-        const {dateValidationErrorKey, timeValidationErrorKey} = validateDateTimeIsAtLeastOneMinuteInFuture(data);
+        const {dateValidationErrorKey, timeValidationErrorKey} = validateDateTimeIsAtLeastOneMinuteInFuture(translate, data);
 
         setCustomDateError(dateValidationErrorKey);
         setCustomTimeError(timeValidationErrorKey);
@@ -62,7 +63,7 @@ const useValidateCustomDate = (data: string) => {
             return;
         }
         validate();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data]);
 
     const validateCustomDate = () => validate();
@@ -72,7 +73,7 @@ const useValidateCustomDate = (data: string) => {
 
 function StatusClearAfterPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
     const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT, {canBeMissing: true});
@@ -91,7 +92,7 @@ function StatusClearAfterPage() {
         [draftPeriod, translate],
     );
 
-    const {customDateError, customTimeError} = useValidateCustomDate(draftClearAfter);
+    const {customDateError, customTimeError} = useValidateCustomDate(translate, draftClearAfter);
 
     const {redBrickDateIndicator, redBrickTimeIndicator} = useMemo(
         () => ({
@@ -117,10 +118,17 @@ function StatusClearAfterPage() {
 
     useEffect(() => {
         updateStatusDraftCustomClearAfterDate(draftClearAfter || clearAfter);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const customStatusDate = DateUtils.extractDate(statusDraftCustomClearAfterDate ?? '');
+    const customStatusDate = useMemo(() => {
+        if (!statusDraftCustomClearAfterDate) {
+            return '';
+        }
+        const date = new Date(statusDraftCustomClearAfterDate);
+        const formatter = new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
+        return formatter.format(date);
+    }, [statusDraftCustomClearAfterDate, preferredLocale]);
     const customStatusTime = DateUtils.extractTime12Hour(statusDraftCustomClearAfterDate ?? '');
 
     const listFooterContent = useMemo(() => {

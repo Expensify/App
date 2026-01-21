@@ -42,7 +42,7 @@ import CardSectionUtils from './utils';
 
 function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'CreditCard']);
@@ -62,7 +62,7 @@ function CardSection() {
     const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-    const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
+    const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
     const hasFailedLastBilling = useMemo(
         () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018,
         [purchaseList],
@@ -79,8 +79,14 @@ function CardSection() {
     }, []);
 
     const viewPurchases = useCallback(() => {
-        const query = buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+        const query = buildQueryStringFromFilterFormValues({
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            merchant: CONST.EXPENSIFY_MERCHANT,
+        });
+
+        // rawQuery is needed to populate rawFilterList, which prevents useSuggestedSearchDefaultNavigation from auto-redirecting to actionable searches.
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
@@ -95,10 +101,11 @@ function CardSection() {
             billingStatus: billingStatusOnyx,
             creditCardEyesIcon: illustrations.CreditCardEyes,
             fundList,
+            locale: preferredLocale,
         }),
     );
 
-    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
+    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate(preferredLocale) : undefined;
 
     const sectionSubtitle = getSectionSubtitle({
         translate,
@@ -119,6 +126,7 @@ function CardSection() {
                 billingStatus: billingStatusOnyx,
                 creditCardEyesIcon: illustrations.CreditCardEyes,
                 fundList,
+                locale: preferredLocale,
             }),
         );
     }, [
@@ -133,6 +141,7 @@ function CardSection() {
         billingStatusOnyx,
         illustrations.CreditCardEyes,
         fundList,
+        preferredLocale,
     ]);
 
     const handleRetryPayment = () => {
@@ -200,11 +209,12 @@ function CardSection() {
                             <View style={styles.flex1}>
                                 <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData, translate)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
-                                    {translate('subscription.cardSection.cardInfo', {
-                                        name: defaultCard?.accountData?.addressName ?? '',
-                                        expiration: `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
-                                        currency: defaultCard?.accountData?.currency ?? '',
-                                    })}
+                                    {translate(
+                                        'subscription.cardSection.cardInfo',
+                                        defaultCard?.accountData?.addressName ?? '',
+                                        `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
+                                        defaultCard?.accountData?.currency ?? '',
+                                    )}
                                 </Text>
                             </View>
                             <CardSectionActions />
@@ -266,7 +276,11 @@ function CardSection() {
                     isVisible={isRequestRefundModalVisible}
                     onConfirm={requestRefund}
                     onCancel={() => setIsRequestRefundModalVisible(false)}
-                    prompt={<RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />}
+                    prompt={
+                        <View style={[styles.flexRow]}>
+                            <RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />
+                        </View>
+                    }
                     confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
                     cancelText={translate('common.cancel')}
                     danger

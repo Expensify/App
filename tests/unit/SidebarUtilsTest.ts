@@ -26,7 +26,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import {createSidebarReportsCollection, createSidebarTestData} from '../utils/collections/sidebarReports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {localeCompare} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -351,10 +351,12 @@ describe('SidebarUtils', () => {
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 0,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -365,10 +367,12 @@ describe('SidebarUtils', () => {
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 0,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -966,7 +970,7 @@ describe('SidebarUtils', () => {
                         }),
                     )
                     .then(() => {
-                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare);
                         expect(result.messageHtml).toContain('This chat is with');
                         expect(result.messageHtml).toContain('<user-details accountid="1">');
                         expect(result.messageHtml).toContain('<user-details accountid="2">');
@@ -992,7 +996,7 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare);
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageHtml).toContain('<user-details accountid="1">Email One</user-details>');
         });
@@ -1015,7 +1019,7 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare);
             expect(result.messageText).toMatch(/^This chat is with .+ and .+\.$/);
             expect(result.messageText).toContain(' and ');
             expect(result.messageText).not.toContain('<user-details');
@@ -1040,7 +1044,7 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare);
             expect(result.messageText).toMatch(/^This chat is with .+, .+, and .+\.$/);
             expect(result.messageText).toContain(', and ');
             expect(result.messageText).not.toContain('<user-details');
@@ -1075,7 +1079,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should indicate the report is archived
@@ -1105,7 +1109,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, translateLocal, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should explain the purpose of the room
@@ -1165,10 +1169,12 @@ describe('SidebarUtils', () => {
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 0,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1225,10 +1231,12 @@ describe('SidebarUtils', () => {
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 0,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1288,10 +1296,12 @@ describe('SidebarUtils', () => {
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 0,
             });
 
             // Then the alternate text should show @Hidden.
@@ -1337,9 +1347,11 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1376,9 +1388,11 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     isReportArchived: true,
                     lastActionReport: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1412,9 +1426,11 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1537,9 +1553,11 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
@@ -1578,9 +1596,11 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1647,10 +1667,12 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: session.accountID,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1706,16 +1728,74 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: session.accountID,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
             });
 
+            it('shows "You:" prefix in a 1:1 chat when report actions are not loaded yet (cold start scenario)', async () => {
+                const session = {
+                    authToken: 'sensitive-auth-token',
+                    encryptedAuthToken: 'sensitive-encrypted-token',
+                    email: 'user@example.com',
+                    accountID: 2,
+                };
+
+                const report: Report = {
+                    ...createRandomReport(9999, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastMessageText: 'someMessage',
+                    lastMessageHtml: 'someMessage',
+                    lastActorAccountID: session.accountID,
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    participants: {
+                        [session.accountID]: {notificationPreference: 'always'},
+                        3: {notificationPreference: 'always'},
+                    },
+                };
+
+                await act(async () => {
+                    await Onyx.set(ONYXKEYS.SESSION, session);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+                    // Note: We intentionally do NOT set REPORT_ACTIONS to simulate cold start
+                    // where report actions haven't been loaded yet
+                });
+
+                const result = SidebarUtils.getOptionData({
+                    report,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: {
+                        [session.accountID]: {accountID: session.accountID},
+                    },
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    translate: translateLocal,
+                    localeCompare,
+                    lastAction: undefined,
+                    lastActionReport: undefined,
+                    isReportArchived: undefined,
+                    lastMessageTextFromReport: report.lastMessageText,
+                    currentUserAccountID: session.accountID,
+                });
+
+                expect(result?.alternateText).toBe('You: someMessage');
+            });
+
             it('returns the last action message as an alternate text if the expense report is the one expense report', async () => {
+                const session = {
+                    accountID: 123,
+                };
+
                 const IOUTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_IOU` as const;
 
                 iouReportR14932.reportID = '5';
@@ -1757,7 +1837,7 @@ describe('SidebarUtils', () => {
                     shouldShow: true,
                     pendingAction: null,
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    actorAccountID: undefined,
+                    actorAccountID: session.accountID,
                 };
 
                 await act(async () => {
@@ -1769,7 +1849,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
-                    report: {...iouReportR14932, lastActorAccountID: undefined},
+                    report: {...iouReportR14932, lastActorAccountID: session.accountID},
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
@@ -1777,10 +1857,12 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: session.accountID,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1894,10 +1976,12 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -1978,10 +2062,12 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    translate: translateLocal,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
@@ -2075,13 +2161,15 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: lastReportPreviewAction,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: managerID,
                 });
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
-                expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID})}: ${reportPreviewMessage}`);
+                expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID)}: ${reportPreviewMessage}`);
             });
 
             it("shouldn't add current user prefix if the current user isn't the report's manager for report preview action in a DM chat", async () => {
@@ -2172,9 +2260,11 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     lastAction: lastReportPreviewAction,
+                    translate: translateLocal,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: managerID,
                 });
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);

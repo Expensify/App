@@ -20,7 +20,6 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
 import {formatAirportInfo, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
@@ -42,7 +41,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage']);
 
@@ -51,12 +50,12 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
-                return DateUtils.getFormattedTransportDate(new Date(reservation.start.date));
+                return DateUtils.getFormattedTransportDate(translate, new Date(reservation.start.date), preferredLocale);
             case CONST.RESERVATION_TYPE.HOTEL:
             case CONST.RESERVATION_TYPE.CAR:
-                return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date));
+                return DateUtils.getFormattedReservationRangeDate(translate, new Date(reservation.start.date), new Date(reservation.end.date), preferredLocale);
             default:
-                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
+                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date), preferredLocale);
         }
     };
 
@@ -91,7 +90,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
                             <>
                                 <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
                                 <Icon
-                                    src={Expensicons.ArrowRightLong}
+                                    src={expensifyIcons.ArrowRightLong}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
                                     fill={theme.icon}
