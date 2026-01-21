@@ -187,6 +187,7 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     BankAccountList,
+    Beta,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -2912,11 +2913,12 @@ function buildNewReportOptimisticData(
     reportPreviewReportActionID: string,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
+    allBetas: OnyxEntry<Beta[]>,
 ) {
     const {accountID, login, email} = creatorPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation);
+    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation, allBetas);
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: optimisticReportData,
@@ -3140,6 +3142,7 @@ function createNewReport(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
+    allBetas: OnyxEntry<Beta[]>,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
 ) {
@@ -3155,6 +3158,7 @@ function createNewReport(
         reportPreviewReportActionID,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        allBetas,
     );
 
     if (shouldDismissEmptyReportsConfirmation) {
