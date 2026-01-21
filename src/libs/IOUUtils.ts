@@ -32,8 +32,14 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
         case CONST.IOU.REQUEST_TYPE.DISTANCE_GPS:
             Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
             break;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER:
+            Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            break;
         case CONST.IOU.REQUEST_TYPE.SCAN:
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            break;
+        case CONST.IOU.REQUEST_TYPE.TIME:
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
             break;
         default:
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
@@ -317,6 +323,40 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
     return [initialAttendee];
 }
 
+function navigateToConfirmationPage(
+    iouType: IOUType,
+    transactionID: string,
+    reportID: string,
+    backToReport: string | undefined,
+    shouldNavigateToSubmit = false,
+    reportIDParam: string | undefined = undefined,
+    fromManualDistanceRequest = false,
+) {
+    switch (iouType) {
+        case CONST.IOU.TYPE.REQUEST:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
+            break;
+        case CONST.IOU.TYPE.SEND:
+            if (fromManualDistanceRequest) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+            }
+            break;
+        default:
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
+                    transactionID,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    reportIDParam || reportID,
+                    backToReport,
+                ),
+            );
+    }
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -331,4 +371,5 @@ export {
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
+    navigateToConfirmationPage,
 };

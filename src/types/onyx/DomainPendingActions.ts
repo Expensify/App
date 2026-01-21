@@ -1,7 +1,8 @@
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
- * General pending action structure for domain admins
+ * General pending action structure for domain admins.
+ * Pending actions structure is dictated by how `domain_` updates are handled in the app to prevent them from resetting unintentionally.
  */
 type GeneralDomainAdminPendingAction = {
     /**
@@ -28,6 +29,11 @@ type DomainPendingAction = {
      * Pending action for the "use technical contact billing card" setting
      */
     useTechnicalContactBillingCard?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the domain itself
+     */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 export default DomainPendingAction;
