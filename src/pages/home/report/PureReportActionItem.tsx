@@ -215,7 +215,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {CardList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction, OriginalMessageUnreportedTransaction} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
@@ -357,7 +356,7 @@ type PureReportActionItemProps = {
     isChronosReport?: boolean;
 
     /** All cards */
-    cardList?: CardList;
+    cardList?: OnyxTypes.CardList;
 
     /** Function to toggle emoji reaction */
     toggleEmojiReaction?: (
