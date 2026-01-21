@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
@@ -52,6 +53,32 @@ function SearchEditMultipleAmountPage() {
     });
 
     const amount = draftTransaction?.amount ?? 0;
+    const allowNegative = useMemo(() => {
+        if (!selectedTransactionIDs.length) {
+            return false;
+        }
+
+        return selectedTransactionIDs.every((transactionID) => {
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            if (!transaction) {
+                return false;
+            }
+
+            const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            const iouReport =
+                transactionReport?.type === CONST.REPORT.TYPE.CHAT && transactionReport?.parentReportID
+                    ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionReport.parentReportID}`]
+                    : transactionReport;
+            if (!iouReport) {
+                return false;
+            }
+
+            const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`];
+            const iouType = isInvoiceReport(iouReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
+            return shouldEnableNegative(iouReport, transactionPolicy, iouType);
+        });
+    }, [selectedTransactionIDs, allTransactions, allReports, policies]);
+    const amountForForm = allowNegative ? amount : Math.abs(amount);
 
     const saveAmount = (currentMoney: CurrentMoney) => {
         const newAmount = convertToBackendAmount(Number.parseFloat(currentMoney.amount));
@@ -87,7 +114,7 @@ function SearchEditMultipleAmountPage() {
                 onInputChange={(value) => setSelectedCurrency(value)}
             />
             <MoneyRequestAmountForm
-                amount={Math.abs(amount)}
+                amount={amountForForm}
                 currency={selectedCurrency}
                 isEditing
                 // TODO: Enable currency picker in a separate PR
@@ -99,6 +126,7 @@ function SearchEditMultipleAmountPage() {
                 }}
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={saveAmount}
+                allowFlippingAmount={allowNegative}
             />
         </ScreenWrapper>
     );

@@ -14449,13 +14449,13 @@ function updateMultipleMoneyRequests(
             continue;
         }
 
-        const transactionThreadReportID = transaction.reportID;
-        const transactionThread = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-        const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
+        const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? null;
         const isFromExpenseReport = isExpenseReport(iouReport);
 
-        const transactionReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
+        const transactionReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {};
         const reportAction = getIOUActionForTransactionID(Object.values(transactionReportActions), transactionID);
+        const transactionThreadReportID = transaction.transactionThreadReportID ?? reportAction?.childReportID;
+        const transactionThread = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
 
         const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
             return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, policy);
@@ -14517,7 +14517,7 @@ function updateMultipleMoneyRequests(
             updates.taxCode = transactionChanges.taxCode;
         }
         if (transactionChanges.amount) {
-            updates.amount = isFromExpenseReport ? -Math.abs(transactionChanges.amount) : transactionChanges.amount;
+            updates.amount = transactionChanges.amount;
         }
         if (transactionChanges.billable !== undefined || transactionChanges.reimbursable !== undefined) {
             const billable = transactionChanges.billable;

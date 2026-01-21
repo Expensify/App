@@ -8185,7 +8185,8 @@ describe('actions/IOU', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 transactionID,
-                reportID: transactionThreadReportID,
+                reportID: iouReportID,
+                transactionThreadReportID,
                 amount: 1000,
                 currency: CONST.CURRENCY.USD,
             };
@@ -8202,9 +8203,61 @@ describe('actions/IOU', () => {
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
             const updates = JSON.parse(params.updates) as {amount: number};
-            expect(Math.abs(updates.amount)).toBe(1000);
-            expect(updates.amount).toBeLessThan(0);
+            expect(updates.amount).toBe(1000);
             expect(buildOptimisticSpy).toHaveBeenCalledWith(transactionThread, transaction, expect.objectContaining({amount: 1000}), true, policy, expect.anything());
+
+            writeSpy.mockRestore();
+            buildOptimisticSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('supports negative amount updates for expense reports', () => {
+            const transactionID = 'transaction-3';
+            const transactionThreadReportID = 'thread-3';
+            const iouReportID = 'iou-3';
+            const policy = createRandomPolicy(3, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(3, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(4, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests([transactionID], {amount: -1000}, policy, reports, transactions, {});
+
+            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
+            const updates = JSON.parse(params.updates) as {amount: number};
+            expect(updates.amount).toBe(-1000);
+            expect(buildOptimisticSpy).toHaveBeenCalledWith(transactionThread, transaction, expect.objectContaining({amount: -1000}), true, policy, expect.anything());
 
             writeSpy.mockRestore();
             buildOptimisticSpy.mockRestore();
@@ -8238,7 +8291,8 @@ describe('actions/IOU', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(2),
                 transactionID,
-                reportID: transactionThreadReportID,
+                reportID: iouReportID,
+                transactionThreadReportID,
                 amount: 1000,
                 currency: CONST.CURRENCY.USD,
             };
