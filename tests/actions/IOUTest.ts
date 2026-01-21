@@ -991,7 +991,7 @@ describe('actions/IOU', () => {
             const originalTransaction: Transaction = {
                 ...createRandomTransaction(1),
                 transactionID: 'original-transaction',
-                amount: 5000,
+                amount: -5000,
                 currency: 'USD',
             };
 

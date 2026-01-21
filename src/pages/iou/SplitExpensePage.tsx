@@ -47,7 +47,7 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils } from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
