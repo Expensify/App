@@ -28,7 +28,7 @@ function CaretWrapper({children, style, caretWidth, caretHeight, isActive = fals
                 fill={theme.icon}
                 width={caretWidth ?? variables.iconSizeExtraSmall}
                 height={caretHeight ?? variables.iconSizeExtraSmall}
-                additionalStyles={isActive ? [{transform: [{rotate: '180deg'}]}] : []}
+                additionalStyles={isActive ? styles.flipUpsideDown : []}
             />
         </View>
     );
