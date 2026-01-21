@@ -205,8 +205,8 @@ import type {
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
+    ReportViolations,
 } from '@src/types/onyx';
-import * as OnyxTypes from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -2544,7 +2544,7 @@ function updateReportField({
     email: string;
     hasViolationsParam: boolean;
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
-    allReportsViolations: OnyxCollection<OnyxTypes.ReportViolations>;
+    allReportsViolations: OnyxCollection<ReportViolations>;
     shouldFixViolations: boolean | undefined;
 }) {
     const reportID = report.reportID;

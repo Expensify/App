@@ -34,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {
     BankAccountList,
     Beta,
@@ -12229,7 +12228,7 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
 /**
  * Returns all violations for report
  */
-function getReportViolations(reportID: string, allReportsViolations: OnyxCollection<OnyxTypes.ReportViolations>): ReportViolations | undefined {
+function getReportViolations(reportID: string, allReportsViolations: OnyxCollection<ReportViolations>): ReportViolations | undefined {
     if (!allReportsViolations) {
         return undefined;
     }
