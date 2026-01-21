@@ -2391,7 +2391,6 @@ ${amount} voor ${merchant} - ${date}`,
         addRule: {
             title: 'Regel toevoegen',
             expenseContains: 'Als de uitgave bevat:',
-            applyUpdates: 'Breng vervolgens deze updates aan:',
             merchantHint: 'Typ * om een regel te maken die voor alle leveranciers geldt',
             renameMerchant: 'Naam handelaar wijzigen',
             updateCategory: 'Categorie bijwerken',

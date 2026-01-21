@@ -2393,7 +2393,6 @@ ${amount} per ${merchant} - ${date}`,
         addRule: {
             title: 'Aggiungi regola',
             expenseContains: 'Se la spesa contiene:',
-            applyUpdates: 'Quindi applica questi aggiornamenti:',
             merchantHint: 'Digita * per creare una regola che si applica a tutti gli esercenti',
             renameMerchant: 'Rinomina esercente',
             updateCategory: 'Aggiorna categoria',
