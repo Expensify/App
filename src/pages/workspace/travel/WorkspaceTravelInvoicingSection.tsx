@@ -11,6 +11,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {openExternalLink} from '@libs/actions/Link';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {
     getIsTravelInvoicingEnabled,
@@ -67,7 +68,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // Format currency values (assuming USD for Travel Invoicing based on PROGRAM_TRAVEL_US)
     const formattedSpend = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
-    const settlementAccountNumber = CONST.MASKED_PAN_PREFIX + (settlementAccount?.last4 ?? '1234');
+    const settlementAccountNumber = `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(settlementAccount?.last4 ?? '')}`;
 
     const getCentralInvoicingSubtitle = () => {
         if (!isCentralInvoicingEnabled) {
