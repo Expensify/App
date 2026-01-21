@@ -311,10 +311,6 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldShowGroupedTransactions]);
 
-    useEffect(() => {
-        setActiveTransactionIDs(visualOrderTransactionIDs);
-    }, [visualOrderTransactionIDs]);
-
     const sortedTransactionsMap = useMemo(() => {
         const map = new Map<string, OnyxTypes.Transaction>();
         for (const transaction of sortedTransactions) {
