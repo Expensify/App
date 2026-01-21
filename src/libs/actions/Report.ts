@@ -206,6 +206,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import * as OnyxTypes from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -2521,21 +2522,34 @@ function clearReportFieldKeyErrors(reportID: string | undefined, fieldKey: strin
     });
 }
 
-function updateReportField(
-    report: Report,
-    reportField: PolicyReportField,
-    previousReportField: PolicyReportField,
-    policy: Policy,
-    isASAPSubmitBetaEnabled: boolean,
-    accountID: number,
-    email: string,
-    hasViolationsParam: boolean,
-    recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>,
+function updateReportField({
+    report,
+    reportField,
+    previousReportField,
+    policy,
+    isASAPSubmitBetaEnabled,
+    accountID,
+    email,
+    hasViolationsParam,
+    recentlyUsedReportFields,
+    allReportsViolations,
     shouldFixViolations = false,
-) {
+}: {
+    report: Report;
+    reportField: PolicyReportField;
+    previousReportField: PolicyReportField;
+    policy: Policy;
+    isASAPSubmitBetaEnabled: boolean;
+    accountID: number;
+    email: string;
+    hasViolationsParam: boolean;
+    recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
+    allReportsViolations: OnyxCollection<OnyxTypes.ReportViolations>;
+    shouldFixViolations: boolean | undefined;
+}) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
-    const reportViolations = getReportViolations(reportID);
+    const reportViolations = getReportViolations(reportID, allReportsViolations);
     const fieldViolation = getFieldViolation(reportViolations, reportField);
     const recentlyUsedValues = recentlyUsedReportFields?.[fieldKey] ?? [];
 

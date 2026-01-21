@@ -34,6 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {
     BankAccountList,
     Beta,
@@ -1179,18 +1180,6 @@ Onyx.connectWithoutView({
             return;
         }
         allReportNameValuePair = value;
-    },
-});
-
-let allReportsViolations: OnyxCollection<ReportViolations>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportsViolations = value;
     },
 });
 
@@ -9305,7 +9294,7 @@ function hasAnyViolations(
     );
 }
 
-function hasReportViolations(reportID: string | undefined) {
+function hasReportViolations(reportID: string | undefined, allReportsViolations: OnyxCollection<ReportViolations>) {
     if (!reportID) {
         return false;
     }
@@ -12240,12 +12229,12 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
 /**
  * Returns all violations for report
  */
-function getReportViolations(reportID: string): ReportViolations | undefined {
+function getReportViolations(reportID: string, allReportsViolations: OnyxCollection<OnyxTypes.ReportViolations>): ReportViolations | undefined {
     if (!allReportsViolations) {
         return undefined;
     }
 
-    return allReportsViolations[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
+    return allReportsViolations?.[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
 }
 
 function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
