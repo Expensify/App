@@ -7,8 +7,10 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import LoadingIndicator from '@components/LoadingIndicator';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
+import variables from '@styles/variables';
 import type {Dimensions} from '@src/types/utils/Layout';
 
 type CropRect = {
@@ -33,11 +35,9 @@ type ReceiptCropViewProps = {
 
 type CornerPosition = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 
-const CORNER_SIZE = 12;
-const BORDER_WIDTH = 2;
-
 function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequired}: ReceiptCropViewProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     // Image dimensions
     const [imageSize, setImageSize] = useState<Dimensions>({width: 0, height: 0});
@@ -168,7 +168,7 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
      */
     const createCornerGesture = useCallback(
         (corner: CornerPosition) => {
-            return Gesture.Pan().onChange((event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
+            return Gesture.Pan().runOnJS(true).onChange((event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
                 'worklet';
 
                 const currentX = cropX.get();
@@ -181,7 +181,7 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
                 let newWidth = currentWidth;
                 let newHeight = currentHeight;
 
-                const minSize = CORNER_SIZE * 2;
+                const minSize = variables.cornerHandleSize * 2;
                 const imgDisplayWidth = displayWidthSV.get();
                 const imgDisplayHeight = displayHeightSV.get();
                 const imageLeft = imageOffsetXSV.get();
@@ -250,69 +250,66 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         [cropX, cropY, cropWidth, cropHeight, displayWidthSV, displayHeightSV, imageOffsetXSV, imageOffsetYSV, imageOffsetX, scaleX, imageOffsetY, scaleY, onCropChange, clamp],
     );
 
-    // Animated styles for crop border
     const borderStyle = useAnimatedStyle(() => {
         return {
-            position: 'absolute',
+            ...styles.pAbsolute,
             left: cropX.get(),
             top: cropY.get(),
             width: cropWidth.get(),
             height: cropHeight.get(),
-            borderWidth: BORDER_WIDTH,
-            borderColor: '#00D970', // Green color as shown in the design
+            borderWidth: variables.cropBorderWidth,
+            borderColor: theme.success,
         };
     });
 
-    // Animated styles for corner handles
     const topLeftCornerStyle = useAnimatedStyle(() => ({
-        position: 'absolute',
-        left: cropX.get() - CORNER_SIZE / 2,
-        top: cropY.get() - CORNER_SIZE / 2,
-        width: CORNER_SIZE,
-        height: CORNER_SIZE,
-        borderRadius: CORNER_SIZE / 2,
-        backgroundColor: '#00D970',
+        ...styles.pAbsolute,
+        left: cropX.get() - variables.cornerHandleSize / 2,
+        top: cropY.get() - variables.cornerHandleSize / 2,
+        width: variables.cornerHandleSize,
+        height: variables.cornerHandleSize,
+        borderRadius: variables.cornerHandleSize / 2,
+        backgroundColor: theme.success,
         borderWidth: 2,
-        borderColor: '#FFFFFF',
+        borderColor: theme.white,
     }));
 
     const topRightCornerStyle = useAnimatedStyle(() => ({
-        position: 'absolute',
-        left: cropX.get() + cropWidth.get() - CORNER_SIZE / 2,
-        top: cropY.get() - CORNER_SIZE / 2,
-        width: CORNER_SIZE,
-        height: CORNER_SIZE,
-        borderRadius: CORNER_SIZE / 2,
-        backgroundColor: '#00D970',
+        ...styles.pAbsolute,
+        left: cropX.get() + cropWidth.get() - variables.cornerHandleSize / 2,
+        top: cropY.get() - variables.cornerHandleSize / 2,
+        width: variables.cornerHandleSize,
+        height: variables.cornerHandleSize,
+        borderRadius: variables.cornerHandleSize / 2,
+        backgroundColor: theme.success,
         borderWidth: 2,
-        borderColor: '#FFFFFF',
+        borderColor: theme.white,
     }));
 
     const bottomLeftCornerStyle = useAnimatedStyle(() => ({
-        position: 'absolute',
-        left: cropX.get() - CORNER_SIZE / 2,
-        top: cropY.get() + cropHeight.get() - CORNER_SIZE / 2,
-        width: CORNER_SIZE,
-        height: CORNER_SIZE,
-        borderRadius: CORNER_SIZE / 2,
-        backgroundColor: '#00D970',
+        ...styles.pAbsolute,
+        left: cropX.get() - variables.cornerHandleSize / 2,
+        top: cropY.get() + cropHeight.get() - variables.cornerHandleSize / 2,
+        width: variables.cornerHandleSize,
+        height: variables.cornerHandleSize,
+        borderRadius: variables.cornerHandleSize / 2,
+        backgroundColor: theme.success,
         borderWidth: 2,
-        borderColor: '#FFFFFF',
+        borderColor: theme.white,
     }));
 
     const bottomRightCornerStyle = useAnimatedStyle(() => ({
-        position: 'absolute',
-        left: cropX.get() + cropWidth.get() - CORNER_SIZE / 2,
-        top: cropY.get() + cropHeight.get() - CORNER_SIZE / 2,
-        width: CORNER_SIZE,
-        height: CORNER_SIZE,
-        borderRadius: CORNER_SIZE / 2,
-        backgroundColor: '#00D970',
+        ...styles.pAbsolute,
+        left: cropX.get() + cropWidth.get() - variables.cornerHandleSize / 2,
+        top: cropY.get() + cropHeight.get() - variables.cornerHandleSize / 2,
+        width: variables.cornerHandleSize,
+        height: variables.cornerHandleSize,
+        borderRadius: variables.cornerHandleSize / 2,
+        backgroundColor: theme.success,
         borderWidth: 2,
-        borderColor: '#FFFFFF',
+        borderColor: theme.white,
     }));
 
-    // Overlay styles to darken areas outside the crop rectangle (only within image bounds)
     const overlayTopStyle = useAnimatedStyle(() => {
         'worklet';
 
@@ -322,12 +319,12 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         const cropTop = cropY.get();
 
         return {
-            position: 'absolute',
+            ...styles.pAbsolute,
             left: imageLeft,
             top: imageTop,
             width: imgDisplayWidth,
             height: Math.max(0, cropTop - imageTop),
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: theme.transparentWhite,
         };
     });
 
@@ -342,12 +339,12 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         const imageBottom = imageTop + imgDisplayHeight;
 
         return {
-            position: 'absolute',
+            ...styles.pAbsolute,
             left: imageLeft,
             top: cropBottom,
             width: imgDisplayWidth,
             height: Math.max(0, imageBottom - cropBottom),
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: theme.transparentWhite,
         };
     });
 
@@ -360,12 +357,12 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         const cropHeightValue = cropHeight.get();
 
         return {
-            position: 'absolute',
+            ...styles.pAbsolute,
             left: imageLeft,
             top: cropTop,
             width: Math.max(0, cropLeft - imageLeft),
             height: cropHeightValue,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: theme.transparentWhite,
         };
     });
 
@@ -380,17 +377,17 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         const cropHeightValue = cropHeight.get();
 
         return {
-            position: 'absolute',
+            ...styles.pAbsolute,
             left: cropRight,
             top: cropTop,
             width: Math.max(0, imageRight - cropRight),
             height: cropHeightValue,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: theme.transparentWhite,
         };
     });
 
     return (
-        <GestureHandlerRootView style={[styles.flex1, styles.w100, styles.mv5]}>
+        <GestureHandlerRootView style={[styles.flex1, styles.w100, styles.mv3]}>
             <Animated.View
                 style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.w100]}
                 onLayout={onContainerLayout}
@@ -406,10 +403,8 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
                     />
                 </View>
 
-                {/* Crop border - only show if crop rectangle is initialized */}
                 {isCropInitialized && (
                     <>
-                        {/* Overlay to darken areas outside crop rectangle */}
                         <Animated.View
                             style={overlayTopStyle}
                             pointerEvents="none"
@@ -427,13 +422,11 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
                             pointerEvents="none"
                         />
 
-                        {/* Crop border */}
                         <Animated.View
                             style={borderStyle}
                             pointerEvents="none"
                         />
 
-                        {/* Corner handles */}
                         <GestureDetector gesture={createCornerGesture('topLeft')}>
                             <Animated.View style={topLeftCornerStyle} />
                         </GestureDetector>

@@ -335,7 +335,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const croppedFilename = file.name ?? receiptFilename;
 
                 if (isDraftTransaction) {
-                    // Update the transaction immediately so the modal displays the cropped image right away
                     setMoneyRequestReceipt(transaction.transactionID, imageUriResult, croppedFilename, isDraftTransaction, receiptType);
                 } else {
                     replaceReceipt({
@@ -441,15 +440,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         [deleteReceiptAndClose, isDeleteReceiptConfirmModalVisible, translate],
     );
 
-    // Footer action buttons
     const footerActionButtons = useMemo(() => {
         if (isCropping) {
-            // Show Cancel and Save buttons in crop mode
             return (
                 <View style={[styles.flexRow, styles.gap4, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                     <Button
                         onPress={exitCropMode}
                         text={translate('common.cancel')}
+                        icon={Expensicons.Close}
                     />
                     <Button
                         success
@@ -457,12 +455,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         text={translate('common.save')}
                         isLoading={isCropSaving}
                         isDisabled={!cropRect || isCropSaving}
+                        icon={Expensicons.Checkmark}
                     />
                 </View>
             );
         }
 
-        // Show Rotate, Crop, Replace buttons in normal mode
         if (!shouldShowRotateReceiptButton && !shouldShowCropReceiptButton && !shouldShowReplaceReceiptButton) {
             return null;
         }
@@ -562,23 +560,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             shouldMinimizeMenuButton: false,
             footerActionButtons,
             customAttachmentContent,
+            attachmentViewContainerStyles: [styles.mv3, styles.ph2],
         }),
-        [
-            allowDownload,
-            headerTitle,
-            isAuthTokenRequired,
-            isTrackExpenseActionValue,
-            onDownloadAttachment,
-            originalFileName,
-            report,
-            reportMetadata?.isLoadingInitialReportActions,
-            shouldShowNotFoundPage,
-            source,
-            threeDotsMenuItems,
-            transaction,
-            footerActionButtons,
-            customAttachmentContent,
-        ],
+        [source, originalFileName, report, headerTitle, threeDotsMenuItems, isAuthTokenRequired, isTrackExpenseActionValue, transaction, reportMetadata?.isLoadingInitialReportActions, shouldShowNotFoundPage, allowDownload, onDownloadAttachment, footerActionButtons, customAttachmentContent, styles.mv3, styles.ph2],
     );
 
     return (

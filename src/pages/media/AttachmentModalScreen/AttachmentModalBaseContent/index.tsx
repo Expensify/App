@@ -68,6 +68,7 @@ function AttachmentModalBaseContent({
     shouldCloseOnSwipeDown = false,
     footerActionButtons,
     customAttachmentContent,
+    attachmentViewContainerStyles,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -318,7 +319,7 @@ function AttachmentModalBaseContent({
                 shouldOverlayDots
                 subTitleLink={currentAttachmentLink ?? ''}
             />
-            <View style={styles.imageModalImageCenterContainer}>
+            <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
                 {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
