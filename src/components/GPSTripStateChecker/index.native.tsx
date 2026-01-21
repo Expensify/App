@@ -3,6 +3,7 @@ import React, {useEffect, useState} from 'react';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {setEndAddress, setIsTracking} from '@libs/actions/GPSDraftDetails';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
@@ -16,6 +17,7 @@ import ROUTES from '@src/ROUTES';
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
 
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
@@ -42,8 +44,8 @@ function GPSTripStateChecker() {
     }, []);
 
     const navigateToGpsScreen = () => {
-        const optimisticReportID = generateReportID();
-        Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
+        const reportID = gpsDraftDetails?.reportID ?? generateReportID();
+        Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
     };
 
     const continueGpsTrip = async () => {
