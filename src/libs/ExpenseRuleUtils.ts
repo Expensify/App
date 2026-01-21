@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ExpenseRuleForm} from '@src/types/form';
-import type {ExpenseRule, TaxRate} from '@src/types/onyx';
+import type {ExpenseRule} from '@src/types/onyx';
+import type {TaxRate} from '@src/types/onyx/ExpenseRule';
 import {getCleanedTagName} from './PolicyUtils';
 import StringUtils from './StringUtils';
 
@@ -35,7 +36,7 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
     return changes.join(', ');
 }
 
-function extractRuleFromForm(form: ExpenseRuleForm, taxRate?: TaxRate) {
+function extractRuleFromForm(form: ExpenseRuleForm, taxRate?: TaxRate): ExpenseRule {
     const rule: ExpenseRule = {
         billable: form.billable,
         category: form.category,

@@ -40,4 +40,5 @@ type ExpenseRule = {
     tax?: Record<string, TaxRate>;
 };
 
+export type {TaxRate};
 export default ExpenseRule;
