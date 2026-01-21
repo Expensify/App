@@ -12,8 +12,7 @@ function AddDescriptionPage({route}: AddDescriptionPageProps) {
         <RuleTextBase
             fieldID={CONST.EXPENSE_RULES.FIELDS.DESCRIPTION}
             hash={route.params?.hash}
-            labelKey="common.description"
-            titleKey="expenseRulesPage.addRule.changeDescription"
+            titleKey="common.description"
             testID="AddDescriptionPage"
             characterLimit={CONST.DESCRIPTION_LIMIT}
         />

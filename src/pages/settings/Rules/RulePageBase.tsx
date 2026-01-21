@@ -157,33 +157,33 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             titleTranslationKey: 'expenseRulesPage.addRule.applyUpdates',
             items: [
                 {
-                    descriptionTranslationKey: 'expenseRulesPage.addRule.renameMerchant',
+                    descriptionTranslationKey: 'common.merchant',
                     title: form?.merchant,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT, hash),
                 },
                 hasPolicyCategories
                     ? {
-                          descriptionTranslationKey: 'expenseRulesPage.addRule.updateCategory',
+                          descriptionTranslationKey: 'common.category',
                           title: form?.category,
                           onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.CATEGORY, hash),
                       }
                     : undefined,
                 hasPolicyTags
                     ? {
-                          descriptionTranslationKey: 'expenseRulesPage.addRule.updateTag',
+                          descriptionTranslationKey: 'common.tag',
                           title: form?.tag,
                           onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.TAG, hash),
                       }
                     : undefined,
                 hasTaxRates
                     ? {
-                          descriptionTranslationKey: 'expenseRulesPage.addRule.updateTaxRate',
+                          descriptionTranslationKey: 'common.tax',
                           title: selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.value})` : undefined,
                           onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.TAX, hash),
                       }
                     : undefined,
                 {
-                    descriptionTranslationKey: 'expenseRulesPage.addRule.changeDescription',
+                    descriptionTranslationKey: 'common.description',
                     title: form?.comment,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION, hash),
                 },

@@ -47,7 +47,7 @@ function AddTaxRatePage({route}: AddTaxRatePageProps) {
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.taxes.taxRate')}
+                    title={translate('common.tax')}
                     onBackButtonPress={() => Navigation.goBack(backToRoute)}
                 />
                 <View style={[styles.flex1]}>

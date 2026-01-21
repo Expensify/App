@@ -70,7 +70,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('expenseRulesPage.addRule.updateCategory')}
+                    title={translate('common.category')}
                     onBackButtonPress={() => Navigation.goBack(backToRoute)}
                 />
                 <View style={[styles.flex1]}>

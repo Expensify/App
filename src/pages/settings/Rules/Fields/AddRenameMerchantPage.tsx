@@ -12,8 +12,7 @@ function AddRenameMerchantPage({route}: AddRenameMerchantPageProps) {
         <RuleTextBase
             fieldID={CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT}
             hash={route.params?.hash}
-            labelKey="common.merchant"
-            titleKey="expenseRulesPage.addRule.renameMerchant"
+            titleKey="common.merchant"
             testID="AddRenameMerchantPage"
             characterLimit={CONST.MERCHANT_NAME_MAX_BYTES}
         />
