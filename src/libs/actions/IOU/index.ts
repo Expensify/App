@@ -5940,6 +5940,14 @@ function convertBulkTrackedExpensesToIOU(
                 linkedTrackedExpenseReportID: selfDMReportID,
                 transactionThreadReportID: moneyRequestTransactionThreadReportID,
                 isLinkedTrackedExpenseReportArchived: false,
+                ...(transaction.comment?.type === CONST.TRANSACTION.TYPE.TIME
+                    ? {
+                          type: CONST.TRANSACTION.TYPE.TIME,
+                          count: transaction.comment?.units?.count,
+                          rate: transaction.comment?.units?.rate,
+                          unit: transaction.comment?.units?.unit,
+                      }
+                    : {}),
             },
             chatParams: {
                 reportID: moneyRequestChatReport.reportID,
