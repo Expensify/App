@@ -1,4 +1,5 @@
 type AssignCompanyCardParams = {
+    domainAccountID?: number;
     policyID: string;
     bankName: string;
     cardName: string;
