@@ -1,0 +1,256 @@
+import Onyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import * as API from '@libs/API';
+import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams, UpdateTravelInvoicingSettlementFrequencyParams} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import {PROGRAM_TRAVEL_US} from '@libs/TravelInvoicingUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+/**
+ * Opens the Travel page for a policy and fetches Travel Invoicing data.
+ * Sets the isLoading state for the card settings while the API request is in flight.
+ */
+function openPolicyTravelPage(policyID: string, workspaceAccountID: number) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const params: OpenPolicyTravelPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_TRAVEL_PAGE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Sets the settlement account for Travel Invoicing.
+ * Updates the paymentBankAccountID in the Travel Invoicing card settings.
+ */
+function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountID: number, settlementBankAccountID: number, previousPaymentBankAccountID?: number) {
+    const cardSettingsKey =
+        `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}` as `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${string}`;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                paymentBankAccountID: settlementBankAccountID,
+                previousPaymentBankAccountID,
+                isLoading: true,
+                pendingFields: {
+                    paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    paymentBankAccountID: null,
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                paymentBankAccountID: settlementBankAccountID,
+                previousPaymentBankAccountID: null,
+                isLoading: false,
+                pendingFields: {
+                    paymentBankAccountID: null,
+                },
+                errorFields: {
+                    paymentBankAccountID: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                // Keep the attempted value visible (grayed out) until error is dismissed
+                paymentBankAccountID: settlementBankAccountID,
+                previousPaymentBankAccountID,
+                isLoading: false,
+                pendingFields: {
+                    paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const params: SetTravelInvoicingSettlementAccountParams = {
+        policyID,
+        settlementBankAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears any errors from the Travel Invoicing settlement account settings.
+ * Also resets the paymentBankAccountID to the previous valid value (or null if none existed).
+ */
+function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number, paymentBankAccountID: number | null) {
+    const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`,
+            value: {
+                errorFields: {
+                    paymentBankAccountID: null,
+                },
+                pendingFields: {
+                    paymentBankAccountID: null,
+                },
+                paymentBankAccountID,
+                previousPaymentBankAccountID: null,
+            },
+        },
+    ];
+    Onyx.update(onyxData);
+}
+
+/**
+ * Updates the settlement frequency for Travel Invoicing.
+ * Optimistically updates the monthlySettlementDate based on the selected frequency.
+ * Supports offline behavior - changes are queued and synced when back online.
+ */
+function updateTravelInvoiceSettlementFrequency(
+    policyID: string,
+    workspaceAccountID: number,
+    frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
+    currentMonthlySettlementDate?: Date,
+) {
+    const cardSettingsKey =
+        `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}` as `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${string}`;
+
+    // If Monthly, set date (optimistically today). If Daily, set null.
+    const monthlySettlementDate = frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY ? new Date() : null;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                monthlySettlementDate,
+                previousMonthlySettlementDate: currentMonthlySettlementDate,
+                pendingFields: {
+                    monthlySettlementDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errors: null,
+                errorFields: {
+                    monthlySettlementDate: null,
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                monthlySettlementDate,
+                previousMonthlySettlementDate: null,
+                pendingFields: {
+                    monthlySettlementDate: null,
+                },
+                errors: null,
+                errorFields: {
+                    monthlySettlementDate: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                monthlySettlementDate,
+                previousMonthlySettlementDate: currentMonthlySettlementDate ?? null,
+                pendingFields: {
+                    monthlySettlementDate: null,
+                },
+                errors: null,
+                errorFields: {
+                    monthlySettlementDate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const params: UpdateTravelInvoicingSettlementFrequencyParams = {
+        policyID,
+        workspaceAccountID,
+        settlementFrequency: frequency,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears any errors from the Travel Invoicing settlement frequency settings.
+ */
+function clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID: number, monthlySettlementDate: Date | null | undefined) {
+    const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`,
+            value: {
+                errors: null,
+                errorFields: {
+                    monthlySettlementDate: null,
+                },
+                monthlySettlementDate: monthlySettlementDate ?? null,
+                previousMonthlySettlementDate: null,
+            },
+        },
+    ];
+    Onyx.update(onyxData);
+}
+
+export {
+    openPolicyTravelPage,
+    setTravelInvoicingSettlementAccount,
+    clearTravelInvoicingSettlementAccountErrors,
+    clearTravelInvoicingSettlementFrequencyErrors,
+    updateTravelInvoiceSettlementFrequency,
+};

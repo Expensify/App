@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,11 +6,14 @@ import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {openPolicyTravelPage} from '@libs/actions/TravelInvoicing';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -22,6 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import BookOrManageYourTrip from './BookOrManageYourTrip';
 import GetStartedTravel from './GetStartedTravel';
 import ReviewingRequest from './ReviewingRequest';
+import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
 type WorkspaceTravelPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL>;
 
@@ -37,15 +41,30 @@ function WorkspaceTravelPage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const illustrations = useMemoizedLazyIllustrations(['Luggage'] as const);
+    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+
+    const fetchTravelData = useCallback(() => {
+        openPolicyTravelPage(policyID, workspaceAccountID);
+    }, [policyID, workspaceAccountID]);
+
+    useNetwork({onReconnect: fetchTravelData});
+
+    useEffect(() => {
+        fetchTravelData();
+    }, [fetchTravelData]);
 
     const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
 
     const mainContent = (() => {
         switch (step) {
             case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
+                if (isTravelInvoicingEnabled) {
+                    return <WorkspaceTravelInvoicingSection policyID={policyID} />;
+                }
                 return <BookOrManageYourTrip policyID={policyID} />;
             case CONST.TRAVEL.STEPS.REVIEWING_REQUEST:
                 return <ReviewingRequest />;

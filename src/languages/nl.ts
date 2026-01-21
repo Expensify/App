@@ -5021,6 +5021,22 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     subtitle: 'Gebruik Expensify Travel om de beste reisaanbiedingen te krijgen en beheer al uw zakelijke uitgaven op één plek.',
                     ctaText: 'Boeken of beheren',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {title: 'Reisboeking', subtitle: 'Gefeliciteerd! Je kunt nu reizen boeken en beheren in deze werkruimte.', manageTravelLabel: 'Reizen beheren'},
+                    centralInvoicingSection: {
+                        title: 'Centrale facturatie',
+                        subtitle: 'Centraliseer alle reiskosten in één maandelijkse factuur in plaats van bij aankoop te betalen.',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Meer informatie.</a></muted-text>`,
+                        subsections: {
+                            currentTravelSpendLabel: 'Huidige reiskosten',
+                            currentTravelSpendCta: 'Saldo betalen',
+                            currentTravelLimitLabel: 'Huidige reislimoet',
+                            settlementAccountLabel: 'Afwikkelingsrekening',
+                            settlementFrequencyLabel: 'Frequentie van afwikkeling',
+                            settlementFrequencyDescription: 'Hoe vaak Expensify geld van uw zakelijke bankrekening zal incasseren om recente Expensify Travel-transacties te vereffenen.',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',

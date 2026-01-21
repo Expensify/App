@@ -460,6 +460,8 @@ const WRITE_COMMANDS = {
     DELETE_SAVED_SEARCH: 'DeleteSavedSearch',
     UPDATE_CARD_SETTLEMENT_FREQUENCY: 'UpdateCardSettlementFrequency',
     UPDATE_CARD_SETTLEMENT_ACCOUNT: 'UpdateCardSettlementAccount',
+    SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'SetTravelInvoicingSettlementAccount',
+    UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY: 'UpdateTravelInvoiceSettlementFrequency',
     UPDATE_XERO_IMPORT_TRACKING_CATEGORIES: 'UpdateXeroImportTrackingCategories',
     UPDATE_XERO_IMPORT_TAX_RATES: 'UpdateXeroImportTaxRates',
     UPDATE_XERO_TENANT_ID: 'UpdateXeroTenantID',
@@ -1031,6 +1033,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_SAVED_SEARCH]: Parameters.DeleteSavedSearchParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY]: Parameters.UpdateCardSettlementFrequencyParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT]: Parameters.UpdateCardSettlementAccountParams;
+    [WRITE_COMMANDS.SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: Parameters.SetTravelInvoicingSettlementAccountParams;
+    [WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY]: Parameters.UpdateTravelInvoicingSettlementFrequencyParams;
     [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: Parameters.SetPersonalDetailsAndShipExpensifyCardsParams;
     [WRITE_COMMANDS.SELF_TOUR_VIEWED]: null;
 
@@ -1145,6 +1149,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_REPORT_FIELDS_PAGE: 'OpenPolicyReportFieldsPage',
     OPEN_POLICY_RULES_PAGE: 'OpenPolicyRulesPage',
     OPEN_POLICY_EXPENSIFY_CARDS_PAGE: 'OpenPolicyExpensifyCardsPage',
+    OPEN_POLICY_TRAVEL_PAGE: 'OpenPolicyTravelPage',
     OPEN_POLICY_COMPANY_CARDS_FEED: 'OpenPolicyCompanyCardsFeed',
     OPEN_ASSIGN_FEED_CARD_PAGE: 'OpenAssignFeedCardPage',
     OPEN_POLICY_COMPANY_CARDS_PAGE: 'OpenPolicyCompanyCardsPage',
@@ -1237,6 +1242,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE]: Parameters.OpenPolicyMoreFeaturesPageParams;
     [READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE]: Parameters.OpenPolicyAccountingPageParams;
     [READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
+    [READ_COMMANDS.OPEN_POLICY_TRAVEL_PAGE]: Parameters.OpenPolicyTravelPageParams;
     [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
     [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED]: Parameters.OpenPolicyCompanyCardsFeedParams;
     [READ_COMMANDS.OPEN_ASSIGN_FEED_CARD_PAGE]: Parameters.OpenPolicyCompanyCardsFeedParams;

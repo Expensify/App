@@ -17,8 +17,14 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether monthly option should appear in the settlement frequency settings */
     isMonthlySettlementAllowed: boolean;
 
+    /** The previous monthly settlement date, used for reverting failed updates */
+    previousMonthlySettlementDate?: Date;
+
     /** The bank account chosen for the card settlement */
     paymentBankAccountID: number;
+
+    /** The previous bank account chosen for the card settlement, used for reverting failed updates */
+    previousPaymentBankAccountID?: number;
 
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
@@ -43,6 +49,9 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Number of the bank account used for the card settlement */
     paymentBankAccountNumber?: string;
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 export default ExpensifyCardSettings;

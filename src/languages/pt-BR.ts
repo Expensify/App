@@ -5009,6 +5009,27 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     subtitle: 'Use o Expensify Travel para obter as melhores ofertas de viagem e gerencie todas as suas despesas comerciais em um só lugar.',
                     ctaText: 'Reservar ou gerenciar',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Reserva de viagem',
+                        subtitle: 'Parabéns! Agora você está pronto para reservar e gerenciar viagens neste workspace.',
+                        manageTravelLabel: 'Gerenciar viagens',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Faturamento centralizado',
+                        subtitle: 'Centralize todos os gastos de viagem em uma fatura mensal em vez de pagar no momento da compra.',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Saiba como.</a></muted-text>`,
+                        subsections: {
+                            currentTravelSpendLabel: 'Gasto atual com viagens',
+                            currentTravelSpendCta: 'Pagar saldo',
+                            currentTravelLimitLabel: 'Limite de viagem atual',
+                            settlementAccountLabel: 'Conta de liquidação',
+                            settlementFrequencyLabel: 'Frequência de liquidação',
+                            settlementFrequencyDescription:
+                                'Com que frequência o Expensify vai debitar da sua conta bancária empresarial para liquidar as transações recentes do Expensify Travel.',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Cartão Expensify',

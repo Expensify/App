@@ -5009,6 +5009,26 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     subtitle: 'Użyj Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzaj wszystkimi wydatkami służbowymi w jednym miejscu.',
                     ctaText: 'Rezerwuj lub zarządzaj',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Rezerwacja podróży',
+                        subtitle: 'Gratulacje! Wszystko gotowe, aby rezerwować i zarządzać podróżami w tym obszarze roboczym.',
+                        manageTravelLabel: 'Zarządzaj podróżami',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Centralne fakturowanie',
+                        subtitle: 'Scentralizuj wszystkie wydatki na podróże w miesięcznej fakturze zamiast płacić w momencie zakupu.',
+                        learnHow: `<muted-text><a href="${CONST.FOOTER.TRAVEL_URL}">Dowiedz się jak.</a></muted-text>`,
+                        subsections: {
+                            currentTravelSpendLabel: 'Aktualne wydatki na podróże',
+                            currentTravelSpendCta: 'Zapłać saldo',
+                            currentTravelLimitLabel: 'Obecny limit podróży',
+                            settlementAccountLabel: 'Konto rozliczeniowe',
+                            settlementFrequencyLabel: 'Częstotliwość rozliczeń',
+                            settlementFrequencyDescription: 'Jak często Expensify będzie pobierać środki z firmowego konta bankowego, aby rozliczyć ostatnie transakcje Expensify Travel.',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Karta Expensify',
