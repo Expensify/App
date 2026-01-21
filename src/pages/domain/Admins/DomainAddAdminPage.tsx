@@ -53,7 +53,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const didInvite = useRef<boolean>(false);
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
-    const {searchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeRecentReports: false,
@@ -64,8 +64,8 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     });
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const inviteUser = () => {
         if (didInvite.current || !currentlySelectedUser || !currentlySelectedUser.accountID || !currentlySelectedUser.login || !domainName) {
@@ -116,6 +116,19 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         />
     );
 
+    const headerMessage = () => {
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+
+        const searchedUserPersonalDetails = availableOptions.personalDetails.find(({login}) => login?.toLowerCase() === searchValue);
+        if (!availableOptions.userToInvite && searchedUserPersonalDetails?.accountID && adminIDs?.includes(searchedUserPersonalDetails.accountID)) {
+            return translate('messages.userIsAlreadyAnAdmin', {login: searchValue, name: domainName ?? ''});
+        }
+        return getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    };
+
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
@@ -131,13 +144,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                 />
                 <SelectionList
                     sections={sections}
-                    headerMessage={getHeaderMessage(
-                        filteredOptions.length > 0 || !!currentlySelectedUser,
-                        !!availableOptions.userToInvite,
-                        searchTerm.trim().toLowerCase(),
-                        countryCode,
-                        false,
-                    )}
+                    headerMessage={headerMessage()}
                     ListItem={InviteMemberListItem}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
