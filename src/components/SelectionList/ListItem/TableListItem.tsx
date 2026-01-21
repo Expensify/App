@@ -30,10 +30,6 @@ function TableListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-<<<<<<< HEAD
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
-=======
->>>>>>> 3f086a1a2188f2ca015802f38cac08add3952c43
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
