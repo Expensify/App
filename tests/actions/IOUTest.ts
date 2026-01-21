@@ -3777,6 +3777,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 iouReportNextStep: undefined,
+                allBetas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
