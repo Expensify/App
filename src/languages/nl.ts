@@ -1446,9 +1446,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'U kunt geen dagvergoedingskosten verplaatsen naar rapporten op andere werkruimtes, omdat de dagvergoedingstarieven tussen werkruimtes kunnen verschillen.',
         changeApprover: {
             title: 'Fiatteur wijzigen',
-            subtitle: 'Kies een optie om de fiatteur voor dit rapport te wijzigen.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Je kunt de goedkeurder ook permanent wijzigen voor alle rapporten in je <a href="${workflowSettingLink}">workflowinstellingen</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Kies een optie om de goedkeurder voor dit rapport te wijzigen. (Werk uw <a href="${workflowSettingLink}">werkruimte-instellingen</a> bij om dit permanent voor alle rapporten te wijzigen.)`,
             changedApproverMessage: (managerID: number) => `heeft de goedkeurder gewijzigd naar <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Goedkeurder toevoegen',
@@ -1949,13 +1948,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Je account is vergrendeld',
         chatToConciergeToUnlock: 'Chat met Concierge om beveiligingsproblemen op te lossen en je account te ontgrendelen.',
         chatWithConcierge: 'Chatten met Concierge',
-    },
-    passwordPage: {
-        changePassword: 'Wachtwoord wijzigen',
-        changingYourPasswordPrompt: 'Je wachtwoord wijzigen zal je wachtwoord bijwerken voor zowel je Expensify.com- als je New Expensify-account.',
-        currentPassword: 'Huidig wachtwoord',
-        newPassword: 'Nieuw wachtwoord',
-        newPasswordPrompt: 'Je nieuwe wachtwoord moet verschillen van je oude wachtwoord en minstens 8 tekens, 1 hoofdletter, 1 kleine letter en 1 cijfer bevatten.',
     },
     twoFactorAuth: {
         headerTitle: 'Twee-factor-authenticatie',
@@ -2990,15 +2982,6 @@ ${
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oeps... ${isBreakLine ? '\n' : ''}Er is iets misgegaan`,
         subtitle: 'Je verzoek kon niet worden voltooid. Probeer het later opnieuw.',
         wrongTypeSubtitle: 'Die zoekopdracht is ongeldig. Probeer je zoekcriteria aan te passen.',
-    },
-    setPasswordPage: {
-        enterPassword: 'Voer een wachtwoord in',
-        setPassword: 'Wachtwoord instellen',
-        newPasswordPrompt: 'Je wachtwoord moet minimaal 8 tekens bevatten, waarvan 1 hoofdletter, 1 kleine letter en 1 cijfer.',
-        passwordFormTitle: 'Welkom terug bij de nieuwe Expensify! Stel je wachtwoord in.',
-        passwordNotSet: 'We konden je nieuwe wachtwoord niet instellen. We hebben je een nieuwe wachtwoordlink gestuurd om het opnieuw te proberen.',
-        setPasswordLinkInvalid: 'Deze link om een wachtwoord in te stellen is ongeldig of verlopen. Er wacht een nieuwe op je in je e‑mailinbox!',
-        validateAccount: 'Account verifiëren',
     },
     statusPage: {
         status: 'Status',
@@ -8017,6 +8000,12 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
         notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om te voltooien'},
         signOutWarningTripInProgress: {title: 'GPS-tracking bezig', prompt: 'Weet je zeker dat je de reis wilt weggooien en uitloggen?', confirm: 'Verwerpen en afmelden'},
+        locationServicesRequiredModal: {
+            title: 'Locatietoegang vereist',
+            confirm: 'Instellingen openen',
+            prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om het bijhouden van GPS-afstand te starten.',
+        },
+        fabGpsTripExplained: 'Ga naar GPS-scherm (Zwevende actie)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

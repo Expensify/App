@@ -1450,9 +1450,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Sie können Per Diem-Ausgaben nicht in Berichte auf anderen Arbeitsbereichen verschieben, da sich die Tagessätze zwischen Arbeitsbereichen unterscheiden können.',
         changeApprover: {
             title: 'Genehmigenden ändern',
-            subtitle: 'Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Sie können den Genehmiger auch dauerhaft für alle Berichte in Ihren <a href="${workflowSettingLink}">Workflow-Einstellungen</a> ändern.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern. (Aktualisieren Sie Ihre <a href="${workflowSettingLink}">Arbeitsbereichseinstellungen</a>, um diese Änderung dauerhaft für alle Berichte zu übernehmen.)`,
             changedApproverMessage: (managerID: number) => `Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
             actions: {
                 addApprover: 'Genehmiger hinzufügen',
@@ -1954,13 +1953,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Ihr Konto ist gesperrt',
         chatToConciergeToUnlock: 'Chatte mit Concierge, um Sicherheitsbedenken zu klären und dein Konto wieder freizuschalten.',
         chatWithConcierge: 'Chat mit Concierge',
-    },
-    passwordPage: {
-        changePassword: 'Passwort ändern',
-        changingYourPasswordPrompt: 'Wenn Sie Ihr Passwort ändern, wird es sowohl für Ihr Expensify.com-Konto als auch für Ihr New-Expensify-Konto aktualisiert.',
-        currentPassword: 'Aktuelles Passwort',
-        newPassword: 'Neues Passwort',
-        newPasswordPrompt: 'Ihr neues Passwort muss sich von Ihrem alten Passwort unterscheiden und mindestens 8 Zeichen, 1 Großbuchstaben, 1 Kleinbuchstaben und 1 Zahl enthalten.',
     },
     twoFactorAuth: {
         headerTitle: 'Zwei-Faktor-Authentifizierung',
@@ -2999,15 +2991,6 @@ ${
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ups … ${isBreakLine ? '\n' : ''}Etwas ist schiefgelaufen`,
         subtitle: 'Ihre Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es später noch einmal.',
         wrongTypeSubtitle: 'Diese Suche ist ungültig. Versuche, deine Suchkriterien anzupassen.',
-    },
-    setPasswordPage: {
-        enterPassword: 'Passwort eingeben',
-        setPassword: 'Passwort festlegen',
-        newPasswordPrompt: 'Dein Passwort muss mindestens 8 Zeichen, 1 Großbuchstaben, 1 Kleinbuchstaben und 1 Zahl enthalten.',
-        passwordFormTitle: 'Willkommen zurück bei New Expensify! Bitte lege dein Passwort fest.',
-        passwordNotSet: 'Wir konnten Ihr neues Passwort nicht festlegen. Wir haben Ihnen einen neuen Passwort-Link gesendet, damit Sie es erneut versuchen können.',
-        setPasswordLinkInvalid: 'Dieser Link zum Festlegen des Passworts ist ungültig oder abgelaufen. Ein neuer wartet bereits in deinem E-Mail-Posteingang auf dich!',
-        validateAccount: 'Konto verifizieren',
     },
     statusPage: {
         status: 'Status',
@@ -8051,6 +8034,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         },
         notification: {title: 'GPS-Tracking läuft', body: 'Zur App gehen, um abzuschließen'},
         signOutWarningTripInProgress: {title: 'GPS-Tracking läuft', prompt: 'Sind Sie sicher, dass Sie die Reise verwerfen und sich abmelden möchten?', confirm: 'Verwerfen und abmelden'},
+        locationServicesRequiredModal: {
+            title: 'Standortzugriff erforderlich',
+            confirm: 'Einstellungen öffnen',
+            prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
+        },
+        fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
