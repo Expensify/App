@@ -233,27 +233,24 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const wereAllTransactionsDeleted = !!(report?.reportID && !reportMetadata?.isLoadingInitialReportActions && visibleTransactions?.length === 0 && !snapshotTransaction);
 
-    const shouldShowAccessErrorPage = useMemo(
-        (): boolean => {
-            if (isLoadingApp !== false) {
-                return false;
-            }
+    const shouldShowAccessErrorPage = useMemo((): boolean => {
+        if (isLoadingApp !== false) {
+            return false;
+        }
 
-            if (!reportID && !reportMetadata?.isLoadingInitialReportActions) {
-                return true;
-            }
+        if (!reportID && !reportMetadata?.isLoadingInitialReportActions) {
+            return true;
+        }
 
-            if (!!reportID && !doesReportIDLookValid) {
-                return true;
-            }
+        if (!!reportID && !doesReportIDLookValid) {
+            return true;
+        }
 
-            return wereAllTransactionsDeleted;
-        },
+        return wereAllTransactionsDeleted;
 
         // isLoadingApp intentionally omitted to avoid re-computing after initial load completes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [reportID, reportMetadata?.isLoadingInitialReportActions, doesReportIDLookValid],
-    );
+    }, [reportID, reportMetadata?.isLoadingInitialReportActions, doesReportIDLookValid, wereAllTransactionsDeleted]);
 
     const prevShouldShowAccessErrorPage = usePrevious(shouldShowAccessErrorPage);
     const participantCount = Object.keys(report?.participants ?? {}).length;
