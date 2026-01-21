@@ -201,25 +201,27 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
                     interactive={false}
                 />
-                <OfflineWithFeedback
-                    pendingAction={card?.pendingFields?.scrapeMinDate}
-                    errorRowStyles={[styles.ph5, styles.mb3]}
-                    errors={getLatestErrorField(card ?? {}, 'scrapeMinDate')}
-                    onClose={() => {
-                        if (!card) {
-                            return;
-                        }
-                        clearCardErrorField(card.cardID, 'scrapeMinDate');
-                    }}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                        title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
-                        shouldShowRightIcon
-                        brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.getRoute(cardID))}
-                    />
-                </OfflineWithFeedback>
+                {!isCSVImportedPersonalCard && (
+                    <OfflineWithFeedback
+                        pendingAction={card?.pendingFields?.scrapeMinDate}
+                        errorRowStyles={[styles.ph5, styles.mb3]}
+                        errors={getLatestErrorField(card ?? {}, 'scrapeMinDate')}
+                        onClose={() => {
+                            if (!card) {
+                                return;
+                            }
+                            clearCardErrorField(card.cardID, 'scrapeMinDate');
+                        }}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                            title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
+                            shouldShowRightIcon
+                            brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.getRoute(cardID))}
+                        />
+                    </OfflineWithFeedback>
+                )}
                 <MenuItem
                     icon={expensifyIcons.MoneySearch}
                     title={translate('workspace.common.viewTransactions')}
