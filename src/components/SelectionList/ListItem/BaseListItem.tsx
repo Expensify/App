@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -81,8 +81,6 @@ function BaseListItem<TItem extends ListItem>({
 
     const shouldShowCheckmark = !canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
 
-    const accessibilityState = useMemo(() => ({selected: !!item.isSelected}), [item.isSelected]);
-
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
     const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark;
@@ -115,7 +113,6 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={item.accessibilityLabel ?? item.text ?? ''}
-                accessibilityState={accessibilityState}
                 role={getButtonRole(true)}
                 isNested
                 hoverDimmingValue={1}
