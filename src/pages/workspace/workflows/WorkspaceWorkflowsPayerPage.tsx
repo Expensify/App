@@ -208,9 +208,9 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         if (!selectedPayer) {
             return;
         }
-        const isOwner = policy?.owner === selectedPayer;
+        const isSelectedPayerOwner = policy?.owner === selectedPayer;
         const isAccountAlreadyShared = policy?.achAccount?.sharees ? policy.achAccount.sharees.includes(selectedPayer) : false;
-        if (isAccountAlreadyShared || isOwner) {
+        if (isAccountAlreadyShared || isSelectedPayerOwner) {
             onButtonPress();
             return;
         }
@@ -220,6 +220,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         }
         const isAccountAlreadySharedWithCurrentUser =
             policy?.achAccount?.sharees && currentUserPersonalDetails?.login ? policy.achAccount.sharees.includes(currentUserPersonalDetails?.login) : false;
+        const isOwner = policy?.owner === currentUserPersonalDetails?.login;
         if (!isOwner && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
             setShowErrorModal(true);
             return;
