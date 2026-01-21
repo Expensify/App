@@ -101,7 +101,7 @@ import type {IOURequestType} from './actions/IOU';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handlePreexistingReport, openUnreportedExpense} from './actions/Report';
+import {openUnreportedExpense} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {removeDraftTransactions} from './actions/TransactionEdit';
@@ -1058,13 +1058,6 @@ Onyx.connectWithoutView({
     callback: (value) => (allPolicyDrafts = value),
 });
 
-let allReportDraftComments: Record<string, string | undefined> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReportDraftComments = value ?? {}),
-});
-
 let allReports: OnyxCollection<Report>;
 let reportsByPolicyID: ReportByPolicyMap;
 Onyx.connectWithoutView({
@@ -1081,8 +1074,6 @@ Onyx.connectWithoutView({
             if (!report) {
                 return acc;
             }
-
-            handlePreexistingReport(report, allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]);
 
             // Get all reports, which are the ones that are:
             // - Owned by the same user
