@@ -7172,8 +7172,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
     },
     cardTransactions: {
         notActivated: 'Non activé',
-        outOfPocket: 'Dépenses hors poche',
-        companySpend: 'Dépenses de l’entreprise',
+        outOfPocket: 'Remboursable',
+        companySpend: 'Non remboursable',
     },
     distance: {
         addStop: 'Ajouter un arrêt',

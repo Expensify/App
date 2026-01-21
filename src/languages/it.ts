@@ -7151,8 +7151,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
     },
     cardTransactions: {
         notActivated: 'Non attivato',
-        outOfPocket: 'Spesa fuori tasca',
-        companySpend: 'Spesa aziendale',
+        outOfPocket: 'Rimborsabile',
+        companySpend: 'Non rimborsabile',
     },
     distance: {
         addStop: 'Aggiungi fermata',

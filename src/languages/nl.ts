@@ -7136,8 +7136,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
     },
     cardTransactions: {
         notActivated: 'Niet geactiveerd',
-        outOfPocket: 'Uit eigen zak uitgegeven kosten',
-        companySpend: 'Bedrijfsuitgaven',
+        outOfPocket: 'Vergoedbaar',
+        companySpend: 'Niet vergoedbaar',
     },
     distance: {
         addStop: 'Stop toevoegen',
