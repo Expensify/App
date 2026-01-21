@@ -39,7 +39,7 @@ type MissingPersonalDetailsContentProps = {
 type PinCodeContextType = {
     finalPinCode: string;
     setFinalPinCode: (newPinCode: string) => void;
-}
+};
 
 const PinCodeContext = createContext<PinCodeContextType>({
     finalPinCode: '',
@@ -119,7 +119,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             finalPinCode,
             setFinalPinCode,
         }),
-        [finalPinCode, setFinalPinCode]
+        [finalPinCode, setFinalPinCode],
     );
 
     return (

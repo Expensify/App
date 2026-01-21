@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
@@ -47,8 +47,6 @@ function TestToolMenu() {
     const [isRegistered, setRegistered] = useState(false);
 
     const [showBiometricsModal, setShowBiometricsModal] = useState(false);
-
-    const biometricsTitle = useMemo(() => `initialSettingsPage.troubleshoot.biometrics.biometrics${isRegistered ? '' : 'Not'}Registered`, [isRegistered]);
 
     // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
     const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: false});

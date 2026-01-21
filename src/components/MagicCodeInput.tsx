@@ -523,7 +523,11 @@ function MagicCodeInput({
                                 ]}
                             >
                                 <View style={styles.magicCodeInputValueContainer}>
-                                    {isInputMasked ? (<Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{CONST.DOT_SEPARATOR}</Text>) : (<Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>)}
+                                    {isInputMasked ? (
+                                        <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{CONST.DOT_SEPARATOR}</Text>
+                                    ) : (
+                                        <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
+                                    )}
                                     {isFocused && !isDisableKeyboard && isCursorOn && (
                                         <View style={[styles.magicCodeInputCursorContainer]}>
                                             {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}

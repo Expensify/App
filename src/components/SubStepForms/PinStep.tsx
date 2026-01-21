@@ -3,25 +3,25 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import FormProvider from '@components/Form/FormProvider';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
+import MagicCodeInput from '@components/MagicCodeInput';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isRequiredFulfilled, isValidPinCode} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
-import type { OnyxFormValuesMapping } from '@src/ONYXKEYS';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
-import type { TranslationPaths } from '@src/languages/types';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import * as Expensicons from '@components/Icon/Expensicons'
-import FormProvider from '@components/Form/FormProvider';
-import MagicCodeInput from '@components/MagicCodeInput';
-import type { SubStepProps } from '@hooks/useSubStep/types';
-import { getLatestErrorMessage } from '@libs/ErrorUtils';
-import useOnyx from '@hooks/useOnyx';
+import type {TranslationPaths} from '@src/languages/types';
+import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PinCodeFormHandle = {
     focus: () => void;
@@ -49,14 +49,7 @@ type PinStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & 
     handleSubmit: (value: string) => void;
 };
 
-function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
-    formID,
-    formTitle,
-    isEditing,
-    innerRef = () => {},
-    pinCodeToMatch,
-    handleSubmit,
-}: PinStepProps<TFormID>) {
+function PinStep<TFormID extends keyof OnyxFormValuesMapping>({formID, formTitle, isEditing, innerRef = () => {}, pinCodeToMatch, handleSubmit}: PinStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [formError, setFormError] = useState<PinCodeFormError>({});
@@ -122,7 +115,7 @@ function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
     const onCodeInput = useCallback(
         (text: string) => {
             setPinCode(text);
-            setFormError({}); 
+            setFormError({});
         },
         [setPinCode],
     );
@@ -173,7 +166,7 @@ function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{formTitle}</Text>
             <View style={[styles.ph15, styles.mb6]}>
                 <MagicCodeInput
-                    autoComplete='one-time-code'
+                    autoComplete="one-time-code"
                     ref={inputPinCodeRef}
                     name="inputPinCode"
                     value={pinCode}
@@ -192,7 +185,7 @@ function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
                     <Button
                         text={translate(`privatePersonalDetails.${isMasked ? 'reveal' : 'hide'}Pin`)}
                         onPress={() => setRevealed(!isMasked)}
-                        icon={isMasked ? (Expensicons.Eye) : (Expensicons.EyeDisabled)}
+                        icon={isMasked ? Expensicons.Eye : Expensicons.EyeDisabled}
                         style={styles.flexShrink1}
                     />
                 </View>
