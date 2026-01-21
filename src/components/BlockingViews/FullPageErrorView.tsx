@@ -26,6 +26,12 @@ type FullPageErrorViewProps = {
     /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
 
+    /** The width of the icon */
+    iconWidth?: number;
+
+    /** The height of the icon */
+    iconHeight?: number;
+
     /** The style of the title message */
     titleStyle?: StyleProp<TextStyle>;
 
@@ -44,6 +50,8 @@ function FullPageErrorView({
     title = '',
     subtitle = '',
     shouldForceFullScreen = false,
+    iconWidth = variables.errorPageIconWidth,
+    iconHeight = variables.errorPageIconHeight,
     subtitleStyle,
     titleStyle,
     containerStyle,
@@ -60,8 +68,8 @@ function FullPageErrorView({
                 >
                     <BlockingView
                         icon={illustrations.BrokenMagnifyingGlass}
-                        iconWidth={variables.errorPageIconWidth}
-                        iconHeight={variables.errorPageIconHeight}
+                        iconWidth={iconWidth}
+                        iconHeight={iconHeight}
                         title={title}
                         titleStyles={titleStyle}
                         subtitle={subtitle}

@@ -351,8 +351,10 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                             shouldShow
                             title={feedErrorTitle}
                             containerStyle={[styles.companyCardsBlockingErrorViewContainer, styles.pb4]}
+                            iconWidth={variables.companyCardsPageNotFoundIconWidth}
+                            iconHeight={variables.companyCardsPageNotFoundIconHeight}
                             subtitle={feedErrorMessage ?? undefined}
-                            titleStyle={[styles.mb2, styles.mt4]}
+                            titleStyle={[styles.mb2, styles.mt8]}
                             subtitleStyle={styles.textSupporting}
                         />
                         <Button
