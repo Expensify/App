@@ -1,6 +1,6 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {GestureResponderEvent, InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -105,7 +105,8 @@ function DatePicker({
         });
     }, [windowHeight]);
 
-    const handlePress = useCallback(() => {
+    const handlePress = useCallback((event?: GestureResponderEvent | KeyboardEvent) => {
+        event?.preventDefault();
         calculatePopoverPosition();
         setIsModalVisible(true);
     }, [calculatePopoverPosition]);
@@ -179,6 +180,7 @@ function DatePicker({
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
+                    disableKeyboard
                 />
             </View>
 
