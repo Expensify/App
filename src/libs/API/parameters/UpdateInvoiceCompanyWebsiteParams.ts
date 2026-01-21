@@ -1,5 +1,4 @@
 type UpdateInvoiceCompanyWebsiteParams = {
-    authToken: string;
     policyID: string;
     companyWebsite: string;
 };
