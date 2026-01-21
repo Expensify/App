@@ -1066,6 +1066,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
         addReceipt: 'Ajouter un reçu',
         scanFailed: 'Le reçu n’a pas pu être scanné, car il manque un commerçant, une date ou un montant.',
+        crop: 'Recadrer',
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
