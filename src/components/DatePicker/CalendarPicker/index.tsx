@@ -1,4 +1,4 @@
-import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
+import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -105,10 +105,9 @@ function CalendarPicker({
      */
     const onDayPressed = (day: number) => {
         setCurrentDateView((prev) => {
-            // convert to UTC to avoid timezone issues
-            const date = new Date(Date.UTC(prev.getFullYear(), prev.getMonth(), prev.getDate()));
-            const newCurrentDateView = setDate(date, day);
-            onSelected?.(format(new Date(newCurrentDateView), CONST.DATE.FNS_FORMAT_STRING));
+            // Create a new date in local timezone with the selected day
+            const newCurrentDateView = new Date(prev.getFullYear(), prev.getMonth(), day);
+            onSelected?.(format(newCurrentDateView, CONST.DATE.FNS_FORMAT_STRING));
             return newCurrentDateView;
         });
     };
