@@ -168,6 +168,13 @@ function WorkspaceReportFieldsPage({
 
     const toggleTitleStyle = useMemo(() => [styles.pv2, styles.pr3], [styles.pv2, styles.pr3]);
 
+    const reportFieldsAccessibilityLabel = useMemo(() => {
+        if (!hasSyncError && isConnectionVerified && currentConnectionName) {
+            return `${translate('workspace.common.reportFields')}, ${translate('workspace.reportFields.importedFromAccountingSoftware')} ${currentConnectionName} ${translate('workspace.accounting.settings')}`;
+        }
+        return `${translate('workspace.common.reportFields')}, ${translate('workspace.reportFields.subtitle')}`;
+    }, [hasSyncError, isConnectionVerified, currentConnectionName, translate]);
+
     const renderReportTitle = useCallback(
         () => (
             <OfflineWithFeedback pendingAction={policy?.pendingAction}>
