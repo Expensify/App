@@ -12,6 +12,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicyData from '@hooks/usePolicyData';
@@ -46,6 +47,7 @@ function CategorySettingsPage({
 }: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
@@ -313,7 +315,7 @@ function CategorySettingsPage({
 
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
-                            icon={Trashcan}
+                            icon={icons.Trashcan}
                             title={translate('workspace.categories.deleteCategory')}
                             onPress={() => {
                                 if (shouldPreventDisableOrDelete) {

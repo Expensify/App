@@ -140,6 +140,7 @@ function Checkbox({
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
             sentryLabel={sentryLabel}
+            shouldUseAutoHitSlop
         >
             {children ?? (
                 <View

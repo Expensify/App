@@ -8,7 +8,6 @@ import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
-import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
@@ -40,6 +39,8 @@ import {
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getMarkedReimbursedMessage,
@@ -65,6 +66,7 @@ import {
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -145,7 +147,6 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {setDownload} from '@userActions/Download';
 import {
     deleteReportActionDraft,
-    explain,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
     openReport,
@@ -242,7 +243,6 @@ type ContextMenuActionPayload = {
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
-    currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -298,7 +298,6 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
               | 'Bug'
               | 'Trashcan'
               | 'ThreeDots'
-              | 'Concierge'
           >;
     onPress: OnPress;
     getDescription: GetDescription;
@@ -412,40 +411,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_UNREAD,
-    },
-    {
-        isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.explain',
-        icon: 'Concierge',
-        shouldShow: ({type, reportAction, isArchivedRoom}): boolean => {
-            if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || isArchivedRoom || !reportAction) {
-                return false;
-            }
-
-            const originalMessage = getOriginalMessage(reportAction);
-            const hasReasoning = !!(originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && originalMessage.reasoning);
-
-            return hasReasoning;
-        },
-        onPress: (closePopover, {reportAction, reportID, translate, currentUserPersonalDetails}) => {
-            if (!reportID) {
-                return;
-            }
-
-            const originalReportID = getOriginalReportID(reportID, reportAction);
-            if (closePopover) {
-                hideContextMenu(false, () => {
-                    KeyboardUtils.dismiss().then(() => {
-                        explain(reportAction, originalReportID, translate, currentUserPersonalDetails?.timezone);
-                    });
-                });
-                return;
-            }
-
-            explain(reportAction, originalReportID, translate, currentUserPersonalDetails?.timezone);
-        },
-        getDescription: () => {},
-        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,
     },
     {
         isAnonymousAction: false,
@@ -800,10 +765,16 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getSubmitsToUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
                     Clipboard.setString(getForwardsToUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
+                    Clipboard.setString(getInvoiceCompanyNameUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
+                    Clipboard.setString(getInvoiceCompanyWebsiteUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER) {
                     Clipboard.setString(getReimburserUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
                     Clipboard.setString(getWorkspaceReimbursementUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT) {
+                    Clipboard.setString(getUpdateACHAccountMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS) {
                     Clipboard.setString(getCompanyAddressUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {

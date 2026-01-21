@@ -67,6 +67,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         return transactionMain;
     }, [isDraftTransaction, mergeTransaction, mergeTransactionID, transactionDraft, transactionMain]);
 
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
@@ -276,7 +277,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             }
 
             const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
-            if (shouldShowDeleteReceiptButton && !hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && !hasMissingSmartscanFields(transaction)) {
+            if (
+                shouldShowDeleteReceiptButton &&
+                !hasOnlyEReceipt &&
+                hasReceipt(transaction) &&
+                !isReceiptBeingScanned(transaction) &&
+                !hasMissingSmartscanFields(transaction, transactionReport)
+            ) {
                 menuItems.push({
                     icon: icons.Trashcan,
                     text: translate('receipt.deleteReceipt'),
@@ -289,19 +296,20 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             // eslint-disable-next-line react-hooks/exhaustive-deps
         },
         [
-            icons.Download,
             shouldShowReplaceReceiptButton,
             isOffline,
             allowDownload,
             draftTransactionID,
             transaction,
             shouldShowDeleteReceiptButton,
+            transactionReport,
+            icons.Camera,
             translate,
             action,
             iouType,
             report?.reportID,
+            icons.Download,
             onDownloadAttachment,
-            icons.Camera,
             icons.Trashcan,
         ],
     );

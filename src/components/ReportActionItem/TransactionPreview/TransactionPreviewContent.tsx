@@ -64,7 +64,7 @@ function TransactionPreviewContent({
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag', 'DotIndicator'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
@@ -127,8 +127,9 @@ function TransactionPreviewContent({
                 currentUserEmail,
                 currentUserAccountID,
                 originalTransaction,
+                locale: preferredLocale,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserEmail, currentUserAccountID, originalTransaction],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserEmail, currentUserAccountID, originalTransaction, preferredLocale],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
