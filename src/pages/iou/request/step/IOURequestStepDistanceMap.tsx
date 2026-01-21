@@ -25,7 +25,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestAmount, setSplitShares, updateMoneyRequestDistance, setDraftSplitTransaction} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, setDraftSplitTransaction, setMoneyRequestAmount, setSplitShares, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
 import {openReport} from '@libs/actions/Report';
@@ -318,7 +318,36 @@ function IOURequestStepDistanceMap({
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
         });
-    }, [iouType, report, policy, transaction, reportID, transactionID, reportAttributesDerived, personalDetails, waypoints, customUnitRateID, currentUserEmailParam, currentUserAccountIDParam, backTo, backToReport, shouldSkipConfirmation, defaultExpensePolicy, isArchived, personalPolicy?.autoReporting, isASAPSubmitBetaEnabled, transactionViolations, lastSelectedDistanceRates, setDistanceRequestData, translate, quickAction, policyRecentlyUsedCurrencies, introSelected, activePolicyID, reportNameValuePairs?.private_isArchived]);
+    }, [
+        iouType,
+        report,
+        policy,
+        transaction,
+        reportID,
+        transactionID,
+        reportAttributesDerived,
+        personalDetails,
+        waypoints,
+        customUnitRateID,
+        currentUserEmailParam,
+        currentUserAccountIDParam,
+        backTo,
+        backToReport,
+        shouldSkipConfirmation,
+        defaultExpensePolicy,
+        isArchived,
+        personalPolicy?.autoReporting,
+        isASAPSubmitBetaEnabled,
+        transactionViolations,
+        lastSelectedDistanceRates,
+        setDistanceRequestData,
+        translate,
+        quickAction,
+        policyRecentlyUsedCurrencies,
+        introSelected,
+        activePolicyID,
+        reportNameValuePairs?.private_isArchived,
+    ]);
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
@@ -418,7 +447,31 @@ function IOURequestStepDistanceMap({
         }
 
         navigateToNextStep();
-    }, [duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isEditing, isLoading, isCreatingNewRequest, navigateToNextStep, isEditingSplit, transaction, transactionBackup, waypoints, report, navigateBack, splitDraftTransaction, policy, parentReport, policyTags, policyCategories, currentUserAccountIDParam, currentUserEmailParam, isASAPSubmitBetaEnabled, parentReportNextStep]);
+    }, [
+        duplicateWaypointsError,
+        atLeastTwoDifferentWaypointsError,
+        hasRouteError,
+        isLoadingRoute,
+        isEditing,
+        isLoading,
+        isCreatingNewRequest,
+        navigateToNextStep,
+        isEditingSplit,
+        transaction,
+        transactionBackup,
+        waypoints,
+        report,
+        navigateBack,
+        splitDraftTransaction,
+        policy,
+        parentReport,
+        policyTags,
+        policyCategories,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
+        parentReportNextStep,
+    ]);
 
     const renderItem = useCallback(
         ({item, drag, isActive, getIndex}: RenderItemParams<string>) => (

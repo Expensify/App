@@ -18,7 +18,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMoneyRequestParticipantsFromReport, setMoneyRequestDistance, updateMoneyRequestDistance, setDraftSplitTransaction} from '@libs/actions/IOU';
+import {getMoneyRequestParticipantsFromReport, setDraftSplitTransaction, setMoneyRequestDistance, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -216,7 +216,43 @@ function IOURequestStepDistanceManual({
                 privateIsArchived: reportNameValuePairs?.private_isArchived,
             });
         },
-        [transactionID, isTransactionDraft, action, iouType, report, policy, transaction, reportID, reportAttributesDerived, personalDetails, customUnitRateID, currentUserEmailParam, currentUserAccountIDParam, backTo, backToReport, shouldSkipConfirmation, defaultExpensePolicy, isArchived, personalPolicy?.autoReporting, isASAPSubmitBetaEnabled, transactionViolations, lastSelectedDistanceRates, translate, quickAction, policyRecentlyUsedCurrencies, introSelected, activePolicyID, reportNameValuePairs?.private_isArchived, isEditingSplit, distance, splitDraftTransaction, parentReport, policyTags, policyCategories, parentReportNextStep],
+        [
+            transactionID,
+            isTransactionDraft,
+            action,
+            iouType,
+            report,
+            policy,
+            transaction,
+            reportID,
+            reportAttributesDerived,
+            personalDetails,
+            customUnitRateID,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
+            backTo,
+            backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            isArchived,
+            personalPolicy?.autoReporting,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            lastSelectedDistanceRates,
+            translate,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            introSelected,
+            activePolicyID,
+            reportNameValuePairs?.private_isArchived,
+            isEditingSplit,
+            distance,
+            splitDraftTransaction,
+            parentReport,
+            policyTags,
+            policyCategories,
+            parentReportNextStep,
+        ],
     );
 
     const submitAndNavigateToNextPage = useCallback(() => {
