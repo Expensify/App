@@ -818,18 +818,30 @@ function ReportActionsList({
     }, [shouldShowSkeleton]);
 
     const renderTopReportActions = useCallback(() => {
-        const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
+        const actionsToPreview = shouldRenderTopReportActionOutsideOfInvertedList ? visibleReportActionsForInvertedList : sortedVisibleReportActions;
+        const previewItems = actionsToPreview.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
         return (
             <>
                 {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
                 <View style={[styles.overflowScroll, styles.overflowXHidden, styles.pt4]}>
                     {previewItems.map((action) => (
-                        <View key={action.reportActionID}>{renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+                        <View key={action.reportActionID}>
+                            {renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}
+                        </View>
                     ))}
                 </View>
             </>
         );
-    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
+    }, [
+        hideComposer,
+        initialNumToRender,
+        renderItem,
+        shouldRenderTopReportActionOutsideOfInvertedList,
+        shouldShowReportRecipientLocalTime,
+        sortedVisibleReportActions,
+        styles,
+        visibleReportActionsForInvertedList,
+    ]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
@@ -859,7 +871,7 @@ function ReportActionsList({
                     {shouldRenderTopReportActionOutsideOfInvertedList && topReportAction
                         ? renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)
                         : undefined}
-                    {shouldScrollToEndAfterLayout && topReportAction && !shouldRenderTopReportActionOutsideOfInvertedList ? renderTopReportActions() : undefined}
+                    {shouldScrollToEndAfterLayout ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
