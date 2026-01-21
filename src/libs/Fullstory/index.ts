@@ -101,6 +101,34 @@ const FS: Fullstory = {
         }
         return FullStory('getSessionAsync', {format: 'url'});
     },
+
+    event: (eventName, eventProperties = {}) => {
+        if (!isInitialized()) {
+            return;
+        }
+        FullStory(CONST.FULLSTORY.OPERATION.TRACK_EVENT, {name: eventName, properties: eventProperties});
+    },
+
+    log: (level, message) => {
+        if (!isInitialized()) {
+            return;
+        }
+        // Browser SDK log method doesn't support level parameter in the same way as native
+        // The level parameter is accepted but we use default level for consistency
+        FullStory('log', {msg: message});
+    },
+
+    setUserVars: (userVars) => {
+        if (!isInitialized()) {
+            return;
+        }
+        FullStory(CONST.FULLSTORY.OPERATION.SET_PROPERTIES, {type: 'user', properties: userVars});
+    },
+
+    resetIdleTimer: () => {
+        // resetIdleTimer is not available in the browser SDK
+        // It's a mobile-only feature
+    },
 };
 
 export default FS;
