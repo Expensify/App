@@ -237,26 +237,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             numberOfLinesTitle={2}
                             rightLabel={isDescriptionRequired ? translate('common.required') : ''}
                         />
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            key={translate('common.date')}
-                            description={translate('common.date')}
-                            title={splitExpenseDraftTransactionDetails?.created}
-                            numberOfLinesTitle={2}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                        reportID,
-                                        Navigation.getActiveRoute(),
-                                    ),
-                                );
-                            }}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                        />
                         {distanceRequestFields}
                         {shouldShowCategory && (
                             <MenuItemWithTopDescription
@@ -320,6 +300,26 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                     />
                                 );
                             })}
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            key={translate('common.date')}
+                            description={translate('common.date')}
+                            title={splitExpenseDraftTransactionDetails?.created}
+                            numberOfLinesTitle={2}
+                            onPress={() => {
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                        reportID,
+                                        Navigation.getActiveRoute(),
+                                    ),
+                                );
+                            }}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                        />
                         <MenuItemWithTopDescription
                             key={translate('common.report')}
                             description={translate('common.report')}
