@@ -3,8 +3,7 @@ import {extractRuleFromForm, formatExpenseRuleChanges, getKeyForRule} from '@lib
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {ExpenseRuleForm} from '@src/types/form';
-import type {ExpenseRule} from '@src/types/onyx';
-import type {TaxRate} from '@src/types/onyx/ExpenseRule';
+import type {ExpenseRule, TaxRate} from '@src/types/onyx';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -45,7 +44,7 @@ describe('extractRuleFromForm', () => {
             tax: 'TAX_123',
         };
 
-        const taxRate: TaxRate = {externalID: 'TAX_123', value: '7.5'};
+        const taxRate: TaxRate = {name: 'Tax Rate 1', value: '7.5'};
         const rule = extractRuleFromForm(form, taxRate);
 
         expect(rule.billable).toBe(form.billable);
@@ -103,7 +102,7 @@ describe('extractRuleFromForm', () => {
             billable: 'true',
             tax: 'TAX_123',
         } as ExpenseRuleForm;
-        const taxRate: TaxRate = {externalID: 'TAX_123', value: '7.5'};
+        const taxRate: TaxRate = {name: 'Tax Rate 1', value: '7.5'};
 
         const result = extractRuleFromForm(form, taxRate);
         expect(result.merchantToMatch).toBe('Test');
