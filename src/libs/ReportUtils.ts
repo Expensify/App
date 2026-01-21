@@ -12594,18 +12594,20 @@ function generateReportAttributes({
     reportActions,
     transactionViolations,
     isReportArchived = false,
+    allReportsViolations,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     reportActions?: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     isReportArchived: boolean;
+    allReportsViolations: OnyxCollection<ReportViolations>;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
     const isReportSettled = isSettled(report);
     const isCurrentUserReportOwner = isReportOwner(report);
-    const doesReportHasViolations = isDraftReport(report?.reportID) && hasReportViolations(report?.reportID);
+    const doesReportHasViolations = isDraftReport(report?.reportID) && hasReportViolations(report?.reportID, allReportsViolations);
     const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
     const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);

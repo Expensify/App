@@ -71,10 +71,12 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
+        ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies],
-        {currentValue, sourceValues, areAllConnectionsSet},
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- _reportMetadata is not used here but we still need to detruct the reportViolations
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, _reportMetadata, reportViolations],
+        {currentValue, sourceValues, areAllConnectionsSet, }
     ) => {
         if (!areAllConnectionsSet) {
             return {
@@ -113,7 +115,7 @@ export default createOnyxDerivedValueConfig({
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
-
+        const allReportsViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_VIOLATIONS] ?? {};
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
 
@@ -136,6 +138,7 @@ export default createOnyxDerivedValueConfig({
             ...Object.keys(reportMetadataUpdates),
             ...Object.keys(reportActionsUpdates),
             ...Object.keys(reportNameValuePairsUpdates),
+            ...Object.keys(allReportsViolationsUpdates),
             ...Array.from(reportUpdatesRelatedToReportActions),
         ];
 
@@ -207,6 +210,7 @@ export default createOnyxDerivedValueConfig({
                 reportActions,
                 transactionViolations,
                 isReportArchived,
+                allReportsViolations: reportViolations,
             });
 
             let brickRoadStatus;
