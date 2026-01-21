@@ -553,10 +553,8 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
     }
 
     const defaultCategoryNames = new Set<string>(Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
-    
-    return Object.values(policyCategories).some(
-        (category) => category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !defaultCategoryNames.has(category.name),
-    );
+
+    return Object.values(policyCategories).some((category) => category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !defaultCategoryNames.has(category.name));
 }
 
 /**
