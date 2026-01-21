@@ -305,9 +305,8 @@ function SettlementButton({
                 return formattedPaymentMethods
                     .filter((method) => {
                         const accountData = method?.accountData as AccountData;
-                        const isCorrectType = accountData?.type === requiredAccountType;
-                        const isNotPartiallySetup = !isBankAccountPartiallySetup(accountData?.state);
-                        return isCorrectType && isNotPartiallySetup;
+                        const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
+                        return accountData?.type === requiredAccountType && !isPartiallySetup;
                     })
                     .map((formattedPaymentMethod) => ({
                         text: formattedPaymentMethod?.title ?? '',
