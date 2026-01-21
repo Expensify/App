@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {resetFailedWorkspaceCompanyCardAssignment, resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {getDefaultCardName} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
@@ -56,6 +57,7 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
 
     const {
         feedName,
+        bankName,
         cardList,
         assignedCards,
         cardNames,
@@ -113,26 +115,32 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
         ? []
         : (cardNames?.map((cardName) => {
               // For direct feeds cardID equals cardName, for commercial feeds it's looked up from cardList
-              const cardID = isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
-              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardID];
+              const encryptedCardNumber = isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
+              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[encryptedCardNumber];
 
               if (failedCompanyCardAssignment) {
-                  return failedCompanyCardAssignment;
+                  return {
+                      ...failedCompanyCardAssignment,
+                      onDismissError: () => resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feedName, failedCompanyCardAssignment.encryptedCardNumber),
+                      isCardDeleted: false,
+                      isAssigned: true,
+                  };
               }
-              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === cardID || card.cardName === cardName);
+
+              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName);
               const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
               return {
                   cardName,
-                  encryptedCardNumber: cardID,
+                  encryptedCardNumber,
                   customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                   isAssigned: !!assignedCard,
-                  hasFailedCardAssignment: false,
                   assignedCard,
                   cardholder,
                   errors: assignedCard?.errors,
                   pendingAction: assignedCard?.pendingAction,
+                  onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
               };
           }) ?? []);
 

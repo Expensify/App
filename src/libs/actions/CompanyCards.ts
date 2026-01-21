@@ -327,11 +327,7 @@ function assignWorkspaceCompanyCard(
         cardholder,
         cardName,
         customCardName,
-        assignedCard: undefined,
-        isAssigned: true,
-        isCardDeleted: false,
         encryptedCardNumber,
-        hasFailedCardAssignment: true,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         errors: {
             failed: translate('workspace.companyCards.assignCardFailedError'),
@@ -409,6 +405,16 @@ function assignWorkspaceCompanyCard(
     API.write(WRITE_COMMANDS.ASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
+function resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID: number, feed: CompanyCardFeedWithDomainID | undefined, encryptedCardNumber: string) {
+    if (!feed) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feed}`, {
+        [encryptedCardNumber]: null,
+    });
+}
+
 function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankName: CompanyCardFeed, card: Card) {
     const cardID = card.cardID;
 
@@ -461,7 +467,7 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
                     [cardID]: {
                         ...card,
                         pendingAction: null,
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.unassignCardFailedError'),
                     },
                 },
             },
@@ -471,7 +477,7 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
                 value: {
                     [cardID]: {
                         pendingAction: null,
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.unassignCardFailedError'),
                     },
                 },
             },
@@ -485,13 +491,21 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
     API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
-function resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID: number, feed: CompanyCardFeedWithDomainID | undefined, encryptedCardNumber: string) {
-    if (!feed) {
+function resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID: number, bankName: CompanyCardFeed | undefined, cardID: number | undefined) {
+    if (!bankName || !cardID) {
         return;
     }
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feed}`, {
-        [encryptedCardNumber]: null,
+    Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`, {
+        [cardID]: {
+            errors: null,
+        },
+    });
+
+    Onyx.merge(ONYXKEYS.CARD_LIST, {
+        [cardID]: {
+            errors: null,
+        },
     });
 }
 
@@ -1006,8 +1020,9 @@ export {
     openPolicyCompanyCardsFeed,
     addNewCompanyCardsFeed,
     assignWorkspaceCompanyCard,
-    unassignWorkspaceCompanyCard,
     resetFailedWorkspaceCompanyCardAssignment,
+    unassignWorkspaceCompanyCard,
+    resetFailedWorkspaceCompanyCardUnassignment,
     updateWorkspaceCompanyCard,
     updateCompanyCardName,
     updateCardTransactionStartDate,

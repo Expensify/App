@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetFailedWorkspaceCompanyCardAssignment} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
@@ -44,12 +43,6 @@ type WorkspaceCompanyCardTableItemProps = {
     /** Policy ID */
     policyID: string;
 
-    /** Feed name */
-    feed: CompanyCardFeedWithDomainID | undefined;
-
-    /** Domain or workspace account ID */
-    domainOrWorkspaceAccountID: number;
-
     /** Card feed icon element */
     CardFeedIcon?: React.ReactNode;
 
@@ -76,8 +69,6 @@ type WorkspaceCompanyCardTableItemProps = {
 function WorkspaceCompanyCardTableItem({
     item,
     policyID,
-    feed,
-    domainOrWorkspaceAccountID,
     CardFeedIcon,
     isPlaidCardFeed,
     shouldUseNarrowTableLayout,
@@ -91,7 +82,7 @@ function WorkspaceCompanyCardTableItem({
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {isOffline} = useNetwork();
 
-    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted, hasFailedCardAssignment, errors, pendingAction} = item;
+    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted, errors, pendingAction, onDismissError} = item;
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
     const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
@@ -99,14 +90,6 @@ function WorkspaceCompanyCardTableItem({
 
     const leftColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const leftColumnSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
-
-    const resetFailedCompanyCardAssignment = () => {
-        if (!hasFailedCardAssignment) {
-            return;
-        }
-
-        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feed, encryptedCardNumber);
-    };
 
     const assignCard = () => onAssignCard(cardName, encryptedCardNumber);
     const isDeleting = !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -116,7 +99,7 @@ function WorkspaceCompanyCardTableItem({
             errorRowStyles={[styles.ph5, styles.mb4]}
             errors={errors}
             pendingAction={pendingAction}
-            onClose={resetFailedCompanyCardAssignment}
+            onClose={onDismissError}
             shouldHideOnDelete={false}
         >
             {isDeleting ? (
