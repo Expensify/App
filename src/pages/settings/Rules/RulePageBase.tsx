@@ -34,7 +34,7 @@ type RulePageBaseProps = {
 };
 
 type SectionType = {
-    titleTranslationKey?: TranslationPaths;
+    titleTranslationKey: TranslationPaths;
     items: Array<
         | {
               descriptionTranslationKey: TranslationPaths;
@@ -154,6 +154,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             ],
         },
         {
+            titleTranslationKey: 'expenseRulesPage.addRule.applyUpdates',
             items: [
                 {
                     descriptionTranslationKey: 'expenseRulesPage.addRule.renameMerchant',
@@ -219,10 +220,8 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                 <HeaderWithBackButton title={translate(titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     {sections.map((section) => (
-                        <View key={section.titleTranslationKey ?? section.items.at(0)?.descriptionTranslationKey}>
-                            {!!section.titleTranslationKey && (
-                                <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
-                            )}
+                        <View key={section.titleTranslationKey}>
+                            <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
                             {section.items.map((item) => {
                                 if (!item) {
                                     return null;

@@ -2373,6 +2373,7 @@ const translations = {
         addRule: {
             title: 'Add rule',
             expenseContains: 'If expense contains:',
+            applyUpdates: 'Then apply these updates:',
             merchantHint: 'Type * to create a rule that applies to all merchants',
             renameMerchant: 'Rename merchant',
             updateCategory: 'Update category',

@@ -2382,6 +2382,7 @@ ${merchant} への ${amount}（${date}）`,
         addRule: {
             title: 'ルールを追加',
             expenseContains: '経費に以下が含まれる場合:',
+            applyUpdates: '次に、これらの更新を適用します。',
             merchantHint: 'すべての加盟店に適用されるルールを作成するには * を入力してください',
             renameMerchant: '支払先名を変更',
             updateCategory: 'カテゴリを更新',

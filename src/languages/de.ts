@@ -2396,6 +2396,7 @@ ${amount} für ${merchant} – ${date}`,
         addRule: {
             title: 'Regel hinzufügen',
             expenseContains: 'Wenn Ausgabe enthält:',
+            applyUpdates: 'Wenden Sie dann diese Aktualisierungen an:',
             merchantHint: 'Gib * ein, um eine Regel zu erstellen, die für alle Händler gilt',
             renameMerchant: 'Händler umbenennen',
             updateCategory: 'Kategorie aktualisieren',

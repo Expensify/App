@@ -2350,6 +2350,7 @@ ${amount}，商户：${merchant} - ${date}`,
         addRule: {
             title: '添加规则',
             expenseContains: '如果报销包含：',
+            applyUpdates: '然后应用这些更新：',
             merchantHint: '输入 * 以创建适用于所有商家的规则',
             renameMerchant: '重命名商家',
             updateCategory: '更新类别',
