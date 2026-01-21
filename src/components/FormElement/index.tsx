@@ -17,7 +17,6 @@ const preventFormDefault = (event: SubmitEvent) => {
 
 function FormElement({ref, ...props}: FormElementProps) {
     const formRef = useRef<HTMLFormElement & View>(null);
-    // eslint-disable-next-line react-compiler/react-compiler
     const mergedRef = mergeRefs(formRef, ref);
 
     useEffect(() => {
