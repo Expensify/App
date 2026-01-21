@@ -10,10 +10,10 @@ import useCompanyCards from '@hooks/useCompanyCards';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDomainOrWorkspaceAccountID, isMaskedCardNumberEqual} from '@libs/CardUtils';
+import {getDefaultCardName, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
@@ -33,7 +33,7 @@ type WorkspaceCompanyCardsTableProps = {
     policy: Policy | undefined;
 
     /** On assign card callback */
-    onAssignCard: (cardID: string) => void;
+    onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
 
     /** Whether to disable assign card button */
     isAssigningCardDisabled: boolean;
@@ -44,7 +44,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
 
     const {
         feedName,
@@ -59,12 +58,13 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
+
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feedName ?? ''}`, {canBeMissing: true});
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
+    const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feedName ?? ''}`, {canBeMissing: true});
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
 
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
@@ -78,7 +78,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const showTableControls = showCards && !!selectedFeed && !isLoadingCards;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
-    const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
+    const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
@@ -107,21 +107,28 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
         : (cardNames?.map((cardName) => {
-              const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
+              // For direct feeds cardID equals cardName, for commercial feeds it's looked up from cardList
+              const cardID = isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
+              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardID];
 
-              const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
-
-              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardName];
-
+              if (failedCompanyCardAssignment) {
+                  return failedCompanyCardAssignment;
+              }
+              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === cardID || card.cardName === cardName);
               const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
-              const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
-
-              const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-              const isAssigned = !!assignedCard;
-
-              return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, failedCompanyCardAssignment};
+              return {
+                  cardName,
+                  encryptedCardNumber: cardID,
+                  customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
+                  isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                  isAssigned: !!assignedCard,
+                  hasFailedCardAssignment: false,
+                  assignedCard,
+                  cardholder,
+                  errors: assignedCard?.errors,
+                  pendingAction: assignedCard?.pendingAction,
+              };
           }) ?? []);
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
@@ -171,13 +178,10 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         const isAssignedCardMatch = assignedKeyword.startsWith(searchLower) && item.isAssigned;
         const isUnassignedCardMatch = unassignedKeyword.startsWith(searchLower) && !item.isAssigned;
 
-        const isMatch =
-            item.cardName.toLowerCase().includes(searchLower) ||
-            (item.customCardName?.toLowerCase().includes(searchLower) ?? false) ||
-            (item.cardholder?.displayName?.toLowerCase().includes(searchLower) ?? false) ||
-            (item.cardholder?.login?.toLowerCase().includes(searchLower) ?? false);
+        const searchTokens = [item.cardName, item.customCardName ?? '', item.cardholder?.displayName ?? '', item.cardholder?.login ?? ''];
 
-        return isMatch || isAssignedCardMatch || isUnassignedCardMatch;
+        const matchingItems = tokenizedSearch([item], searchString, () => searchTokens);
+        return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch;
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceCompanyCardTableItemData> = (item, filterValues) => {
@@ -217,6 +221,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 additionalStyles: styles.cardIcon,
             }}
             selectedFeed={feedName}
+            useSkeletonLoader
         />
     );
 

@@ -28,6 +28,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const checkPermission = useCallback(() => {
         getLocationPermission().then((status) => {
             if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+                setHasError(status === RESULTS.BLOCKED);
                 return;
             }
             onGrant();
@@ -69,11 +70,10 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             setShowModal(true);
             setHasError(status === RESULTS.BLOCKED);
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
-        setIsLoading(true);
         if (hasError) {
             if (Linking.openSettings) {
                 Linking.openSettings();
@@ -90,6 +90,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             setShowModal(false);
             return;
         }
+        setIsLoading(true);
         cb();
     };
 

@@ -7,7 +7,7 @@
 - **Language**: TypeScript
 - **State Management**: React Native Onyx
 - **Navigation**: React Navigation
-- **Platforms**: iOS, Android, Web, Desktop (Electron)
+- **Platforms**: iOS, Android, Web
 
 ## HybridApp Architecture (Critical Context)
 
@@ -22,7 +22,7 @@
 - Mobile builds **must** be initiated from the Mobile-Expensify directory
 
 ### Build Modes
-- **Standalone**: Pure NewDot application (web/desktop)
+- **Standalone**: Pure NewDot application (web)
 - **HybridApp**: Combined OldDot + NewDot (mobile apps)
 - Controlled via `STANDALONE_NEW_DOT` environment variable
 
@@ -236,12 +236,20 @@ npm run ios
 # Android build
 npm run android
 
-# Desktop build
-npm run desktop
-
 # Web build
 npm run web
 ```
+
+## Development Environment
+
+### Dev Server
+- **Location**: Runs on HOST machine (not in VM)
+- **URL**: `https://dev.new.expensify.com:8082/`
+- **Start command**: `npm run web`
+- **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
+
+### Browser Testing
+Use the `/playwright-app-testing` skill to test and debug the App in a browser. Use this skill after making frontend changes to verify your work, or when the user requests testing.
 
 ## Architecture Decisions
 
